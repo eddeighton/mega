@@ -28,6 +28,9 @@
 #include "service/network/sender.hpp"
 #include "service/protocol/common/header.hpp"
 
+#include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/stash.hxx"
+
 #include "runtime/mpo_context.hpp"
 
 #include "mega/reference.hpp"
@@ -37,7 +40,7 @@ namespace mega::service
 
 class Executor;
 
-class Simulation : public ExecutorRequestConversation, public mega::MPOContextImpl
+class Simulation : public ExecutorRequestConversation, public mega::MPOContext
 {
 public:
     using Ptr = std::shared_ptr< Simulation >;
@@ -50,8 +53,13 @@ public:
     virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
     virtual void             run( boost::asio::yield_context& yield_ctx ) override;
 
-    // MPOContextImpl
-    virtual network::mpo::Request_Sender getMPRequest() override;
+    // MPOContext
+    virtual network::mpo::Request_Sender      getMPRequest() override;
+    virtual network::address::Request_Encoder getRootAddressRequest() override;
+    virtual network::enrole::Request_Encoder  getRootEnroleRequest() override;
+    virtual network::stash::Request_Encoder   getRootStashRequest() override;
+    virtual network::memory::Request_Encoder  getDaemonMemoryRequest() override;
+    virtual network::runtime::Request_Sender  getLeafRuntimeRequest() override;
 
     // network::sim::Impl
     virtual bool SimLockRead( const mega::MPO&, boost::asio::yield_context& ) override;
@@ -62,37 +70,21 @@ public:
     virtual void      SimDestroy( boost::asio::yield_context& ) override;
 
     // network::leaf_exe::Impl
-    virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const MPO&                  mpo,
+                             const reference&            root,
+                             const std::string&          strMemory,
+                             boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
 
-    // mega::MPOContext - native code interface
-    // queries
-    virtual MPOContext::MachineIDVector        getMachines() override;
-    virtual MPOContext::MachineProcessIDVector getProcesses( MachineID machineID ) override;
-    virtual MPOContext::MPOVector              getMPO( MP machineProcess ) override;
-
     // mega::MPOContext
     // clock
     virtual TimeStamp cycle() override { return m_clock.cycle(); }
     virtual F32       ct() override { return m_clock.ct(); }
     virtual F32       dt() override { return m_clock.dt(); }
-
-    // mega::MPOContext
-    // memory management
-    virtual std::string    acquireMemory( MPO mpo ) override;
-    virtual MPO            getNetworkAddressMPO( NetworkAddress networkAddress ) override;
-    virtual NetworkAddress getRootNetworkAddress( MPO mpo ) override;
-    virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override;
-    virtual void           deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) override;
-
-    // mega::MPOContext
-    // stash
-    virtual void stash( const std::string& filePath, mega::U64 determinant ) override;
-    virtual bool restore( const std::string& filePath, mega::U64 determinant ) override;
 
 private:
     void issueClock();

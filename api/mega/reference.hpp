@@ -70,7 +70,7 @@ static_assert( sizeof( TypeInstance ) == 4U, "Invalid TypeInstance Size" );
 using AddressStorage                         = U64; // recheck numeric_limits if change
 static constexpr AddressStorage NULL_ADDRESS = 0x0;
 
-using ProcessAddress = void*;
+using ProcessAddress = I64;
 using NetworkAddress = U64;
 
 struct NetworkOrProcessAddress
@@ -85,12 +85,12 @@ struct NetworkOrProcessAddress
         : nop_storage( NULL_ADDRESS )
     {
     }
-    inline NetworkOrProcessAddress( ProcessAddress processAddress )
-        : pointer( processAddress )
-    {
-    }
     inline NetworkOrProcessAddress( NetworkAddress networkAddress )
         : network( networkAddress )
+    {
+    }
+    inline NetworkOrProcessAddress( ProcessAddress processAddress )
+        : pointer( processAddress )
     {
     }
 
@@ -181,7 +181,7 @@ class MPO
     {
         MPOStorageType owner : 8, process : 4, machine : 3, address_type : 1;
     };
-    static_assert( sizeof( MachineProcessOwner ) == 2U, "Invalid MachineAddress Size" );
+    static_assert( sizeof( MachineProcessOwner ) == 2U, "Invalid MachineProcessOwner Size" );
 
     union
     {
@@ -225,56 +225,18 @@ public:
 };
 static_assert( sizeof( MPO ) == 2U, "Invalid MPO Size" );
 
-using ObjectID = U16;
-
-struct ObjectAddress
-{
-    ObjectID    object;
-    inline bool operator==( const ObjectAddress& cmp ) const { return ( object == cmp.object ); }
-    inline bool operator!=( const ObjectAddress& cmp ) const { return !( *this == cmp ); }
-    inline bool operator<( const ObjectAddress& cmp ) const { return object < cmp.object; }
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& object;
-    }
-};
-static_assert( sizeof( ObjectAddress ) == 2U, "Invalid ObjectAddress Size" );
-
-struct MachineAddress : ObjectAddress, MPO
-{
-    inline bool operator==( const MachineAddress& cmp ) const
-    {
-        return ObjectAddress::operator==( cmp ) && MPO::operator==( cmp );
-    }
-    inline bool operator!=( const MachineAddress& cmp ) const { return !( *this == cmp ); }
-    inline bool operator<( const MachineAddress& cmp ) const
-    {
-        return ObjectAddress::operator!=( cmp ) ? ObjectAddress::operator<( cmp ) : MPO::operator<( cmp );
-    }
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& static_cast< ObjectAddress& >( *this );
-        archive& static_cast< MPO& >( *this );
-    }
-};
-static_assert( sizeof( MachineAddress ) == 4U, "Invalid MachineAddress Size" );
-
-struct reference : TypeInstance, MachineAddress, NetworkOrProcessAddress
+struct reference : TypeInstance, MPO, NetworkOrProcessAddress
 {
     inline reference() = default;
-    inline reference( TypeInstance typeInstance, MachineAddress machineAddress )
+    inline reference( TypeInstance typeInstance, MPO mpo )
         : TypeInstance( typeInstance )
-        , MachineAddress( machineAddress )
+        , MPO( mpo )
     {
         setIsMachine();
     }
-    inline reference( TypeInstance typeInstance, MachineAddress machineAddress, ProcessAddress process )
+    inline reference( TypeInstance typeInstance, MPO mpo, ProcessAddress process )
         : TypeInstance( typeInstance )
-        , MachineAddress( machineAddress )
+        , MPO( mpo )
         , NetworkOrProcessAddress( process )
     {
         setIsMachine();
@@ -331,7 +293,7 @@ struct reference : TypeInstance, MachineAddress, NetworkOrProcessAddress
     inline void serialize( Archive& archive, const unsigned int version )
     {
         archive& static_cast< TypeInstance& >( *this );
-        archive& static_cast< MachineAddress& >( *this );
+        archive& static_cast< MPO& >( *this );
         archive& static_cast< NetworkOrProcessAddress& >( *this );
     }
 };

@@ -71,61 +71,8 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads, short d
           }(),
           network::Node::Executor, daemonPortNumber )
 {
-    // determine megastructure installation from the root so can load the parser dll
-    // initialise the runtime using root active project if there is one
-    {
-        Executor& thisRef = *this;
-        auto      func    = [ &thisRef ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-        {
-            network::exe_leaf::Request_Sender exe_leaf( con, sender, yield_ctx );
-
-            mega::network::Project currentProject;
-            {
-                network::project::Request_Encoder projectRequest(
-                    [ &exe_leaf ]( const network::Message& msg ) { return exe_leaf.ExeRoot( msg ); }, con.getID() );
-
-                {
-                    thisRef.m_megastructureInstallation = projectRequest.GetMegastructureInstallation();
-                    VERIFY_RTE_MSG( !thisRef.m_megastructureInstallation.isEmpty(),
-                                    "Invalid mega structure installation returned from root" );
-                    thisRef.m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
-                        thisRef.m_megastructureInstallation.getParserPath(), "g_parserSymbol" );
-                }
-
-                currentProject = projectRequest.GetProject();
-            }
-
-            if ( !currentProject.isEmpty() )
-            {
-                if ( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
-                {
-                    network::memory::Request_Encoder  memoryRequest( [ &exe_leaf ]( const network::Message& msg )
-                                                                    { return exe_leaf.ExeDaemon( msg ); },
-                                                                    con.getID() );
-                    const mega::network::MemoryConfig memoryConfig = memoryRequest.GetSharedMemoryConfig();
-                    mega::runtime::initialiseRuntime( thisRef.m_megastructureInstallation, currentProject,
-                                                      memoryConfig.getMemory(), memoryConfig.getMutex(),
-                                                      memoryConfig.getMap() );
-                    SPDLOG_TRACE( "Executor runtime initialised with project: {}",
-                                  currentProject.getProjectInstallPath().string() );
-                }
-                else
-                {
-                    SPDLOG_WARN( "Could not initialised runtime.  Active project: {} has no database",
-                                  currentProject.getProjectInstallPath().string() );
-                }
-            }
-            else
-            {
-                SPDLOG_WARN( "Could not initialised runtime.  No active project" );
-            }
-        };
-        conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(
-                                   *this, createConversationID( getLeafSender().getConnectionID() ),
-                                   getLeafSender().getConnectionID(), std::move( func ) ) ),
-                               m_leaf );
-    }
+    m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
+        m_leaf.getMegastructureInstallation().getParserPath(), "g_parserSymbol" );
 }
 
 Executor::~Executor()
@@ -142,17 +89,6 @@ network::ConversationBase::Ptr Executor::joinConversation( const network::Connec
     return network::ConversationBase::Ptr(
         new ExecutorRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
-/*
-void Executor::reportSimulations( network::Status& status ) const
-{
-    ReadLock lock( m_mutex );
-    for( const auto& [ id, pSim ] : m_simulations )
-    {
-        network::Status simStatus;
-
-    }
-
-}*/
 
 void Executor::getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const
 {

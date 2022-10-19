@@ -24,37 +24,22 @@
 
 #include "mega/invocation_id.hpp"
 
-#include "service/protocol/common/megastructure_installation.hpp"
-#include "service/protocol/common/project.hpp"
-
 namespace mega::runtime
 {
-void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
-                        const mega::network::Project&                   project,
-                        const std::string&                              addressSpaceMemory,
-                        const std::string&                              addressSpaceMutex,
-                        const std::string&                              addressSpaceMap );
-bool isRuntimeInitialised();
 
-class MPORoot
-{
-public:
-    MPORoot( mega::MPO mpo );
-    ~MPORoot();
+#define FUNCTION_ARG_0( return_type, name ) return_type name();
+#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
+#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name );
+#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
 
-    mega::reference root() const { return m_root; }
+#include "module_interface.hxx"
 
-private:
-    mega::reference m_root;
-};
-reference get_root( mega::MPO mpo );
-
-void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction );
-void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction );
-void get_write( const char* pszUnitName, const mega::InvocationID& invocationID, WriteFunction* ppFunction );
-void get_call( const char* pszUnitName, const mega::InvocationID& invocationID, CallFunction* ppFunction );
-void get_start( const char* pszUnitName, const mega::InvocationID& invocationID, StartFunction* ppFunction );
-void get_stop( const char* pszUnitName, const mega::InvocationID& invocationID, StopFunction* ppFunction );
+#undef FUNCTION_ARG_0
+#undef FUNCTION_ARG_1
+#undef FUNCTION_ARG_2
+#undef FUNCTION_ARG_3
 
 } // namespace mega::runtime
 

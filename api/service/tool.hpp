@@ -60,11 +60,15 @@ public:
     const mega::MPO& getMPO() const { return m_mpo.value(); }
     void             setMPO( mega::MPO mpo ) { m_mpo = mpo; }
 
+    const mega::reference& getRoot() const { return m_root.value(); }
+    void                   setRoot( const mega::reference& root ) { m_root = root; }
+
 private:
-    boost::asio::io_context    m_io_context;
-    network::ReceiverChannel   m_receiverChannel;
-    Leaf                       m_leaf;
-    std::optional< mega::MPO > m_mpo;
+    boost::asio::io_context          m_io_context;
+    network::ReceiverChannel         m_receiverChannel;
+    Leaf                             m_leaf;
+    std::optional< mega::MPO >       m_mpo;
+    std::optional< mega::reference > m_root;
 };
 
 } // namespace mega::service

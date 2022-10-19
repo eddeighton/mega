@@ -20,8 +20,6 @@
 #ifndef CODE_GENERATOR_16_AUG_2022
 #define CODE_GENERATOR_16_AUG_2022
 
-#include "runtime/api.hpp"
-
 #include "database.hpp"
 
 #include "service/protocol/common/megastructure_installation.hpp"

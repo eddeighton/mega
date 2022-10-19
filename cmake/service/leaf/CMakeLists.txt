@@ -40,6 +40,7 @@ set( MEGA_LEAF_SRC
     ${MEGA_SRC_DIR}/service/leaf/leaf.cpp
     ${MEGA_SRC_DIR}/service/leaf/routing.cpp
     ${MEGA_SRC_DIR}/service/leaf/status.cpp
+    ${MEGA_SRC_DIR}/service/leaf/runtime.cpp
 )
 
 add_library( leaf
@@ -51,6 +52,7 @@ target_compile_options( leaf PUBLIC "-fcoroutines" )
 
 target_link_libraries( leaf protocol )
 target_link_libraries( leaf network )
+target_link_libraries( leaf runtime )
 
 target_include_directories( leaf PUBLIC ${MEGA_API_DIR} )
 target_include_directories( leaf PUBLIC ${MEGA_SRC_DIR} )

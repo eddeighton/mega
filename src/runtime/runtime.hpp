@@ -53,37 +53,13 @@ class Runtime
 {
     friend class ObjectTypeAllocator;
 
-    // NetworkAddress -> MachineAddress
-    using ObjectTypeAllocatorMap = std::unordered_map< TypeID, ObjectTypeAllocator::Ptr >;
-
-    using MPOSharedMemory    = runtime::ManagedSharedMemory;
-    using MPOSharedMemoryPtr = std::unique_ptr< MPOSharedMemory >;
-    ManagedSharedMemory& getSharedMemoryManager( MPO mpo );
-
-    using MPOContextMemoryMap = std::unordered_map< MPO, MPOSharedMemoryPtr, MPO::Hash >;
-    using MPOContextRoot      = std::unordered_map< MPO, reference, MPO::Hash >;
-
-    ObjectTypeAllocator::Ptr getOrCreateObjectTypeAllocator( TypeID objectTypeID );
-
 public:
     Runtime( const network::MegastructureInstallation& megastructureInstallation,
-             const network::Project&                   project,
-             const AddressSpace::Names&                addressSpaceNames );
-
-    NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID );
-    reference      allocateMachineAddress( MPO mpo, TypeID objectTypeID, NetworkAddress networkAddress );
-    reference      networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress );
-
-    reference getRoot( const MPO& mpo );
-    void      deAllocateRoot( const MPO& mpo );
-
-    void get_getter_shared( const char* pszUnitName, TypeID objectTypeID, GetSharedFunction* ppFunction );
-    void get_getter_heap( const char* pszUnitName, TypeID objectTypeID, GetSharedFunction* ppFunction );
-    void get_getter_call( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
-
-    JITCompiler::Module::Ptr compile( const std::string& strCode );
+             const network::Project&                   project );
 
     JITCompiler::Module::Ptr get_allocation( TypeID objectTypeID );
+    
+    void get_getter_call( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
     void get_allocate( const char* pszUnitName, const InvocationID& invocationID, AllocateFunction* ppFunction );
     void get_read( const char* pszUnitName, const InvocationID& invocationID, ReadFunction* ppFunction );
     void get_write( const char* pszUnitName, const InvocationID& invocationID, WriteFunction* ppFunction );
@@ -92,20 +68,15 @@ public:
     void get_stop( const char* pszUnitName, const mega::InvocationID& invocationID, StopFunction* ppFunction );
 
 private:
+    JITCompiler::Module::Ptr compile( const std::string& strCode );
+
     const network::MegastructureInstallation m_megastructureInstallation;
     const network::Project                   m_project;
-    std::recursive_mutex                     m_jitMutex;
 
     JITCompiler      m_jitCompiler;
     CodeGenerator    m_codeGenerator;
     DatabaseInstance m_database;
     ComponentManager m_componentManager;
-    AddressSpace     m_addressSpace;
-
-    // these three are order dependent - m_executionContextMemory owns the shared memory
-    MPOContextMemoryMap    m_executionContextMemory;
-    ObjectTypeAllocatorMap m_objectTypeAllocatorMapping;
-    MPOContextRoot         m_executionContextRoot;
 
     // use unordered_map
     using InvocationMap = std::map< InvocationID, JITCompiler::Module::Ptr >;

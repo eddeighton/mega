@@ -35,6 +35,8 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
                                                            boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
+    if ( result = network::runtime::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     if ( result = network::term_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
@@ -295,33 +297,45 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
             THROW_RTE( "Unknown node type" );
     }
 }
-void LeafRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+void LeafRequestConversation::RootSimRun( const MPO& mpo, const NetworkAddress& networkAddress,
+                                          const std::string& strMemory, boost::asio::yield_context& yield_ctx )
 {
     struct MPOEntry
     {
-        std::set< mega::MPO >& mpos;
-        const mega::MPO&       mpo;
-        MPOEntry( std::set< mega::MPO >& mpos, const mega::MPO& mpo )
-            : mpos( mpos )
+        runtime::Runtime&     runtime;
+        std::set< MPO >&      mpos;
+        const MPO&            mpo;
+        const NetworkAddress& networkAddress;
+
+        NetworkAddress rootNetAddress;
+        reference      root;
+
+        MPOEntry( runtime::Runtime& runtime, std::set< MPO >& mpos, const MPO& mpo,
+                  const NetworkAddress& networkAddress )
+            : runtime( runtime )
+            , mpos( mpos )
             , mpo( mpo )
+            , networkAddress( networkAddress )
         {
+            // root = networkToMachine( mpo, ROOT_TYPE_ID, networkAddress );
             mpos.insert( mpo );
         }
         ~MPOEntry() { mpos.erase( mpo ); }
     };
 
     SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", mpo );
+    VERIFY_RTE_MSG( m_leaf.m_pRuntime.get(), "Runtime not initialised in RootSimRun" );
     switch ( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
         {
-            MPOEntry mpoEntry( m_leaf.m_mpos, mpo );
-            return getExeSender( yield_ctx ).RootSimRun( mpo );
+            MPOEntry mpoEntry( *m_leaf.m_pRuntime, m_leaf.m_mpos, mpo, networkAddress );
+            return getExeSender( yield_ctx ).RootSimRun( mpo, mpoEntry.root, strMemory );
         }
         case network::Node::Tool:
         {
-            MPOEntry mpoEntry( m_leaf.m_mpos, mpo );
-            return getToolSender( yield_ctx ).RootSimRun( mpo );
+            MPOEntry mpoEntry( *m_leaf.m_pRuntime, m_leaf.m_mpos, mpo, networkAddress );
+            return getToolSender( yield_ctx ).RootSimRun( mpo, mpoEntry.root, strMemory );
         }
         case network::Node::Terminal:
         case network::Node::Daemon:

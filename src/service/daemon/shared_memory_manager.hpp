@@ -31,7 +31,7 @@
 
 #include <string>
 #include <sstream>
-#include <map>
+#include <unordered_map>
 
 namespace mega::service
 {
@@ -71,7 +71,7 @@ class SharedMemoryManager
         runtime::ManagedSharedMemory m_memory;
     };
 
-    using SharedMemoryMap = std::map< mega::MPO, SharedMemory::Ptr >;
+    using SharedMemoryMap = std::unordered_map< mega::MPO, SharedMemory::Ptr, mega::MPO::Hash >;
 
     std::string memoryName( const mega::MPO& mpo ) const
     {

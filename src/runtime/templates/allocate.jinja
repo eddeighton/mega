@@ -24,8 +24,11 @@
 
 static const char* g_pszModuleName = "{{module_name}}";
 
-{% for getter in getters %}
-static mega::runtime::GetSharedFunction _fptr_get_shared_{{ getter }} = nullptr;
+{% for object_allocator in object_allocators %}
+static mega::runtime::GetSharedFunction _fptr_object_shared_alloc_{{ object_allocator }} = nullptr;
+static mega::runtime::SharedDtorFunction _fptr_object_shared_del_{{ object_allocator }} = nullptr;
+static mega::runtime::HeapCtorFunction _fptr_object_heap_alloc_{{ object_allocator }} = nullptr;
+static mega::runtime::HeapDtorFunction _fptr_object_heap_del_{{ object_allocator }} = nullptr;
 {% endfor %}
 
 namespace mega

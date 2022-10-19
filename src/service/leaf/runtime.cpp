@@ -17,40 +17,21 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-// ed was here
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
-#include "runtime/functions.hpp"
+#include "request.hpp"
 
-static const char* g_pszModuleName = "{{module_name}}";
+#include "service/network/log.hpp"
 
-namespace mega
+namespace mega::service
 {
-    void schedule_start(const reference&);
 
-{% for copy in copiers %}
-    void copy_{{copy}}(const void*,void*);
-{% endfor %}
-{% for event in events %}
-    void event_{{event}}(const reference&,bool,const void*);
-{% endfor %}
+// network::runtime::Impl
+void LeafRequestConversation::MPODestroyed( const MPO& mpo, const bool& bDeleteHeap,
+                                            boost::asio::yield_context& yield_ctx )
+{
+    VERIFY_RTE_MSG( m_leaf.m_pRuntime.get(), "Runtime not initialised" );
+    runtime::Runtime& rt = *m_leaf.m_pRuntime.get();
 
-{% for allocate in allocators %}
-    Instance allocate_{{allocate}}(void*);
-{% endfor %}
-{% for free in freers %}
-    void free_{{free}}(void*,Instance);
-{% endfor %}
 
 }
 
-mega::reference {{ name }}( mega::reference context )
-{
-{% for variable in variables %}
-{{ variable }}
-{% endfor %}
-
-{% for assignment in assignments %}
-{{ assignment }}
-{% endfor %}
-}
+} // namespace mega::service

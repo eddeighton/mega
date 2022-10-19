@@ -20,7 +20,7 @@
 #include "mega/default_traits.hpp"
 #include "mega/allocator.hpp"
 
-#include "runtime/context.hpp"
+#include "runtime/mpo_context.hpp"
 
 #include "log/log.hpp"
 
@@ -63,7 +63,7 @@ void copy_( const void* pFrom, void* pTo )
 template < typename T >
 void event_( const mega::reference& ref, bool bShared, const void* p )
 {
-    mega::log::Storage& log = mega::MPOContext::getMPOContext()->getLog();
+    mega::log::Storage& log = mega::getMPOContext()->getLog();
 
     log.record( mega::log::MemoryTrackType::Simulation,
                 mega::log::MemoryRecord(
@@ -217,13 +217,13 @@ inline void free_( TAllocator& allocator, Instance instance )
 
 void schedule_start( const reference& ref )
 {
-    mega::log::Storage& log = mega::MPOContext::getMPOContext()->getLog();
+    mega::log::Storage& log = mega::getMPOContext()->getLog();
     log.record( log::SchedulerRecord( ref, log::SchedulerRecord::Start ) );
 }
 
 void schedule_stop( const reference& ref )
 {
-    mega::log::Storage& log = mega::MPOContext::getMPOContext()->getLog();
+    mega::log::Storage& log = mega::getMPOContext()->getLog();
     log.record( log::SchedulerRecord( ref, log::SchedulerRecord::Stop ) );
 }
 

@@ -24,6 +24,8 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/project.hxx"
+#include "service/protocol/model/memory.hxx"
 
 #include "service/protocol/common/header.hpp"
 
@@ -46,12 +48,64 @@ public:
     }
     void run( boost::asio::yield_context& yield_ctx )
     {
-        network::enrole::Request_Encoder encoder(
-            [ daemonSender = getDaemonSender( yield_ctx ) ]( const network::Message& msg ) mutable
-            { return daemonSender.LeafDaemon( msg ); },
-            getID() );
-        m_leaf.m_mp = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
-        SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
+        SPDLOG_TRACE( "LeafEnrole run" );
+
+        auto daemonSender = getDaemonSender( yield_ctx );
+
+        // enrole - getting MP
+        {
+            network::enrole::Request_Encoder encoder( [ &daemonSender ]( const network::Message& msg ) mutable
+                                                      { return daemonSender.LeafDaemon( msg ); },
+                                                      getID() );
+            m_leaf.m_mp = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
+            SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
+        }
+
+        // determine the current project and stuff and initialise the runtime
+        {
+            network::project::Request_Encoder projectRequest(
+                [ &daemonSender ]( const network::Message& msg ) { return daemonSender.LeafRoot( msg ); }, getID() );
+
+            const network::Project currentProject = projectRequest.GetProject();
+            m_leaf.m_megastructureInstallationOpt = projectRequest.GetMegastructureInstallation();
+
+            if ( !currentProject.isEmpty() && m_leaf.m_megastructureInstallationOpt.has_value() )
+            {
+                if ( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
+                {
+                    try
+                    {
+                        // runtime::AddressSpace::Names{
+                        //        memoryConfig.getMemory(), memoryConfig.getMutex(), memoryConfig.getMap() }
+                        SPDLOG_TRACE( "Leaf: {} enrole creating runtime for project: {}", m_leaf.m_mp,
+                                      currentProject.getProjectInstallPath().string() );
+                        m_leaf.setRuntime( std::make_unique< runtime::Runtime >(
+                            m_leaf.m_megastructureInstallationOpt.value(), currentProject ) );
+                    }
+                    catch ( mega::io::DatabaseVersionException& ex )
+                    {
+                        SPDLOG_ERROR( "Database version exception: {}", currentProject.getProjectInstallPath().string(),
+                                      ex.what() );
+                    }
+                    catch ( std::exception& ex )
+                    {
+                        SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
+                                      currentProject.getProjectInstallPath().string(), ex.what() );
+                        throw;
+                    }
+                }
+                else
+                {
+                    SPDLOG_WARN( "Could not initialised runtime.  Active project: {} has no database",
+                                 currentProject.getProjectInstallPath().string() );
+                }
+            }
+            else
+            {
+                SPDLOG_WARN( "Could not initialised runtime.  No active project" );
+            }
+        }
+
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };

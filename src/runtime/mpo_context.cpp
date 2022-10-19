@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "runtime/context.hpp"
+#include "runtime/mpo_context.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -29,15 +29,80 @@ thread_local mega::MPOContext* g_pMPOContext = nullptr;
 namespace mega
 {
 
-void MPOContext::resume( MPOContext* pMPOContext )
+Cycle::~Cycle() { getMPOContext()->cycleComplete(); }
+
+Context* Context::get() { return g_pMPOContext; }
+
+MPOContext* getMPOContext() { return g_pMPOContext; }
+void        resetMPOContext() { g_pMPOContext = nullptr; }
+void        setMPOContext( MPOContext* pMPOContext )
 {
     VERIFY_RTE( g_pMPOContext == nullptr );
     g_pMPOContext = pMPOContext;
 }
 
-void MPOContext::suspend() { g_pMPOContext = nullptr; }
-
-Context*    Context::get() { return g_pMPOContext; }
-MPOContext* MPOContext::getMPOContext() { return g_pMPOContext; }
+void* MPOContext::get_this_shared_memory()
+{
+    //
+    THROW_TODO;
+}
+void* MPOContext::shared_offset_to_abs( U64 pSharedOffset, void* pMemory ) { THROW_TODO; }
+void* MPOContext::allocate_shared( U64 size, U64 alignment, void** pMemory ) { THROW_TODO; }
+void* MPOContext::allocate_heap( U64 size, U64 alignment ) { THROW_TODO; }
+void  MPOContext::get_object_shared_alloc( const char* pszUnitName, mega::TypeID objectTypeID,
+                                           mega::runtime::SharedCtorFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_object_shared_del( const char* pszUnitName, mega::TypeID objectTypeID,
+                                        mega::runtime::SharedCtorFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_object_heap_alloc( const char* pszUnitName, mega::TypeID objectTypeID,
+                                        mega::runtime::SharedCtorFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_object_heap_del( const char* pszUnitName, mega::TypeID objectTypeID,
+                                      mega::runtime::SharedCtorFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_getter_call( const char* pszUnitName, mega::TypeID objectTypeID,
+                                  mega::runtime::TypeErasedFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID,
+                               mega::runtime::AllocateFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_read( const char* pszUnitName, const mega::InvocationID& invocationID,
+                           mega::runtime::ReadFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_write( const char* pszUnitName, const mega::InvocationID& invocationID,
+                            mega::runtime::WriteFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_call( const char* pszUnitName, const mega::InvocationID& invocationID,
+                           mega::runtime::CallFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_start( const char* pszUnitName, const mega::InvocationID& invocationID,
+                            mega::runtime::StartFunction* ppFunction )
+{
+    THROW_TODO;
+}
+void MPOContext::get_stop( const char* pszUnitName, const mega::InvocationID& invocationID,
+                           mega::runtime::StopFunction* ppFunction )
+{
+    THROW_TODO;
+}
 
 } // namespace mega

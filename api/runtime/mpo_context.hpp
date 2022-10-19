@@ -21,8 +21,11 @@
 #ifndef GUARD_2022_October_14_mpo_context
 #define GUARD_2022_October_14_mpo_context
 
+#include "mega/default_traits.hpp"
+
 #include "runtime/context.hpp"
 #include "runtime/api.hpp"
+#include "runtime/functions.hpp"
 
 #include "service/lock_tracker.hpp"
 
@@ -30,8 +33,13 @@
 
 #include "service/protocol/common/header.hpp"
 
-#include "service/protocol/model/sim.hxx"
 #include "service/protocol/model/mpo.hxx"
+#include "service/protocol/model/sim.hxx"
+#include "service/protocol/model/memory.hxx"
+#include "service/protocol/model/address.hxx"
+#include "service/protocol/model/runtime.hxx"
+#include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/stash.hxx"
 
 #include "service/protocol/common/transaction.hpp"
 
@@ -44,7 +52,7 @@
 namespace mega
 {
 
-class MPOContextImpl : public MPOContext
+class MPOContext : public Context
 {
     boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID )
     {
@@ -54,17 +62,18 @@ class MPOContextImpl : public MPOContext
     }
 
 protected:
-    const network::ConversationID&            m_conversationIDRef;
-    std::optional< mega::MPO >                m_mpo;
-    log::Storage                              m_log;
-    log::Storage::SchedulerIter               m_schedulerIter;
-    log::Storage::MemoryIters                 m_memoryIters;
-    std::shared_ptr< mega::runtime::MPORoot > m_pExecutionRoot;
-    mega::service::LockTracker                m_lockTracker;
-    boost::asio::yield_context*               m_pYieldContext = nullptr;
+    const network::ConversationID&                  m_conversationIDRef;
+    std::optional< mega::MPO >                      m_mpo;
+    log::Storage                                    m_log;
+    log::Storage::SchedulerIter                     m_schedulerIter;
+    log::Storage::MemoryIters                       m_memoryIters;
+    mega::service::LockTracker                      m_lockTracker;
+    boost::asio::yield_context*                     m_pYieldContext = nullptr;
+    reference                                       m_root;
+    std::unique_ptr< runtime::ManagedSharedMemory > m_pSharedMemory;
 
 public:
-    MPOContextImpl( const network::ConversationID& conversationID )
+    MPOContext( const network::ConversationID& conversationID )
         : m_conversationIDRef( conversationID )
         , m_log( makeLogDirectory( conversationID ) )
         , m_schedulerIter( m_log.schedBegin() )
@@ -72,13 +81,60 @@ public:
     {
     }
 
-    virtual network::mpo::Request_Sender getMPRequest() = 0;
+// runtime internal interface
+#define FUNCTION_ARG_0( return_type, name ) return_type name();
+#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
+#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name );
+#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
+
+#include "module_interface.hxx"
+
+#undef FUNCTION_ARG_0
+#undef FUNCTION_ARG_1
+#undef FUNCTION_ARG_2
+#undef FUNCTION_ARG_3
+
+    virtual network::mpo::Request_Sender      getMPRequest()           = 0;
+    virtual network::address::Request_Encoder getRootAddressRequest()  = 0;
+    virtual network::enrole::Request_Encoder  getRootEnroleRequest()   = 0;
+    virtual network::stash::Request_Encoder   getRootStashRequest()    = 0;
+    virtual network::memory::Request_Encoder  getDaemonMemoryRequest() = 0;
+    virtual network::runtime::Request_Sender  getLeafRuntimeRequest()  = 0;
 
     network::sim::Request_Encoder getSimRequest( MPO mpo )
     {
         return { [ mpo, mpoRequest = getMPRequest() ]( const network::Message& msg ) mutable
                  { return mpoRequest.MPOUp( msg, mpo ); },
                  m_conversationIDRef };
+    }
+
+    void initSharedMemory( const mega::MPO& mpo, const mega::reference& root, const std::string& strMemoryName )
+    {
+        m_mpo  = mpo;
+        m_root = root;
+        m_pSharedMemory.reset(
+            new runtime::ManagedSharedMemory( boost::interprocess::open_only, strMemoryName.c_str() ) );
+    }
+
+    //////////////////////////
+    // mega::MPOContext
+    // queries
+    virtual MPOContext::MachineIDVector getMachines() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getRootEnroleRequest().EnroleGetDaemons();
+    }
+    virtual MPOContext::MachineProcessIDVector getProcesses( MachineID machineID ) override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getRootEnroleRequest().EnroleGetProcesses( machineID );
+    }
+    virtual MPOContext::MPOVector getMPO( MP machineProcess ) override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getRootEnroleRequest().EnroleGetMPO( machineProcess );
     }
 
     // mpo management
@@ -91,16 +147,75 @@ public:
             m_conversationIDRef );
         return request.SimCreate();
     }
-    virtual mega::reference getRoot( MPO mpo ) override { return mega::runtime::get_root( mpo ); }
-    virtual mega::reference getThisRoot() override { return m_pExecutionRoot->root(); }
+    virtual mega::reference getRoot( MPO mpo ) override
+    {
+        THROW_TODO;
+        // return mega::runtime::get_root( mpo );
+    }
+    virtual mega::reference getThisRoot() override { return m_root; }
 
     // log
     virtual log::Storage& getLog() override { return m_log; }
 
+    // mega::MPOContext
+    // memory management
+    /*
+    std::string acquireMemory( MPO mpo )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getDaemonMemoryRequest().AcquireSharedMemory( mpo );
+    }
+    MPO getNetworkAddressMPO( NetworkAddress networkAddress )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getRootAddressRequest().GetNetworkAddressMPO( networkAddress );
+    }*/
+
+    /*
+    NetworkAddress getRootNetworkAddress( MPO mpo )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext ).GetRootNetworkAddress( mpo );
+    }*/
+    /*
+    NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getRootAddressRequest().AllocateNetworkAddress( mpo, objectTypeID );
+    }
+
+    void deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        getRootAddressRequest().DeAllocateNetworkAddress( mpo, networkAddress );
+    }
+
+    reference networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress )
+    {
+        THROW_TODO;
+        //
+        // return getLeafRuntimeRequest().networkToMachine( objectTypeID, networkAddress );
+    }*/
+
+    // mega::MPOContext
+    // stash
+    virtual void stash( const std::string& filePath, mega::U64 determinant )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        getRootStashRequest().StashStash( filePath, determinant );
+    }
+    virtual bool restore( const std::string& filePath, mega::U64 determinant )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getRootStashRequest().StashRestore( filePath, determinant );
+    }
+
+    // leaf runtime
+
 private:
     // MPOContext
     // simulation locks
-    virtual bool readLock( MPO mpo ) override
+    virtual bool readLock( MPO mpo )
     {
         SPDLOG_TRACE( "readLock from: {} to: {}", m_mpo.value(), mpo );
         network::sim::Request_Encoder request = getSimRequest( mpo );
@@ -116,7 +231,7 @@ private:
         }
     }
 
-    virtual bool writeLock( MPO mpo ) override
+    virtual bool writeLock( MPO mpo )
     {
         SPDLOG_TRACE( "writeLock from: {} to: {}", m_mpo.value(), mpo );
         network::sim::Request_Encoder request = getSimRequest( mpo );
@@ -140,8 +255,9 @@ private:
     MemoryMapArray             m_memoryMaps;
     mega::network::Transaction m_transaction;
 
-protected:
-    virtual void cycleComplete() override
+public:
+    // called by Cycle dtor
+    virtual void cycleComplete()
     {
         SPDLOG_TRACE( "cycleComplete {}", m_mpo.value() );
 
@@ -214,8 +330,7 @@ protected:
 
                     MemoryMap& memoryMap = m_memoryMaps[ iTrack ];
                     int        iCounter  = 0;
-                    for ( auto i = memoryMap.lower_bound(
-                              reference( TypeInstance{}, MachineAddress{ ObjectAddress{}, writeLock } ) );
+                    for ( auto i = memoryMap.lower_bound( reference( TypeInstance{}, writeLock ) );
                           i != memoryMap.end();
                           ++i )
                     {

@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "service/terminal.hpp"
 
 #include "service/network/log.hpp"
@@ -33,15 +31,13 @@
 #include <string>
 #include <iostream>
 
-namespace driver
-{
-namespace status
+namespace driver::status
 {
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    bool        bList = false, bPing = false;
-    std::string strMP, strMPO;
+    bool        bList = false;
+    std::string strMPO;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Project Commands" );
@@ -49,9 +45,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         // clang-format off
         commandOptions.add_options()
             ( "list",    po::bool_switch( &bList ),             "List all conversations" )
-            ( "ping",    po::bool_switch( &bPing ),             "Ping an mp or mpo" )
-            ( "mp",      po::value< std::string >( &strMP ),    "Machine Process ( 0 or 0.1 )" )
-            ( "mpo",     po::value< std::string >( &strMPO ),   "Machine Process Owner ( 0.1.2 )" )
+            ( "ping",    po::value< std::string >( &strMPO ),   "Ping an mp or mpo" )
             ;
         // clang-format on
     }
@@ -68,18 +62,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         mega::service::Terminal terminal;
 
-        if ( bPing )
+        if ( !strMPO.empty() )
         {
-            if ( !strMP.empty() )
-            {
-                mega::MP mp;
-                {
-                    std::istringstream is( strMP );
-                    is >> mp;
-                }
-                std::cout << terminal.PingMP( mp ) << std::endl;
-            }
-            else if ( !strMPO.empty() )
+            auto dotCount = std::count_if( strMPO.begin(), strMPO.end(), []( char c ) { return c == '.'; } );
+            if ( dotCount == 2 )
             {
                 mega::MPO mpo;
                 {
@@ -88,9 +74,18 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 }
                 std::cout << terminal.PingMPO( mpo ) << std::endl;
             }
+            else if ( dotCount < 2 )
+            {
+                mega::MP mp;
+                {
+                    std::istringstream is( strMPO );
+                    is >> mp;
+                }
+                std::cout << terminal.PingMP( mp ) << std::endl;
+            }
             else
             {
-                THROW_RTE( "Missing mp or mpo" );
+                THROW_RTE( "Invalid MPO specified: " << strMPO );
             }
         }
         else
@@ -99,5 +94,4 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
     }
 }
-} // namespace status
-} // namespace driver
+} // namespace driver::status

@@ -18,135 +18,42 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "runtime/api.hpp"
+#include "runtime/mpo_context.hpp"
 
 #include "runtime.hpp"
 
 namespace mega::runtime
 {
-namespace
-{
 
-static std::unique_ptr< Runtime > g_pRuntime;
-
-void initialiseStaticRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
-                              const mega::network::Project&                   project,
-                              const AddressSpace::Names&                      addressSpaceNames )
-{
-    try
-    {
-        g_pRuntime.reset();
-
-        if ( !project.isEmpty() )
-        {
-            if ( !boost::filesystem::exists( project.getProjectDatabase() ) )
-            {
-                SPDLOG_ERROR( "Database missing at: {}", project.getProjectDatabase().string() );
-            }
-            else
-            {
-                g_pRuntime = std::make_unique< Runtime >( megastructureInstallation, project, addressSpaceNames );
-            }
-        }
+#define FUNCTION_ARG_0( return_type, name )         \
+    return_type name()                              \
+    {                                               \
+        return getMPOContext()->name(); \
     }
-    catch ( mega::io::DatabaseVersionException& ex )
-    {
-        SPDLOG_ERROR( "Database version exception: {}", project.getProjectInstallPath().string(), ex.what() );
+
+#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) \
+    return_type name( arg1_type arg1_name )                       \
+    {                                                             \
+        return getMPOContext()->name( arg1_name );    \
     }
-    catch ( std::exception& ex )
-    {
-        SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
-                      project.getProjectInstallPath().string(), ex.what() );
-        throw;
+
+#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name )                        \
+    {                                                                                   \
+        return getMPOContext()->name( arg1_name, arg2_name );               \
     }
-}
 
-bool isStaticRuntimeInitialised() { return g_pRuntime.get(); }
+#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name )                         \
+    {                                                                                                         \
+        return getMPOContext()->name( arg1_name, arg2_name, arg3_name );                          \
+    }
 
-} // namespace
-} // namespace mega::runtime
+#include "runtime/module_interface.hxx"
 
-namespace mega::runtime
-{
-
-// routines used by jit compiled functions
-NetworkAddress allocateNetworkAddress( mega::MPO mpo, mega::TypeID objectTypeID )
-{
-    return g_pRuntime->allocateNetworkAddress( mpo, objectTypeID );
-}
-
-reference allocateMachineAddress( mega::MPO mpo, mega::TypeID objectTypeID, mega::NetworkAddress networkAddress )
-{
-    return g_pRuntime->allocateMachineAddress( mpo, objectTypeID, networkAddress );
-}
-reference networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress )
-{
-    return g_pRuntime->networkToMachine( objectTypeID, networkAddress );
-}
-
-void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
-{
-    g_pRuntime->get_getter_shared( pszUnitName, objectTypeID, ppFunction );
-}
-
-void get_getter_heap( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
-{
-    g_pRuntime->get_getter_heap( pszUnitName, objectTypeID, ppFunction );
-}
-
-void get_getter_call( const char* pszUnitName, mega::TypeID objectTypeID, TypeErasedFunction* ppFunction )
-{
-    g_pRuntime->get_getter_call( pszUnitName, objectTypeID, ppFunction );
-}
-
-// public facing runtime interface
-void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
-                        const mega::network::Project&                   project,
-                        const std::string&                              addressSpaceMemory,
-                        const std::string&                              addressSpaceMutex,
-                        const std::string&                              addressSpaceMap )
-{
-    initialiseStaticRuntime(
-        megastructureInstallation, project, { addressSpaceMemory, addressSpaceMutex, addressSpaceMap } );
-}
-bool isRuntimeInitialised() { return isStaticRuntimeInitialised(); }
-
-MPORoot::MPORoot( mega::MPO mpo )
-    : m_root( g_pRuntime->getRoot( mpo ) )
-{
-}
-
-MPORoot::~MPORoot() { g_pRuntime->deAllocateRoot( m_root ); }
-
-reference get_root( mega::MPO mpo ) { return g_pRuntime->getRoot( mpo ); }
-
-void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
-{
-    g_pRuntime->get_allocate( pszUnitName, invocationID, ppFunction );
-}
-
-void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction )
-{
-    g_pRuntime->get_read( pszUnitName, invocationID, ppFunction );
-}
-
-void get_write( const char* pszUnitName, const mega::InvocationID& invocationID, WriteFunction* ppFunction )
-{
-    g_pRuntime->get_write( pszUnitName, invocationID, ppFunction );
-}
-
-void get_call( const char* pszUnitName, const mega::InvocationID& invocationID, CallFunction* ppFunction )
-{
-    g_pRuntime->get_call( pszUnitName, invocationID, ppFunction );
-}
-
-void get_start( const char* pszUnitName, const mega::InvocationID& invocationID, StartFunction* ppFunction )
-{
-    g_pRuntime->get_start( pszUnitName, invocationID, ppFunction );
-}
-
-void get_stop( const char* pszUnitName, const mega::InvocationID& invocationID, StopFunction* ppFunction )
-{
-    g_pRuntime->get_stop( pszUnitName, invocationID, ppFunction );
-}
+#undef FUNCTION_ARG_0
+#undef FUNCTION_ARG_1
+#undef FUNCTION_ARG_2
+#undef FUNCTION_ARG_3
 
 } // namespace mega::runtime

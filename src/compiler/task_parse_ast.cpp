@@ -45,6 +45,7 @@ public:
                                                      std::ostream&                             osError,
                                                      std::ostream&                             osWarn )
     {
+        VERIFY_RTE_MSG( m_parser, "Parser not initialised" );
         ParserStage::Parser::ContextDef* pContextDef
             = m_parser->parseEGSourceFile( database, m_environment.FilePath( sourceFilePath ),
                                            pComponent->get_include_directories(), osError, osWarn );

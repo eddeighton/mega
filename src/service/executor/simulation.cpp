@@ -39,7 +39,7 @@ namespace mega::service
 
 Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
-    , MPOContextImpl( conversationID )
+    , MPOContext( conversationID )
     , m_timer( executor.m_io_context )
 {
 }
@@ -52,75 +52,39 @@ network::Message Simulation::dispatchRequest( const network::Message& msg, boost
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
 }
 
-// MPOContextImpl
+// MPOContext
 network::mpo::Request_Sender Simulation::getMPRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return ExecutorRequestConversation::getMPRequest( *m_pYieldContext );
 }
-
-// mega::MPOContext - native code interface
-// queries
-MPOContext::MachineIDVector Simulation::getMachines()
+network::address::Request_Encoder Simulation::getRootAddressRequest()
 {
-    VERIFY_RTE( m_pYieldContext );
-    return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetDaemons();
+    return { [ leafRequest = getLeafRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+             { return leafRequest.ExeRoot( msg ); },
+             getID() };
 }
-MPOContext::MachineProcessIDVector Simulation::getProcesses( MachineID machineID )
+network::enrole::Request_Encoder Simulation::getRootEnroleRequest()
 {
-    VERIFY_RTE( m_pYieldContext );
-    return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetProcesses( machineID );
+    return { [ leafRequest = getLeafRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+             { return leafRequest.ExeRoot( msg ); },
+             getID() };
 }
-MPOContext::MPOVector Simulation::getMPO( MP machineProcess )
+network::stash::Request_Encoder Simulation::getRootStashRequest()
 {
-    VERIFY_RTE( m_pYieldContext );
-    return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetMPO( machineProcess );
+    return { [ leafRequest = getLeafRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+             { return leafRequest.ExeRoot( msg ); },
+             getID() };
 }
-
-// mega::MPOContext
-// memory management
-std::string Simulation::acquireMemory( MPO mpo )
+network::memory::Request_Encoder Simulation::getDaemonMemoryRequest()
 {
-    VERIFY_RTE( m_pYieldContext );
-    return getDaemonRequest< network::memory::Request_Encoder >( *m_pYieldContext ).AcquireSharedMemory( mpo );
+    return { [ leafRequest = getLeafRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+             { return leafRequest.ExeDaemon( msg ); },
+             getID() };
 }
-MPO Simulation::getNetworkAddressMPO( NetworkAddress networkAddress )
+network::runtime::Request_Sender Simulation::getLeafRuntimeRequest()
 {
-    VERIFY_RTE( m_pYieldContext );
-    return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
-        .GetNetworkAddressMPO( networkAddress );
-}
-NetworkAddress Simulation::getRootNetworkAddress( MPO mpo )
-{
-    VERIFY_RTE( m_pYieldContext );
-    return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext ).GetRootNetworkAddress( mpo );
-}
-NetworkAddress Simulation::allocateNetworkAddress( MPO mpo, TypeID objectTypeID )
-{
-    VERIFY_RTE( m_pYieldContext );
-    return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
-        .AllocateNetworkAddress( mpo, objectTypeID );
-}
-
-void Simulation::deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress )
-{
-    VERIFY_RTE( m_pYieldContext );
-    getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
-        .DeAllocateNetworkAddress( mpo, networkAddress );
-}
-
-// mega::MPOContext
-// stash
-void Simulation::stash( const std::string& filePath, mega::U64 determinant )
-{
-    VERIFY_RTE( m_pYieldContext );
-    getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext ).StashStash( filePath, determinant );
-}
-
-bool Simulation::restore( const std::string& filePath, mega::U64 determinant )
-{
-    VERIFY_RTE( m_pYieldContext );
-    return getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext ).StashRestore( filePath, determinant );
+    return { *this, m_executor.getLeafSender(), *m_pYieldContext };
 }
 
 void Simulation::issueClock()
@@ -144,7 +108,6 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
     try
     {
         VERIFY_RTE( m_mpo.has_value() );
-        m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( m_mpo.value() );
         SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
         // issue first clock tick
@@ -206,27 +169,29 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             }
 
             // process a message
-            SUSPEND_MPO_CONTEXT();
-
             {
-                const network::ReceivedMsg msg = receive( yield_ctx );
-                m_messageQueue.push_back( msg );
-            }
-            while ( m_channel.try_receive(
-                [ &msgs = m_messageQueue ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
-                {
-                    if ( !ec )
-                    {
-                        msgs.push_back( msg );
-                    }
-                    else
-                    {
-                        /// TODO.
-                    }
-                } ) )
-                ;
+                SUSPEND_MPO_CONTEXT();
 
-            RESUME_MPO_CONTEXT();
+                {
+                    const network::ReceivedMsg msg = receive( yield_ctx );
+                    m_messageQueue.push_back( msg );
+                }
+                while ( m_channel.try_receive(
+                    [ &msgs = m_messageQueue ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+                    {
+                        if ( !ec )
+                        {
+                            msgs.push_back( msg );
+                        }
+                        else
+                        {
+                            /// TODO.
+                        }
+                    } ) )
+                    ;
+
+                RESUME_MPO_CONTEXT();
+            }
 
             // process non-state messages
             {
@@ -359,15 +324,18 @@ mega::MPO Simulation::SimCreate( boost::asio::yield_context& )
     return m_mpo.value();
 }
 
-void Simulation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+void Simulation::RootSimRun( const mega::MPO&            mpo,
+                             const reference&            root,
+                             const std::string&          strMemory,
+                             boost::asio::yield_context& yield_ctx )
 {
-    m_mpo = mpo;
+    initSharedMemory( mpo, root, strMemory );
 
     // now start running the simulation
-    MPOContext::resume( this );
+    setMPOContext( this );
     m_pYieldContext = &yield_ctx;
     runSimulation( yield_ctx );
-    MPOContext::suspend();
+    resetMPOContext();
 }
 void Simulation::SimDestroy( boost::asio::yield_context& )
 {

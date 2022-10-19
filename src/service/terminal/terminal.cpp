@@ -120,6 +120,7 @@ network::Message Terminal::routeGenericRequest( const network::ConversationID& c
         {
             try
             {
+                SPDLOG_TRACE( "Terminal::rootRequest::RootConversation::run {}", m_message );
                 m_result = m_router( *this, m_terminal.getLeafSender(), yield_ctx )( m_message );
             }
             catch ( std::exception& ex )

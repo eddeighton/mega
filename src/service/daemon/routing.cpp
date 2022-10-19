@@ -189,7 +189,9 @@ network::Message DaemonRequestConversation::RootExe( const network::Message&    
     return sender.RootExe( request );
 }
 
-void DaemonRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+void DaemonRequestConversation::RootSimRun( const mega::MPO&            mpo,
+                                            const mega::NetworkAddress& networkAddress,
+                                            boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun: {}", mpo );
 
@@ -200,10 +202,25 @@ void DaemonRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::y
     VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor
                 || pConnection->getTypeOpt().value() == network::Node::Tool );
 
+    // establish shared memory region for MPO
+    struct Memory
+    {
+        SharedMemoryManager& mgr;
+        std::string          strMemory;
+        MPO                  mpo;
+        Memory( SharedMemoryManager& mgr, const mega::MPO& mpo )
+            : mgr( mgr )
+            , mpo( mpo )
+        {
+            strMemory = mgr.acquire( mpo );
+        }
+        ~Memory() { mgr.release( mpo ); }
+    } wrapper( m_daemon.m_sharedMemoryManager, mpo );
+
     {
         network::Server::MPOConnection       mpoConnection( m_daemon.m_server, mpo, pConnection );
         network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
-        sender.RootSimRun( mpo );
+        sender.RootSimRun( mpo, networkAddress, wrapper.strMemory );
     }
 }
 

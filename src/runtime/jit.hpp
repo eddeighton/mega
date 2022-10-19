@@ -20,8 +20,6 @@
 #ifndef JIT_8_AUG_2022
 #define JIT_8_AUG_2022
 
-#include "runtime/functions.hpp"
-
 #include <memory>
 #include <set>
 
@@ -42,21 +40,15 @@ public:
     public:
         using Ptr = std::shared_ptr< Module >;
 
-        virtual mega::runtime::SetAllocatorFunction getSetAllocator( const std::string& strSymbol ) = 0;
-        virtual mega::runtime::GetHeapFunction      getGetHeap( const std::string& strSymbol )      = 0;
-        virtual mega::runtime::GetSharedFunction    getGetShared( const std::string& strSymbol )    = 0;
-        virtual mega::runtime::SharedCtorFunction   getSharedCtor( const std::string& strSymbol )   = 0;
-        virtual mega::runtime::SharedDtorFunction   getSharedDtor( const std::string& strSymbol )   = 0;
-        virtual mega::runtime::HeapCtorFunction     getHeapCtor( const std::string& strSymbol )     = 0;
-        virtual mega::runtime::HeapDtorFunction     getHeapDtor( const std::string& strSymbol )     = 0;
-        virtual mega::runtime::AllocateFunction     getAllocate( const std::string& strSymbol )     = 0;
-        virtual mega::runtime::ReadFunction         getRead( const std::string& strSymbol )         = 0;
-        virtual mega::runtime::WriteFunction        getWrite( const std::string& strSymbol )        = 0;
-        virtual mega::runtime::CallFunction         getCall( const std::string& strSymbol )         = 0;
-        virtual mega::runtime::StartFunction        getStart( const std::string& strSymbol )        = 0;
-        virtual mega::runtime::StopFunction         getStop( const std::string& strSymbol )         = 0;
-    };
+        virtual void* getRawFunctionPtr( const std::string& strSymbol ) = 0;
 
+        template< typename FunctionType >
+        FunctionType get( const std::string& strSymbol )
+        {
+            return reinterpret_cast< FunctionType >( getRawFunctionPtr( strSymbol ) );
+        }
+    };
+ 
     Module::Ptr compile( const std::string& strModule );
 
 private:

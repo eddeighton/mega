@@ -49,16 +49,16 @@ namespace mega::service
 {
 
 template < typename TConversationFunctor >
-class GenericConversation : public ToolRequestConversation, public mega::MPOContextImpl
+class GenericConversation : public ToolRequestConversation, public mega::MPOContext
 {
-    Tool&                       m_tool;
-    TConversationFunctor        m_functor;
+    Tool&                m_tool;
+    TConversationFunctor m_functor;
 
 public:
     GenericConversation( Tool& tool, const network::ConversationID& conversationID,
                          const network::ConnectionID& originatingConnectionID, TConversationFunctor&& functor )
         : ToolRequestConversation( tool, conversationID, originatingConnectionID )
-        , mega::MPOContextImpl( conversationID )
+        , mega::MPOContext( conversationID )
         , m_tool( tool )
         , m_functor( functor )
     {
@@ -78,6 +78,40 @@ public:
     {
         return network::mpo::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
     }
+    virtual network::address::Request_Encoder getRootAddressRequest() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return { [ leafRequest = getToolRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+                 { return leafRequest.ToolRoot( msg ); },
+                 getID() };
+    }
+    virtual network::enrole::Request_Encoder getRootEnroleRequest() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return { [ leafRequest = getToolRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+                 { return leafRequest.ToolRoot( msg ); },
+                 getID() };
+    }
+    virtual network::stash::Request_Encoder getRootStashRequest() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return { [ leafRequest = getToolRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+                 { return leafRequest.ToolRoot( msg ); },
+                 getID() };
+    }
+    virtual network::memory::Request_Encoder getDaemonMemoryRequest() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return { [ leafRequest = getToolRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
+                 { return leafRequest.ToolDaemon( msg ); },
+                 getID() };
+    }
+    virtual network::runtime::Request_Sender getLeafRuntimeRequest() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return network::runtime::Request_Sender( *this, m_tool.getLeafSender(), *m_pYieldContext );
+    }
+
     virtual network::mpo::Request_Sender getMPRequest() override
     {
         VERIFY_RTE( m_pYieldContext );
@@ -86,35 +120,6 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx ) override
     {
-        {
-            network::project::Request_Encoder projectRequest(
-                [ rootRequest = getToolRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-                { return rootRequest.ToolRoot( msg ); },
-                getID() );
-
-            const auto currentProject            = projectRequest.GetProject();
-            const auto megaStructureInstallation = projectRequest.GetMegastructureInstallation();
-
-            if ( !currentProject.isEmpty() && boost::filesystem::exists( currentProject.getProjectDatabase() ) )
-            {
-                network::memory::Request_Encoder memoryRequest(
-                    [ rootRequest = getToolRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-                    { return rootRequest.ToolDaemon( msg ); },
-                    getID() );
-
-                const auto memoryConfig = memoryRequest.GetSharedMemoryConfig();
-
-                mega::runtime::initialiseRuntime( megaStructureInstallation, currentProject, memoryConfig.getMemory(),
-                                                  memoryConfig.getMutex(), memoryConfig.getMap() );
-                SPDLOG_TRACE(
-                    "Tool runtime initialised with project: {}", currentProject.getProjectInstallPath().string() );
-            }
-            else
-            {
-                SPDLOG_TRACE( "Could not initialised runtime.  No active project" );
-            }
-        }
-
         SPDLOG_TRACE( "TOOL: run function" );
         network::sim::Request_Encoder request(
             [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
@@ -127,46 +132,26 @@ public:
         m_tool.runComplete();
     }
 
-    virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
+    virtual void RootSimRun( const mega::MPO& mpo, const mega::reference& root, const std::string& strMemory,
+                             boost::asio::yield_context& yield_ctx ) override
     {
-        m_mpo = mpo;
+        initSharedMemory( mpo, root, strMemory );
+
+        m_tool.setRoot( root );
         m_tool.setMPO( mpo );
 
-        MPOContext::resume( this );
+        setMPOContext( this );
         m_pYieldContext = &yield_ctx;
 
         // note the runtime will query getThisMPO while creating the root
         SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", mpo );
         {
-            m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( mpo );
-            {
-                m_functor( yield_ctx );
-            }
-            m_pExecutionRoot.reset();
+            m_functor( yield_ctx );
         }
         SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", mpo );
 
         m_pYieldContext = nullptr;
-        MPOContext::suspend();
-    }
-
-    //////////////////////////
-    // mega::MPOContext 
-    // queries
-    virtual MPOContext::MachineIDVector getMachines() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetDaemons();
-    }
-    virtual MPOContext::MachineProcessIDVector getProcesses( MachineID machineID ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetProcesses( machineID );
-    }
-    virtual MPOContext::MPOVector getMPO( MP machineProcess ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetMPO( machineProcess );
+        resetMPOContext();
     }
 
     // mega::MPOContext
@@ -174,51 +159,6 @@ public:
     virtual TimeStamp cycle() override { return TimeStamp{}; }
     virtual F32       ct() override { return F32{}; }
     virtual F32       dt() override { return F32{}; }
-
-    // mega::MPOContext
-    // memory management
-    virtual std::string acquireMemory( MPO mpo ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getDaemonRequest< network::memory::Request_Encoder >( *m_pYieldContext ).AcquireSharedMemory( mpo );
-    }
-    virtual MPO getNetworkAddressMPO( NetworkAddress networkAddress ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
-            .GetNetworkAddressMPO( networkAddress );
-    }
-    virtual NetworkAddress getRootNetworkAddress( MPO mpo ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext ).GetRootNetworkAddress( mpo );
-    }
-    virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
-            .AllocateNetworkAddress( mpo, objectTypeID );
-    }
-    virtual void deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
-            .DeAllocateNetworkAddress( mpo, networkAddress );
-    }
-
-    // mega::MPOContext
-    // stash
-    virtual void stash( const std::string& filePath, mega::U64 determinant ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext ).StashStash( filePath, determinant );
-    }
-    virtual bool restore( const std::string& filePath, mega::U64 determinant ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext )
-            .StashRestore( filePath, determinant );
-    }
 };
 
 Tool::Tool( short daemonPortNumber )

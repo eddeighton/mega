@@ -30,6 +30,7 @@ mega::MPO RootRequestConversation::GetNetworkAddressMPO( const mega::NetworkAddr
 {
     return m_root.m_logicalAddressSpace.getNetworkAddressMPO( networkAddress );
 }
+
 mega::NetworkAddress RootRequestConversation::GetRootNetworkAddress( const mega::MPO&            mpo,
                                                                      boost::asio::yield_context& yield_ctx )
 {

@@ -159,76 +159,14 @@ public:
             return jitAddress;
         }
     */
-    template < typename TFunctionPtrType >
-    TFunctionPtrType getFunctionPtr( const std::string& strSymbol )
+
+    virtual void* getRawFunctionPtr( const std::string& strSymbol )
     {
         auto functionPtr = ExitOnErr( m_jit.lookup( m_jitDynLib, strSymbol ) );
         VERIFY_RTE( functionPtr );
-
-        TFunctionPtrType pResultFunction = functionPtr.toPtr< TFunctionPtrType >();
-        VERIFY_RTE( pResultFunction );
-        return pResultFunction;
+        return reinterpret_cast< void* >( functionPtr.getValue() );
     }
 
-    virtual mega::runtime::GetHeapFunction getGetHeap( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::GetHeapFunction >( strSymbol );
-    }
-
-    virtual mega::runtime::GetSharedFunction getGetShared( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::GetSharedFunction >( strSymbol );
-    }
-
-    virtual mega::runtime::SetAllocatorFunction getSetAllocator( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::SetAllocatorFunction >( strSymbol );
-    }
-    virtual mega::runtime::SharedCtorFunction getSharedCtor( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::SharedCtorFunction >( strSymbol );
-    }
-    virtual mega::runtime::SharedDtorFunction getSharedDtor( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::SharedDtorFunction >( strSymbol );
-    }
-    virtual mega::runtime::HeapCtorFunction getHeapCtor( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::HeapCtorFunction >( strSymbol );
-    }
-    virtual mega::runtime::HeapDtorFunction getHeapDtor( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::HeapDtorFunction >( strSymbol );
-    }
-
-    virtual mega::runtime::AllocateFunction getAllocate( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::AllocateFunction >( strSymbol );
-    }
-
-    virtual mega::runtime::ReadFunction getRead( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::ReadFunction >( strSymbol );
-    }
-
-    virtual mega::runtime::WriteFunction getWrite( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::WriteFunction >( strSymbol );
-    }
-
-    virtual mega::runtime::CallFunction getCall( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::CallFunction >( strSymbol );
-    }
-
-    virtual mega::runtime::StartFunction getStart( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::StartFunction >( strSymbol );
-    }
-    virtual mega::runtime::StopFunction getStop( const std::string& strSymbol ) override
-    {
-        return getFunctionPtr< mega::runtime::StopFunction >( strSymbol );
-    }
 
 private:
     const std::string    m_name;

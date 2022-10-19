@@ -22,6 +22,9 @@
 
 #include "mega/reference.hpp"
 
+#include "runtime/functions.hpp"
+#include "mega/invocation_id.hpp"
+
 #include <string>
 #include <vector>
 
@@ -47,10 +50,12 @@ public:
     virtual MPOVector              getMPO( MP machineProcess )         = 0;
 
     // mpo management
-    virtual MPO                    getThisMPO()                        = 0;
-    virtual MPO                    constructMPO( MP machineProcess )   = 0;
-    virtual reference              getRoot( MPO mpo )                  = 0;
-    virtual reference              getThisRoot()                       = 0;
+    virtual MPO       getThisMPO()                      = 0;
+    virtual MPO       constructMPO( MP machineProcess ) = 0;
+    virtual reference getRoot( MPO mpo )                = 0;
+    virtual reference getThisRoot()                     = 0;
+
+    // leaf runtime
 
     // clock
     virtual TimeStamp cycle() = 0;
@@ -63,44 +68,22 @@ public:
     static Context* get();
 };
 
-class MPOContext : public Context
-{
-public:
-    static void        resume( MPOContext* pMPOContext );
-    static void        suspend();
-    static MPOContext* getMPOContext();
+class MPOContext;
+MPOContext* getMPOContext();
+void resetMPOContext();
+void setMPOContext( MPOContext* pMPOContext );
 
-public:
-    // runtime internal interface
+#define SUSPEND_MPO_CONTEXT()                    \
+    MPOContext* _pMPOContext_ = getMPOContext(); \
+    resetMPOContext()
 
-    // memory management
-    virtual std::string    acquireMemory( MPO mpo )                                           = 0;
-    virtual MPO            getNetworkAddressMPO( NetworkAddress networkAddress )              = 0;
-    virtual NetworkAddress getRootNetworkAddress( MPO mpo )                                   = 0;
-    virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID )             = 0;
-    virtual void           deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) = 0;
-
-    // stash
-    virtual void           stash( const std::string& filePath, mega::U64 determinant )        = 0;
-    virtual bool           restore( const std::string& filePath, mega::U64 determinant )      = 0;
-
-    // simulation locks
-    virtual bool           readLock( MPO mpo )                                                = 0;
-    virtual bool           writeLock( MPO mpo )                                               = 0;
-    virtual void           cycleComplete()                                                    = 0;
-};
+#define RESUME_MPO_CONTEXT() setMPOContext( _pMPOContext_ )
 
 class Cycle
 {
 public:
-    ~Cycle() { mega::MPOContext::getMPOContext()->cycleComplete(); }
+    ~Cycle();
 };
-
-#define SUSPEND_MPO_CONTEXT()                                \
-    MPOContext* _pMPOContext_ = MPOContext::getMPOContext(); \
-    MPOContext::suspend()
-
-#define RESUME_MPO_CONTEXT() MPOContext::resume( _pMPOContext_ )
 
 } // namespace mega
 

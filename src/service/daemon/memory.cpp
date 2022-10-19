@@ -19,6 +19,8 @@
 
 #include "request.hpp"
 
+#include "service/protocol/model/runtime.hxx"
+
 namespace mega::service
 {
 
@@ -29,7 +31,15 @@ std::string DaemonRequestConversation::AcquireSharedMemory( const MPO& mpo, boos
 }
 void DaemonRequestConversation::ReleaseSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    return m_daemon.m_sharedMemoryManager.release( mpo );
+    m_daemon.m_sharedMemoryManager.release( mpo );
+
+    bool bFirst = true;
+    for ( auto& [ id, pCon ] : m_daemon.m_server.getConnections() )
+    {
+        network::runtime::Request_Sender sender( *this, *pCon, yield_ctx );
+        sender.MPODestroyed( mpo, bFirst );
+        bFirst = false;
+    }
 }
 
 mega::network::MemoryConfig DaemonRequestConversation::GetSharedMemoryConfig( boost::asio::yield_context& yield_ctx )

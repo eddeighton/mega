@@ -17,32 +17,28 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 msg RootAllBroadcast
 {
-    request(network::Message request);
-    response(network::Message response);
+    request( network::Message request );
+    response( network::Message response );
 }
 
 msg RootExeBroadcast
 {
-    request(network::Message request);
-    response(network::Message response);
+    request( network::Message request );
+    response( network::Message response );
 }
 
 msg RootExe
 {
     // route using initiated conversation path
-    request(network::Message request);
-    response(network::Message response);
+    request( network::Message request );
+    response( network::Message response );
 }
 
 // special case for registering MPO and running simulation
 msg RootSimRun
 {
-    request(mega::MPO mpo);
+    request( mega::MPO mpo, mega::NetworkAddress networkAddress );
     response();
 }

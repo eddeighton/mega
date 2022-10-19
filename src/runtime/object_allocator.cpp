@@ -65,138 +65,31 @@ ObjectTypeAllocator::ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID 
     {
         {
             std::ostringstream os;
-            symbolPrefix( "set_allocator_", objectTypeID, os );
-            os << "PN4mega7runtime9AllocatorE";
-            m_pSetAllocator = pModule->getSetAllocator( os.str() );
-        }
-        {
-            std::ostringstream os;
-            symbolPrefix( "get_heap_", objectTypeID, os );
-            os << "N4mega14MachineAddressE";
-            m_pHeapGetter = pModule->getGetHeap( os.str() );
-        }
-        {
-            std::ostringstream os;
-            symbolPrefix( "get_shared_", objectTypeID, os );
-            os << "N4mega14MachineAddressE";
-            m_pSharedGetter = pModule->getGetShared( os.str() );
-        }
-        {
-            std::ostringstream os;
             symbolPrefix( "shared_ctor_", objectTypeID, os );
             os << "PvS_";
-            m_pSharedCtor = pModule->getSharedCtor( os.str() );
+            m_pSharedCtor = pModule->get< SharedCtorFunction >( os.str() );
         }
         {
             std::ostringstream os;
             symbolPrefix( "shared_dtor_", objectTypeID, os );
             os << "Pv";
-            m_pSharedDtor = pModule->getSharedDtor( os.str() );
+            m_pSharedDtor = pModule->get< SharedDtorFunction >( os.str() );
         }
         {
             std::ostringstream os;
             symbolPrefix( "heap_ctor_", objectTypeID, os );
             os << "Pv";
-            m_pHeapCtor = pModule->getHeapCtor( os.str() );
+            m_pHeapCtor = pModule->get< HeapCtorFunction >( os.str() );
         }
         {
             std::ostringstream os;
             symbolPrefix( "heap_dtor_", objectTypeID, os );
             os << "Pv";
-            m_pHeapDtor = pModule->getHeapDtor( os.str() );
+            m_pHeapDtor = pModule->get< HeapDtorFunction >( os.str() );
         }
     }
-    m_pSetAllocator( this );
+    
 }
 
-ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
-{
-    IndexPtr pAllocator;
-    {
-        // TODO - this needs thread safety
-        auto iFind = m_indexTable.find( mpo );
-        if ( iFind != m_indexTable.end() )
-        {
-            // SPDLOG_TRACE( "ObjectTypeAllocator::getIndex cached {} {}", m_objectTypeID, mpo );
-            pAllocator = iFind->second;
-        }
-        else
-        {
-            SPDLOG_TRACE( "ObjectTypeAllocator::getIndex created {} {}", m_objectTypeID, mpo );
-            pAllocator
-                = std::make_shared< IndexedBufferAllocator >( m_objectTypeID, m_runtime.getSharedMemoryManager( mpo ) );
-            m_indexTable.insert( { mpo, pAllocator } );
-        }
-    }
-    return pAllocator;
-}
-
-reference ObjectTypeAllocator::get( MachineAddress machineAddress )
-{
-    // SPDLOG_TRACE( "ObjectTypeAllocator::get {} {}", m_objectTypeID, machineAddress );
-    VERIFY_RTE( machineAddress.isMachine() );
-    auto  pIndex  = getIndex( machineAddress );
-    void* pShared = pIndex->getShared( machineAddress.object );
-    return reference( TypeInstance( 0, m_objectTypeID ), machineAddress, pShared );
-}
-
-reference ObjectTypeAllocator::allocate( MPO mpo )
-{
-    SPDLOG_TRACE( "ObjectTypeAllocator::allocate {} {}", m_objectTypeID, mpo );
-
-    VERIFY_RTE( mpo.isMachine() );
-
-    auto pIndex = getIndex( mpo );
-
-    const IndexedBufferAllocator::AllocationResult result
-        = pIndex->allocate( m_szSizeShared, m_szAlignShared, m_szSizeHeap, m_szAlignHeap );
-
-    if ( result.pShared )
-    {
-        m_pSharedCtor( result.pShared, pIndex->getSegmentManager() );
-    }
-    if ( result.pHeap )
-    {
-        m_pHeapCtor( result.pHeap );
-    }
-
-    return reference( TypeInstance( 0, m_objectTypeID ), MachineAddress{ result.object, mpo }, result.pShared );
-}
-
-void ObjectTypeAllocator::deAllocate( MachineAddress machineAddress )
-{
-    SPDLOG_TRACE( "ObjectTypeAllocator::deAllocate {} {}", m_objectTypeID, machineAddress );
-
-    auto pIndex = getIndex( machineAddress );
-    if ( void* pAddress = pIndex->getShared( machineAddress.object ) )
-    {
-        m_pSharedDtor( pAddress );
-    }
-    if ( void* pHeap = pIndex->getHeap( machineAddress.object ) )
-    {
-        m_pHeapDtor( pHeap );
-    }
-    pIndex->deallocate( machineAddress.object );
-}
-
-// Allocator
-void* ObjectTypeAllocator::get_shared( mega::MachineAddress machineAddress )
-{
-    auto  pIndex   = getIndex( machineAddress );
-    void* pAddress = pIndex->getShared( machineAddress.object );
-    // SPDLOG_TRACE( "ObjectTypeAllocator::get_shared {} {} {}", m_objectTypeID, machineAddress, pAddress );
-    return pAddress;
-}
-
-void* ObjectTypeAllocator::get_heap( mega::MachineAddress machineAddress )
-{
-    auto  pIndex   = getIndex( machineAddress );
-    void* pAddress = pIndex->getHeap( machineAddress.object );
-    // SPDLOG_TRACE( "ObjectTypeAllocator::get_heap {} {} {}", m_objectTypeID, machineAddress, pAddress );
-    return pAddress;
-}
-
-GetHeapFunction   ObjectTypeAllocator::getHeapGetter() { return m_pHeapGetter; }
-GetSharedFunction ObjectTypeAllocator::getSharedGetter() { return m_pSharedGetter; }
 
 } // namespace mega::runtime

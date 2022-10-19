@@ -249,28 +249,6 @@ struct formatter< mega::MPO >
 };
 
 template <>
-struct formatter< mega::ObjectAddress >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    auto format( const mega::ObjectAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        return format_to( ctx.out(), "object:{}", address.object );
-    }
-};
-
-template <>
-struct formatter< mega::MachineAddress >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    auto format( const mega::MachineAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        return format_to( ctx.out(), "{}.{}", address.object, static_cast< const mega::MPO& >( address ) );
-    }
-};
-
-template <>
 struct formatter< mega::reference >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
@@ -278,7 +256,7 @@ struct formatter< mega::reference >
     auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         return format_to( ctx.out(), "{}.{}.{}", static_cast< const mega::TypeInstance& >( ref ),
-                          static_cast< const mega::MachineAddress& >( ref ),
+                          static_cast< const mega::MPO& >( ref ),
                           static_cast< const mega::NetworkOrProcessAddress& >( ref ) );
     }
 };

@@ -57,6 +57,7 @@ set( INTERFACE_SCHEMAS
     stash
     memory
     address
+    runtime
 )
 
 set( PROTOCOL_HEADER_DIR ${MEGA_API_DIR}/service/protocol/model )

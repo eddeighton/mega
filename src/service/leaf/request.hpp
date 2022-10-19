@@ -36,6 +36,7 @@
 
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/job.hxx"
+#include "service/protocol/model/runtime.hxx"
 
 namespace mega::service
 {
@@ -47,7 +48,8 @@ class LeafRequestConversation : public network::InThreadConversation,
                                 public network::daemon_leaf::Impl,
                                 public network::mpo::Impl,
                                 public network::status::Impl,
-                                public network::job::Impl
+                                public network::job::Impl,
+                                public network::runtime::Impl
 {
 protected:
     Leaf& m_leaf;
@@ -104,7 +106,8 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void             RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void             RootSimRun( const mega::MPO& mpo, const mega::NetworkAddress& networkAddress,
+                                         const std::string& strMemory, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
 
@@ -129,6 +132,10 @@ public:
         }
         return result;
     }
+
+    // network::runtime::Impl
+    virtual void MPODestroyed( const MPO& mpo, const bool& bDeleteHeap,
+                               boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

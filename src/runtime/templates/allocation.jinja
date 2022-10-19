@@ -79,20 +79,3 @@ void heap_dtor_{{ objectTypeID }}( void* pBuffer )
     }
 {% endfor %}
 }
-
-static mega::runtime::Allocator* __g_allocator = nullptr;
-
-void set_allocator_{{ objectTypeID }}( mega::runtime::Allocator* pAllocator )
-{
-    __g_allocator = pAllocator;
-}
-
-void* get_shared_{{ objectTypeID }}( mega::MachineAddress address )
-{
-    return __g_allocator->get_shared( address );
-}
-
-void* get_heap_{{ objectTypeID }}( mega::MachineAddress address )
-{
-    return __g_allocator->get_heap( address );
-}

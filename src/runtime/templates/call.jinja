@@ -25,10 +25,6 @@
 
 static const char* g_pszModuleName = "{{module_name}}";
 
-{% for getter in getters %}
-static mega::runtime::GetSharedFunction _fptr_get_shared_{{ getter }} = nullptr;
-{% endfor %}
-
 {% for call in calls %}
 static mega::runtime::TypeErasedFunction _fptr_call_{{ call }} = nullptr;
 {% endfor %}

@@ -28,6 +28,8 @@
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/common/node.hpp"
 
+#include "runtime/runtime.hpp"
+
 #include <boost/asio/io_service.hpp>
 
 #include <memory>
@@ -68,6 +70,18 @@ public:
         m_pSelfSender->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
 
+    void setRuntime( std::unique_ptr< runtime::Runtime > pRuntime )
+    {
+        m_pRuntime.reset();
+        m_pRuntime = std::move( pRuntime );
+    }
+
+    const network::MegastructureInstallation& getMegastructureInstallation() const
+    {
+        VERIFY_RTE_MSG( m_megastructureInstallationOpt.has_value(), "Megastructure Installation not found" );
+        return m_megastructureInstallationOpt.value();
+    }
+
 private:
     network::Sender::Ptr     m_pSender;
     network::Sender::Ptr     m_pSelfSender;
@@ -77,11 +91,13 @@ private:
 
     using ExecutorType = decltype( m_io_context.get_executor() );
 
-    network::Client                                  m_client;
-    boost::asio::executor_work_guard< ExecutorType > m_work_guard;
-    std::thread                                      m_io_thread;
-    mega::MP                                         m_mp;
-    std::set< mega::MPO >                            m_mpos;
+    network::Client                                     m_client;
+    boost::asio::executor_work_guard< ExecutorType >    m_work_guard;
+    std::thread                                         m_io_thread;
+    mega::MP                                            m_mp;
+    std::set< mega::MPO >                               m_mpos;
+    std::unique_ptr< runtime::Runtime >                 m_pRuntime;
+    std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;
 };
 
 } // namespace mega::service
