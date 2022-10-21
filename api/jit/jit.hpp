@@ -20,25 +20,13 @@
 #ifndef MEGA_RUNTIME_SEPT_19_2022
 #define MEGA_RUNTIME_SEPT_19_2022
 
-#include "object_allocator.hpp"
-
-#include "runtime/api.hpp"
-#include "runtime/context.hpp"
-
-#include "address_space.hpp"
-#include "jit.hpp"
+#include "orc.hpp"
 #include "component_manager.hpp"
 #include "database.hpp"
 #include "code_generator.hpp"
+#include "allocator.hpp"
 
 #include "service/protocol/common/project.hpp"
-#include "service/network/log.hpp"
-
-#include "mega/reference.hpp"
-#include "mega/common.hpp"
-#include "mega/default_traits.hpp"
-
-#include "common/assert_verify.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -49,17 +37,27 @@
 namespace mega::runtime
 {
 
-class Runtime
+class JIT
 {
     friend class ObjectTypeAllocator;
 
 public:
-    Runtime( const network::MegastructureInstallation& megastructureInstallation,
-             const network::Project&                   project );
+    JIT( const network::MegastructureInstallation& megastructureInstallation, const network::Project& project );
 
-    JITCompiler::Module::Ptr get_allocation( TypeID objectTypeID );
-    
-    void get_getter_call( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
+    void getObjectSharedAlloc( const char*                        pszUnitName,
+                               const mega::TypeID&                objectTypeID,
+                               mega::runtime::SharedCtorFunction* ppFunction );
+    void getObjectSharedDel( const char*                        pszUnitName,
+                             const mega::TypeID&                objectTypeID,
+                             mega::runtime::SharedDtorFunction* ppFunction );
+    void getObjectHeapAlloc( const char*                      pszUnitName,
+                             const mega::TypeID&              objectTypeID,
+                             mega::runtime::HeapCtorFunction* ppFunction );
+    void getObjectHeapDel( const char*                      pszUnitName,
+                           const mega::TypeID&              objectTypeID,
+                           mega::runtime::HeapDtorFunction* ppFunction );
+
+    void get_call_getter( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
     void get_allocate( const char* pszUnitName, const InvocationID& invocationID, AllocateFunction* ppFunction );
     void get_read( const char* pszUnitName, const InvocationID& invocationID, ReadFunction* ppFunction );
     void get_write( const char* pszUnitName, const InvocationID& invocationID, WriteFunction* ppFunction );
@@ -68,6 +66,7 @@ public:
     void get_stop( const char* pszUnitName, const mega::InvocationID& invocationID, StopFunction* ppFunction );
 
 private:
+    const Allocator&         getAllocator( const mega::TypeID& objectTypeID );
     JITCompiler::Module::Ptr compile( const std::string& strCode );
 
     const network::MegastructureInstallation m_megastructureInstallation;
@@ -78,12 +77,14 @@ private:
     DatabaseInstance m_database;
     ComponentManager m_componentManager;
 
-    // use unordered_map
+    using AllocatorMap = std::map< TypeID, Allocator::Ptr >;
+    AllocatorMap m_allocators;
+
     using InvocationMap = std::map< InvocationID, JITCompiler::Module::Ptr >;
     InvocationMap m_invocations;
 
-    using AllocationsMap = std::map< TypeID, JITCompiler::Module::Ptr >;
-    AllocationsMap m_allocations;
+    /*using AllocationsMap = std::map< TypeID, JITCompiler::Module::Ptr >;
+    AllocationsMap m_allocations;*/
 
     using FunctionPtrMap = std::multimap< const char*, void* >;
     FunctionPtrMap m_functionPointers;

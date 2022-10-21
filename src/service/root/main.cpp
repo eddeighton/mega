@@ -34,6 +34,17 @@
 #include <chrono>
 #include <thread>
 
+// dummy implementation of MPOContext
+namespace mega
+{
+class MPOContext
+{
+};
+MPOContext* getMPOContext() { return nullptr; }
+void        resetMPOContext() {}
+void        setMPOContext( MPOContext* pMPOContext ) {}
+} // namespace mega
+
 int main( int argc, const char* argv[] )
 {
     using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );

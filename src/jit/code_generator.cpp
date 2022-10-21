@@ -23,7 +23,7 @@
 #include "database/model/FinalStage.hxx"
 #include "service/network/log.hpp"
 
-#include "runtime/mpo_context.hpp"
+#include "service/mpo_context.hpp"
 
 #include "common/file.hpp"
 #include "common/stash.hpp"
@@ -613,7 +613,7 @@ R"TEMPLATE(
     {
         if( _fptr_call_{{ concrete_type_id }} == nullptr )
         {
-            mega::runtime::get_getter_call( g_pszModuleName, {{ concrete_type_id }},
+            mega::runtime::get_call_getter( g_pszModuleName, {{ concrete_type_id }},
                 &_fptr_call_{{ concrete_type_id }} );
         }
         return mega::runtime::CallResult{ _fptr_call_{{ concrete_type_id }}, {{ instance }} };

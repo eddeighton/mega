@@ -17,38 +17,40 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef OBJECT_ALLOCATOR_SEPT_19_2022
-#define OBJECT_ALLOCATOR_SEPT_19_2022
+// ed was here
+#include "mega/native_types.hpp"
+#include "mega/reference.hpp"
+#include "jit/functions.hpp"
 
-#include "runtime/functions.hpp"
+static const char* g_pszModuleName = "{{module_name}}";
 
-
-#include <memory>
-#include <unordered_map>
-
-namespace mega::runtime
+namespace mega
 {
+    void schedule_stop(const reference&);
 
-class Runtime;
+{% for copy in copiers %}
+    void copy_{{copy}}(const void*,void*);
+{% endfor %}
+{% for event in events %}
+    void event_{{event}}(const reference&,bool,const void*);
+{% endfor %}
 
-class ObjectTypeAllocator
+{% for allocate in allocators %}
+    Instance allocate_{{allocate}}(void*);
+{% endfor %}
+{% for free in freers %}
+    void free_{{free}}(void*,Instance);
+{% endfor %}
+
+}
+
+mega::reference {{ name }}( mega::reference context )
 {
-public:
-    ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID );
+{% for variable in variables %}
+{{ variable }}
+{% endfor %}
 
-
-private:
-    Runtime&     m_runtime;
-    mega::TypeID m_objectTypeID;
-    mega::U64    m_szSizeShared, m_szSizeHeap;
-    mega::U64    m_szAlignShared, m_szAlignHeap;
-
-    SharedCtorFunction   m_pSharedCtor   = nullptr;
-    SharedDtorFunction   m_pSharedDtor   = nullptr;
-    HeapCtorFunction     m_pHeapCtor     = nullptr;
-    HeapDtorFunction     m_pHeapDtor     = nullptr;
-};
-
-} // namespace mega::runtime
-
-#endif // OBJECT_ALLOCATOR_SEPT_19_2022
+{% for assignment in assignments %}
+{{ assignment }}
+{% endfor %}
+}

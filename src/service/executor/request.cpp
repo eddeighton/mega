@@ -26,8 +26,6 @@
 
 #include "service/network/log.hpp"
 
-#include "runtime/api.hpp"
-
 namespace mega::service
 {
 

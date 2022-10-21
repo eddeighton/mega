@@ -28,7 +28,7 @@
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/common/node.hpp"
 
-#include "runtime/runtime.hpp"
+#include "jit/jit.hpp"
 
 #include <boost/asio/io_service.hpp>
 
@@ -70,10 +70,10 @@ public:
         m_pSelfSender->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
 
-    void setRuntime( std::unique_ptr< runtime::Runtime > pRuntime )
+    void setRuntime( std::unique_ptr< runtime::JIT > pJIT )
     {
-        m_pRuntime.reset();
-        m_pRuntime = std::move( pRuntime );
+        m_pJIT.reset();
+        m_pJIT = std::move( pJIT );
     }
 
     const network::MegastructureInstallation& getMegastructureInstallation() const
@@ -96,7 +96,7 @@ private:
     std::thread                                         m_io_thread;
     mega::MP                                            m_mp;
     std::set< mega::MPO >                               m_mpos;
-    std::unique_ptr< runtime::Runtime >                 m_pRuntime;
+    std::unique_ptr< runtime::JIT >                     m_pJIT;
     std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;
 };
 

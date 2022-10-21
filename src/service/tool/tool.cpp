@@ -21,7 +21,7 @@
 
 #include "request.hpp"
 
-#include "runtime/mpo_context.hpp"
+#include "service/mpo_context.hpp"
 
 #include "service/network/conversation.hpp"
 #include "service/network/conversation_manager.hpp"
@@ -109,7 +109,12 @@ public:
     virtual network::runtime::Request_Sender getLeafRuntimeRequest() override
     {
         VERIFY_RTE( m_pYieldContext );
-        return network::runtime::Request_Sender( *this, m_tool.getLeafSender(), *m_pYieldContext );
+        return { *this, m_tool.getLeafSender(), *m_pYieldContext };
+    }
+    virtual network::jit::Request_Sender getLeafJITRequest() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return { *this, m_tool.getLeafSender(), *m_pYieldContext };
     }
 
     virtual network::mpo::Request_Sender getMPRequest() override

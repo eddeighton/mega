@@ -17,39 +17,36 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "runtime/api.hpp"
-#include "runtime/mpo_context.hpp"
-
-#include "runtime.hpp"
+#include "service/mpo_context.hpp"
 
 namespace mega::runtime
 {
 
-#define FUNCTION_ARG_0( return_type, name )         \
-    return_type name()                              \
-    {                                               \
-        return getMPOContext()->name(); \
+#define FUNCTION_ARG_0( return_type, name ) \
+    return_type name()                      \
+    {                                       \
+        return getMPOContext()->name();     \
     }
 
 #define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) \
     return_type name( arg1_type arg1_name )                       \
     {                                                             \
-        return getMPOContext()->name( arg1_name );    \
+        return getMPOContext()->name( arg1_name );                \
     }
 
 #define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
     return_type name( arg1_type arg1_name, arg2_type arg2_name )                        \
     {                                                                                   \
-        return getMPOContext()->name( arg1_name, arg2_name );               \
+        return getMPOContext()->name( arg1_name, arg2_name );                           \
     }
 
 #define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
     return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name )                         \
     {                                                                                                         \
-        return getMPOContext()->name( arg1_name, arg2_name, arg3_name );                          \
+        return getMPOContext()->name( arg1_name, arg2_name, arg3_name );                                      \
     }
 
-#include "runtime/module_interface.hxx"
+#include "jit/jit_interface.hxx"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1

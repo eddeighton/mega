@@ -58,6 +58,7 @@ set( INTERFACE_SCHEMAS
     memory
     address
     runtime
+    jit
 )
 
 set( PROTOCOL_HEADER_DIR ${MEGA_API_DIR}/service/protocol/model )
@@ -118,6 +119,7 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/status.hpp
     ${MEGA_API_DIR}/service/protocol/common/memory_config.hpp
     ${MEGA_API_DIR}/service/protocol/common/transaction.hpp
+    ${MEGA_API_DIR}/service/protocol/common/jit_types.hpp
 	)
 
 set( MEGA_PROTOCOL_COMMON_SOURCE
@@ -134,7 +136,6 @@ add_library( protocol
                     ${MEGA_PROTOCOL_COMMON_SOURCE}
 					${MEGA_PROTOCOL_GENERATED_HEADERS}
 					${MEGA_PROTOCOL_GENERATED_SOURCES}
-                    ${MEGA_SRC_DIR}/runtime/mpo_context.cpp
 				)
 
 target_link_libraries( protocol utilities )

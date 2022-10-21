@@ -31,7 +31,7 @@
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/stash.hxx"
 
-#include "runtime/mpo_context.hpp"
+#include "service/mpo_context.hpp"
 
 #include "mega/reference.hpp"
 
@@ -60,6 +60,7 @@ public:
     virtual network::stash::Request_Encoder   getRootStashRequest() override;
     virtual network::memory::Request_Encoder  getDaemonMemoryRequest() override;
     virtual network::runtime::Request_Sender  getLeafRuntimeRequest() override;
+    virtual network::jit::Request_Sender      getLeafJITRequest() override;
 
     // network::sim::Impl
     virtual bool SimLockRead( const mega::MPO&, boost::asio::yield_context& ) override;

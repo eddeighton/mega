@@ -21,8 +21,7 @@
 #define COMPONENT_MANAGER_20_JUNE_2022
 
 #include "database.hpp"
-
-#include "runtime/functions.hpp"
+#include "functions.hpp"
 
 #include "service/protocol/common/project.hpp"
 

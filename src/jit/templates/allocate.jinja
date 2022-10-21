@@ -17,16 +17,18 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 // ed was here
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
-#include "runtime/functions.hpp"
+#include "jit/functions.hpp"
 
 static const char* g_pszModuleName = "{{module_name}}";
 
-{% for call in calls %}
-static mega::runtime::TypeErasedFunction _fptr_call_{{ call }} = nullptr;
+{% for object_allocator in object_allocators %}
+static mega::runtime::GetSharedFunction _fptr_object_shared_alloc_{{ object_allocator }} = nullptr;
+static mega::runtime::SharedDtorFunction _fptr_object_shared_del_{{ object_allocator }} = nullptr;
+static mega::runtime::HeapCtorFunction _fptr_object_heap_alloc_{{ object_allocator }} = nullptr;
+static mega::runtime::HeapDtorFunction _fptr_object_heap_del_{{ object_allocator }} = nullptr;
 {% endfor %}
 
 namespace mega
@@ -39,7 +41,7 @@ namespace mega
 {% endfor %}
 }
 
-mega::runtime::CallResult {{ name }}( mega::reference context )
+mega::reference {{ name }}( mega::reference context )
 {
 {% for variable in variables %}
 {{ variable }}

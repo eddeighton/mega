@@ -302,7 +302,7 @@ void LeafRequestConversation::RootSimRun( const MPO& mpo, const NetworkAddress& 
 {
     struct MPOEntry
     {
-        runtime::Runtime&     runtime;
+        runtime::JIT&         jit;
         std::set< MPO >&      mpos;
         const MPO&            mpo;
         const NetworkAddress& networkAddress;
@@ -310,9 +310,8 @@ void LeafRequestConversation::RootSimRun( const MPO& mpo, const NetworkAddress& 
         NetworkAddress rootNetAddress;
         reference      root;
 
-        MPOEntry( runtime::Runtime& runtime, std::set< MPO >& mpos, const MPO& mpo,
-                  const NetworkAddress& networkAddress )
-            : runtime( runtime )
+        MPOEntry( runtime::JIT& jit, std::set< MPO >& mpos, const MPO& mpo, const NetworkAddress& networkAddress )
+            : jit( jit )
             , mpos( mpos )
             , mpo( mpo )
             , networkAddress( networkAddress )
@@ -324,17 +323,17 @@ void LeafRequestConversation::RootSimRun( const MPO& mpo, const NetworkAddress& 
     };
 
     SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", mpo );
-    VERIFY_RTE_MSG( m_leaf.m_pRuntime.get(), "Runtime not initialised in RootSimRun" );
+    VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in RootSimRun" );
     switch ( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
         {
-            MPOEntry mpoEntry( *m_leaf.m_pRuntime, m_leaf.m_mpos, mpo, networkAddress );
+            MPOEntry mpoEntry( *m_leaf.m_pJIT, m_leaf.m_mpos, mpo, networkAddress );
             return getExeSender( yield_ctx ).RootSimRun( mpo, mpoEntry.root, strMemory );
         }
         case network::Node::Tool:
         {
-            MPOEntry mpoEntry( *m_leaf.m_pRuntime, m_leaf.m_mpos, mpo, networkAddress );
+            MPOEntry mpoEntry( *m_leaf.m_pJIT, m_leaf.m_mpos, mpo, networkAddress );
             return getToolSender( yield_ctx ).RootSimRun( mpo, mpoEntry.root, strMemory );
         }
         case network::Node::Terminal:

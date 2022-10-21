@@ -17,30 +17,31 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef RUNTIME_18_JUNE_2022
-#define RUNTIME_18_JUNE_2022
+#ifndef JIT_TYPES_21_OCT_2022
+#define JIT_TYPES_21_OCT_2022
 
-#include "runtime/functions.hpp"
+#include "mega/native_types.hpp"
 
-#include "mega/invocation_id.hpp"
-
-namespace mega::runtime
+namespace mega::network
 {
 
-#define FUNCTION_ARG_0( return_type, name ) return_type name();
-#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
-#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name );
-#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
+using JITModuleName  = U64;
+using JITFunctionPtr = U64;
 
-#include "module_interface.hxx"
+inline const char*   convert( JITModuleName moduleName ) { return reinterpret_cast< const char* >( moduleName ); }
+inline JITModuleName convert( const char* pszModuleName ) { return reinterpret_cast< JITModuleName >( pszModuleName ); }
 
-#undef FUNCTION_ARG_0
-#undef FUNCTION_ARG_1
-#undef FUNCTION_ARG_2
-#undef FUNCTION_ARG_3
+template < typename TFunctionPtrType >
+inline TFunctionPtrType* convert( JITFunctionPtr functionPtr )
+{
+    return reinterpret_cast< TFunctionPtrType* >( functionPtr );
+}
+template < typename TFunctionPtrType >
+inline JITFunctionPtr convert( TFunctionPtrType* ppFunction )
+{
+    return reinterpret_cast< JITFunctionPtr >( ppFunction );
+}
 
-} // namespace mega::runtime
+} // namespace mega::network
 
-#endif // RUNTIME_18_JUNE_2022
+#endif // JIT_TYPES_21_OCT_2022

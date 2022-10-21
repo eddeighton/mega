@@ -23,10 +23,10 @@
 
 #include "mega/default_traits.hpp"
 
-#include "runtime/context.hpp"
-#include "runtime/api.hpp"
-#include "runtime/functions.hpp"
+#include "jit/functions.hpp"
 
+#include "service/api.hpp"
+#include "service/context.hpp"
 #include "service/lock_tracker.hpp"
 
 #include "service/network/log.hpp"
@@ -38,6 +38,7 @@
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/address.hxx"
 #include "service/protocol/model/runtime.hxx"
+#include "service/protocol/model/jit.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/stash.hxx"
 
@@ -89,7 +90,7 @@ public:
 #define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
     return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
 
-#include "module_interface.hxx"
+#include "jit/jit_interface.hxx"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1
@@ -102,6 +103,7 @@ public:
     virtual network::stash::Request_Encoder   getRootStashRequest()    = 0;
     virtual network::memory::Request_Encoder  getDaemonMemoryRequest() = 0;
     virtual network::runtime::Request_Sender  getLeafRuntimeRequest()  = 0;
+    virtual network::jit::Request_Sender      getLeafJITRequest()  = 0;
 
     network::sim::Request_Encoder getSimRequest( MPO mpo )
     {
@@ -149,9 +151,11 @@ public:
     }
     virtual mega::reference getRoot( MPO mpo ) override
     {
+        
         THROW_TODO;
         // return mega::runtime::get_root( mpo );
     }
+
     virtual mega::reference getThisRoot() override { return m_root; }
 
     // log

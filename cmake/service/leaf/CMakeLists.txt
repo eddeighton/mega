@@ -17,9 +17,6 @@
 ##  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 ##  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 cmake_minimum_required( VERSION 3.1...3.16 )
 
 #get boost
@@ -33,6 +30,9 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( MEGA_LEAF_API 
     ${MEGA_API_DIR}/service/leaf.hpp
+    ${MEGA_API_DIR}/service/context.hpp
+    ${MEGA_API_DIR}/service/api.hpp
+    ${MEGA_API_DIR}/service/mpo_context.hpp
 )
 
 set( MEGA_LEAF_SRC 
@@ -41,6 +41,9 @@ set( MEGA_LEAF_SRC
     ${MEGA_SRC_DIR}/service/leaf/routing.cpp
     ${MEGA_SRC_DIR}/service/leaf/status.cpp
     ${MEGA_SRC_DIR}/service/leaf/runtime.cpp
+    ${MEGA_SRC_DIR}/service/leaf/mpo_context.cpp
+    ${MEGA_SRC_DIR}/service/leaf/jit.cpp
+    ${MEGA_SRC_DIR}/service/leaf/api.cpp
 )
 
 add_library( leaf
@@ -52,7 +55,7 @@ target_compile_options( leaf PUBLIC "-fcoroutines" )
 
 target_link_libraries( leaf protocol )
 target_link_libraries( leaf network )
-target_link_libraries( leaf runtime )
+target_link_libraries( leaf jit )
 
 target_include_directories( leaf PUBLIC ${MEGA_API_DIR} )
 target_include_directories( leaf PUBLIC ${MEGA_SRC_DIR} )

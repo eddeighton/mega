@@ -17,40 +17,30 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-// ed was here
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
-#include "runtime/functions.hpp"
+#ifndef RUNTIME_18_JUNE_2022
+#define RUNTIME_18_JUNE_2022
 
-static const char* g_pszModuleName = "{{module_name}}";
+#include "jit/functions.hpp"
 
-namespace mega
+#include "mega/invocation_id.hpp"
+
+namespace mega::runtime
 {
-    void schedule_start(const reference&);
 
-{% for copy in copiers %}
-    void copy_{{copy}}(const void*,void*);
-{% endfor %}
-{% for event in events %}
-    void event_{{event}}(const reference&,bool,const void*);
-{% endfor %}
+#define FUNCTION_ARG_0( return_type, name ) return_type name();
+#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
+#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name );
+#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
 
-{% for allocate in allocators %}
-    Instance allocate_{{allocate}}(void*);
-{% endfor %}
-{% for free in freers %}
-    void free_{{free}}(void*,Instance);
-{% endfor %}
+#include "jit/jit_interface.hxx"
 
-}
+#undef FUNCTION_ARG_0
+#undef FUNCTION_ARG_1
+#undef FUNCTION_ARG_2
+#undef FUNCTION_ARG_3
 
-mega::reference {{ name }}( mega::reference context )
-{
-{% for variable in variables %}
-{{ variable }}
-{% endfor %}
+} // namespace mega::runtime
 
-{% for assignment in assignments %}
-{{ assignment }}
-{% endfor %}
-}
+#endif // RUNTIME_18_JUNE_2022

@@ -17,31 +17,42 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef OBJECT_ALLOCATOR_SEPT_19_2022
+#define OBJECT_ALLOCATOR_SEPT_19_2022
 
-// ed was here
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
-#include "runtime/functions.hpp"
+#include "functions.hpp"
+#include "database.hpp"
+#include "orc.hpp"
 
-static const char* g_pszModuleName = "{{module_name}}";
+#include <memory>
+#include <unordered_map>
 
-namespace mega
+namespace mega::runtime
 {
-{% for copy in copiers %}
-    void copy_{{copy}}(const void*,void*);
-{% endfor %}
-{% for event in events %}
-    void event_{{event}}(const reference&,bool,const void*);
-{% endfor %}
-}
 
-mega::reference {{ name }}( mega::reference context, const void* pData )
+class Allocator
 {
-{% for variable in variables %}
-{{ variable }}
-{% endfor %}
+public:
+    Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
 
-{% for assignment in assignments %}
-{{ assignment }}
-{% endfor %}
-}
+    using Ptr = std::unique_ptr< Allocator >;
+
+    SharedCtorFunction getSharedCtor() const { return m_pSharedCtor; }
+    SharedDtorFunction getSharedDtor() const { return m_pSharedDtor; }
+    HeapCtorFunction   getHeapCtor() const { return m_pHeapCtor; }
+    HeapDtorFunction   getHeapDtor() const { return m_pHeapDtor; }
+
+private:
+    mega::TypeID m_objectTypeID;
+    mega::U64    m_szSizeShared, m_szSizeHeap;
+    mega::U64    m_szAlignShared, m_szAlignHeap;
+
+    SharedCtorFunction m_pSharedCtor = nullptr;
+    SharedDtorFunction m_pSharedDtor = nullptr;
+    HeapCtorFunction   m_pHeapCtor   = nullptr;
+    HeapDtorFunction   m_pHeapDtor   = nullptr;
+};
+
+} // namespace mega::runtime
+
+#endif // OBJECT_ALLOCATOR_SEPT_19_2022

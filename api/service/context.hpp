@@ -21,9 +21,9 @@
 #define MPO_CONTEXT_SEPT_18_2022
 
 #include "mega/reference.hpp"
-
-#include "runtime/functions.hpp"
 #include "mega/invocation_id.hpp"
+
+#include "jit/functions.hpp"
 
 #include <string>
 #include <vector>

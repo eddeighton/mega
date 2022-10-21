@@ -19,8 +19,7 @@
 
 #include "simulation.hpp"
 
-#include "runtime/api.hpp"
-#include "runtime/context.hpp"
+#include "service/context.hpp"
 
 #include "service/executor.hpp"
 
@@ -83,6 +82,11 @@ network::memory::Request_Encoder Simulation::getDaemonMemoryRequest()
              getID() };
 }
 network::runtime::Request_Sender Simulation::getLeafRuntimeRequest()
+{
+    return { *this, m_executor.getLeafSender(), *m_pYieldContext };
+}
+
+network::jit::Request_Sender Simulation::getLeafJITRequest()
 {
     return { *this, m_executor.getLeafSender(), *m_pYieldContext };
 }

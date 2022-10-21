@@ -74,8 +74,6 @@ target_link_libraries( terminal network )
 target_link_libraries( terminal leaf )
 target_link_libraries( terminal pipeline )
 target_link_libraries( terminal database )
-target_link_libraries( terminal jit )
-target_link_libraries( terminal runtime )
 
 install( FILES ${TERMINAL_LIB_API} DESTINATION include/service )
 install( TARGETS terminal EXPORT terminal DESTINATION bin)

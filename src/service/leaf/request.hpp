@@ -37,6 +37,7 @@
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/runtime.hxx"
+#include "service/protocol/model/jit.hxx"
 
 namespace mega::service
 {
@@ -49,7 +50,8 @@ class LeafRequestConversation : public network::InThreadConversation,
                                 public network::mpo::Impl,
                                 public network::status::Impl,
                                 public network::job::Impl,
-                                public network::runtime::Impl
+                                public network::runtime::Impl,
+                                public network::jit::Impl
 {
 protected:
     Leaf& m_leaf;
@@ -136,6 +138,42 @@ public:
     // network::runtime::Impl
     virtual void MPODestroyed( const MPO& mpo, const bool& bDeleteHeap,
                                boost::asio::yield_context& yield_ctx ) override;
+
+    // public network::jit::Impl
+    virtual void GetObjectSharedAlloc( const network::JITModuleName&  pszUnitName,
+                                       const mega::TypeID&            objectTypeID,
+                                       const network::JITFunctionPtr& ppFunction,
+                                       boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetObjectSharedDel( const network::JITModuleName&  pszUnitName,
+                                     const mega::TypeID&            objectTypeID,
+                                     const network::JITFunctionPtr& ppFunction,
+                                     boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetObjectHeapAlloc( const network::JITModuleName&  pszUnitName,
+                                     const mega::TypeID&            objectTypeID,
+                                     const network::JITFunctionPtr& ppFunction,
+                                     boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetObjectHeapDel( const network::JITModuleName&  pszUnitName,
+                                   const mega::TypeID&            objectTypeID,
+                                   const network::JITFunctionPtr& ppFunction,
+                                   boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetCallGetter( const network::JITModuleName&  pszUnitName,
+                                const mega::TypeID&            objectTypeID,
+                                const network::JITFunctionPtr& ppFunction,
+                                boost::asio::yield_context&    yield_ctx ) override;
+
+    virtual void GetAllocate( const network::JITModuleName& pszUnitName, const mega::InvocationID& invocationID,
+                              const network::JITFunctionPtr& ppFunction,
+                              boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetRead( const network::JITModuleName& pszUnitName, const mega::InvocationID& invocationID,
+                          const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetWrite( const network::JITModuleName& pszUnitName, const mega::InvocationID& invocationID,
+                           const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetCall( const network::JITModuleName& pszUnitName, const mega::InvocationID& invocationID,
+                          const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetStart( const network::JITModuleName& pszUnitName, const mega::InvocationID& invocationID,
+                           const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetStop( const network::JITModuleName& pszUnitName, const mega::InvocationID& invocationID,
+                          const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

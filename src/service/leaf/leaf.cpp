@@ -79,7 +79,7 @@ public:
                         //        memoryConfig.getMemory(), memoryConfig.getMutex(), memoryConfig.getMap() }
                         SPDLOG_TRACE( "Leaf: {} enrole creating runtime for project: {}", m_leaf.m_mp,
                                       currentProject.getProjectInstallPath().string() );
-                        m_leaf.setRuntime( std::make_unique< runtime::Runtime >(
+                        m_leaf.setRuntime( std::make_unique< runtime::JIT >(
                             m_leaf.m_megastructureInstallationOpt.value(), currentProject ) );
                     }
                     catch ( mega::io::DatabaseVersionException& ex )

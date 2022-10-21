@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "runtime/mpo_context.hpp"
+#include "service/mpo_context.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -43,66 +43,92 @@ void        setMPOContext( MPOContext* pMPOContext )
 
 void* MPOContext::get_this_shared_memory()
 {
-    //
-    THROW_TODO;
+    VERIFY_RTE_MSG( m_pSharedMemory.get(), "Shared memory not initialised" );
+    return m_pSharedMemory->get_address();
 }
-void* MPOContext::shared_offset_to_abs( U64 pSharedOffset, void* pMemory ) { THROW_TODO; }
-void* MPOContext::allocate_shared( U64 size, U64 alignment, void** pMemory ) { THROW_TODO; }
-void* MPOContext::allocate_heap( U64 size, U64 alignment ) { THROW_TODO; }
-void  MPOContext::get_object_shared_alloc( const char* pszUnitName, mega::TypeID objectTypeID,
-                                           mega::runtime::SharedCtorFunction* ppFunction )
+
+void* MPOContext::shared_offset_to_abs( U64 pSharedOffset, void* pMemory )
 {
-    THROW_TODO;
+    return reinterpret_cast< char* >( pMemory ) + pSharedOffset;
+}
+
+U64 MPOContext::allocate_shared( U64 size, U64 alignment )
+{
+    VERIFY_RTE_MSG( m_pSharedMemory.get(), "Shared memory not initialised" );
+    char* pMem = reinterpret_cast< char* >( m_pSharedMemory->allocate_aligned( size, alignment ) );
+    return pMem - reinterpret_cast< char* >( m_pSharedMemory->get_address() );
+}
+
+void* MPOContext::allocate_heap( U64 size, U64 alignment )
+{
+    return new ( std::align_val_t( alignment ) ) char[ size ];
+}
+
+void MPOContext::get_object_shared_alloc( const char* pszUnitName, mega::TypeID objectTypeID,
+                                          mega::runtime::SharedCtorFunction* ppFunction )
+{
+    getLeafJITRequest().GetObjectSharedAlloc(
+        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
 }
 void MPOContext::get_object_shared_del( const char* pszUnitName, mega::TypeID objectTypeID,
-                                        mega::runtime::SharedCtorFunction* ppFunction )
+                                        mega::runtime::SharedDtorFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetObjectSharedDel(
+        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
 }
 void MPOContext::get_object_heap_alloc( const char* pszUnitName, mega::TypeID objectTypeID,
-                                        mega::runtime::SharedCtorFunction* ppFunction )
+                                        mega::runtime::HeapCtorFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetObjectHeapAlloc(
+        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
 }
 void MPOContext::get_object_heap_del( const char* pszUnitName, mega::TypeID objectTypeID,
-                                      mega::runtime::SharedCtorFunction* ppFunction )
+                                      mega::runtime::HeapDtorFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetObjectHeapDel(
+        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
 }
-void MPOContext::get_getter_call( const char* pszUnitName, mega::TypeID objectTypeID,
+void MPOContext::get_call_getter( const char* pszUnitName, mega::TypeID objectTypeID,
                                   mega::runtime::TypeErasedFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetCallGetter(
+        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
 }
 void MPOContext::get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID,
                                mega::runtime::AllocateFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetAllocate(
+        network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
 void MPOContext::get_read( const char* pszUnitName, const mega::InvocationID& invocationID,
                            mega::runtime::ReadFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetRead(
+        network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
 void MPOContext::get_write( const char* pszUnitName, const mega::InvocationID& invocationID,
                             mega::runtime::WriteFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetWrite(
+        network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
 void MPOContext::get_call( const char* pszUnitName, const mega::InvocationID& invocationID,
                            mega::runtime::CallFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetCall(
+        network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
 void MPOContext::get_start( const char* pszUnitName, const mega::InvocationID& invocationID,
                             mega::runtime::StartFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetStart(
+        network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
 void MPOContext::get_stop( const char* pszUnitName, const mega::InvocationID& invocationID,
                            mega::runtime::StopFunction* ppFunction )
 {
-    THROW_TODO;
+    getLeafJITRequest().GetStop(
+        network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
 
 } // namespace mega

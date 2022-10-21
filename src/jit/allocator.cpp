@@ -17,9 +17,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "object_allocator.hpp"
+#include "allocator.hpp"
 
-#include "runtime.hpp"
+#include "jit.hpp"
 #include "database.hpp"
 #include "symbol_utils.hpp"
 
@@ -28,18 +28,17 @@
 namespace mega::runtime
 {
 
-ObjectTypeAllocator::ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID )
-    : m_runtime( runtime )
-    , m_objectTypeID( objectTypeID )
+Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
+    : m_objectTypeID( objectTypeID )
     , m_szSizeShared( 0U )
     , m_szSizeHeap( 0U )
     , m_szAlignShared( 1U )
     , m_szAlignHeap( 1U )
 {
-    SPDLOG_TRACE( "ObjectTypeAllocator::ctor for {}", m_objectTypeID );
+    SPDLOG_TRACE( "Allocator::ctor for {}", m_objectTypeID );
     {
         using namespace FinalStage;
-        const Concrete::Object* pObject = m_runtime.m_database.getObject( m_objectTypeID );
+        const Concrete::Object* pObject = database.getObject( m_objectTypeID );
         for ( auto pBuffer : pObject->get_buffers() )
         {
             if ( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
@@ -61,7 +60,6 @@ ObjectTypeAllocator::ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID 
         }
     }
 
-    JITCompiler::Module::Ptr pModule = runtime.get_allocation( m_objectTypeID );
     {
         {
             std::ostringstream os;
@@ -88,8 +86,6 @@ ObjectTypeAllocator::ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID 
             m_pHeapDtor = pModule->get< HeapDtorFunction >( os.str() );
         }
     }
-    
 }
-
 
 } // namespace mega::runtime

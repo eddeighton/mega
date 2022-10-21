@@ -20,7 +20,7 @@
 #include "mega/default_traits.hpp"
 #include "mega/allocator.hpp"
 
-#include "runtime/mpo_context.hpp"
+#include "service/mpo_context.hpp"
 
 #include "log/log.hpp"
 

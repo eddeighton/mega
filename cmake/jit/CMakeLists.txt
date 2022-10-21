@@ -24,30 +24,80 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get clang
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
+#get spdlog
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
-set( RUNTIME_SOURCE
-    ${MEGA_SRC_DIR}/runtime/jit.hpp
-    ${MEGA_SRC_DIR}/runtime/jit.cpp
+
+set( JINJA_TEMPLATES 
+    ${MEGA_SRC_DIR}/jit/templates/allocation.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/allocate.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/read.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/write.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/call.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/start.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/stop.jinja 
+	)
+
+set( RUNTIME_HEADERS
+    ${MEGA_API_DIR}/jit/functions.hpp
+    ${MEGA_API_DIR}/jit/jit.hpp
+    ${MEGA_API_DIR}/jit/orc.hpp
+    ${MEGA_API_DIR}/jit/component_manager.hpp
+    ${MEGA_API_DIR}/jit/code_generator.hpp
+    ${MEGA_API_DIR}/jit/database.hpp
+    ${MEGA_API_DIR}/jit/allocator.hpp
 )
 
-add_library( jit SHARED
+set( RUNTIME_SOURCE
+    ${MEGA_SRC_DIR}/jit/symbol_utils.hpp
+
+    ${MEGA_SRC_DIR}/jit/component_manager.cpp
+    ${MEGA_SRC_DIR}/jit/code_generator.cpp
+    ${MEGA_SRC_DIR}/jit/database.cpp
+    ${MEGA_SRC_DIR}/jit/jit.cpp
+    ${MEGA_SRC_DIR}/jit/allocator.cpp
+
+    # ${MEGA_API_DIR}/mega/default_traits.cpp
+    
+)
+
+add_library( jit
     ${RUNTIME_HEADERS} 
     ${RUNTIME_SOURCE}
 )
 
-#target_link_options( jit PUBLIC -export-dynamic )
+include_directories( jit ${MEGA_API_DIR}/jit )
+
+# add_c_preprocessor_command( OUTPUT default_traits.cpp.i SOURCE ${MEGA_API_DIR}/mega/default_traits.cpp TARGET jit )
+# add_custom_target( PreprocessDefaultTraits 
+# 	SOURCES default_traits.cpp.i
+# 	COMMENT "Proprocessing default_traits.cpp")
+
+target_link_libraries( jit database )
+target_link_libraries( jit orc )
+
+target_link_options( jit PUBLIC -export-dynamic )
 #set_property(TARGET jit PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories( jit PUBLIC ${MEGA_API_DIR} )
 
 link_boost( jit system )
+link_boost( jit filesystem )
+link_boost( jit serialization )
+link_json( jit )
+link_inja( jit )
+link_spdlog( jit )
 link_common( jit )
-link_orc( jit )
 
-install( FILES ${RUNTIME_HEADERS} DESTINATION include/runtime )
+install( FILES ${RUNTIME_HEADERS} ${MEGA_API_DIR}/jit/jit_interface.hxx DESTINATION include/jit )
 install( TARGETS jit EXPORT jit DESTINATION bin)
 install( EXPORT jit NAMESPACE MEGA:: FILE jit-config.cmake DESTINATION share )
+install( FILES ${JINJA_TEMPLATES} DESTINATION templates )

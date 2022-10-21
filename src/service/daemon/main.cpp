@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "daemon.hpp"
 
 #include "service/network/network.hpp"
@@ -34,6 +32,17 @@
 #include <sstream>
 #include <chrono>
 #include <thread>
+
+// dummy implementation of MPOContext
+namespace mega
+{
+class MPOContext
+{
+};
+MPOContext* getMPOContext() { return nullptr; }
+void        resetMPOContext() {}
+void        setMPOContext( MPOContext* pMPOContext ) {}
+} // namespace mega
 
 int main( int argc, const char* argv[] )
 {
