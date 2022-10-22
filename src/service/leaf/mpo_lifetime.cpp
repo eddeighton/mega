@@ -47,17 +47,18 @@ MPOLifetime::MPOLifetime( Leaf& leaf, LeafRequestConversation& conversation, con
     const network::SizeAlignment rootSize = jit.getRootSize();
 
     void* pSharedMemoryBuffer = fromProcessAddress( m_sharedMemory.get_address(), m_root.pointer );
+    SPDLOG_TRACE( "MPOLifetime constructing root: {} at: {} in memory: {}", m_root, pSharedMemoryBuffer, strMemory );
 
     // ensure the shared memory is constructed
     if ( rootSize.shared_size )
     {
-        static mega::runtime::SharedCtorFunction _fptr_object_shared_alloc_1 = nullptr;
-        if ( _fptr_object_shared_alloc_1 == nullptr )
+        static mega::runtime::SharedCtorFunction rootSharedAllocatorFPtr = nullptr;
+        if ( rootSharedAllocatorFPtr == nullptr )
         {
             jit.getObjectSharedAlloc(
-                conversation.getLLVMCompiler( yield_ctx ), "leaf", 1, &_fptr_object_shared_alloc_1 );
+                conversation.getLLVMCompiler( yield_ctx ), "leaf", ROOT_TYPE_ID, &rootSharedAllocatorFPtr );
         }
-        _fptr_object_shared_alloc_1( pSharedMemoryBuffer, m_sharedMemory.get_address() );
+        rootSharedAllocatorFPtr( pSharedMemoryBuffer, m_sharedMemory.get_segment_manager() );
     }
 
     m_leaf.getHeapMemory().allocate(

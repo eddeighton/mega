@@ -76,8 +76,8 @@ network::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType 
             else if ( db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
             {
                 VERIFY_RTE( sizeAlignment.heap_size == 0U );
-                sizeAlignment.heap_size        = pBuffer->get_size();
-                sizeAlignment.shared_alignment = pBuffer->get_alignment();
+                sizeAlignment.heap_size      = pBuffer->get_size();
+                sizeAlignment.heap_alignment = pBuffer->get_alignment();
             }
             else
             {

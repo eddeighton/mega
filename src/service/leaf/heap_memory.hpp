@@ -25,8 +25,9 @@
 
 #include "service/protocol/common/jit_types.hpp"
 
-#include "jit/functions.hpp"
+#include "service/network/log.hpp"
 
+#include "jit/functions.hpp"
 #include "jit/jit.hpp"
 
 #include <unordered_map>
@@ -50,7 +51,12 @@ public:
     {
         if ( size.heap_size )
         {
-            HeapBufferPtr pHeapBuffer( new ( std::align_val_t( size.heap_alignment ) ) char[ size.heap_size ] );
+            SPDLOG_TRACE( "HeapMemory allocate size: {} alignment: {} at: {} in ref: {} processID: {}", size.heap_size,
+                          size.heap_alignment, pSharedMemoryBuffer, ref, processID );
+
+            HeapBufferPtr pHeapBuffer;
+            pHeapBuffer.reset( new ( std::align_val_t( size.heap_alignment ) ) char[ size.heap_size ] );
+
             setHeap( processID, getSharedHeader( pSharedMemoryBuffer ), pHeapBuffer.get() );
             getCtor( compiler, jit, ref.type )( pHeapBuffer.get() );
             m_heapBuffers.insert( { ref, std::move( pHeapBuffer ) } );

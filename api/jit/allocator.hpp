@@ -48,12 +48,13 @@ public:
     HeapDtorFunction   getHeapDtor() const { return m_pHeapDtor; }
 
 private:
-    TypeID                 m_objectTypeID;
-    network::SizeAlignment m_sizeAlignment;
-    SharedCtorFunction     m_pSharedCtor = nullptr;
-    SharedDtorFunction     m_pSharedDtor = nullptr;
-    HeapCtorFunction       m_pHeapCtor   = nullptr;
-    HeapDtorFunction       m_pHeapDtor   = nullptr;
+    JITCompiler::Module::Ptr m_pModule;
+    TypeID                   m_objectTypeID;
+    network::SizeAlignment   m_sizeAlignment;
+    SharedCtorFunction       m_pSharedCtor = nullptr;
+    SharedDtorFunction       m_pSharedDtor = nullptr;
+    HeapCtorFunction         m_pHeapCtor   = nullptr;
+    HeapDtorFunction         m_pHeapDtor   = nullptr;
 };
 
 } // namespace mega::runtime

@@ -36,7 +36,7 @@ inline void addStandardIncludes( std::ostream& os )
 {
     os << "#include \"mega/include.hpp\"\n";
     os << "#include \"mega/default_traits.hpp\"\n";
-    os << "#include \"runtime/functions.hpp\"\n";
+    os << "#include \"jit/functions.hpp\"\n";
     os << "#include <boost/dll/alias.hpp>\n";
 }
 } // namespace

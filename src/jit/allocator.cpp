@@ -30,7 +30,8 @@ namespace mega::runtime
 {
 
 Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
-    : m_objectTypeID( objectTypeID )
+    : m_pModule( pModule )
+    , m_objectTypeID( objectTypeID )
     , m_sizeAlignment( database.getObjectSize( m_objectTypeID ) )
 {
     SPDLOG_TRACE( "Allocator::ctor for {}", m_objectTypeID );

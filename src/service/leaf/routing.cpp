@@ -308,7 +308,7 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
 void LeafRequestConversation::RootSimRun( const reference& root, const std::string& strMemory,
                                           boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", root );
+    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {} {}", root, strMemory );
     VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in RootSimRun" );
     switch ( m_leaf.m_nodeType )
     {
