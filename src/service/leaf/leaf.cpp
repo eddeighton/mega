@@ -71,6 +71,13 @@ public:
             m_leaf.setActiveProject( currentProject );
         }
 
+        // set process description
+        {
+            std::ostringstream os;
+            os << network::Node::toStr( m_leaf.m_nodeType ) << " " << m_leaf.m_mp;
+            common::ProcessID::setDescription( os.str().c_str() );
+        }
+
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };
@@ -110,37 +117,53 @@ void Leaf::setActiveProject( const network::Project& currentProject )
 {
     m_pJIT.reset();
 
-    if ( !currentProject.isEmpty() && m_megastructureInstallationOpt.has_value() )
+    switch ( m_nodeType )
     {
-        if ( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
-        {
-            try
+        case network::Node::Leaf:
+        case network::Node::Terminal:
+            break;
+        case network::Node::Tool:
+        case network::Node::Executor:
+            if ( !currentProject.isEmpty() && m_megastructureInstallationOpt.has_value() )
             {
-                SPDLOG_TRACE( "Leaf: {} enrole creating runtime for project: {}", m_mp,
-                              currentProject.getProjectInstallPath().string() );
-                m_pJIT = std::make_unique< runtime::JIT >( m_megastructureInstallationOpt.value(), currentProject );
+                if ( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
+                {
+                    try
+                    {
+                        SPDLOG_TRACE( "Leaf: {} enrole creating runtime for project: {}", m_mp,
+                                      currentProject.getProjectInstallPath().string() );
+                        m_pJIT = std::make_unique< runtime::JIT >(
+                            m_megastructureInstallationOpt.value(), currentProject );
+                    }
+                    catch ( mega::io::DatabaseVersionException& ex )
+                    {
+                        SPDLOG_ERROR( "Database version exception: {}", currentProject.getProjectInstallPath().string(),
+                                      ex.what() );
+                    }
+                    catch ( std::exception& ex )
+                    {
+                        SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
+                                      currentProject.getProjectInstallPath().string(), ex.what() );
+                        throw;
+                    }
+                }
+                else
+                {
+                    SPDLOG_WARN( "JIT not initialised.  Active project: {} has no database",
+                                 currentProject.getProjectInstallPath().string() );
+                }
             }
-            catch ( mega::io::DatabaseVersionException& ex )
+            else
             {
-                SPDLOG_ERROR(
-                    "Database version exception: {}", currentProject.getProjectInstallPath().string(), ex.what() );
+                SPDLOG_WARN( "JIT not initialised.  No active project" );
             }
-            catch ( std::exception& ex )
-            {
-                SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
-                              currentProject.getProjectInstallPath().string(), ex.what() );
-                throw;
-            }
-        }
-        else
-        {
-            SPDLOG_WARN( "Could not initialised runtime.  Active project: {} has no database",
-                         currentProject.getProjectInstallPath().string() );
-        }
-    }
-    else
-    {
-        SPDLOG_WARN( "Could not initialised runtime.  No active project" );
+            break;
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::TOTAL_NODE_TYPES:
+        default:
+            THROW_RTE( "Leaf: Unknown leaf type" );
+            break;
     }
 }
 

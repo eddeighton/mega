@@ -19,7 +19,7 @@
 
 #include "request.hpp"
 
-#include "database/common/shared_header.hpp"
+#include "database/types/shared_memory_header.hpp"
 
 #include "service/network/log.hpp"
 #include "service/protocol/model/memory.hxx"
@@ -342,6 +342,8 @@ struct MPOEntry
 
         _fptr_object_shared_alloc_1( pSharedMemoryBuffer, pMemoryManager );
         _fptr_object_heap_alloc_1( pHeapMemoryBuffer );
+
+        SPDLOG_TRACE( "MPOEntry constructed root: {} in memory: {}", root, strMemory );
     }
 
     ~MPOEntry()

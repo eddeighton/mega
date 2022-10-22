@@ -101,7 +101,7 @@ std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::files
     }
 
     std::ostringstream osLogFileName;
-    osLogFileName << strLogName << "_" << Common::getProcessID() << ".log";
+    osLogFileName << strLogName << "_" << common::ProcessID::get().getPID() << ".log";
 
     const boost::filesystem::path logFilePath = logFolderPath / osLogFileName.str();
 

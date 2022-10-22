@@ -27,7 +27,7 @@
 #include "mega/reference_io.hpp"
 #include "mega/default_traits.hpp"
 
-#include "database/common/shared_header.hpp"
+#include "database/types/shared_memory_header.hpp"
 
 #include "service/protocol/common/header.hpp"
 #include "service/network/log.hpp"

@@ -58,7 +58,7 @@ Node::Type Node::fromStr( const char* pszStr )
 std::string makeProcessName( Node::Type type )
 {
     std::ostringstream os;
-    os << Node::toStr( type ) << "_" << Common::getProcessID();
+    os << Node::toStr( type ) << "_" << common::ProcessID::get().getPID();
     return os.str();
 }
 

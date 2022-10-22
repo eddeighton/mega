@@ -66,6 +66,8 @@ Root::Root( boost::asio::io_context& ioContext, short portNumber )
     , m_server( ioContext, *this, portNumber )
     , m_stash( boost::filesystem::current_path() / "stash" )
 {
+    common::ProcessID::setDescription( network::Node::toStr( network::Node::Root ) );
+
     loadConfig();
     m_server.waitForConnection();
 }

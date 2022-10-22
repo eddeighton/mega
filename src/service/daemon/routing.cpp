@@ -219,6 +219,7 @@ void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
         {
             strMemory = daemon.getMemoryManager().acquire( mpo );
             root      = daemon.getMemoryManager().allocateRoot( mpo, networkAddress );
+            SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun created root: {} in memory: {}", root, strMemory );
         }
         ~Memory()
         {

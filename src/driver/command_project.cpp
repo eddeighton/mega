@@ -32,7 +32,8 @@ namespace driver::project
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path projectPath;
-    bool                    bGetProject = false;
+    bool                    bGetProject   = false;
+    bool                    bResetProject = false;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Project Commands" );
@@ -41,6 +42,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         commandOptions.add_options()
         ( "set",    po::value< boost::filesystem::path >( &projectPath ), "Set project" )
         ( "get",    po::bool_switch( &bGetProject ),                      "Get current project" )
+        ( "reset",  po::bool_switch( &bResetProject ),                    "Unload any active project" )
         ;
         // clang-format on
     }
@@ -66,6 +68,12 @@ void command( bool bHelp, const std::vector< std::string >& args )
             mega::service::Terminal      terminal;
             const mega::network::Project project = terminal.GetProject();
             std::cout << project.getProjectInstallPath().string() << std::endl;
+        }
+        else if( bResetProject )
+        {
+            mega::service::Terminal      terminal;
+            const mega::network::Project project;
+            terminal.SetProject( project );
         }
         else // if ( bGetInstallInfo )
         {

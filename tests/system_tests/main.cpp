@@ -37,7 +37,7 @@ int inner_main(int argc, char* argv[])
 {
     std::set_terminate( on_terminate );
 
-    Common::disableDebugErrorPrompts();
+    common::disableDebugErrorPrompts();
 
     std::string strFilter;
     bool bWait = false, bBreak = false;

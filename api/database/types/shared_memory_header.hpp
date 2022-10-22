@@ -32,18 +32,15 @@ namespace mega
 
 struct SharedHeader
 {
-    TimeStamp                                  m_timestamp = 0U;
+    TimeStamp                                    m_timestamp = 0U;
     std::array< void*, MAX_PROCESS_PER_MACHINE > m_heap;
 };
 
-inline SharedHeader& getSharedHeader( void* pMemory )
-{
-    return *reinterpret_cast< SharedHeader* >( pMemory );
-}
+inline SharedHeader& getSharedHeader( void* pMemory ) { return *reinterpret_cast< SharedHeader* >( pMemory ); }
 
 inline SharedHeader& makeSharedHeader( void* pMemory )
 {
-    auto pSharedHeader = new( pMemory ) SharedHeader{};
+    auto pSharedHeader = new ( pMemory ) SharedHeader{};
     return *pSharedHeader;
 }
 

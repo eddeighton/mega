@@ -47,6 +47,11 @@ public:
     void run( boost::asio::yield_context& yield_ctx )
     {
         m_daemon.m_mp = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleDaemon();
+
+        std::ostringstream os;
+        os << network::Node::toStr( network::Node::Daemon ) << " " << m_daemon.m_mp;
+        common::ProcessID::setDescription( os.str().c_str() );
+
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };
@@ -92,7 +97,7 @@ void Daemon::setActiveProject( const network::Project& project )
     {
         if ( !m_activeProject->getProjectInstallPath().empty() )
         {
-            m_pDatabase.reset( new runtime::DatabaseInstance( project.getProjectInstallPath() ) );
+            m_pDatabase.reset( new runtime::DatabaseInstance( project.getProjectDatabase() ) );
             m_pMemoryManager.reset( new SharedMemoryManager( *m_pDatabase, m_strProcessName ) );
         }
     }
@@ -104,7 +109,7 @@ void Daemon::setActiveProject( const network::Project& project )
     {
         SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
                       project.getProjectInstallPath().string(), ex.what() );
-        throw;
+        THROW_RTE( ex.what() );
     }
 }
 
