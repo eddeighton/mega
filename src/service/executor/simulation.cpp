@@ -328,12 +328,11 @@ mega::MPO Simulation::SimCreate( boost::asio::yield_context& )
     return m_mpo.value();
 }
 
-void Simulation::RootSimRun( const mega::MPO&            mpo,
-                             const reference&            root,
-                             const std::string&          strMemory,
-                             boost::asio::yield_context& yield_ctx )
+void Simulation::RootSimRun( const reference&             root,
+                             const network::JITMemoryPtr& pMemory,
+                             boost::asio::yield_context&  yield_ctx )
 {
-    initSharedMemory( mpo, root, strMemory );
+    initSharedMemory( root, pMemory );
 
     // now start running the simulation
     setMPOContext( this );

@@ -57,9 +57,6 @@ public:
 
     network::Sender& getLeafSender() { return m_leaf; }
 
-    const mega::MPO& getMPO() const { return m_mpo.value(); }
-    void             setMPO( mega::MPO mpo ) { m_mpo = mpo; }
-
     const mega::reference& getRoot() const { return m_root.value(); }
     void                   setRoot( const mega::reference& root ) { m_root = root; }
 

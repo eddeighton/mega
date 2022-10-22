@@ -20,6 +20,8 @@
 #ifndef LEAF_16_JUNE_2022
 #define LEAF_16_JUNE_2022
 
+#include "shared_memory.hpp"
+
 #include "service/network/client.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/network/sender.hpp"
@@ -42,6 +44,7 @@ class Leaf : public network::ConversationManager, public network::Sender
 {
     friend class LeafRequestConversation;
     friend class LeafEnrole;
+    friend class MPOEntry;
 
 public:
     Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short daemonPortNumber );
@@ -70,11 +73,7 @@ public:
         m_pSelfSender->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
 
-    void setRuntime( std::unique_ptr< runtime::JIT > pJIT )
-    {
-        m_pJIT.reset();
-        m_pJIT = std::move( pJIT );
-    }
+    void setActiveProject( const network::Project& project );
 
     const network::MegastructureInstallation& getMegastructureInstallation() const
     {
@@ -94,6 +93,7 @@ private:
     network::Client                                     m_client;
     boost::asio::executor_work_guard< ExecutorType >    m_work_guard;
     std::thread                                         m_io_thread;
+    SharedMemoryAccess                                  m_sharedMemory;
     mega::MP                                            m_mp;
     std::set< mega::MPO >                               m_mpos;
     std::unique_ptr< runtime::JIT >                     m_pJIT;

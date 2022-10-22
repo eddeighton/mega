@@ -49,6 +49,7 @@ set( TOOL_LIB_SRC
     ${TOOL_SRC_DIR}/request.hpp
     ${TOOL_SRC_DIR}/routing.cpp
     ${TOOL_SRC_DIR}/status.cpp
+    ${TOOL_SRC_DIR}/project.cpp
 )
 
 add_library( tool

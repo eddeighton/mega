@@ -22,7 +22,10 @@
 
 #include "jit/functions.hpp"
 
+#include "service/protocol/common/jit_types.hpp"
+
 #include "mega/invocation_id.hpp"
+#include "mega/reference.hpp"
 
 namespace mega::runtime
 {
@@ -34,7 +37,7 @@ namespace mega::runtime
 #define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
     return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
 
-#include "jit/jit_interface.hxx"
+#include "service/jit_interface.hxx"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1

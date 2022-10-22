@@ -43,7 +43,8 @@ class DaemonRequestConversation : public network::InThreadConversation,
                                   public network::enrole::Impl,
                                   public network::status::Impl,
                                   public network::job::Impl,
-                                  public network::memory::Impl
+                                  public network::memory::Impl,
+                                  public network::project::Impl
 {
 protected:
     Daemon& m_daemon;
@@ -125,6 +126,13 @@ public:
     virtual std::string AcquireSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
     virtual void        ReleaseSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
     virtual mega::network::MemoryConfig GetSharedMemoryConfig( boost::asio::yield_context& yield_ctx ) override;
+    virtual void                        NewMachineAddress( const mega::reference&      machineAddress,
+                                                           boost::asio::yield_context& yield_ctx ) override;
+    virtual void                        NewRootMachineAddress( const mega::reference&      machineAddress,
+                                                               boost::asio::yield_context& yield_ctx ) override;
+
+    // network::project::Impl
+    virtual void SetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl
     virtual std::vector< network::ConversationID >

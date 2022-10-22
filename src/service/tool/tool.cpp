@@ -137,23 +137,22 @@ public:
         m_tool.runComplete();
     }
 
-    virtual void RootSimRun( const mega::MPO& mpo, const mega::reference& root, const std::string& strMemory,
+    virtual void RootSimRun( const mega::reference& root, const network::JITMemoryPtr& pMemory,
                              boost::asio::yield_context& yield_ctx ) override
     {
-        initSharedMemory( mpo, root, strMemory );
+        initSharedMemory( root, pMemory );
 
         m_tool.setRoot( root );
-        m_tool.setMPO( mpo );
 
         setMPOContext( this );
         m_pYieldContext = &yield_ctx;
 
         // note the runtime will query getThisMPO while creating the root
-        SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", mpo );
+        SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", root );
         {
             m_functor( yield_ctx );
         }
-        SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", mpo );
+        SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", root );
 
         m_pYieldContext = nullptr;
         resetMPOContext();

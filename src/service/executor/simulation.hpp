@@ -71,10 +71,9 @@ public:
     virtual void      SimDestroy( boost::asio::yield_context& ) override;
 
     // network::leaf_exe::Impl
-    virtual void RootSimRun( const MPO&                  mpo,
-                             const reference&            root,
-                             const std::string&          strMemory,
-                             boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const reference&             root,
+                             const network::JITMemoryPtr& pMemory,
+                             boost::asio::yield_context&  yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,

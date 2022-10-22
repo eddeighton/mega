@@ -42,7 +42,7 @@ msg RootExe
 // special case for registering MPO and running simulation
 msg RootSimRun
 {
-    request(mega::MPO mpo,mega::reference root, std::string strMemory);
+    request(mega::reference root, JITMemoryPtr pMemory );
     response();
 }
 

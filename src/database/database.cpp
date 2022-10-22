@@ -17,10 +17,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database.hpp"
-#include "database/model/FinalStage.hxx"
+#include "database/database.hpp"
 
-#include "service/network/log.hpp"
+#include "database/model/FinalStage.hxx"
 
 namespace mega::runtime
 {
@@ -55,9 +54,38 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
         auto concrete = pRoot->get_concrete();
         VERIFY_RTE_MSG( concrete.size() > 0U, "Failed to locate Root symbol" );
         VERIFY_RTE_MSG( concrete.size() == 1U, "Multiple Root symbols defined" );
-        auto pConcrete = concrete.front();
-        VERIFY_RTE_MSG( pConcrete->get_concrete_id() == 1, "Concrete Root Type ID is NOT one!" );
+        m_pConcreteRoot = FinalStage::db_cast< FinalStage::Concrete::Object >( concrete.front() );
+        VERIFY_RTE_MSG( m_pConcreteRoot->get_concrete_id() == 1, "Concrete Root Type ID is NOT one!" );
     }
+}
+
+network::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType ) const
+{
+    using namespace FinalStage;
+
+    network::SizeAlignment sizeAlignment;
+    {
+        for ( auto pBuffer : getObject( objectType )->get_buffers() )
+        {
+            if ( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+            {
+                VERIFY_RTE( sizeAlignment.shared_size == 0U );
+                sizeAlignment.shared_size      = pBuffer->get_size();
+                sizeAlignment.shared_alignment = pBuffer->get_alignment();
+            }
+            else if ( db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
+            {
+                VERIFY_RTE( sizeAlignment.heap_size == 0U );
+                sizeAlignment.heap_size        = pBuffer->get_size();
+                sizeAlignment.shared_alignment = pBuffer->get_alignment();
+            }
+            else
+            {
+                THROW_RTE( "Unsupported buffer type" );
+            }
+        }
+    }
+    return sizeAlignment;
 }
 
 const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const mega::InvocationID& invocation ) const
@@ -131,8 +159,7 @@ const FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID ob
     FinalStage::Concrete::Object* pObject = nullptr;
     if ( pConcreteTypeID->get_context().has_value() )
     {
-        pObject = FinalStage::db_cast< FinalStage::Concrete::Object >(
-            pConcreteTypeID->get_context().value() );
+        pObject = FinalStage::db_cast< FinalStage::Concrete::Object >( pConcreteTypeID->get_context().value() );
     }
     VERIFY_RTE_MSG( pObject, "Failed to locate concrete object id: " << objectType );
     return pObject;

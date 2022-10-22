@@ -37,6 +37,7 @@
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/runtime.hxx"
+#include "service/protocol/model/project.hxx"
 #include "service/protocol/model/jit.hxx"
 
 namespace mega::service
@@ -51,7 +52,8 @@ class LeafRequestConversation : public network::InThreadConversation,
                                 public network::status::Impl,
                                 public network::job::Impl,
                                 public network::runtime::Impl,
-                                public network::jit::Impl
+                                public network::jit::Impl,
+                                public network::project::Impl
 {
 protected:
     Leaf& m_leaf;
@@ -108,8 +110,8 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void             RootSimRun( const mega::MPO& mpo, const mega::NetworkAddress& networkAddress,
-                                         const std::string& strMemory, boost::asio::yield_context& yield_ctx ) override;
+    virtual void             RootSimRun( const reference& root, const std::string& strMemory,
+                                         boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
 
@@ -140,6 +142,8 @@ public:
                                boost::asio::yield_context& yield_ctx ) override;
 
     // public network::jit::Impl
+    virtual mega::network::SizeAlignment GetRootSize( boost::asio::yield_context& yield_ctx ) override;
+
     virtual void GetObjectSharedAlloc( const network::JITModuleName&  pszUnitName,
                                        const mega::TypeID&            objectTypeID,
                                        const network::JITFunctionPtr& ppFunction,
@@ -174,6 +178,9 @@ public:
                            const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
     virtual void GetStop( const network::JITModuleName& pszUnitName, const mega::InvocationID& invocationID,
                           const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+
+    // network::project::Impl
+    virtual void SetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

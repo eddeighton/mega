@@ -19,41 +19,16 @@
 
 #include "request.hpp"
 
-#include "service/network/log.hpp"
-
 namespace mega::service
 {
+
 // network::project::Impl
-network::Status ToolRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                    boost::asio::yield_context&           yield_ctx )
+void LeafRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "ToolRequestConversation::GetStatus" );
+    network::project::Request_Sender rq( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+    rq.SetProject( project );
 
-    network::Status status{ childNodeStatus };
-    {
-        std::vector< network::ConversationID > conversations;
-        {
-            for ( const auto& id : m_tool.reportConversations() )
-            {
-                if ( id != getID() )
-                {
-                    conversations.push_back( id );
-                }
-            }
-        }
-        status.setConversationID( conversations );
-        status.setMPO( m_tool.getRoot() );
-        status.setDescription( m_tool.m_strProcessName );
-    }
-
-    return status;
-}
-
-std::string ToolRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
-{
-    std::ostringstream os;
-    os << "Ping from Tool: " << m_tool.m_strProcessName << " " << m_tool.getRoot();
-    return os.str();
+    m_leaf.setActiveProject( project );
 }
 
 } // namespace mega::service

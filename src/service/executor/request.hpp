@@ -28,6 +28,7 @@
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/sim.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/project.hxx"
 
 namespace mega::service
 {
@@ -39,7 +40,8 @@ class ExecutorRequestConversation : public network::ConcurrentConversation,
                                     public network::mpo::Impl,
                                     public network::job::Impl,
                                     public network::status::Impl,
-                                    public network::sim::Impl
+                                    public network::sim::Impl,
+                                    public network::project::Impl
 {
 protected:
     Executor& m_executor;
@@ -105,6 +107,9 @@ public:
 
     // network::sim::Impl
     virtual mega::MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
+
+    // network::project::Impl
+    virtual void SetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

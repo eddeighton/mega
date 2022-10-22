@@ -68,42 +68,7 @@ public:
 
             const network::Project currentProject = projectRequest.GetProject();
             m_leaf.m_megastructureInstallationOpt = projectRequest.GetMegastructureInstallation();
-
-            if ( !currentProject.isEmpty() && m_leaf.m_megastructureInstallationOpt.has_value() )
-            {
-                if ( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
-                {
-                    try
-                    {
-                        // runtime::AddressSpace::Names{
-                        //        memoryConfig.getMemory(), memoryConfig.getMutex(), memoryConfig.getMap() }
-                        SPDLOG_TRACE( "Leaf: {} enrole creating runtime for project: {}", m_leaf.m_mp,
-                                      currentProject.getProjectInstallPath().string() );
-                        m_leaf.setRuntime( std::make_unique< runtime::JIT >(
-                            m_leaf.m_megastructureInstallationOpt.value(), currentProject ) );
-                    }
-                    catch ( mega::io::DatabaseVersionException& ex )
-                    {
-                        SPDLOG_ERROR( "Database version exception: {}", currentProject.getProjectInstallPath().string(),
-                                      ex.what() );
-                    }
-                    catch ( std::exception& ex )
-                    {
-                        SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
-                                      currentProject.getProjectInstallPath().string(), ex.what() );
-                        throw;
-                    }
-                }
-                else
-                {
-                    SPDLOG_WARN( "Could not initialised runtime.  Active project: {} has no database",
-                                 currentProject.getProjectInstallPath().string() );
-                }
-            }
-            else
-            {
-                SPDLOG_WARN( "Could not initialised runtime.  No active project" );
-            }
+            m_leaf.setActiveProject( currentProject );
         }
 
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
@@ -140,6 +105,45 @@ Leaf::~Leaf()
     m_work_guard.reset();
     m_io_thread.join();
 }
+
+void Leaf::setActiveProject( const network::Project& currentProject )
+{
+    m_pJIT.reset();
+
+    if ( !currentProject.isEmpty() && m_megastructureInstallationOpt.has_value() )
+    {
+        if ( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
+        {
+            try
+            {
+                SPDLOG_TRACE( "Leaf: {} enrole creating runtime for project: {}", m_mp,
+                              currentProject.getProjectInstallPath().string() );
+                m_pJIT = std::make_unique< runtime::JIT >( m_megastructureInstallationOpt.value(), currentProject );
+            }
+            catch ( mega::io::DatabaseVersionException& ex )
+            {
+                SPDLOG_ERROR(
+                    "Database version exception: {}", currentProject.getProjectInstallPath().string(), ex.what() );
+            }
+            catch ( std::exception& ex )
+            {
+                SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
+                              currentProject.getProjectInstallPath().string(), ex.what() );
+                throw;
+            }
+        }
+        else
+        {
+            SPDLOG_WARN( "Could not initialised runtime.  Active project: {} has no database",
+                         currentProject.getProjectInstallPath().string() );
+        }
+    }
+    else
+    {
+        SPDLOG_WARN( "Could not initialised runtime.  No active project" );
+    }
+}
+
 /*
 void Leaf::shutdown()
 {

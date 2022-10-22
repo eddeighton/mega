@@ -45,7 +45,7 @@ set( JINJA_TEMPLATES
     ${MEGA_SRC_DIR}/jit/templates/call.jinja 
     ${MEGA_SRC_DIR}/jit/templates/start.jinja 
     ${MEGA_SRC_DIR}/jit/templates/stop.jinja 
-	)
+)
 
 set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/functions.hpp
@@ -53,7 +53,6 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/orc.hpp
     ${MEGA_API_DIR}/jit/component_manager.hpp
     ${MEGA_API_DIR}/jit/code_generator.hpp
-    ${MEGA_API_DIR}/jit/database.hpp
     ${MEGA_API_DIR}/jit/allocator.hpp
 )
 
@@ -62,7 +61,6 @@ set( RUNTIME_SOURCE
 
     ${MEGA_SRC_DIR}/jit/component_manager.cpp
     ${MEGA_SRC_DIR}/jit/code_generator.cpp
-    ${MEGA_SRC_DIR}/jit/database.cpp
     ${MEGA_SRC_DIR}/jit/jit.cpp
     ${MEGA_SRC_DIR}/jit/allocator.cpp
 
@@ -97,7 +95,7 @@ link_inja( jit )
 link_spdlog( jit )
 link_common( jit )
 
-install( FILES ${RUNTIME_HEADERS} ${MEGA_API_DIR}/jit/jit_interface.hxx DESTINATION include/jit )
+install( FILES ${RUNTIME_HEADERS} DESTINATION include/jit )
 install( TARGETS jit EXPORT jit DESTINATION bin)
 install( EXPORT jit NAMESPACE MEGA:: FILE jit-config.cmake DESTINATION share )
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )

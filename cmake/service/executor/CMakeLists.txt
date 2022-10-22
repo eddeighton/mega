@@ -61,6 +61,7 @@ set( EXECUTOR_LIB_SRC
     ${EXECUTOR_SRC_DIR}/executor.cpp
     ${EXECUTOR_SRC_DIR}/routing.cpp
     ${EXECUTOR_SRC_DIR}/status.cpp
+    ${EXECUTOR_SRC_DIR}/project.cpp
 )
 
 add_library( executorLib

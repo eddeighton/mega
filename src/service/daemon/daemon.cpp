@@ -53,11 +53,13 @@ public:
 
 ////////////////////////////////////////////////////////////////
 // Daemon
-Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP, short rootPortNumber, short daemonPortNumber )
+Daemon::Daemon( boost::asio::io_context& ioContext,
+                const std::string&       strRootIP,
+                short                    rootPortNumber,
+                short                    daemonPortNumber )
     : network::ConversationManager( network::makeProcessName( network::Node::Daemon ), ioContext )
     , m_rootClient( ioContext, *this, strRootIP, rootPortNumber )
     , m_server( ioContext, *this, daemonPortNumber )
-    , m_sharedMemoryManager( m_strProcessName )
 {
     m_server.waitForConnection();
 
@@ -79,6 +81,31 @@ Daemon::~Daemon()
 {
     //
     // SPDLOG_TRACE( "Daemon shutdown" );
+}
+
+void Daemon::setActiveProject( const network::Project& project )
+{
+    m_activeProject = project;
+    m_pMemoryManager.reset();
+    m_pDatabase.reset();
+    try
+    {
+        if ( !m_activeProject->getProjectInstallPath().empty() )
+        {
+            m_pDatabase.reset( new runtime::DatabaseInstance( project.getProjectInstallPath() ) );
+            m_pMemoryManager.reset( new SharedMemoryManager( *m_pDatabase, m_strProcessName ) );
+        }
+    }
+    catch ( mega::io::DatabaseVersionException& ex )
+    {
+        SPDLOG_ERROR( "Database version exception: {}", project.getProjectInstallPath().string(), ex.what() );
+    }
+    catch ( std::exception& ex )
+    {
+        SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
+                      project.getProjectInstallPath().string(), ex.what() );
+        throw;
+    }
 }
 
 void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::MP leafMP )

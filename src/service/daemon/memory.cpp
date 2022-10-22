@@ -20,6 +20,7 @@
 #include "request.hpp"
 
 #include "service/protocol/model/runtime.hxx"
+#include "service/protocol/model/address.hxx"
 
 namespace mega::service
 {
@@ -27,11 +28,11 @@ namespace mega::service
 // network::memory::Impl
 std::string DaemonRequestConversation::AcquireSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    return m_daemon.m_sharedMemoryManager.acquire( mpo );
+    return m_daemon.getMemoryManager().acquire( mpo );
 }
 void DaemonRequestConversation::ReleaseSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    m_daemon.m_sharedMemoryManager.release( mpo );
+    m_daemon.getMemoryManager().release( mpo );
 
     bool bFirst = true;
     for ( auto& [ id, pCon ] : m_daemon.m_server.getConnections() )
@@ -44,7 +45,22 @@ void DaemonRequestConversation::ReleaseSharedMemory( const MPO& mpo, boost::asio
 
 mega::network::MemoryConfig DaemonRequestConversation::GetSharedMemoryConfig( boost::asio::yield_context& yield_ctx )
 {
-    return m_daemon.m_sharedMemoryManager.getConfig();
+    return m_daemon.getMemoryManager().getConfig();
+}
+
+void DaemonRequestConversation::NewMachineAddress( const mega::reference&      machineAddress,
+                                                   boost::asio::yield_context& yield_ctx )
+{
+    network::address::Request_Sender rq( *this, m_daemon.m_rootClient, yield_ctx );
+    auto                             netAddress = rq.AllocateNetworkAddress( machineAddress, machineAddress.type );
+    m_daemon.getMemoryManager().allocated( reference{ machineAddress, machineAddress, netAddress }, machineAddress );
+}
+
+void DaemonRequestConversation::NewRootMachineAddress( const mega::reference&      machineAddress,
+                                                       boost::asio::yield_context& yield_ctx )
+{
+    // same for now
+    NewMachineAddress( machineAddress, yield_ctx );
 }
 
 } // namespace mega::service

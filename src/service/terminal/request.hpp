@@ -24,13 +24,15 @@
 
 #include "service/protocol/model/leaf_term.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/project.hxx"
 
 namespace mega::service
 {
 
 class TerminalRequestConversation : public network::InThreadConversation,
                                     public network::leaf_term::Impl,
-                                    public network::status::Impl
+                                    public network::status::Impl,
+                                    public network::project::Impl
 {
 protected:
     Terminal& m_terminal;
@@ -55,6 +57,9 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
+
+    // network::project::Impl
+    virtual void SetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

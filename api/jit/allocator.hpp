@@ -21,8 +21,11 @@
 #define OBJECT_ALLOCATOR_SEPT_19_2022
 
 #include "functions.hpp"
-#include "database.hpp"
 #include "orc.hpp"
+
+#include "database/database.hpp"
+
+#include "service/protocol/common/jit_types.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -37,20 +40,20 @@ public:
 
     using Ptr = std::unique_ptr< Allocator >;
 
+    const network::SizeAlignment& getSizeAlignment() const { return m_sizeAlignment; }
+
     SharedCtorFunction getSharedCtor() const { return m_pSharedCtor; }
     SharedDtorFunction getSharedDtor() const { return m_pSharedDtor; }
     HeapCtorFunction   getHeapCtor() const { return m_pHeapCtor; }
     HeapDtorFunction   getHeapDtor() const { return m_pHeapDtor; }
 
 private:
-    mega::TypeID m_objectTypeID;
-    mega::U64    m_szSizeShared, m_szSizeHeap;
-    mega::U64    m_szAlignShared, m_szAlignHeap;
-
-    SharedCtorFunction m_pSharedCtor = nullptr;
-    SharedDtorFunction m_pSharedDtor = nullptr;
-    HeapCtorFunction   m_pHeapCtor   = nullptr;
-    HeapDtorFunction   m_pHeapDtor   = nullptr;
+    TypeID                 m_objectTypeID;
+    network::SizeAlignment m_sizeAlignment;
+    SharedCtorFunction     m_pSharedCtor = nullptr;
+    SharedDtorFunction     m_pSharedDtor = nullptr;
+    HeapCtorFunction       m_pHeapCtor   = nullptr;
+    HeapDtorFunction       m_pHeapDtor   = nullptr;
 };
 
 } // namespace mega::runtime

@@ -17,43 +17,28 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "service/executor.hpp"
+
 #include "request.hpp"
+#include "simulation.hpp"
 
 #include "service/network/log.hpp"
 
 namespace mega::service
 {
+
 // network::project::Impl
-network::Status ToolRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                    boost::asio::yield_context&           yield_ctx )
+void ExecutorRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "ToolRequestConversation::GetStatus" );
+    std::vector< Simulation::Ptr > simulations;
+    m_executor.getSimulations( simulations );
 
-    network::Status status{ childNodeStatus };
+    // shutdown ALL simulations
+    for( Simulation::Ptr pSim : simulations )
     {
-        std::vector< network::ConversationID > conversations;
-        {
-            for ( const auto& id : m_tool.reportConversations() )
-            {
-                if ( id != getID() )
-                {
-                    conversations.push_back( id );
-                }
-            }
-        }
-        status.setConversationID( conversations );
-        status.setMPO( m_tool.getRoot() );
-        status.setDescription( m_tool.m_strProcessName );
+        network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
+        rq.SimDestroy();
     }
-
-    return status;
-}
-
-std::string ToolRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
-{
-    std::ostringstream os;
-    os << "Ping from Tool: " << m_tool.m_strProcessName << " " << m_tool.getRoot();
-    return os.str();
 }
 
 } // namespace mega::service

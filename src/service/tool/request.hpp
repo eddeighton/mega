@@ -26,6 +26,7 @@
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/project.hxx"
 
 namespace mega::service
 {
@@ -33,7 +34,8 @@ namespace mega::service
 class ToolRequestConversation : public network::InThreadConversation,
                                 public network::leaf_tool::Impl,
                                 public network::mpo::Impl,
-                                public network::status::Impl
+                                public network::status::Impl,
+                                public network::project::Impl
 {
 protected:
     Tool& m_tool;
@@ -82,6 +84,9 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
+
+    // network::project::Impl
+    virtual void SetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

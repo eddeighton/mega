@@ -48,6 +48,8 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
         return result;
     if ( result = network::memory::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     THROW_RTE( "DaemonRequestConversation::dispatchRequest failed: " << msg.getName() );
 }
 
@@ -189,8 +191,8 @@ network::Message DaemonRequestConversation::RootExe( const network::Message&    
     return sender.RootExe( request );
 }
 
-void DaemonRequestConversation::RootSimRun( const mega::MPO&            mpo,
-                                            const mega::NetworkAddress& networkAddress,
+void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
+                                            const NetworkAddress&       networkAddress,
                                             boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun: {}", mpo );
@@ -205,22 +207,30 @@ void DaemonRequestConversation::RootSimRun( const mega::MPO&            mpo,
     // establish shared memory region for MPO
     struct Memory
     {
-        SharedMemoryManager& mgr;
-        std::string          strMemory;
-        MPO                  mpo;
-        Memory( SharedMemoryManager& mgr, const mega::MPO& mpo )
-            : mgr( mgr )
+        Daemon&        daemon;
+        std::string    strMemory;
+        MPO            mpo;
+        NetworkAddress networkAddress;
+        reference      root;
+        Memory( Daemon& daemon, const mega::MPO& mpo, const NetworkAddress& networkAddress )
+            : daemon( daemon )
             , mpo( mpo )
+            , networkAddress( networkAddress )
         {
-            strMemory = mgr.acquire( mpo );
+            strMemory = daemon.getMemoryManager().acquire( mpo );
+            root      = daemon.getMemoryManager().allocateRoot( mpo, networkAddress );
         }
-        ~Memory() { mgr.release( mpo ); }
-    } wrapper( m_daemon.m_sharedMemoryManager, mpo );
+        ~Memory()
+        {
+            //
+            daemon.getMemoryManager().release( mpo );
+        }
+    } wrapper( m_daemon, mpo, networkAddress );
 
     {
         network::Server::MPOConnection       mpoConnection( m_daemon.m_server, mpo, pConnection );
         network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
-        sender.RootSimRun( mpo, networkAddress, wrapper.strMemory );
+        sender.RootSimRun( wrapper.root, wrapper.strMemory );
     }
 }
 

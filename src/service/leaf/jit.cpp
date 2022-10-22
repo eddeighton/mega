@@ -26,6 +26,11 @@ namespace mega::service
 
 // network::jit::Impl
 
+mega::network::SizeAlignment LeafRequestConversation::GetRootSize( boost::asio::yield_context& yield_ctx ) 
+{
+    return m_leaf.m_pJIT->getRootSize();
+}
+
 void LeafRequestConversation::GetObjectSharedAlloc( const network::JITModuleName&  unitName,
                                                     const mega::TypeID&            objectTypeID,
                                                     const network::JITFunctionPtr& jitFunctionPtr,

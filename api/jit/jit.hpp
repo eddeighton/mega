@@ -22,9 +22,10 @@
 
 #include "orc.hpp"
 #include "component_manager.hpp"
-#include "database.hpp"
 #include "code_generator.hpp"
 #include "allocator.hpp"
+
+#include "database/database.hpp"
 
 #include "service/protocol/common/project.hpp"
 
@@ -43,6 +44,8 @@ class JIT
 
 public:
     JIT( const network::MegastructureInstallation& megastructureInstallation, const network::Project& project );
+
+    network::SizeAlignment getRootSize() const;
 
     void getObjectSharedAlloc( const char*                        pszUnitName,
                                const mega::TypeID&                objectTypeID,

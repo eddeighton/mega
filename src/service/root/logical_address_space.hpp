@@ -20,9 +20,8 @@
 #ifndef LOGICAL_ADDRESS_SPACE_31_AUG_2022
 #define LOGICAL_ADDRESS_SPACE_31_AUG_2022
 
-#include "mega/common.hpp"
+#include "mega/reference.hpp"
 
-#include "service/protocol/common/header.hpp"
 #include "service/network/log.hpp"
 
 #include <boost/iterator/minimum_category.hpp>
@@ -55,7 +54,7 @@ public:
 
     NetworkAddress getRootNetworkAddress( MPO mpo ) const
     {
-        RootMPOMap::const_iterator iFind = m_rootMPOMap.find( mpo );
+        auto iFind = m_rootMPOMap.find( mpo );
         if ( iFind != m_rootMPOMap.end() )
         {
             return iFind->second;

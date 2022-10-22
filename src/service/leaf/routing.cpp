@@ -19,7 +19,10 @@
 
 #include "request.hpp"
 
+#include "database/common/shared_header.hpp"
+
 #include "service/network/log.hpp"
+#include "service/protocol/model/memory.hxx"
 
 namespace mega::service
 {
@@ -50,6 +53,8 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "LeafRequestConversation::dispatchRequest failed on msg: " << msg );
 }
@@ -297,44 +302,71 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
             THROW_RTE( "Unknown node type" );
     }
 }
-void LeafRequestConversation::RootSimRun( const MPO& mpo, const NetworkAddress& networkAddress,
-                                          const std::string& strMemory, boost::asio::yield_context& yield_ctx )
+
+struct MPOEntry
 {
-    struct MPOEntry
+    Leaf&                         m_leaf;
+    LeafRequestConversation&      m_conversation;
+    const reference               root;
+    runtime::ManagedSharedMemory& sharedMemory;
+
+    MPOEntry( Leaf& leaf, LeafRequestConversation& conversation, const reference& root, const std::string& strMemory,
+              boost::asio::yield_context& yield_ctx )
+        : m_leaf( leaf )
+        , m_conversation( conversation )
+        , root( root )
+        , sharedMemory( m_leaf.m_sharedMemory.get( root, strMemory ) )
     {
-        runtime::JIT&         jit;
-        std::set< MPO >&      mpos;
-        const MPO&            mpo;
-        const NetworkAddress& networkAddress;
+        m_leaf.m_mpos.insert( root );
 
-        NetworkAddress rootNetAddress;
-        reference      root;
+        auto                         pJIT     = m_leaf.m_pJIT.get();
+        const network::SizeAlignment rootSize = pJIT->getRootSize();
 
-        MPOEntry( runtime::JIT& jit, std::set< MPO >& mpos, const MPO& mpo, const NetworkAddress& networkAddress )
-            : jit( jit )
-            , mpos( mpos )
-            , mpo( mpo )
-            , networkAddress( networkAddress )
+        void* pMemoryManager      = sharedMemory.get_address();
+        void* pSharedMemoryBuffer = fromProcessAddress( pMemoryManager, root.pointer );
+        void* pHeapMemoryBuffer   = new ( std::align_val_t( rootSize.heap_alignment ) ) char[ rootSize.heap_size ];
+
+        mega::SharedHeader& sharedHeader = getSharedHeader( pSharedMemoryBuffer );
+        setHeap( root, sharedHeader, pHeapMemoryBuffer );
+
+        static mega::runtime::SharedCtorFunction _fptr_object_shared_alloc_1 = nullptr;
+        if ( _fptr_object_shared_alloc_1 == nullptr )
         {
-            // root = networkToMachine( mpo, ROOT_TYPE_ID, networkAddress );
-            mpos.insert( mpo );
+            pJIT->getObjectSharedAlloc( strMemory.c_str(), 1, &_fptr_object_shared_alloc_1 );
         }
-        ~MPOEntry() { mpos.erase( mpo ); }
-    };
+        static mega::runtime::HeapCtorFunction _fptr_object_heap_alloc_1 = nullptr;
+        if ( _fptr_object_heap_alloc_1 == nullptr )
+        {
+            pJIT->getObjectHeapAlloc( strMemory.c_str(), 1, &_fptr_object_heap_alloc_1 );
+        }
 
-    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", mpo );
+        _fptr_object_shared_alloc_1( pSharedMemoryBuffer, pMemoryManager );
+        _fptr_object_heap_alloc_1( pHeapMemoryBuffer );
+    }
+
+    ~MPOEntry()
+    {
+        m_leaf.m_sharedMemory.release( root );
+        m_leaf.m_mpos.erase( root );
+    }
+};
+
+void LeafRequestConversation::RootSimRun( const reference& root, const std::string& strMemory,
+                                          boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", root );
     VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in RootSimRun" );
     switch ( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
         {
-            MPOEntry mpoEntry( *m_leaf.m_pJIT, m_leaf.m_mpos, mpo, networkAddress );
-            return getExeSender( yield_ctx ).RootSimRun( mpo, mpoEntry.root, strMemory );
+            MPOEntry mpoEntry( m_leaf, *this, root, strMemory, yield_ctx );
+            return getExeSender( yield_ctx ).RootSimRun( mpoEntry.root, network::convert( &mpoEntry.sharedMemory ) );
         }
         case network::Node::Tool:
         {
-            MPOEntry mpoEntry( *m_leaf.m_pJIT, m_leaf.m_mpos, mpo, networkAddress );
-            return getToolSender( yield_ctx ).RootSimRun( mpo, mpoEntry.root, strMemory );
+            MPOEntry mpoEntry( m_leaf, *this, root, strMemory, yield_ctx );
+            return getToolSender( yield_ctx ).RootSimRun( mpoEntry.root, network::convert( &mpoEntry.sharedMemory ) );
         }
         case network::Node::Terminal:
         case network::Node::Daemon:

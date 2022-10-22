@@ -45,6 +45,7 @@ set( DAEMON_SOURCE
     ${DAEMON_SOURCE_DIR}/enrole.cpp
     ${DAEMON_SOURCE_DIR}/status.cpp
     ${DAEMON_SOURCE_DIR}/memory.cpp
+    ${DAEMON_SOURCE_DIR}/project.cpp
     )
 
 add_executable( daemon ${DAEMON_HEADERS} ${DAEMON_SOURCE}  )
@@ -54,6 +55,7 @@ target_compile_options( daemon PUBLIC "-fcoroutines" )
 target_link_libraries( daemon utilities )
 target_link_libraries( daemon protocol )
 target_link_libraries( daemon network )
+target_link_libraries( daemon database )
 
 set_target_properties( daemon PROPERTIES FOLDER driver )
 

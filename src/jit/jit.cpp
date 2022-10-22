@@ -33,13 +33,6 @@ JIT::JIT( const mega::network::MegastructureInstallation& megastructureInstallat
 {
     VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
 }
-
-void JIT::get_call_getter( const char* pszUnitName, mega::TypeID objectTypeID, TypeErasedFunction* ppFunction )
-{
-    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = m_componentManager.getOperationFunctionPtr( objectTypeID );
-}
-
 JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
 {
     auto                     startTime = std::chrono::steady_clock::now();
@@ -69,6 +62,14 @@ const Allocator& JIT::getAllocator( const mega::TypeID& objectTypeID )
     }
     return *pAllocator;
 }
+
+void JIT::get_call_getter( const char* pszUnitName, mega::TypeID objectTypeID, TypeErasedFunction* ppFunction )
+{
+    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+    *ppFunction = m_componentManager.getOperationFunctionPtr( objectTypeID );
+}
+
+network::SizeAlignment JIT::getRootSize() const { return m_database.getObjectSize( ROOT_TYPE_ID ); }
 
 void JIT::getObjectSharedAlloc( const char*                        pszUnitName,
                                 const mega::TypeID&                objectTypeID,

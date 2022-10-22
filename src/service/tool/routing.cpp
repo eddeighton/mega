@@ -41,6 +41,8 @@ network::Message ToolRequestConversation::dispatchRequest( const network::Messag
         return result;
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     THROW_RTE( "ToolRequestConversation::dispatchRequest failed: " << msg );
 }
 void ToolRequestConversation::dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
@@ -92,7 +94,7 @@ network::Message ToolRequestConversation::RootAllBroadcast( const network::Messa
 network::Message ToolRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    const mega::MP toolMP( m_tool.getMPO().getMachineID(), m_tool.getMPO().getProcessID(), false );
+    const mega::MP toolMP( m_tool.getRoot().getMachineID(), m_tool.getRoot().getProcessID(), false );
     VERIFY_RTE( toolMP == mp );
     return dispatchRequest( request, yield_ctx );
 }
@@ -100,7 +102,7 @@ network::Message ToolRequestConversation::MPDown( const network::Message& reques
 network::Message ToolRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( m_tool.getMPO() == mpo );
+    VERIFY_RTE( MPO( m_tool.getRoot() ) == mpo );
     return dispatchRequest( request, yield_ctx );
 }
 

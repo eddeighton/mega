@@ -19,41 +19,22 @@
 
 #include "request.hpp"
 
-#include "service/network/log.hpp"
+#include "daemon.hpp"
 
 namespace mega::service
 {
-// network::project::Impl
-network::Status ToolRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                    boost::asio::yield_context&           yield_ctx )
-{
-    SPDLOG_TRACE( "ToolRequestConversation::GetStatus" );
 
-    network::Status status{ childNodeStatus };
+// network::project::Impl
+
+void DaemonRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
+{
+    for ( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
     {
-        std::vector< network::ConversationID > conversations;
-        {
-            for ( const auto& id : m_tool.reportConversations() )
-            {
-                if ( id != getID() )
-                {
-                    conversations.push_back( id );
-                }
-            }
-        }
-        status.setConversationID( conversations );
-        status.setMPO( m_tool.getRoot() );
-        status.setDescription( m_tool.m_strProcessName );
+        network::project::Request_Sender rq( *this, *pConnection, yield_ctx );
+        rq.SetProject( project );
     }
 
-    return status;
-}
-
-std::string ToolRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
-{
-    std::ostringstream os;
-    os << "Ping from Tool: " << m_tool.m_strProcessName << " " << m_tool.getRoot();
-    return os.str();
+    m_daemon.setActiveProject( project );
 }
 
 } // namespace mega::service

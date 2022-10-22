@@ -538,7 +538,7 @@ static const char* szTemplate =
 R"TEMPLATE(
     {
         void* pMemoryManager = mega::runtime::get_this_shared_memory();
-        U64 sharedOffset     = mega::runtime::allocate_shared( {{ shared_size }}, {{ shared_alignment }} );
+        I64 sharedOffset     = mega::runtime::allocate_shared( {{ shared_size }}, {{ shared_alignment }} );
         void* pHeap          = mega::runtime::allocate_heap( {{ heap_size }}, {{ heap_alignment }} );
         void* pShared        = mega::runtime::shared_offset_to_abs( sharedOffset, pMemoryManager );
 
@@ -554,7 +554,9 @@ R"TEMPLATE(
         _fptr_object_shared_alloc_{{ concrete_type_id }}( pShared, pMemoryManager );
         _fptr_object_heap_alloc_{{ concrete_type_id }}( pHeap );
 
-        return mega::reference( mega::TypeInstance( 0U, {{ concrete_type_id }} ), {{ instance }}, pShared );
+        mega::reference result( mega::TypeInstance( 0U, {{ concrete_type_id }} ), {{ instance }}, sharedOffset );
+        mega::runtime::new_machine_address( result );
+        return result;
     }
 )TEMPLATE";
 
@@ -563,38 +565,16 @@ R"TEMPLATE(
                 Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
                 auto pObject = db_cast< Concrete::Object >( pConcreteTarget );
 
-                mega::U64 szSizeShared, szSizeHeap;
-                mega::U64 szAlignShared, szAlignHeap;
-                {
-                    for ( auto pBuffer : pObject->get_buffers() )
-                    {
-                        if ( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
-                        {
-                            VERIFY_RTE( szSizeShared == 0U );
-                            szSizeShared  = pBuffer->get_size();
-                            szAlignShared = pBuffer->get_alignment();
-                        }
-                        else if ( db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
-                        {
-                            VERIFY_RTE( szSizeHeap == 0U );
-                            szSizeHeap  = pBuffer->get_size();
-                            szAlignHeap = pBuffer->get_alignment();
-                        }
-                        else
-                        {
-                            THROW_RTE( "Unsupported buffer type" );
-                        }
-                    }
-                }
+                const network::SizeAlignment sizeAlignment = database.getObjectSize( pConcreteTarget->get_concrete_id() );
 
                 nlohmann::json data( 
                 { 
                     { "concrete_type_id",   pConcreteTarget->get_concrete_id() }, 
                     { "instance",           get( variables, pInstance ) },
-                    { "shared_size",        szSizeShared },
-                    { "shared_alignment",   szAlignShared },
-                    { "heap_size",          szSizeHeap },
-                    { "heap_alignment",     szAlignHeap }
+                    { "shared_size",        sizeAlignment.shared_size },
+                    { "shared_alignment",   sizeAlignment.shared_alignment },
+                    { "heap_size",          sizeAlignment.heap_size },
+                    { "heap_alignment",     sizeAlignment.heap_alignment }
                 } );
 
                 // clang-format on
@@ -1092,7 +1072,7 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
     {
         data[ "freers" ].push_back( freer );
     }
-    for( auto pObject : functions.objectAllocSet )
+    for ( auto pObject : functions.objectAllocSet )
     {
         data[ "object_allocators" ].push_back( pObject->get_concrete_id() );
     }

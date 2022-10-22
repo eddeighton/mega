@@ -20,8 +20,9 @@
 #ifndef COMPONENT_MANAGER_20_JUNE_2022
 #define COMPONENT_MANAGER_20_JUNE_2022
 
-#include "database.hpp"
 #include "functions.hpp"
+
+#include "database/database.hpp"
 
 #include "service/protocol/common/project.hpp"
 

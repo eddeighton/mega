@@ -46,7 +46,7 @@ namespace mega::runtime
         return getMPOContext()->name( arg1_name, arg2_name, arg3_name );                                      \
     }
 
-#include "jit/jit_interface.hxx"
+#include "service/jit_interface.hxx"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1

@@ -34,3 +34,15 @@ msg GetSharedMemoryConfig
     request();
     response( mega::network::MemoryConfig config );
 }
+
+msg NewMachineAddress
+{
+    request( mega::reference machineAddress );
+    response();
+}
+
+msg NewRootMachineAddress
+{
+    request( mega::reference machineAddress );
+    response();
+}

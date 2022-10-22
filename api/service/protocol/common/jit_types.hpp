@@ -21,26 +21,45 @@
 #define JIT_TYPES_21_OCT_2022
 
 #include "mega/native_types.hpp"
+#include "mega/default_traits.hpp"
 
 namespace mega::network
 {
 
 using JITModuleName  = U64;
 using JITFunctionPtr = U64;
+using JITMemoryPtr = U64;
 
 inline const char*   convert( JITModuleName moduleName ) { return reinterpret_cast< const char* >( moduleName ); }
 inline JITModuleName convert( const char* pszModuleName ) { return reinterpret_cast< JITModuleName >( pszModuleName ); }
 
 template < typename TFunctionPtrType >
-inline TFunctionPtrType* convert( JITFunctionPtr functionPtr )
+inline TFunctionPtrType* convert( U64 functionPtr )
 {
     return reinterpret_cast< TFunctionPtrType* >( functionPtr );
 }
 template < typename TFunctionPtrType >
-inline JITFunctionPtr convert( TFunctionPtrType* ppFunction )
+inline U64 convert( TFunctionPtrType* ppFunction )
 {
-    return reinterpret_cast< JITFunctionPtr >( ppFunction );
+    return reinterpret_cast< U64 >( ppFunction );
 }
+
+struct SizeAlignment
+{
+    U64 shared_size      = 0U;
+    U64 shared_alignment = 0U;
+    U64 heap_size        = 0U;
+    U64 heap_alignment   = 0U;
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& shared_size;
+        archive& shared_alignment;
+        archive& heap_size;
+        archive& heap_alignment;
+    }
+};
 
 } // namespace mega::network
 

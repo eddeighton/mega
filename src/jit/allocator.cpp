@@ -20,8 +20,9 @@
 #include "allocator.hpp"
 
 #include "jit.hpp"
-#include "database.hpp"
 #include "symbol_utils.hpp"
+
+#include "database/database.hpp"
 
 #include "service/network/log.hpp"
 
@@ -30,61 +31,33 @@ namespace mega::runtime
 
 Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
     : m_objectTypeID( objectTypeID )
-    , m_szSizeShared( 0U )
-    , m_szSizeHeap( 0U )
-    , m_szAlignShared( 1U )
-    , m_szAlignHeap( 1U )
+    , m_sizeAlignment( database.getObjectSize( m_objectTypeID ) )
 {
     SPDLOG_TRACE( "Allocator::ctor for {}", m_objectTypeID );
-    {
-        using namespace FinalStage;
-        const Concrete::Object* pObject = database.getObject( m_objectTypeID );
-        for ( auto pBuffer : pObject->get_buffers() )
-        {
-            if ( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
-            {
-                VERIFY_RTE( m_szSizeShared == 0U );
-                m_szSizeShared  = pBuffer->get_size();
-                m_szAlignShared = pBuffer->get_alignment();
-            }
-            else if ( db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
-            {
-                VERIFY_RTE( m_szSizeHeap == 0U );
-                m_szSizeHeap  = pBuffer->get_size();
-                m_szAlignHeap = pBuffer->get_alignment();
-            }
-            else
-            {
-                THROW_RTE( "Unsupported buffer type" );
-            }
-        }
-    }
 
     {
-        {
-            std::ostringstream os;
-            symbolPrefix( "shared_ctor_", objectTypeID, os );
-            os << "PvS_";
-            m_pSharedCtor = pModule->get< SharedCtorFunction >( os.str() );
-        }
-        {
-            std::ostringstream os;
-            symbolPrefix( "shared_dtor_", objectTypeID, os );
-            os << "Pv";
-            m_pSharedDtor = pModule->get< SharedDtorFunction >( os.str() );
-        }
-        {
-            std::ostringstream os;
-            symbolPrefix( "heap_ctor_", objectTypeID, os );
-            os << "Pv";
-            m_pHeapCtor = pModule->get< HeapCtorFunction >( os.str() );
-        }
-        {
-            std::ostringstream os;
-            symbolPrefix( "heap_dtor_", objectTypeID, os );
-            os << "Pv";
-            m_pHeapDtor = pModule->get< HeapDtorFunction >( os.str() );
-        }
+        std::ostringstream os;
+        symbolPrefix( "shared_ctor_", objectTypeID, os );
+        os << "PvS_";
+        m_pSharedCtor = pModule->get< SharedCtorFunction >( os.str() );
+    }
+    {
+        std::ostringstream os;
+        symbolPrefix( "shared_dtor_", objectTypeID, os );
+        os << "Pv";
+        m_pSharedDtor = pModule->get< SharedDtorFunction >( os.str() );
+    }
+    {
+        std::ostringstream os;
+        symbolPrefix( "heap_ctor_", objectTypeID, os );
+        os << "Pv";
+        m_pHeapCtor = pModule->get< HeapCtorFunction >( os.str() );
+    }
+    {
+        std::ostringstream os;
+        symbolPrefix( "heap_dtor_", objectTypeID, os );
+        os << "Pv";
+        m_pHeapDtor = pModule->get< HeapDtorFunction >( os.str() );
     }
 }
 

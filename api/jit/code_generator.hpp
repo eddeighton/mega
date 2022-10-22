@@ -20,7 +20,7 @@
 #ifndef CODE_GENERATOR_16_AUG_2022
 #define CODE_GENERATOR_16_AUG_2022
 
-#include "database.hpp"
+#include "database/database.hpp"
 
 #include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/project.hpp"

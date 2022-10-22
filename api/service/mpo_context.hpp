@@ -22,6 +22,7 @@
 #define GUARD_2022_October_14_mpo_context
 
 #include "mega/default_traits.hpp"
+#include "mega/reference.hpp"
 
 #include "jit/functions.hpp"
 
@@ -63,15 +64,15 @@ class MPOContext : public Context
     }
 
 protected:
-    const network::ConversationID&                  m_conversationIDRef;
-    std::optional< mega::MPO >                      m_mpo;
-    log::Storage                                    m_log;
-    log::Storage::SchedulerIter                     m_schedulerIter;
-    log::Storage::MemoryIters                       m_memoryIters;
-    mega::service::LockTracker                      m_lockTracker;
-    boost::asio::yield_context*                     m_pYieldContext = nullptr;
-    reference                                       m_root;
-    std::unique_ptr< runtime::ManagedSharedMemory > m_pSharedMemory;
+    const network::ConversationID& m_conversationIDRef;
+    std::optional< mega::MPO >     m_mpo;
+    log::Storage                   m_log;
+    log::Storage::SchedulerIter    m_schedulerIter;
+    log::Storage::MemoryIters      m_memoryIters;
+    mega::service::LockTracker     m_lockTracker;
+    boost::asio::yield_context*    m_pYieldContext = nullptr;
+    reference                      m_root;
+    runtime::ManagedSharedMemory*  m_pSharedMemory = nullptr;
 
 public:
     MPOContext( const network::ConversationID& conversationID )
@@ -90,7 +91,7 @@ public:
 #define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
     return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
 
-#include "jit/jit_interface.hxx"
+#include "service/jit_interface.hxx"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1
@@ -103,7 +104,7 @@ public:
     virtual network::stash::Request_Encoder   getRootStashRequest()    = 0;
     virtual network::memory::Request_Encoder  getDaemonMemoryRequest() = 0;
     virtual network::runtime::Request_Sender  getLeafRuntimeRequest()  = 0;
-    virtual network::jit::Request_Sender      getLeafJITRequest()  = 0;
+    virtual network::jit::Request_Sender      getLeafJITRequest()      = 0;
 
     network::sim::Request_Encoder getSimRequest( MPO mpo )
     {
@@ -112,12 +113,11 @@ public:
                  m_conversationIDRef };
     }
 
-    void initSharedMemory( const mega::MPO& mpo, const mega::reference& root, const std::string& strMemoryName )
+    void initSharedMemory( const mega::reference& root, network::JITMemoryPtr pMemory )
     {
-        m_mpo  = mpo;
-        m_root = root;
-        m_pSharedMemory.reset(
-            new runtime::ManagedSharedMemory( boost::interprocess::open_only, strMemoryName.c_str() ) );
+        m_mpo           = root;
+        m_root          = root;
+        m_pSharedMemory = reinterpret_cast< runtime::ManagedSharedMemory* >( pMemory );
     }
 
     //////////////////////////
@@ -151,7 +151,6 @@ public:
     }
     virtual mega::reference getRoot( MPO mpo ) override
     {
-        
         THROW_TODO;
         // return mega::runtime::get_root( mpo );
     }

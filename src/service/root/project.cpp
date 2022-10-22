@@ -36,11 +36,11 @@ void RootRequestConversation::SetProject( const network::Project& project, boost
     m_root.setProject( project );
     m_root.saveConfig();
 
-    /*for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+    for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
     {
-        network::root_daemon::Request_Encode rq( *this, *pConnection, yield_ctx );
-        rq.RootProjectUpdated( project );
-    }*/
+        network::project::Request_Sender rq( *this, *pConnection, yield_ctx );
+        rq.SetProject( project );
+    }
 }
 
 mega::network::MegastructureInstallation

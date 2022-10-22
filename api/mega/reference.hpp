@@ -73,6 +73,16 @@ static constexpr AddressStorage NULL_ADDRESS = 0x0;
 using ProcessAddress = I64;
 using NetworkAddress = U64;
 
+inline ProcessAddress toProcessAddress( void* pMemoryBase, void* pMemory )
+{
+    return reinterpret_cast< char* >( pMemory ) - reinterpret_cast< char* >( pMemoryBase );
+}
+inline void* fromProcessAddress( void* pMemoryBase, ProcessAddress processAddress )
+{
+    return reinterpret_cast< char* >( pMemoryBase ) + processAddress;
+}
+
+
 struct NetworkOrProcessAddress
 {
     union
@@ -241,8 +251,9 @@ struct reference : TypeInstance, MPO, NetworkOrProcessAddress
     {
         setIsMachine();
     }
-    inline reference( TypeInstance typeInstance, NetworkAddress networkAddress )
+    inline reference( TypeInstance typeInstance, MPO mpo, NetworkAddress networkAddress )
         : TypeInstance( typeInstance )
+        , MPO( mpo )
         , NetworkOrProcessAddress( networkAddress )
     {
         setIsNetwork();

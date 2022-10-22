@@ -41,9 +41,17 @@ void        setMPOContext( MPOContext* pMPOContext )
     g_pMPOContext = pMPOContext;
 }
 
+void MPOContext::new_machine_address( const mega::reference& machineAddress )
+{
+    getDaemonMemoryRequest().NewMachineAddress( machineAddress );
+}
+mega::network::SizeAlignment MPOContext::get_root_size()
+{
+    return getLeafJITRequest().GetRootSize();
+}
 void* MPOContext::get_this_shared_memory()
 {
-    VERIFY_RTE_MSG( m_pSharedMemory.get(), "Shared memory not initialised" );
+    VERIFY_RTE_MSG( m_pSharedMemory, "Shared memory not initialised" );
     return m_pSharedMemory->get_address();
 }
 
@@ -52,9 +60,9 @@ void* MPOContext::shared_offset_to_abs( U64 pSharedOffset, void* pMemory )
     return reinterpret_cast< char* >( pMemory ) + pSharedOffset;
 }
 
-U64 MPOContext::allocate_shared( U64 size, U64 alignment )
+I64 MPOContext::allocate_shared( U64 size, U64 alignment )
 {
-    VERIFY_RTE_MSG( m_pSharedMemory.get(), "Shared memory not initialised" );
+    VERIFY_RTE_MSG( m_pSharedMemory, "Shared memory not initialised" );
     char* pMem = reinterpret_cast< char* >( m_pSharedMemory->allocate_aligned( size, alignment ) );
     return pMem - reinterpret_cast< char* >( m_pSharedMemory->get_address() );
 }

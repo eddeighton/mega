@@ -20,6 +20,8 @@
 #ifndef DATABASE_8_AUG_2022
 #define DATABASE_8_AUG_2022
 
+#include "service/protocol/common/jit_types.hpp"
+
 #include "database/common/environment_archive.hpp"
 #include "database/common/exception.hpp"
 #include "database/common/manifest_data.hpp"
@@ -39,6 +41,7 @@ class DatabaseInstance
 public:
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
+    network::SizeAlignment                    getObjectSize( mega::TypeID objectType  ) const;
     const FinalStage::Operations::Invocation* getInvocation( const mega::InvocationID& invocation ) const;
     mega::TypeID                              getInterfaceTypeID( mega::TypeID concreteTypeID ) const;
     const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
@@ -53,6 +56,7 @@ private:
     std::vector< FinalStage::Components::Component* > m_components;
     FinalStage::Symbols::SymbolTable*                 m_pSymbolTable;
     ConcreteTypeIDMap                                 m_concreteTypeIDs;
+    FinalStage::Concrete::Object*                     m_pConcreteRoot;
 };
 
 } // namespace mega::runtime

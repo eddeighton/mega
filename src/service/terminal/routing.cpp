@@ -40,6 +40,8 @@ network::Message TerminalRequestConversation::dispatchRequest( const network::Me
         return result;
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     THROW_RTE( "TerminalRequestConversation::dispatchRequest failed" );
 }
 void TerminalRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,

@@ -20,13 +20,16 @@
 #ifndef SHARED_MEMORY_MANAGER_3_SEPT_2022
 #define SHARED_MEMORY_MANAGER_3_SEPT_2022
 
+#include "database/database.hpp"
+
 #include "mega/common.hpp"
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
 #include "mega/default_traits.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "database/common/shared_header.hpp"
 
+#include "service/protocol/common/header.hpp"
 #include "service/network/log.hpp"
 
 #include <string>
@@ -63,7 +66,8 @@ class SharedMemoryManager
         {
         }
 
-        const std::string& getName() const { return m_strName; }
+        const std::string&            getName() const { return m_strName; }
+        runtime::ManagedSharedMemory& get() { return m_memory; }
 
     private:
         const std::string            m_strName;
@@ -101,30 +105,36 @@ class SharedMemoryManager
         return config;
     }
 
+    using ReferenceMap = std::unordered_map< reference, reference, reference::Hash >;
+
 public:
-    SharedMemoryManager( const std::string& daemonPrefix )
-        : m_strDaemonPrefix( daemonPrefix )
+    SharedMemoryManager( runtime::DatabaseInstance& database, const std::string& daemonPrefix )
+        : m_database( database )
+        , m_strDaemonPrefix( daemonPrefix )
         , m_config( calculateSharedConfig() )
         , m_memoryLifetime( m_config.getMemory() )
     {
     }
 
-    const std::string& acquire( const mega::MPO& mpo )
+    SharedMemory& getOrCreate( const mega::MPO& mpo )
     {
         auto iFind = m_memory.find( mpo );
         if ( iFind != m_memory.end() )
         {
-            return iFind->second->getName();
+            return *iFind->second;
         }
         else
         {
             SPDLOG_TRACE( "SharedMemoryManager allocated: {}", mpo );
             SharedMemory::Ptr  pNewMemory = std::make_unique< SharedMemory >( mpo, memoryName( mpo ) );
+            SharedMemory&      memory     = *pNewMemory;
             const std::string& strName    = pNewMemory->getName();
             m_memory.insert( { mpo, std::move( pNewMemory ) } );
-            return strName;
+            return memory;
         }
     }
+
+    const std::string& acquire( const mega::MPO& mpo ) { return getOrCreate( mpo ).getName(); }
 
     void release( const mega::MPO& mpo )
     {
@@ -138,11 +148,73 @@ public:
 
     const mega::network::MemoryConfig& getConfig() const { return m_config; }
 
+    void allocated( reference network, reference machine )
+    {
+        m_networkToMachine.insert( { network, machine } );
+        m_machineToNetwork.insert( { machine, network } );
+    }
+
+    void freed( reference ref )
+    {
+        if( ref.isMachine() )
+        {
+            auto iFind = m_machineToNetwork.find( ref );
+            if( iFind != m_machineToNetwork.end() )
+            {
+                auto net = iFind->second;
+                m_machineToNetwork.erase( iFind );
+                m_networkToMachine.erase( net );
+            }
+            else
+            {
+                THROW_RTE( "Failed to locate reference: " << ref );
+            }
+        }
+        else if( ref.isNetwork() )
+        {
+            auto iFind = m_networkToMachine.find( ref );
+            if( iFind != m_networkToMachine.end() )
+            {
+                auto mac = iFind->second;
+                m_networkToMachine.erase( iFind );
+                m_machineToNetwork.erase( mac );
+            }
+            else
+            {
+                THROW_RTE( "Failed to locate reference: " << ref );
+            }
+        }
+        else
+        {
+            THROW_RTE( "Unreachable" );
+        }
+    }
+
+    reference allocateRoot( MPO mpo, const NetworkAddress& networkAddress )
+    {
+        const auto size = m_database.getObjectSize( ROOT_TYPE_ID );
+
+        auto&         memory        = getOrCreate( mpo ).get();
+        void*         pSharedMemory = memory.allocate_aligned( size.shared_size, size.shared_alignment );
+        SharedHeader& hd            = makeSharedHeader( pSharedMemory );
+
+        const reference machine{
+            TypeInstance( 0u, ROOT_TYPE_ID ), mpo, toProcessAddress( memory.get_address(), pSharedMemory ) };
+        const reference network{ TypeInstance( 0u, ROOT_TYPE_ID ), mpo, networkAddress };
+
+        allocated( network, machine );
+
+        return machine;
+    }
+
 private:
+    runtime::DatabaseInstance&  m_database;
     const std::string           m_strDaemonPrefix;
     mega::network::MemoryConfig m_config;
     SharedMemoryMap             m_memory;
     AddressSpaceMapLifetime     m_memoryLifetime;
+    ReferenceMap                m_networkToMachine;
+    ReferenceMap                m_machineToNetwork;
 };
 
 } // namespace mega::service
