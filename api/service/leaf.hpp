@@ -20,8 +20,6 @@
 #ifndef LEAF_16_JUNE_2022
 #define LEAF_16_JUNE_2022
 
-#include "shared_memory.hpp"
-
 #include "service/network/client.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/network/sender.hpp"
@@ -40,6 +38,10 @@
 
 namespace mega::service
 {
+
+class SharedMemoryAccess;
+class HeapMemory;
+
 class Leaf : public network::ConversationManager, public network::Sender
 {
     friend class LeafRequestConversation;
@@ -80,6 +82,16 @@ public:
         VERIFY_RTE_MSG( m_megastructureInstallationOpt.has_value(), "Megastructure Installation not found" );
         return m_megastructureInstallationOpt.value();
     }
+    const network::Project& getActiveProject() const
+    {
+        VERIFY_RTE_MSG( m_activeProject.has_value(), "No active project" );
+        return m_activeProject.value();
+    }
+
+    SharedMemoryAccess&    getSharedMemory();
+    HeapMemory&            getHeapMemory();
+    std::set< mega::MPO >& getMPOs() { return m_mpos; }
+    runtime::JIT&          getJIT() { return *m_pJIT; }
 
 private:
     network::Sender::Ptr     m_pSender;
@@ -87,17 +99,17 @@ private:
     network::Node::Type      m_nodeType;
     boost::asio::io_context  m_io_context;
     network::ReceiverChannel m_receiverChannel;
-
+    network::Client          m_client;
     using ExecutorType = decltype( m_io_context.get_executor() );
-
-    network::Client                                     m_client;
     boost::asio::executor_work_guard< ExecutorType >    m_work_guard;
     std::thread                                         m_io_thread;
-    SharedMemoryAccess                                  m_sharedMemory;
+    std::unique_ptr< SharedMemoryAccess >               m_pSharedMemoryAccess;
+    std::unique_ptr< HeapMemory >                       m_pHeapMemory;
     mega::MP                                            m_mp;
     std::set< mega::MPO >                               m_mpos;
     std::unique_ptr< runtime::JIT >                     m_pJIT;
     std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;
+    std::optional< network::Project >                   m_activeProject;
 };
 
 } // namespace mega::service

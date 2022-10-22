@@ -27,8 +27,8 @@ JIT::JIT( const mega::network::MegastructureInstallation& megastructureInstallat
     : m_megastructureInstallation( megastructureInstallation )
     , m_project( project )
     , m_jitCompiler()
-    , m_codeGenerator( m_megastructureInstallation, m_project )
     , m_database( m_project.getProjectDatabase() )
+    , m_codeGenerator( m_megastructureInstallation, m_project )
     , m_componentManager( m_project, m_database )
 {
     VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
@@ -41,7 +41,7 @@ JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
     return pModule;
 }
 
-const Allocator& JIT::getAllocator( const mega::TypeID& objectTypeID )
+const Allocator& JIT::getAllocator(  const CodeGenerator::LLVMCompiler& compiler, const mega::TypeID& objectTypeID )
 {
     Allocator* pAllocator;
     {
@@ -53,7 +53,7 @@ const Allocator& JIT::getAllocator( const mega::TypeID& objectTypeID )
         else
         {
             std::ostringstream osModule;
-            m_codeGenerator.generate_allocation( m_database, objectTypeID, osModule );
+            m_codeGenerator.generate_allocation( compiler, m_database, objectTypeID, osModule );
             JITCompiler::Module::Ptr pModule = compile( osModule.str() );
             Allocator::Ptr           pAlloc  = std::make_unique< Allocator >( objectTypeID, m_database, pModule );
             pAllocator                       = pAlloc.get();
@@ -71,39 +71,36 @@ void JIT::get_call_getter( const char* pszUnitName, mega::TypeID objectTypeID, T
 
 network::SizeAlignment JIT::getRootSize() const { return m_database.getObjectSize( ROOT_TYPE_ID ); }
 
-void JIT::getObjectSharedAlloc( const char*                        pszUnitName,
-                                const mega::TypeID&                objectTypeID,
-                                mega::runtime::SharedCtorFunction* ppFunction )
+void JIT::getObjectSharedAlloc(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                                const mega::TypeID& objectTypeID, mega::runtime::SharedCtorFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( objectTypeID ).getSharedCtor();
+    *ppFunction = getAllocator( compiler, objectTypeID ).getSharedCtor();
 }
 
-void JIT::getObjectSharedDel( const char*                        pszUnitName,
-                              const mega::TypeID&                objectTypeID,
-                              mega::runtime::SharedDtorFunction* ppFunction )
+void JIT::getObjectSharedDel(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                              const mega::TypeID& objectTypeID, mega::runtime::SharedDtorFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( objectTypeID ).getSharedDtor();
+    *ppFunction = getAllocator( compiler, objectTypeID ).getSharedDtor();
 }
 
-void JIT::getObjectHeapAlloc( const char*                      pszUnitName,
-                              const mega::TypeID&              objectTypeID,
-                              mega::runtime::HeapCtorFunction* ppFunction )
+void JIT::getObjectHeapAlloc(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                              const mega::TypeID& objectTypeID, mega::runtime::HeapCtorFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( objectTypeID ).getHeapCtor();
+    *ppFunction = getAllocator( compiler, objectTypeID ).getHeapCtor();
 }
 
-void JIT::getObjectHeapDel( const char*                      pszUnitName,
-                            const mega::TypeID&              objectTypeID,
-                            mega::runtime::HeapDtorFunction* ppFunction )
+void JIT::getObjectHeapDel(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                            const mega::TypeID& objectTypeID, mega::runtime::HeapDtorFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( objectTypeID ).getHeapDtor();
+    *ppFunction = getAllocator( compiler, objectTypeID ).getHeapDtor();
 }
 
-void JIT::get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
+void JIT::get_allocate(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                        const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
 {
     // SPDLOG_TRACE( "RUNTIME: get_allocate: {} {}", pszUnitName, invocationID );
 
@@ -119,7 +116,7 @@ void JIT::get_allocate( const char* pszUnitName, const mega::InvocationID& invoc
         else
         {
             std::ostringstream osModule;
-            m_codeGenerator.generate_allocate( m_database, invocationID, osModule );
+            m_codeGenerator.generate_allocate( compiler, m_database, invocationID, osModule );
             pModule = compile( osModule.str() );
             m_invocations.insert( std::make_pair( invocationID, pModule ) );
         }
@@ -130,7 +127,8 @@ void JIT::get_allocate( const char* pszUnitName, const mega::InvocationID& invoc
     *ppFunction = pModule->get< AllocateFunction >( os.str() );
 }
 
-void JIT::get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction )
+void JIT::get_read(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                    const mega::InvocationID& invocationID, ReadFunction* ppFunction )
 {
     // SPDLOG_TRACE( "RUNTIME: get_read: {} {}", pszUnitName, invocationID );
 
@@ -146,7 +144,7 @@ void JIT::get_read( const char* pszUnitName, const mega::InvocationID& invocatio
         else
         {
             std::ostringstream osModule;
-            m_codeGenerator.generate_read( m_database, invocationID, osModule );
+            m_codeGenerator.generate_read( compiler, m_database, invocationID, osModule );
             pModule = compile( osModule.str() );
             m_invocations.insert( std::make_pair( invocationID, pModule ) );
         }
@@ -157,7 +155,8 @@ void JIT::get_read( const char* pszUnitName, const mega::InvocationID& invocatio
     *ppFunction = pModule->get< ReadFunction >( os.str() );
 }
 
-void JIT::get_write( const char* pszUnitName, const mega::InvocationID& invocationID, WriteFunction* ppFunction )
+void JIT::get_write(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                     const mega::InvocationID& invocationID, WriteFunction* ppFunction )
 {
     // SPDLOG_TRACE( "RUNTIME: get_write: {} {}", pszUnitName, invocationID );
 
@@ -173,7 +172,7 @@ void JIT::get_write( const char* pszUnitName, const mega::InvocationID& invocati
         else
         {
             std::ostringstream osModule;
-            m_codeGenerator.generate_write( m_database, invocationID, osModule );
+            m_codeGenerator.generate_write( compiler, m_database, invocationID, osModule );
             pModule = compile( osModule.str() );
             m_invocations.insert( std::make_pair( invocationID, pModule ) );
         }
@@ -185,7 +184,8 @@ void JIT::get_write( const char* pszUnitName, const mega::InvocationID& invocati
     *ppFunction = pModule->get< WriteFunction >( os.str() );
 }
 
-void JIT::get_call( const char* pszUnitName, const mega::InvocationID& invocationID, CallFunction* ppFunction )
+void JIT::get_call(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                    const mega::InvocationID& invocationID, CallFunction* ppFunction )
 {
     // SPDLOG_TRACE( "RUNTIME: get_call: {} {}", pszUnitName, invocationID );
 
@@ -201,7 +201,7 @@ void JIT::get_call( const char* pszUnitName, const mega::InvocationID& invocatio
         else
         {
             std::ostringstream osModule;
-            m_codeGenerator.generate_call( m_database, invocationID, osModule );
+            m_codeGenerator.generate_call( compiler, m_database, invocationID, osModule );
             pModule = compile( osModule.str() );
             m_invocations.insert( std::make_pair( invocationID, pModule ) );
         }
@@ -212,7 +212,8 @@ void JIT::get_call( const char* pszUnitName, const mega::InvocationID& invocatio
     *ppFunction = pModule->get< CallFunction >( os.str() );
 }
 
-void JIT::get_start( const char* pszUnitName, const mega::InvocationID& invocationID, StartFunction* ppFunction )
+void JIT::get_start(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                     const mega::InvocationID& invocationID, StartFunction* ppFunction )
 {
     // SPDLOG_TRACE( "RUNTIME: get_start: {} {}", pszUnitName, invocationID );
 
@@ -228,7 +229,7 @@ void JIT::get_start( const char* pszUnitName, const mega::InvocationID& invocati
         else
         {
             std::ostringstream osModule;
-            m_codeGenerator.generate_start( m_database, invocationID, osModule );
+            m_codeGenerator.generate_start( compiler, m_database, invocationID, osModule );
             pModule = compile( osModule.str() );
             m_invocations.insert( std::make_pair( invocationID, pModule ) );
         }
@@ -239,7 +240,8 @@ void JIT::get_start( const char* pszUnitName, const mega::InvocationID& invocati
     *ppFunction = pModule->get< StartFunction >( os.str() );
 }
 
-void JIT::get_stop( const char* pszUnitName, const mega::InvocationID& invocationID, StopFunction* ppFunction )
+void JIT::get_stop(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                    const mega::InvocationID& invocationID, StopFunction* ppFunction )
 {
     // SPDLOG_TRACE( "RUNTIME: get_stop: {} {}", pszUnitName, invocationID );
 
@@ -255,7 +257,7 @@ void JIT::get_stop( const char* pszUnitName, const mega::InvocationID& invocatio
         else
         {
             std::ostringstream osModule;
-            m_codeGenerator.generate_stop( m_database, invocationID, osModule );
+            m_codeGenerator.generate_stop( compiler, m_database, invocationID, osModule );
             pModule = compile( osModule.str() );
             m_invocations.insert( std::make_pair( invocationID, pModule ) );
         }

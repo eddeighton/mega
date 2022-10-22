@@ -20,6 +20,8 @@
 #ifndef REQUEST_LEAF_23_SEPT_2022
 #define REQUEST_LEAF_23_SEPT_2022
 
+#include "llvm_compiler.hpp"
+
 #include "service/leaf.hpp"
 
 #include "service/protocol/model/term_leaf.hxx"
@@ -76,6 +78,12 @@ public:
     network::leaf_term::Request_Sender   getTermSender( boost::asio::yield_context& yield_ctx );
     network::mpo::Request_Sender         getMPOUpSender( boost::asio::yield_context& yield_ctx );
     network::mpo::Request_Sender         getMPODownSender( boost::asio::yield_context& yield_ctx );
+
+    LLVMCompilerImpl getLLVMCompiler( boost::asio::yield_context& yield_ctx )
+    {
+        return { *this, m_leaf.getDaemonSender(), m_leaf.getMegastructureInstallation(), m_leaf.getActiveProject(),
+                 yield_ctx };
+    }
 
     // network::term_leaf::Impl
     virtual network::Message TermRoot( const network::Message&     request,

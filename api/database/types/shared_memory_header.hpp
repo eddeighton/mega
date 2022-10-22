@@ -44,19 +44,29 @@ inline SharedHeader& makeSharedHeader( void* pMemory )
     return *pSharedHeader;
 }
 
+inline void* getHeap( U8 processID, SharedHeader& sharedHeader )
+{
+    return sharedHeader.m_heap[ processID ];
+}
+
 inline void* getHeap( const reference& ref, SharedHeader& sharedHeader )
 {
-    return sharedHeader.m_heap[ ref.getProcessID() ];
+    return getHeap( ref.getProcessID(), sharedHeader );
+}
+
+inline void setHeap( U8 processID, SharedHeader& sharedHeader, void* pHeap )
+{
+    sharedHeader.m_heap[ processID ] = pHeap;
 }
 
 inline void setHeap( const reference& ref, SharedHeader& sharedHeader, void* pHeap )
 {
-    sharedHeader.m_heap[ ref.getProcessID() ] = pHeap;
+    setHeap( ref.getProcessID(), sharedHeader, pHeap );
 }
 
 inline void setHeap( const MPO& ref, SharedHeader& sharedHeader, void* pHeap )
 {
-    sharedHeader.m_heap[ ref.getProcessID() ] = pHeap;
+    setHeap( ref.getProcessID(), sharedHeader, pHeap );
 }
 
 inline void* getHeap( const reference& ref, void* pSharedMemoryBase )

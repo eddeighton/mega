@@ -47,6 +47,7 @@ public:
     void run( boost::asio::yield_context& yield_ctx )
     {
         m_daemon.m_mp = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleDaemon();
+        m_daemon.setActiveProject( getRootRequest< network::project::Request_Encoder >( yield_ctx ).GetProject() );
 
         std::ostringstream os;
         os << network::Node::toStr( network::Node::Daemon ) << " " << m_daemon.m_mp;

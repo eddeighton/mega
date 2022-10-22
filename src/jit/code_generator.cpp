@@ -25,9 +25,6 @@
 
 #include "service/mpo_context.hpp"
 
-#include "common/file.hpp"
-#include "common/stash.hpp"
-
 #include "nlohmann/json.hpp"
 
 #include "inja/inja.hpp"
@@ -114,139 +111,30 @@ std::string allocatorTypeName( const DatabaseInstance&                      data
     return osTypeName.str();
 }
 
-void runCompilation( const std::string& strCmd )
-{
-    SPDLOG_DEBUG( "Compiling: {}", strCmd );
-
-    std::ostringstream osOutput, osError;
-    int                iCompilationResult = 0;
-    {
-        namespace bp = boost::process;
-
-        bp::ipstream errStream, outStream; // reading pipe-stream
-        bp::child    c( strCmd, bp::std_out > outStream, bp::std_err > errStream );
-
-        std::string strOutputLine;
-        while ( c.running() && std::getline( outStream, strOutputLine ) )
-        {
-            if ( !strOutputLine.empty() )
-            {
-                osOutput << "\nOUT    : " << strOutputLine;
-            }
-        }
-
-        c.wait();
-        iCompilationResult = c.exit_code();
-        if ( iCompilationResult )
-        {
-            osError << common::COLOUR_RED_BEGIN << "FAILED : "; // << m_sourcePath.string();
-            while ( errStream && std::getline( errStream, strOutputLine ) )
-            {
-                if ( !strOutputLine.empty() )
-                {
-                    osError << "\nERROR  : " << strOutputLine;
-                }
-            }
-            osError << common::COLOUR_END;
-        }
-    }
-    if ( iCompilationResult != 0 )
-    {
-        SPDLOG_ERROR( "Error compilation invocation: {}", osError.str() );
-    }
-    VERIFY_RTE_MSG( iCompilationResult == 0, "Error compilation invocation: " << osError.str() );
-}
-
-void compile( const boost::filesystem::path& clangPath, const boost::filesystem::path& inputCPPFilePath,
-              const boost::filesystem::path&                            outputIRFilePath,
-              std::optional< const FinalStage::Components::Component* > pComponent,
-              const mega::network::MegastructureInstallation&           megastructureInstallation )
-{
-    auto startTime = std::chrono::steady_clock::now();
-    {
-        std::ostringstream osCmd;
-
-        osCmd << clangPath << " -S -emit-llvm ";
-
-        if ( pComponent.has_value() )
-        {
-            // flags
-            for ( const std::string& flag : pComponent.value()->get_cpp_flags() )
-            {
-                VERIFY_RTE( !flag.empty() );
-                osCmd << "-" << flag << " ";
-            }
-
-            // defines
-            for ( const std::string& strDefine : pComponent.value()->get_cpp_defines() )
-            {
-                VERIFY_RTE( !strDefine.empty() );
-                osCmd << "-D" << strDefine << " ";
-            }
-
-            // include directories
-            for ( const boost::filesystem::path& includeDir : pComponent.value()->get_include_directories() )
-            {
-                osCmd << "-I " << includeDir.native() << " ";
-            }
-        }
-        else
-        {
-            // add megastructure include directory
-            osCmd << "-I " << megastructureInstallation.getMegaIncludePath() << " ";
-        }
-
-        osCmd << "-o " << outputIRFilePath.native() << " -c " << inputCPPFilePath.native();
-        runCompilation( osCmd.str() );
-    }
-    const auto timeDelta = std::chrono::steady_clock::now() - startTime;
-    SPDLOG_TRACE( "RUNTIME: Clang Compilation time: {}", timeDelta );
-}
-
 } // namespace
 
 class CodeGenerator::Pimpl
 {
-    const mega::network::MegastructureInstallation m_megastructureInstallation;
-    ::inja::Environment                            m_injaEnvironment;
-    ::inja::Template                               m_allocationTemplate;
-    ::inja::Template                               m_allocateTemplate;
-    ::inja::Template                               m_readTemplate;
-    ::inja::Template                               m_writeTemplate;
-    ::inja::Template                               m_callTemplate;
-    ::inja::Template                               m_startTemplate;
-    ::inja::Template                               m_stopTemplate;
-    boost::filesystem::path                        m_clangPath;
-    boost::filesystem::path                        m_tempDir;
+    ::inja::Environment m_injaEnvironment;
+    ::inja::Template    m_allocationTemplate;
+    ::inja::Template    m_allocateTemplate;
+    ::inja::Template    m_readTemplate;
+    ::inja::Template    m_writeTemplate;
+    ::inja::Template    m_callTemplate;
+    ::inja::Template    m_startTemplate;
+    ::inja::Template    m_stopTemplate;
 
 public:
-    Pimpl( const mega::network::MegastructureInstallation& megastructureInstallation,
-           const mega::network::Project&                   project )
-        : m_megastructureInstallation( megastructureInstallation )
-        , m_tempDir( project.getProjectTempDir() )
-        , m_clangPath( megastructureInstallation.getClangPath() )
+    Pimpl( const mega::network::MegastructureInstallation& megaInstall, const mega::network::Project& project )
     {
-        if ( !boost::filesystem::exists( m_tempDir ) )
-        {
-            boost::filesystem::create_directories( m_tempDir );
-        }
-
         m_injaEnvironment.set_trim_blocks( true );
-
-        m_allocationTemplate
-            = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateAllocation().native() );
-        m_allocateTemplate
-            = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateAllocate().native() );
-        m_readTemplate
-            = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateRead().native() );
-        m_writeTemplate
-            = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateWrite().native() );
-        m_callTemplate
-            = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateCall().native() );
-        m_startTemplate
-            = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateStart().native() );
-        m_stopTemplate
-            = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateStop().native() );
+        m_allocationTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().native() );
+        m_allocateTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocate().native() );
+        m_readTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().native() );
+        m_writeTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().native() );
+        m_callTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().native() );
+        m_startTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().native() );
+        m_stopTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().native() );
     }
 
     void render_allocation( const nlohmann::json& data, std::ostream& os )
@@ -276,32 +164,6 @@ public:
     void render_stop( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_stopTemplate, data );
-    }
-
-    void compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
-                          std::optional< const FinalStage::Components::Component* > pComponent )
-    {
-        MPOContext* pMPOContext = getMPOContext();
-        VERIFY_RTE( pMPOContext );
-
-        const boost::filesystem::path irFilePath = m_tempDir / ( strName + ".ir" );
-
-        const task::DeterminantHash determinant{ strCPPCode };
-        if ( pMPOContext->restore( irFilePath.native(), determinant.get() ) )
-        {
-            boost::filesystem::loadAsciiFile( irFilePath, osIR );
-        }
-        else
-        {
-            boost::filesystem::path inputCPPFilePath = m_tempDir / ( strName + ".cpp" );
-            {
-                auto pFStream = boost::filesystem::createNewFileStream( inputCPPFilePath );
-                *pFStream << strCPPCode;
-            }
-            compile( m_clangPath, inputCPPFilePath, irFilePath, pComponent, m_megastructureInstallation );
-            pMPOContext->stash( irFilePath.native(), determinant.get() );
-            boost::filesystem::loadAsciiFile( irFilePath, osIR );
-        }
     }
 
     std::string render( const std::string& strTemplate, const nlohmann::json& data )
@@ -883,7 +745,8 @@ CodeGenerator::CodeGenerator( const mega::network::MegastructureInstallation& me
 {
 }
 
-void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega::TypeID objectTypeID, std::ostream& os )
+void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                         mega::TypeID objectTypeID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_allocation: {}", objectTypeID );
 
@@ -1012,7 +875,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
 
     std::ostringstream osCPPCode;
     m_pPimpl->render_allocation( data, osCPPCode );
-    m_pPimpl->compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
+    compiler.compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
 }
 
 nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
@@ -1079,8 +942,8 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
     return data;
 }
 
-void CodeGenerator::generate_allocate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
-                                       std::ostream& os )
+void CodeGenerator::generate_allocate( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                       const mega::InvocationID& invocationID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_allocate: {}", invocationID );
 
@@ -1091,11 +954,11 @@ void CodeGenerator::generate_allocate( const DatabaseInstance& database, const m
     {
         m_pPimpl->render_allocate( data, osCPPCode );
     }
-    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 
-void CodeGenerator::generate_read( const DatabaseInstance& database, const mega::InvocationID& invocationID,
-                                   std::ostream& os )
+void CodeGenerator::generate_read( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                   const mega::InvocationID& invocationID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_read: {}", invocationID );
 
@@ -1106,11 +969,11 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
     {
         m_pPimpl->render_read( data, osCPPCode );
     }
-    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 
-void CodeGenerator::generate_write( const DatabaseInstance& database, const mega::InvocationID& invocationID,
-                                    std::ostream& os )
+void CodeGenerator::generate_write( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                    const mega::InvocationID& invocationID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_write: {}", invocationID );
 
@@ -1121,11 +984,11 @@ void CodeGenerator::generate_write( const DatabaseInstance& database, const mega
     {
         m_pPimpl->render_write( data, osCPPCode );
     }
-    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 
-void CodeGenerator::generate_call( const DatabaseInstance& database, const mega::InvocationID& invocationID,
-                                   std::ostream& os )
+void CodeGenerator::generate_call( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                   const mega::InvocationID& invocationID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_call: {}", invocationID );
 
@@ -1136,11 +999,11 @@ void CodeGenerator::generate_call( const DatabaseInstance& database, const mega:
     {
         m_pPimpl->render_call( data, osCPPCode );
     }
-    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 
-void CodeGenerator::generate_start( const DatabaseInstance& database, const mega::InvocationID& invocationID,
-                                    std::ostream& os )
+void CodeGenerator::generate_start( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                    const mega::InvocationID& invocationID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_start: {}", invocationID );
 
@@ -1151,10 +1014,10 @@ void CodeGenerator::generate_start( const DatabaseInstance& database, const mega
     {
         m_pPimpl->render_start( data, osCPPCode );
     }
-    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
-void CodeGenerator::generate_stop( const DatabaseInstance& database, const mega::InvocationID& invocationID,
-                                   std::ostream& os )
+void CodeGenerator::generate_stop( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                   const mega::InvocationID& invocationID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_stop: {}", invocationID );
 
@@ -1165,6 +1028,6 @@ void CodeGenerator::generate_stop( const DatabaseInstance& database, const mega:
     {
         m_pPimpl->render_stop( data, osCPPCode );
     }
-    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 } // namespace mega::runtime

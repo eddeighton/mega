@@ -18,6 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "request.hpp"
+#include "mpo_lifetime.hpp"
 
 #include "database/types/shared_memory_header.hpp"
 
@@ -303,55 +304,6 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
     }
 }
 
-struct MPOEntry
-{
-    Leaf&                         m_leaf;
-    LeafRequestConversation&      m_conversation;
-    const reference               root;
-    runtime::ManagedSharedMemory& sharedMemory;
-
-    MPOEntry( Leaf& leaf, LeafRequestConversation& conversation, const reference& root, const std::string& strMemory,
-              boost::asio::yield_context& yield_ctx )
-        : m_leaf( leaf )
-        , m_conversation( conversation )
-        , root( root )
-        , sharedMemory( m_leaf.m_sharedMemory.get( root, strMemory ) )
-    {
-        m_leaf.m_mpos.insert( root );
-
-        auto                         pJIT     = m_leaf.m_pJIT.get();
-        const network::SizeAlignment rootSize = pJIT->getRootSize();
-
-        void* pMemoryManager      = sharedMemory.get_address();
-        void* pSharedMemoryBuffer = fromProcessAddress( pMemoryManager, root.pointer );
-        void* pHeapMemoryBuffer   = new ( std::align_val_t( rootSize.heap_alignment ) ) char[ rootSize.heap_size ];
-
-        mega::SharedHeader& sharedHeader = getSharedHeader( pSharedMemoryBuffer );
-        setHeap( root, sharedHeader, pHeapMemoryBuffer );
-
-        static mega::runtime::SharedCtorFunction _fptr_object_shared_alloc_1 = nullptr;
-        if ( _fptr_object_shared_alloc_1 == nullptr )
-        {
-            pJIT->getObjectSharedAlloc( strMemory.c_str(), 1, &_fptr_object_shared_alloc_1 );
-        }
-        static mega::runtime::HeapCtorFunction _fptr_object_heap_alloc_1 = nullptr;
-        if ( _fptr_object_heap_alloc_1 == nullptr )
-        {
-            pJIT->getObjectHeapAlloc( strMemory.c_str(), 1, &_fptr_object_heap_alloc_1 );
-        }
-
-        _fptr_object_shared_alloc_1( pSharedMemoryBuffer, pMemoryManager );
-        _fptr_object_heap_alloc_1( pHeapMemoryBuffer );
-
-        SPDLOG_TRACE( "MPOEntry constructed root: {} in memory: {}", root, strMemory );
-    }
-
-    ~MPOEntry()
-    {
-        m_leaf.m_sharedMemory.release( root );
-        m_leaf.m_mpos.erase( root );
-    }
-};
 
 void LeafRequestConversation::RootSimRun( const reference& root, const std::string& strMemory,
                                           boost::asio::yield_context& yield_ctx )
@@ -362,13 +314,13 @@ void LeafRequestConversation::RootSimRun( const reference& root, const std::stri
     {
         case network::Node::Executor:
         {
-            MPOEntry mpoEntry( m_leaf, *this, root, strMemory, yield_ctx );
-            return getExeSender( yield_ctx ).RootSimRun( mpoEntry.root, network::convert( &mpoEntry.sharedMemory ) );
+            MPOLifetime mpoLifetime( m_leaf, *this, root, strMemory, yield_ctx );
+            return getExeSender( yield_ctx ).RootSimRun( mpoLifetime.getRoot(), network::convert( &mpoLifetime.getSharedMemory() ) );
         }
         case network::Node::Tool:
         {
-            MPOEntry mpoEntry( m_leaf, *this, root, strMemory, yield_ctx );
-            return getToolSender( yield_ctx ).RootSimRun( mpoEntry.root, network::convert( &mpoEntry.sharedMemory ) );
+            MPOLifetime mpoLifetime( m_leaf, *this, root, strMemory, yield_ctx );
+            return getToolSender( yield_ctx ).RootSimRun( mpoLifetime.getRoot(), network::convert( &mpoLifetime.getSharedMemory() ) );
         }
         case network::Node::Terminal:
         case network::Node::Daemon:

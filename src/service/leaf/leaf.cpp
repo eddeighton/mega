@@ -20,12 +20,15 @@
 #include "service/leaf.hpp"
 
 #include "request.hpp"
+#include "shared_memory.hpp"
+#include "heap_memory.hpp"
 
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/memory.hxx"
+#include "service/protocol/model/stash.hxx"
 
 #include "service/protocol/common/header.hpp"
 
@@ -91,6 +94,8 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short da
     , m_client( m_io_context, *this, "localhost", daemonPortNumber )
     , m_work_guard( m_io_context.get_executor() )
     , m_io_thread( [ &io_context = m_io_context ]() { io_context.run(); } )
+    , m_pSharedMemoryAccess( std::make_unique< SharedMemoryAccess >() )
+    , m_pHeapMemory( std::make_unique< HeapMemory >() )
 {
     m_receiverChannel.run( network::makeProcessName( network::Node::Leaf ) );
 
@@ -134,6 +139,7 @@ void Leaf::setActiveProject( const network::Project& currentProject )
                                       currentProject.getProjectInstallPath().string() );
                         m_pJIT = std::make_unique< runtime::JIT >(
                             m_megastructureInstallationOpt.value(), currentProject );
+                        m_activeProject = currentProject;
                     }
                     catch ( mega::io::DatabaseVersionException& ex )
                     {
@@ -196,4 +202,7 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
     }
 }
 
+SharedMemoryAccess& Leaf::getSharedMemory() { return *m_pSharedMemoryAccess; }
+
+HeapMemory& Leaf::getHeapMemory() { return *m_pHeapMemory; }
 } // namespace mega::service

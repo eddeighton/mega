@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,19 +18,33 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "request.hpp"
+#ifndef GUARD_2022_October_22_mpo_lifetime
+#define GUARD_2022_October_22_mpo_lifetime
 
-#include "service/network/log.hpp"
+#include "service/leaf.hpp"
 
 namespace mega::service
 {
 
-// network::runtime::Impl
-void LeafRequestConversation::MPODestroyed( const MPO& mpo, const bool& bDeleteHeap,
-                                            boost::asio::yield_context& yield_ctx )
+class LeafRequestConversation;
+
+class MPOLifetime
 {
-    VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised" );
-    runtime::JIT& rt = *m_leaf.m_pJIT.get();
-}
+public:
+    MPOLifetime( Leaf& leaf, LeafRequestConversation& conversation, const reference& root, const std::string& strMemory,
+                 boost::asio::yield_context& yield_ctx );
+    ~MPOLifetime();
+
+    const reference&              getRoot() const { return m_root; }
+    runtime::ManagedSharedMemory& getSharedMemory() { return m_sharedMemory; }
+
+private:
+    Leaf&                         m_leaf;
+    LeafRequestConversation&      m_conversation;
+    reference                     m_root;
+    runtime::ManagedSharedMemory& m_sharedMemory;
+};
 
 } // namespace mega::service
+
+#endif // GUARD_2022_October_22_mpo_lifetime

@@ -33,7 +33,6 @@ set( MEGA_LEAF_API
     ${MEGA_API_DIR}/service/context.hpp
     ${MEGA_API_DIR}/service/api.hpp
     ${MEGA_API_DIR}/service/mpo_context.hpp
-    ${MEGA_API_DIR}/service/shared_memory.hpp
 )
 
 set( MEGA_LEAF_SRC 
@@ -46,6 +45,12 @@ set( MEGA_LEAF_SRC
     ${MEGA_SRC_DIR}/service/leaf/jit.cpp
     ${MEGA_SRC_DIR}/service/leaf/api.cpp
     ${MEGA_SRC_DIR}/service/leaf/project.cpp
+    ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.hpp
+    ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.cpp
+    ${MEGA_SRC_DIR}/service/leaf/shared_memory.hpp
+    ${MEGA_SRC_DIR}/service/leaf/heap_memory.hpp
+    ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.hpp
+    ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.cpp
 )
 
 add_library( leaf

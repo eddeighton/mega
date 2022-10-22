@@ -25,33 +25,47 @@
 #include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/project.hpp"
 
+#include <boost/asio/spawn.hpp>
+
 #include <memory>
 
 namespace mega::runtime
 {
+
 class CodeGenerator
 {
     class Pimpl;
 
 public:
+    class LLVMCompiler
+    {
+    public:
+        virtual void compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
+                                      std::optional< const FinalStage::Components::Component* > pComponent ) const
+            = 0;
+    };
+
     CodeGenerator( const mega::network::MegastructureInstallation& megastructureInstallation,
                    const mega::network::Project&                   project );
 
-    void generate_allocation( const DatabaseInstance& database, mega::TypeID objectTypeID, std::ostream& os );
-    void generate_allocate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
-                            std::ostream& os );
-    void generate_read( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_write( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_call( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_start( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_stop( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_allocation( const LLVMCompiler& compiler, const DatabaseInstance& database, mega::TypeID objectTypeID,
+                              std::ostream& os );
+    void generate_allocate( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                            const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_read( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                        const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_write( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                         const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_call( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                        const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_start( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                         const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_stop( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                        const mega::InvocationID& invocationID, std::ostream& os );
 
 private:
     nlohmann::json generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                              std::string& strName ) const;
-    void compileToIR( const boost::filesystem::path& sourcePath, const boost::filesystem::path& irPath ) const;
-
-
 
 private:
     std::shared_ptr< Pimpl > m_pPimpl;
