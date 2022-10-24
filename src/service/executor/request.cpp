@@ -42,7 +42,7 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
     {
         switch ( request.getID() )
         {
-            case network::sim::MSG_SimLockRead_Request::ID:
+            /*case network::sim::MSG_SimLockRead_Request::ID:
             {
                 auto&                        msg = network::sim::MSG_SimLockRead_Request::get( request );
                 network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
@@ -68,7 +68,7 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
                 return network::sim::MSG_SimLockRelease_Response::make(
                     request.getReceiverID(), request.getSenderID(), network::sim::MSG_SimLockRelease_Response{} );
             }
-            break;
+            break;*/
             case network::sim::MSG_SimDestroy_Request::ID:
             {
                 auto&                        msg = network::sim::MSG_SimDestroy_Request::get( request );

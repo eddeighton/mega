@@ -39,7 +39,9 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
                                                            boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if ( result = network::runtime::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if ( result = network::memory::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::jit::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::term_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;

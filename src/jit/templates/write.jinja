@@ -27,6 +27,12 @@ static const char* g_pszModuleName = "{{module_name}}";
 
 namespace mega
 {
+    namespace runtime
+    {
+        MPO getThisMPO();
+        void* base();
+        void* write( reference& ref, bool bShared );
+    }
 {% for copy in copiers %}
     void copy_{{copy}}(const void*,void*);
 {% endfor %}

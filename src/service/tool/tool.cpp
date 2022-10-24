@@ -106,7 +106,7 @@ public:
                  { return leafRequest.ToolDaemon( msg ); },
                  getID() };
     }
-    virtual network::runtime::Request_Sender getLeafRuntimeRequest() override
+    virtual network::memory::Request_Sender getLeafMemoryRequest() override
     {
         VERIFY_RTE( m_pYieldContext );
         return { *this, m_tool.getLeafSender(), *m_pYieldContext };

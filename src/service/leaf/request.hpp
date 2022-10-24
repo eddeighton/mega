@@ -38,7 +38,7 @@
 
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/job.hxx"
-#include "service/protocol/model/runtime.hxx"
+#include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/jit.hxx"
 
@@ -53,7 +53,7 @@ class LeafRequestConversation : public network::InThreadConversation,
                                 public network::mpo::Impl,
                                 public network::status::Impl,
                                 public network::job::Impl,
-                                public network::runtime::Impl,
+                                public network::memory::Impl,
                                 public network::jit::Impl,
                                 public network::project::Impl
 {
@@ -145,29 +145,17 @@ public:
         return result;
     }
 
-    // network::runtime::Impl
-    virtual void MPODestroyed( const MPO& mpo, const bool& bDeleteHeap,
-                               boost::asio::yield_context& yield_ctx ) override;
+    // network::memory::Impl
+    virtual void                         MPODestroyed( const MPO& mpo, const bool& bDeleteShared,
+                                                       boost::asio::yield_context& yield_ctx ) override;
+    virtual reference                    Allocate( const MPO& mpo, const TypeID& objectTypeID,
+                                                   boost::asio::yield_context& yield_ctx ) override;
+    virtual network::MemoryBaseReference Read( const MPO& requestingMPO, const reference& ref, const bool& bShared,
+                                               boost::asio::yield_context& yield_ctx ) override;
+    virtual network::MemoryBaseReference Write( const MPO& requestingMPO, const reference& ref, const bool& bShared,
+                                                boost::asio::yield_context& yield_ctx ) override;
 
     // public network::jit::Impl
-    virtual mega::network::SizeAlignment GetRootSize( boost::asio::yield_context& yield_ctx ) override;
-
-    virtual void GetObjectSharedAlloc( const network::JITModuleName&  pszUnitName,
-                                       const mega::TypeID&            objectTypeID,
-                                       const network::JITFunctionPtr& ppFunction,
-                                       boost::asio::yield_context&    yield_ctx ) override;
-    virtual void GetObjectSharedDel( const network::JITModuleName&  pszUnitName,
-                                     const mega::TypeID&            objectTypeID,
-                                     const network::JITFunctionPtr& ppFunction,
-                                     boost::asio::yield_context&    yield_ctx ) override;
-    virtual void GetObjectHeapAlloc( const network::JITModuleName&  pszUnitName,
-                                     const mega::TypeID&            objectTypeID,
-                                     const network::JITFunctionPtr& ppFunction,
-                                     boost::asio::yield_context&    yield_ctx ) override;
-    virtual void GetObjectHeapDel( const network::JITModuleName&  pszUnitName,
-                                   const mega::TypeID&            objectTypeID,
-                                   const network::JITFunctionPtr& ppFunction,
-                                   boost::asio::yield_context&    yield_ctx ) override;
     virtual void GetCallGetter( const network::JITModuleName&  pszUnitName,
                                 const mega::TypeID&            objectTypeID,
                                 const network::JITFunctionPtr& ppFunction,

@@ -38,9 +38,12 @@ public:
     const reference&              getRoot() const { return m_root; }
     runtime::ManagedSharedMemory& getSharedMemory() { return m_sharedMemory; }
 
+    std::string memoryAccess( MPO mpo );
+
 private:
     Leaf&                         m_leaf;
     LeafRequestConversation&      m_conversation;
+    boost::asio::yield_context&   m_yield_ctx;
     reference                     m_root;
     runtime::ManagedSharedMemory& m_sharedMemory;
 };

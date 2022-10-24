@@ -156,10 +156,10 @@ public:
 
     void freed( reference ref )
     {
-        if( ref.isMachine() )
+        if ( ref.isMachine() )
         {
             auto iFind = m_machineToNetwork.find( ref );
-            if( iFind != m_machineToNetwork.end() )
+            if ( iFind != m_machineToNetwork.end() )
             {
                 auto net = iFind->second;
                 m_machineToNetwork.erase( iFind );
@@ -170,10 +170,10 @@ public:
                 THROW_RTE( "Failed to locate reference: " << ref );
             }
         }
-        else if( ref.isNetwork() )
+        else if ( ref.isNetwork() )
         {
             auto iFind = m_networkToMachine.find( ref );
-            if( iFind != m_networkToMachine.end() )
+            if ( iFind != m_networkToMachine.end() )
             {
                 auto mac = iFind->second;
                 m_networkToMachine.erase( iFind );
@@ -190,21 +190,36 @@ public:
         }
     }
 
-    reference allocateRoot( MPO mpo, const NetworkAddress& networkAddress )
+    reference allocate( MPO mpo, const TypeID& objectTypeID, const NetworkAddress& networkAddress )
     {
-        const auto size = m_database.getObjectSize( ROOT_TYPE_ID );
+        const auto size = m_database.getObjectSize( objectTypeID );
 
         auto&         memory        = getOrCreate( mpo ).get();
         void*         pSharedMemory = memory.allocate_aligned( size.shared_size, size.shared_alignment );
         SharedHeader& hd            = makeSharedHeader( pSharedMemory );
 
         const reference machine{
-            TypeInstance( 0u, ROOT_TYPE_ID ), mpo, toProcessAddress( memory.get_address(), pSharedMemory ) };
-        const reference network{ TypeInstance( 0u, ROOT_TYPE_ID ), mpo, networkAddress };
+            TypeInstance( 0u, objectTypeID ), mpo, toProcessAddress( memory.get_address(), pSharedMemory ) };
+        const reference network{ TypeInstance( 0u, objectTypeID ), mpo, networkAddress };
 
         allocated( network, machine );
 
         return machine;
+    }
+
+    reference allocateRoot( MPO mpo, const NetworkAddress& networkAddress )
+    {
+        return allocate( mpo, ROOT_TYPE_ID, networkAddress );
+    }
+
+    reference networkToMachine( const reference& ref )
+    {
+        auto iFind = m_networkToMachine.find( ref );
+        if ( iFind != m_networkToMachine.end() )
+        {
+            return iFind->second;
+        }
+        return allocate( ref, ref.type, ref.network );
     }
 
 private:

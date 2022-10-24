@@ -81,7 +81,7 @@ network::memory::Request_Encoder Simulation::getDaemonMemoryRequest()
              { return leafRequest.ExeDaemon( msg ); },
              getID() };
 }
-network::runtime::Request_Sender Simulation::getLeafRuntimeRequest()
+network::memory::Request_Sender Simulation::getLeafMemoryRequest()
 {
     return { *this, m_executor.getLeafSender(), *m_pYieldContext };
 }
@@ -289,20 +289,34 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     // send request to root to start - will get request back to run
     network::sim::Request_Encoder request(
         [ rootRequest = ExecutorRequestConversation::getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-        { return rootRequest.MPRoot( msg, mega::MP{} ); },
+        { return rootRequest.MPRoot( msg, MP{} ); },
         getID() );
     request.SimStart();
 }
 
-bool Simulation::SimLockRead( const mega::MPO&, boost::asio::yield_context& )
+TimeStamp Simulation::SimLockRead( const MPO&, boost::asio::yield_context& )
 {
-    return !m_stateMachine.isTerminating();
+    if( m_stateMachine.isTerminating() )
+    {
+        return {};
+    }
+    else
+    {
+        return m_log.getTimeStamp();
+    }
 }
-bool Simulation::SimLockWrite( const mega::MPO&, boost::asio::yield_context& )
+TimeStamp Simulation::SimLockWrite( const MPO&, boost::asio::yield_context& )
 {
-    return !m_stateMachine.isTerminating();
+    if( m_stateMachine.isTerminating() )
+    {
+        return {};
+    }
+    else
+    {
+        return m_log.getTimeStamp();
+    }
 }
-void Simulation::SimLockRelease( const mega::MPO&,
+void Simulation::SimLockRelease( const MPO&,
                                  const network::Transaction& transaction,
                                  boost::asio::yield_context& )
 {
@@ -321,7 +335,7 @@ void Simulation::SimLockRelease( const mega::MPO&,
 }
 void Simulation::SimClock( boost::asio::yield_context& ) { m_clock.nextCycle(); }
 
-mega::MPO Simulation::SimCreate( boost::asio::yield_context& )
+MPO Simulation::SimCreate( boost::asio::yield_context& )
 {
     VERIFY_RTE( m_mpo.has_value() );
     // This is called when RootSimRun acks the pending SimCreate from ExecutorRequestConversation::SimCreate
@@ -359,7 +373,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         os << "Simulation: " << m_log.getTimeStamp();
         status.setLogIterator( m_log.getIterator() );
 
-        using MPOVec = std::vector< mega::MPO >;
+        using MPOVec = std::vector< MPO >;
         if ( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
             status.setReads( MPOVec{ reads.begin(), reads.end() } );
         if ( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )

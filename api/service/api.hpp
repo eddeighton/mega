@@ -30,6 +30,11 @@
 namespace mega::runtime
 {
 
+MPO getThisMPO();
+void* base();
+void* read( reference& ref );
+void* write( reference& ref );
+
 #define FUNCTION_ARG_0( return_type, name ) return_type name();
 #define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
 #define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \

@@ -27,48 +27,6 @@ namespace mega::service
 {
 
 // network::jit::Impl
-
-mega::network::SizeAlignment LeafRequestConversation::GetRootSize( boost::asio::yield_context& yield_ctx )
-{
-    return m_leaf.m_pJIT->getRootSize();
-}
-
-void LeafRequestConversation::GetObjectSharedAlloc( const network::JITModuleName&  unitName,
-                                                    const mega::TypeID&            objectTypeID,
-                                                    const network::JITFunctionPtr& jitFunctionPtr,
-                                                    boost::asio::yield_context&    yield_ctx )
-{
-    m_leaf.m_pJIT->getObjectSharedAlloc( getLLVMCompiler( yield_ctx ), network::convert( unitName ), objectTypeID,
-                                         network::convert< mega::runtime::SharedCtorFunction >( jitFunctionPtr ) );
-}
-
-void LeafRequestConversation::GetObjectSharedDel( const network::JITModuleName&  unitName,
-                                                  const mega::TypeID&            objectTypeID,
-                                                  const network::JITFunctionPtr& jitFunctionPtr,
-                                                  boost::asio::yield_context&    yield_ctx )
-{
-    m_leaf.m_pJIT->getObjectSharedDel( getLLVMCompiler( yield_ctx ), network::convert( unitName ), objectTypeID,
-                                       network::convert< mega::runtime::SharedDtorFunction >( jitFunctionPtr ) );
-}
-
-void LeafRequestConversation::GetObjectHeapAlloc( const network::JITModuleName&  unitName,
-                                                  const mega::TypeID&            objectTypeID,
-                                                  const network::JITFunctionPtr& jitFunctionPtr,
-                                                  boost::asio::yield_context&    yield_ctx )
-{
-    m_leaf.m_pJIT->getObjectHeapAlloc( getLLVMCompiler( yield_ctx ), network::convert( unitName ), objectTypeID,
-                                       network::convert< mega::runtime::HeapCtorFunction >( jitFunctionPtr ) );
-}
-
-void LeafRequestConversation::GetObjectHeapDel( const network::JITModuleName&  unitName,
-                                                const mega::TypeID&            objectTypeID,
-                                                const network::JITFunctionPtr& jitFunctionPtr,
-                                                boost::asio::yield_context&    yield_ctx )
-{
-    m_leaf.m_pJIT->getObjectHeapDel( getLLVMCompiler( yield_ctx ), network::convert( unitName ), objectTypeID,
-                                     network::convert< mega::runtime::HeapDtorFunction >( jitFunctionPtr ) );
-}
-
 void LeafRequestConversation::GetCallGetter( const network::JITModuleName&  unitName,
                                              const mega::TypeID&            objectTypeID,
                                              const network::JITFunctionPtr& jitFunctionPtr,

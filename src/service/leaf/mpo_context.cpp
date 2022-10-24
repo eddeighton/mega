@@ -41,61 +41,11 @@ void        setMPOContext( MPOContext* pMPOContext )
     g_pMPOContext = pMPOContext;
 }
 
-void MPOContext::new_machine_address( const mega::reference& machineAddress )
+mega::reference MPOContext::allocate( const mega::reference& context, mega::TypeID objectTypeID )
 {
-    getDaemonMemoryRequest().NewMachineAddress( machineAddress );
-}
-mega::network::SizeAlignment MPOContext::get_root_size()
-{
-    return getLeafJITRequest().GetRootSize();
-}
-void* MPOContext::get_this_shared_memory()
-{
-    VERIFY_RTE_MSG( m_pSharedMemory, "Shared memory not initialised" );
-    return m_pSharedMemory->get_address();
+    return getLeafMemoryRequest().Allocate( context, objectTypeID );
 }
 
-void* MPOContext::shared_offset_to_abs( U64 pSharedOffset, void* pMemory )
-{
-    return reinterpret_cast< char* >( pMemory ) + pSharedOffset;
-}
-
-I64 MPOContext::allocate_shared( U64 size, U64 alignment )
-{
-    VERIFY_RTE_MSG( m_pSharedMemory, "Shared memory not initialised" );
-    char* pMem = reinterpret_cast< char* >( m_pSharedMemory->allocate_aligned( size, alignment ) );
-    return pMem - reinterpret_cast< char* >( m_pSharedMemory->get_address() );
-}
-
-void* MPOContext::allocate_heap( U64 size, U64 alignment )
-{
-    return new ( std::align_val_t( alignment ) ) char[ size ];
-}
-
-void MPOContext::get_object_shared_alloc( const char* pszUnitName, mega::TypeID objectTypeID,
-                                          mega::runtime::SharedCtorFunction* ppFunction )
-{
-    getLeafJITRequest().GetObjectSharedAlloc(
-        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
-}
-void MPOContext::get_object_shared_del( const char* pszUnitName, mega::TypeID objectTypeID,
-                                        mega::runtime::SharedDtorFunction* ppFunction )
-{
-    getLeafJITRequest().GetObjectSharedDel(
-        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
-}
-void MPOContext::get_object_heap_alloc( const char* pszUnitName, mega::TypeID objectTypeID,
-                                        mega::runtime::HeapCtorFunction* ppFunction )
-{
-    getLeafJITRequest().GetObjectHeapAlloc(
-        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
-}
-void MPOContext::get_object_heap_del( const char* pszUnitName, mega::TypeID objectTypeID,
-                                      mega::runtime::HeapDtorFunction* ppFunction )
-{
-    getLeafJITRequest().GetObjectHeapDel(
-        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
-}
 void MPOContext::get_call_getter( const char* pszUnitName, mega::TypeID objectTypeID,
                                   mega::runtime::TypeErasedFunction* ppFunction )
 {

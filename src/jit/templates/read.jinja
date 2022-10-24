@@ -27,12 +27,12 @@ static const char* g_pszModuleName = "{{module_name}}";
 
 namespace mega
 {
-{% for copy in copiers %}
-    void copy_{{copy}}(const void*,void*);
-{% endfor %}
-{% for event in events %}
-    void event_{{event}}(const reference&,bool,const void*);
-{% endfor %}
+    namespace runtime
+    {
+        MPO getThisMPO();
+        void* base();
+        void* read( reference& ref, bool bShared );
+    }
 }
 
 void* {{ name }}( mega::reference context )

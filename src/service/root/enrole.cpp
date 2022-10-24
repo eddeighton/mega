@@ -60,7 +60,7 @@ void RootRequestConversation::EnroleLeafDisconnect( const MP& mp, boost::asio::y
 
     for ( MPO mpo : terminatedMPOS )
     {
-        sender.ReleaseSharedMemory( mpo );
+        sender.MPODestroyed( mpo, false );
     }
 }
 

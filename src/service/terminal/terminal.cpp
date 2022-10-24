@@ -225,11 +225,11 @@ void Terminal::SimDestroy( const mega::MPO& mpo )
     return getMPORequest< network::sim::Request_Encoder >( mpo ).SimDestroy();
 }
 
-bool Terminal::SimRead( const mega::MPO& from, const mega::MPO& to )
+TimeStamp Terminal::SimRead( const mega::MPO& from, const mega::MPO& to )
 {
     return getMPORequest< network::sim::Request_Encoder >( to ).SimLockRead( from );
 }
-bool Terminal::SimWrite( const mega::MPO& from, const mega::MPO& to )
+TimeStamp Terminal::SimWrite( const mega::MPO& from, const mega::MPO& to )
 {
     return getMPORequest< network::sim::Request_Encoder >( to ).SimLockWrite( from );
 }

@@ -43,24 +43,31 @@ class HeapMemory
     using CtorMap       = std::map< TypeID, mega::runtime::HeapCtorFunction >;
     using DtorMap       = std::map< TypeID, mega::runtime::HeapDtorFunction >;
     // NOTE: once inserted the function pointer value must remain at same address
-    using HeapMap = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
+    using HeapMap = std::map< reference, HeapBufferPtr >;
 
 public:
-    void allocate( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
-                   const network::SizeAlignment& size, void* pSharedMemoryBuffer, reference& ref, U8 processID )
+    void allocate( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit, void* pSharedMemoryBuffer,
+                   reference& ref )
     {
+        const network::SizeAlignment size = jit.getSize( ref.type );
         if ( size.heap_size )
         {
-            SPDLOG_TRACE( "HeapMemory allocate size: {} alignment: {} at: {} in ref: {} processID: {}", size.heap_size,
-                          size.heap_alignment, pSharedMemoryBuffer, ref, processID );
+            SPDLOG_TRACE( "HeapMemory allocate size: {} alignment: {} at: {} in ref: {}", size.heap_size,
+                          size.heap_alignment, pSharedMemoryBuffer, ref );
 
             HeapBufferPtr pHeapBuffer;
             pHeapBuffer.reset( new ( std::align_val_t( size.heap_alignment ) ) char[ size.heap_size ] );
 
-            setHeap( processID, getSharedHeader( pSharedMemoryBuffer ), pHeapBuffer.get() );
+            setHeap( ref.getProcessID(), getSharedHeader( pSharedMemoryBuffer ), pHeapBuffer.get() );
             getCtor( compiler, jit, ref.type )( pHeapBuffer.get() );
             m_heapBuffers.insert( { ref, std::move( pHeapBuffer ) } );
         }
+    }
+
+    void ensureAllocated( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
+                          void* pSharedMemoryBuffer, reference& ref )
+    {
+        
     }
 
     // NOTE: free DOES NOT reset the heap pointer!
@@ -72,6 +79,18 @@ public:
             getDtor( compiler, jit, ref.type )( iFind->second.get() );
             m_heapBuffers.erase( iFind );
         }
+    }
+
+    void freeAll( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit, MPO mpo )
+    {
+        auto i    = m_heapBuffers.lower_bound( reference( TypeInstance( 0, 0 ), mpo ) );
+        auto iEnd = m_heapBuffers.lower_bound(
+            reference( TypeInstance( 0, 0 ), MPO( mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID() + 1 ) ) );
+        for ( ; i != iEnd; ++i )
+        {
+            getDtor( compiler, jit, i->first.type )( i->second.get() );
+        }
+        m_heapBuffers.erase( i, iEnd );
     }
 
 private:

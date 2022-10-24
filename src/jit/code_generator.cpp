@@ -399,51 +399,23 @@ public:
 static const char* szTemplate =
 R"TEMPLATE(
     {
-        void* pMemoryManager = mega::runtime::get_this_shared_memory();
-        I64 sharedOffset     = mega::runtime::allocate_shared( {{ shared_size }}, {{ shared_alignment }} );
-        void* pHeap          = mega::runtime::allocate_heap( {{ heap_size }}, {{ heap_alignment }} );
-        void* pShared        = mega::runtime::shared_offset_to_abs( sharedOffset, pMemoryManager );
-
-        if( _fptr_object_shared_alloc_{{ concrete_type_id }} == nullptr )
-        {
-            mega::runtime::get_object_shared_alloc( g_pszModuleName, {{ concrete_type_id }}, &_fptr_object_shared_alloc_{{ concrete_type_id }} );
-        }
-        if( _fptr_object_heap_alloc_{{ concrete_type_id }} == nullptr )
-        {
-            mega::runtime::get_object_heap_alloc( g_pszModuleName, {{ concrete_type_id }}, &_fptr_object_heap_alloc_{{ concrete_type_id }} );
-        }
-
-        _fptr_object_shared_alloc_{{ concrete_type_id }}( pShared, pMemoryManager );
-        _fptr_object_heap_alloc_{{ concrete_type_id }}( pHeap );
-
-        mega::reference result( mega::TypeInstance( 0U, {{ concrete_type_id }} ), {{ instance }}, sharedOffset );
-        mega::runtime::new_machine_address( result );
-        return result;
+        return mega::runtime::allocate( {{ instance }}, {{ concrete_type_id }} );
     }
 )TEMPLATE";
-
-                // Note how no events are needed when allocate a new object
-                Variables::Instance* pInstance       = pAllocate->get_instance();
-                Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
-                auto pObject = db_cast< Concrete::Object >( pConcreteTarget );
-
-                const network::SizeAlignment sizeAlignment = database.getObjectSize( pConcreteTarget->get_concrete_id() );
-
-                nlohmann::json data( 
-                { 
-                    { "concrete_type_id",   pConcreteTarget->get_concrete_id() }, 
-                    { "instance",           get( variables, pInstance ) },
-                    { "shared_size",        sizeAlignment.shared_size },
-                    { "shared_alignment",   sizeAlignment.shared_alignment },
-                    { "heap_size",          sizeAlignment.heap_size },
-                    { "heap_alignment",     sizeAlignment.heap_alignment }
-                } );
-
                 // clang-format on
                 std::ostringstream os;
-                os << render( szTemplate, data );
+                {
+                    // Note how no events are needed when allocate a new object
+                    Variables::Instance* pInstance       = pAllocate->get_instance();
+                    Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
 
-                functions.objectAllocSet.insert( pObject );
+                    nlohmann::json templateData( {
+                        { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                        { "instance", get( variables, pInstance ) },
+                    } );
+
+                    os << render( szTemplate, templateData );
+                }
 
                 data[ "assignments" ].push_back( os.str() );
             }
@@ -461,21 +433,19 @@ R"TEMPLATE(
         return mega::runtime::CallResult{ _fptr_call_{{ concrete_type_id }}, {{ instance }} };
     }
 )TEMPLATE";
-
-                Concrete::Context*   pConcreteTarget = pCall->get_concrete_target();
-                Variables::Instance* pInstance       = pCall->get_instance();
-
-                nlohmann::json data( 
-                { 
-                    { "concrete_type_id",    pConcreteTarget->get_concrete_id() }, 
-                    { "instance",            get( variables, pInstance ) } 
-                } );
                 // clang-format on
-
                 std::ostringstream os;
-                os << render( szTemplate, data );
+                {
+                    Concrete::Context*   pConcreteTarget = pCall->get_concrete_target();
+                    Variables::Instance* pInstance       = pCall->get_instance();
 
-                functions.callSet.insert( pConcreteTarget );
+                    nlohmann::json templateData( { { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                                   { "instance", get( variables, pInstance ) } } );
+
+                    os << render( szTemplate, templateData );
+
+                    functions.callSet.insert( pConcreteTarget );
+                }
 
                 data[ "assignments" ].push_back( os.str() );
             }
@@ -592,23 +562,71 @@ R"TEMPLATE(
             }
             else if ( auto pRead = db_cast< Read >( pOperation ) )
             {
-                THROW_TODO;
-                /*Concrete::Dimensions::User* pDimension = pRead->get_concrete_dimension();
-                Variables::Instance*        pInstance  = pRead->get_instance();
-                MemoryLayout::Part*         pPart      = pDimension->get_part();
-                const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
-                const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
-
+                // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+    {
+        void* pSharedBase = base();
+        if( mega::MPO( {{ instance }} ) != getThisMPO() )
+        {
+            pSharedBase = mega::runtime::read( {{ instance }}, {{ shared_bool }} );
+        }
+{% if shared %}
+        return 
+            reinterpret_cast< char* >
+            ( 
+                fromProcessAddress
+                ( 
+                    pSharedBase, 
+                    {{ instance }}.pointer 
+                ) 
+            )
+            + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.instance ) 
+            + {{ dimension_offset }};
+{% else %}
+        return 
+            reinterpret_cast< char* >
+            ( 
+                getHeap
+                ( 
+                    {{ instance }},
+                    getSharedHeader
+                    ( 
+                        fromProcessAddress
+                        ( 
+                            pSharedBase, 
+                            {{ instance }}.pointer 
+                        ) 
+                    ) 
+                ) 
+            )
+            + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.instance ) 
+            + {{ dimension_offset }};
+{% endif %}
+    }
+)TEMPLATE";
+                // clang-format on
+                std::ostringstream os;
                 {
-                    std::ostringstream os;
-                    os << indent << "// Read Operation\n";
-                    generateBufferFPtrCheck( bSimple, contextID, os );
-                    generateReferenceCheck( bSimple, contextID, get( variables, pInstance ), os );
-                    generateUserDimRead( bSimple, contextID, pPart, get( variables, pInstance ), pDimension, os );
-                    data[ "assignments" ].push_back( os.str() );
+                    Concrete::Dimensions::User* pDimension = pRead->get_concrete_dimension();
+                    Variables::Instance*        pInstance  = pRead->get_instance();
+                    MemoryLayout::Part*         pPart      = pDimension->get_part();
+                    const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
+                    const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
+
+                    nlohmann::json templateData( { { "shared", bSimple },
+                                                   { "shared_bool", bSimple ? "true" : "false" },
+                                                   { "shared_or_heap", bSimple ? "shared" : "heap" },
+                                                   { "concrete_type_id", pDimension->get_concrete_id() },
+                                                   { "part_offset", pPart->get_offset() },
+                                                   { "part_size", pPart->get_size() },
+                                                   { "dimension_offset", pDimension->get_offset() },
+                                                   { "instance", get( variables, pInstance ) } } );
+
+                    os << render( szTemplate, templateData );
                 }
 
-                functions.parts.insert( pDimension->get_part() );*/
+                data[ "assignments" ].push_back( os.str() );
             }
             else if ( auto pWrite = db_cast< Write >( pOperation ) )
             {

@@ -29,6 +29,8 @@
 
 #include "service/network/log.hpp"
 
+#include "service/protocol/model/memory.hxx"
+
 #include <new>
 
 namespace mega::service
@@ -38,37 +40,34 @@ MPOLifetime::MPOLifetime( Leaf& leaf, LeafRequestConversation& conversation, con
                           const std::string& strMemory, boost::asio::yield_context& yield_ctx )
     : m_leaf( leaf )
     , m_conversation( conversation )
+    , m_yield_ctx( yield_ctx )
     , m_root( root )
-    , m_sharedMemory( m_leaf.getSharedMemory().get( m_root, strMemory ) )
+    , m_sharedMemory( m_leaf.getSharedMemory().get( m_root, [ this ]( MPO mpo ) { return memoryAccess( mpo ); } ) )
 {
     m_leaf.getMPOs().insert( m_root );
 
-    auto&                        jit      = m_leaf.getJIT();
-    const network::SizeAlignment rootSize = jit.getRootSize();
+    auto& jit      = m_leaf.getJIT();
+    auto  compiler = conversation.getLLVMCompiler( yield_ctx );
 
-    void* pSharedMemoryBuffer = fromProcessAddress( m_sharedMemory.get_address(), m_root.pointer );
-    SPDLOG_TRACE( "MPOLifetime constructing root: {} at: {} in memory: {}", m_root, pSharedMemoryBuffer, strMemory );
+    void* pSharedMemoryBuffer
+        = m_leaf.getSharedMemory().construct( compiler, jit, root, [ this ]( MPO mpo ) { return memoryAccess( mpo ); } );
 
-    // ensure the shared memory is constructed
-    if ( rootSize.shared_size )
-    {
-        static mega::runtime::SharedCtorFunction rootSharedAllocatorFPtr = nullptr;
-        if ( rootSharedAllocatorFPtr == nullptr )
-        {
-            jit.getObjectSharedAlloc(
-                conversation.getLLVMCompiler( yield_ctx ), "leaf", ROOT_TYPE_ID, &rootSharedAllocatorFPtr );
-        }
-        rootSharedAllocatorFPtr( pSharedMemoryBuffer, m_sharedMemory.get_segment_manager() );
-    }
+    m_leaf.getHeapMemory().allocate( compiler, jit, pSharedMemoryBuffer, m_root );
 
-    m_leaf.getHeapMemory().allocate(
-        conversation.getLLVMCompiler( yield_ctx ), jit, rootSize, pSharedMemoryBuffer, m_root, m_root.getProcessID() );
     SPDLOG_TRACE( "MPOLifetime constructed root: {} in memory: {}", m_root, strMemory );
 }
 
 MPOLifetime::~MPOLifetime()
 {
-    m_leaf.getSharedMemory().release( m_root );
+    auto& jit      = m_leaf.getJIT();
+    auto  compiler = m_conversation.getLLVMCompiler( m_yield_ctx );
+    m_leaf.getSharedMemory().free( compiler, jit, m_root, [ this ]( MPO mpo ) { return memoryAccess( mpo ); } );
     m_leaf.getMPOs().erase( m_root );
 }
+
+std::string MPOLifetime::memoryAccess( MPO mpo )
+{
+    return network::memory::Request_Sender( m_conversation, m_leaf.getDaemonSender(), m_yield_ctx ).Acquire( mpo );
+}
+
 } // namespace mega::service

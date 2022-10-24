@@ -98,12 +98,28 @@ public:
 #undef FUNCTION_ARG_2
 #undef FUNCTION_ARG_3
 
+    void* base() { return m_pSharedMemory->get_address(); }
+    void* read( reference& ref, bool bShared )
+    {
+        network::MemoryBaseReference result = getLeafMemoryRequest().Read( m_root, ref, bShared );
+        ref                                 = result.machineRef;
+        m_lockTracker.onRead( ref );
+        return result.getBaseAddress();
+    }
+    void* write( reference& ref, bool bShared )
+    {
+        network::MemoryBaseReference result = getLeafMemoryRequest().Write( m_root, ref, bShared );
+        ref                                 = result.machineRef;
+        m_lockTracker.onWrite( ref );
+        return result.getBaseAddress();
+    }
+
     virtual network::mpo::Request_Sender      getMPRequest()           = 0;
     virtual network::address::Request_Encoder getRootAddressRequest()  = 0;
     virtual network::enrole::Request_Encoder  getRootEnroleRequest()   = 0;
     virtual network::stash::Request_Encoder   getRootStashRequest()    = 0;
     virtual network::memory::Request_Encoder  getDaemonMemoryRequest() = 0;
-    virtual network::runtime::Request_Sender  getLeafRuntimeRequest()  = 0;
+    virtual network::memory::Request_Sender   getLeafMemoryRequest()   = 0;
     virtual network::jit::Request_Sender      getLeafJITRequest()      = 0;
 
     network::sim::Request_Encoder getSimRequest( MPO mpo )
@@ -160,64 +176,10 @@ public:
     // log
     virtual log::Storage& getLog() override { return m_log; }
 
-    // mega::MPOContext
-    // memory management
-    /*
-    std::string acquireMemory( MPO mpo )
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getDaemonMemoryRequest().AcquireSharedMemory( mpo );
-    }
-    MPO getNetworkAddressMPO( NetworkAddress networkAddress )
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootAddressRequest().GetNetworkAddressMPO( networkAddress );
-    }*/
-
-    /*
-    NetworkAddress getRootNetworkAddress( MPO mpo )
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext ).GetRootNetworkAddress( mpo );
-    }*/
-    /*
-    NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID )
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootAddressRequest().AllocateNetworkAddress( mpo, objectTypeID );
-    }
-
-    void deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress )
-    {
-        VERIFY_RTE( m_pYieldContext );
-        getRootAddressRequest().DeAllocateNetworkAddress( mpo, networkAddress );
-    }
-
-    reference networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress )
-    {
-        THROW_TODO;
-        //
-        // return getLeafRuntimeRequest().networkToMachine( objectTypeID, networkAddress );
-    }*/
-
-    // mega::MPOContext
-    // stash
-    virtual void stash( const std::string& filePath, mega::U64 determinant )
-    {
-        VERIFY_RTE( m_pYieldContext );
-        getRootStashRequest().StashStash( filePath, determinant );
-    }
-    virtual bool restore( const std::string& filePath, mega::U64 determinant )
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getRootStashRequest().StashRestore( filePath, determinant );
-    }
-
-    // leaf runtime
-
 private:
     // MPOContext
     // simulation locks
+    /*
     virtual bool readLock( MPO mpo )
     {
         SPDLOG_TRACE( "readLock from: {} to: {}", m_mpo.value(), mpo );
@@ -248,7 +210,7 @@ private:
         {
             return false;
         }
-    }
+    }*/
 
     // define temp data structures as members to reuse memory and avoid allocations
     using ShedulingMap   = std::map< MPO, std::vector< log::SchedulerRecordRead > >;

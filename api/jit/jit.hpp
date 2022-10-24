@@ -46,6 +46,7 @@ public:
     JIT( const network::MegastructureInstallation& megastructureInstallation, const network::Project& project );
 
     network::SizeAlignment getRootSize() const;
+    network::SizeAlignment getSize( TypeID typeID ) const;
 
     void getObjectSharedAlloc(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                                const mega::TypeID& objectTypeID, mega::runtime::SharedCtorFunction* ppFunction );

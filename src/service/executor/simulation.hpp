@@ -40,7 +40,7 @@ namespace mega::service
 
 class Executor;
 
-class Simulation : public ExecutorRequestConversation, public mega::MPOContext
+class Simulation : public ExecutorRequestConversation, public MPOContext
 {
 public:
     using Ptr = std::shared_ptr< Simulation >;
@@ -59,15 +59,15 @@ public:
     virtual network::enrole::Request_Encoder  getRootEnroleRequest() override;
     virtual network::stash::Request_Encoder   getRootStashRequest() override;
     virtual network::memory::Request_Encoder  getDaemonMemoryRequest() override;
-    virtual network::runtime::Request_Sender  getLeafRuntimeRequest() override;
+    virtual network::memory::Request_Sender   getLeafMemoryRequest() override;
     virtual network::jit::Request_Sender      getLeafJITRequest() override;
 
     // network::sim::Impl
-    virtual bool SimLockRead( const mega::MPO&, boost::asio::yield_context& ) override;
-    virtual bool SimLockWrite( const mega::MPO&, boost::asio::yield_context& ) override;
-    virtual void SimLockRelease( const mega::MPO&, const network::Transaction&, boost::asio::yield_context& ) override;
-    virtual void SimClock( boost::asio::yield_context& ) override;
-    virtual mega::MPO SimCreate( boost::asio::yield_context& ) override;
+    virtual TimeStamp SimLockRead( const MPO&, boost::asio::yield_context& ) override;
+    virtual TimeStamp SimLockWrite( const MPO&, boost::asio::yield_context& ) override;
+    virtual void      SimLockRelease( const MPO&, const network::Transaction&, boost::asio::yield_context& ) override;
+    virtual void      SimClock( boost::asio::yield_context& ) override;
+    virtual MPO       SimCreate( boost::asio::yield_context& ) override;
     virtual void      SimDestroy( boost::asio::yield_context& ) override;
 
     // network::leaf_exe::Impl
@@ -80,7 +80,7 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
 
-    // mega::MPOContext
+    // MPOContext
     // clock
     virtual TimeStamp cycle() override { return m_clock.cycle(); }
     virtual F32       ct() override { return m_clock.ct(); }
@@ -95,12 +95,12 @@ private:
 
 private:
     network::Sender::Ptr                                 m_pRequestChannelSender;
-    mega::Scheduler                                      m_scheduler;
+    Scheduler                                            m_scheduler;
     StateMachine                                         m_stateMachine;
     boost::asio::steady_timer                            m_timer;
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     StateMachine::MsgVector                              m_messageQueue;
-    mega::Clock                                          m_clock;
+    Clock                                                m_clock;
 };
 
 } // namespace mega::service

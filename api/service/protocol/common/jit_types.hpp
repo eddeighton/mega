@@ -28,7 +28,7 @@ namespace mega::network
 
 using JITModuleName  = U64;
 using JITFunctionPtr = U64;
-using JITMemoryPtr = U64;
+using JITMemoryPtr   = U64;
 
 inline const char*   convert( JITModuleName moduleName ) { return reinterpret_cast< const char* >( moduleName ); }
 inline JITModuleName convert( const char* pszModuleName ) { return reinterpret_cast< JITModuleName >( pszModuleName ); }
@@ -43,6 +43,27 @@ inline U64 convert( TFunctionPtrType* ppFunction )
 {
     return reinterpret_cast< U64 >( ppFunction );
 }
+
+struct MemoryBaseReference
+{
+    U64       base;
+    reference machineRef;
+
+    MemoryBaseReference() = default;
+    MemoryBaseReference( void* pBaseAddress, const reference& machine )
+        : base( reinterpret_cast< U64 >( pBaseAddress ) )
+        , machineRef( machine )
+    {
+    }
+    void* getBaseAddress() const { return reinterpret_cast< void* >( base ); }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& base;
+        archive& machineRef;
+    }
+};
 
 struct SizeAlignment
 {

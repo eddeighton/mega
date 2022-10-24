@@ -17,31 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg GetRootSize
-{
-    request();
-    response( mega::network::SizeAlignment sizeAlignment );
-}
-msg GetObjectSharedAlloc
-{
-    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
-    response();
-}
-msg GetObjectSharedDel
-{
-    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
-    response();
-}
-msg GetObjectHeapAlloc
-{
-    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
-    response();
-}
-msg GetObjectHeapDel
-{
-    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
-    response();
-}
 msg GetCallGetter
 {
     request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );

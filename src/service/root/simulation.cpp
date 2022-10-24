@@ -96,10 +96,8 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
             for( auto& [ id, pCon ] : m_root.m_server.getConnections() )
             {
                 network::memory::Request_Sender sender( *this, *pCon, yield_ctx );
-                sender.ReleaseSharedMemory( simulationMPO );
+                sender.MPODestroyed( simulationMPO, false );
             }
-
-
         }
     }
 }

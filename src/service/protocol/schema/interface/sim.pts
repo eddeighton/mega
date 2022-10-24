@@ -20,12 +20,12 @@
 msg SimLockRead
 {
     request( mega::MPO requestingMPO );
-    response( bool bSuccess );
+    response( mega::TimeStamp timeStamp );
 }
 msg SimLockWrite
 {
     request( mega::MPO requestingMPO );
-    response( bool bSuccess );
+    response( mega::TimeStamp timeStamp );
 }
 msg SimLockRelease
 {

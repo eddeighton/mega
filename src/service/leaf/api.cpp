@@ -22,6 +22,23 @@
 namespace mega::runtime
 {
 
+MPO getThisMPO()
+{
+    return getMPOContext()->getThisMPO();
+}
+void* base()
+{
+    return getMPOContext()->base();
+}
+void* read( reference& ref, bool bShared )
+{
+    return getMPOContext()->read( ref, bShared );
+}
+void* write( reference& ref, bool bShared )
+{
+    return getMPOContext()->write( ref, bShared );
+}
+
 #define FUNCTION_ARG_0( return_type, name ) \
     return_type name()                      \
     {                                       \

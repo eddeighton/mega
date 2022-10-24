@@ -168,13 +168,13 @@ void copy_classstd00vector3int4( const void* pFrom, void* pTo ) { copy_< std::ve
 // mega::ReferenceVector
 void new_mega00ReferenceVector( void* p, void* pMemory )
 {
-    SPDLOG_TRACE( "new_mega00ReferenceVector - start" );
+    //SPDLOG_TRACE( "new_mega00ReferenceVector - start" );
     typename mega::runtime::ManagedSharedMemory::segment_manager* pSegmentMgr
         = reinterpret_cast< typename mega::runtime::ManagedSharedMemory::segment_manager* >( pMemory );
     using Allocator
         = boost::interprocess::allocator< mega::reference, mega::runtime::ManagedSharedMemory::segment_manager >;
     new ( p ) ReferenceVector( Allocator( pSegmentMgr ) );
-    SPDLOG_TRACE( "new_mega00ReferenceVector - done" );
+    //SPDLOG_TRACE( "new_mega00ReferenceVector - done" );
 }
 void delete_mega00ReferenceVector( void* p ) { delete_< mega::ReferenceVector >( p ); }
 void store_mega00ReferenceVector( void* p, void* pArchive ) { store_< mega::ReferenceVector >( p, pArchive ); }

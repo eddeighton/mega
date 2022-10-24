@@ -17,32 +17,33 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg AcquireSharedMemory
+msg MPODestroyed
+{
+    request( MPO mpo, bool bDeleteShared );
+    response();
+}
+msg Allocate
+{
+    request( MPO mpo, TypeID objectTypeID );
+    response( reference result );
+}
+msg Acquire
 {
     request( MPO mpo );
-    response( std::string strSharedMemoryName );
+    response( std::string strMemory );
 }
-
-msg ReleaseSharedMemory
+msg Read
 {
-    request( MPO mpo );
-    response();
+    request( MPO requestingMPO, reference ref, bool bShared );
+    response( MemoryBaseReference ref );
 }
-
-msg GetSharedMemoryConfig
+msg Write
 {
-    request();
-    response( mega::network::MemoryConfig config );
+    request( MPO requestingMPO, reference ref, bool bShared );
+    response( MemoryBaseReference ref );
 }
-
-msg NewMachineAddress
+msg NetworkToMachine
 {
-    request( mega::reference machineAddress );
-    response();
-}
-
-msg NewRootMachineAddress
-{
-    request( mega::reference machineAddress );
-    response();
+    request( reference ref );
+    response( reference ref );
 }

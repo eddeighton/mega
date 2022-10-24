@@ -57,7 +57,6 @@ set( INTERFACE_SCHEMAS
     stash
     memory
     address
-    runtime
     jit
 )
 

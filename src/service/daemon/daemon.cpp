@@ -26,6 +26,8 @@
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
+#include <boost/filesystem/operations.hpp>
+
 #include <iostream>
 
 namespace mega::service
@@ -96,7 +98,8 @@ void Daemon::setActiveProject( const network::Project& project )
     m_pDatabase.reset();
     try
     {
-        if ( !m_activeProject->getProjectInstallPath().empty() )
+        if ( !m_activeProject->getProjectInstallPath().empty()
+             && boost::filesystem::exists( project.getProjectDatabase() ) )
         {
             m_pDatabase.reset( new runtime::DatabaseInstance( project.getProjectDatabase() ) );
             m_pMemoryManager.reset( new SharedMemoryManager( *m_pDatabase, m_strProcessName ) );

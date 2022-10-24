@@ -40,7 +40,7 @@ set( MEGA_LEAF_SRC
     ${MEGA_SRC_DIR}/service/leaf/leaf.cpp
     ${MEGA_SRC_DIR}/service/leaf/routing.cpp
     ${MEGA_SRC_DIR}/service/leaf/status.cpp
-    ${MEGA_SRC_DIR}/service/leaf/runtime.cpp
+    ${MEGA_SRC_DIR}/service/leaf/memory.cpp
     ${MEGA_SRC_DIR}/service/leaf/mpo_context.cpp
     ${MEGA_SRC_DIR}/service/leaf/jit.cpp
     ${MEGA_SRC_DIR}/service/leaf/api.cpp

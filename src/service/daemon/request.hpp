@@ -123,13 +123,12 @@ public:
     virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
 
     // network::memory::Impl
-    virtual std::string AcquireSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-    virtual void        ReleaseSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-    virtual mega::network::MemoryConfig GetSharedMemoryConfig( boost::asio::yield_context& yield_ctx ) override;
-    virtual void                        NewMachineAddress( const mega::reference&      machineAddress,
-                                                           boost::asio::yield_context& yield_ctx ) override;
-    virtual void                        NewRootMachineAddress( const mega::reference&      machineAddress,
-                                                               boost::asio::yield_context& yield_ctx ) override;
+    virtual void        MPODestroyed( const MPO& mpo, const bool& bDeleteShared,
+                                      boost::asio::yield_context& yield_ctx ) override;
+    virtual reference   Allocate( const MPO& mpo, const TypeID& objectTypeID,
+                                  boost::asio::yield_context& yield_ctx ) override;
+    virtual std::string Acquire( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual reference NetworkToMachine( const reference& ref, boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual void SetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override;
