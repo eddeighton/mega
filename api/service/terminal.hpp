@@ -69,8 +69,8 @@ public:
     TimeStamp                          SimRead( const mega::MPO& from, const mega::MPO& to );
     TimeStamp                          SimWrite( const mega::MPO& from, const mega::MPO& to );
     void                               SimRelease( const mega::MPO& from, const mega::MPO& to );
-    std::string                        PingMP( const mega::MP& mp );
-    std::string                        PingMPO( const mega::MPO& mpo );
+    std::string                        PingMP( const mega::MP& mp, const std::string& strMsg );
+    std::string                        PingMPO( const mega::MPO& mpo, const std::string& strMsg );
 
     network::Sender& getLeafSender() { return m_leaf; }
 

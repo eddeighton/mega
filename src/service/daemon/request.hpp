@@ -120,7 +120,7 @@ public:
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
-    virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
+    virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
     // network::memory::Impl
     virtual void        MPODestroyed( const MPO& mpo, const bool& bDeleteShared,

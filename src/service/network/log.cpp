@@ -100,27 +100,47 @@ std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::files
         console_sink->set_pattern( "%v" );
     }
 
-    std::ostringstream osLogFileName;
-    osLogFileName << strLogName << "_" << common::ProcessID::get().getPID() << ".log";
-
-    const boost::filesystem::path logFilePath = logFolderPath / osLogFileName.str();
-
-    auto file_sink = std::make_shared< spdlog::sinks::daily_file_sink_st >( logFilePath.string(), 23, 59 );
+    if ( fileLevel == spdlog::level::off )
     {
-        file_sink->set_level( fileLevel );
-        file_sink->set_pattern( "%v" );
+        auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
+
+        auto logger = std::shared_ptr< spdlog::async_logger >( new spdlog::async_logger(
+            strLogName, { console_sink }, threadPool, spdlog::async_overflow_policy::block ) );
+        {
+            logger->set_level( sinkLevel );
+        }
+
+        spdlog::flush_every( std::chrono::seconds( 1 ) );
+        spdlog::set_default_logger( logger );
+
+        return threadPool;
     }
-    auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
-    auto logger     = std::shared_ptr< spdlog::async_logger >( new spdlog::async_logger(
-        strLogName, { console_sink, file_sink }, threadPool, spdlog::async_overflow_policy::block ) );
+    else
     {
-        logger->set_level( sinkLevel );
+        std::ostringstream osLogFileName;
+        osLogFileName << strLogName << "_" << common::ProcessID::get().getPID() << ".log";
+
+        const boost::filesystem::path logFilePath = logFolderPath / osLogFileName.str();
+
+        auto file_sink = std::make_shared< spdlog::sinks::daily_file_sink_st >( logFilePath.string(), 23, 59 );
+        {
+            file_sink->set_level( fileLevel );
+            file_sink->set_pattern( "%v" );
+        }
+
+        auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
+
+        auto logger = std::shared_ptr< spdlog::async_logger >( new spdlog::async_logger(
+            strLogName, { console_sink, file_sink }, threadPool, spdlog::async_overflow_policy::block ) );
+        {
+            logger->set_level( sinkLevel );
+        }
+
+        spdlog::flush_every( std::chrono::seconds( 1 ) );
+        spdlog::set_default_logger( logger );
+
+        return threadPool;
     }
-
-    spdlog::flush_every( std::chrono::seconds( 1 ) );
-    spdlog::set_default_logger( logger );
-
-    return threadPool;
 }
 
 } // namespace mega::network

@@ -45,14 +45,17 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
         commandOptions.add_options()
-            ( "folder",     po::value( &logFolderPath ),    "Log folder path" )
+            ( "folder",     po::value( &logFolderPath ),    "Log folder path. ( Default argumnet )" )
             
             ;
         // clang-format on
     }
 
+    po::positional_options_description p;
+    p.add( "folder", -1 );
+
     po::variables_map vm;
-    po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
+    po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
     if ( bHelp )

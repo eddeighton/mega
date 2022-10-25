@@ -98,7 +98,11 @@ public:
 #undef FUNCTION_ARG_2
 #undef FUNCTION_ARG_3
 
-    void* base() { return m_pSharedMemory->get_address(); }
+    void* base() 
+    { 
+        return m_pSharedMemory->get_address(); 
+    }
+
     void* read( reference& ref, bool bShared )
     {
         network::MemoryBaseReference result = getLeafMemoryRequest().Read( m_root, ref, bShared );
@@ -106,6 +110,7 @@ public:
         m_lockTracker.onRead( ref );
         return result.getBaseAddress();
     }
+
     void* write( reference& ref, bool bShared )
     {
         network::MemoryBaseReference result = getLeafMemoryRequest().Write( m_root, ref, bShared );

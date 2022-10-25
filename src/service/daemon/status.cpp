@@ -45,10 +45,10 @@ network::Status DaemonRequestConversation::GetStatus( const std::vector< network
     return status;
 }
 
-std::string DaemonRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
+std::string DaemonRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
-    os << "Ping from Daemon: " << m_daemon.getProcessName();
+    os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }
 

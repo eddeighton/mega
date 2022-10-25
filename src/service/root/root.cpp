@@ -61,10 +61,10 @@
 namespace mega::service
 {
 
-Root::Root( boost::asio::io_context& ioContext, short portNumber )
+Root::Root( boost::asio::io_context& ioContext, const boost::filesystem::path& stashFolder, short portNumber )
     : network::ConversationManager( network::makeProcessName( network::Node::Root ), ioContext )
     , m_server( ioContext, *this, portNumber )
-    , m_stash( boost::filesystem::current_path() / "stash" )
+    , m_stash( stashFolder )
 {
     common::ProcessID::setDescription( network::Node::toStr( network::Node::Root ) );
 

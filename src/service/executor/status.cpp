@@ -54,10 +54,10 @@ network::Status ExecutorRequestConversation::GetStatus( const std::vector< netwo
     return status;
 }
 
-std::string ExecutorRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
+std::string ExecutorRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
-    os << "Ping from Executor";
+    os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }
 

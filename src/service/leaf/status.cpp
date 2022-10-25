@@ -52,10 +52,10 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
     return status;
 }
 
-std::string LeafRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
+std::string LeafRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
-    os << "Ping from " << mega::network::Node::toStr( m_leaf.m_nodeType ) << ": " << m_leaf.getProcessName();
+    os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }
 

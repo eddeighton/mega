@@ -93,7 +93,7 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
                 auto&                           msg = network::status::MSG_Ping_Request::get( request );
                 network::status::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
                 return network::status::MSG_Ping_Response::make(
-                    request.getReceiverID(), request.getSenderID(), network::status::MSG_Ping_Response{ rq.Ping() } );
+                    request.getReceiverID(), request.getSenderID(), network::status::MSG_Ping_Response{ rq.Ping( msg.msg ) } );
             }
             break;
             default:

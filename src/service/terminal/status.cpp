@@ -49,10 +49,10 @@ network::Status TerminalRequestConversation::GetStatus( const std::vector< netwo
     return status;
 }
 
-std::string TerminalRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
+std::string TerminalRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
-    os << "Ping from Terminal: " << m_terminal.m_strProcessName;
+    os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }
 

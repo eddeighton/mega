@@ -296,7 +296,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
 
 TimeStamp Simulation::SimLockRead( const MPO&, boost::asio::yield_context& )
 {
-    if( m_stateMachine.isTerminating() )
+    if ( m_stateMachine.isTerminating() )
     {
         return {};
     }
@@ -307,7 +307,7 @@ TimeStamp Simulation::SimLockRead( const MPO&, boost::asio::yield_context& )
 }
 TimeStamp Simulation::SimLockWrite( const MPO&, boost::asio::yield_context& )
 {
-    if( m_stateMachine.isTerminating() )
+    if ( m_stateMachine.isTerminating() )
     {
         return {};
     }
@@ -316,9 +316,7 @@ TimeStamp Simulation::SimLockWrite( const MPO&, boost::asio::yield_context& )
         return m_log.getTimeStamp();
     }
 }
-void Simulation::SimLockRelease( const MPO&,
-                                 const network::Transaction& transaction,
-                                 boost::asio::yield_context& )
+void Simulation::SimLockRelease( const MPO&, const network::Transaction& transaction, boost::asio::yield_context& )
 {
     for ( const auto& shedulingRecord : transaction.getSchedulingRecords() )
     {
@@ -389,10 +387,11 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
     return status;
 }
 
-std::string Simulation::Ping( boost::asio::yield_context& yield_ctx )
+std::string Simulation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
-    os << "Ping from Simulation: " << m_mpo.value();
+    os << "Ping reached: " << common::ProcessID::get() << " simulation: " << m_root << " got: " << strMsg.size()
+       << " bytes";
     return os.str();
 }
 

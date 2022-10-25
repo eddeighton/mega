@@ -74,7 +74,7 @@ void        setMPOContext( MPOContext* pMPOContext ) {}
 
 namespace driver
 {
-#define COMMAND( cmd, desc )                                                   \
+#define COMMAND( cmd, input, desc )                                                   \
     namespace cmd                                                              \
     {                                                                          \
     extern void command( bool bHelp, const std::vector< std::string >& args ); \
@@ -86,7 +86,7 @@ namespace driver
 
 enum MainCommand
 {
-#define COMMAND( cmd, desc ) eCmd_##cmd,
+#define COMMAND( cmd, input, desc ) eCmd_##cmd,
 #include "commands.hxx"
 #undef COMMAND
     TOTAL_MAIN_COMMANDS
@@ -98,7 +98,7 @@ int main( int argc, const char* argv[] )
 
     boost::filesystem::path logDir             = boost::filesystem::current_path();
     std::string             strConsoleLogLevel = "info";
-    std::string             strLogFileLevel    = "debug";
+    std::string             strLogFileLevel    = "off";
     bool                    bWait              = false;
 
     std::bitset< TOTAL_MAIN_COMMANDS > cmds;
@@ -114,7 +114,7 @@ int main( int argc, const char* argv[] )
         po::variables_map vm;
         bool              bGeneralWait = false;
 
-#define COMMAND( cmd, desc ) bool bCmd_##cmd = false;
+#define COMMAND( cmd, input, desc ) bool bCmd_##cmd = false;
 #include "commands.hxx"
 #undef COMMAND
 
@@ -122,7 +122,7 @@ int main( int argc, const char* argv[] )
         {
             // clang-format off
             genericOptions.add_options()
-            ( "help",                                                           "Produce general or command help message" )
+            ( "help,?",                                                         "Produce general or command help message" )
             ( "log_dir",    po::value< boost::filesystem::path >( &logDir ),    "Build log directory" )
             ( "console",    po::value< std::string >( &strConsoleLogLevel ),    "Console logging level" )
             ( "level",      po::value< std::string >( &strLogFileLevel ),       "Log file logging level" )
@@ -133,7 +133,7 @@ int main( int argc, const char* argv[] )
         po::options_description commandOptions( " Commands" );
         {
             commandOptions.add_options()
-#define COMMAND( cmd, desc ) ( #cmd, po::bool_switch( &bCmd_##cmd ), desc )
+#define COMMAND( cmd, input, desc ) ( input, po::bool_switch( &bCmd_##cmd ), desc )
 #include "commands.hxx"
 #undef COMMAND
                 ;
@@ -176,7 +176,7 @@ int main( int argc, const char* argv[] )
                 std::cin >> c;
             }
 
-#define COMMAND( cmd, desc )                                                                   \
+#define COMMAND( cmd, input, desc )                                                                   \
     if ( bCmd_##cmd )                                                                          \
     {                                                                                          \
         cmds.set( eCmd_##cmd );                                                                \
@@ -193,7 +193,7 @@ int main( int argc, const char* argv[] )
 
             switch ( mainCmd )
             {
-#define COMMAND( cmd, desc )                                 \
+#define COMMAND( cmd, input, desc )                                 \
     case eCmd_##cmd:                                         \
         driver::cmd::command( bShowHelp, commandArguments ); \
         break;

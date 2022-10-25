@@ -49,10 +49,10 @@ network::Status ToolRequestConversation::GetStatus( const std::vector< network::
     return status;
 }
 
-std::string ToolRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
+std::string ToolRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
-    os << "Ping from Tool: " << m_tool.m_strProcessName << " " << m_tool.getRoot();
+    os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();
 }
 

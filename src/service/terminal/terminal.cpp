@@ -238,14 +238,14 @@ void Terminal::SimRelease( const mega::MPO& from, const mega::MPO& to )
     return getMPORequest< network::sim::Request_Encoder >( to ).SimLockRelease( from, network::Transaction{} );
 }
 
-std::string Terminal::PingMP( const mega::MP& mp )
+std::string Terminal::PingMP( const mega::MP& mp, const std::string& strMsg )
 {
-    return getMPRequest< network::status::Request_Encoder >( mp ).Ping();
+    return getMPRequest< network::status::Request_Encoder >( mp ).Ping( strMsg );
 }
 
-std::string Terminal::PingMPO( const mega::MPO& mpo )
+std::string Terminal::PingMPO( const mega::MPO& mpo, const std::string& strMsg )
 {
-    return getMPORequest< network::status::Request_Encoder >( mpo ).Ping();
+    return getMPORequest< network::status::Request_Encoder >( mpo ).Ping( strMsg );
 }
 
 } // namespace mega::service

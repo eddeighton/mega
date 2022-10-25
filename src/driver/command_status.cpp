@@ -24,6 +24,8 @@
 
 #include "mega/reference_io.hpp"
 
+#include "spdlog/stopwatch.h"
+
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
 
@@ -36,16 +38,19 @@ namespace driver::status
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    bool        bList = false;
-    std::string strMPO;
+    bool        bTime = false;
+    std::string strMPO, strMsg;
+    int msgSize = 0;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Project Commands" );
     {
         // clang-format off
         commandOptions.add_options()
-            ( "list",    po::bool_switch( &bList ),             "List all conversations" )
             ( "ping",    po::value< std::string >( &strMPO ),   "Ping an mp or mpo" )
+            ( "time",    po::bool_switch( &bTime ),             "Calculate performance timing" )
+            ( "msg",     po::value< std::string >( &strMsg ),   "Message to send in ping" )
+            ( "size",    po::value< int >( &msgSize ),          "Message size to generate ( instead of input msg )" )
             ;
         // clang-format on
     }
@@ -62,6 +67,24 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         mega::service::Terminal terminal;
 
+        if( msgSize )
+        {
+            VERIFY_RTE_MSG( strMsg.empty(), "Cannot specify both size and msg" );
+            strMsg.reserve( msgSize );
+            for( int i = 0; i < msgSize; ++i )
+            {
+                strMsg.push_back( 'a' + ( i % 26 ) );
+            }
+        }
+
+        // bTime
+        std::optional< spdlog::stopwatch > sw;
+        if ( bTime )
+        {
+            sw = spdlog::stopwatch{};
+            sw->reset();
+        }
+
         if ( !strMPO.empty() )
         {
             auto dotCount = std::count_if( strMPO.begin(), strMPO.end(), []( char c ) { return c == '.'; } );
@@ -72,7 +95,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     std::istringstream is( strMPO );
                     is >> mpo;
                 }
-                std::cout << terminal.PingMPO( mpo ) << std::endl;
+                std::cout << terminal.PingMPO( mpo, strMsg ) << std::endl;
             }
             else if ( dotCount < 2 )
             {
@@ -81,7 +104,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     std::istringstream is( strMPO );
                     is >> mp;
                 }
-                std::cout << terminal.PingMP( mp ) << std::endl;
+                std::cout << terminal.PingMP( mp, strMsg ) << std::endl;
             }
             else
             {
@@ -91,6 +114,12 @@ void command( bool bHelp, const std::vector< std::string >& args )
         else
         {
             std::cout << terminal.GetNetworkStatus() << std::endl;
+        }
+
+        if ( bTime )
+        {
+            SPDLOG_INFO(
+                "Total time: {}", std::chrono::duration_cast< mega::network::LogTime >( sw.value().elapsed() ) );
         }
     }
 }

@@ -51,6 +51,7 @@ int main( int argc, const char* argv[] )
     NumThreadsType          uiNumThreads       = 1U;
     short                   portNumber         = mega::network::MegaRootPort();
     boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
+    boost::filesystem::path stashFolder        = boost::filesystem::current_path() / "stash";
     std::string             strConsoleLogLevel = "warn", strLogFileLevel = "info";
     {
         bool bShowHelp = false;
@@ -66,6 +67,7 @@ int main( int argc, const char* argv[] )
         ( "console",    po::value< std::string >( &strConsoleLogLevel ),                "Console logging level" )
         ( "level",      po::value< std::string >( &strLogFileLevel ),                   "Log file logging level" )
         ( "port",       po::value< short >( &portNumber )->default_value( portNumber ), "Root port number" )
+        ( "stash",      po::value< boost::filesystem::path >( &stashFolder ),           "Stash folder" )
         ;
         // clang-format on
 
@@ -91,7 +93,7 @@ int main( int argc, const char* argv[] )
 
         boost::asio::io_context ioContext( 1 );
 
-        mega::service::Root root( ioContext, portNumber );
+        mega::service::Root root( ioContext, stashFolder, portNumber );
 
         std::vector< std::thread > threads;
         for ( int i = 0; i < uiNumThreads; ++i )

@@ -191,7 +191,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
         commandOptions.add_options()
-        ( "configuration",      po::value< boost::filesystem::path >( &pipelineXML ),               "Pipeline Configuration XML File" )
+        ( "configuration",      po::value< boost::filesystem::path >( &pipelineXML ),               "Pipeline Configuration XML File. ( Default argument )" )
         ( "result_out",         po::value< boost::filesystem::path >( &outputPipelineResultPath ),  "Output Pipeline Result XML File. ( Optional )" )
         ( "local",              po::bool_switch( &bRunLocally ),                                    "Run locally" )
         ( "result_in",          po::value< boost::filesystem::path >( &inputPipelineResultPath ),   "Input Pipeline Result XML File ( Local only )" )
@@ -220,7 +220,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
 
     po::positional_options_description p;
-    p.add( "dir", -1 );
+    p.add( "configuration", -1 );
 
     po::variables_map vm;
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
