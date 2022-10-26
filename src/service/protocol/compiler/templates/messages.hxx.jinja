@@ -47,6 +47,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/interprocess/streams/vectorstream.hpp>
 
 #include <vector>
 #include <map>
@@ -125,19 +126,36 @@ struct {{ message.name }}
 Message make_error_msg( const ConversationID& receiver, const std::string& strErrorMsg );
 
 bool isRequest( const Message& msg );
-Message decode( boost::archive::binary_iarchive& archive );
-void encode( boost::archive::binary_oarchive& archive, const Message& msg );
 
-template < typename Archive >
-void Message::save( Archive& ar, const unsigned int version ) const
+Message decode( boost::archive::binary_iarchive& archive );
+
+static constexpr auto boostArchiveFlags = boost::archive::no_header | boost::archive::no_codecvt
+                                          | boost::archive::no_xml_tag_checking | boost::archive::no_tracking;
+
+inline void decode( boost::interprocess::basic_vectorbuf< std::vector< char > >& buffer, Message& msg )
 {
-    encode( ar, *this );
+    boost::archive::binary_iarchive ia( buffer, boostArchiveFlags );
+    msg = decode( ia );
 }
 
 template < typename Archive >
 void Message::load( Archive& ar, const unsigned int version )
 {
     *this = decode( ar );
+}
+
+void encode( boost::archive::binary_oarchive& archive, const Message& msg );
+
+inline void encode( boost::interprocess::basic_vectorbuf< std::vector< char > >& buffer, const Message& msg )
+{
+    boost::archive::binary_oarchive oa( buffer, boostArchiveFlags );
+    encode( oa, msg );
+}
+
+template < typename Archive >
+void Message::save( Archive& ar, const unsigned int version ) const
+{
+    encode( ar, *this );
 }
 
 std::ostream& operator<<( std::ostream& os, const Message& msg );

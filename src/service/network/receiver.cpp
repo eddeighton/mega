@@ -23,8 +23,6 @@
 
 #include "service/protocol/common/header.hpp"
 
-#include "utilities/serialization_helpers.hpp"
-
 #include "common/assert_verify.hpp"
 
 #include <spdlog/spdlog.h>
@@ -43,7 +41,7 @@
 
 namespace mega::network
 {
-SocketReceiver::SocketReceiver( ConversationManager& conversationManager, boost::asio::ip::tcp::socket& socket,
+SocketReceiver::SocketReceiver( ConversationManager& conversationManager, Traits::Socket& socket,
                                 std::function< void() > disconnectHandler )
     : m_conversationManager( conversationManager )
     , m_socket( socket )
@@ -123,11 +121,11 @@ void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
                 if ( !ec )
                 {
                     VERIFY_RTE( size == szBytesTransferred );
-
-                    boost::interprocess::basic_vectorbuf< ReceiveBuffer > is( buffer );
-                    boost::archive::binary_iarchive                       ia( is );
-
-                    const auto        msg = decode( ia );
+                    Message msg;
+                    {
+                        boost::interprocess::basic_vectorbuf< ReceiveBuffer > is( buffer );
+                        decode( is, msg );
+                    }
                     const ReceivedMsg receivedMsg{ m_connectionID, std::move( msg ) };
                     m_conversationManager.dispatch( receivedMsg );
                 }

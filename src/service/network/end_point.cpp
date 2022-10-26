@@ -24,7 +24,7 @@
 namespace mega::network
 {
 
-ConnectionID makeConnectionID( boost::asio::ip::tcp::socket& socket )
+ConnectionID makeConnectionID( Traits::Socket& socket )
 {
     std::ostringstream os;
     os << socket.local_endpoint() << "-" << socket.remote_endpoint();

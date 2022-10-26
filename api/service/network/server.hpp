@@ -20,12 +20,12 @@
 #ifndef SERVER_24_MAY_2022
 #define SERVER_24_MAY_2022
 
-#include "service/protocol/common/header.hpp"
+#include "network.hpp"
+#include "conversation_manager.hpp"
+#include "receiver.hpp"
+#include "sender.hpp"
 
-#include "service/network/conversation.hpp"
-#include "service/network/conversation_manager.hpp"
-#include "service/network/receiver.hpp"
-#include "service/network/sender.hpp"
+#include "service/protocol/common/header.hpp"
 
 #include <boost/asio/strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -80,17 +80,17 @@ public:
         }
 
     protected:
-        const ConnectionID&           getSocketConnectionID() const { return m_connectionID.value(); }
-        Strand&                       getStrand() { return m_strand; }
-        boost::asio::ip::tcp::socket& getSocket() { return m_socket; }
-        void                          start();
-        void                          stop();
-        void                          disconnected();
+        const ConnectionID& getSocketConnectionID() const { return m_connectionID.value(); }
+        Strand&             getStrand() { return m_strand; }
+        Traits::Socket&     getSocket() { return m_socket; }
+        void                start();
+        void                stop();
+        void                disconnected();
 
     private:
         Server&                             m_server;
         Strand                              m_strand;
-        boost::asio::ip::tcp::socket        m_socket;
+        Traits::Socket                      m_socket;
         SocketReceiver                      m_receiver;
         std::optional< ConnectionID >       m_connectionID;
         std::string                         m_strName;
@@ -106,7 +106,6 @@ public:
 
 public:
     Server( boost::asio::io_context& ioContext, ConversationManager& conversationManager, short port );
-    ~Server();
 
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
     Connection::Ptr          getConnection( const ConnectionID& connectionID );
@@ -139,12 +138,12 @@ public:
     void onDisconnected( Connection::Ptr pConnection );
 
 private:
-    boost::asio::io_context&       m_ioContext;
-    ConversationManager&           m_conversationManager;
-    boost::asio::ip::tcp::acceptor m_acceptor;
-    ConnectionMap                  m_connections;
-    ConnectionMPOMap               m_mpoMap;
-    ConnectionMPMap                m_mpMap;
+    boost::asio::io_context& m_ioContext;
+    ConversationManager&     m_conversationManager;
+    Traits::Acceptor         m_acceptor;
+    ConnectionMap            m_connections;
+    ConnectionMPOMap         m_mpoMap;
+    ConnectionMPMap          m_mpMap;
 };
 
 } // namespace mega::network

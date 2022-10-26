@@ -20,11 +20,28 @@
 #ifndef MEGA_NETWORK_16_MAY_2022
 #define MEGA_NETWORK_16_MAY_2022
 
+#include <boost/asio/ip/tcp.hpp>
+// #include <boost/asio/ip/udp.hpp>
+
 namespace mega::network
 {
 
 short MegaDaemonPort();
 short MegaRootPort();
+
+struct Traits
+{
+    using Resolver = boost::asio::ip::tcp::resolver;
+    using Socket   = boost::asio::ip::tcp::socket;
+    using EndPoint = boost::asio::ip::tcp::endpoint;
+    using Acceptor = boost::asio::ip::tcp::acceptor;
+
+    // using Resolver = boost::asio::ip::udp::resolver;
+    // using Socket   = boost::asio::ip::udp::socket;
+    // using EndPoint = boost::asio::ip::udp::endpoint;
+
+    // using Acceptor = boost::asio::ip::udp::acceptor;
+};
 
 } // namespace mega::network
 

@@ -61,7 +61,7 @@ void Server::Connection::start()
 
 void Server::Connection::stop()
 {
-    m_socket.shutdown( boost::asio::ip::tcp::socket::shutdown_both );
+    m_socket.shutdown( Traits::Socket::shutdown_both );
     m_receiver.stop();
 }
 
@@ -85,8 +85,6 @@ Server::Server( boost::asio::io_context& ioContext, ConversationManager& convers
     , m_acceptor( m_ioContext, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), port ) )
 {
 }
-
-Server::~Server() {}
 
 void Server::stop()
 {
@@ -137,14 +135,14 @@ void Server::onDisconnected( Connection::Ptr pConnection )
 
 Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID )
 {
-    ConnectionMap::iterator iFind = m_connections.find( connectionID );
+    auto iFind = m_connections.find( connectionID );
     if ( iFind != m_connections.end() )
     {
         return iFind->second;
     }
     else
     {
-        return Connection::Ptr();
+        return {};
     }
 }
 
@@ -157,7 +155,7 @@ Server::Connection::Ptr Server::findConnection( const mega::MPO& mpo ) const
     }
     else
     {
-        return Connection::Ptr{};
+        return {};
     }
 }
 
@@ -170,7 +168,7 @@ Server::Connection::Ptr Server::findConnection( const mega::MP& mp ) const
     }
     else
     {
-        return Connection::Ptr{};
+        return {};
     }
 }
 void Server::mapConnection( const mega::MPO& mpo, Connection::Ptr pConnection )

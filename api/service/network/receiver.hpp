@@ -23,6 +23,7 @@
 #include "service/network/conversation.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/network/end_point.hpp"
+#include "service/network/network.hpp"
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -37,21 +38,15 @@ namespace mega::network
 class SocketReceiver
 {
 public:
-    SocketReceiver( ConversationManager& conversationManager, boost::asio::ip::tcp::socket& socket,
+    SocketReceiver( ConversationManager& conversationManager, Traits::Socket& socket,
                     std::function< void() > disconnectHandler );
     ~SocketReceiver();
 
     template < typename TExecutor >
     void run( TExecutor& strandOrIOContext, const ConnectionID& connectionID )
     {
-        m_connectionID           = connectionID;
-        SocketReceiver& receiver = *this;
-        boost::asio::spawn( strandOrIOContext,
-                            [ &receiver ]( boost::asio::yield_context yield )
-                            {
-                                //
-                                receiver.receive( yield );
-                            } );
+        m_connectionID = connectionID;
+        boost::asio::spawn( strandOrIOContext, [ this ]( boost::asio::yield_context yield ) { receive( yield ); } );
     }
     void stop() { m_bContinue = false; }
 
@@ -60,11 +55,11 @@ private:
     void onError( const boost::system::error_code& ec );
 
 private:
-    ConnectionID                  m_connectionID;
-    bool                          m_bContinue = true;
-    ConversationManager&          m_conversationManager;
-    boost::asio::ip::tcp::socket& m_socket;
-    std::function< void() >       m_disconnectHandler;
+    ConnectionID            m_connectionID;
+    bool                    m_bContinue = true;
+    ConversationManager&    m_conversationManager;
+    Traits::Socket&         m_socket;
+    std::function< void() > m_disconnectHandler;
 };
 
 class ConcurrentChannelReceiver

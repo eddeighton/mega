@@ -39,7 +39,7 @@ Client::Client( boost::asio::io_context& ioContext, ConversationManager& convers
     , m_resolver( ioContext )
     , m_strand( boost::asio::make_strand( ioContext ) )
     , m_socket( m_strand )
-    , m_receiver( conversationManager, m_socket, [this] { disconnected(); } )
+    , m_receiver( conversationManager, m_socket, [ this ] { disconnected(); } )
 {
     std::string strPort;
     {
@@ -47,8 +47,8 @@ Client::Client( boost::asio::io_context& ioContext, ConversationManager& convers
         os << portNumber;
         strPort = os.str();
     }
-    boost::asio::ip::tcp::resolver::query        query( strServiceIP, strPort );
-    boost::asio::ip::tcp::resolver::results_type endpoints = m_resolver.resolve( query );
+    Traits::Resolver::query        query( strServiceIP, strPort );
+    Traits::Resolver::results_type endpoints = m_resolver.resolve( query );
 
     if ( endpoints.empty() )
     {

@@ -21,6 +21,7 @@
 
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
+#include "service/network/network.hpp"
 
 #include "service/protocol/common/header.hpp"
 
@@ -46,11 +47,11 @@ Sender::~Sender() {}
 
 class SocketSender : public Sender
 {
-    boost::asio::ip::tcp::socket& m_socket;
+    Traits::Socket& m_socket;
     ConnectionID                  m_connectionID;
 
 public:
-    SocketSender( boost::asio::ip::tcp::socket& socket, const ConnectionID& connectionID )
+    SocketSender( Traits::Socket& socket, const ConnectionID& connectionID )
         : m_socket( socket )
         , m_connectionID( connectionID )
     {
@@ -66,10 +67,7 @@ public:
         SendBuffer buffer;
         {
             boost::interprocess::basic_vectorbuf< SendBuffer > os;
-            {
-                boost::archive::binary_oarchive oa( os );
-                encode( oa, msg );
-            }
+            encode( os, msg );
             const MessageSize size = os.vector().size();
             std::string_view  sizeView( reinterpret_cast< const char* >( &size ), sizeof( MessageSize ) );
             buffer.reserve( size + sizeof( MessageSize ) );
@@ -105,7 +103,7 @@ public:
     }
 };
 
-Sender::Ptr make_socket_sender( boost::asio::ip::tcp::socket& socket, const ConnectionID& connectionID )
+Sender::Ptr make_socket_sender( Traits::Socket& socket, const ConnectionID& connectionID )
 {
     return std::make_unique< SocketSender >( socket, connectionID );
 }

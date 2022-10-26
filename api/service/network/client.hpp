@@ -24,6 +24,7 @@
 #include "service/network/conversation_manager.hpp"
 #include "service/network/receiver.hpp"
 #include "service/network/sender.hpp"
+#include "service/network/network.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -66,14 +67,14 @@ public:
     }
 
 private:
-    boost::asio::io_context&       m_ioContext;
-    boost::asio::ip::tcp::resolver m_resolver;
-    Strand                         m_strand;
-    boost::asio::ip::tcp::socket   m_socket;
-    boost::asio::ip::tcp::endpoint m_endPoint;
-    SocketReceiver                 m_receiver;
-    ConnectionID                   m_connectionID;
-    Sender::Ptr                    m_pSender;
+    boost::asio::io_context& m_ioContext;
+    Traits::Resolver         m_resolver;
+    Strand                   m_strand;
+    Traits::Socket           m_socket;
+    Traits::EndPoint         m_endPoint;
+    SocketReceiver           m_receiver;
+    ConnectionID             m_connectionID;
+    Sender::Ptr              m_pSender;
 };
 
 } // namespace mega::network

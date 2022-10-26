@@ -20,13 +20,12 @@
 #ifndef SENDER_15_JUNE_2022
 #define SENDER_15_JUNE_2022
 
-#include "service/protocol/common/header.hpp"
+#include "network.hpp"
+#include "end_point.hpp"
 
+#include "service/protocol/common/header.hpp"
 #include "service/protocol/model/messages.hxx"
 
-#include "service/network/end_point.hpp"
-
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/experimental/concurrent_channel.hpp>
 #include <boost/asio/experimental/channel.hpp>
@@ -49,7 +48,7 @@ public:
         = 0;
 };
 
-Sender::Ptr make_socket_sender( boost::asio::ip::tcp::socket& socket, const ConnectionID& connectionID );
+Sender::Ptr make_socket_sender( Traits::Socket& socket, const ConnectionID& connectionID );
 Sender::Ptr make_current_channel_sender( ConcurrentChannel& channel, const ConnectionID& connectionID );
 Sender::Ptr make_channel_sender( Channel& channel, const ConnectionID& connectionID );
 
