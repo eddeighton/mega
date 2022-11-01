@@ -17,6 +17,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+msg GetSaveObject
+{
+    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
+    response();
+}
+msg GetLoadObject
+{
+    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
+    response();
+}
 msg GetCallGetter
 {
     request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
@@ -49,6 +59,16 @@ msg GetStart
     response();
 }
 msg GetStop
+{
+    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    response();
+}
+msg GetSave
+{
+    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    response();
+}
+msg GetLoad
 {
     request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
     response();

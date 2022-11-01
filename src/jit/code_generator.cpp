@@ -63,6 +63,8 @@ struct FunctionPointers
     using FreerSet       = std::set< std::string >;
     using ObjectAllocSet = std::set< const FinalStage::Concrete::Context* >;
     using ObjectFreeSet  = std::set< const FinalStage::Concrete::Context* >;
+    using ObjectSaveSet  = std::set< const FinalStage::Concrete::Context* >;
+    using ObjectLoadSet  = std::set< const FinalStage::Concrete::Context* >;
 
     CallSet        callSet;
     CopySet        copySet;
@@ -71,6 +73,65 @@ struct FunctionPointers
     FreerSet       freerSet;
     ObjectAllocSet objectAllocSet;
     ObjectFreeSet  objectFreeSet;
+    ObjectSaveSet  objectSave;
+    ObjectLoadSet  objectLoad;
+
+    nlohmann::json init( const InvocationID& invocationID, std::string& strName ) const
+    {
+        {
+            std::ostringstream osName;
+            osName << invocationID;
+            strName = osName.str();
+        }
+
+        return { { "name", strName },
+                 { "module_name", strName },
+                 { "calls", nlohmann::json::array() },
+                 { "copiers", nlohmann::json::array() },
+                 { "events", nlohmann::json::array() },
+                 { "allocators", nlohmann::json::array() },
+                 { "freers", nlohmann::json::array() },
+                 { "object_allocators", nlohmann::json::array() },
+                 { "variables", nlohmann::json::array() },
+                 { "assignments", nlohmann::json::array() },
+                 { "object_savers", nlohmann::json::array() } };
+    }
+
+    void generate( nlohmann::json& data )
+    {
+        for ( auto pCall : callSet )
+        {
+            data[ "calls" ].push_back( pCall->get_concrete_id() );
+        }
+        for ( auto pCopy : copySet )
+        {
+            data[ "copiers" ].push_back( megaMangle( pCopy->get_canonical_type() ) );
+        }
+        for ( auto event : eventSet )
+        {
+            data[ "events" ].push_back( event );
+        }
+        for ( auto allocator : allocatorSet )
+        {
+            data[ "allocators" ].push_back( allocator );
+        }
+        for ( auto freer : freerSet )
+        {
+            data[ "freers" ].push_back( freer );
+        }
+        for ( auto pObject : objectAllocSet )
+        {
+            data[ "object_allocators" ].push_back( pObject->get_concrete_id() );
+        }
+        for ( auto pObject : objectSave )
+        {
+            data[ "object_savers" ].push_back( pObject->get_concrete_id() );
+        }
+        for ( auto pObject : objectLoad )
+        {
+            data[ "object_loaders" ].push_back( pObject->get_concrete_id() );
+        }
+    }
 };
 
 std::string allocatorTypeName( const DatabaseInstance&                      database,
@@ -123,6 +184,8 @@ class CodeGenerator::Pimpl
     ::inja::Template    m_callTemplate;
     ::inja::Template    m_startTemplate;
     ::inja::Template    m_stopTemplate;
+    ::inja::Template    m_saveTemplate;
+    ::inja::Template    m_loadTemplate;
 
 public:
     Pimpl( const mega::network::MegastructureInstallation& megaInstall, const mega::network::Project& project )
@@ -135,6 +198,8 @@ public:
         m_callTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().native() );
         m_startTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().native() );
         m_stopTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().native() );
+        m_saveTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().native() );
+        m_loadTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().native() );
     }
 
     void render_allocation( const nlohmann::json& data, std::ostream& os )
@@ -164,6 +229,14 @@ public:
     void render_stop( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_stopTemplate, data );
+    }
+    void render_save( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_saveTemplate, data );
+    }
+    void render_load( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_loadTemplate, data );
     }
 
     std::string render( const std::string& strTemplate, const nlohmann::json& data )
@@ -517,34 +590,46 @@ R"TEMPLATE(
 
                 functions.parts.insert( pAllocationDimension->get_part() );*/
             }
-            else if ( auto pPause = db_cast< Pause >( pOperation ) )
+            else if ( auto pSave = db_cast< Save >( pOperation ) )
             {
-                THROW_RTE( "Not implemented" );
+                // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+    {
+        if( _fptr_save_object_{{ concrete_type_id }} == nullptr )
+        {
+            mega::runtime::get_save_object( g_pszModuleName, {{ concrete_type_id }},
+                &_fptr_save_object_{{ concrete_type_id }} );
+        }
+        _fptr_save_object_{{ concrete_type_id }}( {{ instance }}, pArchive );
+    }
+)TEMPLATE";
+                // clang-format on
+                std::ostringstream os;
+                {
+                    Concrete::Context*   pConcreteTarget = pSave->get_concrete_target();
+                    Variables::Instance* pInstance       = pSave->get_instance();
+
+                    nlohmann::json templateData( { { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                                   { "instance", get( variables, pInstance ) } } );
+
+                    os << render( szTemplate, templateData );
+
+                    functions.objectSave.insert( pConcreteTarget );
+                }
+
+                data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pResume = db_cast< Resume >( pOperation ) )
-            {
-                THROW_RTE( "Not implemented" );
-            }
-            else if ( auto pDone = db_cast< Done >( pOperation ) )
+            else if ( auto pLoad = db_cast< Load >( pOperation ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
-                os << indent << "// Done\n";
+                os << indent << "// Load\n";
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pWaitAction = db_cast< WaitAction >( pOperation ) )
+            else if ( auto pFiles = db_cast< Files >( pOperation ) )
             {
                 THROW_TODO;
-                std::ostringstream os;
-                os << indent << "// WaitAction\n";
-                data[ "assignments" ].push_back( os.str() );
-            }
-            else if ( auto pWaitDimension = db_cast< WaitDimension >( pOperation ) )
-            {
-                THROW_TODO;
-                std::ostringstream os;
-                os << indent << "// WaitDimension\n";
-                data[ "assignments" ].push_back( os.str() );
             }
             else if ( auto pGetAction = db_cast< GetAction >( pOperation ) )
             {
@@ -776,10 +861,11 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
                            { "shared_parts", nlohmann::json::array() },
                            { "heap_parts", nlohmann::json::array() },
-                           { "news", nlohmann::json::array() },
-                           { "deleters", nlohmann::json::array() } } );
+                           { "has_heap_buffer", false },
+                           { "mangled_data_types", nlohmann::json::array() },
+                           { "elements", nlohmann::json::array() } } );
 
-    std::set< std::string > newers, deleters;
+    std::set< std::string > mangledDataTypes;
     {
         using namespace FinalStage;
         for ( auto pBuffer : pObject->get_buffers() )
@@ -812,9 +898,9 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                                              { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
                                              { "offset", pUserDim->get_offset() } } );
                     part[ "members" ].push_back( member );
-                    newers.insert( strMangle );
-                    deleters.insert( strMangle );
+                    mangledDataTypes.insert( strMangle );
                 }
+
                 for ( auto pLinkDim : pPart->get_link_dimensions() )
                 {
                     if ( auto pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( pLinkDim ) )
@@ -827,8 +913,7 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkMany->get_offset() } } );
                         part[ "members" ].push_back( member );
-                        newers.insert( strMangle );
-                        deleters.insert( strMangle );
+                        mangledDataTypes.insert( strMangle );
                     }
                     else if ( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
                     {
@@ -840,8 +925,7 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkSingle->get_offset() } } );
                         part[ "members" ].push_back( member );
-                        newers.insert( strMangle );
-                        deleters.insert( strMangle );
+                        mangledDataTypes.insert( strMangle );
                     }
                     else
                     {
@@ -859,8 +943,7 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                         osAllocName << "alloc_"
                                     << pAllocator->get_allocator()->get_allocated_context()->get_concrete_id();
 
-                        newers.insert( strMangle );
-                        deleters.insert( strMangle );
+                        mangledDataTypes.insert( strMangle );
 
                         nlohmann::json member( { { "type", strAllocatorTypeName },
                                                  { "mangle", strMangle },
@@ -875,20 +958,21 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                 }
 
                 if ( bBufferIsShared )
+                {
                     data[ "shared_parts" ].push_back( part );
+                }
                 else
+                {
                     data[ "heap_parts" ].push_back( part );
+                    data[ "has_heap_buffer" ] = true;
+                }
             }
         }
     }
 
-    for ( const auto& str : newers )
+    for ( const auto& str : mangledDataTypes )
     {
-        data[ "news" ].push_back( str );
-    }
-    for ( const auto& str : deleters )
-    {
-        data[ "deleters" ].push_back( str );
+        data[ "mangled_data_types" ].push_back( str );
     }
 
     std::ostringstream osCPPCode;
@@ -899,24 +983,9 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
 nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                                         std::string& strName ) const
 {
-    {
-        std::ostringstream osName;
-        osName << invocationID;
-        strName = osName.str();
-    }
-
     FunctionPointers functions;
 
-    nlohmann::json data( { { "name", strName },
-                           { "module_name", strName },
-                           { "calls", nlohmann::json::array() },
-                           { "copiers", nlohmann::json::array() },
-                           { "events", nlohmann::json::array() },
-                           { "allocators", nlohmann::json::array() },
-                           { "freers", nlohmann::json::array() },
-                           { "object_allocators", nlohmann::json::array() },
-                           { "variables", nlohmann::json::array() },
-                           { "assignments", nlohmann::json::array() } } );
+    nlohmann::json data = functions.init( invocationID, strName );
 
     {
         using namespace FinalStage;
@@ -933,30 +1002,7 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
         }
     }
 
-    for ( auto pCall : functions.callSet )
-    {
-        data[ "calls" ].push_back( pCall->get_concrete_id() );
-    }
-    for ( auto pCopy : functions.copySet )
-    {
-        data[ "copiers" ].push_back( megaMangle( pCopy->get_canonical_type() ) );
-    }
-    for ( auto event : functions.eventSet )
-    {
-        data[ "events" ].push_back( event );
-    }
-    for ( auto allocator : functions.allocatorSet )
-    {
-        data[ "allocators" ].push_back( allocator );
-    }
-    for ( auto freer : functions.freerSet )
-    {
-        data[ "freers" ].push_back( freer );
-    }
-    for ( auto pObject : functions.objectAllocSet )
-    {
-        data[ "object_allocators" ].push_back( pObject->get_concrete_id() );
-    }
+    functions.generate( data );
     return data;
 }
 
@@ -1045,6 +1091,34 @@ void CodeGenerator::generate_stop( const LLVMCompiler& compiler, const DatabaseI
     std::ostringstream osCPPCode;
     {
         m_pPimpl->render_stop( data, osCPPCode );
+    }
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+}
+void CodeGenerator::generate_save( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                   const mega::InvocationID& invocationID, std::ostream& os )
+{
+    SPDLOG_TRACE( "RUNTIME: generate_save: {}", invocationID );
+
+    std::string          strName;
+    const nlohmann::json data = generate( database, invocationID, strName );
+
+    std::ostringstream osCPPCode;
+    {
+        m_pPimpl->render_save( data, osCPPCode );
+    }
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+}
+void CodeGenerator::generate_load( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                   const mega::InvocationID& invocationID, std::ostream& os )
+{
+    SPDLOG_TRACE( "RUNTIME: generate_load: {}", invocationID );
+
+    std::string          strName;
+    const nlohmann::json data = generate( database, invocationID, strName );
+
+    std::ostringstream osCPPCode;
+    {
+        m_pPimpl->render_load( data, osCPPCode );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }

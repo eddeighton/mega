@@ -217,7 +217,6 @@ set( MEGA_TYPES_HEADERS
     ${MEGA_API_DIR}/database/types/clang_compilation.hpp
     ${MEGA_API_DIR}/database/types/invocation_id.hpp
     ${MEGA_API_DIR}/database/types/type_id.hpp
-    ${MEGA_API_DIR}/database/types/shared_memory_header.hpp
     
     ${MEGA_API_DIR}/database/database.hpp
 )

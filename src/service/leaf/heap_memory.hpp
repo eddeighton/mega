@@ -21,7 +21,7 @@
 #ifndef GUARD_2022_October_22_heap_memory
 #define GUARD_2022_October_22_heap_memory
 
-#include "database/types/shared_memory_header.hpp"
+#include "mega/shared_memory_header.hpp"
 
 #include "service/protocol/common/jit_types.hpp"
 

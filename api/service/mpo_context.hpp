@@ -26,7 +26,6 @@
 
 #include "jit/functions.hpp"
 
-#include "service/api.hpp"
 #include "service/context.hpp"
 #include "service/lock_tracker.hpp"
 
@@ -98,26 +97,9 @@ public:
 #undef FUNCTION_ARG_2
 #undef FUNCTION_ARG_3
 
-    void* base() 
-    { 
-        return m_pSharedMemory->get_address(); 
-    }
-
-    void* read( reference& ref, bool bShared )
-    {
-        network::MemoryBaseReference result = getLeafMemoryRequest().Read( m_root, ref, bShared );
-        ref                                 = result.machineRef;
-        m_lockTracker.onRead( ref );
-        return result.getBaseAddress();
-    }
-
-    void* write( reference& ref, bool bShared )
-    {
-        network::MemoryBaseReference result = getLeafMemoryRequest().Write( m_root, ref, bShared );
-        ref                                 = result.machineRef;
-        m_lockTracker.onWrite( ref );
-        return result.getBaseAddress();
-    }
+    void* base();
+    void* read( reference& ref );
+    void* write( reference& ref );
 
     virtual network::mpo::Request_Sender      getMPRequest()           = 0;
     virtual network::address::Request_Encoder getRootAddressRequest()  = 0;

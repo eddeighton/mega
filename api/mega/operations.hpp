@@ -56,27 +56,27 @@ struct [[clang::eg_type( mega::id_Stop )]] Stop
     };
 };
 
-struct [[clang::eg_type( mega::id_Pause )]] Pause
+struct [[clang::eg_type( mega::id_Save )]] Save
 {
     enum : mega::TypeID
     {
-        ID = mega::id_Pause
+        ID = mega::id_Save
     };
 };
 
-struct [[clang::eg_type( mega::id_Resume )]] Resume
+struct [[clang::eg_type( mega::id_Load )]] Load
 {
     enum : mega::TypeID
     {
-        ID = mega::id_Resume
+        ID = mega::id_Load
     };
 };
 
-struct [[clang::eg_type( mega::id_Wait )]] Wait
+struct [[clang::eg_type( mega::id_Files )]] Files
 {
     enum : mega::TypeID
     {
-        ID = mega::id_Wait
+        ID = mega::id_Files
     };
 };
 
@@ -85,14 +85,6 @@ struct [[clang::eg_type( mega::id_Get )]] Get
     enum : mega::TypeID
     {
         ID = mega::id_Get
-    };
-};
-
-struct [[clang::eg_type( mega::id_Done )]] Done
-{
-    enum : mega::TypeID
-    {
-        ID = mega::id_Done
     };
 };
 

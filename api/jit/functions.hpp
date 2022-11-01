@@ -22,21 +22,29 @@
 
 #include "mega/reference.hpp"
 
-namespace mega::runtime
+namespace mega
+{
+namespace runtime
 {
 
 using TypeErasedFunction = const void*;
 
+// allocator functions
 using SharedCtorFunction = void ( * )( void*, void* );
 using HeapCtorFunction   = void ( * )( void* );
 using SharedDtorFunction = void ( * )( void* );
 using HeapDtorFunction   = void ( * )( void* );
+using SaveObjectFunction = void ( * )( reference, void* );
+using LoadObjectFunction = void ( * )( reference, void* );
 
-using AllocateFunction     = reference ( * )( reference );
-using ReadFunction         = void* ( * )( reference );
-using WriteFunction        = reference ( * )( reference, const void* );
-using StartFunction        = reference ( * )( reference );
-using StopFunction         = reference ( * )( reference );
+// invocation functions
+using AllocateFunction = reference ( * )( reference );
+using ReadFunction     = void* ( * )( reference );
+using WriteFunction    = reference ( * )( reference, const void* );
+using StartFunction    = reference ( * )( reference );
+using StopFunction     = reference ( * )( reference );
+using SaveFunction     = void ( * )( reference, void* );
+using LoadFunction     = void ( * )( reference, void* );
 
 struct CallResult
 {
@@ -45,6 +53,7 @@ struct CallResult
 };
 using CallFunction = CallResult ( * )( reference );
 
-} // namespace mega::runtime
+} // namespace runtime
+} // namespace mega
 
 #endif // RUNTIME_FUNCTIONS_17_AUG_2022

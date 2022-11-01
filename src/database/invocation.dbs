@@ -161,23 +161,15 @@ namespace Invocations
         {
         }
 
-        object Pause : BasicOperation -> OperationsStage::Operations
+        object Save : BasicOperation -> OperationsStage::Operations
         {
         }
 
-        object Resume : BasicOperation -> OperationsStage::Operations
+        object Load : BasicOperation -> OperationsStage::Operations
         {
         }
 
-        object Done : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
-        object WaitAction : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
-        object WaitDimension : DimensionOperation -> OperationsStage::Operations
+        object Files : BasicOperation -> OperationsStage::Operations
         {
         }
 

@@ -62,6 +62,10 @@ public:
                          const mega::InvocationID& invocationID, std::ostream& os );
     void generate_stop( const LLVMCompiler& compiler, const DatabaseInstance& database,
                         const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_save( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                        const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_load( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                        const mega::InvocationID& invocationID, std::ostream& os );
 
 private:
     nlohmann::json generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,

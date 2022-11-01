@@ -20,13 +20,12 @@
 #include "base_task.hpp"
 
 #include "database/model/MemoryStage.hxx"
-
 #include "database/types/sources.hpp"
-#include "database/types/shared_memory_header.hpp"
 
 #include "common/file.hpp"
 
 #include "mega/common.hpp"
+#include "mega/shared_memory_header.hpp"
 #include "mega/allocator.hpp"
 #include "mega/default_traits.hpp"
 

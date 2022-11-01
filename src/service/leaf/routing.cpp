@@ -20,7 +20,7 @@
 #include "request.hpp"
 #include "mpo_lifetime.hpp"
 
-#include "database/types/shared_memory_header.hpp"
+#include "mega/shared_memory_header.hpp"
 
 #include "service/network/log.hpp"
 #include "service/protocol/model/memory.hxx"

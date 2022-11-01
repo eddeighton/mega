@@ -60,6 +60,18 @@ Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompil
         os << "Pv";
         m_pHeapDtor = pModule->get< HeapDtorFunction >( os.str() );
     }
+    {
+        std::ostringstream os;
+        symbolPrefix( "save_object_", objectTypeID, os );
+        os << "N4mega9referenceEPv";
+        m_pSave = pModule->get< SaveObjectFunction >( os.str() );
+    }
+    {
+        std::ostringstream os;
+        symbolPrefix( "load_object_", objectTypeID, os );
+        os << "N4mega9referenceEPv";
+        m_pLoad = pModule->get< LoadObjectFunction >( os.str() );
+    }
 }
 
 } // namespace mega::runtime

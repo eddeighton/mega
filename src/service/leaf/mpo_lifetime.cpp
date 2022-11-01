@@ -25,7 +25,7 @@
 #include "shared_memory.hpp"
 #include "heap_memory.hpp"
 
-#include "database/types/shared_memory_header.hpp"
+#include "mega/shared_memory_header.hpp"
 
 #include "service/network/log.hpp"
 

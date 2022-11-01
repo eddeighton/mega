@@ -30,13 +30,13 @@ void* base()
 {
     return getMPOContext()->base();
 }
-void* read( reference& ref, bool bShared )
+void* read( reference& ref )
 {
-    return getMPOContext()->read( ref, bShared );
+    return getMPOContext()->read( ref );
 }
 void* write( reference& ref, bool bShared )
 {
-    return getMPOContext()->write( ref, bShared );
+    return getMPOContext()->write( ref );
 }
 
 #define FUNCTION_ARG_0( return_type, name ) \

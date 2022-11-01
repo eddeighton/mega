@@ -21,7 +21,7 @@
 #define JIT_TYPES_21_OCT_2022
 
 #include "mega/native_types.hpp"
-#include "mega/default_traits.hpp"
+#include "mega/reference.hpp"
 
 namespace mega::network
 {

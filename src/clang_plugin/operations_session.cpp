@@ -278,30 +278,19 @@ public:
                 resultType = clang::getVoidType( pASTContext );
             }
             break;
-            case mega::id_Pause:
+            case mega::id_Save:
             {
                 resultType = clang::getVoidType( pASTContext );
             }
             break;
-            case mega::id_Resume:
+            case mega::id_Load:
             {
                 resultType = clang::getVoidType( pASTContext );
             }
             break;
-            case mega::id_Wait:
+            case mega::id_Files:
             {
-                if ( !returnTypesDimension.empty() )
-                {
-                    buildDimensionReturnType( returnTypesDimension, "Read", resultType );
-                }
-                else
-                {
-                    if ( std::optional< clang::QualType > resultOpt = buildContextReturnType(
-                             returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
-                    {
-                        resultType = resultOpt.value();
-                    }
-                }
+                resultType = clang::getVoidType( pASTContext );
             }
             break;
             case mega::id_Get:
@@ -318,11 +307,6 @@ public:
                         resultType = resultOpt.value();
                     }
                 }
-            }
-            break;
-            case mega::id_Done:
-            {
-                resultType = clang::getBooleanType( pASTContext );
             }
             break;
             case mega::id_Range:

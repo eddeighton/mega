@@ -56,21 +56,29 @@ public:
                              const mega::TypeID& objectTypeID, mega::runtime::HeapCtorFunction* ppFunction );
     void getObjectHeapDel(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                            const mega::TypeID& objectTypeID, mega::runtime::HeapDtorFunction* ppFunction );
+    void getObjectSave(const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                           const mega::TypeID& objectTypeID, mega::runtime::SaveObjectFunction* ppFunction);
+    void getObjectLoad(const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                           const mega::TypeID& objectTypeID, mega::runtime::LoadObjectFunction* ppFunction);
 
-    void get_call_getter( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
+    void getCallGetter( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
 
-    void get_allocate(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
+    void getAllocate(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
                        AllocateFunction* ppFunction );
-    void get_read(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
+    void getRead(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
                    ReadFunction* ppFunction );
-    void get_write(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
+    void getWrite(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
                     WriteFunction* ppFunction );
-    void get_call(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
+    void getCall(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
                    CallFunction* ppFunction );
-    void get_start(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+    void getStart(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                     const mega::InvocationID& invocationID, StartFunction* ppFunction );
-    void get_stop(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+    void getStop(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                    const mega::InvocationID& invocationID, StopFunction* ppFunction );
+    void getSave(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                    const mega::InvocationID& invocationID, SaveFunction* ppFunction );
+    void getLoad(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                   const mega::InvocationID& invocationID, LoadFunction* ppFunction );
 
 private:
     const Allocator&         getAllocator(  const CodeGenerator::LLVMCompiler& compiler, const mega::TypeID& objectTypeID );

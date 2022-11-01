@@ -31,7 +31,6 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( MEGA_LEAF_API 
     ${MEGA_API_DIR}/service/leaf.hpp
     ${MEGA_API_DIR}/service/context.hpp
-    ${MEGA_API_DIR}/service/api.hpp
     ${MEGA_API_DIR}/service/mpo_context.hpp
 )
 

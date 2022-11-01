@@ -34,12 +34,12 @@ msg Acquire
 }
 msg Read
 {
-    request( MPO requestingMPO, reference ref, bool bShared );
+    request( MPO requestingMPO, reference ref );
     response( MemoryBaseReference ref );
 }
 msg Write
 {
-    request( MPO requestingMPO, reference ref, bool bShared );
+    request( MPO requestingMPO, reference ref );
     response( MemoryBaseReference ref );
 }
 msg NetworkToMachine

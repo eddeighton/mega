@@ -275,20 +275,13 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
     {
         case id_Imp_NoParams:
         case id_Imp_Params:
-            break;
         case id_Start:
         case id_Stop:
-        case id_Pause:
-        case id_Resume:
-        case id_Wait:
-            break;
+        case id_Save:
+        case id_Load:
+        case id_Files:
         case id_Get:
-            break;
-        case id_Done:
-            bExpandFinalReferences = true;
-            break;
         case id_Range:
-            break;
         case id_Raw:
             break;
         case HIGHEST_OPERATION_TYPE:

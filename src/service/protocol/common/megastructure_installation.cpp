@@ -103,5 +103,13 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateStop() cons
 {
     return m_installationPath / "templates/stop.jinja";
 }
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateSave() const
+{
+    return m_installationPath / "templates/save.jinja";
+}
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateLoad() const
+{
+    return m_installationPath / "templates/load.jinja";
+}
 
 } // namespace mega::network

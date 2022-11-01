@@ -26,13 +26,13 @@
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
 #include "mega/default_traits.hpp"
-
-#include "database/types/shared_memory_header.hpp"
+#include "mega/shared_memory_header.hpp"
 
 #include "service/protocol/common/header.hpp"
 #include "service/network/log.hpp"
 
 #include <string>
+#include <new>
 #include <sstream>
 #include <unordered_map>
 
@@ -194,9 +194,9 @@ public:
     {
         const auto size = m_database.getObjectSize( objectTypeID );
 
-        auto&         memory        = getOrCreate( mpo ).get();
-        void*         pSharedMemory = memory.allocate_aligned( size.shared_size, size.shared_alignment );
-        SharedHeader& hd            = makeSharedHeader( pSharedMemory );
+        auto& memory        = getOrCreate( mpo ).get();
+        void* pSharedMemory = memory.allocate_aligned( size.shared_size, size.shared_alignment );
+        new ( pSharedMemory ) SharedHeader{};
 
         const reference machine{
             TypeInstance( 0u, objectTypeID ), mpo, toProcessAddress( memory.get_address(), pSharedMemory ) };

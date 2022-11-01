@@ -19,6 +19,7 @@
 
 #include "mega/default_traits.hpp"
 #include "mega/allocator.hpp"
+#include "mega/archive.hpp"
 
 #include "service/mpo_context.hpp"
 
@@ -45,13 +46,17 @@ void delete_( void* p )
 }
 
 template < typename T >
-void store_( void* p, void* pArchive )
+void save_( void* p, const char* name, void* pArchive )
 {
+    T* pData = reinterpret_cast< T* >( p );
+    SPDLOG_TRACE( "save_ called for {}", name );
 }
 
 template < typename T >
-void load_( void* p, void* pArchive )
+void load_( void* p, const char* name, void* pArchive )
 {
+    const T* pData = reinterpret_cast< const T* >( p );
+    SPDLOG_TRACE( "load_ called for {}", name );
 }
 
 template < typename T >
@@ -100,6 +105,15 @@ void read_nonSimple( std::vector< char >& buffer )
 namespace mega
 {
 
+void begin_part(const char* partName)
+{
+    SPDLOG_TRACE( "begin part {}", partName );
+}
+void end_part(const char* partName)
+{
+    SPDLOG_TRACE( "end part {}", partName );
+}
+
 #define SIMPLETYPE( manged_name, type )                                               \
     void new_##manged_name( void* p, void* pMemory )                                  \
     {                                                                                 \
@@ -109,13 +123,13 @@ namespace mega
     {                                                                                 \
         delete_< type >( p );                                                         \
     }                                                                                 \
-    void store_##manged_name( void* p, void* pArchive )                               \
+    void save_##manged_name( void* p, const char* name, void* pArchive )              \
     {                                                                                 \
-        store_< type >( p, pArchive );                                                \
+        save_< type >( p, name, pArchive );                                           \
     }                                                                                 \
-    void load_##manged_name( void* p, void* pArchive )                                \
+    void load_##manged_name( void* p, const char* name, void* pArchive )              \
     {                                                                                 \
-        load_< type >( p, pArchive );                                                 \
+        load_< type >( p, name, pArchive );                                           \
     }                                                                                 \
     void copy_##manged_name( const void* pFrom, void* pTo )                           \
     {                                                                                 \
@@ -138,13 +152,13 @@ namespace mega
     {                                                                                 \
         delete_< type >( p );                                                         \
     }                                                                                 \
-    void store_##manged_name( void* p, void* pArchive )                               \
+    void save_##manged_name( void* p, const char* name, void* pArchive )              \
     {                                                                                 \
-        store_< type >( p, pArchive );                                                \
+        save_< type >( p, name, pArchive );                                           \
     }                                                                                 \
-    void load_##manged_name( void* p, void* pArchive )                                \
+    void load_##manged_name( void* p, const char* name, void* pArchive )              \
     {                                                                                 \
-        load_< type >( p, pArchive );                                                 \
+        load_< type >( p, name, pArchive );                                           \
     }                                                                                 \
     void copy_##manged_name( const void* pFrom, void* pTo )                           \
     {                                                                                 \
@@ -161,24 +175,36 @@ namespace mega
 // std::vector< int >
 void new_classstd00vector3int4( void* p, void* pMemory ) { new_< std::vector< int > >( p ); }
 void delete_classstd00vector3int4( void* p ) { delete_< std::vector< int > >( p ); }
-void store_classstd00vector3int4( void* p, void* pArchive ) { store_< std::vector< int > >( p, pArchive ); }
-void load_classstd00vector3int4( void* p, void* pArchive ) { load_< std::vector< int > >( p, pArchive ); }
+void save_classstd00vector3int4( void* p, const char* name, void* pArchive )
+{
+    save_< std::vector< int > >( p, name, pArchive );
+}
+void load_classstd00vector3int4( void* p, const char* name, void* pArchive )
+{
+    load_< std::vector< int > >( p, name, pArchive );
+}
 void copy_classstd00vector3int4( const void* pFrom, void* pTo ) { copy_< std::vector< int > >( pFrom, pTo ); }
 
 // mega::ReferenceVector
 void new_mega00ReferenceVector( void* p, void* pMemory )
 {
-    //SPDLOG_TRACE( "new_mega00ReferenceVector - start" );
+    // SPDLOG_TRACE( "new_mega00ReferenceVector - start" );
     typename mega::runtime::ManagedSharedMemory::segment_manager* pSegmentMgr
         = reinterpret_cast< typename mega::runtime::ManagedSharedMemory::segment_manager* >( pMemory );
     using Allocator
         = boost::interprocess::allocator< mega::reference, mega::runtime::ManagedSharedMemory::segment_manager >;
     new ( p ) ReferenceVector( Allocator( pSegmentMgr ) );
-    //SPDLOG_TRACE( "new_mega00ReferenceVector - done" );
+    // SPDLOG_TRACE( "new_mega00ReferenceVector - done" );
 }
 void delete_mega00ReferenceVector( void* p ) { delete_< mega::ReferenceVector >( p ); }
-void store_mega00ReferenceVector( void* p, void* pArchive ) { store_< mega::ReferenceVector >( p, pArchive ); }
-void load_mega00ReferenceVector( void* p, void* pArchive ) { load_< mega::ReferenceVector >( p, pArchive ); }
+void save_mega00ReferenceVector( void* p, const char* name, void* pArchive )
+{
+    save_< mega::ReferenceVector >( p, name, pArchive );
+}
+void load_mega00ReferenceVector( void* p, const char* name, void* pArchive )
+{
+    load_< mega::ReferenceVector >( p, name, pArchive );
+}
 void copy_mega00ReferenceVector( const void* pFrom, void* pTo ) { copy_< mega::ReferenceVector >( pFrom, pTo ); }
 
 // allocator routines

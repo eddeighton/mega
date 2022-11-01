@@ -24,6 +24,8 @@
 cmake_minimum_required( VERSION 3.1...3.16 )
 
 set( MEGA_LIBRARY
+    ${MEGA_API_DIR}/mega/api.hpp
+    ${MEGA_API_DIR}/mega/archive.hpp
     ${MEGA_API_DIR}/mega/allocator.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
     ${MEGA_API_DIR}/mega/clock.hpp
@@ -48,6 +50,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/result_type.hpp
     ${MEGA_API_DIR}/mega/root.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
+    ${MEGA_API_DIR}/mega/shared_memory_header.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
     ${MEGA_API_DIR}/mega/variant.hpp
 )

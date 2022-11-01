@@ -333,11 +333,10 @@ void build( Database& database, Invocation* pInvocation )
         case id_Imp_Params:
         case id_Start:
         case id_Stop:
-        case id_Pause:
-        case id_Resume:
-        case id_Wait:
+        case id_Save:
+        case id_Load:
+        case id_Files:
         case id_Get:
-        case id_Done:
         {
             GenericOperationVisitor visitor{ database, pInvocation };
             visitor();
@@ -593,41 +592,25 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = db_cast< Pause >( pOperation ) )
+            if ( auto pOp = db_cast< Save >( pOperation ) )
             {
-                setOrCheck( resultOpt, id_exp_Pause );
+                setOrCheck( resultOpt, id_exp_Save );
                 bFound = true;
             }
         }
         if ( !bFound )
         {
-            if ( auto pOp = db_cast< Resume >( pOperation ) )
+            if ( auto pOp = db_cast< Load >( pOperation ) )
             {
-                setOrCheck( resultOpt, id_exp_Resume );
+                setOrCheck( resultOpt, id_exp_Load );
                 bFound = true;
             }
         }
         if ( !bFound )
         {
-            if ( auto pOp = db_cast< Done >( pOperation ) )
+            if ( auto pOp = db_cast< Files >( pOperation ) )
             {
-                setOrCheck( resultOpt, id_exp_Done );
-                bFound = true;
-            }
-        }
-        if ( !bFound )
-        {
-            if ( auto pOp = db_cast< WaitAction >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_WaitAction );
-                bFound = true;
-            }
-        }
-        if ( !bFound )
-        {
-            if ( auto pOp = db_cast< WaitDimension >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_WaitDimension );
+                setOrCheck( resultOpt, id_exp_Files );
                 bFound = true;
             }
         }
@@ -689,7 +672,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
 OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::InvocationID& id,
                                                     Database& database, const mega::io::megaFilePath& sourceFile )
 {
-    // std::cout << "Found invocation: " << id << std::endl;
+    std::cout << "Found invocation: " << id << std::endl;
 
     const mega::io::manifestFilePath manifestFile = environment.project_manifest();
     Symbols::SymbolTable*            pSymbolTable = database.one< Symbols::SymbolTable >( manifestFile );
@@ -707,7 +690,8 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
 
     if ( operationIDOpt.has_value() )
     {
-        THROW_RTE( "Invalid operation specified in invocation" );
+        VERIFY_RTE_MSG( operationIDOpt.value() == id.m_operation,
+            "Type path operation type of: " <<  operationIDOpt.value() << " does not match invocation type of: " << id );
     }
 
     // 2. Convert from Interface Contexts to Interface/Concrete context pair element vectors
@@ -730,8 +714,15 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 osTypePathStr << ", ";
             if ( symbolID < 0 )
             {
-                auto pSymbol = symbolMaps.findSymbolTypeID( symbolID );
-                osTypePathStr << pSymbol->get_symbol();
+                if( isOperationType( symbolID ) )
+                {
+                    osTypePathStr << getOperationString( static_cast< OperationID >( symbolID ) );
+                }
+                else
+                {
+                    auto pSymbol = symbolMaps.findSymbolTypeID( symbolID );
+                    osTypePathStr << pSymbol->get_symbol();
+                }
             }
             else
             {
@@ -937,13 +928,11 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 osRuntimeReturnType << "mega::reference";
                 break;
             }
-            case mega::id_exp_Pause:
-            case mega::id_exp_Resume:
-            case mega::id_exp_WaitAction:
-            case mega::id_exp_WaitDimension:
+            case mega::id_exp_Save:
+            case mega::id_exp_Load:
+            case mega::id_exp_Files:
             case mega::id_exp_GetAction:
             case mega::id_exp_GetDimension:
-            case mega::id_exp_Done:
             case mega::id_exp_Range:
             case mega::id_exp_Raw:
             {

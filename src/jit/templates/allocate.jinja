@@ -20,7 +20,7 @@
 // ed was here
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
-#include "jit/functions.hpp"
+#include "mega/api.hpp"
 
 static const char* g_pszModuleName = "{{module_name}}";
 
@@ -33,10 +33,6 @@ static mega::runtime::HeapDtorFunction _fptr_object_heap_del_{{ object_allocator
 
 namespace mega
 {
-namespace runtime
-{
-    reference allocate( const reference&, TypeID );
-}
 {% for copy in copiers %}
     void copy_{{copy}}(const void*,void*);
 {% endfor %}

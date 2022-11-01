@@ -69,7 +69,7 @@ public:
     }
     void HandlePragma( Preprocessor& PP, PragmaIntroducer Introducer, Token& PragmaTok )
     {
-        std::cout << "GOT PRAGMA!!!" << std::endl;
+        //std::cout << "GOT PRAGMA!!!" << std::endl;
         g_bMegaEnabled = !g_bMegaEnabled;
     }
 };
@@ -319,6 +319,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
                 else
                 {
                     // diagnostic
+                    std::cout << "getInvocationOperationType failed" << std::endl;
                 }
             }
             else
