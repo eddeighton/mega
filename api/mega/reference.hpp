@@ -57,13 +57,6 @@ struct TypeInstance
     }
 
     inline bool is_valid() const { return type != 0; }
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& instance;
-        archive& type;
-    }
 };
 static_assert( sizeof( TypeInstance ) == 4U, "Invalid TypeInstance Size" );
 
@@ -81,7 +74,6 @@ inline void* fromProcessAddress( void* pMemoryBase, ProcessAddress processAddres
 {
     return reinterpret_cast< char* >( pMemoryBase ) + processAddress;
 }
-
 
 struct NetworkOrProcessAddress
 {
@@ -102,12 +94,6 @@ struct NetworkOrProcessAddress
     inline NetworkOrProcessAddress( ProcessAddress processAddress )
         : pointer( processAddress )
     {
-    }
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& nop_storage;
     }
 
     inline bool is_null() const { return nop_storage == NULL_ADDRESS; }
@@ -140,24 +126,18 @@ class MP
     };
     static_assert( sizeof( MachineProcess ) == 1U, "Invalid MachineProcess Size" );
 
+public:
     union
     {
         MachineProcess mp;
         MPStorageType  mp_storage;
     };
 
-public:
     struct Hash
     {
         inline U64 operator()( const MP& mp ) const noexcept { return mp.mp_storage; }
     };
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& mp_storage;
-    }
-
+    
     MP() = default;
     MP( MachineID machineID, ProcessID processID, bool isDeamon )
         : mp{ processID, machineID, isDeamon }
@@ -193,24 +173,18 @@ class MPO
     };
     static_assert( sizeof( MachineProcessOwner ) == 2U, "Invalid MachineProcessOwner Size" );
 
+public:
     union
     {
         MachineProcessOwner mpo;
         MPOStorageType      mpo_storage;
     };
 
-public:
     struct Hash
     {
         inline U64 operator()( const MPO& mpo ) const noexcept { return mpo.mpo_storage; }
     };
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& mpo_storage;
-    }
-
+    
     MPO() = default;
     MPO( MachineID machineID, ProcessID processID, OwnerID ownerID )
         : mpo{ ownerID, processID, machineID, MACHINE_ADDRESS }
@@ -298,14 +272,6 @@ struct reference : TypeInstance, MPO, NetworkOrProcessAddress
             return !NetworkOrProcessAddress::is_null();
         else
             return TypeInstance::is_valid();
-    }
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& static_cast< TypeInstance& >( *this );
-        archive& static_cast< MPO& >( *this );
-        archive& static_cast< NetworkOrProcessAddress& >( *this );
     }
 };
 static_assert( sizeof( reference ) == 16U, "Invalid reference Size" );

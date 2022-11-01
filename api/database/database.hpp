@@ -41,10 +41,10 @@ class DatabaseInstance
 public:
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
-    network::SizeAlignment                    getObjectSize( mega::TypeID objectType  ) const;
+    network::SizeAlignment                    getObjectSize( mega::TypeID objectType ) const;
     const FinalStage::Operations::Invocation* getInvocation( const mega::InvocationID& invocation ) const;
     mega::TypeID                              getInterfaceTypeID( mega::TypeID concreteTypeID ) const;
-    const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
+    FinalStage::Concrete::Object*             getObject( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getOperationComponent( mega::TypeID objectType ) const;
     mega::U64                                 getLocalDomainSize( mega::TypeID concreteID ) const;

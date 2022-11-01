@@ -46,8 +46,10 @@ public:
     SharedDtorFunction getSharedDtor() const { return m_pSharedDtor; }
     HeapCtorFunction   getHeapCtor() const { return m_pHeapCtor; }
     HeapDtorFunction   getHeapDtor() const { return m_pHeapDtor; }
-    SaveObjectFunction getSave() const { return m_pSave; }
-    LoadObjectFunction getLoad() const { return m_pLoad; }
+    SaveObjectFunction getSaveBin() const { return m_pSaveBin; }
+    LoadObjectFunction getLoadBin() const { return m_pLoadBin; }
+    SaveObjectFunction getSaveXML() const { return m_pSaveXML; }
+    LoadObjectFunction getLoadXML() const { return m_pLoadXML; }
 
 private:
     JITCompiler::Module::Ptr m_pModule;
@@ -57,8 +59,10 @@ private:
     SharedDtorFunction       m_pSharedDtor = nullptr;
     HeapCtorFunction         m_pHeapCtor   = nullptr;
     HeapDtorFunction         m_pHeapDtor   = nullptr;
-    SaveObjectFunction       m_pSave       = nullptr;
-    LoadObjectFunction       m_pLoad       = nullptr;
+    SaveObjectFunction       m_pSaveBin    = nullptr;
+    LoadObjectFunction       m_pLoadBin    = nullptr;
+    SaveObjectFunction       m_pSaveXML    = nullptr;
+    LoadObjectFunction       m_pLoadXML    = nullptr;
 };
 
 } // namespace mega::runtime

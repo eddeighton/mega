@@ -34,7 +34,7 @@ void* read( reference& ref )
 {
     return getMPOContext()->read( ref );
 }
-void* write( reference& ref, bool bShared )
+void* write( reference& ref )
 {
     return getMPOContext()->write( ref );
 }

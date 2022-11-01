@@ -48,15 +48,17 @@ void delete_( void* p )
 template < typename T >
 void save_( void* p, const char* name, void* pArchive )
 {
-    T* pData = reinterpret_cast< T* >( p );
-    SPDLOG_TRACE( "save_ called for {}", name );
+    T*                 pData = reinterpret_cast< T* >( p );
+    mega::SaveArchive& ar    = *reinterpret_cast< mega::SaveArchive* >( pArchive );
+    ar.save( *pData, name );
 }
 
 template < typename T >
 void load_( void* p, const char* name, void* pArchive )
 {
-    const T* pData = reinterpret_cast< const T* >( p );
-    SPDLOG_TRACE( "load_ called for {}", name );
+    T*                 pData = reinterpret_cast< T* >( p );
+    mega::LoadArchive& ar    = *reinterpret_cast< mega::LoadArchive* >( pArchive );
+    ar.load( *pData, name );
 }
 
 template < typename T >
@@ -105,13 +107,25 @@ void read_nonSimple( std::vector< char >& buffer )
 namespace mega
 {
 
-void begin_part(const char* partName)
+void save_begin_part( const char* partName, void* pArchive )
 {
-    SPDLOG_TRACE( "begin part {}", partName );
+    mega::SaveArchive& ar = *reinterpret_cast< mega::SaveArchive* >( pArchive );
+    ar.beginPart( partName );
 }
-void end_part(const char* partName)
+void save_end_part( const char* partName, void* pArchive )
 {
-    SPDLOG_TRACE( "end part {}", partName );
+    mega::SaveArchive& ar = *reinterpret_cast< mega::SaveArchive* >( pArchive );
+    ar.endPart( partName );
+}
+void load_begin_part( const char* partName, void* pArchive )
+{
+    mega::LoadArchive& ar = *reinterpret_cast< mega::LoadArchive* >( pArchive );
+    ar.beginPart( partName );
+}
+void load_end_part( const char* partName, void* pArchive )
+{
+    mega::LoadArchive& ar = *reinterpret_cast< mega::LoadArchive* >( pArchive );
+    ar.endPart( partName );
 }
 
 #define SIMPLETYPE( manged_name, type )                                               \
@@ -199,11 +213,11 @@ void new_mega00ReferenceVector( void* p, void* pMemory )
 void delete_mega00ReferenceVector( void* p ) { delete_< mega::ReferenceVector >( p ); }
 void save_mega00ReferenceVector( void* p, const char* name, void* pArchive )
 {
-    save_< mega::ReferenceVector >( p, name, pArchive );
+    // save_< mega::ReferenceVector >( p, name, pArchive );
 }
 void load_mega00ReferenceVector( void* p, const char* name, void* pArchive )
 {
-    load_< mega::ReferenceVector >( p, name, pArchive );
+    // load_< mega::ReferenceVector >( p, name, pArchive );
 }
 void copy_mega00ReferenceVector( const void* pFrom, void* pTo ) { copy_< mega::ReferenceVector >( pFrom, pTo ); }
 

@@ -25,6 +25,9 @@
 
 #include "reference.hpp"
 
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+
 #include <iostream>
 
 inline std::istream& operator>>( std::istream& is, mega::MP& mp )
@@ -69,6 +72,67 @@ inline std::istream& operator>>( std::istream& is, mega::MPO& mpo )
 inline std::ostream& operator<<( std::ostream& os, const mega::MPO& mpo )
 {
     return os << ( int )mpo.getMachineID() << '.' << ( int )mpo.getProcessID() << '.' << ( int )mpo.getOwnerID();
+}
+
+
+namespace boost::serialization
+{
+inline void serialize( boost::archive::binary_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
+{
+    ar& value.instance;
+    ar& value.type;
+}
+
+inline void serialize( boost::archive::binary_oarchive& ar, mega::TypeInstance& value, const unsigned int version )
+{
+    ar& value.instance;
+    ar& value.type;
+}
+
+inline void serialize( boost::archive::binary_iarchive& ar, mega::NetworkOrProcessAddress& value, const unsigned int version )
+{
+    ar& value.nop_storage;
+}
+
+inline void serialize( boost::archive::binary_oarchive& ar, mega::NetworkOrProcessAddress& value, const unsigned int version )
+{
+    ar& value.nop_storage;
+}
+
+inline void serialize( boost::archive::binary_iarchive& ar, mega::MP& value, const unsigned int version )
+{
+    ar& value.mp_storage;
+}
+
+inline void serialize( boost::archive::binary_oarchive& ar, mega::MP& value, const unsigned int version )
+{
+    ar& value.mp_storage;
+}
+
+inline void serialize( boost::archive::binary_iarchive& ar, mega::MPO& value, const unsigned int version )
+{
+    ar& value.mpo_storage;
+}
+
+inline void serialize( boost::archive::binary_oarchive& ar, mega::MPO& value, const unsigned int version )
+{
+    ar& value.mpo_storage;
+}
+
+inline void serialize( boost::archive::binary_iarchive& ar, mega::reference& value, const unsigned int version )
+{
+    ar& static_cast< mega::TypeInstance& >( value );
+    ar& static_cast< mega::MPO& >( value );
+    ar& static_cast< mega::NetworkOrProcessAddress& >( value );
+}
+
+inline void serialize( boost::archive::binary_oarchive& ar, mega::reference& value, const unsigned int version )
+{
+    ar& static_cast< mega::TypeInstance& >( value );
+    ar& static_cast< mega::MPO& >( value );
+    ar& static_cast< mega::NetworkOrProcessAddress& >( value );
+}
+
 }
 
 #endif // REFERENCE_IO_24_SEPT_2022

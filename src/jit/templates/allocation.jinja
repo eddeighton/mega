@@ -26,8 +26,10 @@
 namespace mega
 {
 {% for type in mangled_data_types %}
-    void begin_part(const char*);
-    void end_part(const char*);
+    void save_begin_part(const char*,void*);
+    void save_end_part(const char*,void*);
+    void load_begin_part(const char*,void*);
+    void load_end_part(const char*,void*);
     void new_{{type}}(void*,void*);
     void delete_{{type}}(void*);
     void save_{{type}}(void*,const char*,void*);
@@ -64,11 +66,9 @@ void shared_save_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {% for part in shared_parts %}
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
-        mega::begin_part( "{{ part.name }}" );
 {% for member in part.members %}
         mega::save_{{member.mangle}}( pIter + {{ member.offset }}, "{{ member.name }}", pSerialiser ); // {{ member.type }} {{ member.name }}
 {% endfor %}
-        mega::end_part( "{{ part.name }}" );
     }
 {% endfor %}
 }
@@ -114,11 +114,9 @@ void heap_save_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {% for part in heap_parts %}
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
-        mega::begin_part( "{{ part.name }}" );
 {% for member in part.members %}
         mega::save_{{member.mangle}}( pIter + {{ member.offset }}, "{{ member.name }}", pSerialiser ); // {{ member.type }} {{ member.name }}
 {% endfor %}
-        mega::end_part( "{{ part.name }}" );
     }
 {% endfor %}
 }
@@ -135,7 +133,7 @@ void heap_load_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {% endfor %}
 }
 
-void save_object_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
+void save_object_bin_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
     mega::reference machineRef = ref;
 
@@ -157,7 +155,7 @@ void save_object_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {% endif %}
 }
 
-void load_object_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
+void load_object_bin_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
     
 }
@@ -177,21 +175,24 @@ void save_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser 
         pSharedBase = mega::runtime::read( machineRef );
     }
 
-    void* pSharedBuffer = mega::fromProcessAddress( pSharedBase, machineRef.pointer );
+    char* pSharedBuffer = reinterpret_cast< char* >( mega::fromProcessAddress( pSharedBase, machineRef.pointer ) );
 {% if has_heap_buffer %}
-    void* pHeapBuffer = mega::getHeap( machineRef, mega::getSharedHeader( pSharedBuffer ) );
+    char* pHeapBuffer = reinterpret_cast< char* >( mega::getHeap( machineRef, mega::getSharedHeader( pSharedBuffer ) ) );
 {% endif %}
 
 {% for element in elements %}
 {% if element.is_part_begin %}
-        mega::begin_part( "{{ element.name }}" );
+    for( mega::U64 {{ element.iter }} = {{ element.start }}; {{ element.iter }} != {{ element.end }}; ++{{ element.iter }})
+    {
+        mega::save_begin_part( "{{ element.name }}", pSerialiser );
 {% else if element.is_part_end %}
-        mega::end_part( "{{ element.name }}" );
+        mega::save_end_part( "{{ element.name }}", pSerialiser );
+    }
 {% else %}
 {% if element.is_shared %}
-        mega::save_{{element.mangle}}( pSharedBuffer + {{ element.offset }}, "{{ element.name }}", pSerialiser ); // {{ member.type }} {{ member.name }}
+    mega::save_{{element.mangle}}( pSharedBuffer + {{ element.offset }}, "{{ element.name }}", pSerialiser ); // {{ element.type }} {{ element.name }}
 {% else %}
-        mega::save_{{element.mangle}}( pHeapBuffer + {{ element.offset }}, "{{ element.name }}", pSerialiser ); // {{ member.type }} {{ member.name }}
+    mega::save_{{element.mangle}}( pHeapBuffer + {{ element.offset }}, "{{ element.name }}", pSerialiser ); // {{ element.type }} {{ element.name }}
 {% endif %}
 {% endif %}
 {% endfor %}
@@ -199,35 +200,4 @@ void save_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser 
 
 void load_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
-    mega::reference machineRef = ref;
-
-    if( machineRef.isNetwork() )
-    {
-        machineRef = mega::runtime::networkToMachine( ref );
-    }
-
-    void* pSharedBase = mega::runtime::base();
-    if( mega::MPO( machineRef ) != mega::runtime::getThisMPO() )
-    {
-        pSharedBase = mega::runtime::write( machineRef );
-    }
-
-    void* pSharedBuffer = mega::fromProcessAddress( pSharedBase, machineRef.pointer );
-{% if has_heap_buffer %}
-    void* pHeapBuffer = mega::getHeap( machineRef, mega::getSharedHeader( pSharedBuffer ) );
-{% endif %}
-
-{% for element in elements %}
-{% if element.is_part_begin %}
-        mega::begin_part( "{{ element.name }}" );
-{% else if element.is_part_end %}
-        mega::end_part( "{{ element.name }}" );
-{% else %}
-{% if element.is_shared %}
-        mega::load_{{element.mangle}}( pSharedBuffer + {{ element.offset }}, "{{ element.name }}", pSerialiser ); // {{ member.type }} {{ member.name }}
-{% else %}
-        mega::load_{{element.mangle}}( pHeapBuffer + {{ element.offset }}, "{{ element.name }}", pSerialiser ); // {{ member.type }} {{ member.name }}
-{% endif %}
-{% endif %}
-{% endfor %}
 }

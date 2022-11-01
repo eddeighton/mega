@@ -150,7 +150,7 @@ mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID )
     }
 }
 
-const FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectType ) const
+FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectType ) const
 {
     auto iFind = m_concreteTypeIDs.find( objectType );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );

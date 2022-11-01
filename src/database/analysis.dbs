@@ -185,6 +185,7 @@ namespace MemoryLayout
         late< value< mega::U64 > >                        size;
         late< value< mega::U64 > >                        alignment;
         late< value< mega::U64 > >                        offset;
+        late< ref< Buffer > >                             buffer;
     }
 
     object Buffer -> MemoryStage::MemoryLayout

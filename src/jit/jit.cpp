@@ -109,14 +109,14 @@ void JIT::getObjectSave( const CodeGenerator::LLVMCompiler& compiler, const char
     SPDLOG_TRACE( "RUNTIME: getObjectSave: {} {}", pszUnitName, objectTypeID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getSave();
+    *ppFunction = getAllocator( compiler, objectTypeID ).getSaveXML();
 }
 
 void JIT::getObjectLoad(const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                         const mega::TypeID& objectTypeID, mega::runtime::LoadObjectFunction* ppFunction)
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getLoad();
+    *ppFunction = getAllocator( compiler, objectTypeID ).getLoadXML();
 }
 
 void JIT::getAllocate( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,

@@ -91,6 +91,12 @@ public:
     inline bool empty() const { return m_bitset.all(); }
     inline bool full() const { return m_bitset.none(); }
 
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        //archive& m_bitset;
+    }
+
 private:
     std::bitset< Size > m_bitset;
 };
@@ -150,6 +156,12 @@ public:
     inline bool empty() const { return m_bitset.all(); }
     inline bool full() const { return m_bitset.none(); }
 
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        //const mega::U64 mask = m_bitset.to_ullong();
+        //archive& m_bitset;
+    }
 private:
     std::bitset< Size > m_bitset;
 };
@@ -192,6 +204,11 @@ public:
 
     inline void free( InstanceType instance ) { m_free.push_front( instance ); }
 
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        //archive& m_free;
+    }
 private:
     FreeList m_free;
 };

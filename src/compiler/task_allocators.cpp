@@ -894,6 +894,11 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
                 = database.construct< MemoryLayout::SimpleBuffer >( MemoryLayout::SimpleBuffer::Args{
                     MemoryLayout::Buffer::Args{ parts.simpleParts, szOffset, szAlignment } } );
             objectBuffers.push_back( pSimpleBuffer );
+
+            for ( auto p : parts.simpleParts )
+            {
+                p->set_buffer( pSimpleBuffer );
+            }
         }
         if ( !parts.nonSimpleParts.empty() )
         {
@@ -911,6 +916,11 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
                 = database.construct< MemoryLayout::NonSimpleBuffer >( MemoryLayout::NonSimpleBuffer::Args{
                     MemoryLayout::Buffer::Args{ parts.nonSimpleParts, szOffset, szAlignment } } );
             objectBuffers.push_back( pNonSimpleBuffer );
+
+            for ( auto p : parts.nonSimpleParts )
+            {
+                p->set_buffer( pNonSimpleBuffer );
+            }
         }
         if ( !parts.gpuParts.empty() )
         {
@@ -927,6 +937,11 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
             MemoryLayout::GPUBuffer* pGPUBuffer = database.construct< MemoryLayout::GPUBuffer >(
                 MemoryLayout::GPUBuffer::Args{ MemoryLayout::Buffer::Args{ parts.gpuParts, szOffset, szAlignment } } );
             objectBuffers.push_back( pGPUBuffer );
+
+            for ( auto p : parts.gpuParts )
+            {
+                p->set_buffer( pGPUBuffer );
+            }
         }
 
         pObject = database.construct< Object >( Object::Args{ pObject, objectBuffers } );
