@@ -36,6 +36,5 @@
 #include "operations.hpp"
 #include "iterators.hpp"
 #include "scheduler.hpp"
-#include "macros.hpp"
 
 #endif //EG_STANDARD_STUFF

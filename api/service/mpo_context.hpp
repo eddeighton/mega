@@ -211,6 +211,8 @@ public:
     // called by Cycle dtor
     virtual void cycleComplete()
     {
+        m_log.cycle();
+
         SPDLOG_TRACE( "cycleComplete {}", m_mpo.value() );
 
         U32 expectedSchedulingCount = 0;

@@ -145,7 +145,6 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     m_scheduler.cycle();
                     m_log.log( log::LogMsg( log::LogMsg::eInfo, osLog.str() ) );
-                    m_log.cycle();
 
                     cycleComplete();
                 }

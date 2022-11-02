@@ -17,64 +17,22 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef EG_MACROS_2_NOV_2022
+#define EG_MACROS_2_NOV_2022
 
-
-#ifndef EG_MACROS_24_04_2019
-#define EG_MACROS_24_04_2019
-
-#include "common.hpp"
-#include "event.hpp"
-#include "clock.hpp"
-
-//#include <boost/current_function.hpp>
+#include "log/log.hpp"
 
 #include <sstream>
-#include <string>
 
-#define EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( stuff ) do{ stuff } while( (void)0,0 )
-    
-#define LOG( __msg )\
-    EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        std::ostringstream _os_log_;\
-        _os_log_ << __msg;\
-        std::string __str = _os_log_.str();\
-        events::put( "log", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
-        )
-        
-#define ERR( __msg )\
-    EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        std::ostringstream _os_err;\
-        _os_err << __FILE__ << ":" << __LINE__ << " " << __msg << "\n"; \
-        std::string __str = _os_err.str();\
-        events::put( "error", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
-        )
-        
-#define TEST( __expr )\
-    EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        std::string __str = #__expr;\
-        if( !( __expr ) )\
-        {\
-            events::put( "fail", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
-        }\
-        else\
-        {\
-            events::put( "pass", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
-        }\
-    )
-        
-#define TEST_MSG( __expr, __msg )\
-    EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        std::ostringstream _os_test_;\
-        _os_test_ << #__expr << " " << __msg;\
-        std::string __str = _os_test_.str();\
-        if( !( __expr ) )\
-        {\
-            events::put( "fail", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
-        }\
-        else\
-        {\
-            events::put( "pass", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
-        }\
-    )
-    
-#endif //EG_MACROS_24_04_2019
+#define EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( stuff ) \
+    do                                              \
+    {                                               \
+        stuff                                       \
+    } while ( ( void )0, 0 )
+
+#define LOG( __level, __msg )                                                               \
+    EG_DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                     \
+        std::ostringstream _os_msg; _os_msg << __FILE__ << ":" << __LINE__ << " " << __msg; \
+        mega::Context::get()->getLog().log( mega::log::LogMsg( mega::log::LogMsg::e##__level, _os_msg.str() ) ); )
+
+#endif // EG_MACROS_2_NOV_2022
