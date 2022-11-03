@@ -169,32 +169,32 @@ Terminal::RouterFactory Terminal::makeTermRoot()
 network::MegastructureInstallation Terminal::GetMegastructureInstallation()
 {
     //
-    return getRootRequest< network::project::Request_Encoder >().GetMegastructureInstallation();
+    return getRequest< network::project::Request_Encoder >().GetMegastructureInstallation();
 }
 network::Project Terminal::GetProject()
 {
     //
-    return getRootRequest< network::project::Request_Encoder >().GetProject();
+    return getRequest< network::project::Request_Encoder >().GetProject();
 }
 void Terminal::SetProject( const network::Project& project )
 {
     //
-    getRootRequest< network::project::Request_Encoder >().SetProject( project );
+    getRequest< network::project::Request_Encoder >().SetProject( project );
 }
 void Terminal::ClearStash()
 {
     //
-    getRootRequest< network::stash::Request_Encoder >().StashClear();
+    getRequest< network::stash::Request_Encoder >().StashClear();
 }
 
 network::Status Terminal::GetNetworkStatus()
 {
-    return getRootRequest< network::status::Request_Encoder >().GetNetworkStatus();
+    return getRequest< network::status::Request_Encoder >().GetNetworkStatus();
 }
 
 network::PipelineResult Terminal::PipelineRun( const pipeline::Configuration& pipelineConfig )
 {
-    return getRootRequest< network::pipeline::Request_Encoder >().PipelineRun( pipelineConfig );
+    return getRequest< network::pipeline::Request_Encoder >().PipelineRun( pipelineConfig );
 }
 
 Terminal::RouterFactory Terminal::makeMP( mega::MP mp )
@@ -225,17 +225,17 @@ void Terminal::SimDestroy( const mega::MPO& mpo )
     return getMPORequest< network::sim::Request_Encoder >( mpo ).SimDestroy();
 }
 
-TimeStamp Terminal::SimRead( const mega::MPO& from, const mega::MPO& to )
+Snapshot Terminal::SimRead( const mega::MPO& from, const mega::MPO& to )
 {
-    return getMPORequest< network::sim::Request_Encoder >( to ).SimLockRead( from );
+    return getRequest< network::sim::Request_Encoder >().SimLockRead( from, to );
 }
-TimeStamp Terminal::SimWrite( const mega::MPO& from, const mega::MPO& to )
+Snapshot Terminal::SimWrite( const mega::MPO& from, const mega::MPO& to )
 {
-    return getMPORequest< network::sim::Request_Encoder >( to ).SimLockWrite( from );
+    return getRequest< network::sim::Request_Encoder >().SimLockWrite( from, to );
 }
 void Terminal::SimRelease( const mega::MPO& from, const mega::MPO& to )
 {
-    return getMPORequest< network::sim::Request_Encoder >( to ).SimLockRelease( from, network::Transaction{} );
+    return getRequest< network::sim::Request_Encoder >().SimLockRelease( from, to, network::Transaction{} );
 }
 
 std::string Terminal::PingMP( const mega::MP& mp, const std::string& strMsg )

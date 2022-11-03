@@ -37,8 +37,7 @@ RootRequestConversation::RootRequestConversation( Root&                         
 network::Message RootRequestConversation::dispatchRequest( const network::Message&     msg,
                                                            boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE(
-        "RootRequestConversation::dispatchRequest {}", msg );
+    SPDLOG_TRACE( "RootRequestConversation::dispatchRequest {}", msg );
     network::Message result;
     if ( result = network::daemon_root::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
@@ -55,6 +54,8 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
     if ( result = network::address::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "RootRequestConversation::dispatchRequest failed: " << msg );
 }
@@ -174,17 +175,15 @@ network::Message RootRequestConversation::DaemonRoot( const network::Message&   
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message RootRequestConversation::MPRoot( const network::Message&     request,
-                                                  const mega::MP&             mp,
+network::Message RootRequestConversation::MPRoot( const network::Message& request, const MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
-network::Message RootRequestConversation::MPDown( const network::Message&     request,
-                                                  const mega::MP&             mp,
+network::Message RootRequestConversation::MPDown( const network::Message& request, const MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    const mega::MP machineMP( mp.getMachineID(), 0U, true );
+    const MP machineMP( mp.getMachineID(), 0U, true );
     if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( machineMP ) )
     {
         network::mpo::Request_Sender sender( *this, *pCon, yield_ctx );
@@ -195,14 +194,13 @@ network::Message RootRequestConversation::MPDown( const network::Message&     re
         THROW_RTE( "Failed to route to mp: " << mp );
     }
 }
-network::Message RootRequestConversation::MPUp( const network::Message&     request,
-                                                const mega::MP&             mp,
+network::Message RootRequestConversation::MPUp( const network::Message& request, const MP& mp,
                                                 boost::asio::yield_context& yield_ctx )
 {
     return MPDown( request, mp, yield_ctx );
 }
 network::Message RootRequestConversation::MPODown( const network::Message&     request,
-                                                   const mega::MPO&            mpo,
+                                                   const MPO&                  mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
     if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( mpo ) )
@@ -215,11 +213,54 @@ network::Message RootRequestConversation::MPODown( const network::Message&     r
         THROW_RTE( "Failed to route to mpo: " << mpo );
     }
 }
-network::Message RootRequestConversation::MPOUp( const network::Message&     request,
-                                                 const mega::MPO&            mpo,
+network::Message RootRequestConversation::MPOUp( const network::Message& request, const MPO& mpo,
                                                  boost::asio::yield_context& yield_ctx )
 {
     return MPODown( request, mpo, yield_ctx );
+}
+
+Snapshot RootRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+                                               boost::asio::yield_context& yield_ctx )
+{
+    if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO ) )
+    {
+        network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.SimLockRead( requestingMPO, targetMPO );
+    }
+    else
+    {
+        THROW_RTE( "Failed to route to mpo: " << targetMPO );
+    }
+}
+
+Snapshot RootRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+                                                boost::asio::yield_context& yield_ctx )
+{
+    if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO ) )
+    {
+        network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.SimLockWrite( requestingMPO, targetMPO );
+    }
+    else
+    {
+        THROW_RTE( "Failed to route to mpo: " << targetMPO );
+    }
+}
+
+void RootRequestConversation::SimLockRelease( const MPO&                  requestingMPO,
+                                              const MPO&                  targetMPO,
+                                              const network::Transaction& transaction,
+                                              boost::asio::yield_context& yield_ctx )
+{
+    if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO ) )
+    {
+        network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.SimLockRelease( requestingMPO, targetMPO, transaction );
+    }
+    else
+    {
+        THROW_RTE( "Failed to route to mpo: " << targetMPO );
+    }
 }
 
 } // namespace mega::service

@@ -41,26 +41,26 @@ namespace mega::service
 
 class SharedMemoryManager
 {
-    struct AddressSpaceMapLifetime
-    {
-        const std::string& strName;
-        AddressSpaceMapLifetime( const std::string& strName )
-            : strName( strName )
-        {
-            boost::interprocess::shared_memory_object::remove( strName.c_str() );
-        }
-        ~AddressSpaceMapLifetime() { boost::interprocess::shared_memory_object::remove( strName.c_str() ); }
-    };
-
     class SharedMemory
     {
         static constexpr mega::U64 SIZE = 1024 * 1024 * 4;
 
+        struct AddressSpaceMapLifetime
+        {
+            const std::string& strName;
+            AddressSpaceMapLifetime( const std::string& strName )
+                : strName( strName )
+            {
+                boost::interprocess::shared_memory_object::remove( strName.c_str() );
+            }
+            ~AddressSpaceMapLifetime() { boost::interprocess::shared_memory_object::remove( strName.c_str() ); }
+        };
+
     public:
         using Ptr = std::unique_ptr< SharedMemory >;
 
-        SharedMemory( const mega::MPO& mpo, const std::string& strName )
-            : m_strName( strName )
+        SharedMemory( const mega::MPO& mpo, std::string strName )
+            : m_strName( std::move( strName ) )
             , m_memoryLifetime( m_strName )
             , m_memory( boost::interprocess::create_only, m_strName.c_str(), SIZE )
         {
@@ -84,35 +84,12 @@ class SharedMemoryManager
         return os.str();
     }
 
-    mega::network::MemoryConfig calculateSharedConfig() const
-    {
-        mega::network::MemoryConfig config;
-        {
-            std::ostringstream os;
-            os << m_strDaemonPrefix << "_address_space_mem";
-            config.setMemory( os.str() );
-        }
-        {
-            std::ostringstream os;
-            os << m_strDaemonPrefix << "_address_space_mutex";
-            config.setMutex( os.str() );
-        }
-        {
-            std::ostringstream os;
-            os << m_strDaemonPrefix << "_address_space_map";
-            config.setMap( os.str() );
-        }
-        return config;
-    }
-
     using ReferenceMap = std::unordered_map< reference, reference, reference::Hash >;
 
 public:
-    SharedMemoryManager( runtime::DatabaseInstance& database, const std::string& daemonPrefix )
+    SharedMemoryManager( runtime::DatabaseInstance& database, std::string daemonPrefix )
         : m_database( database )
-        , m_strDaemonPrefix( daemonPrefix )
-        , m_config( calculateSharedConfig() )
-        , m_memoryLifetime( m_config.getMemory() )
+        , m_strDaemonPrefix( std::move( daemonPrefix ) )
     {
     }
 
@@ -145,8 +122,6 @@ public:
             SPDLOG_INFO( "Daemon released memory for {}", mpo );
         }
     }
-
-    const mega::network::MemoryConfig& getConfig() const { return m_config; }
 
     void allocated( reference network, reference machine )
     {
@@ -223,13 +198,11 @@ public:
     }
 
 private:
-    runtime::DatabaseInstance&  m_database;
-    const std::string           m_strDaemonPrefix;
-    mega::network::MemoryConfig m_config;
-    SharedMemoryMap             m_memory;
-    AddressSpaceMapLifetime     m_memoryLifetime;
-    ReferenceMap                m_networkToMachine;
-    ReferenceMap                m_machineToNetwork;
+    runtime::DatabaseInstance& m_database;
+    std::string                m_strDaemonPrefix;
+    SharedMemoryMap            m_memory;
+    ReferenceMap               m_networkToMachine;
+    ReferenceMap               m_machineToNetwork;
 };
 
 } // namespace mega::service

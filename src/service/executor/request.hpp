@@ -87,9 +87,9 @@ public:
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
-    virtual network::Message MPODown( const network::Message& request, const mega::MPO& mpo,
+    virtual network::Message MPODown( const network::Message& request, const MPO& mpo,
                                       boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPDown( const network::Message& request, const mega::MP& mp,
+    virtual network::Message MPDown( const network::Message& request, const MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
@@ -99,17 +99,26 @@ public:
 
     // network::job::Impl - note also in JobConversation
     virtual std::vector< network::ConversationID >
-    JobStart( const mega::utilities::ToolChain&                            toolChain,
-              const mega::pipeline::Configuration&                         configuration,
+    JobStart( const utilities::ToolChain&                                  toolChain,
+              const pipeline::Configuration&                               configuration,
               const network::ConversationID&                               rootConversationID,
               const std::vector< std::vector< network::ConversationID > >& jobs,
               boost::asio::yield_context&                                  yield_ctx ) override;
 
     // network::sim::Impl
-    virtual mega::MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
+    virtual MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
+
+    virtual Snapshot SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+                                  boost::asio::yield_context& yield_ctx ) override;
+    virtual Snapshot SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+                                   boost::asio::yield_context& yield_ctx ) override;
+    virtual void     SimLockRelease( const MPO&                  requestingMPO,
+                                     const MPO&                  targetMPO,
+                                     const network::Transaction& transaction,
+                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
-    virtual void SetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override;
+    virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

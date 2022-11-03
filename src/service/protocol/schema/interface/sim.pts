@@ -19,17 +19,17 @@
 
 msg SimLockRead
 {
-    request( mega::MPO requestingMPO );
-    response( mega::TimeStamp timeStamp );
+    request( mega::MPO requestingMPO, mega::MPO targetMPO );
+    response( mega::Snapshot snapshot );
 }
 msg SimLockWrite
 {
-    request( mega::MPO requestingMPO );
-    response( mega::TimeStamp timeStamp );
+    request( mega::MPO requestingMPO, mega::MPO targetMPO );
+    response( mega::Snapshot snapshot );
 }
 msg SimLockRelease
 {
-    request( mega::MPO requestingMPO, mega::network::Transaction transaction );
+    request( mega::MPO requestingMPO, mega::MPO targetMPO, mega::network::Transaction transaction );
     response();
 }
 msg SimClock

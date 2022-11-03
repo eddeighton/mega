@@ -41,10 +41,7 @@ void        setMPOContext( MPOContext* pMPOContext )
     g_pMPOContext = pMPOContext;
 }
 
-void* MPOContext::base() 
-{ 
-    return m_pSharedMemory->get_address(); 
-}
+void* MPOContext::base() { return m_pSharedMemory->get_address(); }
 
 void* MPOContext::read( reference& ref )
 {
@@ -64,68 +61,68 @@ void* MPOContext::write( reference& ref )
     return result.getBaseAddress();
 }
 
-mega::reference MPOContext::allocate( const mega::reference& context, mega::TypeID objectTypeID )
+reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
 {
     return getLeafMemoryRequest().Allocate( context, objectTypeID );
 }
-mega::reference MPOContext::networkToMachine( const mega::reference& ref )
+reference MPOContext::networkToMachine( const reference& ref )
 {
     return getLeafMemoryRequest().NetworkToMachine( ref );
 }
 
-void MPOContext::get_save_object( const char* pszUnitName, mega::TypeID objectTypeID,
-                                   mega::runtime::SaveObjectFunction* ppFunction )
+void MPOContext::get_save_object( const char* pszUnitName, TypeID objectTypeID,
+                                  runtime::SaveObjectFunction* ppFunction )
 {
     getLeafJITRequest().GetSaveObject( network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
 }
-void MPOContext::get_load_object( const char* pszUnitName, mega::TypeID objectTypeID,
-                                  mega::runtime::LoadObjectFunction* ppFunction )
+void MPOContext::get_load_object( const char* pszUnitName, TypeID objectTypeID,
+                                  runtime::LoadObjectFunction* ppFunction )
 {
     getLeafJITRequest().GetLoadObject( network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
 }
 
-void MPOContext::get_call_getter( const char* pszUnitName, mega::TypeID objectTypeID,
-                                  mega::runtime::TypeErasedFunction* ppFunction )
+void MPOContext::get_call_getter( const char* pszUnitName, TypeID objectTypeID,
+                                  runtime::TypeErasedFunction* ppFunction )
 {
     getLeafJITRequest().GetCallGetter( network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
 }
-void MPOContext::get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID,
-                               mega::runtime::AllocateFunction* ppFunction )
+void MPOContext::get_allocate( const char* pszUnitName, const InvocationID& invocationID,
+                               runtime::AllocateFunction* ppFunction )
 {
     getLeafJITRequest().GetAllocate( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
-void MPOContext::get_read( const char* pszUnitName, const mega::InvocationID& invocationID,
-                           mega::runtime::ReadFunction* ppFunction )
+void MPOContext::get_read( const char* pszUnitName, const InvocationID& invocationID,
+                           runtime::ReadFunction* ppFunction )
 {
     getLeafJITRequest().GetRead( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
-void MPOContext::get_write( const char* pszUnitName, const mega::InvocationID& invocationID,
-                            mega::runtime::WriteFunction* ppFunction )
+void MPOContext::get_write( const char* pszUnitName, const InvocationID& invocationID,
+                            runtime::WriteFunction* ppFunction )
 {
     getLeafJITRequest().GetWrite( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
-void MPOContext::get_call( const char* pszUnitName, const mega::InvocationID& invocationID,
-                           mega::runtime::CallFunction* ppFunction )
+void MPOContext::get_call( const char* pszUnitName, const InvocationID& invocationID,
+                           runtime::CallFunction* ppFunction )
 {
     getLeafJITRequest().GetCall( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
-void MPOContext::get_start( const char* pszUnitName, const mega::InvocationID& invocationID,
-                            mega::runtime::StartFunction* ppFunction )
+void MPOContext::get_start( const char* pszUnitName, const InvocationID& invocationID,
+                            runtime::StartFunction* ppFunction )
 {
     getLeafJITRequest().GetStart( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
-void MPOContext::get_stop( const char* pszUnitName, const mega::InvocationID& invocationID,
-                           mega::runtime::StopFunction* ppFunction )
+void MPOContext::get_stop( const char* pszUnitName, const InvocationID& invocationID,
+                           runtime::StopFunction* ppFunction )
 {
     getLeafJITRequest().GetStop( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
-void MPOContext::get_save( const char* pszUnitName, const mega::InvocationID& invocationID,
-                           mega::runtime::SaveFunction* ppFunction )
+void MPOContext::get_save( const char* pszUnitName, const InvocationID& invocationID,
+                           runtime::SaveFunction* ppFunction )
 {
     getLeafJITRequest().GetSave( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
-void MPOContext::get_load( const char* pszUnitName, const mega::InvocationID& invocationID,
-                           mega::runtime::LoadFunction* ppFunction )
+void MPOContext::get_load( const char* pszUnitName, const InvocationID& invocationID,
+                           runtime::LoadFunction* ppFunction )
 {
     getLeafJITRequest().GetLoad( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }

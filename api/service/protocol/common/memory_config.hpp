@@ -24,17 +24,42 @@
 
 #include <boost/serialization/nvp.hpp>
 
+#include <sstream>
+
 namespace mega::network
 {
 class MemoryConfig
 {
 public:
+    THROW_TODO; // DEAD CODE!!
+    
     const std::string& getMemory() const { return m_addressSpaceMemory; }
     void               setMemory( const std::string& memory ) { m_addressSpaceMemory = memory; }
     const std::string& getMutex() const { return m_addressSpaceMutex; }
     void               setMutex( const std::string& memory ) { m_addressSpaceMutex = memory; }
     const std::string& getMap() const { return m_addressSpaceMap; }
     void               setMap( const std::string& memory ) { m_addressSpaceMap = memory; }
+
+    mega::network::MemoryConfig calculateSharedConfig( const std::string& strPrefix ) const
+    {
+        mega::network::MemoryConfig config;
+        {
+            std::ostringstream os;
+            os << strPrefix << "_address_space_mem";
+            config.setMemory( os.str() );
+        }
+        {
+            std::ostringstream os;
+            os << strPrefix << "_address_space_mutex";
+            config.setMutex( os.str() );
+        }
+        {
+            std::ostringstream os;
+            os << strPrefix << "_address_space_map";
+            config.setMap( os.str() );
+        }
+        return config;
+    }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )

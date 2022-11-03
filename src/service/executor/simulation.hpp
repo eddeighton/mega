@@ -63,12 +63,13 @@ public:
     virtual network::jit::Request_Sender      getLeafJITRequest() override;
 
     // network::sim::Impl
-    virtual TimeStamp SimLockRead( const MPO&, boost::asio::yield_context& ) override;
-    virtual TimeStamp SimLockWrite( const MPO&, boost::asio::yield_context& ) override;
-    virtual void      SimLockRelease( const MPO&, const network::Transaction&, boost::asio::yield_context& ) override;
-    virtual void      SimClock( boost::asio::yield_context& ) override;
-    virtual MPO       SimCreate( boost::asio::yield_context& ) override;
-    virtual void      SimDestroy( boost::asio::yield_context& ) override;
+    virtual Snapshot SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& ) override;
+    virtual Snapshot SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& ) override;
+    virtual void
+    SimLockRelease( const MPO&, const MPO&, const network::Transaction&, boost::asio::yield_context& ) override;
+    virtual void SimClock( boost::asio::yield_context& ) override;
+    virtual MPO  SimCreate( boost::asio::yield_context& ) override;
+    virtual void SimDestroy( boost::asio::yield_context& ) override;
 
     // network::leaf_exe::Impl
     virtual void RootSimRun( const reference&             root,

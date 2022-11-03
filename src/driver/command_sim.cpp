@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "service/terminal.hpp"
 
 #include "mega/reference_io.hpp"
@@ -108,8 +106,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strRead );
             mega::service::Terminal terminal;
-            const bool              bResult = terminal.SimRead( sourceMPO, targetMPO );
-            std::cout << std::boolalpha << bResult << std::endl;
+            const mega::Snapshot    resultSnapshot = terminal.SimRead( sourceMPO, targetMPO );
+            std::cout << resultSnapshot.getTimeStamp() << std::endl;
         }
         else if ( !strWrite.empty() )
         {
@@ -117,8 +115,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strWrite );
             mega::service::Terminal terminal;
-            const bool              bResult = terminal.SimWrite( sourceMPO, targetMPO );
-            std::cout << std::boolalpha << bResult << std::endl;
+            const mega::Snapshot    resultSnapshot = terminal.SimWrite( sourceMPO, targetMPO );
+            std::cout << resultSnapshot.getTimeStamp() << std::endl;
         }
         else if ( !strRelease.empty() )
         {

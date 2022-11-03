@@ -164,41 +164,6 @@ public:
     virtual log::Storage& getLog() override { return m_log; }
 
 private:
-    // MPOContext
-    // simulation locks
-    /*
-    virtual bool readLock( MPO mpo )
-    {
-        SPDLOG_TRACE( "readLock from: {} to: {}", m_mpo.value(), mpo );
-        network::sim::Request_Encoder request = getSimRequest( mpo );
-
-        if ( request.SimLockRead( m_mpo.value() ) )
-        {
-            m_lockTracker.onRead( mpo );
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    virtual bool writeLock( MPO mpo )
-    {
-        SPDLOG_TRACE( "writeLock from: {} to: {}", m_mpo.value(), mpo );
-        network::sim::Request_Encoder request = getSimRequest( mpo );
-
-        if ( request.SimLockWrite( m_mpo.value() ) )
-        {
-            m_lockTracker.onWrite( mpo );
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }*/
-
     // define temp data structures as members to reuse memory and avoid allocations
     using ShedulingMap   = std::map< MPO, std::vector< log::SchedulerRecordRead > >;
     using MemoryMap      = std::map< reference, std::string_view >;
@@ -303,7 +268,7 @@ public:
                 }
 
                 network::sim::Request_Encoder request = getSimRequest( writeLock );
-                request.SimLockRelease( m_mpo.value(), m_transaction );
+                request.SimLockRelease( m_mpo.value(), writeLock, m_transaction );
             }
         }
 
@@ -323,7 +288,7 @@ public:
             SPDLOG_TRACE( "cycleComplete: {} sending: read release to: {}", m_mpo.value(), readLock );
             m_transaction.reset();
             network::sim::Request_Encoder request = getSimRequest( readLock );
-            request.SimLockRelease( m_mpo.value(), m_transaction );
+            request.SimLockRelease( m_mpo.value(), readLock, m_transaction );
         }
 
         m_lockTracker.reset();

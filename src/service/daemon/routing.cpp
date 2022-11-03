@@ -19,6 +19,8 @@
 
 #include "request.hpp"
 
+#include "service/protocol/model/daemon_leaf.hxx"
+
 namespace mega::service
 {
 
@@ -49,6 +51,8 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
     if ( result = network::memory::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "DaemonRequestConversation::dispatchRequest failed: " << msg.getName() );
 }
@@ -212,7 +216,7 @@ void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
         MPO            mpo;
         NetworkAddress networkAddress;
         reference      root;
-        Memory( Daemon& daemon, const mega::MPO& mpo, const NetworkAddress& networkAddress )
+        Memory( Daemon& daemon, const MPO& mpo, const NetworkAddress& networkAddress )
             : daemon( daemon )
             , mpo( mpo )
             , networkAddress( networkAddress )
@@ -237,7 +241,7 @@ void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
 
 // network::mpo::Impl
 network::Message DaemonRequestConversation::MPRoot( const network::Message&     request,
-                                                    const mega::MP&             mp,
+                                                    const MP&                   mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
@@ -245,7 +249,7 @@ network::Message DaemonRequestConversation::MPRoot( const network::Message&     
 }
 
 network::Message DaemonRequestConversation::MPDown( const network::Message&     request,
-                                                    const mega::MP&             mp,
+                                                    const MP&                   mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
     if ( m_daemon.m_mp == mp )
@@ -261,8 +265,7 @@ network::Message DaemonRequestConversation::MPDown( const network::Message&     
     }
 }
 
-network::Message DaemonRequestConversation::MPUp( const network::Message&     request,
-                                                  const mega::MP&             mp,
+network::Message DaemonRequestConversation::MPUp( const network::Message& request, const MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
     if ( m_daemon.m_mp == mp )
@@ -285,10 +288,10 @@ network::Message DaemonRequestConversation::MPUp( const network::Message&     re
 }
 
 network::Message DaemonRequestConversation::MPODown( const network::Message&     request,
-                                                     const mega::MPO&            mpo,
+                                                     const MPO&                  mpo,
                                                      boost::asio::yield_context& yield_ctx )
 {
-    const mega::MP targetMP( mpo.getMachineID(), mpo.getProcessID(), false );
+    const MP targetMP( mpo.getMachineID(), mpo.getProcessID(), false );
     if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMP ) )
     {
         network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
@@ -300,10 +303,10 @@ network::Message DaemonRequestConversation::MPODown( const network::Message&    
     }
 }
 network::Message DaemonRequestConversation::MPOUp( const network::Message&     request,
-                                                   const mega::MPO&            mpo,
+                                                   const MPO&                  mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    const mega::MP targetMP( mpo.getMachineID(), mpo.getProcessID(), false );
+    const MP targetMP( mpo.getMachineID(), mpo.getProcessID(), false );
     if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMP ) )
     {
         network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
@@ -313,6 +316,56 @@ network::Message DaemonRequestConversation::MPOUp( const network::Message&     r
     {
         network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
         return sender.MPOUp( request, mpo );
+    }
+}
+
+Snapshot DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+                                                 boost::asio::yield_context& yield_ctx )
+{
+    const MP targetMP( targetMPO.getMachineID(), targetMPO.getProcessID(), false );
+    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMP ) )
+    {
+        network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.SimLockRead( requestingMPO, targetMPO );
+    }
+    else
+    {
+        network::sim::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+        return sender.SimLockRead( requestingMPO, targetMPO );
+    }
+}
+
+Snapshot DaemonRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+                                                  boost::asio::yield_context& yield_ctx )
+{
+    const MP targetMP( targetMPO.getMachineID(), targetMPO.getProcessID(), false );
+    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMP ) )
+    {
+        network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.SimLockWrite( requestingMPO, targetMPO );
+    }
+    else
+    {
+        network::sim::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+        return sender.SimLockWrite( requestingMPO, targetMPO );
+    }
+}
+
+void DaemonRequestConversation::SimLockRelease( const MPO&                  requestingMPO,
+                                                const MPO&                  targetMPO,
+                                                const network::Transaction& transaction,
+                                                boost::asio::yield_context& yield_ctx )
+{
+    const MP targetMP( targetMPO.getMachineID(), targetMPO.getProcessID(), false );
+    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMP ) )
+    {
+        network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.SimLockRelease( requestingMPO, targetMPO, transaction );
+    }
+    else
+    {
+        network::sim::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+        return sender.SimLockRelease( requestingMPO, targetMPO, transaction );
     }
 }
 

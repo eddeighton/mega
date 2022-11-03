@@ -22,13 +22,9 @@
 
 #include "request.hpp"
 
-#include "service/network/log.hpp"
-
-#include "service/protocol/model/sim.hxx"
-
 namespace mega::service
 {
-class RootSimulation : public RootRequestConversation, public network::sim::Impl
+class RootSimulation : public RootRequestConversation
 {
 public:
     RootSimulation( Root&                          root,

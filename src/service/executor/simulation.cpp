@@ -138,13 +138,13 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case StateMachine::SIM:
                 {
-                    std::ostringstream osLog;
-                    osLog << "SIM: " << getID() << " " << m_mpo.value();
+                    // std::ostringstream osLog;
+                    // osLog << "SIM: " << getID() << " " << m_mpo.value();
+                    // m_log.log( log::LogMsg( log::LogMsg::eInfo, osLog.str() ) );
                     // << " " << getElapsedTime();
                     // SPDLOG_TRACE( "SIM: SIM {} {} {}", getID(), m_mpo.value(), getElapsedTime() );
 
                     m_scheduler.cycle();
-                    m_log.log( log::LogMsg( log::LogMsg::eInfo, osLog.str() ) );
 
                     cycleComplete();
                 }
@@ -293,29 +293,34 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     request.SimStart();
 }
 
-TimeStamp Simulation::SimLockRead( const MPO&, boost::asio::yield_context& )
+Snapshot Simulation::SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& )
 {
     if ( m_stateMachine.isTerminating() )
     {
-        return {};
+        return { 0U };
     }
     else
     {
-        return m_log.getTimeStamp();
+        return { m_log.getTimeStamp() };
     }
 }
-TimeStamp Simulation::SimLockWrite( const MPO&, boost::asio::yield_context& )
+
+Snapshot Simulation::SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& )
 {
     if ( m_stateMachine.isTerminating() )
     {
-        return {};
+        return { 0U };
     }
     else
     {
-        return m_log.getTimeStamp();
+        return { m_log.getTimeStamp() };
     }
 }
-void Simulation::SimLockRelease( const MPO&, const network::Transaction& transaction, boost::asio::yield_context& )
+
+void Simulation::SimLockRelease( const MPO&,
+                                 const MPO&,
+                                 const network::Transaction& transaction,
+                                 boost::asio::yield_context& )
 {
     for ( const auto& shedulingRecord : transaction.getSchedulingRecords() )
     {

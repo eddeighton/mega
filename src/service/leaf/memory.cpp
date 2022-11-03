@@ -91,7 +91,7 @@ network::MemoryBaseReference LeafRequestConversation::Read( const MPO& requestin
             ASSERT( machineRef.isMachine() );
 
             network::sim::Request_Sender rq( *this, m_leaf.getNodeChannelSender(), yield_ctx );
-            if ( const TimeStamp timeStamp = rq.SimLockRead( requestingMPO ); timeStamp > 0 )
+            if ( const Snapshot snapshot = rq.SimLockRead( requestingMPO, ref ); snapshot.getTimeStamp() > 0 )
             {
                 result = m_leaf.getSharedMemory().getOrConstruct( compiler, jit, machineRef,
                                                                   [ &daemon ]( MPO mpo ) -> std::string
@@ -156,6 +156,81 @@ reference LeafRequestConversation::NetworkToMachine( const reference& ref, boost
     }
 
     return ref;
+}
+
+Snapshot LeafRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+                                               boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestConversation::SimLockRead {} {}", requestingMPO, targetMPO );
+    VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in SimLockRead" );
+    switch ( m_leaf.m_nodeType )
+    {
+        case network::Node::Executor:
+        case network::Node::Tool:
+        {
+            network::sim::Request_Sender rq{ *this, m_leaf.getNodeChannelSender(), yield_ctx };
+            return rq.SimLockRead( requestingMPO, targetMPO );
+        }
+        case network::Node::Terminal:
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::Leaf:
+        case network::Node::TOTAL_NODE_TYPES:
+            THROW_RTE( "Unreachable" );
+        default:
+            THROW_RTE( "Unknown node type" );
+    }
+}
+
+Snapshot LeafRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+                                                boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestConversation::SimLockRead {} {}", requestingMPO, targetMPO );
+    VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in SimLockRead" );
+    switch ( m_leaf.m_nodeType )
+    {
+        case network::Node::Executor:
+        case network::Node::Tool:
+        {
+            network::sim::Request_Sender rq{ *this, m_leaf.getNodeChannelSender(), yield_ctx };
+            return rq.SimLockWrite( requestingMPO, targetMPO );
+        }
+        case network::Node::Terminal:
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::Leaf:
+        case network::Node::TOTAL_NODE_TYPES:
+            THROW_RTE( "Unreachable" );
+        default:
+            THROW_RTE( "Unknown node type" );
+    }
+}
+
+void LeafRequestConversation::SimLockRelease( const MPO&                  requestingMPO,
+                                              const MPO&                  targetMPO,
+                                              const network::Transaction& transaction,
+                                              boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestConversation::SimLockRead {} {}", requestingMPO, targetMPO );
+    VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in SimLockRead" );
+    switch ( m_leaf.m_nodeType )
+    {
+        case network::Node::Executor:
+        case network::Node::Tool:
+        {
+            network::sim::Request_Sender rq{ *this, m_leaf.getNodeChannelSender(), yield_ctx };
+            rq.SimLockRelease( requestingMPO, targetMPO, transaction );
+            return;
+        }
+        case network::Node::Terminal:
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::Leaf:
+        case network::Node::TOTAL_NODE_TYPES:
+            THROW_RTE( "Unreachable" );
+        default:
+            THROW_RTE( "Unknown node type" );
+    }
 }
 
 } // namespace mega::service
