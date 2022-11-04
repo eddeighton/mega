@@ -126,6 +126,12 @@ void read_nonSimple_( std::vector< char >& buffer )
 namespace mega
 {
 
+void save_begin_object( const reference& ref, void* pArchive )
+{
+    mega::BinSaveArchive& ar = *reinterpret_cast< mega::BinSaveArchive* >( pArchive );
+    ar.beginObject( ref );
+}
+
 void save_begin_part( const char* partName, void* pArchive )
 {
     mega::XMLSaveArchive& ar = *reinterpret_cast< mega::XMLSaveArchive* >( pArchive );

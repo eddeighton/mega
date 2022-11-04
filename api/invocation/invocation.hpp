@@ -21,9 +21,9 @@
 #define INVOCATION_6_JUNE_2022
 
 #include "database/model/environment.hxx"
-#include "database/types/invocation_id.hpp"
-
 #include "database/model/OperationsStage.hxx"
+
+#include "mega/invocation_id.hpp"
 
 #include <stdexcept>
 #include <vector>

@@ -31,12 +31,10 @@ MP DaemonRequestConversation::EnroleLeafWithDaemon( const mega::network::Node::T
     pConnection->setType( type );
 
     const mega::MP leafMP
-        = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleLeafWithRoot( m_daemon.m_mp );
+        = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleLeafWithRoot( m_daemon.m_machineID );
     SPDLOG_TRACE( "Leaf enroled as {}", leafMP );
 
-    m_daemon.m_server.mapConnection( leafMP, pConnection );
-
-    pConnection->setMP( leafMP );
+    m_daemon.m_server.labelConnection( leafMP, pConnection );
     pConnection->setDisconnectCallback( [ leafMP, &daemon = m_daemon ]( const network::ConnectionID& connectionID )
                                         { daemon.onLeafDisconnect( connectionID, leafMP ); } );
 

@@ -38,25 +38,28 @@ struct TypeInstance
     TypeID   type     = 0;
 
     TypeInstance() = default;
-    TypeInstance( Instance instance, TypeID type )
+    constexpr TypeInstance( Instance instance, TypeID type )
         : instance( instance )
         , type( type )
     {
     }
 
-    inline bool operator==( const TypeInstance& cmp ) const
+    static constexpr TypeInstance Object( TypeID type ) { return { 0, type }; }
+    static constexpr TypeInstance Root() { return Object( ROOT_TYPE_ID ); }
+
+    constexpr inline bool operator==( const TypeInstance& cmp ) const
     {
         return ( instance == cmp.instance ) && ( type == cmp.type );
     }
-    inline bool operator!=( const TypeInstance& cmp ) const { return !( *this == cmp ); }
-    inline bool operator<( const TypeInstance& cmp ) const
+    constexpr inline bool operator!=( const TypeInstance& cmp ) const { return !( *this == cmp ); }
+    constexpr inline bool operator<( const TypeInstance& cmp ) const
     {
         return ( instance != cmp.instance ) ? ( instance < cmp.instance )
                : ( type != cmp.type )       ? ( type < cmp.type )
                                             : false;
     }
 
-    inline bool is_valid() const { return type != 0; }
+    constexpr inline bool is_valid() const { return type != 0; }
 };
 static_assert( sizeof( TypeInstance ) == 4U, "Invalid TypeInstance Size" );
 
@@ -83,48 +86,95 @@ struct NetworkOrProcessAddress
         ProcessAddress pointer;
         NetworkAddress network;
     };
-    inline NetworkOrProcessAddress()
+    constexpr NetworkOrProcessAddress()
         : nop_storage( NULL_ADDRESS )
     {
     }
-    inline NetworkOrProcessAddress( NetworkAddress networkAddress )
+    constexpr NetworkOrProcessAddress( NetworkAddress networkAddress )
         : network( networkAddress )
     {
     }
-    inline NetworkOrProcessAddress( ProcessAddress processAddress )
+    constexpr NetworkOrProcessAddress( ProcessAddress processAddress )
         : pointer( processAddress )
     {
     }
 
-    inline bool is_null() const { return nop_storage == NULL_ADDRESS; }
-    inline      operator AddressStorage() const { return nop_storage; }
-    inline bool operator==( const NetworkOrProcessAddress& cmp ) const { return ( nop_storage == cmp.nop_storage ); }
-    inline bool operator!=( const NetworkOrProcessAddress& cmp ) const { return !( *this == cmp ); }
-    inline bool operator<( const NetworkOrProcessAddress& cmp ) const { return nop_storage < cmp.nop_storage; }
+    constexpr inline bool is_null() const { return nop_storage == NULL_ADDRESS; }
+    constexpr inline      operator AddressStorage() const { return nop_storage; }
+    constexpr inline bool operator==( const NetworkOrProcessAddress& cmp ) const
+    {
+        return ( nop_storage == cmp.nop_storage );
+    }
+    constexpr inline bool operator!=( const NetworkOrProcessAddress& cmp ) const { return !( *this == cmp ); }
+    constexpr inline bool operator<( const NetworkOrProcessAddress& cmp ) const
+    {
+        return nop_storage < cmp.nop_storage;
+    }
 };
 static_assert( sizeof( NetworkOrProcessAddress ) == 8U, "Invalid NetworkAddress Size" );
 
-using MachineID = U8;
 using ProcessID = U8;
 using OwnerID   = U16;
 
-static constexpr MachineID MAX_MACHINES            = 8;
-static constexpr ProcessID MAX_PROCESS_PER_MACHINE = 16;
-static constexpr OwnerID   MAX_OWNER_PER_PROCESS   = 256;
+//#define MAX_MACHINES_BITS 20
+#define MAX_MACHINES_BITS 21
+#define MAX_PROCESS_PER_MACHINE_BITS 3
+#define MAX_OWNER_PER_PROCESS_BITS 7
+#define MAX_MPO_REMAINING_BITS 1
+static_assert( MAX_MACHINES_BITS + MAX_PROCESS_PER_MACHINE_BITS + MAX_OWNER_PER_PROCESS_BITS + MAX_MPO_REMAINING_BITS
+               == 32 );
 
-static constexpr auto TOTAL_MACHINES  = MAX_MACHINES;                                                   // 8
-static constexpr auto TOTAL_PROCESSES = MAX_MACHINES * MAX_PROCESS_PER_MACHINE;                         // 128
-static constexpr auto TOTAL_OWNERS    = MAX_MACHINES * MAX_PROCESS_PER_MACHINE * MAX_OWNER_PER_PROCESS; // 32768
+// NOTE: MAX_PROCESS_PER_MACHINE used by the shared memory header to set size of heap memory pointer array - ( so keep small )
+static constexpr U64 MAX_MACHINES            = 2 << ( MAX_MACHINES_BITS - 1 );            // 2097152
+static constexpr U64 MAX_PROCESS_PER_MACHINE = 2 << ( MAX_PROCESS_PER_MACHINE_BITS - 1 ); // 8
+static constexpr U64 MAX_OWNER_PER_PROCESS   = 2 << ( MAX_OWNER_PER_PROCESS_BITS - 1 );   // 128
+
+static constexpr U64 TOTAL_MACHINES  = MAX_MACHINES;                                                   // 2,097,152
+static constexpr U64 TOTAL_PROCESSES = MAX_MACHINES * MAX_PROCESS_PER_MACHINE;                         // 16,777,216
+static constexpr U64 TOTAL_OWNERS    = MAX_MACHINES * MAX_PROCESS_PER_MACHINE * MAX_OWNER_PER_PROCESS; // 2,147,483,648
+
+class MachineID
+{
+public:
+    MachineID() = default;
+    
+    constexpr MachineID( U32 value )
+        : m_storage{ value }
+    {
+    }
+
+    constexpr MachineID( const MachineID& cpy ) = default;
+    constexpr MachineID& operator=( const MachineID& cpy ) = default;
+
+    struct Hash
+    {
+        inline U64 operator()( const MachineID& machineID ) const noexcept { return machineID.m_storage; }
+    };
+
+    constexpr operator U32() const { return m_storage; }
+
+    constexpr inline bool operator==( const MachineID& cmp ) const { return m_storage == cmp.m_storage; }
+    constexpr inline bool operator!=( const MachineID& cmp ) const { return !( *this == cmp ); }
+    constexpr inline bool operator<( const MachineID& cmp ) const { return m_storage < cmp.m_storage; }
+
+private:
+    U32 m_storage;
+};
 
 class MP
 {
-    using MPStorageType = U8;
+    using MPStorageType = U32;
 
+    // clang-format off
     struct MachineProcess
     {
-        U8 process : 4, machine : 3, is_daemon : 1;
+        U32 process : MAX_PROCESS_PER_MACHINE_BITS, 
+            machine : MAX_MACHINES_BITS,
+            reserved: 8; // NOTE: generally ensure ALL bits get initialised or mp_storage comparison can fail
     };
-    static_assert( sizeof( MachineProcess ) == 1U, "Invalid MachineProcess Size" );
+    // clang-format on
+    static_assert( sizeof( MachineProcess ) == 4U, "Invalid MachineProcess Size" );
+    static_assert( sizeof( MachineProcess ) == sizeof( MPStorageType ), "Invalid MachineProcess Size" );
 
 public:
     union
@@ -137,41 +187,53 @@ public:
     {
         inline U64 operator()( const MP& mp ) const noexcept { return mp.mp_storage; }
     };
-    
+
     MP() = default;
-    MP( MachineID machineID, ProcessID processID, bool isDeamon )
-        : mp{ processID, machineID, isDeamon }
+
+    constexpr MP( MachineID machineID, ProcessID processID )
+        : mp{ processID, machineID, 0U }
     {
     }
 
-    inline MachineID getMachineID() const { return mp.machine; }
-    inline ProcessID getProcessID() const { return mp.process; }
-    inline bool      getIsDaemon() const { return mp.is_daemon; }
+    template < typename T >
+    constexpr MP( const T& mpo )
+        : mp{ mpo.getProcessID(), mpo.getMachineID(), 0U }
+    {
+    }
 
-    inline bool operator==( const MP& cmp ) const { return mp_storage == cmp.mp_storage; }
-    inline bool operator!=( const MP& cmp ) const { return !( *this == cmp ); }
-    inline bool operator<( const MP& cmp ) const { return mp_storage < cmp.mp_storage; }
+    constexpr inline MachineID getMachineID() const { return mp.machine; }
+    constexpr inline ProcessID getProcessID() const { return mp.process; }
 
-    void setMachineID( MachineID machineID ) { mp.machine = machineID; }
-    void setProcessID( ProcessID processID ) { mp.process = processID; }
-    void setIsDaemon( bool bIsDaemon ) { mp.is_daemon = bIsDaemon; }
+    constexpr inline bool operator==( const MP& cmp ) const { return mp_storage == cmp.mp_storage; }
+    constexpr inline bool operator!=( const MP& cmp ) const { return !( *this == cmp ); }
+    constexpr inline bool operator<( const MP& cmp ) const { return mp_storage < cmp.mp_storage; }
+
+    constexpr void setMachineID( MachineID machineID ) { mp.machine = machineID; }
+    constexpr void setProcessID( ProcessID processID ) { mp.process = processID; }
 };
-static_assert( sizeof( MP ) == 1U, "Invalid MP Size" );
+static_assert( sizeof( MP ) == 4U, "Invalid MP Size" );
 
 class MPO
 {
-    using MPOStorageType = U16;
+    using MPOStorageType = U32;
 
     enum AddressType : MPOStorageType
     {
         NETWORK_ADDRESS = 0,
         MACHINE_ADDRESS = 1
     };
+
+    // clang-format off
     struct MachineProcessOwner
     {
-        MPOStorageType owner : 8, process : 4, machine : 3, address_type : 1;
+        MPOStorageType  owner           : MAX_OWNER_PER_PROCESS_BITS,
+                        process         : MAX_PROCESS_PER_MACHINE_BITS,
+                        machine         : MAX_MACHINES_BITS,
+                        address_type    : MAX_MPO_REMAINING_BITS;
     };
-    static_assert( sizeof( MachineProcessOwner ) == 2U, "Invalid MachineProcessOwner Size" );
+    // clang-format on
+    static_assert( sizeof( MachineProcessOwner ) == 4U, "Invalid MachineProcessOwner Size" );
+    static_assert( sizeof( MachineProcessOwner ) == sizeof( MPOStorageType ), "Invalid MachineProcessOwner Size" );
 
 public:
     union
@@ -184,48 +246,47 @@ public:
     {
         inline U64 operator()( const MPO& mpo ) const noexcept { return mpo.mpo_storage; }
     };
-    
+
     MPO() = default;
-    MPO( MachineID machineID, ProcessID processID, OwnerID ownerID )
+    constexpr MPO( MachineID machineID, ProcessID processID, OwnerID ownerID )
         : mpo{ ownerID, processID, machineID, MACHINE_ADDRESS }
     {
     }
+    constexpr MPO( MP mp, OwnerID ownerID )
+        : mpo{ ownerID, mp.getProcessID(), mp.getMachineID(), MACHINE_ADDRESS }
+    {
+    }
 
-    inline MachineID getMachineID() const { return mpo.machine; }
-    inline ProcessID getProcessID() const { return mpo.process; }
-    inline OwnerID   getOwnerID() const { return mpo.owner; }
-    inline bool      isNetwork() const { return mpo.address_type == NETWORK_ADDRESS; }
-    inline bool      isMachine() const { return mpo.address_type == MACHINE_ADDRESS; }
+    constexpr inline MachineID getMachineID() const { return mpo.machine; }
+    constexpr inline ProcessID getProcessID() const { return mpo.process; }
+    constexpr inline OwnerID   getOwnerID() const { return mpo.owner; }
+    constexpr inline bool      isNetwork() const { return mpo.address_type == NETWORK_ADDRESS; }
+    constexpr inline bool      isMachine() const { return mpo.address_type == MACHINE_ADDRESS; }
 
-    inline bool operator==( const MPO& cmp ) const { return mpo_storage == cmp.mpo_storage; }
-    inline bool operator!=( const MPO& cmp ) const { return !( *this == cmp ); }
-    inline bool operator<( const MPO& cmp ) const { return mpo_storage < cmp.mpo_storage; }
+    constexpr inline bool operator==( const MPO& cmp ) const { return mpo_storage == cmp.mpo_storage; }
+    constexpr inline bool operator!=( const MPO& cmp ) const { return !( *this == cmp ); }
+    constexpr inline bool operator<( const MPO& cmp ) const { return mpo_storage < cmp.mpo_storage; }
 
-    void setMachineID( MachineID machineID ) { mpo.machine = machineID; }
-    void setProcessID( ProcessID processID ) { mpo.process = processID; }
-    void setExecutorID( OwnerID ownerID ) { mpo.owner = ownerID; }
-    void setIsNetwork() { mpo.address_type = NETWORK_ADDRESS; }
-    void setIsMachine() { mpo.address_type = MACHINE_ADDRESS; }
+    constexpr void setMachineID( MachineID machineID ) { mpo.machine = machineID; }
+    constexpr void setProcessID( ProcessID processID ) { mpo.process = processID; }
+    constexpr void setExecutorID( OwnerID ownerID ) { mpo.owner = ownerID; }
+    constexpr void setIsNetwork() { mpo.address_type = NETWORK_ADDRESS; }
+    constexpr void setIsMachine() { mpo.address_type = MACHINE_ADDRESS; }
 };
-static_assert( sizeof( MPO ) == 2U, "Invalid MPO Size" );
+static_assert( sizeof( MPO ) == 4U, "Invalid MPO Size" );
 
 struct reference : TypeInstance, MPO, NetworkOrProcessAddress
 {
     inline reference() = default;
-    /*inline reference( TypeInstance typeInstance, MPO mpo )
-        : TypeInstance( typeInstance )
-        , MPO( mpo )
-    {
-        setIsMachine();
-    }*/
-    inline reference( TypeInstance typeInstance, MPO mpo, ProcessAddress process )
+
+    constexpr reference( TypeInstance typeInstance, MPO mpo, ProcessAddress process )
         : TypeInstance( typeInstance )
         , MPO( mpo )
         , NetworkOrProcessAddress( process )
     {
         setIsMachine();
     }
-    inline reference( TypeInstance typeInstance, MPO mpo, NetworkAddress networkAddress )
+    constexpr reference( TypeInstance typeInstance, MPO mpo, NetworkAddress networkAddress )
         : TypeInstance( typeInstance )
         , MPO( mpo )
         , NetworkOrProcessAddress( networkAddress )
@@ -233,7 +294,7 @@ struct reference : TypeInstance, MPO, NetworkOrProcessAddress
         setIsNetwork();
     }
 
-    inline bool operator==( const reference& cmp ) const
+    constexpr inline bool operator==( const reference& cmp ) const
     {
         if ( isMachine() && cmp.isMachine() )
         {
@@ -248,8 +309,8 @@ struct reference : TypeInstance, MPO, NetworkOrProcessAddress
             return false;
         }
     }
-    inline bool operator!=( const reference& cmp ) const { return !( *this == cmp ); }
-    inline bool operator<( const reference& cmp ) const
+    constexpr inline bool operator!=( const reference& cmp ) const { return !( *this == cmp ); }
+    constexpr inline bool operator<( const reference& cmp ) const
     {
         if ( isMachine() && cmp.isMachine() )
         {
@@ -266,7 +327,7 @@ struct reference : TypeInstance, MPO, NetworkOrProcessAddress
         }
     }
 
-    inline bool is_valid() const
+    constexpr inline bool is_valid() const
     {
         if ( isNetwork() )
             return !NetworkOrProcessAddress::is_null();

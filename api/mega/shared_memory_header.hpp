@@ -29,8 +29,8 @@ namespace mega
 
 struct SharedHeader
 {
-    TimeStamp m_timestamp                       = 0U;
     void*     m_heap[ MAX_PROCESS_PER_MACHINE ] = { nullptr };
+    TimeStamp m_timestamp                       = 0U;
 };
 
 inline SharedHeader& getSharedHeader( void* pMemory ) { return *reinterpret_cast< SharedHeader* >( pMemory ); }

@@ -346,7 +346,8 @@ void JIT::getLoad( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
     *ppFunction = pModule->get< LoadFunction >( os.str() );
 }
 
-Snapshot JIT::save( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, TimeStamp timestamp, bool bSaveShared )
+Snapshot JIT::save( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, TimeStamp timestamp,
+                    bool bSaveShared )
 {
     auto&              allocator = getAllocator( compiler, ROOT_TYPE_ID );
     SaveObjectFunction pSave     = allocator.getSaveBin();
@@ -357,14 +358,13 @@ Snapshot JIT::save( const CodeGenerator::LLVMCompiler& compiler, const reference
     return archive.makeSnapshot( timestamp );
 }
 
-void JIT::load( const CodeGenerator::LLVMCompiler& compiler, const Snapshot& snapshot, bool bLoadShared )
+void JIT::load( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, const Snapshot& snapshot, bool bLoadShared )
 {
     auto&              allocator = getAllocator( compiler, ROOT_TYPE_ID );
     LoadObjectFunction pLoad     = allocator.getLoadBin();
 
-    // BinLoadArchive archive( snapshot );
-    // const reference rootRef( TypeInstance( 0U, ROOT_TYPE_ID ), snapshot.indexToRef( 0 ) );
-    // pLoad( rootRef, &archive );
+    BinLoadArchive archive( snapshot );
+    pLoad( mpoRoot, &archive, bLoadShared );
 }
 
 } // namespace mega::runtime

@@ -215,7 +215,6 @@ set( MEGA_TYPES_HEADERS
     ${MEGA_API_DIR}/database/types/modes.hpp
     ${MEGA_API_DIR}/database/types/component_type.hpp
     ${MEGA_API_DIR}/database/types/clang_compilation.hpp
-    ${MEGA_API_DIR}/database/types/invocation_id.hpp
     ${MEGA_API_DIR}/database/types/type_id.hpp
     
     ${MEGA_API_DIR}/database/database.hpp
@@ -230,7 +229,6 @@ set( MEGA_TYPES_SOURCES
     ${MEGA_SRC_DIR}/database/types/modes.cpp
     ${MEGA_SRC_DIR}/database/types/component_type.cpp
     ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
-    ${MEGA_SRC_DIR}/database/types/invocation_id.cpp
     ${MEGA_SRC_DIR}/database/types/type_id.cpp
     
     ${MEGA_SRC_DIR}/database/database.cpp

@@ -25,6 +25,7 @@
 
 namespace mega
 {
+    void save_begin_object(const reference&,void*);
 {% for type in mangled_data_types %}
     void save_begin_part(const char*,void*);
     void save_end_part(const char*,void*);
@@ -149,6 +150,8 @@ void save_object_bin_{{ objectTypeID }}( mega::reference ref, void* pSerialiser,
     {
         pSharedBase = mega::runtime::read( machineRef );
     }
+
+    mega::save_begin_object( mega::reference( mega::TypeInstance::Object( {{ objectTypeID }} ), machineRef, machineRef.pointer ), pSerialiser );
 
     void* pSharedBuffer = mega::fromProcessAddress( pSharedBase, machineRef.pointer );
     if( bSaveShared )

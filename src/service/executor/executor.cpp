@@ -81,7 +81,10 @@ Executor::~Executor()
     SPDLOG_TRACE( "Executor shutdown" );
 }
 
-void Executor::shutdown() { m_receiverChannel.stop(); }
+void Executor::shutdown()
+{
+    m_receiverChannel.stop();
+}
 
 network::ConversationBase::Ptr Executor::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                            const network::Message&      msg )
@@ -93,7 +96,7 @@ network::ConversationBase::Ptr Executor::joinConversation( const network::Connec
 void Executor::getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const
 {
     ReadLock lock( m_mutex );
-    for ( const auto& [ id, pSim ] : m_simulations )
+    for( const auto& [ id, pSim ] : m_simulations )
     {
         simulations.push_back( pSim );
     }
@@ -102,7 +105,7 @@ std::shared_ptr< Simulation > Executor::getSimulation( const mega::MPO& mpo ) co
 {
     ReadLock lock( m_mutex );
     auto     iFind = m_simulations.find( mpo );
-    if ( iFind != m_simulations.end() )
+    if( iFind != m_simulations.end() )
     {
         return iFind->second;
     }
@@ -144,7 +147,7 @@ void Executor::simulationTerminating( std::shared_ptr< Simulation > pSimulation 
 
 void Executor::conversationCompleted( network::ConversationBase::Ptr pConversation )
 {
-    if ( Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( pConversation ) )
+    if( Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( pConversation ) )
     {
         WriteLock lock( m_mutex );
         m_simulations.erase( pSim->getThisMPO() );

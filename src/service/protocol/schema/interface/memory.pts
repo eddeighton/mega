@@ -42,6 +42,11 @@ msg Write
     request( MPO requestingMPO, reference ref );
     response( MemoryBaseReference ref );
 }
+msg Release
+{
+    request( MPO requestingMPO, MPO targetMPO, network::Transaction transaction );
+    response();
+}
 msg NetworkToMachine
 {
     request( reference ref );

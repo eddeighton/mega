@@ -54,6 +54,7 @@ link_boost( system_tests date_time )
 link_boost( system_tests program_options )
 link_boost( system_tests iostreams )
 link_boost( system_tests atomic )
+link_boost( system_tests serialization )
 link_gtest( system_tests )
 
 target_link_libraries( system_tests database )
@@ -63,6 +64,7 @@ target_link_libraries( system_tests protocol)
 target_link_libraries( system_tests network)
 target_link_libraries( system_tests pipeline)
 target_link_libraries( system_tests terminal )
+target_link_libraries( system_tests log )
 
 gtest_add_tests( TARGET system_tests SOURCES ${MEGA_UNIT_TESTS} )
 

@@ -29,7 +29,7 @@
 #include "database/model/FinalStage.hxx"
 #include "database/model/manifest.hxx"
 
-#include "database/types/invocation_id.hpp"
+#include "mega/invocation_id.hpp"
 
 namespace mega::runtime
 {

@@ -174,8 +174,8 @@ public:
         new ( pSharedMemory ) SharedHeader{};
 
         const reference machine{
-            TypeInstance( 0u, objectTypeID ), mpo, toProcessAddress( memory.get_address(), pSharedMemory ) };
-        const reference network{ TypeInstance( 0u, objectTypeID ), mpo, networkAddress };
+            TypeInstance::Object( objectTypeID ), mpo, toProcessAddress( memory.get_address(), pSharedMemory ) };
+        const reference network{ TypeInstance::Object( objectTypeID ), mpo, networkAddress };
 
         allocated( network, machine );
 

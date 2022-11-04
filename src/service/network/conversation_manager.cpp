@@ -75,7 +75,7 @@ void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pCon
         m_ioContext, 
         [ pConversation, &parentSender ]( boost::asio::yield_context yield_ctx ) 
         { 
-            ConversationBase::RequestStack stack( "Initiated", *pConversation, parentSender.getConnectionID() );
+            ConversationBase::RequestStack stack( "Initiated", pConversation, parentSender.getConnectionID() );
             pConversation->run( yield_ctx );
         }
 /*#ifdef WIN32

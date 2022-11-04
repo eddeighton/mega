@@ -183,8 +183,7 @@ network::Message RootRequestConversation::MPRoot( const network::Message& reques
 network::Message RootRequestConversation::MPDown( const network::Message& request, const MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    const MP machineMP( mp.getMachineID(), 0U, true );
-    if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( machineMP ) )
+    if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( mp.getMachineID() ) )
     {
         network::mpo::Request_Sender sender( *this, *pCon, yield_ctx );
         return sender.MPDown( request, mp );
@@ -203,7 +202,7 @@ network::Message RootRequestConversation::MPODown( const network::Message&     r
                                                    const MPO&                  mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( mpo ) )
+    if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( mpo.getMachineID() ) )
     {
         network::mpo::Request_Sender sender( *this, *pCon, yield_ctx );
         return sender.MPODown( request, mpo );
@@ -222,7 +221,7 @@ network::Message RootRequestConversation::MPOUp( const network::Message& request
 Snapshot RootRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
                                                boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO ) )
+    if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO.getMachineID() ) )
     {
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
         return sender.SimLockRead( requestingMPO, targetMPO );
@@ -236,7 +235,7 @@ Snapshot RootRequestConversation::SimLockRead( const MPO& requestingMPO, const M
 Snapshot RootRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
                                                 boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO ) )
+    if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO.getMachineID() ) )
     {
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
         return sender.SimLockWrite( requestingMPO, targetMPO );
@@ -252,7 +251,7 @@ void RootRequestConversation::SimLockRelease( const MPO&                  reques
                                               const network::Transaction& transaction,
                                               boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO ) )
+    if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO.getMachineID() ) )
     {
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
         return sender.SimLockRelease( requestingMPO, targetMPO, transaction );

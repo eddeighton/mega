@@ -70,7 +70,7 @@ private:
     network::Client                              m_rootClient;
     network::Server                              m_server;
     std::unique_ptr< SharedMemoryManager >       m_pMemoryManager;
-    mega::MP                                     m_mp;
+    MachineID                                    m_machineID;
     std::optional< network::Project >            m_activeProject;
     std::unique_ptr< runtime::DatabaseInstance > m_pDatabase;
 };

@@ -22,6 +22,8 @@
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/address.hxx"
 
+#include "service/protocol/model/daemon_leaf.hxx"
+
 namespace mega::service
 {
 
@@ -56,6 +58,97 @@ std::string DaemonRequestConversation::Acquire( const MPO& mpo, boost::asio::yie
 reference DaemonRequestConversation::NetworkToMachine( const reference& ref, boost::asio::yield_context& yield_ctx )
 {
     return m_daemon.getMemoryManager().networkToMachine( ref );
+}
+
+void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
+                                            const NetworkAddress&       networkAddress,
+                                            boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun: {}", mpo );
+
+    auto stackCon = getOriginatingEndPointID();
+    VERIFY_RTE( stackCon.has_value() );
+    auto pConnection = m_daemon.m_server.getConnection( stackCon.value() );
+    VERIFY_RTE( pConnection );
+    VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor
+                || pConnection->getTypeOpt().value() == network::Node::Tool );
+
+    // establish shared memory region for MPO
+    struct Memory
+    {
+        Daemon&        daemon;
+        std::string    strMemory;
+        MPO            mpo;
+        NetworkAddress networkAddress;
+        reference      root;
+        Memory( Daemon& daemon, const MPO& mpo, const NetworkAddress& networkAddress )
+            : daemon( daemon )
+            , mpo( mpo )
+            , networkAddress( networkAddress )
+        {
+            strMemory = daemon.getMemoryManager().acquire( mpo );
+            root      = daemon.getMemoryManager().allocateRoot( mpo, networkAddress );
+            SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun created root: {} in memory: {}", root, strMemory );
+        }
+        ~Memory()
+        {
+            //
+            daemon.getMemoryManager().release( mpo );
+        }
+    } wrapper( m_daemon, mpo, networkAddress );
+
+    {
+        // network::Server::ConnectionLabelRAII connectionLabel( m_daemon.m_server, mpo, pConnection );
+        network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
+        sender.RootSimRun( wrapper.root, wrapper.strMemory );
+    }
+}
+
+Snapshot DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+                                                 boost::asio::yield_context& yield_ctx )
+{
+    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
+    {
+        network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.SimLockRead( requestingMPO, targetMPO );
+    }
+    else
+    {
+        network::sim::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+        return sender.SimLockRead( requestingMPO, targetMPO );
+    }
+}
+
+Snapshot DaemonRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+                                                  boost::asio::yield_context& yield_ctx )
+{
+    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
+    {
+        network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.SimLockWrite( requestingMPO, targetMPO );
+    }
+    else
+    {
+        network::sim::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+        return sender.SimLockWrite( requestingMPO, targetMPO );
+    }
+}
+
+void DaemonRequestConversation::SimLockRelease( const MPO&                  requestingMPO,
+                                                const MPO&                  targetMPO,
+                                                const network::Transaction& transaction,
+                                                boost::asio::yield_context& yield_ctx )
+{
+    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
+    {
+        network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.SimLockRelease( requestingMPO, targetMPO, transaction );
+    }
+    else
+    {
+        network::sim::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+        return sender.SimLockRelease( requestingMPO, targetMPO, transaction );
+    }
 }
 
 } // namespace mega::service

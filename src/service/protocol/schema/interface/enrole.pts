@@ -20,7 +20,7 @@
 msg EnroleDaemon
 {
     request();
-    response( MP daemonMP );
+    response( MachineID daemonMachineID );
 }
 
 msg EnroleLeafWithDaemon
@@ -31,7 +31,7 @@ msg EnroleLeafWithDaemon
 
 msg EnroleLeafWithRoot
 {
-    request( MP daemonMP );
+    request( MachineID daemonMachineID );
     response( MP leafMP );
 }
 

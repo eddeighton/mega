@@ -34,6 +34,7 @@
 #include <memory>
 #include <set>
 #include <functional>
+#include <variant>
 
 namespace mega::network
 {
@@ -47,6 +48,7 @@ public:
         using DisconnectCallback = std::function< void( const ConnectionID& connectionID ) >;
 
     public:
+        using Label  = std::variant< MachineID, MP, MPO >;
         using Ptr    = std::shared_ptr< Connection >;
         using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;
 
@@ -54,11 +56,11 @@ public:
         ~Connection();
 
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
-        const std::optional< mega::MP >&   getMPOpt() const { return m_mpOpt; }
+        const std::optional< Label >&      getLabel() const { return m_labelOpt; }
         const std::string&                 getName() const { return m_strName; }
 
         void setType( Node::Type type ) { m_typeOpt = type; }
-        void setMP( mega::MP mp ) { m_mpOpt = mp; }
+        void setLabel( Label label ) { m_labelOpt = label; }
 
         // Sender
         virtual ConnectionID              getConnectionID() const { return m_pSender->getConnectionID(); }
@@ -97,12 +99,10 @@ public:
         Sender::Ptr                         m_pSender;
         std::optional< Node::Type >         m_typeOpt;
         std::optional< DisconnectCallback > m_disconnectCallback;
-        std::optional< mega::MP >           m_mpOpt;
+        std::optional< Label >              m_labelOpt;
     };
 
-    using ConnectionMap    = std::map< ConnectionID, Connection::Ptr >;
-    using ConnectionMPOMap = std::unordered_map< mega::MPO, Connection::Ptr, mega::MPO::Hash >;
-    using ConnectionMPMap  = std::unordered_map< mega::MP, Connection::Ptr, mega::MP::Hash >;
+    using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;
 
 public:
     Server( boost::asio::io_context& ioContext, ConversationManager& conversationManager, short port );
@@ -110,26 +110,42 @@ public:
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
     Connection::Ptr          getConnection( const ConnectionID& connectionID );
     const ConnectionMap&     getConnections() const { return m_connections; }
-    Connection::Ptr          findConnection( const mega::MPO& mpo ) const;
-    Connection::Ptr          findConnection( const mega::MP& mp ) const;
-    void                     mapConnection( const mega::MPO& mpo, Connection::Ptr pConnection );
-    void                     unmapConnection( const mega::MPO& mpo );
-    void                     mapConnection( const mega::MP& mp, Connection::Ptr pConnection );
-    void                     unmapConnection( const mega::MP& mp );
 
-    struct MPOConnection
+    using ConnectionLabelMap = std::map< Connection::Label, Connection::Ptr >;
+
+    Connection::Ptr findConnection( Connection::Label label )
     {
-        Server&          server;
-        const mega::MPO& mpo;
-        Connection::Ptr  pConnection;
-        MPOConnection( Server& server, const mega::MPO& mpo, Connection::Ptr pConnection )
+        auto iFind = m_connectionLabels.find( label );
+        if ( iFind != m_connectionLabels.end() )
+            return iFind->second;
+        else
+            return {};
+    }
+
+    void labelConnection( Connection::Label label, Connection::Ptr pConnection )
+    {
+        pConnection->setLabel( label );
+        m_connectionLabels.insert( { label, pConnection } );
+    }
+
+    void unLabelConnection( Connection::Label label ) 
+    { 
+        m_connectionLabels.erase( label ); 
+    }
+
+    struct ConnectionLabelRAII
+    {
+        Server&                          server;
+        const Server::Connection::Label& label;
+        Connection::Ptr                  pConnection;
+        ConnectionLabelRAII( Server& server, const Server::Connection::Label& label, Connection::Ptr pConnection )
             : server( server )
-            , mpo( mpo )
+            , label( label )
             , pConnection( pConnection )
         {
-            server.mapConnection( mpo, pConnection );
+            server.labelConnection( label, pConnection );
         }
-        ~MPOConnection() { server.unmapConnection( mpo ); }
+        ~ConnectionLabelRAII() { server.unLabelConnection( label ); }
     };
 
     void stop();
@@ -142,8 +158,7 @@ private:
     ConversationManager&     m_conversationManager;
     Traits::Acceptor         m_acceptor;
     ConnectionMap            m_connections;
-    ConnectionMPOMap         m_mpoMap;
-    ConnectionMPMap          m_mpMap;
+    ConnectionLabelMap       m_connectionLabels;
 };
 
 } // namespace mega::network

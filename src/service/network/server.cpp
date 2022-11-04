@@ -123,11 +123,11 @@ void Server::onDisconnected( Connection::Ptr pConnection )
 {
     m_connections.erase( pConnection->getSocketConnectionID() );
 
-    for ( auto i = m_mpoMap.begin(), iEnd = m_mpoMap.end(); i != iEnd; ++i )
+    for ( auto i = m_connectionLabels.begin(), iEnd = m_connectionLabels.end(); i != iEnd; ++i )
     {
         if ( i->second == pConnection )
         {
-            m_mpoMap.erase( i );
+            m_connectionLabels.erase( i );
             break;
         }
     }
@@ -145,38 +145,5 @@ Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID 
         return {};
     }
 }
-
-Server::Connection::Ptr Server::findConnection( const mega::MPO& mpo ) const
-{
-    const auto iFind = m_mpoMap.find( mpo );
-    if ( iFind != m_mpoMap.end() )
-    {
-        return iFind->second;
-    }
-    else
-    {
-        return {};
-    }
-}
-
-Server::Connection::Ptr Server::findConnection( const mega::MP& mp ) const
-{
-    const auto iFind = m_mpMap.find( mp );
-    if ( iFind != m_mpMap.end() )
-    {
-        return iFind->second;
-    }
-    else
-    {
-        return {};
-    }
-}
-void Server::mapConnection( const mega::MPO& mpo, Connection::Ptr pConnection )
-{
-    m_mpoMap.insert( { mpo, pConnection } );
-}
-void Server::unmapConnection( const mega::MPO& mpo ) { m_mpoMap.erase( mpo ); }
-void Server::mapConnection( const mega::MP& mp, Connection::Ptr pConnection ) { m_mpMap.insert( { mp, pConnection } ); }
-void Server::unmapConnection( const mega::MP& mp ) { m_mpMap.erase( mp ); }
 
 } // namespace mega::network

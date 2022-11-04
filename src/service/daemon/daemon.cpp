@@ -48,11 +48,11 @@ public:
     }
     void run( boost::asio::yield_context& yield_ctx )
     {
-        m_daemon.m_mp = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleDaemon();
+        m_daemon.m_machineID = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleDaemon();
         m_daemon.setActiveProject( getRootRequest< network::project::Request_Encoder >( yield_ctx ).GetProject() );
 
         std::ostringstream os;
-        os << network::Node::toStr( network::Node::Daemon ) << " " << m_daemon.m_mp;
+        os << network::Node::toStr( network::Node::Daemon ) << " " << m_daemon.m_machineID;
         common::ProcessID::setDescription( os.str().c_str() );
 
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
@@ -119,7 +119,7 @@ void Daemon::setActiveProject( const network::Project& project )
 
 void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::MP leafMP )
 {
-    m_server.unmapConnection( leafMP );
+    m_server.unLabelConnection( leafMP );
 
     onDisconnect( connectionID );
 

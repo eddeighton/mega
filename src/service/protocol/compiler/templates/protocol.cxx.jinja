@@ -106,7 +106,8 @@ Request_Sender::Request_Sender( ConversationBase& _conversation_,
 )
 {
     SUSPEND_MPO_CONTEXT();
-    ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_conversation, m_sender.getConnectionID() );
+    ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
+        m_conversation.shared_from_this(), m_sender.getConnectionID() );
 
     {
         const Message _msg_ = MSG_{{ request.name }}_Request::make

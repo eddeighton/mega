@@ -115,7 +115,7 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
             }
             break;
             default:
-                THROW_RTE( "Unsupported MPO request type" );
+                THROW_RTE( "Unsupported MPO request type for mpo: " << mpo << " request: " << request.getName() );
         }
     }
     else

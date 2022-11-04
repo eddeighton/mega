@@ -59,6 +59,12 @@ struct StatusPrinter
         }
 
         // generate padding
+        if ( status.getMachineID().has_value() )
+        {
+            const mega::MachineID& machineID = status.getMachineID().value();
+            line( iCurrentDepth + 2 ) << "M: " << machineID << "\n";
+        }
+
         if ( status.getMP().has_value() )
         {
             const mega::MP& mp = status.getMP().value();

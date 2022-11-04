@@ -163,6 +163,7 @@ network::Message LeafRequestConversation::MPRoot( const network::Message&     re
                                                   boost::asio::yield_context& yield_ctx )
 {
     // ignor the passed MP and use the leaf MP
+    SPDLOG_TRACE( "LeafRequestConversation::MPRoot: {}", m_leaf.m_mp );
     return getMPOUpSender( yield_ctx ).MPRoot( request, m_leaf.m_mp );
 }
 network::Message LeafRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,

@@ -21,7 +21,7 @@
 #define SYMBOL_UTILS_SEPT_19_2022
 
 #include "mega/reference.hpp"
-#include "database/types/invocation_id.hpp"
+#include "mega/invocation_io.hpp"
 
 #include "common/assert_verify.hpp"
 

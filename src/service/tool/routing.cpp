@@ -82,7 +82,7 @@ void ToolRequestConversation::error( const network::ReceivedMsg& msg, const std:
 
 network::tool_leaf::Request_Sender ToolRequestConversation::getToolRequest( boost::asio::yield_context& yield_ctx )
 {
-    return network::tool_leaf::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
+    return { *this, m_tool.getLeafSender(), yield_ctx };
 }
 
 network::Message ToolRequestConversation::RootAllBroadcast( const network::Message&     request,
@@ -94,8 +94,7 @@ network::Message ToolRequestConversation::RootAllBroadcast( const network::Messa
 network::Message ToolRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    const mega::MP toolMP( m_tool.getRoot().getMachineID(), m_tool.getRoot().getProcessID(), false );
-    VERIFY_RTE( toolMP == mp );
+    VERIFY_RTE( MP( m_tool.getRoot() ) == mp );
     return dispatchRequest( request, yield_ctx );
 }
 

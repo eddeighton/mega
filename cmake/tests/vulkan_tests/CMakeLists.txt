@@ -58,6 +58,7 @@ link_boost( vulkan_tests date_time )
 link_boost( vulkan_tests program_options )
 link_boost( vulkan_tests iostreams )
 link_boost( vulkan_tests atomic )
+link_boost( vulkan_tests serialization )
 link_gtest( vulkan_tests )
 link_vulkan( vulkan_tests )
 

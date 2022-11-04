@@ -58,7 +58,7 @@ private:
     void loadConfig();
     void saveConfig();
 
-    void onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MP mp );
+    void onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MachineID machineID );
 
 private:
     network::Server                                     m_server;

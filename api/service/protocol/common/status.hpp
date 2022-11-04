@@ -45,37 +45,40 @@ public:
     {
     }
 
-    const std::optional< mega::MP >&              getMP() const { return m_mp; }
-    const std::optional< mega::MPO >&             getMPO() const { return m_mpo; }
+    const std::optional< MachineID >&             getMachineID() const { return m_machineID; }
+    const std::optional< MP >&                    getMP() const { return m_mp; }
+    const std::optional< MPO >&                   getMPO() const { return m_mpo; }
     const std::vector< network::ConversationID >& getConversations() const { return m_conversationIDs; }
     const std::optional< log::IndexRecord >&      getLogIterator() const { return m_logIterator; }
 
-    const std::optional< std::vector< mega::MPO > >& getReads() const { return m_reads; }
-    const std::optional< std::vector< mega::MPO > >& getWrites() const { return m_writes; }
-    const std::optional< std::vector< mega::MPO > >& getReaders() const { return m_readers; }
-    const std::optional< mega::MPO >&                getWriter() const { return m_writer; }
+    const std::optional< std::vector< MPO > >& getReads() const { return m_reads; }
+    const std::optional< std::vector< MPO > >& getWrites() const { return m_writes; }
+    const std::optional< std::vector< MPO > >& getReaders() const { return m_readers; }
+    const std::optional< MPO >&                getWriter() const { return m_writer; }
 
     const std::string&  getDescription() const { return m_description; }
     const StatusVector& getChildren() const { return m_childStatus; }
 
-    void setMP( mega::MP mp ) { m_mp = mp; }
-    void setMPO( mega::MPO mpo ) { m_mpo = mpo; }
+    void setMachineID( MachineID machineID ) { m_machineID = machineID; }
+    void setMP( MP mp ) { m_mp = mp; }
+    void setMPO( MPO mpo ) { m_mpo = mpo; }
     void setConversationID( const std::vector< network::ConversationID >& conversations )
     {
         m_conversationIDs = conversations;
     }
     void setLogIterator( const log::IndexRecord& iterator ) { m_logIterator = iterator; }
 
-    void setReads( const std::optional< std::vector< mega::MPO > >& value ) { m_reads = value; }
-    void setWrites( const std::optional< std::vector< mega::MPO > >& value ) { m_writes = value; }
-    void setReaders( const std::optional< std::vector< mega::MPO > >& value ) { m_readers = value; }
-    void setWriter( const std::optional< mega::MPO >& value ) { m_writer = value; }
+    void setReads( const std::optional< std::vector< MPO > >& value ) { m_reads = value; }
+    void setWrites( const std::optional< std::vector< MPO > >& value ) { m_writes = value; }
+    void setReaders( const std::optional< std::vector< MPO > >& value ) { m_readers = value; }
+    void setWriter( const std::optional< MPO >& value ) { m_writer = value; }
 
     void setDescription( const std::string& strDescription ) { m_description = strDescription; }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
+        archive& m_machineID;
         archive& m_mp;
         archive& m_mpo;
         archive& m_conversationIDs;
@@ -91,15 +94,16 @@ public:
     }
 
 private:
-    std::optional< mega::MP >              m_mp;
-    std::optional< mega::MPO >             m_mpo;
+    std::optional< MachineID >             m_machineID;
+    std::optional< MP >                    m_mp;
+    std::optional< MPO >                   m_mpo;
     std::vector< network::ConversationID > m_conversationIDs;
     std::optional< log::IndexRecord >      m_logIterator;
 
-    std::optional< std::vector< mega::MPO > > m_reads;
-    std::optional< std::vector< mega::MPO > > m_writes;
-    std::optional< std::vector< mega::MPO > > m_readers;
-    std::optional< mega::MPO >                m_writer;
+    std::optional< std::vector< MPO > > m_reads;
+    std::optional< std::vector< MPO > > m_writes;
+    std::optional< std::vector< MPO > > m_readers;
+    std::optional< MPO >                m_writer;
 
     std::string  m_description;
     StatusVector m_childStatus;

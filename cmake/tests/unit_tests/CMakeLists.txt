@@ -51,6 +51,7 @@ set( MEGA_UNIT_TESTS
 	${MEGA_UNIT_TESTS_DIR}/reference_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/scheduler_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/log_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/mpo_manager_tests.cpp
 	)
 
 enable_testing()
@@ -68,6 +69,7 @@ link_boost( mega_tests date_time )
 link_boost( mega_tests program_options )
 link_boost( mega_tests iostreams )
 link_boost( mega_tests atomic )
+link_boost( mega_tests serialization )
 link_gtest( mega_tests )
 
 target_link_libraries( mega_tests database )

@@ -121,8 +121,8 @@ public:
     GetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
-    virtual MP   EnroleDaemon( boost::asio::yield_context& yield_ctx ) override;
-    virtual MP   EnroleLeafWithRoot( const MP& daemonMP, boost::asio::yield_context& yield_ctx ) override;
+    virtual MachineID EnroleDaemon( boost::asio::yield_context& yield_ctx ) override;
+    virtual MP   EnroleLeafWithRoot( const MachineID& daemonMachineID, boost::asio::yield_context& yield_ctx ) override;
     virtual void EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx ) override;
     virtual std::vector< MachineID > EnroleGetDaemons( boost::asio::yield_context& yield_ctx ) override;
     virtual std::vector< MP >        EnroleGetProcesses( const MachineID&            machineID,

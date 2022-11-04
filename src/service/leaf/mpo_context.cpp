@@ -61,6 +61,21 @@ void* MPOContext::write( reference& ref )
     return result.getBaseAddress();
 }
 
+MPO MPOContext::constructMPO( MP machineProcess )
+{
+    network::sim::Request_Encoder request(
+        [ mpoRequest = getMPRequest(), machineProcess ]( const network::Message& msg ) mutable
+        { return mpoRequest.MPRoot( msg, machineProcess ); },
+        m_conversationIDRef );
+    return request.SimCreate();
+}
+
+reference MPOContext::getRoot( MPO mpo )
+{
+    const NetworkAddress netAddress = getRootAddressRequest().GetRootNetworkAddress( mpo );
+    return { TypeInstance::Root(), mpo, netAddress };
+}
+
 reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
 {
     return getLeafMemoryRequest().Allocate( context, objectTypeID );
@@ -127,4 +142,123 @@ void MPOContext::get_load( const char* pszUnitName, const InvocationID& invocati
     getLeafJITRequest().GetLoad( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
 }
 
+void MPOContext::cycleComplete()
+{
+    m_log.cycle();
+
+    // SPDLOG_TRACE( "cycleComplete {}", m_mpo.value() );
+
+    U32 expectedSchedulingCount = 0;
+    U32 expectedMemoryCount     = 0;
+    {
+        m_schedulingMap.clear();
+        for ( auto iEnd = m_log.schedEnd(); m_schedulerIter != iEnd; ++m_schedulerIter )
+        {
+            const log::SchedulerRecordRead& record = *m_schedulerIter;
+
+            if ( MPO( record.getReference() ) != m_mpo.value() )
+            {
+                m_schedulingMap[ record.getReference() ].push_back( record );
+                SPDLOG_TRACE( "cycleComplete {} found scheduling record", m_mpo.value() );
+                ++expectedSchedulingCount;
+            }
+        }
+
+        {
+            for ( auto iTrack = 0; iTrack != log::toInt( log::TrackType::TOTAL ); ++iTrack )
+            {
+                if ( iTrack == log::toInt( log::TrackType::Log ) || iTrack == log::toInt( log::TrackType::Scheduler ) )
+                    continue;
+
+                MemoryMap& memoryMap = m_memoryMaps[ iTrack ];
+                memoryMap.clear();
+                for ( auto &iter = m_memoryIters[ iTrack ], iEnd = m_log.memoryEnd( log::MemoryTrackType( iTrack ) );
+                      iter != iEnd; ++iter )
+                {
+                    const log::MemoryRecordRead& record = *iter;
+                    SPDLOG_TRACE(
+                        "cycleComplete {} found memory record for: {}", m_mpo.value(), record.getReference() );
+
+                    if ( MPO( record.getReference() ) != m_mpo.value() )
+                    {
+                        // only record the last write for each reference
+                        auto ib = memoryMap.insert( { record.getReference(), record.getData() } );
+                        if ( ib.second )
+                        {
+                            ++expectedMemoryCount;
+                        }
+                        else
+                        {
+                            ib.first->second = record.getData();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    U32 schedulingCount = 0;
+    U32 memoryCount     = 0;
+    {
+        for ( MPO writeLock : m_lockTracker.getWrites() )
+        {
+            m_transaction.reset(); // reuse memory
+
+            {
+                auto iFind = m_schedulingMap.find( writeLock );
+                if ( iFind != m_schedulingMap.end() )
+                {
+                    SPDLOG_TRACE( "cycleComplete: {} sending: {} scheduling records to: {}", m_mpo.value(),
+                                  iFind->second.size(), writeLock );
+                    m_transaction.addSchedulingRecords( iFind->second );
+                    schedulingCount += iFind->second.size();
+                }
+            }
+
+            for ( auto iTrack = 0; iTrack != log::toInt( log::TrackType::TOTAL ); ++iTrack )
+            {
+                if ( iTrack == log::toInt( log::TrackType::Log ) || iTrack == log::toInt( log::TrackType::Scheduler ) )
+                    continue;
+
+                MemoryMap& memoryMap = m_memoryMaps[ iTrack ];
+                int        iCounter  = 0;
+                for ( auto i = memoryMap.lower_bound(
+                          reference( TypeInstance{}, writeLock, std::numeric_limits< U64 >::min() ) );
+                      i != memoryMap.end();
+                      ++i )
+                {
+                    if ( MPO( i->first ) != writeLock )
+                        break;
+                    m_transaction.addMemoryRecord( i->first, log::MemoryTrackType( iTrack ), i->second );
+                    ++memoryCount;
+                    ++iCounter;
+                }
+                SPDLOG_TRACE( "cycleComplete: {} sending: {} track: {} memory records to: {}", m_mpo.value(), iCounter,
+                              iTrack, writeLock );
+            }
+
+            getLeafMemoryRequest().Release( m_mpo.value(), writeLock, m_transaction );
+        }
+    }
+
+    if ( expectedMemoryCount != memoryCount )
+    {
+        SPDLOG_WARN( "Expected memory records: {} not equal to actual: {} for: {}", expectedMemoryCount, memoryCount,
+                     m_mpo.value() );
+    }
+    if ( expectedSchedulingCount != schedulingCount )
+    {
+        SPDLOG_WARN( "Expected scheduling records: {} not equal to actual: {} for: {}", expectedSchedulingCount,
+                     schedulingCount, m_mpo.value() );
+    }
+
+    for ( MPO readLock : m_lockTracker.getReads() )
+    {
+        SPDLOG_TRACE( "cycleComplete: {} sending: read release to: {}", m_mpo.value(), readLock );
+        m_transaction.reset();
+        getLeafMemoryRequest().Release( m_mpo.value(), readLock, m_transaction );
+    }
+
+    m_lockTracker.reset();
+}
 } // namespace mega

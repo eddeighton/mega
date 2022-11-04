@@ -72,6 +72,7 @@ struct Deferred2
 
 void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "RootSimulation::SimStart leaf mp: {}", m_leafMP );
     mega::MPO simulationMPO = m_root.m_mpoManager.newOwner( m_leafMP, getID() );
     SPDLOG_TRACE( "RootSimulation::SimStart: {}", simulationMPO );
 
@@ -86,14 +87,14 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
 
             // simulation runs entirely on the stack in this scope!
             {
-                network::Server::MPOConnection       mpoConnection( m_root.m_server, simulationMPO, pConnection );
+                // network::Server::ConnectionLabelRAII connectionLabel( m_root.m_server, simulationMPO, pConnection );
                 network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
                 SPDLOG_TRACE( "RootSimulation::SimStart: sending RootSimRun for {}", simulationMPO );
                 sender.RootSimRun( simulationMPO, defered2.networkAddress );
             }
 
             // notify to release
-            for( auto& [ id, pCon ] : m_root.m_server.getConnections() )
+            for ( auto& [ id, pCon ] : m_root.m_server.getConnections() )
             {
                 network::memory::Request_Sender sender( *this, *pCon, yield_ctx );
                 sender.MPODestroyed( simulationMPO, false );

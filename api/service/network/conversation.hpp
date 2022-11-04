@@ -65,14 +65,14 @@ protected:
 public:
     class RequestStack
     {
-        const char*                           m_pszMsg;
-        boost::asio::steady_timer::time_point m_startTime;
-        ConversationBase&                     conversation;
+        const char* m_pszMsg;
+        // boost::asio::steady_timer::time_point m_startTime;
+        ConversationBase::Ptr pConversation;
         RequestStack( RequestStack& )            = delete;
         RequestStack& operator=( RequestStack& ) = delete;
 
     public:
-        RequestStack( const char* pszMsg, ConversationBase& conversation, const ConnectionID& connectionID );
+        RequestStack( const char* pszMsg, ConversationBase::Ptr pConversation, const ConnectionID& connectionID );
         ~RequestStack();
     };
     friend class ConversationBase::RequestStack;
@@ -95,7 +95,7 @@ public:
     }
     std::optional< ConnectionID > getStackConnectionID() const
     {
-        if ( !m_stack.empty() )
+        if( !m_stack.empty() )
             return m_stack.back();
         else
             return std::optional< ConnectionID >();
@@ -110,7 +110,7 @@ public:
     // Sender
     virtual ConnectionID getConnectionID() const
     {
-        if ( m_selfConnectionID.has_value() )
+        if( m_selfConnectionID.has_value() )
             return m_selfConnectionID.value();
         // synthesize a connectionID value
         std::ostringstream os;

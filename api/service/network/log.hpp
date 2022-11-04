@@ -20,7 +20,7 @@
 #ifndef LOG_28_MAY_2022
 #define LOG_28_MAY_2022
 
-#include "mega/invocation_id.hpp"
+#include "mega/invocation_io.hpp"
 #include "mega/reference_io.hpp"
 
 #include "service/protocol/model/messages.hxx"
@@ -185,7 +185,7 @@ struct formatter< mega::TypeInstance >
     template < typename FormatContext >
     auto format( const mega::TypeInstance& typeInstance, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "{}.{}", typeInstance.type, typeInstance.instance );
+        return format_to( ctx.out(), "type:{}.instance:{}", typeInstance.type, typeInstance.instance );
     }
 };
 
@@ -255,9 +255,18 @@ struct formatter< mega::reference >
     template < typename FormatContext >
     auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "{}.{}.{}", static_cast< const mega::TypeInstance& >( ref ),
-                          static_cast< const mega::MPO& >( ref ),
-                          static_cast< const mega::NetworkOrProcessAddress& >( ref ) );
+        if ( ref.isNetwork() )
+        {
+            return format_to( ctx.out(), "{}.{}.{}", static_cast< const mega::TypeInstance& >( ref ),
+                              static_cast< const mega::MPO& >( ref ),
+                              static_cast< const mega::NetworkAddress& >( ref ) );
+        }
+        else
+        {
+            return format_to( ctx.out(), "{}.{}.{}", static_cast< const mega::TypeInstance& >( ref ),
+                              static_cast< const mega::MPO& >( ref ),
+                              static_cast< const mega::ProcessAddress& >( ref ) );
+        }
     }
 };
 

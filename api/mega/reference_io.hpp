@@ -21,8 +21,6 @@
 #define REFERENCE_IO_24_SEPT_2022
 
 #include "reference.hpp"
-// #include "bin_archive.hpp"
-// #include "xml_archive.hpp"
 
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -31,34 +29,26 @@
 
 #include <iostream>
 
+inline std::ostream& operator<<( std::ostream& os, const mega::MachineID& machineID )
+{
+    return os << mega::U32( machineID );
+}
+
 inline std::istream& operator>>( std::istream& is, mega::MP& mp )
 {
-    bool bIsDaemon = true;
-    int  m, p = 0;
+    int m, p = 0;
     is >> m;
+    char c;
+    is >> c;
+    is >> p;
 
-    if ( is.peek() == '.' )
-    {
-        char c;
-        is >> c;
-        bIsDaemon = false;
-        is >> p;
-    }
-
-    mp = mega::MP( m, p, bIsDaemon );
+    mp = mega::MP( m, p );
     return is;
 }
 
 inline std::ostream& operator<<( std::ostream& os, const mega::MP& mp )
 {
-    if ( mp.getIsDaemon() )
-    {
-        return os << ( int )mp.getMachineID();
-    }
-    else
-    {
-        return os << ( int )mp.getMachineID() << '.' << ( int )mp.getProcessID();
-    }
+    return os << ( int )mp.getMachineID() << '.' << ( int )mp.getProcessID();
 }
 
 inline std::istream& operator>>( std::istream& is, mega::MPO& mpo )
@@ -79,6 +69,19 @@ namespace boost::serialization
 {
 
 // xml
+inline void serialize( boost::archive::xml_iarchive& ar, mega::MachineID& value, const unsigned int version )
+{
+    mega::U32 u;
+    ar&       boost::serialization::make_nvp( "machineID", u );
+    value = mega::MachineID( u );
+}
+
+inline void serialize( boost::archive::xml_oarchive& ar, mega::MachineID& value, const unsigned int version )
+{
+    mega::U32 u( value );
+    ar&       boost::serialization::make_nvp( "machineID", u );
+}
+
 inline void serialize( boost::archive::xml_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
 {
     ar& boost::serialization::make_nvp( "instance", value.instance );
@@ -138,6 +141,18 @@ inline void serialize( boost::archive::xml_oarchive& ar, mega::reference& ref, c
 }
 
 // binary
+inline void serialize( boost::archive::binary_iarchive& ar, mega::MachineID& value, const unsigned int version )
+{
+    mega::U32 u;
+    ar&       u;
+    value = mega::MachineID( u );
+}
+
+inline void serialize( boost::archive::binary_oarchive& ar, mega::MachineID& value, const unsigned int version )
+{
+    ar& mega::U32( value );
+}
+
 inline void serialize( boost::archive::binary_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
 {
     ar& value.instance;

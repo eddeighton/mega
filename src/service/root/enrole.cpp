@@ -27,21 +27,26 @@ namespace mega::service
 {
 
 // network::enrole::Impl
-MP RootRequestConversation::EnroleDaemon( boost::asio::yield_context& yield_ctx )
+MachineID RootRequestConversation::EnroleDaemon( boost::asio::yield_context& yield_ctx )
 {
-    const mega::MP mp = m_root.m_mpoManager.newDaemon();
-    SPDLOG_TRACE( "RootRequestConversation::EnroleDaemon: {}", mp );
+    const MachineID machineID = m_root.m_mpoManager.newDaemon();
+    SPDLOG_TRACE( "RootRequestConversation::EnroleDaemon: {}", machineID );
     network::Server::Connection::Ptr pConnection = m_root.m_server.getConnection( getOriginatingEndPointID().value() );
-    pConnection->setMP( mp );
-    pConnection->setDisconnectCallback( [ mp, &root = m_root ]( const network::ConnectionID& connectionID )
-                                        { root.onDaemonDisconnect( connectionID, mp ); } );
-    m_root.m_server.mapConnection( mp, pConnection );
-    return mp;
+    pConnection->setDisconnectCallback( [ machineID, &root = m_root ]( const network::ConnectionID& connectionID )
+                                        { root.onDaemonDisconnect( connectionID, machineID ); } );
+
+    network::Server::Connection::Label label { machineID } ;
+    VERIFY_RTE_MSG( std::get< MachineID >( label ) == machineID, "std::variant sucks!" );
+
+    m_root.m_server.labelConnection( label, pConnection );
+
+    return machineID;
 }
 
-MP RootRequestConversation::EnroleLeafWithRoot( const MP& daemonMP, boost::asio::yield_context& yield_ctx )
+MP RootRequestConversation::EnroleLeafWithRoot( const MachineID& machineID, boost::asio::yield_context& yield_ctx )
 {
-    const MP mp = m_root.m_mpoManager.newLeaf( daemonMP );
+    VERIFY_RTE_MSG( U32( machineID ) < MAX_MACHINES, "Invalid machineID: " << machineID );
+    const MP mp = m_root.m_mpoManager.newLeaf( machineID );
     SPDLOG_TRACE( "RootRequestConversation::EnroleLeafWithRoot: {}", mp );
     return mp;
 }
@@ -55,26 +60,27 @@ void RootRequestConversation::EnroleLeafDisconnect( const MP& mp, boost::asio::y
     VERIFY_RTE( stackCon.has_value() );
     auto pConnection = m_root.m_server.getConnection( stackCon.value() );
     VERIFY_RTE( pConnection );
-    network::memory::Request_Sender sender( *this, *pConnection, yield_ctx );
-    VERIFY_RTE( pConnection->getMPOpt()->getMachineID() == mp.getMachineID() );
+    VERIFY_RTE( pConnection->getLabel().has_value() );
+    VERIFY_RTE( std::get< MachineID >( pConnection->getLabel().value() ) == mp.getMachineID() );
 
+    network::memory::Request_Sender sender( *this, *pConnection, yield_ctx );
     for ( MPO mpo : terminatedMPOS )
     {
         sender.MPODestroyed( mpo, false );
     }
 }
 
-std::vector< mega::MachineID > RootRequestConversation::EnroleGetDaemons( boost::asio::yield_context& yield_ctx )
+std::vector< MachineID > RootRequestConversation::EnroleGetDaemons( boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMachines();
 }
-std::vector< mega::MP > RootRequestConversation::EnroleGetProcesses( const mega::MachineID&      machineID,
-                                                                     boost::asio::yield_context& yield_ctx )
+std::vector< MP > RootRequestConversation::EnroleGetProcesses( const MachineID&            machineID,
+                                                               boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMachineProcesses( machineID );
 }
-std::vector< mega::MPO > RootRequestConversation::EnroleGetMPO( const mega::MP&             machineProcess,
-                                                                boost::asio::yield_context& yield_ctx )
+std::vector< MPO > RootRequestConversation::EnroleGetMPO( const MP&                   machineProcess,
+                                                          boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMPO( machineProcess );
 }

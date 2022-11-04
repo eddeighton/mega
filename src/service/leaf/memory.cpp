@@ -27,6 +27,11 @@
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"
 
+#include "common/assert_verify.hpp"
+#include "common/optimisation.hpp"
+
+#pragma DISABLE_GCC_OPTIMIZATIONS
+
 namespace mega::service
 {
 
@@ -93,8 +98,6 @@ network::MemoryBaseReference LeafRequestConversation::Read( const MPO& requestin
             network::sim::Request_Sender rq( *this, m_leaf.getNodeChannelSender(), yield_ctx );
             if ( const TimeStamp timestamp = rq.SimLockReadMPO( requestingMPO, MPO( ref ) ); timestamp > 0 )
             {
-                // m_leaf.getJIT().load( compiler, snapshot );
-
                 result = m_leaf.getSharedMemory().getOrConstruct( compiler, jit, machineRef,
                                                                   [ &daemon ]( MPO mpo ) -> std::string
                                                                   { return daemon.Acquire( mpo ); } );
@@ -108,7 +111,6 @@ network::MemoryBaseReference LeafRequestConversation::Read( const MPO& requestin
         else
         {
             // same machine but different process
-
             reference machineRef = ref;
             if ( machineRef.isNetwork() )
             {
@@ -118,24 +120,34 @@ network::MemoryBaseReference LeafRequestConversation::Read( const MPO& requestin
 
             network::sim::Request_Sender rq( *this, m_leaf.getDaemonSender(), yield_ctx );
 
-            
+            Snapshot snapshot = rq.SimLockRead( requestingMPO, machineRef );
+            if ( snapshot.getTimeStamp() > 0 )
+            {
+                // construct all heap buffers in snapshot objects
+                const reference mpoRoot( TypeInstance::Root(), machineRef, machineRef.pointer );
+                bool            bFoundRoot = false;
+                for ( const auto& object : snapshot.getObjects() )
+                {
+                    ASSERT_MSG( object.isMachine(), "Snapshot object not machine ref" );
+                    auto sharedMem = m_leaf.getSharedMemory().getOrConstruct( compiler, jit, object,
+                                                                              [ &daemon ]( MPO mpo ) -> std::string
+                                                                              { return daemon.Acquire( mpo ); } );
+                    m_leaf.getHeapMemory().ensureAllocated( compiler, jit, sharedMem );
+                    if ( object.type == ROOT_TYPE_ID )
+                    {
+                        bFoundRoot = true;
+                    }
+                }
+                VERIFY_RTE_MSG( bFoundRoot, "Failed to locate root in snapshot" );
 
-            // if ( const TimeStamp timeStamp = rq.SimLockRead( requestingMPO ); timeStamp > 0 )
-            /*{
+                // now load the snapshot
+                m_leaf.getJIT().load( compiler, mpoRoot, snapshot, false );
+
+                // finally get the actually requested reference
                 result = m_leaf.getSharedMemory().getOrConstruct( compiler, jit, machineRef,
-                                                                [ &daemon ]( MPO mpo ) -> std::string
-                                                                { return daemon.Acquire( mpo ); } );
-                if( bShared )
-                {
-                    // TODO - replicate the shared buffer
-                    THROW_TODO;
-                }
-                else
-                {
-                    // TODO replicate the heap buffer
-                    THROW_TODO;
-                }
-            }*/
+                                                                  [ &daemon ]( MPO mpo ) -> std::string
+                                                                  { return daemon.Acquire( mpo ); } );
+            }
         }
     }
     else
@@ -151,6 +163,31 @@ network::MemoryBaseReference LeafRequestConversation::Write( const MPO& requesti
     network::MemoryBaseReference result{ nullptr, ref };
 
     return result;
+}
+
+void LeafRequestConversation::Release( const MPO&                  requestingMPO,
+                                       const MPO&                  targetMPO,
+                                       const network::Transaction& transaction,
+                                       boost::asio::yield_context& yield_ctx )
+{
+    if ( targetMPO.getMachineID() == m_leaf.m_mp.getMachineID() )
+    {
+        if ( targetMPO.getProcessID() == m_leaf.m_mp.getProcessID() )
+        {
+            network::sim::Request_Sender rq( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+            rq.SimLockRelease( requestingMPO, targetMPO, transaction );
+        }
+        else
+        {
+            network::sim::Request_Sender rq( *this, m_leaf.getDaemonSender(), yield_ctx );
+            rq.SimLockRelease( requestingMPO, targetMPO, transaction );
+        }
+    }
+    else
+    {
+        network::sim::Request_Sender rq( *this, m_leaf.getDaemonSender(), yield_ctx );
+        rq.SimLockRelease( requestingMPO, targetMPO, transaction );
+    }
 }
 
 reference LeafRequestConversation::NetworkToMachine( const reference& ref, boost::asio::yield_context& yield_ctx )
@@ -172,12 +209,6 @@ Snapshot LeafRequestConversation::SimLockRead( const MPO& requestingMPO, const M
     SPDLOG_TRACE( "LeafRequestConversation::SimLockRead {} {}", requestingMPO, targetMPO );
     VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in SimLockRead" );
 
-    // generate binary snapshot for target mpo
-
-    auto compiler = getLLVMCompiler( yield_ctx );
-
-    auto daemon = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
-
     switch ( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
@@ -186,9 +217,9 @@ Snapshot LeafRequestConversation::SimLockRead( const MPO& requestingMPO, const M
             network::sim::Request_Sender rq{ *this, m_leaf.getNodeChannelSender(), yield_ctx };
             TimeStamp                    timestamp = rq.SimLockReadMPO( requestingMPO, targetMPO );
 
-            if( m_leaf.m_mp.getMachineID() == targetMPO.getMachineID() )
+            if ( m_leaf.m_mp.getMachineID() == targetMPO.getMachineID() )
             {
-                if( m_leaf.m_mp.getProcessID() == targetMPO.getProcessID() )
+                if ( m_leaf.m_mp.getProcessID() == targetMPO.getProcessID() )
                 {
                     // same process - just return timestamp
                     return Snapshot{ timestamp };
@@ -197,14 +228,20 @@ Snapshot LeafRequestConversation::SimLockRead( const MPO& requestingMPO, const M
                 {
                     // NOTE: should ALWAYS find the mpo root in the shared memory hash table since this leaf owns it
                     const reference& mpoRoot = m_leaf.getSharedMemory().getMPORoot( targetMPO );
-                    return m_leaf.getJIT().save( compiler, mpoRoot, timestamp, false );
+                    Snapshot result = m_leaf.getJIT().save( getLLVMCompiler( yield_ctx ), mpoRoot, timestamp, false );
+                    SPDLOG_TRACE( "Created snapshot with objects: {} and size: {}", result.getObjects().size(),
+                                  result.getBuffer().size() );
+                    return result;
                 }
             }
             else
             {
                 // NOTE: should ALWAYS find the mpo root in the shared memory hash table since this leaf owns it
                 const reference& mpoRoot = m_leaf.getSharedMemory().getMPORoot( targetMPO );
-                return m_leaf.getJIT().save( compiler, mpoRoot, timestamp, true );
+                Snapshot result = m_leaf.getJIT().save( getLLVMCompiler( yield_ctx ), mpoRoot, timestamp, true );
+                SPDLOG_TRACE( "Created snapshot with objects: {} and size: {}", result.getObjects().size(),
+                              result.getBuffer().size() );
+                return result;
             }
         }
         case network::Node::Terminal:
@@ -229,7 +266,28 @@ Snapshot LeafRequestConversation::SimLockWrite( const MPO& requestingMPO, const 
         case network::Node::Tool:
         {
             network::sim::Request_Sender rq{ *this, m_leaf.getNodeChannelSender(), yield_ctx };
-            return rq.SimLockWrite( requestingMPO, targetMPO );
+            TimeStamp                    timestamp = rq.SimLockWriteMPO( requestingMPO, targetMPO );
+
+            if ( m_leaf.m_mp.getMachineID() == targetMPO.getMachineID() )
+            {
+                if ( m_leaf.m_mp.getProcessID() == targetMPO.getProcessID() )
+                {
+                    // same process - just return timestamp
+                    return Snapshot{ timestamp };
+                }
+                else
+                {
+                    // NOTE: should ALWAYS find the mpo root in the shared memory hash table since this leaf owns it
+                    const reference& mpoRoot = m_leaf.getSharedMemory().getMPORoot( targetMPO );
+                    return m_leaf.getJIT().save( getLLVMCompiler( yield_ctx ), mpoRoot, timestamp, false );
+                }
+            }
+            else
+            {
+                // NOTE: should ALWAYS find the mpo root in the shared memory hash table since this leaf owns it
+                const reference& mpoRoot = m_leaf.getSharedMemory().getMPORoot( targetMPO );
+                return m_leaf.getJIT().save( getLLVMCompiler( yield_ctx ), mpoRoot, timestamp, true );
+            }
         }
         case network::Node::Terminal:
         case network::Node::Daemon:
@@ -247,13 +305,18 @@ void LeafRequestConversation::SimLockRelease( const MPO&                  reques
                                               const network::Transaction& transaction,
                                               boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::SimLockRead {} {}", requestingMPO, targetMPO );
+    SPDLOG_TRACE( "LeafRequestConversation::SimLockRelease {} {}", requestingMPO, targetMPO );
     VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in SimLockRead" );
     switch ( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
         case network::Node::Tool:
         {
+            // apply transaction...
+
+            SPDLOG_TRACE( "SimLockRelease got {} memory records",
+                          transaction.getMemoryRecords( log::MemoryTrackType::Simulation ).size() );
+
             network::sim::Request_Sender rq{ *this, m_leaf.getNodeChannelSender(), yield_ctx };
             rq.SimLockRelease( requestingMPO, targetMPO, transaction );
             return;

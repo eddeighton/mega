@@ -30,6 +30,8 @@
 
 #include <boost/circular_buffer.hpp>
 
+#include <vector>
+
 #ifdef __gnu_linux__
 #include <string.h>
 #endif
@@ -61,7 +63,7 @@ public:
     inline Instance nextFree() const
     {
         const mega::U64 mask = m_bitset.to_ulong();
-        
+
 #ifdef __gnu_linux__
         return ffsll( mask );
 #endif
@@ -77,7 +79,6 @@ public:
             return Size;
         }
 #endif
-
     }
 
     inline Instance allocate()
@@ -94,7 +95,7 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        //archive& m_bitset;
+        // archive& m_bitset;
     }
 
 private:
@@ -159,9 +160,10 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        //const mega::U64 mask = m_bitset.to_ullong();
-        //archive& m_bitset;
+        // const mega::U64 mask = m_bitset.to_ullong();
+        // archive& m_bitset;
     }
+
 private:
     std::bitset< Size > m_bitset;
 };
@@ -207,8 +209,30 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        //archive& m_free;
+        // archive& m_free;
     }
+
+    inline std::vector< InstanceType > getAllocated() const
+    {
+        std::vector< InstanceType > allocated;
+        std::vector< InstanceType > freeOwners( m_free.begin(), m_free.end() );
+        std::sort( freeOwners.begin(), freeOwners.end() );
+        auto iter = freeOwners.begin();
+        // calculate the inverse of the free
+        for ( InstanceType id = 0U; id != Size; ++id )
+        {
+            if ( ( iter != freeOwners.end() ) && ( *iter == id ) )
+            {
+                ++iter;
+            }
+            else
+            {
+                allocated.push_back( id );
+            }
+        }
+        return allocated;
+    }
+
 private:
     FreeList m_free;
 };

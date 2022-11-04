@@ -156,6 +156,10 @@ public:
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::MemoryBaseReference Write( const MPO& requestingMPO, const reference& ref,
                                                 boost::asio::yield_context& yield_ctx ) override;
+    virtual void                         Release( const MPO&                  requestingMPO,
+                                                  const MPO&                  targetMPO,
+                                                  const network::Transaction& transaction,
+                                                  boost::asio::yield_context& yield_ctx ) override;
     virtual reference NetworkToMachine( const reference& ref, boost::asio::yield_context& yield_ctx ) override;
 
     // network::sim::Impl

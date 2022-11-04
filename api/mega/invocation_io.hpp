@@ -17,13 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef INVOCATION_ID_7_JUNE_2022
 #define INVOCATION_ID_7_JUNE_2022
 
 #include "mega/invocation_id.hpp"
+
+#include "database/types/operation.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -41,6 +40,40 @@ inline void to_json( nlohmann::json& j, const mega::InvocationID& invocationID )
 }
 } // namespace mega
 
-std::ostream& operator<<( std::ostream& os, const mega::InvocationID& invocationID );
+namespace detail
+{
+    template< class Iter >
+    inline void delimit( Iter pBegin, Iter pEnd, const std::string& delimiter, std::ostream& os )
+    {
+        for( Iter p = pBegin, pNext = pBegin; p!=pEnd; ++p )
+        {
+            ++pNext;
+            if( *p >= 0 )
+            {
+                // type id
+                os << 't' << *p;
+            }
+            else
+            {
+                // symbol id
+                os << 's' << -*p;
+            }
+            if( pNext != pEnd )
+            {
+                os << delimiter;
+            }
+        }
+    }
+}
+
+inline std::ostream& operator<<( std::ostream& os, const mega::InvocationID& invocationID )
+{
+    os << "c";
+    detail::delimit( invocationID.m_context.begin(), invocationID.m_context.end(), "_", os );
+    os << 'p';
+    detail::delimit( invocationID.m_type_path.begin(), invocationID.m_type_path.end(), "_", os );
+    return os << mega::getOperationString( invocationID.m_operation );
+}
+
 
 #endif // INVOCATION_ID_7_JUNE_2022

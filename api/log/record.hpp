@@ -46,7 +46,7 @@ public:
     {
     }
 
-    inline U64 size() const { return sizeof( m_reference ) + sizeof( U64 ) + sizeof( bool ) + m_data.size(); }
+    inline U64 size() const { return sizeof( U64 ) + sizeof( reference ) + sizeof( bool ) + m_data.size(); }
 
     template < typename FileType >
     inline auto write( FileType& file ) const
@@ -54,7 +54,7 @@ public:
         const U64 sz = size();
         file.write( &sz, sizeof( sz ) );
         file.write( &m_bShared, sizeof( bool ) );
-        file.write( &m_reference, sizeof( m_reference ) );
+        file.write( &m_reference, sizeof( reference ) );
         return file.write( m_data.data(), m_data.size() );
     }
 
@@ -71,11 +71,14 @@ public:
     {
         const char* p = reinterpret_cast< const char* >( pData );
 
-        const U64 size = *reinterpret_cast< const U64* >( p ) - ( sizeof( mega::reference ) + sizeof( U64 ) );
+        const U64 size = ( *reinterpret_cast< const U64* >( p ) ) - ( sizeof( U64 ) + sizeof( reference ) + sizeof( bool ) );
         p += sizeof( U64 );
 
+        m_pShared = reinterpret_cast< const bool* >( p );
+        p += sizeof( bool );
+
         m_pReference = reinterpret_cast< const mega::reference* >( p );
-        p += sizeof( mega::reference );
+        p += sizeof( reference );
 
         m_data = std::string_view{ reinterpret_cast< const char* >( p ), size };
     }
@@ -92,6 +95,7 @@ public:
 
 private:
     const mega::reference* m_pReference;
+    const bool*            m_pShared;
     std::string_view       m_data;
 };
 

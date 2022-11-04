@@ -27,6 +27,9 @@
 #include <boost/archive/binary_iarchive_impl.hpp>
 #include <boost/archive/binary_oarchive_impl.hpp>
 #include <boost/archive/detail/register_archive.hpp>
+
+#include <boost/archive/impl/basic_binary_iarchive.ipp>
+#include <boost/archive/impl/basic_binary_oarchive.ipp>
 #include <boost/archive/impl/basic_binary_iprimitive.ipp>
 #include <boost/archive/impl/basic_binary_oprimitive.ipp>
 
@@ -44,8 +47,8 @@ class BOOST_SYMBOL_VISIBLE SnapshotIArchive
     using base
         = boost::archive::binary_iarchive_impl< SnapshotIArchive, std::istream::char_type, std::istream::traits_type >;
 
-    friend class detail::common_oarchive< SnapshotIArchive >;
-    friend class basic_xml_oarchive< SnapshotIArchive >;
+    friend class detail::common_iarchive< SnapshotIArchive >;
+    friend class basic_binary_iarchive< SnapshotIArchive >;
     friend class boost::archive::load_access;
 
 public:
@@ -79,7 +82,7 @@ class BOOST_SYMBOL_VISIBLE SnapshotOArchive
         = boost::archive::binary_oarchive_impl< SnapshotOArchive, std::ostream::char_type, std::ostream::traits_type >;
 
     friend class detail::common_oarchive< SnapshotOArchive >;
-    friend class basic_xml_oarchive< SnapshotOArchive >;
+    friend class basic_binary_oarchive< SnapshotOArchive >;
     friend class boost::archive::save_access;
 
 public:
@@ -97,6 +100,11 @@ public:
     inline void save( const mega::reference& ref )
     {
         base::save( m_shapshot.refToIndex( ref ) );
+    }
+
+    void beginObject( const mega::reference& ref )
+    {
+        m_shapshot.beginObject( ref );
     }
 
     mega::Snapshot& getSnapshot() { return m_shapshot; }
@@ -135,7 +143,7 @@ public:
 
     BinLoadArchive( const Snapshot& snapshot )
         : m_shapshot( snapshot )
-        , m_iVecStream( m_shapshot.buffer() )
+        , m_iVecStream( m_shapshot.getBuffer() )
         , m_archive( m_iVecStream, m_shapshot )
     {
     }
@@ -171,9 +179,14 @@ public:
     inline const Snapshot& makeSnapshot( TimeStamp timestamp )
     {
         Snapshot& snapshot = m_archive.getSnapshot();
-        snapshot.timestamp( timestamp );
-        snapshot.buffer( m_oVecStream.vector() );
+        snapshot.setTimeStamp( timestamp );
+        snapshot.setBuffer( m_oVecStream.vector() );
         return snapshot;
+    }
+
+    void beginObject( const reference& ref )
+    {
+        m_archive.beginObject( ref );
     }
 
 private:

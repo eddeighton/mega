@@ -22,11 +22,12 @@
 
 #include "database/model/OperationsStage.hxx"
 
-#include "database/types/invocation_id.hpp"
 #include "invocation/invocation.hpp"
 #include "invocation/name_resolution.hpp"
 
+#include "mega/invocation_io.hpp"
 #include "mega/common_strings.hpp"
+
 #include "clang/Basic/SourceLocation.h"
 
 #pragma warning( push )

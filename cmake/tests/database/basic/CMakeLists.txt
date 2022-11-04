@@ -146,7 +146,6 @@ set( MEGA_TYPES_HEADERS
     ${MEGA_API_DIR}/database/types/sources.hpp
     ${MEGA_API_DIR}/database/types/modes.hpp
     ${MEGA_API_DIR}/database/types/clang_compilation.hpp
-    ${MEGA_API_DIR}/database/types/invocation_id.hpp
 )
 
 set( MEGA_TYPES_SOURCES
@@ -156,7 +155,6 @@ set( MEGA_TYPES_SOURCES
     ${MEGA_SRC_DIR}/database/types/sources.cpp
     ${MEGA_SRC_DIR}/database/types/modes.cpp
     ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
-    ${MEGA_SRC_DIR}/database/types/invocation_id.cpp
 )
 
 set( MEGA_UNIT_TESTS

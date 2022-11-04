@@ -83,7 +83,7 @@ public:
                    const InvocationID& invocationID, LoadFunction* ppFunction );
 
     Snapshot save( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, TimeStamp timestamp, bool bSaveShared );
-    void load( const CodeGenerator::LLVMCompiler& compiler, const Snapshot& snapshot, bool bLoadShared );
+    void load( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, const Snapshot& snapshot, bool bLoadShared );
 
 private:
     const Allocator&         getAllocator(  const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );

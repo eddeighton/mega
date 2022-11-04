@@ -98,12 +98,12 @@ void Root::saveConfig()
     }
 }
 
-void Root::onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MP mp )
+void Root::onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MachineID machineID )
 {
-    SPDLOG_TRACE( "Root::onDaemonDisconnect {} {}", connectionID, mp );
-    m_server.unmapConnection( mp );
+    SPDLOG_TRACE( "Root::onDaemonDisconnect {} {}", connectionID, machineID );
+    m_server.unLabelConnection( machineID );
     onDisconnect( connectionID );
-    m_mpoManager.daemonDisconnect( mp );
+    m_mpoManager.daemonDisconnect( machineID );
 }
 
 void Root::shutdown()

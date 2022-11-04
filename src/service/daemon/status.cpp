@@ -32,13 +32,13 @@ network::Status DaemonRequestConversation::GetStatus( const std::vector< network
         std::vector< network::ConversationID > conversations;
         for ( const auto& [ id, pCon ] : m_daemon.m_conversations )
         {
-            if( id != getID() )
+            if ( id != getID() )
             {
                 conversations.push_back( id );
             }
         }
         status.setConversationID( conversations );
-        status.setMP( m_daemon.m_mp );
+        status.setMachineID( m_daemon.m_machineID );
         status.setDescription( m_daemon.m_strProcessName );
     }
 

@@ -20,154 +20,193 @@
 #ifndef MPO_MANAGER_25_AUG_2022
 #define MPO_MANAGER_25_AUG_2022
 
-#include "mega/common.hpp"
 #include "mega/allocator.hpp"
+#include "mega/reference_io.hpp"
 
 #include "service/protocol/common/header.hpp"
 #include "service/network/log.hpp"
 
-#include <set>
+#include "common/assert_verify.hpp"
+
 #include <unordered_map>
+#include <unordered_set>
+#include <array>
 
 namespace mega::service
 {
 
 class MPOManager
 {
-    using MachineAllocator = mega::RingAllocator< mega::MachineID, mega::MAX_MACHINES >;
-    using ProcessAllocator = mega::RingAllocator< mega::ProcessID, mega::MAX_PROCESS_PER_MACHINE >;
-    using OwnerAllocator   = mega::RingAllocator< mega::OwnerID, mega::MAX_OWNER_PER_PROCESS >;
-
-    template < typename T, T max, typename FreeList >
-    inline std::vector< T > inverseOfFree( const FreeList& free ) const
+    class MachineAllocators
     {
-        std::vector< T >       allocated;
-        std::vector< OwnerID > freeOwners( free.begin(), free.end() );
-        std::sort( freeOwners.begin(), freeOwners.end() );
-        auto iter = freeOwners.begin();
-        // calculate the inverse of the free
-        for ( T id = 0U; id != max; ++id )
+        using ProcessAllocator = mega::RingAllocator< mega::ProcessID, mega::MAX_PROCESS_PER_MACHINE >;
+        using OwnerAllocator   = mega::RingAllocator< mega::OwnerID, mega::MAX_OWNER_PER_PROCESS >;
+        using OwnerArray       = std::array< OwnerAllocator, mega::MAX_PROCESS_PER_MACHINE >;
+
+        MachineID        m_machineID;
+        ProcessAllocator m_processes;
+        OwnerArray       m_owners;
+
+    public:
+        MachineAllocators( MachineID machineID )
+            : m_machineID( machineID )
         {
-            if ( ( iter != freeOwners.end() ) && ( *iter == id ) )
-            {
-                ++iter;
-            }
-            else
-            {
-                allocated.push_back( id );
-            }
         }
-        return allocated;
+
+        MP newLeaf()
+        {
+            if( m_processes.full() )
+            {
+                THROW_RTE( "MPOMgr: Maximum machine capacity reached on: " << m_machineID );
+            }
+
+            const MP mp( m_machineID, m_processes.allocate() );
+            SPDLOG_TRACE( "MPOMGR: newLeaf: {}", mp );
+            return mp;
+        }
+
+        std::vector< MPO > leafDisconnected( MP mp )
+        {
+            SPDLOG_TRACE( "MPOMGR: leafDisconnected: {}", mp );
+
+            m_processes.free( mp.getProcessID() );
+
+            std::vector< MPO > allocated;
+            {
+                // free all owners for the process
+                OwnerAllocator& owners = m_owners[ mp.getProcessID() ];
+                for( OwnerID id : owners.getAllocated() )
+                {
+                    allocated.emplace_back( MPO( mp.getMachineID(), mp.getProcessID(), id ) );
+                }
+                owners.reset();
+            }
+
+            return allocated;
+        }
+
+        MPO newOwner( MP leafMP, const network::ConversationID& conversationID )
+        {
+            OwnerAllocator& alloc = m_owners[ leafMP.getProcessID() ];
+            if( alloc.full() )
+            {
+                THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
+            }
+            const MPO mpo( leafMP.getMachineID(), leafMP.getProcessID(), alloc.allocate() );
+            SPDLOG_TRACE( "MPOMgr: newOwner: {} {}", mpo, conversationID );
+
+            return mpo;
+        }
+
+        void release( MPO mpo ) { m_owners[ mpo.getProcessID() ].free( mpo.getOwnerID() ); }
+
+        std::vector< MP > getProcesses() const
+        {
+            std::vector< MP > processes;
+            for( auto id : m_processes.getAllocated() )
+            {
+                processes.emplace_back( MP( m_machineID, id ) );
+            }
+            return processes;
+        }
+
+        std::vector< MPO > getOwners( MP mp ) const
+        {
+            std::vector< MPO > owners;
+            for( auto id : m_owners[ mp.getProcessID() ].getAllocated() )
+            {
+                owners.emplace_back( MPO( mp, id ) );
+            }
+            return owners;
+        }
+    };
+
+    using MPOMap            = std::unordered_map< MachineID, MachineAllocators, MachineID::Hash >;
+    using MachineIDFreeList = std::unordered_set< MachineID, MachineID::Hash >;
+
+    MPOMap            m_mpoMap;
+    MachineIDFreeList m_freeList;
+
+    MachineAllocators& get( MachineID machineID )
+    {
+        auto iFind = m_mpoMap.find( machineID );
+        VERIFY_RTE_MSG( iFind != m_mpoMap.end(), "Failed to locate machineID: " << machineID );
+        return iFind->second;
+    }
+
+    const MachineAllocators& get( MachineID machineID ) const
+    {
+        auto iFind = m_mpoMap.find( machineID );
+        VERIFY_RTE_MSG( iFind != m_mpoMap.end(), "Failed to locate machineID: " << machineID );
+        return iFind->second;
     }
 
 public:
-    MP newDaemon()
+    MachineID newDaemon()
     {
-        if ( m_machines.full() )
-        {
-            THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
-        }
+        VERIFY_RTE_MSG( m_mpoMap.size() < MAX_MACHINES, "Total machine capacity reached!" );
 
-        const MP mp( m_machines.allocate(), 0U, true );
-        SPDLOG_TRACE( "MPOMGR: newDaemon: {}", mp );
-        return mp;
+        MachineID machineID;
+        if( !m_freeList.empty() )
+        {
+            machineID = *m_freeList.begin();
+            m_freeList.erase( m_freeList.begin() );
+        }
+        else
+        {
+            machineID = m_mpoMap.size();
+        }
+        auto ib = m_mpoMap.insert( { machineID, MachineAllocators( machineID ) } );
+        VERIFY_RTE_MSG( ib.second, "Failed to create machineID" << machineID );
+
+        SPDLOG_TRACE( "MPOMGR: newDaemon: {}", machineID );
+        return machineID;
     }
 
-    void daemonDisconnect( MP mp )
+    void daemonDisconnect( MachineID machineID )
     {
-        MachineID m = mp.getMachineID();
-
-        m_machines.free( m );
-        m_processes[ m ].reset();
-        for ( OwnerAllocator& alloc : m_owners[ m ] )
-        {
-            alloc.reset();
-        }
-        SPDLOG_TRACE( "MPOMGR: daemonDisconnect: {}", mp );
+        auto iFind = m_mpoMap.find( machineID );
+        VERIFY_RTE_MSG( iFind != m_mpoMap.end(), "Failed to locate machineID: " << machineID );
+        m_mpoMap.erase( iFind );
+        SPDLOG_TRACE( "MPOMGR: daemonDisconnect: {}", machineID );
+        m_freeList.insert( machineID );
     }
 
-    MP newLeaf( MP daemonMP )
-    {
-        ProcessAllocator& alloc = m_processes[ daemonMP.getMachineID() ];
-        if ( alloc.full() )
-        {
-            THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
-        }
+    MP newLeaf( MachineID machineID ) { return get( machineID ).newLeaf(); }
 
-        const MP mp( daemonMP.getMachineID(), alloc.allocate(), false );
-        SPDLOG_TRACE( "MPOMGR: newLeaf: {}", mp );
-        return mp;
-    }
+    std::vector< MPO > leafDisconnected( MP mp ) { return get( mp.getMachineID() ).leafDisconnected( mp ); }
 
-    std::vector< MPO > leafDisconnected( MP mp )
-    {
-        SPDLOG_TRACE( "MPOMGR: leafDisconnected: {}", mp );
-
-        // free the process within the machine
-        m_processes[ mp.getMachineID() ].free( mp.getProcessID() );
-
-        std::vector< MPO > allocated;
-        {
-            // free all owners for the process
-            OwnerAllocator& owners = m_owners[ mp.getMachineID() ][ mp.getProcessID() ];
-            for ( OwnerID id : inverseOfFree< OwnerID, mega::MAX_PROCESS_PER_MACHINE >( owners.getFree() ) )
-            {
-                allocated.push_back( MPO( mp.getMachineID(), mp.getProcessID(), id ) );
-            }
-            owners.reset();
-        }
-
-        return allocated;
-    }
     MPO newOwner( MP leafMP, const network::ConversationID& conversationID )
     {
-        OwnerAllocator& alloc = m_owners[ leafMP.getMachineID() ][ leafMP.getProcessID() ];
-        if ( alloc.full() )
-        {
-            THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
-        }
-        const MPO mpo( leafMP.getMachineID(), leafMP.getProcessID(), alloc.allocate() );
-        SPDLOG_TRACE( "MPOMgr: newOwner: {} {}", mpo, conversationID );
-
-        return mpo;
+        return get( leafMP.getMachineID() ).newOwner( leafMP, conversationID );
     }
 
-    void release( MPO mpo ) { m_owners[ mpo.getMachineID() ][ mpo.getProcessID() ].free( mpo.getOwnerID() ); }
+    void release( MPO mpo ) { return get( mpo.getMachineID() ).release( mpo ); }
 
     std::vector< MachineID > getMachines() const
     {
         std::vector< MachineID > machines;
-        for ( auto id : inverseOfFree< MachineID, mega::MAX_MACHINES >( m_machines.getFree() ) )
+        for( const auto& [ machineID, state ] : m_mpoMap )
         {
-            machines.push_back( id );
+            machines.push_back( machineID );
         }
+        std::sort( machines.begin(), machines.end() );
         return machines;
     }
+
     std::vector< MP > getMachineProcesses( MachineID machineID ) const
     {
-        std::vector< MP > processes;
-        for ( auto id :
-              inverseOfFree< ProcessID, mega::MAX_PROCESS_PER_MACHINE >( m_processes[ machineID ].getFree() ) )
-        {
-            processes.push_back( MP( machineID, id, false ) );
-        }
-        return processes;
-    }
-    std::vector< MPO > getMPO( MP machineProcess ) const
-    {
-        std::vector< MPO > mpos;
-        for ( auto id : inverseOfFree< OwnerID, mega::MAX_PROCESS_PER_MACHINE >(
-                  m_owners[ machineProcess.getMachineID() ][ machineProcess.getProcessID() ].getFree() ) )
-        {
-            mpos.push_back( MPO( machineProcess.getMachineID(), machineProcess.getProcessID(), id ) );
-        }
-        return mpos;
+        std::vector< MP > result = get( machineID ).getProcesses();
+        std::sort( result.begin(), result.end() );
+        return result;
     }
 
-private:
-    MachineAllocator m_machines;
-    ProcessAllocator m_processes[ mega::MAX_MACHINES ];
-    OwnerAllocator   m_owners[ mega::MAX_MACHINES ][ mega::MAX_PROCESS_PER_MACHINE ];
+    std::vector< MPO > getMPO( MP machineProcess ) const
+    {
+        std::vector< MPO > result = get( machineProcess.getMachineID() ).getOwners( machineProcess );
+        std::sort( result.begin(), result.end() );
+        return result;
+    }
 };
 
 } // namespace mega::service
