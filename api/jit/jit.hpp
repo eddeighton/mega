@@ -29,6 +29,8 @@
 
 #include "service/protocol/common/project.hpp"
 
+#include "mega/snapshot.hpp"
+
 #include <iostream>
 #include <sstream>
 #include <map>
@@ -49,17 +51,17 @@ public:
     network::SizeAlignment getSize( TypeID typeID ) const;
 
     void getObjectSharedAlloc(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                               const mega::TypeID& objectTypeID, mega::runtime::SharedCtorFunction* ppFunction );
+                               const TypeID& objectTypeID, runtime::SharedCtorFunction* ppFunction );
     void getObjectSharedDel(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                             const mega::TypeID& objectTypeID, mega::runtime::SharedDtorFunction* ppFunction );
+                             const TypeID& objectTypeID, runtime::SharedDtorFunction* ppFunction );
     void getObjectHeapAlloc(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                             const mega::TypeID& objectTypeID, mega::runtime::HeapCtorFunction* ppFunction );
+                             const TypeID& objectTypeID, runtime::HeapCtorFunction* ppFunction );
     void getObjectHeapDel(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const mega::TypeID& objectTypeID, mega::runtime::HeapDtorFunction* ppFunction );
+                           const TypeID& objectTypeID, runtime::HeapDtorFunction* ppFunction );
     void getObjectSave(const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const mega::TypeID& objectTypeID, mega::runtime::SaveObjectFunction* ppFunction);
+                           const TypeID& objectTypeID, runtime::SaveObjectFunction* ppFunction);
     void getObjectLoad(const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const mega::TypeID& objectTypeID, mega::runtime::LoadObjectFunction* ppFunction);
+                           const TypeID& objectTypeID, runtime::LoadObjectFunction* ppFunction);
 
     void getCallGetter( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
 
@@ -72,16 +74,19 @@ public:
     void getCall(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
                    CallFunction* ppFunction );
     void getStart(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                    const mega::InvocationID& invocationID, StartFunction* ppFunction );
+                    const InvocationID& invocationID, StartFunction* ppFunction );
     void getStop(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                   const mega::InvocationID& invocationID, StopFunction* ppFunction );
+                   const InvocationID& invocationID, StopFunction* ppFunction );
     void getSave(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                    const mega::InvocationID& invocationID, SaveFunction* ppFunction );
+                    const InvocationID& invocationID, SaveFunction* ppFunction );
     void getLoad(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                   const mega::InvocationID& invocationID, LoadFunction* ppFunction );
+                   const InvocationID& invocationID, LoadFunction* ppFunction );
+
+    Snapshot save( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, TimeStamp timestamp, bool bSaveShared );
+    void load( const CodeGenerator::LLVMCompiler& compiler, const Snapshot& snapshot, bool bLoadShared );
 
 private:
-    const Allocator&         getAllocator(  const CodeGenerator::LLVMCompiler& compiler, const mega::TypeID& objectTypeID );
+    const Allocator&         getAllocator(  const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
     JITCompiler::Module::Ptr compile( const std::string& strCode );
 
     const network::MegastructureInstallation m_megastructureInstallation;

@@ -107,7 +107,7 @@ install( EXPORT executorLib NAMESPACE MEGA:: FILE executorLib-config.cmake DESTI
 set( EXECUTOR_SOURCE 
     ${MEGA_SRC_DIR}/service/executor/main.cpp 
 
-    ${MEGA_API_DIR}/mega/default_traits.cpp
+    ${MEGA_API_DIR}/mega/types/traits.cpp
     )
 
 add_executable( executor ${EXECUTOR_SOURCE}  )

@@ -67,7 +67,13 @@ public:
     void ensureAllocated( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
                           void* pSharedMemoryBuffer, reference& ref )
     {
-        
+        THROW_TODO;
+    }
+
+    void ensureAllocated( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
+                          network::MemoryBaseReference& ref )
+    {
+        THROW_TODO;
     }
 
     // NOTE: free DOES NOT reset the heap pointer!
@@ -83,9 +89,10 @@ public:
 
     void freeAll( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit, MPO mpo )
     {
-        auto i    = m_heapBuffers.lower_bound( reference( TypeInstance( 0, 0 ), mpo ) );
+        auto i = m_heapBuffers.lower_bound( reference( TypeInstance( 0, 0 ), mpo, std::numeric_limits< U64 >::min() ) );
         auto iEnd = m_heapBuffers.lower_bound(
-            reference( TypeInstance( 0, 0 ), MPO( mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID() + 1 ) ) );
+            reference( TypeInstance( 0, 0 ), MPO( mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID() + 1 ),
+                       std::numeric_limits< U64 >::max() ) );
         for ( ; i != iEnd; ++i )
         {
             getDtor( compiler, jit, i->first.type )( i->second.get() );

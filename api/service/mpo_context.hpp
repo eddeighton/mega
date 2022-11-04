@@ -21,7 +21,7 @@
 #ifndef GUARD_2022_October_14_mpo_context
 #define GUARD_2022_October_14_mpo_context
 
-#include "mega/default_traits.hpp"
+#include "mega/types/traits.hpp"
 #include "mega/reference.hpp"
 
 #include "jit/functions.hpp"
@@ -249,7 +249,8 @@ public:
 
                     MemoryMap& memoryMap = m_memoryMaps[ iTrack ];
                     int        iCounter  = 0;
-                    for ( auto i = memoryMap.lower_bound( reference( TypeInstance{}, writeLock ) );
+                    for ( auto i = memoryMap.lower_bound(
+                              reference( TypeInstance{}, writeLock, std::numeric_limits< U64 >::min() ) );
                           i != memoryMap.end();
                           ++i )
                     {

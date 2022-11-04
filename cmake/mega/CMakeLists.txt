@@ -24,21 +24,17 @@
 cmake_minimum_required( VERSION 3.1...3.16 )
 
 set( MEGA_LIBRARY
-    ${MEGA_API_DIR}/mega/api.hpp
-    ${MEGA_API_DIR}/mega/archive.hpp
     ${MEGA_API_DIR}/mega/allocator.hpp
+    ${MEGA_API_DIR}/mega/api.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
+    ${MEGA_API_DIR}/mega/bin_archive.hpp
     ${MEGA_API_DIR}/mega/clock.hpp
     ${MEGA_API_DIR}/mega/common_strings.hpp 
     ${MEGA_API_DIR}/mega/common.hpp 
     ${MEGA_API_DIR}/mega/coroutine.hpp
-    ${MEGA_API_DIR}/mega/default_traits.hpp
-    ${MEGA_API_DIR}/mega/default_traits.hxx
-    ${MEGA_API_DIR}/mega/allocator_traits.hxx
-    ${MEGA_API_DIR}/mega/default_traits.cpp
     ${MEGA_API_DIR}/mega/eg_common_strings.hpp
-    ${MEGA_API_DIR}/mega/event.hpp
     ${MEGA_API_DIR}/mega/event_log.hpp
+    ${MEGA_API_DIR}/mega/event.hpp
     ${MEGA_API_DIR}/mega/include.hpp
     ${MEGA_API_DIR}/mega/invocation_id.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
@@ -48,12 +44,25 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/reference_io.hpp
     ${MEGA_API_DIR}/mega/reference.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
-    ${MEGA_API_DIR}/mega/root.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/shared_memory_header.hpp
+    ${MEGA_API_DIR}/mega/snapshot.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
     ${MEGA_API_DIR}/mega/variant.hpp
+    ${MEGA_API_DIR}/mega/xml_archive.hpp
+
 )
 
+set( MEGA_TYPES
+    ${MEGA_API_DIR}/mega/types/traits.hpp
+    ${MEGA_API_DIR}/mega/types/traits.cpp
+
+    ${MEGA_API_DIR}/mega/types/simple.hxx
+    ${MEGA_API_DIR}/mega/types/non_simple.hxx
+    ${MEGA_API_DIR}/mega/types/allocators_32.hxx
+    ${MEGA_API_DIR}/mega/types/allocators_64.hxx
+    ${MEGA_API_DIR}/mega/types/allocators_128.hxx
+)
 
 install( FILES ${MEGA_LIBRARY} DESTINATION include/mega )
+install( FILES ${MEGA_TYPES} DESTINATION include/mega/types )

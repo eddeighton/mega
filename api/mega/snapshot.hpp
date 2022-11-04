@@ -44,6 +44,8 @@ public:
     using IndexTable = std::unordered_map< reference, Index, reference::Hash >;
     using IndexArray = std::vector< reference >;
 
+    using Buffer = std::vector< char >;
+
     Snapshot()
         : m_timeStamp( 0U )
     {
@@ -55,12 +57,19 @@ public:
 
     TimeStamp getTimeStamp() const { return m_timeStamp; }
 
+    TimeStamp     timestamp() { return m_timeStamp; }
+    const Buffer& buffer() const { return m_buffer; }
+
+    void timestamp( TimeStamp timeStamp ) { m_timeStamp = timeStamp; }
+    void buffer( const Buffer& buffer ) { m_buffer = buffer; }
+
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
         archive& m_timeStamp;
         archive& m_table;
         archive& m_array;
+        archive& m_buffer;
     }
 
     const Index& refToIndex( const reference& ref )
@@ -95,6 +104,7 @@ private:
     TimeStamp  m_timeStamp;
     IndexTable m_table;
     IndexArray m_array;
+    Buffer     m_buffer;
 };
 
 } // namespace mega

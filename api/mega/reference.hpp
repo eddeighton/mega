@@ -212,12 +212,12 @@ static_assert( sizeof( MPO ) == 2U, "Invalid MPO Size" );
 struct reference : TypeInstance, MPO, NetworkOrProcessAddress
 {
     inline reference() = default;
-    inline reference( TypeInstance typeInstance, MPO mpo )
+    /*inline reference( TypeInstance typeInstance, MPO mpo )
         : TypeInstance( typeInstance )
         , MPO( mpo )
     {
         setIsMachine();
-    }
+    }*/
     inline reference( TypeInstance typeInstance, MPO mpo, ProcessAddress process )
         : TypeInstance( typeInstance )
         , MPO( mpo )

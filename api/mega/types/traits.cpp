@@ -17,9 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mega/default_traits.hpp"
+#include "mega/types/traits.hpp"
+
 #include "mega/allocator.hpp"
-#include "mega/archive.hpp"
+#include "mega/xml_archive.hpp"
+#include "mega/bin_archive.hpp"
 
 #include "service/mpo_context.hpp"
 
@@ -46,19 +48,35 @@ void delete_( void* p )
 }
 
 template < typename T >
-void save_( void* p, const char* name, void* pArchive )
+void save_xml_( void* p, const char* name, void* pArchive )
 {
-    T*                 pData = reinterpret_cast< T* >( p );
-    mega::SaveArchive& ar    = *reinterpret_cast< mega::SaveArchive* >( pArchive );
+    T*                    pData = reinterpret_cast< T* >( p );
+    mega::XMLSaveArchive& ar    = *reinterpret_cast< mega::XMLSaveArchive* >( pArchive );
     ar.save( *pData, name );
 }
 
 template < typename T >
-void load_( void* p, const char* name, void* pArchive )
+void load_xml_( void* p, const char* name, void* pArchive )
 {
-    T*                 pData = reinterpret_cast< T* >( p );
-    mega::LoadArchive& ar    = *reinterpret_cast< mega::LoadArchive* >( pArchive );
+    T*                    pData = reinterpret_cast< T* >( p );
+    mega::XMLLoadArchive& ar    = *reinterpret_cast< mega::XMLLoadArchive* >( pArchive );
     ar.load( *pData, name );
+}
+
+template < typename T >
+void save_bin_( void* p, void* pArchive )
+{
+    T*                    pData = reinterpret_cast< T* >( p );
+    mega::BinSaveArchive& ar    = *reinterpret_cast< mega::BinSaveArchive* >( pArchive );
+    ar.save( *pData );
+}
+
+template < typename T >
+void load_bin_( void* p, void* pArchive )
+{
+    T*                    pData = reinterpret_cast< T* >( p );
+    mega::BinLoadArchive& ar    = *reinterpret_cast< mega::BinLoadArchive* >( pArchive );
+    ar.load( *pData );
 }
 
 template < typename T >
@@ -79,11 +97,11 @@ void event_( const mega::reference& ref, bool bShared, const void* p )
                     ref, bShared, std::string_view( reinterpret_cast< const char* >( p ), sizeof( T ) ) ) );
 }
 
-/*
 template < typename T >
-void event_nonSimple( const mega::reference& ref, bool bShared, const T& value )
+void event_nonSimple_( const mega::reference& ref, bool bShared, const void* p )
 {
-    using Buffer = std::vector< char >;
+    const T& value = *reinterpret_cast< const T* >( p );
+    using Buffer   = std::vector< char >;
     boost::interprocess::basic_vectorbuf< Buffer > os;
     {
         boost::archive::binary_oarchive oa( os );
@@ -91,8 +109,9 @@ void event_nonSimple( const mega::reference& ref, bool bShared, const T& value )
     }
 }
 
+/*
 template < typename T >
-void read_nonSimple( std::vector< char >& buffer )
+void read_nonSimple_( std::vector< char >& buffer )
 {
     using Buffer = std::vector< char >;
     T                                              data;
@@ -109,22 +128,22 @@ namespace mega
 
 void save_begin_part( const char* partName, void* pArchive )
 {
-    mega::SaveArchive& ar = *reinterpret_cast< mega::SaveArchive* >( pArchive );
+    mega::XMLSaveArchive& ar = *reinterpret_cast< mega::XMLSaveArchive* >( pArchive );
     ar.beginPart( partName );
 }
 void save_end_part( const char* partName, void* pArchive )
 {
-    mega::SaveArchive& ar = *reinterpret_cast< mega::SaveArchive* >( pArchive );
+    mega::XMLSaveArchive& ar = *reinterpret_cast< mega::XMLSaveArchive* >( pArchive );
     ar.endPart( partName );
 }
 void load_begin_part( const char* partName, void* pArchive )
 {
-    mega::LoadArchive& ar = *reinterpret_cast< mega::LoadArchive* >( pArchive );
+    mega::XMLLoadArchive& ar = *reinterpret_cast< mega::XMLLoadArchive* >( pArchive );
     ar.beginPart( partName );
 }
 void load_end_part( const char* partName, void* pArchive )
 {
-    mega::LoadArchive& ar = *reinterpret_cast< mega::LoadArchive* >( pArchive );
+    mega::XMLLoadArchive& ar = *reinterpret_cast< mega::XMLLoadArchive* >( pArchive );
     ar.endPart( partName );
 }
 
@@ -137,13 +156,21 @@ void load_end_part( const char* partName, void* pArchive )
     {                                                                                 \
         delete_< type >( p );                                                         \
     }                                                                                 \
-    void save_##manged_name( void* p, const char* name, void* pArchive )              \
+    void save_xml_##manged_name( void* p, const char* name, void* pArchive )          \
     {                                                                                 \
-        save_< type >( p, name, pArchive );                                           \
+        save_xml_< type >( p, name, pArchive );                                       \
     }                                                                                 \
-    void load_##manged_name( void* p, const char* name, void* pArchive )              \
+    void load_xml_##manged_name( void* p, const char* name, void* pArchive )          \
     {                                                                                 \
-        load_< type >( p, name, pArchive );                                           \
+        load_xml_< type >( p, name, pArchive );                                       \
+    }                                                                                 \
+    void save_bin_##manged_name( void* p, void* pArchive )                            \
+    {                                                                                 \
+        save_bin_< type >( p, pArchive );                                             \
+    }                                                                                 \
+    void load_bin_##manged_name( void* p, void* pArchive )                            \
+    {                                                                                 \
+        load_bin_< type >( p, pArchive );                                             \
     }                                                                                 \
     void copy_##manged_name( const void* pFrom, void* pTo )                           \
     {                                                                                 \
@@ -154,10 +181,10 @@ void load_end_part( const char* partName, void* pArchive )
         event_< type >( ref, bShared, pData );                                        \
     }
 
-#include "default_traits.hxx"
+#include "mega/types/simple.hxx"
 #undef SIMPLETYPE
 
-#define ALLOCATOR( manged_name, type )                                                \
+#define NONSIMPLETYPE( manged_name, type )                                            \
     void new_##manged_name( void* p, void* pMemory )                                  \
     {                                                                                 \
         new_< type >( p );                                                            \
@@ -166,13 +193,58 @@ void load_end_part( const char* partName, void* pArchive )
     {                                                                                 \
         delete_< type >( p );                                                         \
     }                                                                                 \
-    void save_##manged_name( void* p, const char* name, void* pArchive )              \
+    void save_xml_##manged_name( void* p, const char* name, void* pArchive )          \
     {                                                                                 \
-        save_< type >( p, name, pArchive );                                           \
+        save_xml_< type >( p, name, pArchive );                                       \
     }                                                                                 \
-    void load_##manged_name( void* p, const char* name, void* pArchive )              \
+    void load_xml_##manged_name( void* p, const char* name, void* pArchive )          \
     {                                                                                 \
-        load_< type >( p, name, pArchive );                                           \
+        load_xml_< type >( p, name, pArchive );                                       \
+    }                                                                                 \
+    void save_bin_##manged_name( void* p, void* pArchive )                            \
+    {                                                                                 \
+        save_bin_< type >( p, pArchive );                                             \
+    }                                                                                 \
+    void load_bin_##manged_name( void* p, void* pArchive )                            \
+    {                                                                                 \
+        load_bin_< type >( p, pArchive );                                             \
+    }                                                                                 \
+    void copy_##manged_name( const void* pFrom, void* pTo )                           \
+    {                                                                                 \
+        copy_< type >( pFrom, pTo );                                                  \
+    }                                                                                 \
+    void event_##manged_name( const reference& ref, bool bShared, const void* pData ) \
+    {                                                                                 \
+        event_nonSimple_< type >( ref, bShared, pData );                              \
+    }
+
+#include "mega/types/non_simple.hxx"
+#undef NONSIMPLETYPE
+
+#define ALLOCATOR( manged_name, type, size )                                          \
+    void new_##manged_name( void* p, void* pMemory )                                  \
+    {                                                                                 \
+        new_< type >( p );                                                            \
+    }                                                                                 \
+    void delete_##manged_name( void* p )                                              \
+    {                                                                                 \
+        delete_< type >( p );                                                         \
+    }                                                                                 \
+    void save_xml_##manged_name( void* p, const char* name, void* pArchive )          \
+    {                                                                                 \
+        save_xml_< type >( p, name, pArchive );                                       \
+    }                                                                                 \
+    void load_xml_##manged_name( void* p, const char* name, void* pArchive )          \
+    {                                                                                 \
+        load_xml_< type >( p, name, pArchive );                                       \
+    }                                                                                 \
+    void save_bin_##manged_name( void* p, void* pArchive )                            \
+    {                                                                                 \
+        save_bin_< type >( p, pArchive );                                             \
+    }                                                                                 \
+    void load_bin_##manged_name( void* p, void* pArchive )                            \
+    {                                                                                 \
+        load_bin_< type >( p, pArchive );                                             \
     }                                                                                 \
     void copy_##manged_name( const void* pFrom, void* pTo )                           \
     {                                                                                 \
@@ -183,20 +255,24 @@ void load_end_part( const char* partName, void* pArchive )
         event_< type >( ref, bShared, pData );                                        \
     }
 
-#include "allocator_traits.hxx"
+#include "mega/types/allocators_32.hxx"
+#include "mega/types/allocators_64.hxx"
+#include "mega/types/allocators_128.hxx"
 #undef ALLOCATOR
 
 // std::vector< int >
 void new_classstd00vector3int4( void* p, void* pMemory ) { new_< std::vector< int > >( p ); }
 void delete_classstd00vector3int4( void* p ) { delete_< std::vector< int > >( p ); }
-void save_classstd00vector3int4( void* p, const char* name, void* pArchive )
+void save_xml_classstd00vector3int4( void* p, const char* name, void* pArchive )
 {
-    save_< std::vector< int > >( p, name, pArchive );
+    save_xml_< std::vector< int > >( p, name, pArchive );
 }
-void load_classstd00vector3int4( void* p, const char* name, void* pArchive )
+void load_xml_classstd00vector3int4( void* p, const char* name, void* pArchive )
 {
-    load_< std::vector< int > >( p, name, pArchive );
+    load_xml_< std::vector< int > >( p, name, pArchive );
 }
+void save_bin_classstd00vector3int4( void* p, void* pArchive ) { save_bin_< std::vector< int > >( p, pArchive ); }
+void load_bin_classstd00vector3int4( void* p, void* pArchive ) { load_bin_< std::vector< int > >( p, pArchive ); }
 void copy_classstd00vector3int4( const void* pFrom, void* pTo ) { copy_< std::vector< int > >( pFrom, pTo ); }
 
 // mega::ReferenceVector
@@ -211,13 +287,21 @@ void new_mega00ReferenceVector( void* p, void* pMemory )
     // SPDLOG_TRACE( "new_mega00ReferenceVector - done" );
 }
 void delete_mega00ReferenceVector( void* p ) { delete_< mega::ReferenceVector >( p ); }
-void save_mega00ReferenceVector( void* p, const char* name, void* pArchive )
+void save_xml_mega00ReferenceVector( void* p, const char* name, void* pArchive )
 {
-    // save_< mega::ReferenceVector >( p, name, pArchive );
+    // save_xml_< mega::ReferenceVector >( p, name, pArchive );
 }
-void load_mega00ReferenceVector( void* p, const char* name, void* pArchive )
+void load_xml_mega00ReferenceVector( void* p, const char* name, void* pArchive )
 {
-    // load_< mega::ReferenceVector >( p, name, pArchive );
+    // load_xml_< mega::ReferenceVector >( p, name, pArchive );
+}
+void save_bin_mega00ReferenceVector( void* p, void* pArchive )
+{
+    // save_bin_< mega::ReferenceVector >( p, pArchive );
+}
+void load_bin_mega00ReferenceVector( void* p, void* pArchive )
+{
+    // load_bin_< mega::ReferenceVector >( p, pArchive );
 }
 void copy_mega00ReferenceVector( const void* pFrom, void* pTo ) { copy_< mega::ReferenceVector >( pFrom, pTo ); }
 
@@ -246,7 +330,7 @@ inline void free_( TAllocator& allocator, Instance instance )
     allocator.free( instance );
 }
 
-#define ALLOCATOR( manged_name, type )                               \
+#define ALLOCATOR( manged_name, type, size )                         \
     Instance allocate_##manged_name( void* p )                       \
     {                                                                \
         return allocate_< type >( *reinterpret_cast< type* >( p ) ); \
@@ -256,7 +340,9 @@ inline void free_( TAllocator& allocator, Instance instance )
         free_< type >( *reinterpret_cast< type* >( p ), instance );  \
     }
 
-#include "allocator_traits.hxx"
+#include "mega/types/allocators_32.hxx"
+#include "mega/types/allocators_64.hxx"
+#include "mega/types/allocators_128.hxx"
 #undef ALLOCATOR
 
 void schedule_start( const reference& ref )

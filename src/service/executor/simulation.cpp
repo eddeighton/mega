@@ -293,7 +293,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     request.SimStart();
 }
 
-Snapshot Simulation::SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& )
+TimeStamp Simulation::SimLockReadMPO( const MPO&, const MPO&, boost::asio::yield_context& )
 {
     if ( m_stateMachine.isTerminating() )
     {
@@ -305,7 +305,7 @@ Snapshot Simulation::SimLockRead( const MPO&, const MPO&, boost::asio::yield_con
     }
 }
 
-Snapshot Simulation::SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& )
+TimeStamp Simulation::SimLockWriteMPO( const MPO&, const MPO&, boost::asio::yield_context& )
 {
     if ( m_stateMachine.isTerminating() )
     {

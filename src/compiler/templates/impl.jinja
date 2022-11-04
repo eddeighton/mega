@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mega/archive.hpp"
+#include "mega/xml_archive.hpp"
 
 #include <typeinfo>
 
@@ -115,7 +115,7 @@ struct __invoke_impl
         {
             mega::runtime::get_save( g_unit_name, id, &g_pRuntimeFunc );
         }
-        mega::SaveArchive archive( args... );
+        mega::XMLSaveArchive archive( args... );
         g_pRuntimeFunc( context.data, &archive );
 {% else if invocation.explicit_operation == "Load" %}
         // Load
@@ -124,7 +124,7 @@ struct __invoke_impl
         {
             mega::runtime::get_load( g_unit_name, id, &g_pRuntimeFunc );
         }
-        mega::LoadArchive archive( args... );
+        mega::XMLLoadArchive archive( args... );
         g_pRuntimeFunc( context.data, &archive );
 {% else if invocation.explicit_operation == "Files" %}
         // Files

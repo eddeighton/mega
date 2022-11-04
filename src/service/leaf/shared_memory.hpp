@@ -21,7 +21,7 @@
 #define SHARED_MEMORY_21_OCT_2022
 
 #include "mega/reference.hpp"
-#include "mega/default_traits.hpp"
+#include "mega/types/traits.hpp"
 
 #include "jit/functions.hpp"
 #include "jit/jit.hpp"
@@ -45,7 +45,7 @@ class SharedMemoryAccess
     public:
         using Ptr = std::unique_ptr< SharedMemory >;
 
-        SharedMemory( const mega::MPO& mpo, const std::string& strName )
+        SharedMemory( const MPO& mpo, const std::string& strName )
             : m_memory( boost::interprocess::open_only, strName.c_str() )
         {
         }
@@ -56,14 +56,16 @@ class SharedMemoryAccess
         runtime::ManagedSharedMemory m_memory;
     };
 
-    using SharedMemoryMap = std::unordered_map< mega::MPO, SharedMemory::Ptr, mega::MPO::Hash >;
-    using SharedBufferSet = std::set< mega::reference >;
+    using SharedMemoryMap = std::unordered_map< MPO, SharedMemory::Ptr, MPO::Hash >;
+    using SharedBufferSet = std::set< reference >;
 
-    using CtorMap = std::map< TypeID, mega::runtime::SharedCtorFunction >;
-    using DtorMap = std::map< TypeID, mega::runtime::SharedDtorFunction >;
+    using CtorMap = std::map< TypeID, runtime::SharedCtorFunction >;
+    using DtorMap = std::map< TypeID, runtime::SharedDtorFunction >;
+
+    using MPORootMap = std::unordered_map< MPO, reference, MPO::Hash >;
 
 public:
-    using MemoryAccessor = std::function< std::string( mega::MPO ) >;
+    using MemoryAccessor = std::function< std::string( MPO ) >;
 
     runtime::ManagedSharedMemory& get( const MPO& mpo, const MemoryAccessor& memoryAccess )
     {
@@ -82,18 +84,33 @@ public:
         }
     }
 
-    void* construct( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit, const reference& ref,
-                    const MemoryAccessor& memoryAccess )
+    const reference& getMPORoot( MPO mpo ) const
     {
+        auto iFind = m_rootMap.find( mpo );
+        VERIFY_RTE_MSG( iFind != m_rootMap.end(), "Failed to locate mpo root for: " << mpo );
+        return iFind->second;
+    }
+
+    void* construct( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit, const reference& ref,
+                     const MemoryAccessor& memoryAccess )
+    {
+        ASSERT( ref.isMachine() );
         runtime::ManagedSharedMemory& sharedMemory = get( ref, memoryAccess );
         void* pSharedMemoryBuffer                  = fromProcessAddress( sharedMemory.get_address(), ref.pointer );
         getCtor( compiler, jit, ref.type )( pSharedMemoryBuffer, sharedMemory.get_segment_manager() );
         m_buffers.insert( ref );
+
+        if( ref.type == ROOT_TYPE_ID )
+        {
+            m_rootMap.insert( { ref, ref } );
+        }
+
         return pSharedMemoryBuffer;
     }
 
-    network::MemoryBaseReference getOrConstruct( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
-                                                const reference& ref, const MemoryAccessor& memoryAccess )
+    network::MemoryBaseReference getOrConstruct( const runtime::CodeGenerator::LLVMCompiler& compiler,
+                                                 runtime::JIT& jit, const reference& ref,
+                                                 const MemoryAccessor& memoryAccess )
     {
         auto iFind = m_buffers.find( ref );
         if ( iFind == m_buffers.end() )
@@ -115,14 +132,20 @@ public:
         void* pSharedMemoryBuffer                  = fromProcessAddress( sharedMemory.get_address(), ref.pointer );
         getDtor( compiler, jit, ref.type )( pSharedMemoryBuffer );
         m_buffers.erase( ref );
+
+        if( ref.type == ROOT_TYPE_ID )
+        {
+            m_rootMap.erase( ref );
+        }
     }
 
     void freeAll( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit, MPO mpo,
                   const MemoryAccessor& memoryAccess )
     {
-        auto i    = m_buffers.lower_bound( reference( TypeInstance( 0, 0 ), mpo ) );
+        auto i    = m_buffers.lower_bound( reference( TypeInstance( 0, 0 ), mpo, std::numeric_limits< U64 >::min() ) );
         auto iEnd = m_buffers.lower_bound(
-            reference( TypeInstance( 0, 0 ), MPO( mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID() + 1 ) ) );
+            reference( TypeInstance( 0, 0 ), MPO( mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID() + 1 ),
+                       std::numeric_limits< U64 >::max() ) );
         for ( ; i != iEnd; ++i )
         {
             runtime::ManagedSharedMemory& sharedMemory = get( *i, memoryAccess );
@@ -131,16 +154,17 @@ public:
         }
         m_buffers.erase( i, iEnd );
         m_memory.erase( mpo );
+        m_rootMap.erase( mpo );
     }
 
 private:
-    mega::runtime::SharedCtorFunction getCtor( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
-                                               TypeID typeID )
+    runtime::SharedCtorFunction getCtor( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
+                                         TypeID typeID )
     {
         auto iFind = m_constructors.find( typeID );
         if ( iFind == m_constructors.end() )
         {
-            iFind = m_constructors.insert( { typeID, mega::runtime::SharedCtorFunction{} } ).first;
+            iFind = m_constructors.insert( { typeID, runtime::SharedCtorFunction{} } ).first;
         }
         if ( iFind->second == nullptr )
         {
@@ -148,13 +172,13 @@ private:
         }
         return iFind->second;
     }
-    mega::runtime::SharedDtorFunction getDtor( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
-                                               TypeID typeID )
+    runtime::SharedDtorFunction getDtor( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
+                                         TypeID typeID )
     {
         auto iFind = m_destructors.find( typeID );
         if ( iFind == m_destructors.end() )
         {
-            iFind = m_destructors.insert( { typeID, mega::runtime::SharedDtorFunction{} } ).first;
+            iFind = m_destructors.insert( { typeID, runtime::SharedDtorFunction{} } ).first;
         }
         if ( iFind->second == nullptr )
         {
@@ -168,6 +192,7 @@ private:
     CtorMap         m_constructors;
     DtorMap         m_destructors;
     SharedBufferSet m_buffers;
+    MPORootMap      m_rootMap;
 };
 
 } // namespace mega::service

@@ -557,7 +557,7 @@ R"TEMPLATE(
             mega::runtime::get_save_object( g_pszModuleName, {{ concrete_type_id }},
                 &_fptr_save_object_{{ concrete_type_id }} );
         }
-        _fptr_save_object_{{ concrete_type_id }}( {{ instance }}, pArchive );
+        _fptr_save_object_{{ concrete_type_id }}( {{ instance }}, pArchive, true );
     }
 )TEMPLATE";
                 // clang-format on
@@ -732,7 +732,8 @@ R"TEMPLATE(
                     machineRef.instance, 
                     {{ concrete_type_id }} 
                 ),
-                machineRef
+                machineRef, 
+                machineRef.pointer 
             ),
             {{ shared }},
             pTarget
@@ -746,7 +747,6 @@ R"TEMPLATE(
                     Concrete::Dimensions::User* pDimension = pWrite->get_concrete_dimension();
                     Variables::Instance*        pInstance  = pWrite->get_instance();
                     MemoryLayout::Part*         pPart      = pDimension->get_part();
-                    // const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
                     const bool        bSimple = pDimension->get_interface_dimension()->get_simple();
                     const std::string strMangled
                         = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );

@@ -63,13 +63,13 @@ Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompil
     {
         std::ostringstream os;
         symbolPrefix( "save_object_bin_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
+        os << "N4mega9referenceEPvb";
         m_pSaveBin = pModule->get< SaveObjectFunction >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "load_object_bin_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
+        os << "N4mega9referenceEPvb";
         m_pLoadBin = pModule->get< LoadObjectFunction >( os.str() );
     }
     {

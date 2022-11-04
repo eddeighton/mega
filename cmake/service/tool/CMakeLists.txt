@@ -56,7 +56,7 @@ add_library( tool
                     ${TOOL_LIB_API}
 					${TOOL_LIB_SRC}
 
-                    ${MEGA_API_DIR}/mega/default_traits.cpp
+                    ${MEGA_API_DIR}/mega/types/traits.cpp
 				)
 
 target_compile_options( tool PUBLIC "-fcoroutines" )

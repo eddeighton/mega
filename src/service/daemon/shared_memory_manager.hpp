@@ -25,7 +25,7 @@
 #include "mega/common.hpp"
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
-#include "mega/default_traits.hpp"
+#include "mega/types/traits.hpp"
 #include "mega/shared_memory_header.hpp"
 
 #include "service/protocol/common/header.hpp"

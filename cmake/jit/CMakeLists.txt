@@ -65,8 +65,6 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/jit/code_generator.cpp
     ${MEGA_SRC_DIR}/jit/jit.cpp
     ${MEGA_SRC_DIR}/jit/allocator.cpp
-
-    # ${MEGA_API_DIR}/mega/default_traits.cpp
     
 )
 
@@ -76,11 +74,6 @@ add_library( jit
 )
 
 include_directories( jit ${MEGA_API_DIR}/jit )
-
-# add_c_preprocessor_command( OUTPUT default_traits.cpp.i SOURCE ${MEGA_API_DIR}/mega/default_traits.cpp TARGET jit )
-# add_custom_target( PreprocessDefaultTraits 
-# 	SOURCES default_traits.cpp.i
-# 	COMMENT "Proprocessing default_traits.cpp")
 
 target_link_libraries( jit database )
 target_link_libraries( jit orc )

@@ -17,16 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef REFERENCE_IO_24_SEPT_2022
 #define REFERENCE_IO_24_SEPT_2022
 
 #include "reference.hpp"
+// #include "bin_archive.hpp"
+// #include "xml_archive.hpp"
 
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 #include <iostream>
 
@@ -74,9 +75,69 @@ inline std::ostream& operator<<( std::ostream& os, const mega::MPO& mpo )
     return os << ( int )mpo.getMachineID() << '.' << ( int )mpo.getProcessID() << '.' << ( int )mpo.getOwnerID();
 }
 
-
 namespace boost::serialization
 {
+
+// xml
+inline void serialize( boost::archive::xml_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "instance", value.instance );
+    ar& boost::serialization::make_nvp( "type", value.type );
+}
+
+inline void serialize( boost::archive::xml_oarchive& ar, mega::TypeInstance& value, const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "instance", value.instance );
+    ar& boost::serialization::make_nvp( "type", value.type );
+}
+
+inline void serialize( boost::archive::xml_iarchive& ar, mega::NetworkOrProcessAddress& value,
+                       const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "nop", value.nop_storage );
+}
+
+inline void serialize( boost::archive::xml_oarchive& ar, mega::NetworkOrProcessAddress& value,
+                       const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "nop", value.nop_storage );
+}
+
+inline void serialize( boost::archive::xml_iarchive& ar, mega::MP& value, const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "mp", value.mp_storage );
+}
+
+inline void serialize( boost::archive::xml_oarchive& ar, mega::MP& value, const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "mp", value.mp_storage );
+}
+
+inline void serialize( boost::archive::xml_iarchive& ar, mega::MPO& value, const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "mpo", value.mpo_storage );
+}
+
+inline void serialize( boost::archive::xml_oarchive& ar, mega::MPO& value, const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "mpo", value.mpo_storage );
+}
+
+inline void serialize( boost::archive::xml_iarchive& ar, mega::reference& ref, const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "type_instance", static_cast< mega::TypeInstance& >( ref ) );
+    ar& boost::serialization::make_nvp( "machine_process_owner", static_cast< mega::MPO& >( ref ) );
+    ar& boost::serialization::make_nvp( "network_or_pointer", static_cast< mega::NetworkOrProcessAddress& >( ref ) );
+}
+
+inline void serialize( boost::archive::xml_oarchive& ar, mega::reference& ref, const unsigned int version )
+{
+    ar& boost::serialization::make_nvp( "type_instance", static_cast< mega::TypeInstance& >( ref ) );
+    ar& boost::serialization::make_nvp( "machine_process_owner", static_cast< mega::MPO& >( ref ) );
+    ar& boost::serialization::make_nvp( "network_or_pointer", static_cast< mega::NetworkOrProcessAddress& >( ref ) );
+}
+
+// binary
 inline void serialize( boost::archive::binary_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
 {
     ar& value.instance;
@@ -89,12 +150,14 @@ inline void serialize( boost::archive::binary_oarchive& ar, mega::TypeInstance& 
     ar& value.type;
 }
 
-inline void serialize( boost::archive::binary_iarchive& ar, mega::NetworkOrProcessAddress& value, const unsigned int version )
+inline void serialize( boost::archive::binary_iarchive& ar, mega::NetworkOrProcessAddress& value,
+                       const unsigned int version )
 {
     ar& value.nop_storage;
 }
 
-inline void serialize( boost::archive::binary_oarchive& ar, mega::NetworkOrProcessAddress& value, const unsigned int version )
+inline void serialize( boost::archive::binary_oarchive& ar, mega::NetworkOrProcessAddress& value,
+                       const unsigned int version )
 {
     ar& value.nop_storage;
 }
@@ -133,6 +196,6 @@ inline void serialize( boost::archive::binary_oarchive& ar, mega::reference& val
     ar& static_cast< mega::NetworkOrProcessAddress& >( value );
 }
 
-}
+} // namespace boost::serialization
 
 #endif // REFERENCE_IO_24_SEPT_2022

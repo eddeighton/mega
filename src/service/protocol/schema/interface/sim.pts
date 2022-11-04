@@ -17,6 +17,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+msg SimLockReadMPO
+{
+    request( mega::MPO requestingMPO, mega::MPO targetMPO );
+    response( mega::TimeStamp timestamp );
+}
+msg SimLockWriteMPO
+{
+    request( mega::MPO requestingMPO, mega::MPO targetMPO );
+    response( mega::TimeStamp timestamp );
+}
 msg SimLockRead
 {
     request( mega::MPO requestingMPO, mega::MPO targetMPO );

@@ -35,13 +35,13 @@ MPO ExecutorRequestConversation::SimCreate( boost::asio::yield_context& yield_ct
     return m_executor.createSimulation( *this, yield_ctx );
 }
 
-Snapshot ExecutorRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
-                                                   boost::asio::yield_context& yield_ctx )
+TimeStamp ExecutorRequestConversation::SimLockReadMPO( const MPO& requestingMPO, const MPO& targetMPO,
+                                                       boost::asio::yield_context& yield_ctx )
 {
     if ( Simulation::Ptr pSim = m_executor.getSimulation( targetMPO ) )
     {
         network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-        return rq.SimLockRead( requestingMPO, targetMPO );
+        return rq.SimLockReadMPO( requestingMPO, targetMPO );
     }
     else
     {
@@ -49,13 +49,13 @@ Snapshot ExecutorRequestConversation::SimLockRead( const MPO& requestingMPO, con
     }
 }
 
-Snapshot ExecutorRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
-                                                    boost::asio::yield_context& yield_ctx )
+TimeStamp ExecutorRequestConversation::SimLockWriteMPO( const MPO& requestingMPO, const MPO& targetMPO,
+                                                        boost::asio::yield_context& yield_ctx )
 {
     if ( Simulation::Ptr pSim = m_executor.getSimulation( targetMPO ) )
     {
         network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-        return rq.SimLockWrite( requestingMPO, targetMPO );
+        return rq.SimLockWriteMPO( requestingMPO, targetMPO );
     }
     else
     {
