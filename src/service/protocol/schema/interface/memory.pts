@@ -34,12 +34,12 @@ msg Acquire
 }
 msg Read
 {
-    request( MPO requestingMPO, reference ref );
+    request( MPO requestingMPO, reference ref, bool bExistingReadLock );
     response( MemoryBaseReference ref );
 }
 msg Write
 {
-    request( MPO requestingMPO, reference ref );
+    request( MPO requestingMPO, reference ref, bool bExistingWriteLock );
     response( MemoryBaseReference ref );
 }
 msg Release

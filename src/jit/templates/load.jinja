@@ -24,6 +24,10 @@
 
 static const char* g_pszModuleName = "{{module_name}}";
 
+{% for object_type_id in object_loaders %}
+static mega::runtime::LoadObjectFunction _fptr_load_xml_object_{{ object_type_id }} = nullptr;
+{% endfor %}
+
 void {{ name }}( mega::reference context, const char* fileName )
 {
 {% for variable in variables %}

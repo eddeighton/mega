@@ -22,6 +22,9 @@
 
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
+#include "mega/snapshot.hpp"
+
+#include <optional>
 
 namespace mega::network
 {
@@ -30,8 +33,14 @@ using JITModuleName  = U64;
 using JITFunctionPtr = U64;
 using JITMemoryPtr   = U64;
 
-inline const char*   convert( JITModuleName moduleName ) { return reinterpret_cast< const char* >( moduleName ); }
-inline JITModuleName convert( const char* pszModuleName ) { return reinterpret_cast< JITModuleName >( pszModuleName ); }
+inline const char* convert( JITModuleName moduleName )
+{
+    return reinterpret_cast< const char* >( moduleName );
+}
+inline JITModuleName convert( const char* pszModuleName )
+{
+    return reinterpret_cast< JITModuleName >( pszModuleName );
+}
 
 template < typename TFunctionPtrType >
 inline TFunctionPtrType* convert( U64 functionPtr )
@@ -46,8 +55,9 @@ inline U64 convert( TFunctionPtrType* ppFunction )
 
 struct MemoryBaseReference
 {
-    U64       base;
-    reference machineRef;
+    U64                       base;
+    reference                 machineRef;
+    std::optional< Snapshot > snapshotOpt;
 
     MemoryBaseReference() = default;
     MemoryBaseReference( void* pBaseAddress, const reference& machine )
@@ -60,8 +70,11 @@ struct MemoryBaseReference
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
+        THROW_RTE( "Unexpected serialisation of MemoryBaseReference" );
+
         archive& base;
         archive& machineRef;
+        archive& snapshotOpt;
     }
 };
 

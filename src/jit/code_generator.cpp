@@ -552,12 +552,12 @@ R"TEMPLATE(
 static const char* szTemplate =
 R"TEMPLATE(
     {
-        if( _fptr_save_object_{{ concrete_type_id }} == nullptr )
+        if( _fptr_save_xml_object_{{ concrete_type_id }} == nullptr )
         {
-            mega::runtime::get_save_object( g_pszModuleName, {{ concrete_type_id }},
-                &_fptr_save_object_{{ concrete_type_id }} );
+            mega::runtime::get_save_xml_object( g_pszModuleName, {{ concrete_type_id }},
+                &_fptr_save_xml_object_{{ concrete_type_id }} );
         }
-        _fptr_save_object_{{ concrete_type_id }}( {{ instance }}, pArchive, true );
+        _fptr_save_xml_object_{{ concrete_type_id }}( {{ instance }}, pArchive, true );
     }
 )TEMPLATE";
                 // clang-format on
@@ -614,7 +614,8 @@ R"TEMPLATE(
         }
         
         void* pSharedBase = mega::runtime::base();
-        if( mega::MPO( machineRef ) != mega::runtime::getThisMPO() )
+        const mega::MPO thisMPO = mega::runtime::getThisMPO();
+        if( mega::MPO( machineRef ) != thisMPO )
         {
             pSharedBase = mega::runtime::read( machineRef );
         }
@@ -636,7 +637,7 @@ R"TEMPLATE(
             ( 
                 mega::getHeap
                 ( 
-                    machineRef,
+                    thisMPO.getProcessID(),
                     mega::getSharedHeader
                     ( 
                         mega::fromProcessAddress
@@ -686,7 +687,8 @@ R"TEMPLATE(
         }
         
         void* pSharedBase = mega::runtime::base();
-        if( mega::MPO( machineRef ) != mega::runtime::getThisMPO() )
+        const mega::MPO thisMPO = mega::runtime::getThisMPO();
+        if( mega::MPO( machineRef ) != thisMPO )
         {
             pSharedBase = mega::runtime::read( machineRef );
         }
@@ -708,7 +710,7 @@ R"TEMPLATE(
             ( 
                 mega::getHeap
                 ( 
-                    machineRef,
+                    thisMPO.getProcessID(),
                     mega::getSharedHeader
                     ( 
                         mega::fromProcessAddress

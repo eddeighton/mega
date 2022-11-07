@@ -66,6 +66,8 @@ void load_xml_( void* p, const char* name, void* pArchive )
 template < typename T >
 void save_bin_( void* p, void* pArchive )
 {
+    SPDLOG_TRACE( "save_bin_ {} {}", typeid( T ).name(), p );
+
     T*                    pData = reinterpret_cast< T* >( p );
     mega::BinSaveArchive& ar    = *reinterpret_cast< mega::BinSaveArchive* >( pArchive );
     ar.save( *pData );
@@ -128,6 +130,7 @@ namespace mega
 
 void save_begin_object( const reference& ref, void* pArchive )
 {
+    SPDLOG_TRACE( "save_begin_object {}", ref );
     mega::BinSaveArchive& ar = *reinterpret_cast< mega::BinSaveArchive* >( pArchive );
     ar.beginObject( ref );
 }

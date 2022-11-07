@@ -54,7 +54,7 @@ class BOOST_SYMBOL_VISIBLE SnapshotIArchive
 public:
     SnapshotIArchive( std::streambuf& bsb, const mega::Snapshot& snapshot )
         : base( bsb, no_header )
-        , m_shapshot( snapshot )
+        , m_snapshot( snapshot )
     {
     }
 
@@ -66,13 +66,13 @@ public:
 
     inline void load( mega::reference& ref ) 
     {
-        mega::Snapshot::Index index;
+        mega::AddressTable::Index index;
         base::load( index );
-        ref = m_shapshot.indexToRef( index );
+        ref = m_snapshot.getTable().indexToRef( index );
     }
 
 private:
-    const mega::Snapshot& m_shapshot;
+    const mega::Snapshot& m_snapshot;
 };
 
 class BOOST_SYMBOL_VISIBLE SnapshotOArchive
@@ -99,18 +99,18 @@ public:
 
     inline void save( const mega::reference& ref )
     {
-        base::save( m_shapshot.refToIndex( ref ) );
+        base::save( m_snapshot.refToIndex( ref ) );
     }
 
     void beginObject( const mega::reference& ref )
     {
-        m_shapshot.beginObject( ref );
+        m_snapshot.beginObject( ref );
     }
 
-    mega::Snapshot& getSnapshot() { return m_shapshot; }
+    mega::Snapshot& getSnapshot() { return m_snapshot; }
 
 private:
-    mega::Snapshot m_shapshot;
+    mega::Snapshot m_snapshot;
 };
 
 } // namespace boost::archive
@@ -142,9 +142,9 @@ public:
     using Buffer = std::vector< char >;
 
     BinLoadArchive( const Snapshot& snapshot )
-        : m_shapshot( snapshot )
-        , m_iVecStream( m_shapshot.getBuffer() )
-        , m_archive( m_iVecStream, m_shapshot )
+        : m_snapshot( snapshot )
+        , m_iVecStream( m_snapshot.getBuffer() )
+        , m_archive( m_iVecStream, m_snapshot )
     {
     }
 
@@ -155,7 +155,7 @@ public:
     }
 
 private:
-    const Snapshot&                                m_shapshot;
+    const Snapshot&                                m_snapshot;
     boost::interprocess::basic_vectorbuf< Buffer > m_iVecStream;
     boost::archive::SnapshotIArchive               m_archive;
 };

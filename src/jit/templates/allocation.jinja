@@ -144,9 +144,11 @@ void save_object_bin_{{ objectTypeID }}( mega::reference ref, void* pSerialiser,
     {
         machineRef = mega::runtime::networkToMachine( ref );
     }
-
+    
     void* pSharedBase = mega::runtime::base();
-    if( mega::MPO( machineRef ) != mega::runtime::getThisMPO() )
+    const mega::MPO thisMPO = mega::runtime::getThisMPO();
+
+    if( mega::MPO( machineRef ) != thisMPO )
     {
         pSharedBase = mega::runtime::read( machineRef );
     }
@@ -157,15 +159,36 @@ void save_object_bin_{{ objectTypeID }}( mega::reference ref, void* pSerialiser,
     if( bSaveShared )
         shared_save_bin_{{ objectTypeID }}( pSharedBuffer, pSerialiser );
 {% if has_heap_buffer %}
-    heap_save_bin_{{ objectTypeID }}( mega::getHeap( machineRef, mega::getSharedHeader( pSharedBuffer ) ), pSerialiser );
+    heap_save_bin_{{ objectTypeID }}( mega::getHeap( thisMPO.getProcessID(), mega::getSharedHeader( pSharedBuffer ) ), pSerialiser );
 {% endif %}
 
     // TODO - recurse through owning links
 }
 
-void load_object_bin_{{ objectTypeID }}( mega::reference ref, void* pSerialiser, bool bSaveShared )
+void load_object_bin_{{ objectTypeID }}( mega::reference ref, void* pSerialiser, bool bLoadShared )
 {
-    
+    mega::reference machineRef = ref;
+
+    if( machineRef.isNetwork() )
+    {
+        machineRef = mega::runtime::networkToMachine( ref );
+    }
+
+    void* pSharedBase = mega::runtime::base();
+    const mega::MPO thisMPO = mega::runtime::getThisMPO();
+    if( mega::MPO( machineRef ) != thisMPO )
+    {
+        pSharedBase = mega::runtime::read( machineRef );
+    }
+
+    void* pSharedBuffer = mega::fromProcessAddress( pSharedBase, machineRef.pointer );
+    if( bLoadShared )
+        shared_load_bin_{{ objectTypeID }}( pSharedBuffer, pSerialiser );
+{% if has_heap_buffer %}
+    heap_load_bin_{{ objectTypeID }}( mega::getHeap( thisMPO.getProcessID(), mega::getSharedHeader( pSharedBuffer ) ), pSerialiser );
+{% endif %}
+
+
 }
 
 void save_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
@@ -178,14 +201,15 @@ void save_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser 
     }
 
     void* pSharedBase = mega::runtime::base();
-    if( mega::MPO( machineRef ) != mega::runtime::getThisMPO() )
+    const mega::MPO thisMPO = mega::runtime::getThisMPO();
+    if( mega::MPO( machineRef ) != thisMPO )
     {
         pSharedBase = mega::runtime::read( machineRef );
     }
 
     char* pSharedBuffer = reinterpret_cast< char* >( mega::fromProcessAddress( pSharedBase, machineRef.pointer ) );
 {% if has_heap_buffer %}
-    char* pHeapBuffer = reinterpret_cast< char* >( mega::getHeap( machineRef, mega::getSharedHeader( pSharedBuffer ) ) );
+    char* pHeapBuffer = reinterpret_cast< char* >( mega::getHeap( thisMPO.getProcessID(), mega::getSharedHeader( pSharedBuffer ) ) );
 {% endif %}
 
 {% for element in elements %}

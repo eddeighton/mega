@@ -22,11 +22,11 @@
 
 #include "database/database.hpp"
 
-#include "mega/common.hpp"
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
 #include "mega/types/traits.hpp"
 #include "mega/shared_memory_header.hpp"
+#include "mega/snapshot.hpp"
 
 #include "service/protocol/common/header.hpp"
 #include "service/network/log.hpp"
@@ -96,7 +96,7 @@ public:
     SharedMemory& getOrCreate( const mega::MPO& mpo )
     {
         auto iFind = m_memory.find( mpo );
-        if ( iFind != m_memory.end() )
+        if( iFind != m_memory.end() )
         {
             return *iFind->second;
         }
@@ -116,7 +116,7 @@ public:
     void release( const mega::MPO& mpo )
     {
         auto iFind = m_memory.find( mpo );
-        if ( iFind != m_memory.end() )
+        if( iFind != m_memory.end() )
         {
             m_memory.erase( iFind );
             SPDLOG_INFO( "Daemon released memory for {}", mpo );
@@ -131,10 +131,10 @@ public:
 
     void freed( reference ref )
     {
-        if ( ref.isMachine() )
+        if( ref.isMachine() )
         {
             auto iFind = m_machineToNetwork.find( ref );
-            if ( iFind != m_machineToNetwork.end() )
+            if( iFind != m_machineToNetwork.end() )
             {
                 auto net = iFind->second;
                 m_machineToNetwork.erase( iFind );
@@ -145,10 +145,10 @@ public:
                 THROW_RTE( "Failed to locate reference: " << ref );
             }
         }
-        else if ( ref.isNetwork() )
+        else if( ref.isNetwork() )
         {
             auto iFind = m_networkToMachine.find( ref );
-            if ( iFind != m_networkToMachine.end() )
+            if( iFind != m_networkToMachine.end() )
             {
                 auto mac = iFind->second;
                 m_networkToMachine.erase( iFind );
@@ -171,7 +171,7 @@ public:
 
         auto& memory        = getOrCreate( mpo ).get();
         void* pSharedMemory = memory.allocate_aligned( size.shared_size, size.shared_alignment );
-        new ( pSharedMemory ) SharedHeader{};
+        new( pSharedMemory ) SharedHeader{};
 
         const reference machine{
             TypeInstance::Object( objectTypeID ), mpo, toProcessAddress( memory.get_address(), pSharedMemory ) };
@@ -189,13 +189,73 @@ public:
 
     reference networkToMachine( const reference& ref )
     {
+        if( ref.isMachine() )
+            return ref;
         auto iFind = m_networkToMachine.find( ref );
-        if ( iFind != m_networkToMachine.end() )
+        if( iFind != m_networkToMachine.end() )
         {
             return iFind->second;
         }
         return allocate( ref, ref.type, ref.network );
     }
+
+    reference machineToNetwork( const reference& ref )
+    {
+        if( ref.isNetwork() )
+            return ref;
+        auto iFind = m_machineToNetwork.find( ref );
+        if( iFind != m_machineToNetwork.end() )
+        {
+            return iFind->second;
+        }
+        THROW_RTE( "Failed to locate machine address for: " << ref );
+    }
+
+    // NOTE: this ONLY maps to machine IF existing address
+    void networkToMachineIfExist( AddressTable& addressTable )
+    {
+        const AddressTable::IndexTable table = addressTable.getTable();
+        for( const auto& [ ref, index ] : table )
+        {
+            if( ref.isNetwork() )
+            {
+                auto iFind = m_networkToMachine.find( ref );
+                if( iFind != m_networkToMachine.end() )
+                {
+                    addressTable.remap( index, iFind->second );
+                }
+            }
+        }
+    }
+
+    void machineToNetwork( AddressTable& addressTable )
+    {
+        const AddressTable::IndexTable table = addressTable.getTable();
+        for( const auto& [ ref, index ] : table )
+        {
+            if( ref.isMachine() )
+            {
+                addressTable.remap( index, machineToNetwork( ref ) );
+            }
+        }
+    }
+
+    void networkToMachine( Snapshot& snapshot )
+    {
+        // ensure ALL objects have shared memory buffers allocated
+        for( AddressTable::Index index : snapshot.getObjects() )
+        {
+            auto ref = snapshot.getTable().indexToRef( index );
+            if( ref.isNetwork() )
+            {
+                snapshot.remap( index, networkToMachine( ref ) );
+            }
+        }
+
+        networkToMachineIfExist( snapshot.getTable() );
+    }
+
+    void machineToNetwork( Snapshot& snapshot ) { machineToNetwork( snapshot.getTable() ); }
 
 private:
     runtime::DatabaseInstance& m_database;

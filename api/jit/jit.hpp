@@ -50,43 +50,47 @@ public:
     network::SizeAlignment getRootSize() const;
     network::SizeAlignment getSize( TypeID typeID ) const;
 
-    void getObjectSharedAlloc(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+    void getObjectSharedAlloc( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                                const TypeID& objectTypeID, runtime::SharedCtorFunction* ppFunction );
-    void getObjectSharedDel(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+    void getObjectSharedDel( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                              const TypeID& objectTypeID, runtime::SharedDtorFunction* ppFunction );
-    void getObjectHeapAlloc(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+    void getObjectHeapAlloc( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                              const TypeID& objectTypeID, runtime::HeapCtorFunction* ppFunction );
-    void getObjectHeapDel(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+    void getObjectHeapDel( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                            const TypeID& objectTypeID, runtime::HeapDtorFunction* ppFunction );
-    void getObjectSave(const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const TypeID& objectTypeID, runtime::SaveObjectFunction* ppFunction);
-    void getObjectLoad(const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const TypeID& objectTypeID, runtime::LoadObjectFunction* ppFunction);
+    void getObjectSaveXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                           const TypeID& objectTypeID, runtime::SaveObjectFunction* ppFunction );
+    void getObjectLoadXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                           const TypeID& objectTypeID, runtime::LoadObjectFunction* ppFunction );
+    void getObjectSaveBin( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                           const TypeID& objectTypeID, runtime::SaveObjectFunction* ppFunction );
+    void getObjectLoadBin( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                           const TypeID& objectTypeID, runtime::LoadObjectFunction* ppFunction );
 
     void getCallGetter( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
 
-    void getAllocate(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
-                       AllocateFunction* ppFunction );
-    void getRead(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
-                   ReadFunction* ppFunction );
-    void getWrite(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
-                    WriteFunction* ppFunction );
-    void getCall(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName, const InvocationID& invocationID,
-                   CallFunction* ppFunction );
-    void getStart(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                    const InvocationID& invocationID, StartFunction* ppFunction );
-    void getStop(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                   const InvocationID& invocationID, StopFunction* ppFunction );
-    void getSave(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                    const InvocationID& invocationID, SaveFunction* ppFunction );
-    void getLoad(  const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                   const InvocationID& invocationID, LoadFunction* ppFunction );
+    void getAllocate( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                      const InvocationID& invocationID, AllocateFunction* ppFunction );
+    void getRead( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                  const InvocationID& invocationID, ReadFunction* ppFunction );
+    void getWrite( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                   const InvocationID& invocationID, WriteFunction* ppFunction );
+    void getCall( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                  const InvocationID& invocationID, CallFunction* ppFunction );
+    void getStart( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                   const InvocationID& invocationID, StartFunction* ppFunction );
+    void getStop( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                  const InvocationID& invocationID, StopFunction* ppFunction );
+    void getSave( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                  const InvocationID& invocationID, SaveFunction* ppFunction );
+    void getLoad( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                  const InvocationID& invocationID, LoadFunction* ppFunction );
 
-    Snapshot save( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, TimeStamp timestamp, bool bSaveShared );
-    void load( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, const Snapshot& snapshot, bool bLoadShared );
+    //void load( const CodeGenerator::LLVMCompiler& compiler, const reference& root, const Snapshot& snapshot,
+    //           bool bLoadShared, void* pSharedBase );
 
 private:
-    const Allocator&         getAllocator(  const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
+    const Allocator&         getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
     JITCompiler::Module::Ptr compile( const std::string& strCode );
 
     const network::MegastructureInstallation m_megastructureInstallation;

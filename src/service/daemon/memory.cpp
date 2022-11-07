@@ -32,7 +32,7 @@ void DaemonRequestConversation::MPODestroyed( const MPO& mpo, const bool& bDelet
                                               boost::asio::yield_context& yield_ctx )
 {
     bool bFirst = true;
-    for ( auto& [ id, pCon ] : m_daemon.m_server.getConnections() )
+    for( auto& [ id, pCon ] : m_daemon.m_server.getConnections() )
     {
         network::memory::Request_Sender sender( *this, *pCon, yield_ctx );
         sender.MPODestroyed( mpo, bFirst );
@@ -107,22 +107,45 @@ void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
 Snapshot DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
                                                  boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
+    SPDLOG_TRACE( "DaemonRequestConversation::SimLockRead from: {} to: {}", requestingMPO, targetMPO );
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
     {
+        ASSERT( m_daemon.m_machineID == targetMPO.getMachineID() );
+
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
-        return sender.SimLockRead( requestingMPO, targetMPO );
+        Snapshot                     snapshot = sender.SimLockRead( requestingMPO, targetMPO );
+
+        if( m_daemon.m_machineID == requestingMPO.getMachineID() )
+        {
+            // response is to this machine
+            m_daemon.getMemoryManager().networkToMachine( snapshot );
+        }
+        else
+        {
+            // response is to different machine
+            m_daemon.getMemoryManager().machineToNetwork( snapshot );
+        }
+
+        return snapshot;
     }
     else
     {
+        ASSERT( m_daemon.m_machineID != targetMPO.getMachineID() );
+
         network::sim::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
-        return sender.SimLockRead( requestingMPO, targetMPO );
+        Snapshot snapshot = sender.SimLockRead( requestingMPO, targetMPO );
+
+        m_daemon.getMemoryManager().networkToMachine( snapshot );
+
+        return snapshot;
     }
 }
 
 Snapshot DaemonRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
+    SPDLOG_TRACE( "DaemonRequestConversation::SimLockWrite from: {} to: {}", requestingMPO, targetMPO );
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
     {
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
         return sender.SimLockWrite( requestingMPO, targetMPO );
@@ -139,7 +162,8 @@ void DaemonRequestConversation::SimLockRelease( const MPO&                  requ
                                                 const network::Transaction& transaction,
                                                 boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
+    SPDLOG_TRACE( "DaemonRequestConversation::SimLockRelease from: {} to: {}", requestingMPO, targetMPO );
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
     {
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
         return sender.SimLockRelease( requestingMPO, targetMPO, transaction );

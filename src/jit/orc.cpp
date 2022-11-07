@@ -163,7 +163,7 @@ public:
     virtual void* getRawFunctionPtr( const std::string& strSymbol )
     {
         auto functionPtr = ExitOnErr( m_jit.lookup( m_jitDynLib, strSymbol ) );
-        VERIFY_RTE( functionPtr );
+        VERIFY_RTE_MSG( functionPtr, "Failed to locate symbol: " << strSymbol );
         return reinterpret_cast< void* >( functionPtr.getValue() );
     }
 

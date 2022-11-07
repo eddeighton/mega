@@ -68,13 +68,13 @@ void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID&
     else if ( network::ConversationBase::Ptr pConversation
               = m_executor.findExistingConversation( msg.getReceiverID() ) )
     {
-        SPDLOG_TRACE( "Found response conversation within executor" );
+        SPDLOG_TRACE( "ExecutorRequestConversation::dispatchResponse Found response conversation within executor" );
         pConversation->send( network::ReceivedMsg{ connectionID, msg } );
     }
     else
     {
-        SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection for response: {}", connectionID );
-        THROW_RTE( "ExecutorRequestConversation: Executor Critical error in response handler: " << connectionID );
+        SPDLOG_ERROR( "ExecutorRequestConversation::dispatchResponse Cannot resolve connection for response: {}", connectionID );
+        THROW_RTE( "ExecutorRequestConversation::dispatchResponse Executor Critical error in response handler: " << connectionID );
     }
 }
 

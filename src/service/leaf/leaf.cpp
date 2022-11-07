@@ -61,7 +61,13 @@ public:
                                                       { return daemonSender.LeafDaemon( msg ); },
                                                       getID() );
             m_leaf.m_mp = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
+
             SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
+        }
+        
+        {
+            // initialise heap memory
+            m_leaf.m_pHeapMemory = std::move( std::make_unique< HeapMemory >( m_leaf.m_mp.getProcessID() ) );
         }
 
         // determine the current project and stuff and initialise the runtime
@@ -95,7 +101,6 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short da
     , m_work_guard( m_io_context.get_executor() )
     , m_io_thread( [ &io_context = m_io_context ]() { io_context.run(); } )
     , m_pSharedMemoryAccess( std::make_unique< SharedMemoryAccess >() )
-    , m_pHeapMemory( std::make_unique< HeapMemory >() )
 {
     m_receiverChannel.run( network::makeProcessName( network::Node::Leaf ) );
 
@@ -122,16 +127,16 @@ void Leaf::setActiveProject( const network::Project& currentProject )
 {
     m_pJIT.reset();
 
-    switch ( m_nodeType )
+    switch( m_nodeType )
     {
         case network::Node::Leaf:
         case network::Node::Terminal:
             break;
         case network::Node::Tool:
         case network::Node::Executor:
-            if ( !currentProject.isEmpty() && m_megastructureInstallationOpt.has_value() )
+            if( !currentProject.isEmpty() && m_megastructureInstallationOpt.has_value() )
             {
-                if ( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
+                if( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
                 {
                     try
                     {
@@ -141,12 +146,12 @@ void Leaf::setActiveProject( const network::Project& currentProject )
                             m_megastructureInstallationOpt.value(), currentProject );
                         m_activeProject = currentProject;
                     }
-                    catch ( mega::io::DatabaseVersionException& ex )
+                    catch( mega::io::DatabaseVersionException& ex )
                     {
                         SPDLOG_ERROR( "Database version exception: {}", currentProject.getProjectInstallPath().string(),
                                       ex.what() );
                     }
-                    catch ( std::exception& ex )
+                    catch( std::exception& ex )
                     {
                         SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
                                       currentProject.getProjectInstallPath().string(), ex.what() );
@@ -184,7 +189,7 @@ void Leaf::shutdown()
 network::ConversationBase::Ptr Leaf::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                        const network::Message&      msg )
 {
-    switch ( m_nodeType )
+    switch( m_nodeType )
     {
         case network::Node::Leaf:
         case network::Node::Terminal:
@@ -202,7 +207,13 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
     }
 }
 
-SharedMemoryAccess& Leaf::getSharedMemory() { return *m_pSharedMemoryAccess; }
+SharedMemoryAccess& Leaf::getSharedMemory()
+{
+    return *m_pSharedMemoryAccess;
+}
 
-HeapMemory& Leaf::getHeapMemory() { return *m_pHeapMemory; }
+HeapMemory& Leaf::getHeapMemory()
+{
+    return *m_pHeapMemory;
+}
 } // namespace mega::service

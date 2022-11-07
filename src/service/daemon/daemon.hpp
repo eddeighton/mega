@@ -30,8 +30,6 @@
 
 #include "service/network/network.hpp"
 
-#include "mega/common.hpp"
-
 #include <boost/asio/io_context.hpp>
 
 namespace mega::service

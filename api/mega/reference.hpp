@@ -116,7 +116,7 @@ static_assert( sizeof( NetworkOrProcessAddress ) == 8U, "Invalid NetworkAddress 
 using ProcessID = U8;
 using OwnerID   = U16;
 
-//#define MAX_MACHINES_BITS 20
+// #define MAX_MACHINES_BITS 20
 #define MAX_MACHINES_BITS 21
 #define MAX_PROCESS_PER_MACHINE_BITS 3
 #define MAX_OWNER_PER_PROCESS_BITS 7
@@ -124,7 +124,8 @@ using OwnerID   = U16;
 static_assert( MAX_MACHINES_BITS + MAX_PROCESS_PER_MACHINE_BITS + MAX_OWNER_PER_PROCESS_BITS + MAX_MPO_REMAINING_BITS
                == 32 );
 
-// NOTE: MAX_PROCESS_PER_MACHINE used by the shared memory header to set size of heap memory pointer array - ( so keep small )
+// NOTE: MAX_PROCESS_PER_MACHINE used by the shared memory header to set size of heap memory pointer array - ( so keep
+// small )
 static constexpr U64 MAX_MACHINES            = 2 << ( MAX_MACHINES_BITS - 1 );            // 2097152
 static constexpr U64 MAX_PROCESS_PER_MACHINE = 2 << ( MAX_PROCESS_PER_MACHINE_BITS - 1 ); // 8
 static constexpr U64 MAX_OWNER_PER_PROCESS   = 2 << ( MAX_OWNER_PER_PROCESS_BITS - 1 );   // 128
@@ -137,13 +138,13 @@ class MachineID
 {
 public:
     MachineID() = default;
-    
+
     constexpr MachineID( U32 value )
         : m_storage{ value }
     {
     }
 
-    constexpr MachineID( const MachineID& cpy ) = default;
+    constexpr MachineID( const MachineID& cpy )            = default;
     constexpr MachineID& operator=( const MachineID& cpy ) = default;
 
     struct Hash
@@ -296,13 +297,10 @@ struct reference : TypeInstance, MPO, NetworkOrProcessAddress
 
     constexpr inline bool operator==( const reference& cmp ) const
     {
-        if ( isMachine() && cmp.isMachine() )
+        if( isMachine() == cmp.isMachine() )
         {
-            return TypeInstance::operator==( cmp ) && MPO::operator==( cmp );
-        }
-        else if ( isNetwork() && cmp.isNetwork() )
-        {
-            return TypeInstance::operator==( cmp ) && NetworkOrProcessAddress::operator==( cmp );
+            return TypeInstance::operator==( cmp ) && MPO::operator==( cmp )
+                   && NetworkOrProcessAddress::            operator==( cmp );
         }
         else
         {
@@ -312,14 +310,12 @@ struct reference : TypeInstance, MPO, NetworkOrProcessAddress
     constexpr inline bool operator!=( const reference& cmp ) const { return !( *this == cmp ); }
     constexpr inline bool operator<( const reference& cmp ) const
     {
-        if ( isMachine() && cmp.isMachine() )
+        if( isMachine() == cmp.isMachine() )
         {
-            return MPO::operator!=( cmp ) ? MPO::operator<( cmp ) : TypeInstance::operator<( cmp );
-        }
-        else if ( isNetwork() && cmp.isNetwork() )
-        {
-            return NetworkOrProcessAddress::operator!=( cmp ) ? NetworkOrProcessAddress::operator<( cmp )
-                                                              : TypeInstance::           operator<( cmp );
+            return TypeInstance::operator!=( cmp )              ? TypeInstance::operator<( cmp )
+                   : MPO::operator!=( cmp )                     ? MPO::operator<( cmp )
+                   : NetworkOrProcessAddress::operator!=( cmp ) ? NetworkOrProcessAddress::operator<( cmp )
+                                                                : false;
         }
         else
         {
@@ -329,7 +325,7 @@ struct reference : TypeInstance, MPO, NetworkOrProcessAddress
 
     constexpr inline bool is_valid() const
     {
-        if ( isNetwork() )
+        if( isNetwork() )
             return !NetworkOrProcessAddress::is_null();
         else
             return TypeInstance::is_valid();

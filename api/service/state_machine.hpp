@@ -75,8 +75,8 @@ public:
 
     void resetAcks() { m_acks.clear(); }
 
-    using Read    = network::sim::MSG_SimLockReadMPO_Request;
-    using Write   = network::sim::MSG_SimLockWriteMPO_Request;
+    using Read    = network::sim::MSG_SimLockRead_Request;
+    using Write   = network::sim::MSG_SimLockWrite_Request;
     using Release = network::sim::MSG_SimLockRelease_Request;
     using Destroy = network::sim::MSG_SimDestroy_Request;
     using Clock   = network::sim::MSG_SimClock_Request;

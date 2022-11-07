@@ -30,12 +30,12 @@ namespace runtime
 using TypeErasedFunction = const void*;
 
 // allocator functions
-using SharedCtorFunction = void ( * )( void*, void* );
-using HeapCtorFunction   = void ( * )( void* );
-using SharedDtorFunction = void ( * )( void* );
-using HeapDtorFunction   = void ( * )( void* );
-using SaveObjectFunction = void ( * )( reference, void*, bool );
-using LoadObjectFunction = void ( * )( reference, void*, bool );
+using SharedCtorFunction    = void ( * )( void*, void* );
+using HeapCtorFunction      = void ( * )( void* );
+using SharedDtorFunction    = void ( * )( void* );
+using HeapDtorFunction      = void ( * )( void* );
+using SaveObjectFunction    = void ( * )( reference, void*, bool );
+using LoadObjectFunction    = void ( * )( reference, void*, bool );
 
 // invocation functions
 using AllocateFunction = reference ( * )( reference );

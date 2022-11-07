@@ -37,36 +37,9 @@ inline SharedHeader& getSharedHeader( void* pMemory ) { return *reinterpret_cast
 
 inline void* getHeap( U8 processID, SharedHeader& sharedHeader ) { return sharedHeader.m_heap[ processID ]; }
 
-inline void* getHeap( const reference& ref, SharedHeader& sharedHeader )
-{
-    return getHeap( ref.getProcessID(), sharedHeader );
-}
-
 inline void setHeap( U8 processID, SharedHeader& sharedHeader, void* pHeap )
 {
     sharedHeader.m_heap[ processID ] = pHeap;
-}
-
-inline void setHeap( const reference& ref, SharedHeader& sharedHeader, void* pHeap )
-{
-    setHeap( ref.getProcessID(), sharedHeader, pHeap );
-}
-
-inline void setHeap( const MPO& ref, SharedHeader& sharedHeader, void* pHeap )
-{
-    setHeap( ref.getProcessID(), sharedHeader, pHeap );
-}
-
-inline void* getHeap( const reference& ref, void* pSharedMemoryBase )
-{
-    void* pSharedMemory = reinterpret_cast< char* >( pSharedMemoryBase ) + ref.pointer;
-    return getHeap( ref, getSharedHeader( pSharedMemory ) );
-}
-
-inline void setHeap( const reference& ref, void* pSharedMemoryBase, void* pHeap )
-{
-    void* pSharedMemory = reinterpret_cast< char* >( pSharedMemoryBase ) + ref.pointer;
-    setHeap( ref, getSharedHeader( pSharedMemory ), pHeap );
 }
 
 } // namespace mega

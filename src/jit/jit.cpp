@@ -41,7 +41,7 @@ JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
 {
     auto                     startTime = std::chrono::steady_clock::now();
     JITCompiler::Module::Ptr pModule   = m_jitCompiler.compile( strCode );
-    // SPDLOG_TRACE( "RUNTIME: JIT Compilation time: {}", std::chrono::steady_clock::now() - startTime );
+    // SPDLOG_TRACE( "JIT: JIT Compilation time: {}", std::chrono::steady_clock::now() - startTime );
     return pModule;
 }
 
@@ -105,26 +105,42 @@ void JIT::getObjectHeapDel( const CodeGenerator::LLVMCompiler& compiler, const c
     *ppFunction = getAllocator( compiler, objectTypeID ).getHeapDtor();
 }
 
-void JIT::getObjectSave( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+void JIT::getObjectSaveXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                          const mega::TypeID& objectTypeID, mega::runtime::SaveObjectFunction* ppFunction )
 {
-    SPDLOG_TRACE( "RUNTIME: getObjectSave: {} {}", pszUnitName, objectTypeID );
+    SPDLOG_TRACE( "JIT: getObjectSaveXML: {} {}", pszUnitName, objectTypeID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
     *ppFunction = getAllocator( compiler, objectTypeID ).getSaveXML();
 }
 
-void JIT::getObjectLoad( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+void JIT::getObjectLoadXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                          const mega::TypeID& objectTypeID, mega::runtime::LoadObjectFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
     *ppFunction = getAllocator( compiler, objectTypeID ).getLoadXML();
 }
 
+void JIT::getObjectSaveBin( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                         const mega::TypeID& objectTypeID, mega::runtime::SaveObjectFunction* ppFunction )
+{
+    SPDLOG_TRACE( "JIT: getObjectSaveBin: {} {}", pszUnitName, objectTypeID );
+
+    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+    *ppFunction = getAllocator( compiler, objectTypeID ).getSaveBin();
+}
+
+void JIT::getObjectLoadBin( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                         const mega::TypeID& objectTypeID, mega::runtime::LoadObjectFunction* ppFunction )
+{
+    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+    *ppFunction = getAllocator( compiler, objectTypeID ).getLoadBin();
+}
+
 void JIT::getAllocate( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                        const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
 {
-    // SPDLOG_TRACE( "RUNTIME: getAllocate: {} {}", pszUnitName, invocationID );
+    // SPDLOG_TRACE( "JIT: getAllocate: {} {}", pszUnitName, invocationID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -152,7 +168,7 @@ void JIT::getAllocate( const CodeGenerator::LLVMCompiler& compiler, const char* 
 void JIT::getRead( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                    const mega::InvocationID& invocationID, ReadFunction* ppFunction )
 {
-    // SPDLOG_TRACE( "RUNTIME: getRead: {} {}", pszUnitName, invocationID );
+    // SPDLOG_TRACE( "JIT: getRead: {} {}", pszUnitName, invocationID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -180,7 +196,7 @@ void JIT::getRead( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
 void JIT::getWrite( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                     const mega::InvocationID& invocationID, WriteFunction* ppFunction )
 {
-    // SPDLOG_TRACE( "RUNTIME: getWrite: {} {}", pszUnitName, invocationID );
+    // SPDLOG_TRACE( "JIT: getWrite: {} {}", pszUnitName, invocationID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -209,7 +225,7 @@ void JIT::getWrite( const CodeGenerator::LLVMCompiler& compiler, const char* psz
 void JIT::getCall( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                    const mega::InvocationID& invocationID, CallFunction* ppFunction )
 {
-    // SPDLOG_TRACE( "RUNTIME: getCall: {} {}", pszUnitName, invocationID );
+    // SPDLOG_TRACE( "JIT: getCall: {} {}", pszUnitName, invocationID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -237,7 +253,7 @@ void JIT::getCall( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
 void JIT::getStart( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                     const mega::InvocationID& invocationID, StartFunction* ppFunction )
 {
-    // SPDLOG_TRACE( "RUNTIME: getStart: {} {}", pszUnitName, invocationID );
+    // SPDLOG_TRACE( "JIT: getStart: {} {}", pszUnitName, invocationID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -265,7 +281,7 @@ void JIT::getStart( const CodeGenerator::LLVMCompiler& compiler, const char* psz
 void JIT::getStop( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                    const mega::InvocationID& invocationID, StopFunction* ppFunction )
 {
-    // SPDLOG_TRACE( "RUNTIME: getStop: {} {}", pszUnitName, invocationID );
+    // SPDLOG_TRACE( "JIT: getStop: {} {}", pszUnitName, invocationID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -293,7 +309,7 @@ void JIT::getStop( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
 void JIT::getSave( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                    const mega::InvocationID& invocationID, SaveFunction* ppFunction )
 {
-    SPDLOG_TRACE( "RUNTIME: getSave: {} {}", pszUnitName, invocationID );
+    SPDLOG_TRACE( "JIT: getSave: {} {}", pszUnitName, invocationID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -321,7 +337,7 @@ void JIT::getSave( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
 void JIT::getLoad( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                    const mega::InvocationID& invocationID, LoadFunction* ppFunction )
 {
-    // SPDLOG_TRACE( "RUNTIME: getLoad: {} {}", pszUnitName, invocationID );
+    // SPDLOG_TRACE( "JIT: getLoad: {} {}", pszUnitName, invocationID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -345,26 +361,17 @@ void JIT::getLoad( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
     os << "N4mega9referenceEPv";
     *ppFunction = pModule->get< LoadFunction >( os.str() );
 }
-
-Snapshot JIT::save( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, TimeStamp timestamp,
-                    bool bSaveShared )
+/*
+void JIT::load( const CodeGenerator::LLVMCompiler& compiler, const reference& root, const Snapshot& snapshot,
+            bool bLoadShared, void* pSharedBase )
 {
-    auto&              allocator = getAllocator( compiler, ROOT_TYPE_ID );
-    SaveObjectFunction pSave     = allocator.getSaveBin();
+    SPDLOG_TRACE( "JIT: load: {} {}", root, bLoadShared );
 
-    BinSaveArchive archive;
-    pSave( mpoRoot, &archive, bSaveShared );
-
-    return archive.makeSnapshot( timestamp );
-}
-
-void JIT::load( const CodeGenerator::LLVMCompiler& compiler, const reference& mpoRoot, const Snapshot& snapshot, bool bLoadShared )
-{
-    auto&              allocator = getAllocator( compiler, ROOT_TYPE_ID );
-    LoadObjectFunction pLoad     = allocator.getLoadBin();
+    auto pAlloc = getAllocator( compiler, root.type );
 
     BinLoadArchive archive( snapshot );
-    pLoad( mpoRoot, &archive, bLoadShared );
+    pAlloc.getLoadBin()( root, &archive, bLoadShared );
 }
+*/
 
 } // namespace mega::runtime

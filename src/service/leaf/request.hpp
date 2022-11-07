@@ -139,9 +139,9 @@ public:
               boost::asio::yield_context&                                  yield_ctx ) override
     {
         std::vector< network::ConversationID > result;
-        for ( const auto& j : jobs )
+        for( const auto& j : jobs )
         {
-            for ( const auto& k : j )
+            for( const auto& k : j )
                 result.push_back( k );
         }
         return result;
@@ -153,8 +153,10 @@ public:
     virtual reference                    Allocate( const MPO& mpo, const TypeID& objectTypeID,
                                                    boost::asio::yield_context& yield_ctx ) override;
     virtual network::MemoryBaseReference Read( const MPO& requestingMPO, const reference& ref,
+                                               const bool&                 bExistingReadLock,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::MemoryBaseReference Write( const MPO& requestingMPO, const reference& ref,
+                                                const bool&                 bExistingWriteLock,
                                                 boost::asio::yield_context& yield_ctx ) override;
     virtual void                         Release( const MPO&                  requestingMPO,
                                                   const MPO&                  targetMPO,
@@ -173,14 +175,23 @@ public:
                              boost::asio::yield_context& yield_ctx ) override;
 
     // public network::jit::Impl
-    virtual void GetSaveObject( const network::JITModuleName&  pszUnitName,
-                                const TypeID&                  objectTypeID,
-                                const network::JITFunctionPtr& ppFunction,
-                                boost::asio::yield_context&    yield_ctx ) override;
-    virtual void GetLoadObject( const network::JITModuleName&  pszUnitName,
-                                const TypeID&                  objectTypeID,
-                                const network::JITFunctionPtr& ppFunction,
-                                boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetSaveXMLObject( const network::JITModuleName&  pszUnitName,
+                                   const TypeID&                  objectTypeID,
+                                   const network::JITFunctionPtr& ppFunction,
+                                   boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetLoadXMLObject( const network::JITModuleName&  pszUnitName,
+                                   const TypeID&                  objectTypeID,
+                                   const network::JITFunctionPtr& ppFunction,
+                                   boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetSaveBinObject( const network::JITModuleName&  pszUnitName,
+                                   const TypeID&                  objectTypeID,
+                                   const network::JITFunctionPtr& ppFunction,
+                                   boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetLoadBinObject( const network::JITModuleName&  pszUnitName,
+                                   const TypeID&                  objectTypeID,
+                                   const network::JITFunctionPtr& ppFunction,
+                                   boost::asio::yield_context&    yield_ctx ) override;
+
     virtual void GetCallGetter( const network::JITModuleName&  pszUnitName,
                                 const TypeID&                  objectTypeID,
                                 const network::JITFunctionPtr& ppFunction,
@@ -206,6 +217,10 @@ public:
 
     // network::project::Impl
     virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;
+
+private:
+    void replicateSnapshot( const Snapshot& snapshot, const reference& ref, bool bGetShared,
+                                                    boost::asio::yield_context& yield_ctx );
 };
 
 } // namespace mega::service

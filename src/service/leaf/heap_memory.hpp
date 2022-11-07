@@ -46,19 +46,23 @@ class HeapMemory
     using HeapMap = std::map< reference, HeapBufferPtr >;
 
 public:
+    HeapMemory( U8 thisProcessID )
+        : m_thisProcessID( thisProcessID )
+    {
+    }
     void allocate( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit, void* pSharedMemoryBuffer,
                    reference& ref )
     {
         const network::SizeAlignment size = jit.getSize( ref.type );
-        if ( size.heap_size )
+        if( size.heap_size )
         {
             SPDLOG_TRACE( "HeapMemory allocate size: {} alignment: {} at: {} in ref: {}", size.heap_size,
                           size.heap_alignment, pSharedMemoryBuffer, ref );
 
             HeapBufferPtr pHeapBuffer;
-            pHeapBuffer.reset( new ( std::align_val_t( size.heap_alignment ) ) char[ size.heap_size ] );
+            pHeapBuffer.reset( new( std::align_val_t( size.heap_alignment ) ) char[ size.heap_size ] );
 
-            setHeap( ref.getProcessID(), getSharedHeader( pSharedMemoryBuffer ), pHeapBuffer.get() );
+            setHeap( m_thisProcessID, getSharedHeader( pSharedMemoryBuffer ), pHeapBuffer.get() );
             getCtor( compiler, jit, ref.type )( pHeapBuffer.get() );
             m_heapBuffers.insert( { ref, std::move( pHeapBuffer ) } );
         }
@@ -67,20 +71,31 @@ public:
     void ensureAllocated( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
                           void* pSharedMemoryBuffer, reference& ref )
     {
-        THROW_TODO;
+        ASSERT( ref.isMachine() );
+        auto iFind = m_heapBuffers.find( ref );
+        if( iFind == m_heapBuffers.end() )
+        {
+            allocate( compiler, jit, pSharedMemoryBuffer, ref );
+        }
     }
 
     void ensureAllocated( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit,
                           network::MemoryBaseReference& ref )
     {
-        THROW_TODO;
+        ASSERT( ref.machineRef.isMachine() );
+        auto iFind = m_heapBuffers.find( ref.machineRef );
+        if( iFind == m_heapBuffers.end() )
+        {
+            allocate(
+                compiler, jit, fromProcessAddress( ref.getBaseAddress(), ref.machineRef.pointer ), ref.machineRef );
+        }
     }
 
     // NOTE: free DOES NOT reset the heap pointer!
     void free( const runtime::CodeGenerator::LLVMCompiler& compiler, runtime::JIT& jit, reference& ref )
     {
         auto iFind = m_heapBuffers.find( ref );
-        if ( iFind != m_heapBuffers.end() )
+        if( iFind != m_heapBuffers.end() )
         {
             getDtor( compiler, jit, ref.type )( iFind->second.get() );
             m_heapBuffers.erase( iFind );
@@ -93,7 +108,7 @@ public:
         auto iEnd = m_heapBuffers.lower_bound(
             reference( TypeInstance( 0, 0 ), MPO( mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID() + 1 ),
                        std::numeric_limits< U64 >::max() ) );
-        for ( ; i != iEnd; ++i )
+        for( ; i != iEnd; ++i )
         {
             getDtor( compiler, jit, i->first.type )( i->second.get() );
         }
@@ -105,11 +120,11 @@ private:
                                              TypeID typeID )
     {
         auto iFind = m_constructors.find( typeID );
-        if ( iFind == m_constructors.end() )
+        if( iFind == m_constructors.end() )
         {
             iFind = m_constructors.insert( { typeID, mega::runtime::HeapCtorFunction{} } ).first;
         }
-        if ( iFind->second == nullptr )
+        if( iFind->second == nullptr )
         {
             jit.getObjectHeapAlloc( compiler, "leaf", typeID, &iFind->second );
         }
@@ -119,11 +134,11 @@ private:
                                              TypeID typeID )
     {
         auto iFind = m_destructors.find( typeID );
-        if ( iFind == m_destructors.end() )
+        if( iFind == m_destructors.end() )
         {
             iFind = m_destructors.insert( { typeID, mega::runtime::HeapDtorFunction{} } ).first;
         }
-        if ( iFind->second == nullptr )
+        if( iFind->second == nullptr )
         {
             jit.getObjectHeapDel( compiler, "leaf", typeID, &iFind->second );
         }
@@ -131,6 +146,7 @@ private:
     }
 
 private:
+    U8      m_thisProcessID;
     CtorMap m_constructors;
     DtorMap m_destructors;
     HeapMap m_heapBuffers;

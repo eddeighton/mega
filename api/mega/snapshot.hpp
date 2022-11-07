@@ -22,18 +22,10 @@
 #define GUARD_2022_November_02_snapshot
 
 #include "mega/reference.hpp"
-#include "mega/reference_io.hpp"
 #include "mega/native_types.hpp"
-
-#include "common/assert_verify.hpp"
-
-#include <boost/serialization/split_member.hpp>
-#include <boost/serialization/array_wrapper.hpp>
-#include <boost/serialization/unordered_map.hpp>
-#include <boost/serialization/vector.hpp>
+#include "mega/address_table.hpp"
 
 #include <unordered_map>
-#include <optional>
 
 namespace mega
 {
@@ -41,10 +33,8 @@ namespace mega
 class Snapshot
 {
 public:
-    using Index           = U64;
-    using IndexTable      = std::unordered_map< reference, Index, reference::Hash >;
-    using ReferenceVector = std::vector< reference >;
-    using Buffer          = std::vector< char >;
+    using Buffer      = std::vector< char >;
+    using IndexVector = std::vector< AddressTable::Index >;
 
     Snapshot()
         : m_timeStamp( 0U )
@@ -55,77 +45,34 @@ public:
     {
     }
 
-    TimeStamp              getTimeStamp() const { return m_timeStamp; }
-    const Buffer&          getBuffer() const { return m_buffer; }
-    const ReferenceVector& getObjects() const { return m_objects; }
-    /*const reference&       getRoot() const
-    {
-        std::optional< const reference* > root;
-        for ( const auto& ref : m_objects )
-        {
-            if ( ref.type == ROOT_TYPE_ID )
-            {
-                VERIFY_RTE_MSG( !root.has_value(), "Duplicate root references found in snapshot" );
-                root = &ref;
-            }
-        }
-        VERIFY_RTE_MSG( root.has_value(), "Failed to locate root object in snapshot" );
-        return *root.value();
-    }*/
+    TimeStamp           getTimeStamp() const { return m_timeStamp; }
+    const Buffer&       getBuffer() const { return m_buffer; }
+    const IndexVector&  getObjects() const { return m_objects; }
+    const AddressTable& getTable() const { return m_table; }
 
+    AddressTable& getTable() { return m_table; }
     void setTimeStamp( TimeStamp timeStamp ) { m_timeStamp = timeStamp; }
     void setBuffer( const Buffer& buffer ) { m_buffer = buffer; }
 
-    void beginObject( const reference& ref )
-    {
-        m_objects.push_back( ref );
-        refToIndex( ref );
-    }
+    void beginObject( const reference& ref ) { m_objects.push_back( m_table.refToIndex( ref ) ); }
 
-    const Index& refToIndex( const reference& ref )
-    {
-        auto iFind = m_table.find( ref );
-        if ( iFind == m_table.end() )
-        {
-            const Index index = m_table.size();
-            m_references.push_back( ref );
-            iFind = m_table.insert( { ref, index } ).first;
-        }
-        return iFind->second;
-    }
-
-    const reference& indexToRef( Index index ) const
-    {
-        ASSERT( index < m_references.size() );
-        return m_references[ index ];
-    }
-
-    void remap( const Index& index, const reference& ref )
-    {
-        const auto existing = indexToRef( index );
-        auto       iFind    = m_table.find( existing );
-        ASSERT( iFind != m_table.end() );
-        m_table.erase( iFind );
-        m_table[ ref ]        = index;
-        m_references[ index ] = ref;
-    }
+    const AddressTable::Index& refToIndex( const reference& ref ) { return m_table.refToIndex( ref ); }
+    void remap( const AddressTable::Index& index, const reference& ref ) { m_table.remap( index, ref ); }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& m_timeStamp;
         archive& m_table;
-        archive& m_references;
+        archive& m_timeStamp;
         archive& m_objects;
         archive& m_buffer;
     }
 
 private:
-    TimeStamp       m_timeStamp;
-    IndexTable      m_table;
-    ReferenceVector m_references;
-    ReferenceVector m_objects;
-    Buffer          m_buffer;
+    AddressTable m_table;
+    TimeStamp    m_timeStamp;
+    IndexVector  m_objects;
+    Buffer       m_buffer;
 };
 
 } // namespace mega

@@ -17,16 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg SimLockReadMPO
-{
-    request( MPO requestingMPO, MPO targetMPO );
-    response( TimeStamp timestamp );
-}
-msg SimLockWriteMPO
-{
-    request( MPO requestingMPO, MPO targetMPO );
-    response( TimeStamp timestamp );
-}
 msg SimLockRead
 {
     request( MPO requestingMPO, MPO targetMPO );

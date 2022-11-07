@@ -63,8 +63,8 @@ public:
     virtual network::jit::Request_Sender      getLeafJITRequest() override;
 
     // network::sim::Impl
-    virtual TimeStamp SimLockReadMPO( const MPO&, const MPO&, boost::asio::yield_context& ) override;
-    virtual TimeStamp SimLockWriteMPO( const MPO&, const MPO&, boost::asio::yield_context& ) override;
+    virtual Snapshot SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& ) override;
+    virtual Snapshot SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& ) override;
     virtual void
     SimLockRelease( const MPO&, const MPO&, const network::Transaction&, boost::asio::yield_context& ) override;
     virtual void SimClock( boost::asio::yield_context& ) override;
@@ -88,6 +88,8 @@ public:
     virtual F32       dt() override { return m_clock.dt(); }
 
 private:
+    Snapshot makeSnapshot( const MPO& requestingMPO, const MPO& targetMPO );
+
     void issueClock();
     void clock();
     void runSimulation( boost::asio::yield_context& yield_ctx );

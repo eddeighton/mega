@@ -113,7 +113,11 @@ public:
     {
         m_mpo           = root;
         m_root          = root;
-        m_pSharedMemory = reinterpret_cast< runtime::ManagedSharedMemory* >( pMemory );
+        m_pSharedMemory = mega::network::convert< runtime::ManagedSharedMemory >( pMemory );
+        VERIFY_RTE_MSG( m_pSharedMemory, "Shared memory not initialised" );
+
+        // test for seg fault
+        VERIFY_RTE( m_pSharedMemory->get_address() );
     }
 
     //////////////////////////
@@ -136,7 +140,11 @@ public:
     }
 
     // mpo management
-    virtual MPO             getThisMPO() override { return m_mpo.value(); }
+    virtual MPO getThisMPO() override
+    {
+        SPDLOG_TRACE( "MPOContext::getThisMPO" );
+        return m_mpo.value();
+    }
     virtual MPO             constructMPO( MP machineProcess ) override;
     virtual mega::reference getRoot( MPO mpo ) override;
     virtual mega::reference getThisRoot() override { return m_root; }
@@ -145,6 +153,8 @@ public:
     virtual log::Storage& getLog() override { return m_log; }
 
 private:
+    void loadSnapshot( const reference& ref, const Snapshot& snapshot );
+
     // define temp data structures as members to reuse memory and avoid allocations
     using ShedulingMap   = std::map< MPO, std::vector< log::SchedulerRecordRead > >;
     using MemoryMap      = std::map< reference, std::string_view >;

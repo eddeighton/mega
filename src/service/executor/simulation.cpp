@@ -31,6 +31,9 @@
 #include "service/protocol/model/messages.hxx"
 #include "service/protocol/model/enrole.hxx"
 
+#include "mega/bin_archive.hpp"
+#include "mega/shared_memory_header.hpp"
+
 #include <boost/filesystem/operations.hpp>
 
 namespace mega::service
@@ -46,7 +49,7 @@ Simulation::Simulation( Executor& executor, const network::ConversationID& conve
 network::Message Simulation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if ( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
 }
@@ -119,22 +122,22 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         bool bRegistedAsTerminating = false;
 
         StateMachine::MsgVector tempMessages;
-        while ( !m_stateMachine.isTerminated() )
+        while( !m_stateMachine.isTerminated() )
         {
-            if ( m_stateMachine.isTerminating() && !bRegistedAsTerminating )
+            if( m_stateMachine.isTerminating() && !bRegistedAsTerminating )
             {
                 Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( shared_from_this() );
                 m_executor.simulationTerminating( pSim );
                 bRegistedAsTerminating = true;
             }
 
-            for ( const auto& msg : m_stateMachine.acks() )
+            for( const auto& msg : m_stateMachine.acks() )
             {
                 dispatchRequestImpl( msg, yield_ctx );
             }
             m_stateMachine.resetAcks();
 
-            switch ( m_stateMachine.getState() )
+            switch( m_stateMachine.getState() )
             {
                 case StateMachine::SIM:
                 {
@@ -179,10 +182,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     const network::ReceivedMsg msg = receive( yield_ctx );
                     m_messageQueue.push_back( msg );
                 }
-                while ( m_channel.try_receive(
+                while( m_channel.try_receive(
                     [ &msgs = m_messageQueue ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
                     {
-                        if ( !ec )
+                        if( !ec )
                         {
                             msgs.push_back( msg );
                         }
@@ -199,9 +202,9 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             // process non-state messages
             {
                 tempMessages.clear();
-                for ( const auto& msg : m_messageQueue )
+                for( const auto& msg : m_messageQueue )
                 {
-                    switch ( StateMachine::getMsgID( msg ) )
+                    switch( StateMachine::getMsgID( msg ) )
                     {
                         case StateMachine::Read::ID:
                         case StateMachine::Write::ID:
@@ -219,9 +222,9 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             }
 
             // returns whether there was clock tick
-            if ( m_stateMachine.onMsg( tempMessages ) )
+            if( m_stateMachine.onMsg( tempMessages ) )
             {
-                if ( !m_stateMachine.isTerminated() )
+                if( !m_stateMachine.isTerminated() )
                 {
                     issueClock();
                 }
@@ -229,7 +232,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             tempMessages.clear();
         }
     }
-    catch ( std::exception& ex )
+    catch( std::exception& ex )
     {
         SPDLOG_WARN( "SIM: Conversation: {} exception: {}", getID(), ex.what() );
         m_conversationManager.conversationCompleted( shared_from_this() );
@@ -239,22 +242,35 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
     network::ReceivedMsg msg;
-    while ( true )
+    while( true )
     {
         msg = receive( yield_ctx );
 
         // simulation is running so process as normal
-        if ( isRequest( msg.msg ) )
+        if( isRequest( msg.msg ) )
         {
-            if ( m_mpo.has_value() || ( msg.msg.getID() == network::leaf_exe::MSG_RootSimRun_Request::ID ) )
+            if( m_mpo.has_value() || ( msg.msg.getID() == network::leaf_exe::MSG_RootSimRun_Request::ID ) )
             {
-                dispatchRequestImpl( msg, yield_ctx );
+                switch( StateMachine::getMsgID( msg ) )
+                {
+                    case StateMachine::Read::ID:
+                    case StateMachine::Write::ID:
+                    case StateMachine::Release::ID:
+                    case StateMachine::Destroy::ID:
+                    case StateMachine::Clock::ID:
+                        m_messageQueue.push_back( msg );
+                        break;
+                    default:
+                        dispatchRequestImpl( msg, yield_ctx );
+                        break;
+                }
+                // dispatchRequestImpl( msg, yield_ctx );
 
                 // check if connection has disconnected
-                if ( m_disconnections.empty() )
+                if( m_disconnections.empty() )
                 {
                     ASSERT( !m_stack.empty() );
-                    if ( m_disconnections.count( m_stack.back() ) )
+                    if( m_disconnections.count( m_stack.back() ) )
                     {
                         SPDLOG_ERROR(
                             "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
@@ -276,7 +292,7 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
             break;
         }
     }
-    if ( msg.msg.getID() == network::MSG_Error_Response::ID )
+    if( msg.msg.getID() == network::MSG_Error_Response::ID )
     {
         throw std::runtime_error( network::MSG_Error_Response::get( msg.msg ).what );
     }
@@ -293,28 +309,74 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     request.SimStart();
 }
 
-TimeStamp Simulation::SimLockReadMPO( const MPO&, const MPO&, boost::asio::yield_context& )
+Snapshot Simulation::makeSnapshot( const MPO& requestingMPO, const MPO& targetMPO )
 {
-    if ( m_stateMachine.isTerminating() )
+    SPDLOG_TRACE( "SIM::makeSnapshot: {} {} {}", requestingMPO, targetMPO, m_root );
+    static mega::runtime::SaveObjectFunction pSaveFunction = nullptr;
+
+
     {
-        return { 0U };
+        const mega::MPO thisMPO = getThisMPO();
+        void* pSharedBase = base();
+        void* pSharedBuffer = mega::fromProcessAddress( pSharedBase, m_root.pointer );
+        void* pHeap = getHeap( thisMPO.getProcessID(), getSharedHeader( pSharedBuffer ) );
+        SPDLOG_TRACE( "makeSnapshot {} {} {} {}", thisMPO, pSharedBase, pSharedBuffer, pHeap );
+    }
+
+    if( requestingMPO.getMachineID() == targetMPO.getMachineID() )
+    {
+        if( requestingMPO.getProcessID() == targetMPO.getProcessID() )
+        {
+            // same process - just return timestamp
+            return Snapshot{ m_log.getTimeStamp() };
+        }
+        else
+        {
+            if( !pSaveFunction )
+            {
+                get_save_bin_object( "Simulation", ROOT_TYPE_ID, &pSaveFunction );
+            }
+
+            BinSaveArchive archive;
+            pSaveFunction( m_root, &archive, false );
+
+            return archive.makeSnapshot( m_log.getTimeStamp() );
+        }
     }
     else
     {
-        return { m_log.getTimeStamp() };
+        if( !pSaveFunction )
+        {
+            get_save_bin_object( "Simulation", ROOT_TYPE_ID, &pSaveFunction );
+        }
+
+        BinSaveArchive archive;
+        pSaveFunction( m_root, &archive, true );
+
+        return archive.makeSnapshot( m_log.getTimeStamp() );
     }
 }
 
-TimeStamp Simulation::SimLockWriteMPO( const MPO&, const MPO&, boost::asio::yield_context& )
+Snapshot Simulation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+                                  boost::asio::yield_context& yield_ctx )
 {
-    if ( m_stateMachine.isTerminating() )
+    SPDLOG_TRACE( "SIM::SimLockRead: {} {}", requestingMPO, targetMPO );
+    if( m_stateMachine.isTerminating() )
     {
         return { 0U };
     }
-    else
+    return makeSnapshot( requestingMPO, targetMPO );
+}
+
+Snapshot Simulation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+                                   boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "SIM::SimLockWrite: {} {}", requestingMPO, targetMPO );
+    if( m_stateMachine.isTerminating() )
     {
-        return { m_log.getTimeStamp() };
+        return { 0U };
     }
+    return makeSnapshot( requestingMPO, targetMPO );
 }
 
 void Simulation::SimLockRelease( const MPO&,
@@ -322,20 +384,24 @@ void Simulation::SimLockRelease( const MPO&,
                                  const network::Transaction& transaction,
                                  boost::asio::yield_context& )
 {
-    for ( const auto& shedulingRecord : transaction.getSchedulingRecords() )
+    for( const auto& shedulingRecord : transaction.getSchedulingRecords() )
     {
-        SPDLOG_INFO( "Got scheduling record: {} {}", shedulingRecord.first, shedulingRecord.second );
+        SPDLOG_INFO(
+            "SIM::SimLockRelease Got scheduling record: {} {}", shedulingRecord.first, shedulingRecord.second );
     }
 
-    for ( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
+    for( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
     {
-        for ( const auto& memoryRecord : transaction.getMemoryRecords( log::MemoryTrackType( i ) ) )
+        for( const auto& memoryRecord : transaction.getMemoryRecords( log::MemoryTrackType( i ) ) )
         {
-            SPDLOG_INFO( "Got memory record: {} {}", memoryRecord.first, memoryRecord.second );
+            SPDLOG_INFO( "SIM::SimLockRelease Got memory record: {} {}", memoryRecord.first, memoryRecord.second );
         }
     }
 }
-void Simulation::SimClock( boost::asio::yield_context& ) { m_clock.nextCycle(); }
+void Simulation::SimClock( boost::asio::yield_context& )
+{
+    m_clock.nextCycle();
+}
 
 MPO Simulation::SimCreate( boost::asio::yield_context& )
 {
@@ -376,13 +442,13 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         status.setLogIterator( m_log.getIterator() );
 
         using MPOVec = std::vector< MPO >;
-        if ( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
+        if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
             status.setReads( MPOVec{ reads.begin(), reads.end() } );
-        if ( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
+        if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
             status.setWrites( MPOVec{ writes.begin(), writes.end() } );
-        if ( const auto& readers = m_stateMachine.reads(); !readers.empty() )
+        if( const auto& readers = m_stateMachine.reads(); !readers.empty() )
             status.setReaders( MPOVec{ readers.begin(), readers.end() } );
-        if ( const auto& writer = m_stateMachine.writer(); writer.has_value() )
+        if( const auto& writer = m_stateMachine.writer(); writer.has_value() )
             status.setWriter( writer.value() );
 
         status.setDescription( os.str() );

@@ -31,7 +31,16 @@ class LockTracker
     using MPOSet = std::set< MPO >;
 
 public:
-    void onRead( MPO mpo ) { m_reads.insert( mpo ); }
+    bool isRead( MPO mpo ) const { return ( m_reads.count( mpo ) != 0 ) || isWrite( mpo ); }
+    bool isWrite( MPO mpo ) const { return m_writes.count( mpo ) != 0; }
+
+    void onRead( MPO mpo )
+    {
+        if( !isWrite( mpo ) )
+        {
+            m_reads.insert( mpo );
+        }
+    }
 
     void onWrite( MPO mpo )
     {

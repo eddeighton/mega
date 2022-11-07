@@ -17,16 +17,27 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg GetSaveObject
+msg GetSaveXMLObject
 {
     request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
     response();
 }
-msg GetLoadObject
+msg GetLoadXMLObject
 {
     request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
     response();
 }
+msg GetSaveBinObject
+{
+    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
+    response();
+}
+msg GetLoadBinObject
+{
+    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
+    response();
+}
+
 msg GetCallGetter
 {
     request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
