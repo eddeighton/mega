@@ -17,40 +17,33 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-// ed was here
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
-#include "mega/jit_interface.hpp"
+#ifndef RUNTIME_18_JUNE_2022
+#define RUNTIME_18_JUNE_2022
 
-static const char* g_pszModuleName = "{{module_name}}";
+#include "jit/functions.hpp"
+
+#include "mega/reference.hpp"
 
 namespace mega
 {
-    void schedule_start(const reference&);
-
-{% for copy in copiers %}
-    void copy_{{copy}}(const void*,void*);
-{% endfor %}
-{% for event in events %}
-    void event_{{event}}(const reference&,bool,const void*);
-{% endfor %}
-
-{% for allocate in allocators %}
-    Instance allocate_{{allocate}}(void*);
-{% endfor %}
-{% for free in freers %}
-    void free_{{free}}(void*,Instance);
-{% endfor %}
-
-}
-
-mega::reference {{ name }}( mega::reference context )
+namespace runtime
 {
-{% for variable in variables %}
-{{ variable }}
-{% endfor %}
 
-{% for assignment in assignments %}
-{{ assignment }}
-{% endfor %}
-}
+#define FUNCTION_ARG_0( return_type, name ) return_type name();
+#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
+#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name );
+#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
+    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
+
+#include "service/jit_interface.hxx"
+
+#undef FUNCTION_ARG_0
+#undef FUNCTION_ARG_1
+#undef FUNCTION_ARG_2
+#undef FUNCTION_ARG_3
+
+} // namespace runtime
+} // namespace mega
+
+#endif // RUNTIME_18_JUNE_2022

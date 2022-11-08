@@ -91,15 +91,12 @@ public:
     return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
 
 #include "service/jit_interface.hxx"
+#include "service/component_interface.hxx"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1
 #undef FUNCTION_ARG_2
 #undef FUNCTION_ARG_3
-
-    void* base();
-    void* read( reference& ref );
-    void* write( reference& ref );
 
     virtual network::mpo::Request_Sender      getMPRequest()           = 0;
     virtual network::address::Request_Encoder getRootAddressRequest()  = 0;
@@ -140,11 +137,6 @@ public:
     }
 
     // mpo management
-    virtual MPO getThisMPO() override
-    {
-        SPDLOG_TRACE( "MPOContext::getThisMPO" );
-        return m_mpo.value();
-    }
     virtual MPO             constructMPO( MP machineProcess ) override;
     virtual mega::reference getRoot( MPO mpo ) override;
     virtual mega::reference getThisRoot() override { return m_root; }

@@ -55,13 +55,6 @@ void setMPOContext( MPOContext* pMPOContext )
     g_pMPOContext = pMPOContext;
 }
 
-void* MPOContext::base()
-{
-    void* pBase = m_pSharedMemory->get_address();
-    SPDLOG_TRACE( "MPOContext::base {}", pBase );
-    return pBase;
-}
-
 void MPOContext::loadSnapshot( const reference& ref, const Snapshot& snapshot )
 {
     SPDLOG_TRACE( "MPOContext::loadSnapshot: {}", ref );
@@ -92,37 +85,6 @@ void MPOContext::loadSnapshot( const reference& ref, const Snapshot& snapshot )
     }
 }
 
-void* MPOContext::read( reference& ref )
-{
-    SPDLOG_TRACE( "MPOContext::read: {}", ref );
-
-    network::MemoryBaseReference result = getLeafMemoryRequest().Read( m_root, ref, m_lockTracker.isRead( ref ) );
-    if( result.snapshotOpt.has_value() )
-    {
-        SPDLOG_TRACE( "MPOContext::read loading snapshot: {}", ref );
-        loadSnapshot( ref, result.snapshotOpt.value() );
-    }
-
-    ref = result.machineRef;
-    m_lockTracker.onRead( ref );
-    return result.getBaseAddress();
-}
-
-void* MPOContext::write( reference& ref )
-{
-    SPDLOG_TRACE( "MPOContext::write {}", ref );
-    network::MemoryBaseReference result = getLeafMemoryRequest().Write( m_root, ref, m_lockTracker.isWrite( ref ) );
-    if( result.snapshotOpt.has_value() )
-    {
-        SPDLOG_TRACE( "MPOContext::write loading snapshot: {}", ref );
-        loadSnapshot( ref, result.snapshotOpt.value() );
-    }
-
-    ref = result.machineRef;
-    m_lockTracker.onWrite( ref );
-    return result.getBaseAddress();
-}
-
 MPO MPOContext::constructMPO( MP machineProcess )
 {
     network::sim::Request_Encoder request(
@@ -138,6 +100,46 @@ reference MPOContext::getRoot( MPO mpo )
     return { TypeInstance::Root(), mpo, netAddress };
 }
 
+// start of jit_interface
+MPO MPOContext::getThisMPO()
+{
+    return m_mpo.value();
+}
+void* MPOContext::base()
+{
+    void* pBase = m_pSharedMemory->get_address();
+    SPDLOG_TRACE( "MPOContext::base {}", pBase );
+    return pBase;
+}
+void* MPOContext::read( reference& ref )
+{
+    SPDLOG_TRACE( "MPOContext::read: {}", ref );
+
+    network::MemoryBaseReference result = getLeafMemoryRequest().Read( m_root, ref, m_lockTracker.isRead( ref ) );
+    if( result.snapshotOpt.has_value() )
+    {
+        SPDLOG_TRACE( "MPOContext::read loading snapshot: {}", ref );
+        loadSnapshot( ref, result.snapshotOpt.value() );
+    }
+
+    ref = result.machineRef;
+    m_lockTracker.onRead( ref );
+    return result.getBaseAddress();
+}
+void* MPOContext::write( reference& ref )
+{
+    SPDLOG_TRACE( "MPOContext::write {}", ref );
+    network::MemoryBaseReference result = getLeafMemoryRequest().Write( m_root, ref, m_lockTracker.isWrite( ref ) );
+    if( result.snapshotOpt.has_value() )
+    {
+        SPDLOG_TRACE( "MPOContext::write loading snapshot: {}", ref );
+        loadSnapshot( ref, result.snapshotOpt.value() );
+    }
+
+    ref = result.machineRef;
+    m_lockTracker.onWrite( ref );
+    return result.getBaseAddress();
+}
 reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
 {
     return getLeafMemoryRequest().Allocate( context, objectTypeID );
@@ -146,7 +148,6 @@ reference MPOContext::networkToMachine( const reference& ref )
 {
     return getLeafMemoryRequest().NetworkToMachine( ref );
 }
-
 void MPOContext::get_save_xml_object( const char* pszUnitName, TypeID objectTypeID,
                                       runtime::SaveObjectFunction* ppFunction )
 {
@@ -177,6 +178,8 @@ void MPOContext::get_call_getter( const char* pszUnitName, TypeID objectTypeID,
 {
     getLeafJITRequest().GetCallGetter( network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
 }
+
+// start of component_interface
 void MPOContext::get_allocate( const char* pszUnitName, const InvocationID& invocationID,
                                runtime::AllocateFunction* ppFunction )
 {

@@ -66,6 +66,8 @@ target_link_libraries( leaf jit )
 target_include_directories( leaf PUBLIC ${MEGA_API_DIR} )
 target_include_directories( leaf PUBLIC ${MEGA_SRC_DIR} )
 
+# target_link_options( leaf PUBLIC -export-dynamic )
+
 set_target_properties( leaf PROPERTIES FOLDER leaf )
 
 link_boost( leaf filesystem )
@@ -77,6 +79,7 @@ link_spdlog( leaf )
 
 install( FILES ${MEGA_LEAF_API} DESTINATION include/service )
 install( FILES ${MEGA_API_DIR}/service/jit_interface.hxx DESTINATION include/service )
+install( FILES ${MEGA_API_DIR}/service/component_interface.hxx DESTINATION include/service )
 
 install( TARGETS leaf EXPORT leaf DESTINATION bin)
 install( EXPORT leaf NAMESPACE MEGA:: FILE leaf-config.cmake DESTINATION share )

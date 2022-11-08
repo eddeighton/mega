@@ -22,23 +22,6 @@
 namespace mega::runtime
 {
 
-MPO getThisMPO()
-{
-    return getMPOContext()->getThisMPO();
-}
-void* base()
-{
-    return getMPOContext()->base();
-}
-void* read( reference& ref )
-{
-    return getMPOContext()->read( ref );
-}
-void* write( reference& ref )
-{
-    return getMPOContext()->write( ref );
-}
-
 #define FUNCTION_ARG_0( return_type, name ) \
     return_type name()                      \
     {                                       \
@@ -64,6 +47,7 @@ void* write( reference& ref )
     }
 
 #include "service/jit_interface.hxx"
+#include "service/component_interface.hxx"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1

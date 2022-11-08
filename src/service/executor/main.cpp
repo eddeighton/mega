@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "service/executor.hpp"
 
 #include "service/network/network.hpp"
@@ -31,16 +29,36 @@
 #include <boost/program_options.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/config.hpp>
 
 #include <iostream>
 #include <sstream>
 #include <chrono>
 #include <thread>
 
+/*
+namespace mega::runtime
+{
+#define FUNCTION_ARG_0( return_type, name ) return_type name();
+#define FUNCTION_ARG_1( return_type, name, a1_type, a1_name ) return_type name( a1_type a1_name );
+#define FUNCTION_ARG_2( return_type, name, a1_type, a1_name, a2_type, a2_name ) \
+    return_type name( a1_type a1_name, a2_type a2_name );
+#define FUNCTION_ARG_3( return_type, name, a1_type, a1_name, a2_type, a2_name, a3_type, a3_name ) \
+    return_type name( a1_type a1_name, a2_type a2_name, a3_type a3_name );
+
+#include "service/jit_interface.hxx"
+#include "service/component_interface.hxx"
+
+#undef FUNCTION_ARG_0
+#undef FUNCTION_ARG_1
+#undef FUNCTION_ARG_2
+#undef FUNCTION_ARG_3
+} // namespace mega::runtime
+*/
+
 int main( int argc, const char* argv[] )
 {
-    using NumThreadsType = decltype( std::thread::hardware_concurrency() );
-
+    using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
     NumThreadsType          uiNumThreads       = std::thread::hardware_concurrency();
     std::string             strIP              = "localhost";
     short                   daemonPortNumber   = mega::network::MegaDaemonPort();
@@ -70,13 +88,13 @@ int main( int argc, const char* argv[] )
         po::store( parsedOptions, vm );
         po::notify( vm );
 
-        if ( bShowHelp )
+        if( bShowHelp )
         {
             std::cout << options << "\n";
             return 0;
         }
 
-        if ( strIP.empty() )
+        if( strIP.empty() )
         {
             std::cerr << "Missing IP Address" << std::endl;
             return -1;
@@ -84,7 +102,7 @@ int main( int argc, const char* argv[] )
         uiNumThreads = std::min( std::max( 1U, uiNumThreads ), std::thread::hardware_concurrency() );
     }
 
-     std::cout << "Connecting to: " << strIP << std::endl;
+    std::cout << "Connecting to: " << strIP << std::endl;
 
     try
     {
@@ -97,16 +115,16 @@ int main( int argc, const char* argv[] )
         mega::service::Executor executor( ioContext, uiNumThreads, daemonPortNumber );
 
         std::vector< std::thread > threads;
-        for ( int i = 0; i < uiNumThreads; ++i )
+        for( int i = 0; i < uiNumThreads; ++i )
         {
             threads.emplace_back( std::move( std::thread( [ &ioContext ]() { ioContext.run(); } ) ) );
         }
-        for ( std::thread& thread : threads )
+        for( std::thread& thread : threads )
         {
             thread.join();
         }
     }
-    catch ( std::exception& ex )
+    catch( std::exception& ex )
     {
         std::cerr << "Exception: " << ex.what() << std::endl;
         return -1;

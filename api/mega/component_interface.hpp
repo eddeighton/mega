@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,8 +18,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef RUNTIME_18_JUNE_2022
-#define RUNTIME_18_JUNE_2022
+#ifndef GUARD_2022_November_08_component_interface
+#define GUARD_2022_November_08_component_interface
 
 #include "jit/functions.hpp"
 
@@ -30,11 +31,6 @@ namespace mega
 namespace runtime
 {
 
-MPO   getThisMPO();
-void* base();
-void* read( reference& ref );
-void* write( reference& ref );
-
 #define FUNCTION_ARG_0( return_type, name ) return_type name();
 #define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
 #define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
@@ -42,7 +38,7 @@ void* write( reference& ref );
 #define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
     return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
 
-#include "service/jit_interface.hxx"
+#include "service/component_interface.hxx"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1
@@ -52,4 +48,4 @@ void* write( reference& ref );
 } // namespace runtime
 } // namespace mega
 
-#endif // RUNTIME_18_JUNE_2022
+#endif //GUARD_2022_November_08_component_interface

@@ -108,6 +108,9 @@ set( EXECUTOR_SOURCE
     ${MEGA_SRC_DIR}/service/executor/main.cpp 
 
     ${MEGA_API_DIR}/mega/types/traits.cpp
+
+    # only way found to prevent linker deleting free function symbols in release build - include api.cpp here
+    ${MEGA_SRC_DIR}/service/leaf/api.cpp
     )
 
 add_executable( executor ${EXECUTOR_SOURCE}  )
@@ -121,6 +124,8 @@ target_link_libraries( executor executorLib )
 # runtime
 # -Wl,-no-whole-archive
 # )
+
+# target_link_options( executor PUBLIC -export-dynamic )
 
 set_target_properties( executor PROPERTIES FOLDER driver )
 
