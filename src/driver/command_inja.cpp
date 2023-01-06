@@ -47,7 +47,7 @@ namespace
         VERIFY_RTE_MSG( boost::filesystem::exists( filePath ),
                         common::COLOUR_RED_BEGIN << "ERROR: Failed to locate: " << filePath.string() << common::COLOUR_END );
         std::cout << "Reading: " << filePath.string() << std::endl;
-        std::ifstream file( filePath.native(), std::ios_base::in );
+        std::ifstream file( filePath.string(), std::ios_base::in );
         VERIFY_RTE_MSG( !file.fail(), "Failed to open json file: " << filePath.string() );
         return nlohmann::json::parse( std::istreambuf_iterator< char >( file ), std::istreambuf_iterator< char >() );
     }
@@ -101,7 +101,7 @@ namespace driver
                                         common::COLOUR_RED_BEGIN << "ERROR: Failed to locate: " << injaTemplateFilePath.string()
                                                                  << common::COLOUR_END );
 
-                        ::inja::Template injaTemplate = injaEnv.parse_template( injaTemplateFilePathAbs.native() );
+                        ::inja::Template injaTemplate = injaEnv.parse_template( injaTemplateFilePathAbs.string() );
                         injaEnv.render_to( osOutput, injaTemplate, data );
                     }
 

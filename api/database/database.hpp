@@ -22,6 +22,7 @@
 
 #include "service/protocol/common/jit_types.hpp"
 
+#include "database/common/api.hpp"
 #include "database/common/environment_archive.hpp"
 #include "database/common/exception.hpp"
 #include "database/common/manifest_data.hpp"
@@ -34,7 +35,7 @@
 namespace mega::runtime
 {
 
-class DatabaseInstance
+class EGDB_EXPORT DatabaseInstance
 {
     using ConcreteTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
 

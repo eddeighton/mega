@@ -24,6 +24,8 @@
 
 #include "service/protocol/model/daemon_leaf.hxx"
 
+#include "service/network/log.hpp"
+
 namespace mega::service
 {
 
@@ -38,30 +40,9 @@ void DaemonRequestConversation::MPODestroyed( const MPO& mpo, const bool& bDelet
         sender.MPODestroyed( mpo, bFirst );
         bFirst = false;
     }
-
-    m_daemon.getMemoryManager().release( mpo );
-}
-
-reference DaemonRequestConversation::Allocate( const MPO& mpo, const TypeID& objectTypeID,
-                                               boost::asio::yield_context& yield_ctx )
-{
-    const NetworkAddress networkAddress
-        = getRootRequest< network::address::Request_Encoder >( yield_ctx ).AllocateNetworkAddress( mpo, objectTypeID );
-    return m_daemon.getMemoryManager().allocate( mpo, objectTypeID, networkAddress );
-}
-
-std::string DaemonRequestConversation::Acquire( const MPO& mpo, boost::asio::yield_context& yield_ctx )
-{
-    return m_daemon.getMemoryManager().acquire( mpo );
-}
-
-reference DaemonRequestConversation::NetworkToMachine( const reference& ref, boost::asio::yield_context& yield_ctx )
-{
-    return m_daemon.getMemoryManager().networkToMachine( ref );
 }
 
 void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
-                                            const NetworkAddress&       networkAddress,
                                             boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun: {}", mpo );
@@ -74,33 +55,26 @@ void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
                 || pConnection->getTypeOpt().value() == network::Node::Tool );
 
     // establish shared memory region for MPO
-    struct Memory
+    /*struct Memory
     {
         Daemon&        daemon;
-        std::string    strMemory;
         MPO            mpo;
-        NetworkAddress networkAddress;
-        reference      root;
-        Memory( Daemon& daemon, const MPO& mpo, const NetworkAddress& networkAddress )
+        Memory( Daemon& daemon, const MPO& mpo )
             : daemon( daemon )
             , mpo( mpo )
-            , networkAddress( networkAddress )
         {
-            strMemory = daemon.getMemoryManager().acquire( mpo );
-            root      = daemon.getMemoryManager().allocateRoot( mpo, networkAddress );
-            SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun created root: {} in memory: {}", root, strMemory );
+            // SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun created root: {}", root );
         }
         ~Memory()
         {
-            //
-            daemon.getMemoryManager().release( mpo );
         }
-    } wrapper( m_daemon, mpo, networkAddress );
+    } wrapper( m_daemon, mpo );*/
 
     {
         // network::Server::ConnectionLabelRAII connectionLabel( m_daemon.m_server, mpo, pConnection );
         network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
-        sender.RootSimRun( wrapper.root, wrapper.strMemory );
+        THROW_TODO;
+        sender.RootSimRun( reference{} );
     }
 }
 
@@ -115,17 +89,6 @@ Snapshot DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, const
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
         Snapshot                     snapshot = sender.SimLockRead( requestingMPO, targetMPO );
 
-        if( m_daemon.m_machineID == requestingMPO.getMachineID() )
-        {
-            // response is to this machine
-            m_daemon.getMemoryManager().networkToMachine( snapshot );
-        }
-        else
-        {
-            // response is to different machine
-            m_daemon.getMemoryManager().machineToNetwork( snapshot );
-        }
-
         return snapshot;
     }
     else
@@ -134,8 +97,6 @@ Snapshot DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, const
 
         network::sim::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
         Snapshot snapshot = sender.SimLockRead( requestingMPO, targetMPO );
-
-        m_daemon.getMemoryManager().networkToMachine( snapshot );
 
         return snapshot;
     }

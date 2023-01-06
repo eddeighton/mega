@@ -23,6 +23,7 @@
 #ifndef COMPONENT_TYPE_22_JUNE_2022
 #define COMPONENT_TYPE_22_JUNE_2022
 
+#include "database/common/api.hpp"
 #include "database/common/serialisation.hpp"
 
 #include <ostream>
@@ -30,7 +31,7 @@
 namespace mega
 {
 
-class ComponentType
+class EGDB_EXPORT ComponentType
 {
 public:
     enum Value
@@ -65,7 +66,7 @@ private:
 };
 }
 
-std::ostream& operator<<( std::ostream& os, mega::ComponentType componentType );
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::ComponentType componentType );
 
 namespace mega
 {

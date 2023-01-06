@@ -22,6 +22,7 @@
 
 #include "serialisation.hpp"
 
+#include "database/common/api.hpp"
 #include "database/types/component_type.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -30,7 +31,7 @@
 
 namespace mega::io
 {
-class ComponentInfo
+class EGDB_EXPORT ComponentInfo
 {
 public:
     using PathArray = std::vector< boost::filesystem::path >;

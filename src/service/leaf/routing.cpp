@@ -20,8 +20,6 @@
 #include "request.hpp"
 #include "mpo_lifetime.hpp"
 
-#include "mega/shared_memory_header.hpp"
-
 #include "service/network/log.hpp"
 #include "service/protocol/model/memory.hxx"
 
@@ -310,22 +308,22 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
 }
 
 
-void LeafRequestConversation::RootSimRun( const reference& root, const std::string& strMemory,
+void LeafRequestConversation::RootSimRun( const reference& root, 
                                           boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {} {}", root, strMemory );
+    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", root );
     VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in RootSimRun" );
     switch ( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
         {
-            MPOLifetime mpoLifetime( m_leaf, *this, root, strMemory, yield_ctx );
-            return getExeSender( yield_ctx ).RootSimRun( mpoLifetime.getRoot(), network::convert( &mpoLifetime.getSharedMemory() ) );
+            MPOLifetime mpoLifetime( m_leaf, *this, root, yield_ctx );
+            return getExeSender( yield_ctx ).RootSimRun( mpoLifetime.getRoot() );
         }
         case network::Node::Tool:
         {
-            MPOLifetime mpoLifetime( m_leaf, *this, root, strMemory, yield_ctx );
-            return getToolSender( yield_ctx ).RootSimRun( mpoLifetime.getRoot(), network::convert( &mpoLifetime.getSharedMemory() ) );
+            MPOLifetime mpoLifetime( m_leaf, *this, root, yield_ctx );
+            return getToolSender( yield_ctx ).RootSimRun( mpoLifetime.getRoot() );
         }
         case network::Node::Terminal:
         case network::Node::Daemon:

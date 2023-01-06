@@ -19,6 +19,8 @@
 
 #include "request.hpp"
 
+#include "service/network/log.hpp"
+
 namespace mega::service
 {
 // network::project::Impl

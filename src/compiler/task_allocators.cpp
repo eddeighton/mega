@@ -25,7 +25,6 @@
 #include "common/file.hpp"
 
 #include "mega/common.hpp"
-#include "mega/shared_memory_header.hpp"
 #include "mega/allocator.hpp"
 #include "mega/types/traits.hpp"
 
@@ -652,8 +651,8 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
         std::vector< MemoryLayout::Buffer* > objectBuffers;
         if ( !parts.simpleParts.empty() )
         {
-            U64 szOffset    = sizeof( SharedHeader );
-            U64 szAlignment = alignof( SharedHeader );
+            U64 szOffset    = 0U;
+            U64 szAlignment = 1U;
             for ( auto p : parts.simpleParts )
             {
                 szOffset = padToAlignment( p->get_alignment(), szOffset );

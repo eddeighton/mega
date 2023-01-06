@@ -577,7 +577,7 @@ public:
     using Ptr = std::shared_ptr< ValueType >;
     std::string m_cppType;
 
-    virtual std::string getViewType( const std::string& strStageNamespace, bool bAsArg ) const
+    virtual std::string getViewType( const std::string& /*strStageNamespace*/, bool bAsArg ) const
     {
         return bAsArg ? toConstRef( m_cppType ) : m_cppType;
     }
@@ -611,7 +611,7 @@ public:
     using Ptr = std::shared_ptr< RefType >;
     Object::Ptr m_object;
 
-    virtual std::string getViewType( const std::string& strStageNamespace, bool bAsArg ) const
+    virtual std::string getViewType( const std::string& strStageNamespace, bool /*bAsArg*/ ) const
     {
         VERIFY_RTE( m_object );
         std::ostringstream os;

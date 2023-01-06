@@ -24,7 +24,6 @@
 
 #include "mega/common.hpp"
 
-#pragma warning( push )
 #include "common/clang_warnings.hpp"
 #include "common/requireSemicolon.hpp"
 
@@ -32,8 +31,6 @@
 
 #include "clang/AST/Type.h"
 #include "clang/Sema/Sema.h"
-
-#pragma warning( pop )
 
 #include <optional>
 #include <iostream>

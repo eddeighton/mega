@@ -22,7 +22,7 @@
 
 #include "mega/common.hpp"
 
-#include "service/network/sender.hpp"
+#include "service/network/sender_factory.hpp"
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/header.hpp"

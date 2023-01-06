@@ -50,6 +50,15 @@ add_library( protocol_compiler
                     ${MEGA_PROTOCOL_COMPILER}
 				)
 
+IF( ${WIN32} )
+target_compile_options( protocol_compiler PUBLIC "/await:strict" )
+set_property(TARGET protocol_compiler PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
+target_compile_options( protocol_compiler PUBLIC "-fcoroutines" )
+ENDIF( ${WIN32} )
+
+target_link_libraries( protocol_compiler utilities )
+
 set_target_properties( protocol_compiler PROPERTIES FOLDER protocol_compiler )
 
 link_boost( protocol_compiler filesystem )

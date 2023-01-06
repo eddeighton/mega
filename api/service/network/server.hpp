@@ -23,7 +23,7 @@
 #include "network.hpp"
 #include "conversation_manager.hpp"
 #include "receiver.hpp"
-#include "sender.hpp"
+#include "sender_factory.hpp"
 
 #include "service/protocol/common/header.hpp"
 

@@ -17,11 +17,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef {{ guard }}
 #define {{ guard }}
+
+#include "database/common/api.hpp"
 
 #include "database/model/environment.hxx"
 
@@ -52,9 +51,9 @@ namespace {{ stage.name }}
     template< typename TFrom, typename TTo >
     struct PointerCast;
 
-    class Database;
+    class EGDB_EXPORT Database;
 
-    class InterfaceBaseClass
+    class EGDB_EXPORT InterfaceBaseClass
     {
     public:
         virtual ~InterfaceBaseClass() = 0;
@@ -66,7 +65,7 @@ namespace {{ stage.name }}
     namespace {{ namespace }}
     { 
 {% endfor %}{#interface.namespaces#}
-        class {{ interface.name }};
+        class EGDB_EXPORT {{ interface.name }};
 {% for namespace in interface.namespaces %}
     } //{{ namespace }}
 {% endfor %}{#interface.namespaces#}
@@ -79,7 +78,7 @@ namespace {{ stage.name }}
     namespace {{ namespace }}
     { 
 {% endfor %}{#interface.namespaces#}
-        class {{ interface.name }} : public virtual InterfaceBaseClass{% if interface.has_base %}, public virtual {{ interface.base }}{% endif %}
+        class EGDB_EXPORT {{ interface.name }} : public virtual InterfaceBaseClass{% if interface.has_base %}, public virtual {{ interface.base }}{% endif %}
 
         {
         protected:
@@ -90,7 +89,7 @@ namespace {{ stage.name }}
             {{ interface.name }}& operator=( const {{ interface.name }}& ) = delete;
             static constexpr const char* TYPE_NAME = "{{ interface.fullname }}";
 {% if interface.readwrite %}
-            struct Args
+            struct EGDB_EXPORT Args
             {
 {% for ctor in interface.args_ctors %}
                 Args({% for param in ctor.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %})
@@ -120,7 +119,7 @@ namespace {{ stage.name }}
 {% endfor %}{#interface.namespaces#}
 {% endfor %}{# stage.interfaces #}
 
-    class Database
+    class EGDB_EXPORT Database
     {
     public:
         struct Pimpl;

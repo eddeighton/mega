@@ -42,8 +42,10 @@ std::string toStr( mega::MP mp )
 TEST( Reference, MPIO )
 {
     // clang-format off
-    ASSERT_EQ( fromStr( "0.0" ),    mega::MP( 0, 0 ) );
-    ASSERT_EQ( fromStr( "1.0" ),    mega::MP( 1, 0 ) );
-    ASSERT_EQ( fromStr( "0.1" ),    mega::MP( 0, 1 ) );
+    ASSERT_EQ( fromStr( "0.0" ), mega::MP( 0, 0 ) );
+    ASSERT_EQ( fromStr( "0.1" ), mega::MP( 0, 1 ) );
+    ASSERT_EQ( fromStr( "0.2" ), mega::MP( 0, 2 ) );
+    ASSERT_EQ( fromStr( "1.0" ), mega::MP( 1, 0 ) );
+    ASSERT_EQ( fromStr( "2.0" ), mega::MP( 2, 0 ) );
     // clang-format on
 }

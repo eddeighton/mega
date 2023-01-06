@@ -17,6 +17,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+// disable clang warnings
+
+#include "common/clang_warnings.hpp"
 
 #include "parser/parser.hpp"
 #include "clang.hpp"
@@ -42,9 +45,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/file_status.hpp>
 
-// disable clang warnings
-#pragma warning( push )
-#include "common/clang_warnings.hpp"
 
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/Diagnostic.h"
@@ -65,7 +65,6 @@
 #include "clang/Basic/DiagnosticIDs.h"
 #include "clang/Basic/DiagnosticOptions.h"
 
-#pragma warning( pop )
 
 using namespace ParserStage;
 using namespace ParserStage::Parser;
@@ -87,7 +86,7 @@ public:
         if ( Tok.is( clang::tok::identifier ) )
         {
             clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-            str                                = pIdentifier->getName();
+            str                                = pIdentifier->getName().str();
             ConsumeToken();
         }
         else
@@ -419,7 +418,7 @@ public:
             else
             {
                 const boost::filesystem::path filePath = resolveFilePath( strFile );
-                if ( boost::filesystem::extension( filePath ) == mega::io::megaFilePath::extension() )
+                if ( filePath.extension() == mega::io::megaFilePath::extension() )
                 {
                     if ( pIdentifier )
                         pResult = database.construct< MegaIncludeNested >(
@@ -1082,7 +1081,7 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
             = std::make_shared< clang::HeaderSearchOptions >();
         for ( const boost::filesystem::path& includeDir : includeDirectories )
         {
-            headerSearchOptions->AddPath( includeDir.native(), clang::frontend::Quoted, false, false );
+            headerSearchOptions->AddPath( includeDir.string(), clang::frontend::Quoted, false, false );
         }
 
         Stuff stuff( headerSearchOptions, includeDirectories, pFileManager, pDiagnosticsEngine, sourceFile );

@@ -59,10 +59,16 @@ add_library( tool
                     ${MEGA_API_DIR}/mega/types/traits.cpp
 				)
 
+IF( ${WIN32} )
+target_compile_options( tool PUBLIC "/await:strict" )
+target_compile_options( tool PRIVATE "/bigobj" )
+ELSE( ${WIN32} )
 target_compile_options( tool PUBLIC "-fcoroutines" )
+ENDIF( ${WIN32} )
 
 target_link_libraries( tool protocol )
 target_link_libraries( tool network )
+target_link_libraries( tool leaf )
 
 target_include_directories( tool PUBLIC ${MEGA_API_DIR} )
 target_include_directories( tool PUBLIC ${MEGA_SRC_DIR} )

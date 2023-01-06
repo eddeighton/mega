@@ -56,20 +56,6 @@ struct Deferred
     ~Deferred() { mpoManager.release( mpo ); }
 };
 
-struct Deferred2
-{
-    LogicalAddressSpace& root;
-    MPO                  simulationMPO;
-    NetworkAddress       networkAddress;
-    Deferred2( LogicalAddressSpace& root, MPO simulationMPO )
-        : root( root )
-        , simulationMPO( simulationMPO )
-    {
-        networkAddress = root.allocateNetworkAddress( simulationMPO, ROOT_TYPE_ID );
-    }
-    ~Deferred2() { root.deAllocateNetworkAddress( simulationMPO, networkAddress ); }
-};
-
 void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootSimulation::SimStart leaf mp: {}", m_leafMP );
@@ -78,27 +64,24 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
 
     Deferred defered( m_root.m_mpoManager, simulationMPO );
     {
-        Deferred2 defered2( m_root.m_logicalAddressSpace, simulationMPO );
+        auto stackCon = getOriginatingEndPointID();
+        VERIFY_RTE( stackCon.has_value() );
+        auto pConnection = m_root.m_server.getConnection( stackCon.value() );
+        VERIFY_RTE( pConnection );
+
+        // simulation runs entirely on the stack in this scope!
         {
-            auto stackCon = getOriginatingEndPointID();
-            VERIFY_RTE( stackCon.has_value() );
-            auto pConnection = m_root.m_server.getConnection( stackCon.value() );
-            VERIFY_RTE( pConnection );
+            // network::Server::ConnectionLabelRAII connectionLabel( m_root.m_server, simulationMPO, pConnection );
+            network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
+            SPDLOG_TRACE( "RootSimulation::SimStart: sending RootSimRun for {}", simulationMPO );
+            sender.RootSimRun( simulationMPO );
+        }
 
-            // simulation runs entirely on the stack in this scope!
-            {
-                // network::Server::ConnectionLabelRAII connectionLabel( m_root.m_server, simulationMPO, pConnection );
-                network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
-                SPDLOG_TRACE( "RootSimulation::SimStart: sending RootSimRun for {}", simulationMPO );
-                sender.RootSimRun( simulationMPO, defered2.networkAddress );
-            }
-
-            // notify to release
-            for ( auto& [ id, pCon ] : m_root.m_server.getConnections() )
-            {
-                network::memory::Request_Sender sender( *this, *pCon, yield_ctx );
-                sender.MPODestroyed( simulationMPO, false );
-            }
+        // notify to release
+        for ( auto& [ id, pCon ] : m_root.m_server.getConnections() )
+        {
+            network::memory::Request_Sender sender( *this, *pCon, yield_ctx );
+            sender.MPODestroyed( simulationMPO, false );
         }
     }
 }

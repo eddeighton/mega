@@ -23,7 +23,7 @@
 #include "service/network/conversation.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/network/receiver.hpp"
-#include "service/network/sender.hpp"
+#include "service/network/sender_factory.hpp"
 #include "service/network/network.hpp"
 
 #include "common/assert_verify.hpp"

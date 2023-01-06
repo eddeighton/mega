@@ -17,16 +17,28 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/types/sources.hpp"
+#ifndef SENDER_15_JUNE_2022
+#define SENDER_15_JUNE_2022
 
-namespace mega::io
+#include "network.hpp"
+#include "end_point.hpp"
+
+#include "service/protocol/common/sender.hpp"
+#include "service/protocol/model/messages.hxx"
+
+#include <boost/asio/spawn.hpp>
+#include <boost/asio/experimental/concurrent_channel.hpp>
+#include <boost/asio/experimental/channel.hpp>
+
+#include <memory>
+
+namespace mega::network
 {
-boost::filesystem::path manifestFilePath::EXTENSION           = ".manifest";
-boost::filesystem::path megaFilePath::EXTENSION               = ".mega";
-boost::filesystem::path CompilationFilePath::EXTENSION        = ".db";
-boost::filesystem::path GeneratedHPPSourceFilePath::EXTENSION = ".hpp";
-boost::filesystem::path GeneratedCPPSourceFilePath::EXTENSION = ".cpp";
-boost::filesystem::path cppFilePath::EXTENSION                = ".cpp";
-boost::filesystem::path PrecompiledHeaderFile::EXTENSION      = ".pch";
-boost::filesystem::path ObjectFilePath::EXTENSION             = ".obj";
-} // namespace mega::io
+
+Sender::Ptr make_socket_sender( Traits::Socket& socket, const ConnectionID& connectionID );
+Sender::Ptr make_current_channel_sender( ConcurrentChannel& channel, const ConnectionID& connectionID );
+Sender::Ptr make_channel_sender( Channel& channel, const ConnectionID& connectionID );
+
+} // namespace mega::network
+
+#endif // SENDER_15_JUNE_2022

@@ -22,7 +22,7 @@
 
 #include "end_point.hpp"
 #include "receiver.hpp"
-#include "sender.hpp"
+#include "sender_factory.hpp"
 
 #include <optional>
 

@@ -44,10 +44,18 @@ static_assert( sizeof( U32 ) == 4U, "Invalid U32 Size" );
 using I32 = signed int;
 static_assert( sizeof( I32 ) == 4U, "Invalid I32 Size" );
 
+#ifdef _WIN64
+using U64 = unsigned long long;
+#else
 using U64 = unsigned long int;
+#endif
 static_assert( sizeof( U64 ) == 8U, "Invalid U64 Size" );
 
+#ifdef _WIN64
+using I64 = signed long long;
+#else
 using I64 = signed long int;
+#endif
 static_assert( sizeof( I64 ) == 8U, "Invalid I64 Size" );
 
 using F32 = float;

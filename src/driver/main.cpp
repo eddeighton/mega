@@ -164,7 +164,7 @@ int main( int argc, const char* argv[] )
         po::store( parsedOptions, vm );
         po::notify( vm );
 
-        auto logThreads = mega::network::configureLog(
+        mega::network::configureLog(
             logDir, "driver", mega::network::fromStr( strConsoleLogLevel ), mega::network::fromStr( strLogFileLevel ) );
 
         try

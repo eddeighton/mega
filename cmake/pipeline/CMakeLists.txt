@@ -43,7 +43,13 @@ add_library( pipeline
     ${PIPELINE_SOURCE}
 )
 
+IF( ${WIN32} )
+target_compile_options(pipeline PRIVATE /bigobj)
+set_property(TARGET pipeline PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
 set_property(TARGET pipeline PROPERTY POSITION_INDEPENDENT_CODE ON)
+ENDIF( ${WIN32} )
+
 target_include_directories( pipeline PUBLIC ${MEGA_API_DIR} )
 
 link_boost( pipeline system )

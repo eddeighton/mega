@@ -45,9 +45,12 @@ enable_testing()
 
 add_executable( orc_tests ${ORC_UNIT_TESTS} ${MEGA_TEST_DIR}/unit_tests/main_test_runner.cpp )
 
-
-#set_property(TARGET orc_tests PROPERTY CMAKE_ENABLE_EXPORTS ON)
+IF( ${WIN32} )
+set_property(TARGET orc_tests PROPERTY ENABLE_EXPORTS ON )
+set_property(TARGET orc_tests PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
 target_link_options( orc_tests PUBLIC -export-dynamic )
+ENDIF( ${WIN32} )
 
 # allow access to source folder for tests
 target_include_directories(orc_tests PUBLIC ${MEGA_SRC_DIR})
@@ -74,4 +77,4 @@ gtest_add_tests( TARGET orc_tests SOURCES ${ORC_UNIT_TESTS} )
 install( TARGETS orc_tests DESTINATION bin )
 #install( DIRECTORY ${MEGA_TEST_DIR}/data/ DESTINATION tests)
 
-add_custom_command( TARGET orc_tests POST_BUILD COMMAND ctest --output-on-failure )
+add_custom_command( TARGET orc_tests POST_BUILD COMMAND ctest --output-on-failure -C $<CONFIG> )

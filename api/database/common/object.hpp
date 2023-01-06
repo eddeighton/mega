@@ -20,6 +20,7 @@
 #ifndef INDEXED_FILE_18_04_2019
 #define INDEXED_FILE_18_04_2019
 
+#include "database/common/api.hpp"
 #include "common/assert_verify.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -42,7 +43,7 @@ namespace mega::io
 class Loader;
 class Storer;
 
-class Object
+class EGDB_EXPORT Object
 {
 public:
     using Array = std::vector< Object* >;
@@ -70,7 +71,7 @@ private:
     ObjectInfo m_objectInfo;
 };
 
-struct CompareIndexedObjects
+struct EGDB_EXPORT CompareIndexedObjects
 {
     inline bool operator()( const Object* pLeft, const Object* pRight ) const
     {

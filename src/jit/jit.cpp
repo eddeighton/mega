@@ -24,6 +24,8 @@
 
 #include "mega/bin_archive.hpp"
 
+#include <utility>
+
 namespace mega::runtime
 {
 JIT::JIT( const mega::network::MegastructureInstallation& megastructureInstallation,
@@ -59,7 +61,7 @@ const Allocator& JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler,
             std::ostringstream osModule;
             m_codeGenerator.generate_allocation( compiler, m_database, objectTypeID, osModule );
             JITCompiler::Module::Ptr pModule = compile( osModule.str() );
-            Allocator::Ptr           pAlloc  = std::make_unique< Allocator >( objectTypeID, m_database, pModule );
+            Allocator::Ptr           pAlloc  = std::make_shared< Allocator >( objectTypeID, m_database, pModule );
             pAllocator                       = pAlloc.get();
             m_allocators.insert( { objectTypeID, std::move( pAlloc ) } );
         }

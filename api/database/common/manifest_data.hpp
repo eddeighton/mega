@@ -20,6 +20,7 @@
 #ifndef MANIFEST_DATA_17_JUNE_2022
 #define MANIFEST_DATA_17_JUNE_2022
 
+#include "database/common/api.hpp"
 #include "database/types/sources.hpp"
 
 #include "database/model/file_info.hxx"
@@ -28,7 +29,7 @@
 
 namespace mega::io
 {
-struct ManifestData
+struct EGDB_EXPORT ManifestData
 {
     using MegaSourceFileVector = std::vector< megaFilePath >;
     using CppSourceFileVector  = std::vector< cppFilePath >;

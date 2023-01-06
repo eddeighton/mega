@@ -28,6 +28,8 @@
 
 #include "mega/common.hpp"
 #include "mega/common_strings.hpp"
+#include "mega/invocation_io.hpp"
+
 #include <optional>
 
 namespace mega::invocation

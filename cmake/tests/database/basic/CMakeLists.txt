@@ -109,6 +109,7 @@ add_custom_command(
 
     
 set( MEGA_DATABASE_COMMON
+    ${MEGA_API_DIR}/database/common/api.hpp
     ${MEGA_API_DIR}/database/common/archive.hpp
     ${MEGA_API_DIR}/database/common/component_info.hpp
     ${MEGA_API_DIR}/database/common/data_pointer.hpp
@@ -152,7 +153,6 @@ set( MEGA_TYPES_SOURCES
     ${MEGA_SRC_DIR}/database/types/cardinality.cpp
     ${MEGA_SRC_DIR}/database/types/operation.cpp
     ${MEGA_SRC_DIR}/database/types/ownership.cpp
-    ${MEGA_SRC_DIR}/database/types/sources.cpp
     ${MEGA_SRC_DIR}/database/types/modes.cpp
     ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
 )
@@ -197,4 +197,4 @@ gtest_add_tests( TARGET database_basic_tests SOURCES ${MEGA_UNIT_TESTS}  )
 
 install( TARGETS database_basic_tests DESTINATION bin )
 
-add_custom_command( TARGET database_basic_tests POST_BUILD COMMAND ctest --output-on-failure )
+add_custom_command( TARGET database_basic_tests POST_BUILD COMMAND ctest --output-on-failure -C $<CONFIG> )

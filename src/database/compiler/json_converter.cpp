@@ -46,6 +46,28 @@ void writeJSON( const boost::filesystem::path& filePath, const nlohmann::json& d
     }
 }
 
+void insertFunctionVariantIfUnique( nlohmann::json& function, const nlohmann::json& variant )
+{
+    bool bFound = false;
+    
+    for( const auto& existingVariant : function[ "variants" ] )
+    {
+        // see data.cxx.jinja:175 - visitor dispatch over unique primaryobjectpart
+        // NOTE: not comparing existingVariant[ "dataobjectpart" ]     == variant[ "dataobjectpart" ] &&
+        if( existingVariant[ "matched" ]            == variant[ "matched" ] &&
+            existingVariant[ "primaryobjectpart" ]  == variant[ "primaryobjectpart" ] )
+        {
+            bFound = true;
+            break;
+        }
+    }
+    
+    if( !bFound )
+    {
+        function[ "variants" ].push_back( variant );
+    }
+}
+
 void writeStageData( const boost::filesystem::path& dataDir, model::Schema::Ptr pSchema )
 {
     nlohmann::json data( { { "sources", nlohmann::json::array() },
@@ -1106,7 +1128,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
                           { "primaryobjectpart", pPart->getDataType( "::" ) },
                           { "dataobjectpart",
                             pFunctionVariant->m_property->m_objectPart.lock()->getDataType( "::" ) } } );
-                    function[ "variants" ].push_back( variant );
+                    insertFunctionVariantIfUnique( function, variant );
                 }
             }
             // so from the remaining interfaces in the super type either the
@@ -1139,7 +1161,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
                           { "primaryobjectpart", pObject->getPrimaryObjectPart( pStage )->getDataType( "::" ) },
                           { "dataobjectpart",
                             pFunctionVariant->m_property->m_objectPart.lock()->getDataType( "::" ) } } );
-                    function[ "variants" ].push_back( variant );
+                    insertFunctionVariantIfUnique( function, variant );
                 }
                 else
                 {
@@ -1147,7 +1169,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
                         { { "matched", false },
                           { "primaryobjectpart", pObject->getPrimaryObjectPart( pStage )->getDataType( "::" ) },
                           { "dataobjectpart", "" } } );
-                    function[ "variants" ].push_back( variant );
+                    insertFunctionVariantIfUnique( function, variant );
                 }
             }
 
@@ -1512,13 +1534,10 @@ void writeDataData( const boost::filesystem::path& dataDir,
                 if ( mergedFunctions.back()[ "name" ] == function[ "name" ]
                      && mergedFunctions.back()[ "variant_type" ] == function[ "variant_type" ] )
                 {
-                    //  { "primaryobjectpart","" },
-                    //  { "dataobjectpart", "" }
-
-                    // append the variant
+                    auto& existingFunction = mergedFunctions.back();
                     for ( const auto& variant : function[ "variants" ] )
                     {
-                        mergedFunctions.back()[ "variants" ].push_back( variant );
+                        insertFunctionVariantIfUnique( existingFunction, variant );
                     }
                 }
                 else

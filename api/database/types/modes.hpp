@@ -23,13 +23,14 @@
 #ifndef MODES_10_MAY_2022
 #define MODES_10_MAY_2022
 
+#include "database/common/api.hpp"
 #include "database/common/serialisation.hpp"
 
 #include <ostream>
 
 namespace mega
 {
-class CompilationMode
+class EGDB_EXPORT CompilationMode
 {
 public:
     enum Value
@@ -68,7 +69,7 @@ private:
 
 } // namespace mega
 
-std::ostream& operator<<( std::ostream& os, mega::CompilationMode compilationMode );
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::CompilationMode compilationMode );
 
 namespace mega
 {

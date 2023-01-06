@@ -21,6 +21,8 @@
 
 #include "service/network/log.hpp"
 
+#include "common/unreachable.hpp"
+
 #include <list>
 #include <map>
 #include <unordered_map>
@@ -150,7 +152,7 @@ private:
             case SleepSwapState::eState_S_W_A:
                 return action.iter_three;
             default:
-                __builtin_unreachable();
+                UNREACHABLE;
         }
     }
     ActiveActionList::iterator& getWaitIter( ActiveAction& action )
@@ -170,7 +172,7 @@ private:
             case SleepSwapState::eState_S_W_A:
                 return action.iter_two;
             default:
-                __builtin_unreachable();
+                UNREACHABLE;
         }
     }
     ActiveActionList::iterator& getSleepIter( ActiveAction& action )
@@ -190,7 +192,7 @@ private:
             case SleepSwapState::eState_S_W_A:
                 return action.iter_one;
             default:
-                __builtin_unreachable();
+                UNREACHABLE;
         }
     }
 
@@ -217,7 +219,7 @@ private:
                 m_sleepState = SleepSwapState::eState_A_W_S;
                 break;
             default:
-                __builtin_unreachable();
+                UNREACHABLE;
         }
     }
 
@@ -244,7 +246,7 @@ private:
                 m_sleepState = SleepSwapState::eState_S_A_W;
                 break;
             default:
-                __builtin_unreachable();
+                UNREACHABLE;
         }
     }
 
@@ -265,7 +267,7 @@ private:
             case SleepSwapState::eState_S_W_A:
                 return m_listThree;
             default:
-                __builtin_unreachable();
+                UNREACHABLE;
         }
     }
 
@@ -286,7 +288,7 @@ private:
             case SleepSwapState::eState_S_W_A:
                 return m_listTwo;
             default:
-                __builtin_unreachable();
+                UNREACHABLE;
         }
     }
 
@@ -307,7 +309,7 @@ private:
             case SleepSwapState::eState_S_W_A:
                 return m_listOne;
             default:
-                __builtin_unreachable();
+                UNREACHABLE;
         }
     }
 

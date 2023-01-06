@@ -29,20 +29,25 @@
 
 #include <iostream>
 
-inline std::ostream& operator<<( std::ostream& os, const mega::MachineID& machineID )
+inline std::istream& operator>>(std::istream& is, mega::MachineID& machineID)
 {
-    return os << mega::U32( machineID );
+    mega::MachineID::StorageType m;
+    is >> m;
+    machineID = mega::MachineID(m);
+    return is;
+}
+inline std::ostream& operator<<(std::ostream& os, const mega::MachineID& machineID)
+{
+    return os << static_cast< mega::U32 >(machineID);
 }
 
 inline std::istream& operator>>( std::istream& is, mega::MP& mp )
 {
-    int m, p = 0;
-    is >> m;
+    mega::MachineID m;
+    mega::ProcessID p;
     char c;
-    is >> c;
-    is >> p;
-
-    mp = mega::MP( m, p );
+    is >> m >> c >> p;
+    mp = mega::MP(m, p);
     return is;
 }
 
@@ -53,7 +58,9 @@ inline std::ostream& operator<<( std::ostream& os, const mega::MP& mp )
 
 inline std::istream& operator>>( std::istream& is, mega::MPO& mpo )
 {
-    int  m, p, o;
+    mega::MachineID m;
+    mega::ProcessID p;
+    mega::OwnerID o;
     char c;
     is >> m >> c >> p >> c >> o;
     mpo = mega::MPO( m, p, o );
@@ -62,7 +69,9 @@ inline std::istream& operator>>( std::istream& is, mega::MPO& mpo )
 
 inline std::ostream& operator<<( std::ostream& os, const mega::MPO& mpo )
 {
-    return os << ( int )mpo.getMachineID() << '.' << ( int )mpo.getProcessID() << '.' << ( int )mpo.getOwnerID();
+    return os << static_cast< mega::U32 >( mpo.getMachineID() ) << '.' << 
+                 static_cast< mega::U32 >( mpo.getProcessID() ) << '.' << 
+                 static_cast< mega::U32 >( mpo.getOwnerID() );
 }
 
 namespace boost::serialization
@@ -71,14 +80,14 @@ namespace boost::serialization
 // xml
 inline void serialize( boost::archive::xml_iarchive& ar, mega::MachineID& value, const unsigned int version )
 {
-    mega::U32 u;
+    mega::MachineID::StorageType u;
     ar&       boost::serialization::make_nvp( "machineID", u );
     value = mega::MachineID( u );
 }
 
 inline void serialize( boost::archive::xml_oarchive& ar, mega::MachineID& value, const unsigned int version )
 {
-    mega::U32 u( value );
+    mega::MachineID::StorageType u( value );
     ar&       boost::serialization::make_nvp( "machineID", u );
 }
 
@@ -143,14 +152,14 @@ inline void serialize( boost::archive::xml_oarchive& ar, mega::reference& ref, c
 // binary
 inline void serialize( boost::archive::binary_iarchive& ar, mega::MachineID& value, const unsigned int version )
 {
-    mega::U32 u;
+    mega::MachineID::StorageType u;
     ar&       u;
     value = mega::MachineID( u );
 }
 
 inline void serialize( boost::archive::binary_oarchive& ar, mega::MachineID& value, const unsigned int version )
 {
-    ar& mega::U32( value );
+    ar& mega::MachineID::StorageType( value );
 }
 
 inline void serialize( boost::archive::binary_iarchive& ar, mega::TypeInstance& value, const unsigned int version )

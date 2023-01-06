@@ -22,16 +22,6 @@ msg MPODestroyed
     request( MPO mpo, bool bDeleteShared );
     response();
 }
-msg Allocate
-{
-    request( MPO mpo, TypeID objectTypeID );
-    response( reference result );
-}
-msg Acquire
-{
-    request( MPO mpo );
-    response( std::string strMemory );
-}
 msg Read
 {
     request( MPO requestingMPO, reference ref, bool bExistingReadLock );

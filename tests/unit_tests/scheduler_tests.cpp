@@ -38,7 +38,7 @@ mega::ActionCoroutine test( int& state )
     state++;
     co_yield mega::sleep();
     state++;
-    co_return mega::done();
+    co_return;// mega::done();
 }
 
 void stopper( mega::Instance instance )

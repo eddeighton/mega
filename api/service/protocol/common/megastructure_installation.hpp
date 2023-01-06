@@ -35,8 +35,6 @@ public:
     MegastructureInstallation();
     MegastructureInstallation( const boost::filesystem::path& megastructureInstallationPath );
 
-    static MegastructureInstallation fromEnvironment();
-
     const bool isEmpty() const;
 
     const boost::filesystem::path& getInstallationPath() const { return m_installationPath; }

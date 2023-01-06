@@ -57,7 +57,7 @@ public:
             mega::compiler::Directories{ m_tempDir, m_tempDir, "", "" } );
         m_pEnvironment = std::make_unique< mega::io::BuildEnvironment >( *m_pDirectories );
         m_srcFile      = m_tempDir / "test1.mega";
-        std::ofstream of( m_srcFile.native() );
+        std::ofstream of( m_srcFile.string() );
         of << "Hello world";
 
         // create a manifest
@@ -68,7 +68,7 @@ public:
                                                              mega::io::ComponentInfo::PathArray{ m_srcFile }, {},
                                                              mega::io::ComponentInfo::PathArray{} );
                 const boost::filesystem::path componentInfoPath = m_tempDir / "test.txt";
-                std::ofstream                 of( componentInfoPath.native() );
+                std::ofstream                 of( componentInfoPath.string() );
                 boost::archive::xml_oarchive       oa( of );
                 oa << boost::serialization::make_nvp( "componentInfo", componentInfo );
                 componentInfoPaths.push_back( componentInfoPath );

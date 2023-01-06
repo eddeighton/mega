@@ -50,10 +50,10 @@ enum LoggingLevel
 };
 LoggingLevel fromStr( const std::string& str );
 
-std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::filesystem::path& logFolder,
-                                                              const std::string&             strLogName,
-                                                              LoggingLevel                   consoleLoggingLevel,
-                                                              LoggingLevel                   fileLoggingLevel );
+void configureLog( const boost::filesystem::path& logFolder,
+                  const std::string&             strLogName,
+                  LoggingLevel                   consoleLoggingLevel,
+                  LoggingLevel                   fileLoggingLevel );
 
 inline void logLinesInfo( const std::string strMsg )
 {

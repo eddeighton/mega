@@ -21,6 +21,7 @@
 
 #include "common/string.hpp"
 #include "common/assert_verify.hpp"
+#include "common/clang_warnings.hpp"
 
 #include "llvm/ExecutionEngine/Orc/ExecutionUtils.h"
 #include "llvm/IR/Function.h"
@@ -61,10 +62,25 @@
 
 namespace mega::runtime
 {
+    namespace
+    {
+        struct StaticInit
+        {
+            StaticInit()
+            {
+                llvm::InitializeNativeTarget();
+                llvm::InitializeNativeTargetAsmPrinter();
+            }
+        };
+        static StaticInit m_staticInit;
+    }
 
 llvm::ExitOnError ExitOnErr;
 
-JITCompiler::Module::~Module() {}
+JITCompiler::Module::~Module() 
+{
+    
+}
 
 class ModuleImpl : public JITCompiler::Module
 {
@@ -173,13 +189,6 @@ private:
     llvm::orc::LLJIT&    m_jit;
     llvm::orc::JITDylib& m_jitDynLib;
 };
-
-JITCompiler::StaticInit::StaticInit()
-{
-    llvm::InitializeNativeTarget();
-    llvm::InitializeNativeTargetAsmPrinter();
-}
-JITCompiler::StaticInit JITCompiler::m_staticInit;
 
 class JITCompiler::Pimpl
 {

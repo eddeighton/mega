@@ -20,6 +20,7 @@
 #ifndef LOADER_18_04_2019
 #define LOADER_18_04_2019
 
+#include "database/common/api.hpp"
 #include "serialisation.hpp"
 #include "object_info.hpp"
 #include "object.hpp"
@@ -46,7 +47,7 @@ namespace mega::io
 {
 class Manifest;
 
-class Loader
+class EGDB_EXPORT Loader
 {
 public:
     Loader( const FileSystem& fileSystem, const CompilationFilePath& filePath, ::data::ObjectPartLoader& loader );

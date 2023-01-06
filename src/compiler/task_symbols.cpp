@@ -264,7 +264,14 @@ public:
         std::map< TypeIDSequence, New::Symbols::InterfaceTypeID* > newInterfaceTypeIDSequences;
         std::map< TypeID, New::Symbols::InterfaceTypeID* >         newInterfaceTypeIDs;
         {
-            TypeIDSequenceGen idSequenceGen(
+            const TypeIDSequenceGen 
+            <
+                SymbolAnalysis::Symbols::SymbolTypeID,
+                SymbolAnalysis::Interface::ContextGroup,
+                SymbolAnalysis::Interface::IContext,
+                SymbolAnalysis::Interface::DimensionTrait
+            >
+            idSequenceGen(
                 newSymbolNames,
                 &SymbolAnalysis::db_cast< SymbolAnalysis::Interface::IContext,
                                                         SymbolAnalysis::Interface::ContextGroup > );

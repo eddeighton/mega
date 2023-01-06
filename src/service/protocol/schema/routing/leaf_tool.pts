@@ -27,7 +27,7 @@ msg RootAllBroadcast
 // special case for registering MPO and running simulation
 msg RootSimRun
 {
-    request(mega::reference root, JITMemoryPtr pMemory );
+    request(mega::reference root );
     response();
 }
 

@@ -26,11 +26,11 @@
 
 #include "jit/functions.hpp"
 
-#include "service/context.hpp"
 #include "service/lock_tracker.hpp"
 
 #include "service/network/log.hpp"
 
+#include "service/protocol/common/context.hpp"
 #include "service/protocol/common/header.hpp"
 
 #include "service/protocol/model/mpo.hxx"
@@ -71,7 +71,6 @@ protected:
     mega::service::LockTracker     m_lockTracker;
     boost::asio::yield_context*    m_pYieldContext = nullptr;
     reference                      m_root;
-    runtime::ManagedSharedMemory*  m_pSharedMemory = nullptr;
 
 public:
     MPOContext( const network::ConversationID& conversationID )
@@ -106,15 +105,10 @@ public:
     virtual network::memory::Request_Sender   getLeafMemoryRequest()   = 0;
     virtual network::jit::Request_Sender      getLeafJITRequest()      = 0;
 
-    void initSharedMemory( const mega::reference& root, network::JITMemoryPtr pMemory )
+    void initSharedMemory( const mega::reference& root )
     {
         m_mpo           = root;
         m_root          = root;
-        m_pSharedMemory = mega::network::convert< runtime::ManagedSharedMemory >( pMemory );
-        VERIFY_RTE_MSG( m_pSharedMemory, "Shared memory not initialised" );
-
-        // test for seg fault
-        VERIFY_RTE( m_pSharedMemory->get_address() );
     }
 
     //////////////////////////

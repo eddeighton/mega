@@ -40,8 +40,10 @@ add_library( orc SHARED
     ${RUNTIME_SOURCE}
 )
 
-#target_link_options( orc PUBLIC -export-dynamic )
-#set_property(TARGET orc PROPERTY POSITION_INDEPENDENT_CODE ON)
+add_definitions(-DMEGA_ORC_API_SHARED_MODULE)
+
+set_property(TARGET orc PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
+
 target_include_directories( orc PUBLIC ${MEGA_API_DIR} )
 
 link_boost( orc system )

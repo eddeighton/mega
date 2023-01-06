@@ -174,6 +174,7 @@ add_dependencies( GenerateDatabase database_compiler_driver )
 
 # NOTE these files are duplicated in the database tests cmake
 set( MEGA_DATABASE_COMMON
+    ${MEGA_API_DIR}/database/common/api.hpp
     ${MEGA_API_DIR}/database/common/archive.hpp
     ${MEGA_API_DIR}/database/common/component_info.hpp
     ${MEGA_API_DIR}/database/common/data_pointer.hpp
@@ -225,7 +226,6 @@ set( MEGA_TYPES_SOURCES
     ${MEGA_SRC_DIR}/database/types/operation.cpp
     ${MEGA_SRC_DIR}/database/types/ownership.cpp
     ${MEGA_SRC_DIR}/database/types/derivation.cpp
-    ${MEGA_SRC_DIR}/database/types/sources.cpp
     ${MEGA_SRC_DIR}/database/types/modes.cpp
     ${MEGA_SRC_DIR}/database/types/component_type.cpp
     ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
@@ -251,6 +251,29 @@ add_dependencies( database GenerateDatabase )
 #add_dependencies( database database_compiler_driver )
 
 target_include_directories( database PUBLIC ${MEGA_API_DIR} )
+
+add_definitions(-DEG_DATABASE_API_SHARED_MODULE)
+
+IF( ${WIN32} )
+target_compile_options(database PRIVATE /bigobj)
+
+# for windows need to work around limit of 65K symbols - /Ob2 appears to achieve this
+target_compile_options(database PRIVATE /Ob2)
+
+# symbols are manually exported so ensure this is OFF
+set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
+
+# set_source_files_properties( 
+#     ${MEGA_DATABASE_SOURCES} ${MEGA_DATABASE_GENERATED_SOURCES} ${MEGA_DATABASE_STAGE_SOURCES}
+#     PROPERTIES
+#     COMPILE_FLAGS -O1 
+# )
+ELSE( ${WIN32} )
+
+set_property(TARGET database PROPERTY C_VISIBILITY_PRESET hidden)
+set_property(TARGET database PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+
+ENDIF( ${WIN32} )
 
 set_target_properties( database PROPERTIES FOLDER database )
 set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)

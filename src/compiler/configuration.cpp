@@ -24,6 +24,8 @@
 
 #include "utilities/serialization_helpers.hpp"
 
+#include <sstream>
+
 namespace mega::compiler
 {
 

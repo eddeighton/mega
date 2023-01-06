@@ -23,7 +23,7 @@
 #include "mega/reference.hpp"
 #include "mega/clock.hpp"
 
-#include "service/context.hpp"
+#include "service/protocol/common/context.hpp"
 
 namespace mega
 {
@@ -52,6 +52,6 @@ F32         Clock::dt() const { return m_dt; }
 
 // implement mega/clock.hpp
 
-mega::TimeStamp ::Clock::cycle() { return mega::Context::get()->cycle(); }
-mega::F32 ::Clock::ct() { return mega::Context::get()->ct(); }
-mega::F32 ::Clock::dt() { return mega::Context::get()->dt(); }
+mega::TimeStamp Clock::cycle() { return mega::Context::get()->cycle(); }
+mega::F32 Clock::ct() { return mega::Context::get()->ct(); }
+mega::F32 Clock::dt() { return mega::Context::get()->dt(); }

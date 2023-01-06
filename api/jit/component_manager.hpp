@@ -20,6 +20,7 @@
 #ifndef COMPONENT_MANAGER_20_JUNE_2022
 #define COMPONENT_MANAGER_20_JUNE_2022
 
+#include "api.hpp"
 #include "functions.hpp"
 
 #include "database/database.hpp"
@@ -38,7 +39,7 @@
 namespace mega::runtime
 {
 
-class ComponentManager
+class JIT_EXPORT ComponentManager
 {
     using ComponentPath = boost::dll::fs::path;
 

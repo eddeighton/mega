@@ -191,15 +191,15 @@ public:
     Pimpl( const mega::network::MegastructureInstallation& megaInstall, const mega::network::Project& project )
     {
         m_injaEnvironment.set_trim_blocks( true );
-        m_allocationTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().native() );
-        m_allocateTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocate().native() );
-        m_readTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().native() );
-        m_writeTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().native() );
-        m_callTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().native() );
-        m_startTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().native() );
-        m_stopTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().native() );
-        m_saveTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().native() );
-        m_loadTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().native() );
+        m_allocationTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().string() );
+        m_allocateTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocate().string() );
+        m_readTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().string() );
+        m_writeTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().string() );
+        m_callTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().string() );
+        m_startTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().string() );
+        m_stopTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().string() );
+        m_saveTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().string() );
+        m_loadTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().string() );
     }
 
     void render_allocation( const nlohmann::json& data, std::ostream& os )

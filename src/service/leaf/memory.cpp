@@ -19,9 +19,6 @@
 
 #include "request.hpp"
 
-#include "shared_memory.hpp"
-#include "heap_memory.hpp"
-
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/memory.hxx"
@@ -43,33 +40,16 @@ void LeafRequestConversation::MPODestroyed( const MPO& mpo, const bool& bDeleteS
     auto& jit      = m_leaf.getJIT();
     auto  compiler = getLLVMCompiler( yield_ctx );
 
-    auto memoryAccess = [ &conversationBase = *this, &leaf = m_leaf, &yield_ctx = yield_ctx ]( MPO mpo ) -> std::string
-    { return network::memory::Request_Sender( conversationBase, leaf.getDaemonSender(), yield_ctx ).Acquire( mpo ); };
+	THROW_TODO;
+    //auto memoryAccess = [ &conversationBase = *this, &leaf = m_leaf, &yield_ctx = yield_ctx ]( MPO mpo ) -> std::string
+    //{ return network::memory::Request_Sender( conversationBase, leaf.getDaemonSender(), yield_ctx ).Acquire( mpo ); };
 
-    if( bDeleteShared )
-    {
-        m_leaf.getSharedMemory().freeAll( compiler, jit, mpo, memoryAccess );
-    }
+    //if( bDeleteShared )
+    //{
+    //    m_leaf.getSharedMemory().freeAll( compiler, jit, mpo, memoryAccess );
+    //}
 
-    m_leaf.getHeapMemory().freeAll( compiler, jit, mpo );
-}
-
-reference LeafRequestConversation::Allocate( const MPO& mpo, const TypeID& objectTypeID,
-                                             boost::asio::yield_context& yield_ctx )
-{
-    auto& jit      = m_leaf.getJIT();
-    auto  compiler = getLLVMCompiler( yield_ctx );
-
-    auto daemon = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
-
-    reference result = daemon.Allocate( mpo, objectTypeID );
-
-    void* pSharedMemoryBuffer = m_leaf.getSharedMemory().construct(
-        compiler, jit, result, [ &daemon ]( MPO mpo ) -> std::string { return daemon.Acquire( mpo ); } );
-
-    m_leaf.getHeapMemory().allocate( compiler, jit, pSharedMemoryBuffer, result );
-
-    return result;
+    //m_leaf.getHeapMemory().freeAll( compiler, jit, mpo );
 }
 
 void LeafRequestConversation::replicateSnapshot( const Snapshot& snapshot, const reference& machineRef, bool bGetShared,
@@ -80,9 +60,9 @@ void LeafRequestConversation::replicateSnapshot( const Snapshot& snapshot, const
     auto& jit      = m_leaf.getJIT();
     auto  compiler = getLLVMCompiler( yield_ctx );
 
-    auto daemonMemoryRequest = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
-    auto memoryAccessor
-        = [ &daemonMemoryRequest ]( MPO mpo ) -> std::string { return daemonMemoryRequest.Acquire( mpo ); };
+    //auto daemonMemoryRequest = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
+    //auto memoryAccessor
+    //    = [ &daemonMemoryRequest ]( MPO mpo ) -> std::string { return daemonMemoryRequest.Acquire( mpo ); };
 
     ASSERT( machineRef.isMachine() );
     VERIFY_RTE_MSG( snapshot.getTimeStamp() > 0, "Snapshot failed" );
@@ -94,8 +74,9 @@ void LeafRequestConversation::replicateSnapshot( const Snapshot& snapshot, const
     {
         reference object = snapshot.getTable().indexToRef( objectIndex );
         ASSERT_MSG( object.isMachine(), "Snapshot object not machine ref" );
-        auto sharedMem = m_leaf.getSharedMemory().getOrConstruct( compiler, jit, object, memoryAccessor );
-        m_leaf.getHeapMemory().ensureAllocated( compiler, jit, sharedMem );
+        THROW_TODO;
+        //auto sharedMem = m_leaf.getSharedMemory().getOrConstruct( compiler, jit, object, memoryAccessor );
+        // m_leaf.getHeapMemory().ensureAllocated( compiler, jit, sharedMem );
         if( object.type == ROOT_TYPE_ID )
         {
             bFoundRoot = true;
@@ -113,13 +94,13 @@ network::MemoryBaseReference LeafRequestConversation::Read( const MPO& requestin
     auto& jit      = m_leaf.getJIT();
     auto  compiler = getLLVMCompiler( yield_ctx );
 
-    auto daemon = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
+    //auto daemon = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
 
     reference machineRef = ref;
-    if( machineRef.isNetwork() )
-    {
-        machineRef = daemon.NetworkToMachine( ref );
-    }
+    //if( machineRef.isNetwork() )
+    //{
+    //    machineRef = daemon.NetworkToMachine( ref );
+    //}
     ASSERT( machineRef.isMachine() );
 
     Snapshot snapshot;
@@ -151,13 +132,14 @@ network::MemoryBaseReference LeafRequestConversation::Read( const MPO& requestin
 
     network::MemoryBaseReference result;
     {
-        result = m_leaf.getSharedMemory().getOrConstruct(
-            compiler, jit, machineRef, [ &daemon ]( MPO mpo ) -> std::string { return daemon.Acquire( mpo ); } );
-        m_leaf.getHeapMemory().ensureAllocated( compiler, jit, result );
-        if( !snapshot.getBuffer().empty() )
-        {
-            result.snapshotOpt = snapshot;
-        }
+        THROW_TODO;
+        //result = m_leaf.getSharedMemory().getOrConstruct(
+        //    compiler, jit, machineRef, [ &daemon ]( MPO mpo ) -> std::string { return daemon.Acquire( mpo ); } );
+        // m_leaf.getHeapMemory().ensureAllocated( compiler, jit, result );
+        // if( !snapshot.getBuffer().empty() )
+        // {
+        //     result.snapshotOpt = snapshot;
+        // }
     }
     return result;
 }
@@ -171,13 +153,13 @@ network::MemoryBaseReference LeafRequestConversation::Write( const MPO& requesti
     auto& jit      = m_leaf.getJIT();
     auto  compiler = getLLVMCompiler( yield_ctx );
 
-    auto daemon = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
+    //auto daemon = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
 
     reference machineRef = ref;
-    if( machineRef.isNetwork() )
-    {
-        machineRef = daemon.NetworkToMachine( ref );
-    }
+    //if( machineRef.isNetwork() )
+    //{
+    //    machineRef = daemon.NetworkToMachine( ref );
+    //}
     ASSERT( machineRef.isMachine() );
 
     Snapshot snapshot;
@@ -209,13 +191,14 @@ network::MemoryBaseReference LeafRequestConversation::Write( const MPO& requesti
 
     network::MemoryBaseReference result;
     {
-        result = m_leaf.getSharedMemory().getOrConstruct(
-            compiler, jit, machineRef, [ &daemon ]( MPO mpo ) -> std::string { return daemon.Acquire( mpo ); } );
-        m_leaf.getHeapMemory().ensureAllocated( compiler, jit, result );
-        if( !snapshot.getBuffer().empty() )
-        {
-            result.snapshotOpt = snapshot;
-        }
+        THROW_TODO;
+        //result = m_leaf.getSharedMemory().getOrConstruct(
+        //    compiler, jit, machineRef, [ &daemon ]( MPO mpo ) -> std::string { return daemon.Acquire( mpo ); } );
+        // m_leaf.getHeapMemory().ensureAllocated( compiler, jit, result );
+        // if( !snapshot.getBuffer().empty() )
+        // {
+        //     result.snapshotOpt = snapshot;
+        // }
     }
     return result;
 }
@@ -251,11 +234,14 @@ reference LeafRequestConversation::NetworkToMachine( const reference& ref, boost
 
     if( ref.isNetwork() )
     {
-        auto daemon = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
-        return daemon.NetworkToMachine( ref );
+        //auto daemon = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
+        //return daemon.NetworkToMachine( ref );
+        return ref;
     }
-
-    return ref;
+    else
+    {
+        return ref;
+    }
 }
 
 Snapshot LeafRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,

@@ -120,7 +120,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void             RootSimRun( const reference& root, const std::string& strMemory,
+    virtual void             RootSimRun( const reference& root,
                                          boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
@@ -150,8 +150,6 @@ public:
     // network::memory::Impl
     virtual void                         MPODestroyed( const MPO& mpo, const bool& bDeleteShared,
                                                        boost::asio::yield_context& yield_ctx ) override;
-    virtual reference                    Allocate( const MPO& mpo, const TypeID& objectTypeID,
-                                                   boost::asio::yield_context& yield_ctx ) override;
     virtual network::MemoryBaseReference Read( const MPO& requestingMPO, const reference& ref,
                                                const bool&                 bExistingReadLock,
                                                boost::asio::yield_context& yield_ctx ) override;

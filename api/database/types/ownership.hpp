@@ -23,13 +23,14 @@
 #ifndef OWNERSHIP_13_MAY_2022
 #define OWNERSHIP_13_MAY_2022
 
+#include "database/common/api.hpp"
 #include "database/common/serialisation.hpp"
 
 #include <ostream>
 
 namespace mega
 {
-class Ownership
+class EGDB_EXPORT Ownership
 {
 public:
     enum Value
@@ -66,7 +67,7 @@ private:
 
 } // namespace mega
 
-std::ostream& operator<<( std::ostream& os, mega::Ownership ownership );
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::Ownership ownership );
 
 namespace mega
 {

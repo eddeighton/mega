@@ -37,7 +37,7 @@ MegastructureInstallation::MegastructureInstallation( const boost::filesystem::p
     : m_installationPath( megastructureInstallationPath )
 {
 }
-
+/*
 MegastructureInstallation MegastructureInstallation::fromEnvironment()
 {
     std::ostringstream os;
@@ -45,7 +45,7 @@ MegastructureInstallation MegastructureInstallation::fromEnvironment()
        << "/mega/install";
     return MegastructureInstallation( os.str() );
 }
-
+*/
 const bool MegastructureInstallation::isEmpty() const { return m_installationPath.empty(); }
 
 mega::utilities::ToolChain MegastructureInstallation::getToolchainXML() const

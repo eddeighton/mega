@@ -52,7 +52,10 @@ add_library( database_compiler
                     ${MEGA_DATABASE_COMPILER}
 				)
 
+target_link_libraries( database_compiler utilities )
+
 set_target_properties( database_compiler PROPERTIES FOLDER database_compiler )
+set_property(TARGET database_compiler PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 
 link_boost( database_compiler filesystem )
 link_boost( database_compiler iostreams )

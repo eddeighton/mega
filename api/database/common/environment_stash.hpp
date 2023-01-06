@@ -20,13 +20,14 @@
 #ifndef ENVIRONMENT_STASH_18_JUNE_2022
 #define ENVIRONMENT_STASH_18_JUNE_2022
 
+#include "database/common/api.hpp"
 #include "pipeline/stash.hpp"
 
 #include "environment_build.hpp"
 
 namespace mega::io
 {
-class StashEnvironment : public BuildEnvironment
+class EGDB_EXPORT StashEnvironment : public BuildEnvironment
 {
     mega::pipeline::Stash& m_stash;
 

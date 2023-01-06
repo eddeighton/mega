@@ -45,7 +45,7 @@ set( CLANG_PLUGIN_SOURCES
     ${MEGA_SRC_DIR}/parser/parser.cpp
     )
 
-add_definitions(-DEG_DATABASE_SHARED_MODULE)
+add_definitions(-DMEGA_PARSER_MODULE)
 
 add_library( parser MODULE
                     ${CLANG_PLUGIN_API}
@@ -53,10 +53,8 @@ add_library( parser MODULE
 
 set_property(TARGET parser PROPERTY LLVM_ENABLE_RTTI ON )
 set_property(TARGET parser PROPERTY LLVM_ENABLE_EH ON )
-set_property(TARGET parser PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties( parser PROPERTIES FOLDER parser )
-
 
 link_boost( parser filesystem )
 link_boost( parser iostreams )
@@ -67,6 +65,22 @@ link_json( parser )
 link_common( parser )
 
 # NOTE: DOES NOT link the database
+# except on windows
+
+IF( ${WIN32} )
+target_compile_options(database PRIVATE /bigobj)
+set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+
+target_link_libraries( parser database )
+# set_source_files_properties( 
+#     ${MEGA_DATABASE_SOURCES} ${MEGA_DATABASE_GENERATED_SOURCES} ${MEGA_DATABASE_STAGE_SOURCES}
+#     PROPERTIES
+#     COMPILE_FLAGS -O1 
+# )
+
+ELSE( ${WIN32} )
+set_property(TARGET parser PROPERTY POSITION_INDEPENDENT_CODE ON)
+ENDIF( ${WIN32} )
 
 install( FILES ${CLANG_PLUGIN_API} DESTINATION include/parser )
 install( TARGETS parser DESTINATION bin)

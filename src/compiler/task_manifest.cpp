@@ -126,7 +126,7 @@ public:
                 VERIFY_RTE_MSG( boost::filesystem::exists( componentInfoPath ),
                                 "Failed to locate file: " << componentInfoPath.string() );
                 std::ifstream inputFileStream(
-                    componentInfoPath.native().c_str(), std::ios::in | std::ios_base::binary );
+                    componentInfoPath.string().c_str(), std::ios::in | std::ios_base::binary );
                 if ( !inputFileStream.good() )
                 {
                     THROW_RTE( "Failed to open file: " << componentInfoPath.string() );

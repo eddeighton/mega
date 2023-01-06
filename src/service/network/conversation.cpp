@@ -30,21 +30,6 @@
 namespace mega::network
 {
 
-ConversationBase::RequestStack::RequestStack( const char* pszMsg, ConversationBase::Ptr pConversation,
-                                              const ConnectionID& connectionID )
-    : m_pszMsg( pszMsg )
-    //, m_startTime( std::chrono::steady_clock::now() )
-    , pConversation( pConversation )
-{
-    pConversation->requestStarted( connectionID );
-}
-ConversationBase::RequestStack::~RequestStack()
-{
-    // const auto timeDelta = std::chrono::steady_clock::now() - m_startTime;
-    // SPDLOG_DEBUG( "{} {} {} {}", conversation.getProcessName(), conversation.getID(), m_pszMsg, timeDelta );
-    pConversation->requestCompleted();
-}
-
 Conversation::Conversation( ConversationManager& conversationManager, const ConversationID& conversationID,
                             std::optional< ConnectionID > originatingConnectionID )
     : m_conversationManager( conversationManager )

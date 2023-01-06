@@ -19,11 +19,11 @@
 
 #include "simulation.hpp"
 
-#include "service/context.hpp"
-
 #include "service/executor.hpp"
 
 #include "service/network/conversation.hpp"
+
+#include "service/protocol/common/context.hpp"
 
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/address.hxx"
@@ -32,7 +32,6 @@
 #include "service/protocol/model/enrole.hxx"
 
 #include "mega/bin_archive.hpp"
-#include "mega/shared_memory_header.hpp"
 
 #include <boost/filesystem/operations.hpp>
 
@@ -316,11 +315,12 @@ Snapshot Simulation::makeSnapshot( const MPO& requestingMPO, const MPO& targetMP
 
 
     {
-        const mega::MPO thisMPO = getThisMPO();
-        void* pSharedBase = base();
-        void* pSharedBuffer = mega::fromProcessAddress( pSharedBase, m_root.pointer );
-        void* pHeap = getHeap( thisMPO.getProcessID(), getSharedHeader( pSharedBuffer ) );
-        SPDLOG_TRACE( "makeSnapshot {} {} {} {}", thisMPO, pSharedBase, pSharedBuffer, pHeap );
+        THROW_TODO;
+        // const mega::MPO thisMPO = getThisMPO();
+        // void* pSharedBase = base();
+        // void* pSharedBuffer = mega::fromProcessAddress( pSharedBase, m_root.pointer );
+        // void* pHeap = getHeap( thisMPO.getProcessID(), getSharedHeader( pSharedBuffer ) );
+        // SPDLOG_TRACE( "makeSnapshot {} {} {} {}", thisMPO, pSharedBase, pSharedBuffer, pHeap );
     }
 
     if( requestingMPO.getMachineID() == targetMPO.getMachineID() )
@@ -411,10 +411,9 @@ MPO Simulation::SimCreate( boost::asio::yield_context& )
 }
 
 void Simulation::RootSimRun( const reference&             root,
-                             const network::JITMemoryPtr& pMemory,
                              boost::asio::yield_context&  yield_ctx )
 {
-    initSharedMemory( root, pMemory );
+    initSharedMemory( root );
 
     // now start running the simulation
     setMPOContext( this );

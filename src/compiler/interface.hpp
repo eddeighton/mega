@@ -74,8 +74,8 @@ public:
         TemplateEngine( const mega::io::StashEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
             : m_environment( buildEnvironment )
             , m_injaEnvironment( injaEnv )
-            , m_contextTemplate( m_injaEnvironment.parse_template( m_environment.ContextTemplate().native() ) )
-            , m_interfaceTemplate( m_injaEnvironment.parse_template( m_environment.InterfaceTemplate().native() ) )
+            , m_contextTemplate( m_injaEnvironment.parse_template( m_environment.ContextTemplate().string() ) )
+            , m_interfaceTemplate( m_injaEnvironment.parse_template( m_environment.InterfaceTemplate().string() ) )
         {
         }
 

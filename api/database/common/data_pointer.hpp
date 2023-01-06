@@ -23,6 +23,7 @@
 #ifndef DATA_POINTER_7_APRIL_2022
 #define DATA_POINTER_7_APRIL_2022
 
+#include "database/common/api.hpp"
 #include "loader.hpp"
 #include "object_info.hpp"
 #include "object.hpp"
@@ -38,7 +39,7 @@
 namespace data
 {
 template < typename T >
-class Ptr
+class EGDB_EXPORT Ptr
 {
     using ObjectInfoPtr = std::shared_ptr< mega::io::ObjectInfo >;
 
@@ -197,7 +198,7 @@ inline Ptr< TTo > convert( const std::variant< TFromTypes... >& from )
 }
 
 template < typename TVariantType, typename TTo, typename TFrom >
-struct UpCast
+struct EGDB_EXPORT UpCast
 {
     inline TVariantType operator()( TFrom& from ) const { return from; }
 };
@@ -233,7 +234,7 @@ inline TVariant to_upper( TVariant& from )
     return up_most;
 }
 
-class Factory
+class EGDB_EXPORT Factory
 {
 public:
     static mega::io::Object* create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );

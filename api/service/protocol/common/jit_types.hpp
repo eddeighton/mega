@@ -47,6 +47,7 @@ inline TFunctionPtrType* convert( U64 functionPtr )
 {
     return reinterpret_cast< TFunctionPtrType* >( functionPtr );
 }
+
 template < typename TFunctionPtrType >
 inline U64 convert( TFunctionPtrType* ppFunction )
 {
@@ -55,24 +56,19 @@ inline U64 convert( TFunctionPtrType* ppFunction )
 
 struct MemoryBaseReference
 {
-    U64                       base;
     reference                 machineRef;
     std::optional< Snapshot > snapshotOpt;
 
     MemoryBaseReference() = default;
-    MemoryBaseReference( void* pBaseAddress, const reference& machine )
-        : base( reinterpret_cast< U64 >( pBaseAddress ) )
-        , machineRef( machine )
+    MemoryBaseReference( const reference& machine )
+        : machineRef( machine )
     {
     }
-    void* getBaseAddress() const { return reinterpret_cast< void* >( base ); }
-
+    
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
         THROW_RTE( "Unexpected serialisation of MemoryBaseReference" );
-
-        archive& base;
         archive& machineRef;
         archive& snapshotOpt;
     }

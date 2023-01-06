@@ -23,6 +23,7 @@
 #ifndef CARDINALITY_13_MAY_2022
 #define CARDINALITY_13_MAY_2022
 
+#include "database/common/api.hpp"
 #include "database/common/serialisation.hpp"
 
 #include <optional>
@@ -31,7 +32,7 @@
 namespace mega
 {
 
-struct Cardinality
+struct EGDB_EXPORT Cardinality
 {
     using NumberType = int;
 
@@ -79,7 +80,7 @@ private:
     bool       m_allow_null;
 };
 
-struct CardinalityRange
+struct EGDB_EXPORT CardinalityRange
 {
     CardinalityRange() {}
 
@@ -105,7 +106,7 @@ private:
 
 } // namespace mega
 
-std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardinalityRange );
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardinalityRange );
 
 namespace mega
 {

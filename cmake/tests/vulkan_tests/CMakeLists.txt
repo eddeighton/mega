@@ -72,4 +72,4 @@ gtest_add_tests( TARGET vulkan_tests SOURCES ${VULKAN_UNIT_TESTS} )
 install( TARGETS vulkan_tests DESTINATION bin )
 #install( DIRECTORY ${MEGA_TEST_DIR}/data/ DESTINATION tests)
 
-add_custom_command( TARGET vulkan_tests POST_BUILD COMMAND ctest --output-on-failure )
+add_custom_command( TARGET vulkan_tests POST_BUILD COMMAND ctest --output-on-failure -C $<CONFIG> )

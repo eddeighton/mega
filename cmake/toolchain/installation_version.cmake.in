@@ -5,7 +5,15 @@ cmake_minimum_required( VERSION 3.4...3.16 )
 message( "Generating ToolChain.xml" )
 
 find_path(LLVM_CONFIGURATION_PATH NAMES "llvm/install" PATHS "${CMAKE_INSTALL_PREFIX}/../../" REQUIRED NO_DEFAULT_PATH)
-find_file(SCRIPT_CLANG_COMPILER NAMES clang++ PATHS ${LLVM_CONFIGURATION_PATH}/llvm/install/bin REQUIRED NO_DEFAULT_PATH)
+
+set( CLANG_PROGRAM_NAME )
+IF( ${WIN32} )
+set( CLANG_PROGRAM_NAME clang++.exe)
+ELSE( ${WIN32} )
+set( CLANG_PROGRAM_NAME clang++)
+ENDIF( ${WIN32} )
+
+find_file(SCRIPT_CLANG_COMPILER NAMES ${CLANG_PROGRAM_NAME} PATHS ${LLVM_CONFIGURATION_PATH}/llvm/install/bin REQUIRED NO_DEFAULT_PATH)
 
 execute_process( 
 	COMMAND mega --tool_chain

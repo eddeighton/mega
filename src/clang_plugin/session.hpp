@@ -22,6 +22,8 @@
 #ifndef SESSION_10_MAY_2022
 #define SESSION_10_MAY_2022
 
+#include "common/clang_warnings.hpp"
+
 #include "database/types/modes.hpp"
 #include "database/types/operation.hpp"
 #include "database/types/sources.hpp"

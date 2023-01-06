@@ -70,4 +70,4 @@ gtest_add_tests( TARGET system_tests SOURCES ${MEGA_UNIT_TESTS} )
 
 install( TARGETS system_tests DESTINATION bin )
 
-add_custom_command( TARGET system_tests POST_BUILD COMMAND ctest --output-on-failure )
+add_custom_command( TARGET system_tests POST_BUILD COMMAND ctest --output-on-failure -C $<CONFIG> )

@@ -51,10 +51,15 @@ add_library( terminal
 					${TERMINAL_LIB_SRC}
 				)
 
+IF( ${WIN32} )
+target_compile_options( terminal PUBLIC "/await:strict" )
+ELSE( ${WIN32} )
 target_compile_options( terminal PUBLIC "-fcoroutines" )
+ENDIF( ${WIN32} )
 
 target_link_libraries( terminal protocol )
 target_link_libraries( terminal network )
+target_link_libraries( terminal leaf )
 
 target_include_directories( terminal PUBLIC ${MEGA_API_DIR} )
 target_include_directories( terminal PUBLIC ${MEGA_SRC_DIR} )

@@ -407,7 +407,7 @@ class Task_CPPImplementation : public BaseTask
         TemplateEngine( const mega::io::StashEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
             : m_environment( buildEnvironment )
             , m_injaEnvironment( injaEnv )
-            , m_implTemplate( m_injaEnvironment.parse_template( m_environment.ImplementationTemplate().native() ) )
+            , m_implTemplate( m_injaEnvironment.parse_template( m_environment.ImplementationTemplate().string() ) )
         {
         }
 

@@ -24,7 +24,7 @@
 
 #include "service/network/client.hpp"
 #include "service/network/conversation_manager.hpp"
-#include "service/network/sender.hpp"
+#include "service/network/sender_factory.hpp"
 #include "service/network/channel.hpp"
 
 #include <boost/asio/io_service.hpp>

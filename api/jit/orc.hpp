@@ -20,22 +20,43 @@
 #ifndef JIT_8_AUG_2022
 #define JIT_8_AUG_2022
 
+#if defined( _WIN32 )
+
+// Microsoft
+#ifdef MEGA_ORC_API_SHARED_MODULE
+#define ORC_EXPORT __declspec( dllexport )
+#else
+#define ORC_EXPORT __declspec( dllimport )
+#endif
+
+#elif defined( __GNUC__ )
+
+// GCC
+#ifdef MEGA_ORC_API_SHARED_MODULE
+#define ORC_EXPORT __attribute__( ( visibility( "default" ) ) )
+#else
+#define ORC_EXPORT
+#endif
+
+#endif
+
 #include <memory>
 #include <set>
+#include <string>
 
 namespace mega::runtime
 {
 
-class JITCompiler
+class ORC_EXPORT JITCompiler
 {
 public:
     JITCompiler();
 
-    class Module
+    class ORC_EXPORT Module
     {
     protected:
         friend class JITCompiler;
-        virtual ~Module();
+        virtual ~Module() = 0;
 
     public:
         using Ptr = std::shared_ptr< Module >;
@@ -53,12 +74,6 @@ public:
 
 private:
     void unload( Module* pModule );
-
-    struct StaticInit
-    {
-        StaticInit();
-    };
-    static StaticInit m_staticInit;
 
     class Pimpl;
     std::shared_ptr< Pimpl > m_pPimpl;

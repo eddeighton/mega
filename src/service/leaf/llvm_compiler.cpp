@@ -113,7 +113,7 @@ void compile( const boost::filesystem::path& clangPath, const boost::filesystem:
             // include directories
             for ( const boost::filesystem::path& includeDir : pComponent.value()->get_include_directories() )
             {
-                osCmd << "-I " << includeDir.native() << " ";
+                osCmd << "-I " << includeDir.string() << " ";
             }
         }
         else
@@ -122,7 +122,7 @@ void compile( const boost::filesystem::path& clangPath, const boost::filesystem:
             osCmd << "-I " << megastructureInstallation.getMegaIncludePath() << " ";
         }
 
-        osCmd << "-o " << outputIRFilePath.native() << " -c " << inputCPPFilePath.native();
+        osCmd << "-o " << outputIRFilePath.string() << " -c " << inputCPPFilePath.string();
         runCompilation( osCmd.str() );
     }
     const auto timeDelta = std::chrono::steady_clock::now() - startTime;
@@ -135,7 +135,7 @@ void compileToLLVMIRImpl( const LLVMCompilerImpl& compiler, const std::string& s
     const boost::filesystem::path irFilePath = compiler.getTempDir() / ( strName + ".ir" );
 
     const task::DeterminantHash determinant{ strCPPCode };
-    if ( compiler.restore( irFilePath.native(), determinant.get() ) )
+    if ( compiler.restore( irFilePath.string(), determinant.get() ) )
     {
         boost::filesystem::loadAsciiFile( irFilePath, osIR );
     }
@@ -147,7 +147,7 @@ void compileToLLVMIRImpl( const LLVMCompilerImpl& compiler, const std::string& s
             *pFStream << strCPPCode;
         }
         compile( compiler.getClangPath(), inputCPPFilePath, irFilePath, pComponent, compiler.getMegaInstall() );
-        compiler.stash( irFilePath.native(), determinant.get() );
+        compiler.stash( irFilePath.string(), determinant.get() );
         boost::filesystem::loadAsciiFile( irFilePath, osIR );
     }
 }

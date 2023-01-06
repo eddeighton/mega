@@ -22,9 +22,6 @@
 
 cmake_minimum_required( VERSION 3.1...3.16 )
 
-#get boost
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
-
 string( TIMESTAMP CMAKE_TIMESTAMP_STRING "%Y-%m-%d %H:%M:%S" UTC )
 
 set( CMAKE_VERSION_MAJOR        0 )
@@ -42,6 +39,7 @@ set( VERSION_HEADERS
 #    ${MEGA_SRC_DIR}/version/version.cxx )
 
 #set_property(TARGET version PROPERTY POSITION_INDEPENDENT_CODE ON)
+#set_property(TARGET version PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 
 #target_include_directories( version PUBLIC ${MEGA_API_DIR} )
 

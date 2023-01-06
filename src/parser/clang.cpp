@@ -152,7 +152,7 @@ Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
 
         for ( const boost::filesystem::path& includeDir : includeDirectories )
         {
-            if ( auto f = pFileManager->getDirectoryRef( includeDir.native(), false ) )
+            if ( auto f = pFileManager->getDirectoryRef( includeDir.string(), false ) )
             {
                 auto dirLookup = clang::DirectoryLookup( f.get(), clang::SrcMgr::C_System, false );
                 pHeaderSearch->AddSearchPath( dirLookup, false );
@@ -199,7 +199,7 @@ bool Parser::getSourceText( clang::SourceLocation startLoc, clang::SourceLocatio
     bool                     bInvalid = false;
     const clang::SourceRange range( startLoc, endLoc );
     clang::CharSourceRange   charRange = clang::CharSourceRange::getCharRange( range );
-    str                                = clang::Lexer::getSourceText( charRange, sm, languageOptions, &bInvalid );
+    str                                = clang::Lexer::getSourceText( charRange, sm, languageOptions, &bInvalid ).str();
     // sort out carriage returns
     boost::replace_all( str, "\r\n", "\n" );
 

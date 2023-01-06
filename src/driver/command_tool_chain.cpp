@@ -75,7 +75,7 @@ std::string runCmd( const std::string& strCmd )
 std::string getClangVersion( const boost::filesystem::path& path_clangCompiler )
 {
     std::ostringstream osCmd;
-    osCmd << path_clangCompiler.native() << " --version";
+    osCmd << path_clangCompiler.string() << " --version";
     return runCmd( osCmd.str() );
 }
 

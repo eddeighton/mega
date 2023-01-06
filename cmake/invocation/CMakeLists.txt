@@ -49,7 +49,14 @@ add_library( invocation
     ${INVOCATION_SOURCE}
 )
 
+target_link_libraries( invocation database )
+
+IF( ${WIN32} )
+set_property(TARGET invocation PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
 set_property(TARGET invocation PROPERTY POSITION_INDEPENDENT_CODE ON)
+ENDIF( ${WIN32} )
+
 target_include_directories( invocation PUBLIC ${MEGA_API_DIR} )
 
 link_boost( invocation system )

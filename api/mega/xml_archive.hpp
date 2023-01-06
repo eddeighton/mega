@@ -30,6 +30,7 @@
 #include <boost/serialization/nvp.hpp>
 
 #include <string>
+#include <sstream>
 
 namespace mega
 {

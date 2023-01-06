@@ -34,7 +34,7 @@ namespace mega
 class Scheduler
 {
 public:
-    typedef void ( *StopperFunctionPtr )( mega::Instance );
+    using StopperFunctionPtr = void (*)(mega::Instance);
     using ActionOperator = std::function< mega::ActionCoroutine() >;
 
     Scheduler();

@@ -137,10 +137,10 @@ public:
         m_tool.runComplete();
     }
 
-    virtual void RootSimRun( const mega::reference& root, const network::JITMemoryPtr& pMemory,
+    virtual void RootSimRun( const mega::reference& root,
                              boost::asio::yield_context& yield_ctx ) override
     {
-        initSharedMemory( root, pMemory );
+        initSharedMemory( root );
 
         m_tool.setRoot( root );
 

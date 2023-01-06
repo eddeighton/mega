@@ -73,7 +73,7 @@ private:
     Dependencies::TaskSet m_complete;
 };
 
-class BOOST_SYMBOL_VISIBLE Progress
+class Progress
 {
     Progress( const Progress& )            = delete;
     Progress& operator=( const Progress& ) = delete;
@@ -98,7 +98,7 @@ public:
     virtual EG_PARSER_INTERFACE* getParser() = 0;
 };
 
-class BOOST_SYMBOL_VISIBLE Pipeline
+class Pipeline
 {
     friend class Registry;
     Pipeline( const Pipeline& )            = delete;

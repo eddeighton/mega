@@ -25,11 +25,14 @@
 #include "common.hpp"
 #include "event.hpp"
 
+
+#ifdef __gnu_linux__
 #ifdef __cpp_impl_coroutine
 #undef __cpp_impl_coroutine
 #endif
-
 #define __cpp_impl_coroutine 1
+#endif
+
 #include <coroutine>
 
 #include <chrono>

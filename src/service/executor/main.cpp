@@ -106,8 +106,7 @@ int main( int argc, const char* argv[] )
 
     try
     {
-        auto logThreads
-            = mega::network::configureLog( logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
+        mega::network::configureLog( logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
                                            mega::network::fromStr( strLogFileLevel ) );
 
         boost::asio::io_context ioContext;

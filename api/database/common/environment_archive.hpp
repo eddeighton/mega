@@ -20,13 +20,14 @@
 #ifndef ARCHIVE_ENVIRONMENT_18_JUNE_2022
 #define ARCHIVE_ENVIRONMENT_18_JUNE_2022
 
+#include "database/common/api.hpp"
 #include "database/model/environment.hxx"
 
 #include "database/common/archive.hpp"
 
 namespace mega::io
 {
-class ArchiveEnvironment : public Environment
+class EGDB_EXPORT ArchiveEnvironment : public Environment
 {
     ReadArchive m_fileArchive;
 

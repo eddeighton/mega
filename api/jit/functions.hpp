@@ -20,6 +20,7 @@
 #ifndef RUNTIME_FUNCTIONS_17_AUG_2022
 #define RUNTIME_FUNCTIONS_17_AUG_2022
 
+#include "api.hpp"
 #include "mega/reference.hpp"
 
 namespace mega
@@ -46,7 +47,7 @@ using StopFunction     = reference ( * )( reference );
 using SaveFunction     = void ( * )( reference, void* );
 using LoadFunction     = void ( * )( reference, void* );
 
-struct CallResult
+struct JIT_EXPORT CallResult
 {
     TypeErasedFunction pFunction;
     reference          context;

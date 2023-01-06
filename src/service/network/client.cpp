@@ -21,10 +21,10 @@
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
 #include "service/network/end_point.hpp"
+#include "service/network/sender_factory.hpp"
 
 #include <boost/bind/bind.hpp>
 #include <boost/asio/connect.hpp>
-#include "service/network/sender.hpp"
 
 #include <exception>
 #include <future>

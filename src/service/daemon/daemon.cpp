@@ -94,7 +94,6 @@ Daemon::~Daemon()
 void Daemon::setActiveProject( const network::Project& project )
 {
     m_activeProject = project;
-    m_pMemoryManager.reset();
     m_pDatabase.reset();
     try
     {
@@ -102,7 +101,6 @@ void Daemon::setActiveProject( const network::Project& project )
              && boost::filesystem::exists( project.getProjectDatabase() ) )
         {
             m_pDatabase.reset( new runtime::DatabaseInstance( project.getProjectDatabase() ) );
-            m_pMemoryManager.reset( new SharedMemoryManager( *m_pDatabase, m_strProcessName ) );
         }
     }
     catch ( mega::io::DatabaseVersionException& ex )

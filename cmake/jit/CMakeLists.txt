@@ -50,6 +50,7 @@ set( JINJA_TEMPLATES
 )
 
 set( RUNTIME_HEADERS
+    ${MEGA_API_DIR}/jit/api.hpp
     ${MEGA_API_DIR}/jit/functions.hpp
     ${MEGA_API_DIR}/jit/jit.hpp
     ${MEGA_API_DIR}/jit/orc.hpp
@@ -73,13 +74,23 @@ add_library( jit
     ${RUNTIME_SOURCE}
 )
 
+add_definitions(-DMEGA_JIT_API_SHARED_MODULE)
+
 include_directories( jit ${MEGA_API_DIR}/jit )
 
 target_link_libraries( jit database )
 target_link_libraries( jit orc )
+target_link_libraries( jit protocol )
 
+IF( ${WIN32} )
+#set_property(TARGET jit PROPERTY ENABLE_EXPORTS ON )
+set_property(TARGET jit PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
+ELSE( ${WIN32} )
 target_link_options( jit PUBLIC -export-dynamic )
+ENDIF( ${WIN32} )
+
 #set_property(TARGET jit PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories( jit PUBLIC ${MEGA_API_DIR} )
 
 link_boost( jit system )

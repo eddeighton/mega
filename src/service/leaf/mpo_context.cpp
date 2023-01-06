@@ -18,15 +18,24 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "service/mpo_context.hpp"
+#include "service/cycle.hpp"
 
 #include "common/assert_verify.hpp"
 
 #include "mega/bin_archive.hpp"
 
-namespace
-{
-thread_local mega::MPOContext* g_pMPOContext = nullptr;
-} // namespace
+// 
+// #include <boost/archive/basic_binary_iarchive.hpp>
+// #include <boost/archive/basic_binary_oarchive.hpp>
+// #include <boost/archive/basic_binary_iprimitive.hpp>
+// #include <boost/archive/basic_binary_oprimitive.hpp>
+// 
+// #define BOOST_ARCHIVE_OR_WARCHIVE_DECL
+// #include <boost/archive/impl/basic_binary_iarchive.ipp>
+// #include <boost/archive/impl/basic_binary_oarchive.ipp>
+// #include <boost/archive/impl/basic_binary_iprimitive.ipp>
+// #include <boost/archive/impl/basic_binary_oprimitive.ipp>
+
 
 namespace mega
 {
@@ -34,25 +43,6 @@ namespace mega
 Cycle::~Cycle()
 {
     getMPOContext()->cycleComplete();
-}
-
-Context* Context::get()
-{
-    return g_pMPOContext;
-}
-
-MPOContext* getMPOContext()
-{
-    return g_pMPOContext;
-}
-void resetMPOContext()
-{
-    g_pMPOContext = nullptr;
-}
-void setMPOContext( MPOContext* pMPOContext )
-{
-    VERIFY_RTE( g_pMPOContext == nullptr );
-    g_pMPOContext = pMPOContext;
 }
 
 void MPOContext::loadSnapshot( const reference& ref, const Snapshot& snapshot )
@@ -105,17 +95,12 @@ MPO MPOContext::getThisMPO()
 {
     return m_mpo.value();
 }
-void* MPOContext::base()
-{
-    void* pBase = m_pSharedMemory->get_address();
-    SPDLOG_TRACE( "MPOContext::base {}", pBase );
-    return pBase;
-}
+
 void* MPOContext::read( reference& ref )
 {
     SPDLOG_TRACE( "MPOContext::read: {}", ref );
 
-    network::MemoryBaseReference result = getLeafMemoryRequest().Read( m_root, ref, m_lockTracker.isRead( ref ) );
+    /*network::MemoryBaseReference result = getLeafMemoryRequest().Read( m_root, ref, m_lockTracker.isRead( ref ) );
     if( result.snapshotOpt.has_value() )
     {
         SPDLOG_TRACE( "MPOContext::read loading snapshot: {}", ref );
@@ -124,12 +109,13 @@ void* MPOContext::read( reference& ref )
 
     ref = result.machineRef;
     m_lockTracker.onRead( ref );
-    return result.getBaseAddress();
+    return result.getBaseAddress();*/
+    return nullptr;
 }
 void* MPOContext::write( reference& ref )
 {
     SPDLOG_TRACE( "MPOContext::write {}", ref );
-    network::MemoryBaseReference result = getLeafMemoryRequest().Write( m_root, ref, m_lockTracker.isWrite( ref ) );
+    /*network::MemoryBaseReference result = getLeafMemoryRequest().Write( m_root, ref, m_lockTracker.isWrite( ref ) );
     if( result.snapshotOpt.has_value() )
     {
         SPDLOG_TRACE( "MPOContext::write loading snapshot: {}", ref );
@@ -138,15 +124,24 @@ void* MPOContext::write( reference& ref )
 
     ref = result.machineRef;
     m_lockTracker.onWrite( ref );
-    return result.getBaseAddress();
+    return result.getBaseAddress();*/
+    return nullptr;
 }
 reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
 {
-    return getLeafMemoryRequest().Allocate( context, objectTypeID );
+    // return getLeafMemoryRequest().Allocate( context, objectTypeID );
+    return reference{};
 }
 reference MPOContext::networkToMachine( const reference& ref )
 {
-    return getLeafMemoryRequest().NetworkToMachine( ref );
+    if( ref.isNetwork() )
+    {
+        return getLeafMemoryRequest().NetworkToMachine( ref );
+    }
+    else
+    {
+        return ref;
+    }
 }
 void MPOContext::get_save_xml_object( const char* pszUnitName, TypeID objectTypeID,
                                       runtime::SaveObjectFunction* ppFunction )

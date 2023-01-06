@@ -17,6 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+// this made no diff on windows
+// #ifdef _WIN32
+// #pragma runtime_checks( "", off )
+// #pragma optimize( "2", on )
+// #define VERIFY_RTE_MSG
+// #endif
 
 
 #include "database/model/data.hxx"
@@ -159,32 +165,30 @@ namespace {{ file.name }}
 }
 {% endfor %}{# files #}
 
-
 {% for function in functions %}
 {{ function.propertytype }}& {{ function.name }}({{ function.variant_type }}& m_data)
 {
-    return std::visit( 
-        []( auto& arg ) -> {{ function.propertytype }}&
-        {
-            using T = std::decay_t< decltype( arg ) >;
+    struct Visitor
+    {
 {% for variant in function.variants %}
 {% if variant.matched %}
-            {% if ( not loop.is_first ) %}else {% endif %} if constexpr( std::is_same_v< T, data::Ptr< data::{{ variant.primaryobjectpart }} > >)
-            {
-                data::Ptr< data::{{ variant.dataobjectpart }} > part = 
-                    data::convert< data::{{ variant.dataobjectpart }} >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: {{ function.name }}" );
-                return part->{{ function.property }};
-            }
+        {{ function.propertytype }}& operator()( data::Ptr< data::{{ variant.primaryobjectpart }} >& arg ) const
+        {
+            data::Ptr< data::{{ variant.dataobjectpart }} > part = 
+                data::convert< data::{{ variant.dataobjectpart }} >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: {{ function.name }}" );
+            return part->{{ function.property }};
+        }
+{% else %}
+        {{ function.propertytype }}& operator()( data::Ptr< data::{{ variant.primaryobjectpart }} >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
 {% endif %}
 {% endfor %}{# function.bodies #}
-            else
-            {
-                THROW_RTE( "Invalid call to {{ function.name }}" );
-            }
-        }
-        , m_data );
+    }visitor;
+    return std::visit( visitor, m_data );
 }
 {% endfor %}{# for function in functions #}
 

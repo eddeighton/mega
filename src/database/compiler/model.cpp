@@ -408,9 +408,9 @@ Type::Ptr getType( const schema::Type& type, Mapping& mapping, Namespace::Ptr pN
 
 struct StageElementVariantVisitor : boost::static_visitor< void >
 {
+    Mapping&    mapping;
     Schema::Ptr pSchema;
     Stage::Ptr  pStage;
-    Mapping&    mapping;
     StageElementVariantVisitor( Mapping& mapping, Schema::Ptr pSchema, Stage::Ptr pStage )
         : mapping( mapping )
         , pSchema( pSchema )

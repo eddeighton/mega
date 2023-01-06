@@ -45,7 +45,7 @@ set( CLANG_PLUGIN_SOURCES
     ${MEGA_SRC_DIR}/clang_plugin/operations_session.cpp
     )
 
-add_definitions(-DEG_DATABASE_SHARED_MODULE)
+add_definitions(-DMEGA_CLANG_PLUGIN_MODULE)
 
 add_library( clang_plugin MODULE
                     ${CLANG_PLUGIN_API}
@@ -56,8 +56,13 @@ set_target_properties( clang_plugin PROPERTIES FOLDER clang_plugin )
 link_boost_usual( clang_plugin )
 link_common( clang_plugin )
 
+IF (WIN32)
+# windows needs symbols when compile
+link_clang( clang_plugin )
+ELSE()
 # import clang - symbols linked dynamically when load plugin
 import_clang( clang_plugin )
+ENDIF()
 
 target_link_libraries( clang_plugin database )
 target_link_libraries( clang_plugin invocation )

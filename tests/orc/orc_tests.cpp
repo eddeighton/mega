@@ -21,6 +21,8 @@
 
 #include <gtest/gtest.h>
 
+#include "common/clang_warnings.hpp"
+
 #include "llvm/ExecutionEngine/Orc/ExecutionUtils.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/LLVMContext.h"

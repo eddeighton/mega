@@ -20,6 +20,7 @@
 #ifndef ENVIRONMENT_BUILD_18_JUNE
 #define ENVIRONMENT_BUILD_18_JUNE
 
+#include "database/common/api.hpp"
 #include "database/model/environment.hxx"
 
 #include "compiler/configuration.hpp"
@@ -31,7 +32,7 @@
 
 namespace mega::io
 {
-class BuildEnvironment : public Environment
+class EGDB_EXPORT BuildEnvironment : public Environment
 {
 protected:
     using Path = boost::filesystem::path;

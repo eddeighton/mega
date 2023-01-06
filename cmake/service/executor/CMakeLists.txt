@@ -69,11 +69,17 @@ add_library( executorLib
 					${EXECUTOR_LIB_SRC}
 				)
 
+IF( ${WIN32} )
+target_compile_options( executorLib PUBLIC "/await:strict" )
+target_compile_options( executorLib PRIVATE "/bigobj" )
+set_property(TARGET executorLib PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
 target_compile_options( executorLib PUBLIC "-fcoroutines" )
-# target_link_options( executorLib PUBLIC -export-dynamic )
+ENDIF( ${WIN32} )
 
 target_link_libraries( executorLib protocol )
 target_link_libraries( executorLib network )
+target_link_libraries( executorLib leaf )
 
 target_include_directories( executorLib PUBLIC ${MEGA_API_DIR} )
 target_include_directories( executorLib PUBLIC ${MEGA_SRC_DIR} )
@@ -115,7 +121,12 @@ set( EXECUTOR_SOURCE
 
 add_executable( executor ${EXECUTOR_SOURCE}  )
 
+IF( ${WIN32} )
+target_compile_options( executor PUBLIC "/await:strict" )
+target_compile_options( executor PRIVATE "/bigobj" )
+ELSE( ${WIN32} )
 target_compile_options( executor PUBLIC "-fcoroutines" )
+ENDIF( ${WIN32} )
 
 target_link_libraries( executor executorLib )
 
@@ -124,8 +135,6 @@ target_link_libraries( executor executorLib )
 # runtime
 # -Wl,-no-whole-archive
 # )
-
-# target_link_options( executor PUBLIC -export-dynamic )
 
 set_target_properties( executor PROPERTIES FOLDER driver )
 

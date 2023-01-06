@@ -23,6 +23,7 @@
 #ifndef OPERATIONS_10_MAY_2022
 #define OPERATIONS_10_MAY_2022
 
+#include "database/common/api.hpp"
 #include "mega/common.hpp"
 
 #include <array>
@@ -32,14 +33,14 @@ namespace mega
 {
 
 using OperationIDStringArray = std::array< std::string, TOTAL_OPERATION_TYPES >;
-OperationID                   getOperationName( const std::string& strName );
-const std::string&            getOperationString( OperationID op );
-const OperationIDStringArray& getOperationStrings();
+EGDB_EXPORT OperationID                   getOperationName( const std::string& strName );
+EGDB_EXPORT const std::string&            getOperationString( OperationID op );
+EGDB_EXPORT const OperationIDStringArray& getOperationStrings();
 
 using ExplicitOperationIDStringArray = std::array< std::string, HIGHEST_EXPLICIT_OPERATION_TYPE >;
-const std::string&                    getExplicitOperationString( ExplicitOperationID op );
-ExplicitOperationID                   getExplicitOperationName( const std::string& strName );
-const ExplicitOperationIDStringArray& getExplicitOperationStrings();
+EGDB_EXPORT const std::string&                    getExplicitOperationString( ExplicitOperationID op );
+EGDB_EXPORT ExplicitOperationID                   getExplicitOperationName( const std::string& strName );
+EGDB_EXPORT const ExplicitOperationIDStringArray& getExplicitOperationStrings();
 
 } // namespace mega
 

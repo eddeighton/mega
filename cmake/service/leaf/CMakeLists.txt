@@ -30,7 +30,7 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( MEGA_LEAF_API 
     ${MEGA_API_DIR}/service/leaf.hpp
-    ${MEGA_API_DIR}/service/context.hpp
+    ${MEGA_API_DIR}/service/cycle.hpp
     ${MEGA_API_DIR}/service/mpo_context.hpp
 )
 
@@ -46,8 +46,6 @@ set( MEGA_LEAF_SRC
     ${MEGA_SRC_DIR}/service/leaf/project.cpp
     ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.hpp
     ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.cpp
-    ${MEGA_SRC_DIR}/service/leaf/shared_memory.hpp
-    ${MEGA_SRC_DIR}/service/leaf/heap_memory.hpp
     ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.hpp
     ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.cpp
 )
@@ -57,16 +55,22 @@ add_library( leaf
 					${MEGA_LEAF_SRC}
 				)
 
+IF( ${WIN32} )
+target_compile_options( leaf PUBLIC "/await:strict" )
+set_property(TARGET leaf PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
 target_compile_options( leaf PUBLIC "-fcoroutines" )
+ENDIF( ${WIN32} )
+
+#target_compile_definitions( leaf PUBLIC -DMEGA_CONTEXT_IMPLEMENTOR )
 
 target_link_libraries( leaf protocol )
 target_link_libraries( leaf network )
 target_link_libraries( leaf jit )
+target_link_libraries( leaf log )
 
 target_include_directories( leaf PUBLIC ${MEGA_API_DIR} )
 target_include_directories( leaf PUBLIC ${MEGA_SRC_DIR} )
-
-# target_link_options( leaf PUBLIC -export-dynamic )
 
 set_target_properties( leaf PROPERTIES FOLDER leaf )
 
@@ -74,6 +78,8 @@ link_boost( leaf filesystem )
 link_boost( leaf system )
 link_boost( leaf atomic )
 link_boost( leaf coroutine )
+link_boost( leaf serialization )
+
 link_common( leaf )
 link_spdlog( leaf )
 

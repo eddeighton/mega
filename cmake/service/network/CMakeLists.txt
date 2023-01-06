@@ -34,7 +34,7 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( MEGA_NETWORK_API 
     ${MEGA_API_DIR}/service/network/log.hpp
     ${MEGA_API_DIR}/service/network/end_point.hpp
-    ${MEGA_API_DIR}/service/network/sender.hpp
+    ${MEGA_API_DIR}/service/network/sender_factory.hpp
     ${MEGA_API_DIR}/service/network/network.hpp
     ${MEGA_API_DIR}/service/network/client.hpp
     ${MEGA_API_DIR}/service/network/server.hpp
@@ -46,7 +46,7 @@ set( MEGA_NETWORK_API
 set( MEGA_NETWORK_SRC 
     ${MEGA_SRC_DIR}/service/network/log.cpp
     ${MEGA_SRC_DIR}/service/network/end_point.cpp
-    ${MEGA_SRC_DIR}/service/network/sender.cpp
+    ${MEGA_SRC_DIR}/service/network/sender_factory.cpp
     ${MEGA_SRC_DIR}/service/network/network.cpp
     ${MEGA_SRC_DIR}/service/network/client.cpp
     ${MEGA_SRC_DIR}/service/network/server.cpp
@@ -60,7 +60,12 @@ add_library( network
 					${MEGA_NETWORK_SRC}
 				)
 
+IF( ${WIN32} )
+target_compile_options( network PUBLIC "/await:strict" )
+set_property(TARGET network PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
 target_compile_options( network PUBLIC "-fcoroutines" )
+ENDIF( ${WIN32} )
 
 target_link_libraries( network protocol )
 

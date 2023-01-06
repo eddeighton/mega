@@ -35,7 +35,7 @@ namespace
 {
 void writeJSON( const boost::filesystem::path& filePath, const nlohmann::json& data )
 {
-    std::ofstream os( filePath.native(), std::ios_base::trunc | std::ios_base::out );
+    std::ofstream os( filePath.string(), std::ios_base::trunc | std::ios_base::out );
     os << data;
 }
 

@@ -42,7 +42,7 @@ public:
         : m_index( index )
     {
     }
-    inline const U32 get() const { return m_index; }
+    inline U32 get() const { return m_index; }
 
     inline bool operator<( const FileIndex& cmp ) const { return m_index < cmp.m_index; }
     inline bool operator==( const FileIndex& cmp ) const { return m_index == cmp.m_index; }
@@ -67,7 +67,7 @@ public:
         : m_index( offset )
     {
     }
-    const U64 get() const { return m_index; }
+    inline U64 get() const { return m_index; }
 
     inline bool operator<( const InterFileOffset& cmp ) const { return m_index < cmp.m_index; }
     inline bool operator==( const InterFileOffset& cmp ) const { return m_index == cmp.m_index; }

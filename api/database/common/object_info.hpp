@@ -20,6 +20,7 @@
 #ifndef OBJECT_INFO_30_MAR_2022
 #define OBJECT_INFO_30_MAR_2022
 
+#include "database/common/api.hpp"
 #include "mega/native_types.hpp"
 
 namespace mega::io
@@ -27,7 +28,7 @@ namespace mega::io
 class Loader;
 class Storer;
 
-class ObjectInfo
+class EGDB_EXPORT ObjectInfo
 {
 public:
     using Type = mega::I32;

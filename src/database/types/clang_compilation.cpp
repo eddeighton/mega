@@ -33,7 +33,7 @@ std::string Compilation::generatePCHVerificationCMD() const
     std::ostringstream osCmd;
 
     // the compiler itself
-    osCmd << compiler.native() << " -x c++ ";
+    osCmd << compiler.string() << " -x c++ ";
 
     // flags
     for ( const std::string& flag : flags )
@@ -53,7 +53,7 @@ std::string Compilation::generatePCHVerificationCMD() const
     for ( const boost::filesystem::path& inputPCH : inputPCH )
     {
         osCmd << "-Xclang -fno-pch-timestamp -Xclang -include-pch ";
-        osCmd << "-Xclang " << inputPCH.native() << " ";
+        osCmd << "-Xclang " << inputPCH.string() << " ";
     }
 
     // eg
@@ -63,14 +63,14 @@ std::string Compilation::generatePCHVerificationCMD() const
         VERIFY_RTE( srcDir.has_value() );
         VERIFY_RTE( buildDir.has_value() );
 
-        osCmd << "-Xclang -egdll=" << compiler_plugin.value().native() << " ";
+        osCmd << "-Xclang -egdll=" << compiler_plugin.value().string() << " ";
         osCmd << "-Xclang -egmode=" << compilationMode.value() << " ";
-        osCmd << "-Xclang -egsrddir=" << srcDir.value().native() << " ";
-        osCmd << "-Xclang -egbuilddir=" << buildDir.value().native() << " ";
+        osCmd << "-Xclang -egsrddir=" << srcDir.value().string() << " ";
+        osCmd << "-Xclang -egbuilddir=" << buildDir.value().string() << " ";
 
         if ( sourceFile.has_value() )
         {
-            osCmd << "-Xclang -egsource=" << sourceFile.value().native() << " ";
+            osCmd << "-Xclang -egsource=" << sourceFile.value().string() << " ";
         }
     }
     else
@@ -83,7 +83,7 @@ std::string Compilation::generatePCHVerificationCMD() const
     // include directories
     for ( const boost::filesystem::path& includeDir : includeDirs )
     {
-        osCmd << "-I " << includeDir.native() << " ";
+        osCmd << "-I " << includeDir.string() << " ";
     }
 
     // ensure no round trip debug cmd line handling in clang
@@ -92,7 +92,7 @@ std::string Compilation::generatePCHVerificationCMD() const
     // output
     VERIFY_RTE( !outputObject.has_value() );
     VERIFY_RTE( outputPCH.has_value() );
-    osCmd << " -verify-pch " << outputPCH.value().native();
+    osCmd << " -verify-pch " << outputPCH.value().string();
 
     return osCmd.str();
 }
@@ -102,7 +102,7 @@ std::string Compilation::generateCompilationCMD() const
     std::ostringstream osCmd;
 
     // the compiler itself
-    osCmd << compiler.native() << " ";
+    osCmd << compiler.string() << " ";
 
     // flags
     for ( const std::string& flag : flags )
@@ -122,7 +122,7 @@ std::string Compilation::generateCompilationCMD() const
     for ( const boost::filesystem::path& inputPCH : inputPCH )
     {
         osCmd << "-Xclang -fno-pch-timestamp -Xclang -include-pch ";
-        osCmd << "-Xclang " << inputPCH.native() << " ";
+        osCmd << "-Xclang " << inputPCH.string() << " ";
     }
 
     // eg
@@ -132,14 +132,14 @@ std::string Compilation::generateCompilationCMD() const
         VERIFY_RTE( srcDir.has_value() );
         VERIFY_RTE( buildDir.has_value() );
 
-        osCmd << "-Xclang -egdll=" << compiler_plugin.value().native() << " ";
+        osCmd << "-Xclang -egdll=" << compiler_plugin.value().string() << " ";
         osCmd << "-Xclang -egmode=" << compilationMode.value() << " ";
-        osCmd << "-Xclang -egsrddir=" << srcDir.value().native() << " ";
-        osCmd << "-Xclang -egbuilddir=" << buildDir.value().native() << " ";
+        osCmd << "-Xclang -egsrddir=" << srcDir.value().string() << " ";
+        osCmd << "-Xclang -egbuilddir=" << buildDir.value().string() << " ";
 
         if ( sourceFile.has_value() )
         {
-            osCmd << "-Xclang -egsource=" << sourceFile.value().native() << " ";
+            osCmd << "-Xclang -egsource=" << sourceFile.value().string() << " ";
         }
     }
     else
@@ -152,25 +152,25 @@ std::string Compilation::generateCompilationCMD() const
     // include directories
     for ( const boost::filesystem::path& includeDir : includeDirs )
     {
-        osCmd << "-I " << includeDir.native() << " ";
+        osCmd << "-I " << includeDir.string() << " ";
     }
 
     // ensure no round trip debug cmd line handling in clang
     osCmd << "-Xclang -no-round-trip-args ";
 
     // input
-    osCmd << inputFile.native() << " ";
+    osCmd << inputFile.string() << " ";
 
     // output
     if ( outputPCH.has_value() )
     {
         VERIFY_RTE( !outputObject.has_value() );
-        osCmd << " -Xclang -fno-pch-timestamp -Xclang -emit-pch -o " << outputPCH.value().native() << " ";
+        osCmd << " -Xclang -fno-pch-timestamp -Xclang -emit-pch -o " << outputPCH.value().string() << " ";
     }
     else if ( outputObject.has_value() )
     {
         VERIFY_RTE( !outputPCH.has_value() );
-        osCmd << " -c -o " << outputObject.value().native() << " ";
+        osCmd << " -c -o " << outputObject.value().string() << " ";
     }
     else
     {

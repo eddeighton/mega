@@ -76,12 +76,6 @@ void setMPOContext( MPOContext* pMPOContext );
 
 #define RESUME_MPO_CONTEXT() setMPOContext( _pMPOContext_ )
 
-class Cycle
-{
-public:
-    ~Cycle();
-};
-
 } // namespace mega
 
 #endif // MPO_CONTEXT_SEPT_18_2022

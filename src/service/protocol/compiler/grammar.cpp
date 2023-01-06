@@ -40,17 +40,16 @@
 #include <string>
 #include <iostream>
 
-namespace protocol
+namespace protocol::schema
 {
-namespace schema
-{
+    
 template < typename Iterator >
 struct error_handler
 {
     template < typename, typename, typename, typename >
     struct result
     {
-        typedef void type;
+        using type = void;
     };
 
     std::ostream& errorStream;
@@ -59,9 +58,9 @@ struct error_handler
     {
     }
 
-    void operator()( Iterator first, Iterator last, Iterator err_pos, boost::spirit::info const& what ) const
+    void operator()( Iterator /*first*/, Iterator /*last*/, Iterator err_pos, boost::spirit::info const& what ) const
     {
-        Iterator eol = err_pos;
+        // Iterator eol = err_pos;
         // int line = calculateLineNumber( first, err_pos );
         int line = boost::spirit::get_line( err_pos );
         if ( line != -1 )
@@ -162,7 +161,6 @@ ParseResult parse( const std::string& strInput, IdentifierList& idlist, std::ost
 {
     return parse_impl< IdentifierListGrammar< IteratorType > >( strInput, idlist, errorStream );
 }
-} // namespace schema
 } // namespace protocol
 
 // clang-format off
@@ -171,9 +169,7 @@ BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Type,
     ( std::vector< protocol::schema::Type >, m_children ) )
 // clang-format on
 
-namespace protocol
-{
-namespace schema
+namespace protocol::schema
 {
 template < typename Iterator >
 class TypeGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, Type() >
@@ -202,7 +198,6 @@ ParseResult parse( const std::string& strInput, Type& type, std::ostream& errorS
 {
     return parse_impl< TypeGrammar< IteratorType > >( strInput, type, errorStream );
 }
-} // namespace schema
 } // namespace protocol
 
 // clang-format off
@@ -211,9 +206,7 @@ BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Parameter,
     ( protocol::schema::Identifier, m_name ) )
 // clang-format on
 
-namespace protocol
-{
-namespace schema
+namespace protocol::schema
 {
 template < typename Iterator >
 class ParameterGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, Parameter() >
@@ -240,7 +233,6 @@ ParseResult parse( const std::string& strInput, Parameter& parameter, std::ostre
 {
     return parse_impl< ParameterGrammar< IteratorType > >( strInput, parameter, errorStream );
 }
-} // namespace schema
 } // namespace protocol
 
 // clang-format off
@@ -255,9 +247,7 @@ BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Response,
 
 // clang-format on
 
-namespace protocol
-{
-namespace schema
+namespace protocol::schema
 {
 
 enum MessageKeywordType
@@ -313,7 +303,6 @@ ParseResult parse( const std::string& strInput, Response& response, std::ostream
     return parse_impl< MessageGrammar< Response, IteratorType, eRESPONSE > >( strInput, response, errorStream );
 }
 
-} // namespace schema
 } // namespace protocol
 
 // clang-format off
@@ -325,9 +314,7 @@ BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Transaction,
 
 // clang-format on
 
-namespace protocol
-{
-namespace schema
+namespace protocol::schema
 {
 
 static const char* TRANSACTION_KEYWORD = "msg";
@@ -371,16 +358,13 @@ ParseResult parse( const std::string& strInput, Transaction& msg, std::ostream& 
     return parse_impl< TransactionGrammar< IteratorType > >( strInput, msg, errorStream );
 }
 
-} // namespace schema
 } // namespace protocol
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Schema,
     ( std::vector< protocol::schema::Transaction >, m_transactions )  )
 // clang-format on
 
-namespace protocol
-{
-namespace schema
+namespace protocol::schema
 {
 template < typename Iterator >
 class SchemaGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, Schema() >
@@ -407,7 +391,6 @@ ParseResult parse( const std::string& strInput, Schema& schema, std::ostream& er
 {
     return parse_impl< SchemaGrammar< IteratorType > >( strInput, schema, errorStream );
 }
-} // namespace schema
 } // namespace protocol
 
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Identifier& identifier )

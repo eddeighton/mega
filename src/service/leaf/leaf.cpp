@@ -20,8 +20,6 @@
 #include "service/leaf.hpp"
 
 #include "request.hpp"
-#include "shared_memory.hpp"
-#include "heap_memory.hpp"
 
 #include "service/network/log.hpp"
 
@@ -64,11 +62,6 @@ public:
 
             SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
         }
-        
-        {
-            // initialise heap memory
-            m_leaf.m_pHeapMemory = std::move( std::make_unique< HeapMemory >( m_leaf.m_mp.getProcessID() ) );
-        }
 
         // determine the current project and stuff and initialise the runtime
         {
@@ -100,7 +93,6 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short da
     , m_client( m_io_context, *this, "localhost", daemonPortNumber )
     , m_work_guard( m_io_context.get_executor() )
     , m_io_thread( [ &io_context = m_io_context ]() { io_context.run(); } )
-    , m_pSharedMemoryAccess( std::make_unique< SharedMemoryAccess >() )
 {
     m_receiverChannel.run( network::makeProcessName( network::Node::Leaf ) );
 
@@ -207,13 +199,4 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
     }
 }
 
-SharedMemoryAccess& Leaf::getSharedMemory()
-{
-    return *m_pSharedMemoryAccess;
-}
-
-HeapMemory& Leaf::getHeapMemory()
-{
-    return *m_pHeapMemory;
-}
 } // namespace mega::service

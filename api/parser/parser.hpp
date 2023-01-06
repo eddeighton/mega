@@ -47,19 +47,19 @@
 #if defined( _MSC_VER )
 
 // Microsoft
-#ifdef EG_DATABASE_SHARED_MODULE
-#define EGDB_EXPORT __declspec( dllexport )
+#ifdef MEGA_PARSER_MODULE
+#define MEGA_PARSER_EXPORT __declspec( dllexport )
 #else
-#define EGDB_EXPORT __declspec( dllimport )
+#define MEGA_PARSER_EXPORT __declspec( dllimport )
 #endif
 
 #elif defined( __GNUC__ )
 
 // GCC
-#ifdef EG_DATABASE_SHARED_MODULE
-#define EGDB_EXPORT __attribute__( ( visibility( "default" ) ) )
+#ifdef MEGA_PARSER_MODULE
+#define MEGA_PARSER_EXPORT __attribute__( ( visibility( "default" ) ) )
 #else
-#define EGDB_EXPORT
+#define MEGA_PARSER_EXPORT
 #endif
 
 #endif
@@ -74,7 +74,7 @@ class ContextDef;
 }
 } // namespace ParserStage
 
-struct EGDB_EXPORT EG_PARSER_INTERFACE
+struct MEGA_PARSER_EXPORT EG_PARSER_INTERFACE
 {
     virtual ParserStage::Parser::ContextDef*
     parseEGSourceFile( ParserStage::Database&                        database,

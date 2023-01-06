@@ -24,14 +24,21 @@
 #include "mega/reference.hpp"
 #include "mega/snapshot.hpp"
 
-#include <boost/archive/binary_iarchive_impl.hpp>
-#include <boost/archive/binary_oarchive_impl.hpp>
+#include "common/assert_verify.hpp"
+
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/detail/register_archive.hpp>
 
-#include <boost/archive/impl/basic_binary_iarchive.ipp>
-#include <boost/archive/impl/basic_binary_oarchive.ipp>
-#include <boost/archive/impl/basic_binary_iprimitive.ipp>
-#include <boost/archive/impl/basic_binary_oprimitive.ipp>
+#include <boost/archive/binary_iarchive_impl.hpp>
+#include <boost/archive/binary_oarchive_impl.hpp>
+#include <boost/archive/basic_binary_iprimitive.hpp>
+#include <boost/archive/basic_binary_oprimitive.hpp>
+
+//#include <boost/archive/impl/basic_binary_iarchive.ipp>
+//#include <boost/archive/impl/basic_binary_oarchive.ipp>
+//#include <boost/archive/impl/basic_binary_iprimitive.ipp>
+//#include <boost/archive/impl/basic_binary_oprimitive.ipp>
 
 #include <boost/interprocess/streams/vectorstream.hpp>
 
@@ -40,8 +47,8 @@
 
 namespace boost::archive
 {
-
-class BOOST_SYMBOL_VISIBLE SnapshotIArchive
+/*
+class SnapshotIArchive
     : public binary_iarchive_impl< SnapshotIArchive, std::istream::char_type, std::istream::traits_type >
 {
     using base
@@ -75,7 +82,7 @@ private:
     const mega::Snapshot& m_snapshot;
 };
 
-class BOOST_SYMBOL_VISIBLE SnapshotOArchive
+class SnapshotOArchive
     : public binary_oarchive_impl< SnapshotOArchive, std::ostream::char_type, std::ostream::traits_type >
 {
     using base
@@ -112,16 +119,17 @@ public:
 private:
     mega::Snapshot m_snapshot;
 };
-
+*/
 } // namespace boost::archive
-BOOST_SERIALIZATION_REGISTER_ARCHIVE( boost::archive::SnapshotIArchive )
-BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::SnapshotIArchive )
-BOOST_SERIALIZATION_REGISTER_ARCHIVE( boost::archive::SnapshotOArchive )
-BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::SnapshotOArchive )
+
+//BOOST_SERIALIZATION_REGISTER_ARCHIVE( boost::archive::SnapshotIArchive )
+//BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::SnapshotIArchive )
+//BOOST_SERIALIZATION_REGISTER_ARCHIVE( boost::archive::SnapshotOArchive )
+//BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::SnapshotOArchive )
 
 namespace boost::serialization
 {
-
+/*
 inline void serialize( boost::archive::SnapshotIArchive& ar, mega::reference& value, const unsigned int version )
 {
     ar.load( value );
@@ -130,7 +138,7 @@ inline void serialize( boost::archive::SnapshotIArchive& ar, mega::reference& va
 inline void serialize( boost::archive::SnapshotOArchive& ar, mega::reference& value, const unsigned int version )
 {
     ar.save( value );
-}
+}*/
 }
 
 namespace mega
@@ -144,20 +152,20 @@ public:
     BinLoadArchive( const Snapshot& snapshot )
         : m_snapshot( snapshot )
         , m_iVecStream( m_snapshot.getBuffer() )
-        , m_archive( m_iVecStream, m_snapshot )
+        //, m_archive( m_iVecStream, m_snapshot )
     {
     }
 
     template < typename T >
     inline void load( T& value )
     {
-        m_archive& value;
+        //m_archive& value;
     }
 
 private:
     const Snapshot&                                m_snapshot;
     boost::interprocess::basic_vectorbuf< Buffer > m_iVecStream;
-    boost::archive::SnapshotIArchive               m_archive;
+    //boost::archive::SnapshotIArchive               m_archive;
 };
 
 class BinSaveArchive
@@ -166,32 +174,33 @@ public:
     using Buffer = std::vector< char >;
 
     BinSaveArchive()
-        : m_archive( m_oVecStream )
+        //: m_archive( m_oVecStream )
     {
     }
 
     template < typename T >
     inline void save( T& value )
     {
-        m_archive& value;
+        //m_archive& value;
     }
 
     inline const Snapshot& makeSnapshot( TimeStamp timestamp )
     {
-        Snapshot& snapshot = m_archive.getSnapshot();
+        /*Snapshot& snapshot = m_archive.getSnapshot();
         snapshot.setTimeStamp( timestamp );
         snapshot.setBuffer( m_oVecStream.vector() );
-        return snapshot;
+        return snapshot;*/
+        THROW_TODO;
     }
 
     void beginObject( const reference& ref )
     {
-        m_archive.beginObject( ref );
+        //m_archive.beginObject( ref );
     }
 
 private:
     boost::interprocess::basic_vectorbuf< Buffer > m_oVecStream;
-    boost::archive::SnapshotOArchive               m_archive;
+    //boost::archive::SnapshotOArchive               m_archive;
 };
 
 } // namespace mega

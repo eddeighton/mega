@@ -47,18 +47,18 @@ namespace
 nlohmann::json loadJson( const boost::filesystem::path& filePath )
 {
     VERIFY_RTE_MSG( boost::filesystem::exists( filePath ), "Could not locate file: " << filePath.string() );
-    std::ifstream file( filePath.native(), std::ios_base::in );
+    std::ifstream file( filePath.string(), std::ios_base::in );
     VERIFY_RTE_MSG( !file.fail(), "Failed to open json file: " << filePath.string() );
     return nlohmann::json::parse( std::istreambuf_iterator< char >( file ), std::istreambuf_iterator< char >() );
 }
 
 void renderFile( const boost::filesystem::path& basePath, const std::string& fileName, const std::string& strOutput )
 {
-    const boost::filesystem::path outputFilePath = basePath.native() / boost::filesystem::path( fileName );
+    const boost::filesystem::path outputFilePath = basePath.string() / boost::filesystem::path( fileName );
     /*if ( boost::filesystem::exists( outputFilePath ) )
     {
         std::ostringstream os;
-        os << basePath.native() << "_old" << fileName;
+        os << basePath.string() << "_old" << fileName;
         const boost::filesystem::path oldFile = os.str();
         if ( boost::filesystem::exists( oldFile ) )
             boost::filesystem::remove( oldFile );
@@ -81,7 +81,7 @@ void generate( const Environment& env )
         const boost::filesystem::path& filePath = *iter;
         if ( !boost::filesystem::is_directory( filePath ) )
         {
-            if ( boost::filesystem::extension( *iter ) == ".json" && filePath.filename() != "data.json"
+            if ( filePath.extension() == ".json" && filePath.filename() != "data.json"
                  && filePath.filename() != "stages.json" )
             {
                 // view.hxx
@@ -90,7 +90,7 @@ void generate( const Environment& env )
                     std::string strOutput;
                     {
                         std::ostringstream osOutput;
-                        inja::Environment  injaEnv( env.injaDir.native(), env.apiDir.native() );
+                        inja::Environment  injaEnv( env.injaDir.string(), env.apiDir.string() );
                         injaEnv.set_trim_blocks( true );
                         const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
                         const auto                    data     = loadJson( jsonFile );
@@ -117,7 +117,7 @@ void generate( const Environment& env )
                     std::string strOutput;
                     {
                         std::ostringstream osOutput;
-                        inja::Environment  injaEnv( env.injaDir.native(), env.srcDir.native() );
+                        inja::Environment  injaEnv( env.injaDir.string(), env.srcDir.string() );
                         injaEnv.set_trim_blocks( true );
                         const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
                         const auto                    data     = loadJson( jsonFile );
@@ -161,7 +161,7 @@ void generate( const Environment& env )
                 std::string strOutput;
                 {
                     std::ostringstream osOutput;
-                    inja::Environment  injaEnv( env.injaDir.native(), env.apiDir.native() );
+                    inja::Environment  injaEnv( env.injaDir.string(), env.apiDir.string() );
                     injaEnv.set_trim_blocks( true );
                     const auto data = loadJson( jsonFile );
 
@@ -189,7 +189,7 @@ void generate( const Environment& env )
                 std::string strOutput;
                 {
                     std::ostringstream osOutput;
-                    inja::Environment  injaEnv( env.injaDir.native(), env.srcDir.native() );
+                    inja::Environment  injaEnv( env.injaDir.string(), env.srcDir.string() );
                     injaEnv.set_trim_blocks( true );
                     const auto data = loadJson( jsonFile );
 

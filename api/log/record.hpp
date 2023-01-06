@@ -30,6 +30,7 @@
 #include <vector>
 #include <string_view>
 #include <string>
+#include <array>
 
 namespace mega::log
 {

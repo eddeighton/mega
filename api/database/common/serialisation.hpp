@@ -20,6 +20,7 @@
 #ifndef ARCHIVE_18_04_2019
 #define ARCHIVE_18_04_2019
 
+#include "database/common/api.hpp"
 #include "object_loader.hpp"
 
 #include "utilities/serialization_helpers.hpp"
@@ -27,7 +28,6 @@
 #include "nlohmann/json.hpp"
 
 #include <boost/filesystem/path.hpp>
-#include <boost/filesystem/path_traits.hpp>
 
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
@@ -43,7 +43,7 @@ namespace boost
 {
 namespace archive
 {
-class MegaIArchive : public binary_iarchive
+class EGDB_EXPORT MegaIArchive : public binary_iarchive
 {
     std::set< mega::io::ObjectInfo* >& m_objectInfos;
 
@@ -54,7 +54,7 @@ public:
     ::data::ObjectPartLoader& m_loader;
 };
 
-class MegaOArchive : public binary_oarchive
+class EGDB_EXPORT MegaOArchive : public binary_oarchive
 {
     std::set< const mega::io::ObjectInfo* >& m_objectInfos;
 

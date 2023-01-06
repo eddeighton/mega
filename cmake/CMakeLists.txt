@@ -17,11 +17,10 @@
 ##  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 ##  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 cmake_minimum_required( VERSION 3.1...3.16 )
+
+# enable configuration MSVC runtime with CMAKE_MSVC_RUNTIME_LIBRARY
+cmake_policy(SET CMP0091 NEW)
 
 project( mega VERSION 1.1 LANGUAGES CXX )
 
@@ -30,10 +29,6 @@ set( CMAKE_CXX_STANDARD 17 )
 
 # add_link_options("-fuse-ld=gold;LINKER:--threads,--thread-count=12,--split-stack-adjust-size=1048510")
 
-add_definitions("-Wfatal-errors")
-#add_definitions("-Werror")
-#add_definitions("-Wall")
-#add_definitions("-Wextra")
 
 ######################################
 #win32 specific settings
@@ -41,6 +36,23 @@ IF( ${WIN32} )
 
 add_definitions(-D_WIN32_WINNT=0x0601)
 add_definitions(-DNOMINMAX -D_NOMINMAX)
+
+# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:DebugDLL>")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+
+#enable folders within generated IDE build systems
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+# add_compile_options(/W4 /WX)
+add_compile_options( /MP ) #Build with multiple processes
+
+ELSE( ${WIN32} )
+
+add_compile_options("-Wfatal-errors")
+#add_compile_options("-Werror")
+add_compile_options("-Wall")
+add_compile_options("-Wextra")
 
 ENDIF( ${WIN32} )
 
@@ -57,18 +69,23 @@ set( MEGA_SRC_DIR ${MEGA_ROOT_DIR}/src )
 #enable folders within generated IDE build systems
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# attempt to enable link time optimizations for ALL targets
+set_property(GLOBAL PROPERTY CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+
 #ensure language runtimes and other system libs are copied to installation folder
 include (InstallRequiredSystemLibraries)
 
 add_subdirectory(version)
+add_subdirectory(utilities)
 add_subdirectory(pipeline)
+
 add_subdirectory(database)
-add_subdirectory(vulkan)
+
 add_subdirectory(invocation)
 add_subdirectory(clang_plugin)
+
 add_subdirectory(parser)
 add_subdirectory(compiler)
-add_subdirectory(utilities)
 add_subdirectory(log)
 add_subdirectory(orc)
 add_subdirectory(jit)
@@ -76,7 +93,12 @@ add_subdirectory(service)
 add_subdirectory(driver)
 add_subdirectory(tests)
 add_subdirectory(mega)
+
+# always last - toolchain reads other files from build
 add_subdirectory(toolchain)
+
+# deprecated - remove vulkan
+# add_subdirectory(vulkan)
 
 # install scripts
 set( MEGA_SCRIPTS

@@ -182,7 +182,20 @@ public:
         NewTypeIDMap                                                        new_concrete_type_ids;
         std::set< TypeID >                                                  usedTypeIDs;
 
-        TypeIDSequenceGen idgen(
+        TypeIDSequenceGen 
+        <
+            ConcreteTypeAnalysis::Symbols::ConcreteTypeID,
+            ConcreteTypeAnalysis::Interface::IContext,
+            ConcreteTypeAnalysis::Interface::DimensionTrait,
+            ConcreteTypeAnalysis::Interface::LinkTrait,
+            ConcreteTypeAnalysis::Concrete::Context,
+            ConcreteTypeAnalysis::Concrete::ContextGroup,
+            ConcreteTypeAnalysis::Concrete::Dimensions::User,
+            ConcreteTypeAnalysis::Concrete::Dimensions::LinkReference,
+            ConcreteTypeAnalysis::Concrete::Dimensions::Allocation,
+            ConcreteTypeAnalysis::Concrete::Dimensions::Allocator
+        >
+        idgen(
             &New::db_cast< New::Concrete::Context, New::Concrete::ContextGroup >,
             &New::db_cast< New::Concrete::Dimensions::Allocator, New::Concrete::Dimensions::Allocation > );
 

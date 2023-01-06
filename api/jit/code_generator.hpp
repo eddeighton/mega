@@ -20,6 +20,7 @@
 #ifndef CODE_GENERATOR_16_AUG_2022
 #define CODE_GENERATOR_16_AUG_2022
 
+#include "api.hpp"
 #include "database/database.hpp"
 
 #include "service/protocol/common/megastructure_installation.hpp"
@@ -32,7 +33,7 @@
 namespace mega::runtime
 {
 
-class CodeGenerator
+class JIT_EXPORT CodeGenerator
 {
     class Pimpl;
 

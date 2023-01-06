@@ -24,22 +24,22 @@
 
 #include "mega/common_strings.hpp"
 
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
 
 // Microsoft
-#ifdef EG_DATABASE_SHARED_MODULE
-#define EGDB_EXPORT __declspec( dllexport )
+#ifdef MEGA_CLANG_PLUGIN_MODULE
+#define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllexport )
 #else
-#define EGDB_EXPORT __declspec( dllimport )
+#define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllimport )
 #endif
 
 #elif defined( __GNUC__ )
 
 // GCC
-#ifdef EG_DATABASE_SHARED_MODULE
-#define EGDB_EXPORT __attribute__( ( visibility( "default" ) ) )
+#ifdef MEGA_CLANG_PLUGIN_MODULE
+#define MEGA_CLANG_PLUGIN_EXPORT __attribute__( ( visibility( "default" ) ) )
 #else
-#define EGDB_EXPORT
+#define MEGA_CLANG_PLUGIN_EXPORT
 #endif
 
 #endif
@@ -58,7 +58,7 @@ namespace mega
 {
 using EGChar = char;
 
-struct EGDB_EXPORT EG_PLUGIN_INTERFACE
+struct MEGA_CLANG_PLUGIN_EXPORT EG_PLUGIN_INTERFACE
 {
     virtual void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema ) = 0;
     virtual void setMode( const char* strMode, const char* strSrcDir, const char* strBuildDir,
@@ -83,7 +83,7 @@ typedef void* ( *EG_PLUGIN_INTERFACE_GETTER )();
 
 extern "C"
 {
-    EGDB_EXPORT void* GET_EG_PLUGIN_INTERFACE();
+    MEGA_CLANG_PLUGIN_EXPORT void* GET_EG_PLUGIN_INTERFACE();
 }
 
 #endif // DATABASE_HEADER_15_04_2019

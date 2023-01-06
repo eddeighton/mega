@@ -23,19 +23,20 @@
 #ifndef OBJECT_LOADER_9_APRIL_2022
 #define OBJECT_LOADER_9_APRIL_2022
 
+#include "database/common/api.hpp"
 #include "object_info.hpp"
 #include "object.hpp"
 
 namespace data
 {
-    class ObjectPartLoader
+    class EGDB_EXPORT ObjectPartLoader
     {
     public:
         virtual ~ObjectPartLoader() {}
         virtual mega::io::Object* load( const mega::io::ObjectInfo& objectInfo ) = 0;
     };
 
-    class NullObjectPartLoader : public ObjectPartLoader
+    class EGDB_EXPORT NullObjectPartLoader : public ObjectPartLoader
     {
         virtual mega::io::Object* load( const mega::io::ObjectInfo& objectInfo )
         {

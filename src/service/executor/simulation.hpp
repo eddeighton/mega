@@ -25,7 +25,7 @@
 #include "scheduler.hpp"
 
 #include "service/state_machine.hpp"
-#include "service/network/sender.hpp"
+#include "service/network/sender_factory.hpp"
 #include "service/protocol/common/header.hpp"
 
 #include "service/protocol/model/enrole.hxx"
@@ -73,7 +73,6 @@ public:
 
     // network::leaf_exe::Impl
     virtual void RootSimRun( const reference&             root,
-                             const network::JITMemoryPtr& pMemory,
                              boost::asio::yield_context&  yield_ctx ) override;
 
     // network::status::Impl

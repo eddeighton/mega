@@ -20,6 +20,7 @@
 #ifndef INDEXED_FILE_25_MAR_2022
 #define INDEXED_FILE_25_MAR_2022
 
+#include "database/common/api.hpp"
 #include "object_info.hpp"
 #include "object_info.hpp"
 #include "generics.hpp"
@@ -47,7 +48,7 @@ class Manifest;
 class File;
 class Loader;
 
-class File
+class EGDB_EXPORT File
 {
 public:
     using Ptr    = std::shared_ptr< File >;

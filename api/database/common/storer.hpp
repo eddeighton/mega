@@ -20,6 +20,7 @@
 #ifndef STORER_18_04_2019
 #define STORER_18_04_2019
 
+#include "database/common/api.hpp"
 #include "serialisation.hpp"
 #include "object.hpp"
 #include "data_pointer.hpp"
@@ -38,7 +39,7 @@
 
 namespace mega::io
 {
-class Storer
+class EGDB_EXPORT Storer
 {
 public:
     Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, boost::filesystem::path& tempFile );

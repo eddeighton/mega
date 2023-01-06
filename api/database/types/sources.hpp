@@ -20,6 +20,7 @@
 #ifndef SOURCES_15_APRIL_2022
 #define SOURCES_15_APRIL_2022
 
+#include "database/common/api.hpp"
 #include "database/common/serialisation.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -29,7 +30,7 @@ namespace mega::io
 class Environment;
 class Manifest;
 
-class FilePath
+class EGDB_EXPORT FilePath
 {
 protected:
     FilePath( const boost::filesystem::path& filePath )
@@ -54,7 +55,7 @@ protected:
     boost::filesystem::path m_filePath;
 };
 
-class SourceFilePath : public FilePath
+class EGDB_EXPORT SourceFilePath : public FilePath
 {
     friend class BuildEnvironment;
 
@@ -76,10 +77,8 @@ public:
     }
 };
 
-class manifestFilePath : public SourceFilePath
+class EGDB_EXPORT manifestFilePath : public SourceFilePath
 {
-    static boost::filesystem::path EXTENSION;
-
     friend class Environment;
     friend class BuildEnvironment;
     manifestFilePath( const boost::filesystem::path& filePath )
@@ -98,13 +97,11 @@ public:
         archive& boost::serialization::make_nvp( "manifest_file_path", m_filePath );
     }
 
-    static const boost::filesystem::path& extension() { return EXTENSION; }
+    static const boost::filesystem::path extension() { return ".manifest"; }
 };
 
-class megaFilePath : public SourceFilePath
+class EGDB_EXPORT megaFilePath : public SourceFilePath
 {
-    static boost::filesystem::path EXTENSION;
-
     friend class BuildEnvironment;
     megaFilePath( const boost::filesystem::path& filePath )
         : SourceFilePath( filePath )
@@ -122,12 +119,11 @@ public:
     {
         archive& boost::serialization::make_nvp( "mega_file_path", m_filePath );
     }
-    static const boost::filesystem::path& extension() { return EXTENSION; }
+    static const boost::filesystem::path extension() { return ".mega"; }
 };
 
-class cppFilePath : public SourceFilePath
+class EGDB_EXPORT cppFilePath : public SourceFilePath
 {
-    static boost::filesystem::path EXTENSION;
     friend class BuildEnvironment;
 
     cppFilePath( const boost::filesystem::path& filePath )
@@ -146,10 +142,10 @@ public:
     {
         archive& boost::serialization::make_nvp( "cpp_file_path", m_filePath );
     }
-    static const boost::filesystem::path& extension() { return EXTENSION; }
+    static const boost::filesystem::path extension() { return ".cpp"; }
 };
 
-class BuildFilePath : public FilePath
+class EGDB_EXPORT BuildFilePath : public FilePath
 {
     friend class Environment;
 
@@ -171,9 +167,8 @@ public:
     }
 };
 
-class ComponentListingFilePath : public BuildFilePath
+class EGDB_EXPORT ComponentListingFilePath : public BuildFilePath
 {
-    static boost::filesystem::path EXTENSION;
     friend class BuildEnvironment;
 
     ComponentListingFilePath( const boost::filesystem::path& filePath )
@@ -192,12 +187,10 @@ public:
     {
         archive& boost::serialization::make_nvp( "component_listing_file_path", m_filePath );
     }
-    static const boost::filesystem::path& extension() { return EXTENSION; }
 };
 
-class CompilationFilePath : public BuildFilePath
+class EGDB_EXPORT CompilationFilePath : public BuildFilePath
 {
-    static boost::filesystem::path EXTENSION;
     friend class Environment;
 
     CompilationFilePath( const boost::filesystem::path& filePath )
@@ -216,12 +209,11 @@ public:
     {
         archive& boost::serialization::make_nvp( "compilation_file_path", m_filePath );
     }
-    static const boost::filesystem::path& extension() { return EXTENSION; }
+    static const boost::filesystem::path extension() { return ".db"; }
 };
 
-class GeneratedHPPSourceFilePath : public BuildFilePath
+class EGDB_EXPORT GeneratedHPPSourceFilePath : public BuildFilePath
 {
-    static boost::filesystem::path EXTENSION;
     friend class BuildEnvironment;
 
     GeneratedHPPSourceFilePath( const boost::filesystem::path& filePath )
@@ -240,12 +232,11 @@ public:
     {
         archive& boost::serialization::make_nvp( "generated_hxx_file_path", m_filePath );
     }
-    static const boost::filesystem::path& extension() { return EXTENSION; }
+    static const boost::filesystem::path extension() { return ".hpp"; }
 };
 
-class GeneratedCPPSourceFilePath : public BuildFilePath
+class EGDB_EXPORT GeneratedCPPSourceFilePath : public BuildFilePath
 {
-    static boost::filesystem::path EXTENSION;
     friend class BuildEnvironment;
 
     GeneratedCPPSourceFilePath( const boost::filesystem::path& filePath )
@@ -264,12 +255,11 @@ public:
     {
         archive& boost::serialization::make_nvp( "generated_cxx_file_path", m_filePath );
     }
-    static const boost::filesystem::path& extension() { return EXTENSION; }
+    static const boost::filesystem::path extension() { return ".cpp"; }
 };
 
-class PrecompiledHeaderFile : public BuildFilePath
+class EGDB_EXPORT PrecompiledHeaderFile : public BuildFilePath
 {
-    static boost::filesystem::path EXTENSION;
     friend class BuildEnvironment;
 
     PrecompiledHeaderFile( const boost::filesystem::path& filePath )
@@ -288,12 +278,11 @@ public:
     {
         archive& boost::serialization::make_nvp( "precompiled_header_file", m_filePath );
     }
-    static const boost::filesystem::path& extension() { return EXTENSION; }
+    static const boost::filesystem::path extension() { return ".pch"; }
 };
 
-class ObjectFilePath : public BuildFilePath
+class EGDB_EXPORT ObjectFilePath : public BuildFilePath
 {
-    static boost::filesystem::path EXTENSION;
     friend class BuildEnvironment;
 
     ObjectFilePath( const boost::filesystem::path& filePath )
@@ -312,12 +301,11 @@ public:
     {
         archive& boost::serialization::make_nvp( "cpp_object_file", m_filePath );
     }
-    static const boost::filesystem::path& extension() { return EXTENSION; }
+    static const boost::filesystem::path extension() { return ".obj"; }
 };
 
-class ComponentFilePath : public BuildFilePath
+class EGDB_EXPORT ComponentFilePath : public BuildFilePath
 {
-    static boost::filesystem::path EXTENSION;
     friend class BuildEnvironment;
 
     ComponentFilePath( const boost::filesystem::path& filePath )
@@ -336,7 +324,6 @@ public:
     {
         archive& boost::serialization::make_nvp( "component_file", m_filePath );
     }
-    // static const boost::filesystem::path& extension() { return EXTENSION; }
 };
 
 inline void to_json( nlohmann::json& j, const megaFilePath& p )

@@ -122,7 +122,7 @@ using OwnerID   = U16;
 #define MAX_OWNER_PER_PROCESS_BITS 7
 #define MAX_MPO_REMAINING_BITS 1
 static_assert( MAX_MACHINES_BITS + MAX_PROCESS_PER_MACHINE_BITS + MAX_OWNER_PER_PROCESS_BITS + MAX_MPO_REMAINING_BITS
-               == 32 );
+               == 32, "invalid size for mpo bits" );
 
 // NOTE: MAX_PROCESS_PER_MACHINE used by the shared memory header to set size of heap memory pointer array - ( so keep
 // small )
@@ -137,6 +137,8 @@ static constexpr U64 TOTAL_OWNERS    = MAX_MACHINES * MAX_PROCESS_PER_MACHINE * 
 class MachineID
 {
 public:
+    using StorageType = U32;
+
     MachineID() = default;
 
     constexpr MachineID( U32 value )
@@ -152,16 +154,17 @@ public:
         inline U64 operator()( const MachineID& machineID ) const noexcept { return machineID.m_storage; }
     };
 
-    constexpr operator U32() const { return m_storage; }
+    constexpr operator StorageType() const { return m_storage; }
 
     constexpr inline bool operator==( const MachineID& cmp ) const { return m_storage == cmp.m_storage; }
     constexpr inline bool operator!=( const MachineID& cmp ) const { return !( *this == cmp ); }
     constexpr inline bool operator<( const MachineID& cmp ) const { return m_storage < cmp.m_storage; }
 
 private:
-    U32 m_storage;
+    StorageType m_storage;
 };
 
+class MPO;
 class MP
 {
     using MPStorageType = U32;
@@ -192,15 +195,16 @@ public:
     MP() = default;
 
     constexpr MP( MachineID machineID, ProcessID processID )
-        : mp{ processID, machineID, 0U }
+        : mp{ processID, static_cast< MachineID::StorageType >( machineID ), 0U }
     {
     }
 
-    template < typename T >
-    constexpr MP( const T& mpo )
+    constexpr MP( const MP& mpo )
         : mp{ mpo.getProcessID(), mpo.getMachineID(), 0U }
     {
     }
+
+    constexpr MP( const MPO& mpo );
 
     constexpr inline MachineID getMachineID() const { return mp.machine; }
     constexpr inline ProcessID getProcessID() const { return mp.process; }
@@ -209,7 +213,7 @@ public:
     constexpr inline bool operator!=( const MP& cmp ) const { return !( *this == cmp ); }
     constexpr inline bool operator<( const MP& cmp ) const { return mp_storage < cmp.mp_storage; }
 
-    constexpr void setMachineID( MachineID machineID ) { mp.machine = machineID; }
+    constexpr void setMachineID( MachineID machineID ) { mp.machine = static_cast<MachineID::StorageType>(machineID); }
     constexpr void setProcessID( ProcessID processID ) { mp.process = processID; }
 };
 static_assert( sizeof( MP ) == 4U, "Invalid MP Size" );
@@ -250,7 +254,7 @@ public:
 
     MPO() = default;
     constexpr MPO( MachineID machineID, ProcessID processID, OwnerID ownerID )
-        : mpo{ ownerID, processID, machineID, MACHINE_ADDRESS }
+        : mpo{ ownerID, processID, static_cast<MachineID::StorageType>(machineID), MACHINE_ADDRESS }
     {
     }
     constexpr MPO( MP mp, OwnerID ownerID )
@@ -268,12 +272,18 @@ public:
     constexpr inline bool operator!=( const MPO& cmp ) const { return !( *this == cmp ); }
     constexpr inline bool operator<( const MPO& cmp ) const { return mpo_storage < cmp.mpo_storage; }
 
-    constexpr void setMachineID( MachineID machineID ) { mpo.machine = machineID; }
+    constexpr void setMachineID( MachineID machineID ) { mpo.machine = static_cast<MachineID::StorageType>(machineID); }
     constexpr void setProcessID( ProcessID processID ) { mpo.process = processID; }
     constexpr void setExecutorID( OwnerID ownerID ) { mpo.owner = ownerID; }
     constexpr void setIsNetwork() { mpo.address_type = NETWORK_ADDRESS; }
     constexpr void setIsMachine() { mpo.address_type = MACHINE_ADDRESS; }
 };
+
+constexpr MP::MP( const MPO& mpo )
+    : mp{ mpo.getProcessID(), mpo.getMachineID(), 0U }
+{
+}
+
 static_assert( sizeof( MPO ) == 4U, "Invalid MPO Size" );
 
 struct reference : TypeInstance, MPO, NetworkOrProcessAddress

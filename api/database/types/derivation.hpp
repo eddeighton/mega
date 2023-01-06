@@ -23,13 +23,14 @@
 #ifndef DERIVATION_29_AUG_2022
 #define DERIVATION_29_AUG_2022
 
+#include "database/common/api.hpp"
 #include "database/common/serialisation.hpp"
 
 #include <ostream>
 
 namespace mega
 {
-class DerivationDirection
+class EGDB_EXPORT DerivationDirection
 {
 public:
     enum Value
@@ -67,7 +68,7 @@ private:
 
 } // namespace mega
 
-std::ostream& operator<<( std::ostream& os, mega::DerivationDirection derivation );
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::DerivationDirection derivation );
 
 namespace mega
 {

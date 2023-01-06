@@ -20,6 +20,7 @@
 #ifndef MEGA_RUNTIME_SEPT_19_2022
 #define MEGA_RUNTIME_SEPT_19_2022
 
+#include "api.hpp"
 #include "orc.hpp"
 #include "component_manager.hpp"
 #include "code_generator.hpp"
@@ -40,7 +41,7 @@
 namespace mega::runtime
 {
 
-class JIT
+class JIT_EXPORT JIT
 {
     friend class ObjectTypeAllocator;
 

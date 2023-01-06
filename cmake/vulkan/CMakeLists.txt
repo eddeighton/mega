@@ -120,6 +120,7 @@ target_include_directories( ssa PUBLIC ${MEGA_API_DIR} )
 
 set_target_properties( ssa PROPERTIES FOLDER ssa )
 set_property(TARGET ssa PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET ssa PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 
 target_compile_definitions( ssa PUBLIC VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
 

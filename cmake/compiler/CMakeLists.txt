@@ -46,7 +46,15 @@ add_library( compiler_config
     ${COMPILER_LIB_SOURCE}
 )
 
+target_link_libraries( compiler_config pipeline )
+
+IF( ${WIN32} )
+target_compile_options(compiler_config PRIVATE /bigobj)
+set_property(TARGET compiler_config PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
 set_property(TARGET compiler_config PROPERTY POSITION_INDEPENDENT_CODE ON)
+ENDIF( ${WIN32} )
+
 target_include_directories( compiler_config PUBLIC ${MEGA_API_DIR} )
 
 link_boost( compiler_config system )
@@ -98,6 +106,13 @@ set( COMPILER_SOURCE
 add_library( compiler MODULE
     ${COMPILER_SOURCE}
 )
+
+IF( ${WIN32} )
+target_compile_options(compiler PRIVATE /bigobj)
+set_property(TARGET compiler PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
+#set_property(TARGET compiler PROPERTY POSITION_INDEPENDENT_CODE ON)
+ENDIF( ${WIN32} )
 
 add_c_preprocessor_command( OUTPUT task_utils.hpp.i SOURCE ${MEGA_SRC_DIR}/compiler/task_utils.hpp TARGET compiler )
 add_custom_target( PreprocessCompilerXMacros 

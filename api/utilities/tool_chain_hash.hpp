@@ -66,7 +66,7 @@ struct ToolChain
     }
 
     template < typename Archive >
-    void save( Archive& archive, const unsigned int v ) const
+    void save( Archive& archive, const unsigned int /*version*/ ) const
     {
         archive& boost::serialization::make_nvp( "parserDllPath", parserDllPath );
         archive& boost::serialization::make_nvp( "megaCompilerPath", megaCompilerPath );

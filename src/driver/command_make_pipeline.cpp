@@ -95,7 +95,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
 
         const boost::filesystem::path    compilerPath = toolChain.megaCompilerPath;
-        const mega::pipeline::PipelineID pipelineID   = compilerPath.native();
+        const mega::pipeline::PipelineID pipelineID   = compilerPath.string();
         const mega::Version              version      = mega::Version::getVersion();
 
         // clang-format off

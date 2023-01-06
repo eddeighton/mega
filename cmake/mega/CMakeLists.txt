@@ -49,7 +49,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/reference.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
-    ${MEGA_API_DIR}/mega/shared_memory_header.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
     ${MEGA_API_DIR}/mega/variant.hpp

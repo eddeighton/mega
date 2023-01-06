@@ -21,6 +21,8 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
+
 TEST( Protocol, Basic )
 {
     struct Test

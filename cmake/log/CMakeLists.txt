@@ -44,8 +44,18 @@ add_library( log
     ${LOG_SOURCE}
 )
 
+IF( ${WIN32} )
+target_compile_options( log PUBLIC "/await:strict" )
+set_property(TARGET log PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
 set_property(TARGET log PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_compile_options( log PUBLIC "-fcoroutines" )
+ENDIF( ${WIN32} )
+
 target_include_directories( log PUBLIC ${MEGA_API_DIR} )
+
+# see https://github.com/boostorg/phoenix/issues/111
+target_compile_definitions( log PUBLIC -DBOOST_PHOENIX_STL_TUPLE_H_ )
 
 link_boost( log system )
 link_boost( log filesystem )

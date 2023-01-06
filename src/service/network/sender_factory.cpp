@@ -17,13 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/network/sender.hpp"
-
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 #include "service/network/network.hpp"
 
 #include "service/protocol/common/header.hpp"
+#include "service/protocol/common/sender.hpp"
 
 #include "service/protocol/model/messages.hxx"
 

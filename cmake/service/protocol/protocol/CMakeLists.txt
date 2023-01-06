@@ -110,6 +110,7 @@ add_custom_command(
 set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/environment.hpp  
     ${MEGA_API_DIR}/service/protocol/common/header.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/sender.hpp  
     ${MEGA_API_DIR}/service/protocol/common/node.hpp
     ${MEGA_API_DIR}/service/protocol/common/megastructure_installation.hpp
     ${MEGA_API_DIR}/service/protocol/common/pipeline_result.hpp
@@ -118,6 +119,8 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/status.hpp
     ${MEGA_API_DIR}/service/protocol/common/transaction.hpp
     ${MEGA_API_DIR}/service/protocol/common/jit_types.hpp
+    ${MEGA_API_DIR}/service/protocol/common/conversation_base.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/context.hpp  
 	)
 
 set( MEGA_PROTOCOL_COMMON_SOURCE
@@ -127,9 +130,11 @@ set( MEGA_PROTOCOL_COMMON_SOURCE
     ${MEGA_SRC_DIR}/service/protocol/common/project.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/root_config.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/status.cpp
+    ${MEGA_SRC_DIR}/service/protocol/common/conversation_base.cpp  
+    ${MEGA_SRC_DIR}/service/protocol/common/context.cpp  
     )
 
-add_library( protocol
+add_library( protocol 
                     ${MEGA_PROTOCOL_COMMON_HEADERS}
                     ${MEGA_PROTOCOL_COMMON_SOURCE}
 					${MEGA_PROTOCOL_GENERATED_HEADERS}
@@ -139,7 +144,12 @@ add_library( protocol
 target_link_libraries( protocol utilities )
 target_link_libraries( protocol pipeline )
 
+IF( ${WIN32} )
+target_compile_options( protocol PUBLIC "/await:strict" )
+set_property(TARGET protocol PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
 target_compile_options( protocol PUBLIC "-fcoroutines" )
+ENDIF( ${WIN32} )
 
 add_dependencies( protocol protocol_compiler_driver )
 

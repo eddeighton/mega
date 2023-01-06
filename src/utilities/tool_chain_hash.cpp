@@ -24,7 +24,7 @@
 namespace mega::utilities
 {
 
-ToolChain::ToolChain() {}
+ToolChain::ToolChain() = default;
 
 ToolChain::ToolChain( const std::string& strClangCompilerVersion,
                       mega::U64          szDatabaseVersion,
@@ -46,9 +46,9 @@ ToolChain::ToolChain( const std::string& strClangCompilerVersion,
     , clangPluginHash( path_clangPlugin )
 
     , strClangCompilerVersion( strClangCompilerVersion )
-    , clangCompilerHash( strClangCompilerVersion )
 
     , databaseVersion( szDatabaseVersion )
+    , clangCompilerHash( strClangCompilerVersion )
 
     , toolChainHash( parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseVersion )
 {

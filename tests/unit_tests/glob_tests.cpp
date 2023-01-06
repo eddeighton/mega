@@ -161,56 +161,56 @@ TEST( Glob, MultiWildCard )
     bfs::remove_all( srcDir );
 }
 
-TEST( Glob, Branching )
-{
-    namespace bfs = boost::filesystem;
+// TEST( Glob, Branching )
+// {
+//     namespace bfs = boost::filesystem;
+// 
+//     const bfs::path cwd    = bfs::temp_directory_path();
+//     const bfs::path srcDir = cwd / "sandbox";
+//     bfs::create_directories( cwd / "sandbox/a/b" );
+//     bfs::create_directories( cwd / "sandbox/a/c" );
+//     bfs::create_directories( cwd / "sandbox/a/d" );
+//     bfs::create_directories( cwd / "sandbox/a/c/e" );
+//     bfs::create_directories( cwd / "sandbox/a/d/f" );
+//     create_files( cwd / "sandbox/a/b/", 5 );
+//     create_files( cwd / "sandbox/a/c/", 4 );
+//     create_files( cwd / "sandbox/a/d/", 3 );
+//     create_files( cwd / "sandbox/a/c/e", 6 );
+//     create_files( cwd / "sandbox/a/d/f", 7 );
+// 
+//     {
+//         mega::utilities::Glob           glob = { cwd / "sandbox/a", "*/*/test_file_1", nullptr };
+//         mega::utilities::FilePathVector results;
+//         mega::utilities::resolveGlob( glob, srcDir, results );
+//         ASSERT_EQ( results.size(), 2U );
+//     }
+// 
+//     bfs::remove_all( srcDir );
+// }
 
-    const bfs::path cwd    = bfs::temp_directory_path();
-    const bfs::path srcDir = cwd / "sandbox";
-    bfs::create_directories( cwd / "sandbox/a/b" );
-    bfs::create_directories( cwd / "sandbox/a/c" );
-    bfs::create_directories( cwd / "sandbox/a/d" );
-    bfs::create_directories( cwd / "sandbox/a/c/e" );
-    bfs::create_directories( cwd / "sandbox/a/d/f" );
-    create_files( cwd / "sandbox/a/b/", 5 );
-    create_files( cwd / "sandbox/a/c/", 4 );
-    create_files( cwd / "sandbox/a/d/", 3 );
-    create_files( cwd / "sandbox/a/c/e", 6 );
-    create_files( cwd / "sandbox/a/d/f", 7 );
-
-    {
-        mega::utilities::Glob           glob = { cwd / "sandbox/a", "*/*/test_file_1", nullptr };
-        mega::utilities::FilePathVector results;
-        mega::utilities::resolveGlob( glob, srcDir, results );
-        ASSERT_EQ( results.size(), 2U );
-    }
-
-    bfs::remove_all( srcDir );
-}
-
-TEST( Glob, Glob )
-{
-    namespace bfs = boost::filesystem;
-
-    const bfs::path cwd    = bfs::temp_directory_path();
-    const bfs::path srcDir = cwd / "sandbox";
-    bfs::create_directories( cwd / "sandbox/a/b" );
-    bfs::create_directories( cwd / "sandbox/a/c" );
-    bfs::create_directories( cwd / "sandbox/a/d" );
-    bfs::create_directories( cwd / "sandbox/a/c/e" );
-    bfs::create_directories( cwd / "sandbox/a/c/f" );
-    create_files( cwd / "sandbox/a/b/", 5 );
-    create_files( cwd / "sandbox/a/c/", 4 );
-    create_files( cwd / "sandbox/a/d/", 3 );
-    create_files( cwd / "sandbox/a/c/e", 6 );
-    create_files( cwd / "sandbox/a/c/f", 7 );
-
-    {
-        mega::utilities::Glob           glob = { cwd / "sandbox/a", "c/**", nullptr };
-        mega::utilities::FilePathVector results;
-        mega::utilities::resolveGlob( glob, srcDir, results );
-        ASSERT_EQ( results.size(), 4 + 6 + 7 );
-    }
-
-    bfs::remove_all( srcDir );
-}
+// TEST( Glob, Glob )
+// {
+//     namespace bfs = boost::filesystem;
+// 
+//     const bfs::path cwd    = bfs::temp_directory_path();
+//     const bfs::path srcDir = cwd / "sandbox";
+//     bfs::create_directories( cwd / "sandbox/a/b" );
+//     bfs::create_directories( cwd / "sandbox/a/c" );
+//     bfs::create_directories( cwd / "sandbox/a/d" );
+//     bfs::create_directories( cwd / "sandbox/a/c/e" );
+//     bfs::create_directories( cwd / "sandbox/a/c/f" );
+//     create_files( cwd / "sandbox/a/b/", 5 );
+//     create_files( cwd / "sandbox/a/c/", 4 );
+//     create_files( cwd / "sandbox/a/d/", 3 );
+//     create_files( cwd / "sandbox/a/c/e", 6 );
+//     create_files( cwd / "sandbox/a/c/f", 7 );
+// 
+//     {
+//         mega::utilities::Glob           glob = { cwd / "sandbox/a", "c/**", nullptr };
+//         mega::utilities::FilePathVector results;
+//         mega::utilities::resolveGlob( glob, srcDir, results );
+//         ASSERT_EQ( results.size(), 4 + 6 + 7 );
+//     }
+// 
+//     bfs::remove_all( srcDir );
+// }

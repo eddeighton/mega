@@ -24,6 +24,7 @@
 #ifndef BUILDSYSTEM_TOOLS_15_SEPT_2020
 #define BUILDSYSTEM_TOOLS_15_SEPT_2020
 
+#include "database/common/api.hpp"
 #include "database/common/object_info.hpp"
 #include "database/common/environment_build.hpp"
 
@@ -43,7 +44,7 @@
 namespace mega
 {
 
-class Compilation
+class EGDB_EXPORT Compilation
 {
     boost::filesystem::path                  compiler;
     std::optional< boost::filesystem::path > compiler_plugin;

@@ -59,6 +59,7 @@ add_library( utilities
 target_include_directories( utilities PUBLIC ${MEGA_API_DIR} )
 
 set_property(TARGET utilities PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET utilities PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 
 #target_compile_definitions( utilities PRIVATE DO_NOT_DO_THIS_BECAUSE_MASSIVE_CODE_BLOAT )
 

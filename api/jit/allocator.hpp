@@ -20,6 +20,7 @@
 #ifndef OBJECT_ALLOCATOR_SEPT_19_2022
 #define OBJECT_ALLOCATOR_SEPT_19_2022
 
+#include "api.hpp"
 #include "functions.hpp"
 #include "orc.hpp"
 
@@ -33,12 +34,12 @@
 namespace mega::runtime
 {
 
-class Allocator
+class JIT_EXPORT Allocator
 {
 public:
     Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
 
-    using Ptr = std::unique_ptr< Allocator >;
+    using Ptr = std::shared_ptr< Allocator >;
 
     const network::SizeAlignment& getSizeAlignment() const { return m_sizeAlignment; }
 

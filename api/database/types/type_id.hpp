@@ -21,6 +21,7 @@
 #ifndef GUARD_2022_October_04_type_id
 #define GUARD_2022_October_04_type_id
 
+#include "database/common/api.hpp"
 #include "mega/reference.hpp"
 
 #include <vector>
@@ -35,7 +36,7 @@ using TypeIDSequencePair = std::pair< TypeIDSequence, TypeIDSequence >;
 
 } // namespace mega
 
-std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequence& typeIDSequence );
-std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequencePair& typeIDSequencePair );
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequence& typeIDSequence );
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequencePair& typeIDSequencePair );
 
 #endif // GUARD_2022_October_04_type_id

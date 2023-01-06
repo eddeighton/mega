@@ -21,6 +21,8 @@
 
 #include "database/model/FinalStage.hxx"
 
+#include "mega/invocation_io.hpp"
+
 namespace mega::runtime
 {
 

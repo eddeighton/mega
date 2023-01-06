@@ -20,8 +20,6 @@
 #ifndef DAEMON_25_MAY_2022
 #define DAEMON_25_MAY_2022
 
-#include "shared_memory_manager.hpp"
-
 #include "database/database.hpp"
 
 #include "service/network/client.hpp"
@@ -56,18 +54,11 @@ public:
     void                                    setActiveProject( const network::Project& project );
     const std::optional< network::Project > getActiveProject() const { return m_activeProject; }
 
-    SharedMemoryManager& getMemoryManager()
-    {
-        VERIFY_RTE_MSG( m_pMemoryManager.get(), "Memory Manager not initialised" );
-        return *m_pMemoryManager.get();
-    }
-
 private:
     void onLeafDisconnect( const network::ConnectionID& connectionID, mega::MP mp );
 
     network::Client                              m_rootClient;
     network::Server                              m_server;
-    std::unique_ptr< SharedMemoryManager >       m_pMemoryManager;
     MachineID                                    m_machineID;
     std::optional< network::Project >            m_activeProject;
     std::unique_ptr< runtime::DatabaseInstance > m_pDatabase;

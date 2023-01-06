@@ -41,7 +41,7 @@ LoggingLevel                      fromStr( const std::string& str )
     return static_cast< LoggingLevel >( std::distance( logLevels.begin(), iter ) );
 }
 
-std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::filesystem::path& logFolderPath,
+void configureLog( const boost::filesystem::path& logFolderPath,
                                                               const std::string&             strLogName,
                                                               LoggingLevel                   consoleLoggingLevel,
                                                               LoggingLevel                   fileLoggingLevel )
@@ -99,21 +99,19 @@ std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::files
         console_sink->set_level( consoleLevel );
         console_sink->set_pattern( "%v" );
     }
+    
+    spdlog::init_thread_pool(8192, 1); // 1 backing thread.
 
     if ( fileLevel == spdlog::level::off )
     {
-        auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
-
         auto logger = std::shared_ptr< spdlog::async_logger >( new spdlog::async_logger(
-            strLogName, { console_sink }, threadPool, spdlog::async_overflow_policy::block ) );
+            strLogName, { console_sink }, spdlog::thread_pool(), spdlog::async_overflow_policy::block ) );
         {
             logger->set_level( sinkLevel );
         }
 
         spdlog::flush_every( std::chrono::seconds( 1 ) );
         spdlog::set_default_logger( logger );
-
-        return threadPool;
     }
     else
     {
@@ -128,18 +126,14 @@ std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::files
             file_sink->set_pattern( "%v" );
         }
 
-        auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
-
         auto logger = std::shared_ptr< spdlog::async_logger >( new spdlog::async_logger(
-            strLogName, { console_sink, file_sink }, threadPool, spdlog::async_overflow_policy::block ) );
+            strLogName, { console_sink, file_sink }, spdlog::thread_pool(), spdlog::async_overflow_policy::block ) );
         {
             logger->set_level( sinkLevel );
         }
 
         spdlog::flush_every( std::chrono::seconds( 1 ) );
         spdlog::set_default_logger( logger );
-
-        return threadPool;
     }
 }
 

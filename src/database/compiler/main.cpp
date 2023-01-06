@@ -255,7 +255,7 @@ int main( int argc, const char* argv[] )
                         const auto filePath = i->path();
                         if ( boost::filesystem::is_regular_file( filePath ) )
                         {
-                            VERIFY_RTE( boost::filesystem::extension( filePath ) == ".jinja" );
+                            VERIFY_RTE( filePath.extension() == ".jinja" );
                             determinant ^= filePath;
                         }
                     }

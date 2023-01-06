@@ -22,7 +22,7 @@
 
 #include "service/network/client.hpp"
 #include "service/network/conversation_manager.hpp"
-#include "service/network/sender.hpp"
+#include "service/network/sender_factory.hpp"
 #include "service/network/channel.hpp"
 
 #include "service/protocol/common/header.hpp"
@@ -39,7 +39,6 @@
 namespace mega::service
 {
 
-class SharedMemoryAccess;
 class HeapMemory;
 
 class Leaf : public network::ConversationManager, public network::Sender
@@ -88,7 +87,6 @@ public:
         return m_activeProject.value();
     }
 
-    SharedMemoryAccess&    getSharedMemory();
     HeapMemory&            getHeapMemory();
     std::set< mega::MPO >& getMPOs() { return m_mpos; }
     runtime::JIT&          getJIT() { return *m_pJIT; }
@@ -103,8 +101,6 @@ private:
     using ExecutorType = decltype( m_io_context.get_executor() );
     boost::asio::executor_work_guard< ExecutorType >    m_work_guard;
     std::thread                                         m_io_thread;
-    std::unique_ptr< SharedMemoryAccess >               m_pSharedMemoryAccess;
-    std::unique_ptr< HeapMemory >                       m_pHeapMemory;
     mega::MP                                            m_mp;
     std::set< mega::MPO >                               m_mpos;
     std::unique_ptr< runtime::JIT >                     m_pJIT;
