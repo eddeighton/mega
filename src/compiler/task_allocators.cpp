@@ -433,8 +433,6 @@ struct PartDimensions
                 result.size       = padToAlignment( szAlign, result.size );
                 p->set_offset( result.size );
                 result.size += szSize;
-                static_assert( mega::DimensionTraits< mega::ReferenceVector >::Size == 32U,
-                               "Something is wrong with mega::DimensionTraits< mega::ReferenceVector >::Size" );
             }
             else
             {

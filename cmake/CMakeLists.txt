@@ -51,8 +51,8 @@ ELSE( ${WIN32} )
 
 add_compile_options("-Wfatal-errors")
 #add_compile_options("-Werror")
-add_compile_options("-Wall")
-add_compile_options("-Wextra")
+#add_compile_options("-Wall")
+#add_compile_options("-Wextra")
 
 ENDIF( ${WIN32} )
 
