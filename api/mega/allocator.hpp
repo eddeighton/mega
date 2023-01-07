@@ -168,7 +168,7 @@ private:
     std::bitset< Size > m_bitset;
 };
 
-template < typename TInstanceType, TInstanceType _Size >
+template < typename TInstanceType, mega::U64 _Size >
 class RingAllocator
 {
     friend struct mega::DimensionTraits< mega::RingAllocator< TInstanceType, _Size > >;
@@ -176,7 +176,7 @@ class RingAllocator
 public:
     using FreeList                  = boost::circular_buffer< TInstanceType >;
     using InstanceType              = TInstanceType;
-    static const TInstanceType Size = _Size;
+    static const mega::U64 Size     = _Size;
 
     inline RingAllocator()
         : m_free( Size )
@@ -187,7 +187,7 @@ public:
     inline void reset()
     {
         m_free.clear();
-        for ( InstanceType sz = 0; sz != Size; ++sz )
+        for ( mega::U64 sz = 0; sz != Size; ++sz )
         {
             m_free.push_back( sz );
         }
@@ -219,7 +219,7 @@ public:
         std::sort( freeOwners.begin(), freeOwners.end() );
         auto iter = freeOwners.begin();
         // calculate the inverse of the free
-        for ( InstanceType id = 0U; id != Size; ++id )
+        for ( mega::U64 id = 0U; id != Size; ++id )
         {
             if ( ( iter != freeOwners.end() ) && ( *iter == id ) )
             {

@@ -26,6 +26,7 @@
 
 #include "jit/functions.hpp"
 
+#include "service/memory_manager.hpp"
 #include "service/lock_tracker.hpp"
 
 #include "service/network/log.hpp"
@@ -36,7 +37,6 @@
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/sim.hxx"
 #include "service/protocol/model/memory.hxx"
-#include "service/protocol/model/address.hxx"
 #include "service/protocol/model/runtime.hxx"
 #include "service/protocol/model/jit.hxx"
 #include "service/protocol/model/enrole.hxx"
@@ -63,14 +63,15 @@ class MPOContext : public Context
     }
 
 protected:
-    const network::ConversationID& m_conversationIDRef;
-    std::optional< mega::MPO >     m_mpo;
-    log::Storage                   m_log;
-    log::Storage::SchedulerIter    m_schedulerIter;
-    log::Storage::MemoryIters      m_memoryIters;
-    mega::service::LockTracker     m_lockTracker;
-    boost::asio::yield_context*    m_pYieldContext = nullptr;
-    reference                      m_root;
+    const network::ConversationID&            m_conversationIDRef;
+    std::optional< mega::MPO >                m_mpo;
+    log::Storage                              m_log;
+    log::Storage::SchedulerIter               m_schedulerIter;
+    log::Storage::MemoryIters                 m_memoryIters;
+    mega::service::LockTracker                m_lockTracker;
+    boost::asio::yield_context*               m_pYieldContext = nullptr;
+    reference                                 m_root;
+    std::unique_ptr< runtime::MemoryManager > m_pMemoryManager;
 
 public:
     MPOContext( const network::ConversationID& conversationID )
@@ -97,19 +98,14 @@ public:
 #undef FUNCTION_ARG_2
 #undef FUNCTION_ARG_3
 
-    virtual network::mpo::Request_Sender      getMPRequest()           = 0;
-    virtual network::address::Request_Encoder getRootAddressRequest()  = 0;
-    virtual network::enrole::Request_Encoder  getRootEnroleRequest()   = 0;
-    virtual network::stash::Request_Encoder   getRootStashRequest()    = 0;
-    virtual network::memory::Request_Encoder  getDaemonMemoryRequest() = 0;
-    virtual network::memory::Request_Sender   getLeafMemoryRequest()   = 0;
-    virtual network::jit::Request_Sender      getLeafJITRequest()      = 0;
+    virtual network::mpo::Request_Sender     getMPRequest()           = 0;
+    virtual network::enrole::Request_Encoder getRootEnroleRequest()   = 0;
+    virtual network::stash::Request_Encoder  getRootStashRequest()    = 0;
+    virtual network::memory::Request_Encoder getDaemonMemoryRequest() = 0;
+    virtual network::memory::Request_Sender  getLeafMemoryRequest()   = 0;
+    virtual network::jit::Request_Sender     getLeafJITRequest()      = 0;
 
-    void initSharedMemory( const mega::reference& root )
-    {
-        m_mpo           = root;
-        m_root          = root;
-    }
+    void createRoot( const mega::MPO& mpo );
 
     //////////////////////////
     // mega::MPOContext

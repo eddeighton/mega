@@ -45,7 +45,6 @@ MachineID RootRequestConversation::EnroleDaemon( boost::asio::yield_context& yie
 
 MP RootRequestConversation::EnroleLeafWithRoot( const MachineID& machineID, boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE_MSG( U32( machineID ) < MAX_MACHINES, "Invalid machineID: " << machineID );
     const MP mp = m_root.m_mpoManager.newLeaf( machineID );
     SPDLOG_TRACE( "RootRequestConversation::EnroleLeafWithRoot: {}", mp );
     return mp;

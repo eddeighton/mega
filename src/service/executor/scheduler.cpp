@@ -530,7 +530,7 @@ public:
             m_actions.erase( iFind );
 
             // invoke the stopper - after removing
-            pAction->pStopper( pAction->ref.instance );
+            pAction->pStopper( pAction->ref.getInstance() );
 
             if ( m_pCurrentAction == pAction )
                 m_pCurrentAction = nullptr;
@@ -667,7 +667,7 @@ public:
                         m_actions.erase( iter );
                         on_event( m_events_by_ref_wait, m_pCurrentAction->ref );
                         on_event( m_events_by_ref_sleep, m_pCurrentAction->ref );
-                        m_pCurrentAction->pStopper( m_pCurrentAction->ref.instance );
+                        m_pCurrentAction->pStopper( m_pCurrentAction->ref.getInstance() );
                         delete m_pCurrentAction;
                         break;
                     default:

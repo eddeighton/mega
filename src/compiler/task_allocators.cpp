@@ -22,12 +22,13 @@
 #include "database/model/MemoryStage.hxx"
 #include "database/types/sources.hpp"
 
-#include "common/file.hpp"
+#include "jit/object_header.hpp"
 
 #include "mega/common.hpp"
 #include "mega/allocator.hpp"
 #include "mega/types/traits.hpp"
 
+#include "common/file.hpp"
 #include <common/stash.hpp>
 
 #include <optional>
@@ -155,7 +156,8 @@ public:
     struct Parts
     {
         using PartVector = std::vector< MemoryStage::MemoryLayout::Part* >;
-        PartVector simpleParts, nonSimpleParts, gpuParts;
+        //PartVector simpleParts, nonSimpleParts, gpuParts;
+        PartVector parts;
     };
 
     void createParts( MemoryStage::Database& database, MemoryStage::Concrete::Context* pContext, Parts* pParts );
@@ -609,17 +611,20 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
     if ( !simple.empty() )
     {
         MemoryLayout::Part* pContextPart = simple.createPart( database, pContext, szTotalDomainSize );
-        pParts->simpleParts.push_back( pContextPart );
+        //pParts->simpleParts.push_back( pContextPart );
+        pParts->parts.push_back( pContextPart );
     }
     if ( !nonSimple.empty() )
     {
         MemoryLayout::Part* pContextPart = nonSimple.createPart( database, pContext, szTotalDomainSize );
-        pParts->nonSimpleParts.push_back( pContextPart );
+        //pParts->nonSimpleParts.push_back( pContextPart );
+        pParts->parts.push_back( pContextPart );
     }
     if ( !gpu.empty() )
     {
         MemoryLayout::Part* pContextPart = gpu.createPart( database, pContext, szTotalDomainSize );
-        pParts->gpuParts.push_back( pContextPart );
+        //pParts->gpuParts.push_back( pContextPart );
+        pParts->parts.push_back( pContextPart );
     }
 }
 
@@ -647,11 +652,11 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
         }
 
         std::vector< MemoryLayout::Buffer* > objectBuffers;
-        if ( !parts.simpleParts.empty() )
+        if ( !parts.parts.empty() )
         {
-            U64 szOffset    = 0U;
-            U64 szAlignment = 1U;
-            for ( auto p : parts.simpleParts )
+            U64 szOffset    = sizeof( mega::runtime::ObjectHeader );
+            U64 szAlignment = alignof( mega::runtime::ObjectHeader );
+            for ( auto p : parts.parts )
             {
                 szOffset = padToAlignment( p->get_alignment(), szOffset );
                 p->set_offset( szOffset );
@@ -661,15 +666,15 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
 
             MemoryLayout::SimpleBuffer* pSimpleBuffer
                 = database.construct< MemoryLayout::SimpleBuffer >( MemoryLayout::SimpleBuffer::Args{
-                    MemoryLayout::Buffer::Args{ parts.simpleParts, szOffset, szAlignment } } );
+                    MemoryLayout::Buffer::Args{ parts.parts, szOffset, szAlignment } } );
             objectBuffers.push_back( pSimpleBuffer );
 
-            for ( auto p : parts.simpleParts )
+            for ( auto p : parts.parts )
             {
                 p->set_buffer( pSimpleBuffer );
             }
         }
-        if ( !parts.nonSimpleParts.empty() )
+        /*if ( !parts.nonSimpleParts.empty() )
         {
             U64 szOffset    = 0U;
             U64 szAlignment = 1U;
@@ -711,7 +716,7 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
             {
                 p->set_buffer( pGPUBuffer );
             }
-        }
+        }*/
 
         pObject = database.construct< Object >( Object::Args{ pObject, objectBuffers } );
     }

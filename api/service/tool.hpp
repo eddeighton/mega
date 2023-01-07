@@ -57,15 +57,14 @@ public:
 
     network::Sender& getLeafSender() { return m_leaf; }
 
-    const mega::reference& getRoot() const { return m_root.value(); }
-    void                   setRoot( const mega::reference& root ) { m_root = root; }
+    MPO getMPO() const { VERIFY_RTE( m_mpo.has_value() ); return m_mpo.value(); }
+    void setMPO( MPO mpo ) { m_mpo = mpo; }
 
 private:
     boost::asio::io_context          m_io_context;
     network::ReceiverChannel         m_receiverChannel;
     Leaf                             m_leaf;
     std::optional< mega::MPO >       m_mpo;
-    std::optional< mega::reference > m_root;
 };
 
 } // namespace mega::service

@@ -21,7 +21,6 @@
 #define ROOT_26_MAY_2022
 
 #include "mpo_manager.hpp"
-#include "logical_address_space.hpp"
 
 #include "service/network/server.hpp"
 #include "service/network/conversation_manager.hpp"
@@ -67,7 +66,6 @@ private:
     mega::network::RootConfig                           m_config;
     std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;
     MPOManager                                          m_mpoManager;
-    LogicalAddressSpace                                 m_logicalAddressSpace;
 };
 
 } // namespace mega::service

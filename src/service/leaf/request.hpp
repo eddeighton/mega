@@ -120,7 +120,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void             RootSimRun( const reference& root,
+    virtual void             RootSimRun( const MPO& mpo,
                                          boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
@@ -173,45 +173,48 @@ public:
                              boost::asio::yield_context& yield_ctx ) override;
 
     // public network::jit::Impl
-    virtual void GetSaveXMLObject( const network::JITModuleName&  pszUnitName,
-                                   const TypeID&                  objectTypeID,
-                                   const network::JITFunctionPtr& ppFunction,
+    virtual void GetAllocator(     const TypeID&                  objectTypeID,
+                                   const mega::U64& jitAllocatorPtr,
                                    boost::asio::yield_context&    yield_ctx ) override;
-    virtual void GetLoadXMLObject( const network::JITModuleName&  pszUnitName,
+    virtual void GetSaveXMLObject( const mega::U64&  pszUnitName,
                                    const TypeID&                  objectTypeID,
-                                   const network::JITFunctionPtr& ppFunction,
+                                   const mega::U64& ppFunction,
                                    boost::asio::yield_context&    yield_ctx ) override;
-    virtual void GetSaveBinObject( const network::JITModuleName&  pszUnitName,
+    virtual void GetLoadXMLObject( const mega::U64&  pszUnitName,
                                    const TypeID&                  objectTypeID,
-                                   const network::JITFunctionPtr& ppFunction,
+                                   const mega::U64& ppFunction,
                                    boost::asio::yield_context&    yield_ctx ) override;
-    virtual void GetLoadBinObject( const network::JITModuleName&  pszUnitName,
+    virtual void GetSaveBinObject( const mega::U64&  pszUnitName,
                                    const TypeID&                  objectTypeID,
-                                   const network::JITFunctionPtr& ppFunction,
+                                   const mega::U64& ppFunction,
+                                   boost::asio::yield_context&    yield_ctx ) override;
+    virtual void GetLoadBinObject( const mega::U64&  pszUnitName,
+                                   const TypeID&                  objectTypeID,
+                                   const mega::U64& ppFunction,
                                    boost::asio::yield_context&    yield_ctx ) override;
 
-    virtual void GetCallGetter( const network::JITModuleName&  pszUnitName,
+    virtual void GetCallGetter( const mega::U64&  pszUnitName,
                                 const TypeID&                  objectTypeID,
-                                const network::JITFunctionPtr& ppFunction,
+                                const mega::U64& ppFunction,
                                 boost::asio::yield_context&    yield_ctx ) override;
 
-    virtual void GetAllocate( const network::JITModuleName& pszUnitName, const InvocationID& invocationID,
-                              const network::JITFunctionPtr& ppFunction,
+    virtual void GetAllocate( const mega::U64& pszUnitName, const InvocationID& invocationID,
+                              const mega::U64& ppFunction,
                               boost::asio::yield_context&    yield_ctx ) override;
-    virtual void GetRead( const network::JITModuleName& pszUnitName, const InvocationID& invocationID,
-                          const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetWrite( const network::JITModuleName& pszUnitName, const InvocationID& invocationID,
-                           const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetCall( const network::JITModuleName& pszUnitName, const InvocationID& invocationID,
-                          const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetStart( const network::JITModuleName& pszUnitName, const InvocationID& invocationID,
-                           const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetStop( const network::JITModuleName& pszUnitName, const InvocationID& invocationID,
-                          const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetSave( const network::JITModuleName& pszUnitName, const InvocationID& invocationID,
-                          const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetLoad( const network::JITModuleName& pszUnitName, const InvocationID& invocationID,
-                          const network::JITFunctionPtr& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetRead( const mega::U64& pszUnitName, const InvocationID& invocationID,
+                          const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetWrite( const mega::U64& pszUnitName, const InvocationID& invocationID,
+                           const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetCall( const mega::U64& pszUnitName, const InvocationID& invocationID,
+                          const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetStart( const mega::U64& pszUnitName, const InvocationID& invocationID,
+                           const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetStop( const mega::U64& pszUnitName, const InvocationID& invocationID,
+                          const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetSave( const mega::U64& pszUnitName, const InvocationID& invocationID,
+                          const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetLoad( const mega::U64& pszUnitName, const InvocationID& invocationID,
+                          const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;

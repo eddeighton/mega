@@ -29,27 +29,14 @@
 namespace mega::network
 {
 
-using JITModuleName  = U64;
-using JITFunctionPtr = U64;
-using JITMemoryPtr   = U64;
-
-inline const char* convert( JITModuleName moduleName )
+template < typename TFunctionPtrType >
+inline TFunctionPtrType* type_reify( U64 erasedTypePtr )
 {
-    return reinterpret_cast< const char* >( moduleName );
-}
-inline JITModuleName convert( const char* pszModuleName )
-{
-    return reinterpret_cast< JITModuleName >( pszModuleName );
+    return reinterpret_cast< TFunctionPtrType* >( erasedTypePtr );
 }
 
 template < typename TFunctionPtrType >
-inline TFunctionPtrType* convert( U64 functionPtr )
-{
-    return reinterpret_cast< TFunctionPtrType* >( functionPtr );
-}
-
-template < typename TFunctionPtrType >
-inline U64 convert( TFunctionPtrType* ppFunction )
+inline U64 type_erase( TFunctionPtrType* ppFunction )
 {
     return reinterpret_cast< U64 >( ppFunction );
 }
@@ -76,18 +63,14 @@ struct MemoryBaseReference
 
 struct SizeAlignment
 {
-    U64 shared_size      = 0U;
-    U64 shared_alignment = 0U;
-    U64 heap_size        = 0U;
-    U64 heap_alignment   = 0U;
+    U64 size      = 0U;
+    U64 alignment = 0U;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& shared_size;
-        archive& shared_alignment;
-        archive& heap_size;
-        archive& heap_alignment;
+        archive& size;
+        archive& alignment;
     }
 };
 

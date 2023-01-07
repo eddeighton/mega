@@ -37,27 +37,27 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
                                                            boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if ( result = network::memory::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::memory::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::jit::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::jit::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::term_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::term_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::exe_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::exe_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "LeafRequestConversation::dispatchRequest failed on msg: " << msg );
 }
@@ -66,12 +66,12 @@ void LeafRequestConversation::dispatchResponse( const network::ConnectionID& con
                                                 const network::Message&      msg,
                                                 boost::asio::yield_context&  yield_ctx )
 {
-    if ( ( m_leaf.getNodeChannelSender().getConnectionID() == connectionID )
-         || ( m_leaf.m_pSelfSender->getConnectionID() == connectionID ) )
+    if( ( m_leaf.getNodeChannelSender().getConnectionID() == connectionID )
+        || ( m_leaf.m_pSelfSender->getConnectionID() == connectionID ) )
     {
         m_leaf.getNodeChannelSender().send( msg, yield_ctx );
     }
-    else if ( m_leaf.getDaemonSender().getConnectionID() == connectionID )
+    else if( m_leaf.getDaemonSender().getConnectionID() == connectionID )
     {
         m_leaf.getDaemonSender().send( msg, yield_ctx );
     }
@@ -84,12 +84,12 @@ void LeafRequestConversation::dispatchResponse( const network::ConnectionID& con
 void LeafRequestConversation::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                      boost::asio::yield_context& yield_ctx )
 {
-    if ( ( m_leaf.getNodeChannelSender().getConnectionID() == msg.connectionID )
-         || ( m_leaf.m_pSelfSender->getConnectionID() == msg.connectionID ) )
+    if( ( m_leaf.getNodeChannelSender().getConnectionID() == msg.connectionID )
+        || ( m_leaf.m_pSelfSender->getConnectionID() == msg.connectionID ) )
     {
         m_leaf.getNodeChannelSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
-    else if ( m_leaf.getDaemonSender().getConnectionID() == msg.connectionID )
+    else if( m_leaf.getDaemonSender().getConnectionID() == msg.connectionID )
     {
         m_leaf.getDaemonSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
@@ -167,7 +167,7 @@ network::Message LeafRequestConversation::MPRoot( const network::Message&     re
 network::Message LeafRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    switch ( m_leaf.m_nodeType )
+    switch( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
             return getMPODownSender( yield_ctx ).MPDown( request, mp );
@@ -187,7 +187,7 @@ network::Message LeafRequestConversation::MPUp( const network::Message& request,
                                                 boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestConversation::MPUp: {} {}", mp, request.getName() );
-    if ( m_leaf.m_mp == mp )
+    if( m_leaf.m_mp == mp )
     {
         return dispatchRequest( request, yield_ctx );
     }
@@ -201,7 +201,7 @@ network::Message LeafRequestConversation::MPODown( const network::Message& reque
                                                    boost::asio::yield_context& yield_ctx )
 {
     ASSERT( m_leaf.m_mpos.count( mpo ) );
-    switch ( m_leaf.m_nodeType )
+    switch( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
         case network::Node::Tool:
@@ -219,7 +219,7 @@ network::Message LeafRequestConversation::MPODown( const network::Message& reque
 network::Message LeafRequestConversation::MPOUp( const network::Message& request, const mega::MPO& mpo,
                                                  boost::asio::yield_context& yield_ctx )
 {
-    if ( m_leaf.m_mpos.count( mpo ) )
+    if( m_leaf.m_mpos.count( mpo ) )
     {
         return MPODown( request, mpo, yield_ctx );
     }
@@ -236,7 +236,7 @@ network::Message LeafRequestConversation::RootAllBroadcast( const network::Messa
     SPDLOG_TRACE( "LeafRequestConversation::RootAllBroadcast" );
     std::vector< network::Message > responses;
     {
-        switch ( m_leaf.m_nodeType )
+        switch( m_leaf.m_nodeType )
         {
             case network::Node::Executor:
             {
@@ -273,7 +273,7 @@ network::Message LeafRequestConversation::RootAllBroadcast( const network::Messa
 network::Message LeafRequestConversation::RootExeBroadcast( const network::Message&     request,
                                                             boost::asio::yield_context& yield_ctx )
 {
-    switch ( m_leaf.m_nodeType )
+    switch( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
             return getExeSender( yield_ctx ).RootExeBroadcast( request );
@@ -291,7 +291,7 @@ network::Message LeafRequestConversation::RootExeBroadcast( const network::Messa
 network::Message LeafRequestConversation::RootExe( const network::Message&     request,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    switch ( m_leaf.m_nodeType )
+    switch( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
             return getExeSender( yield_ctx ).RootExe( request );
@@ -307,23 +307,21 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
     }
 }
 
-
-void LeafRequestConversation::RootSimRun( const reference& root, 
-                                          boost::asio::yield_context& yield_ctx )
+void LeafRequestConversation::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", root );
+    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", mpo );
     VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in RootSimRun" );
-    switch ( m_leaf.m_nodeType )
+    switch( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
         {
-            MPOLifetime mpoLifetime( m_leaf, *this, root, yield_ctx );
-            return getExeSender( yield_ctx ).RootSimRun( mpoLifetime.getRoot() );
+            MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
+            return getExeSender( yield_ctx ).RootSimRun( mpo );
         }
         case network::Node::Tool:
         {
-            MPOLifetime mpoLifetime( m_leaf, *this, root, yield_ctx );
-            return getToolSender( yield_ctx ).RootSimRun( mpoLifetime.getRoot() );
+            MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
+            return getToolSender( yield_ctx ).RootSimRun( mpo );
         }
         case network::Node::Terminal:
         case network::Node::Daemon:

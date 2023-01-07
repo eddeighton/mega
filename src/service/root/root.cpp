@@ -43,9 +43,6 @@
 
 #include <common/file.hpp>
 
-#include "spdlog/fmt/chrono.h"
-#include "spdlog/stopwatch.h"
-
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>

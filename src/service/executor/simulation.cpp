@@ -26,7 +26,6 @@
 #include "service/protocol/common/context.hpp"
 
 #include "service/protocol/model/memory.hxx"
-#include "service/protocol/model/address.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/messages.hxx"
 #include "service/protocol/model/enrole.hxx"
@@ -58,12 +57,6 @@ network::mpo::Request_Sender Simulation::getMPRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return ExecutorRequestConversation::getMPRequest( *m_pYieldContext );
-}
-network::address::Request_Encoder Simulation::getRootAddressRequest()
-{
-    return { [ leafRequest = getLeafRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
-             { return leafRequest.ExeRoot( msg ); },
-             getID() };
 }
 network::enrole::Request_Encoder Simulation::getRootEnroleRequest()
 {
@@ -263,7 +256,6 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
                         dispatchRequestImpl( msg, yield_ctx );
                         break;
                 }
-                // dispatchRequestImpl( msg, yield_ctx );
 
                 // check if connection has disconnected
                 if( m_disconnections.empty() )
@@ -410,15 +402,16 @@ MPO Simulation::SimCreate( boost::asio::yield_context& )
     return m_mpo.value();
 }
 
-void Simulation::RootSimRun( const reference&             root,
+void Simulation::RootSimRun( const MPO& mpo,
                              boost::asio::yield_context&  yield_ctx )
 {
-    initSharedMemory( root );
-
     // now start running the simulation
     setMPOContext( this );
     m_pYieldContext = &yield_ctx;
+
+    createRoot( mpo );
     runSimulation( yield_ctx );
+    
     resetMPOContext();
 }
 void Simulation::SimDestroy( boost::asio::yield_context& )

@@ -43,6 +43,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/invocation_io.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
+    ${MEGA_API_DIR}/mega/mpo.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp
     ${MEGA_API_DIR}/mega/operations.hpp
     ${MEGA_API_DIR}/mega/reference_io.hpp
@@ -50,6 +51,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/result_type.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
+    ${MEGA_API_DIR}/mega/type_instance.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
     ${MEGA_API_DIR}/mega/variant.hpp
     ${MEGA_API_DIR}/mega/xml_archive.hpp

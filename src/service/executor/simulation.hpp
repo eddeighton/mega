@@ -55,7 +55,6 @@ public:
 
     // MPOContext
     virtual network::mpo::Request_Sender      getMPRequest() override;
-    virtual network::address::Request_Encoder getRootAddressRequest() override;
     virtual network::enrole::Request_Encoder  getRootEnroleRequest() override;
     virtual network::stash::Request_Encoder   getRootStashRequest() override;
     virtual network::memory::Request_Encoder  getDaemonMemoryRequest() override;
@@ -72,7 +71,7 @@ public:
     virtual void SimDestroy( boost::asio::yield_context& ) override;
 
     // network::leaf_exe::Impl
-    virtual void RootSimRun( const reference&             root,
+    virtual void RootSimRun( const MPO& mpo,
                              boost::asio::yield_context&  yield_ctx ) override;
 
     // network::status::Impl

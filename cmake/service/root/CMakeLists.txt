@@ -36,7 +36,6 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( ROOT_SOURCE_DIR ${MEGA_SRC_DIR}/service/root )
 
 set( ROOT_SOURCE 
-    ${ROOT_SOURCE_DIR}/logical_address_space.hpp
     ${ROOT_SOURCE_DIR}/mpo_manager.hpp
     ${ROOT_SOURCE_DIR}/root.hpp
     ${ROOT_SOURCE_DIR}/root.cpp
@@ -53,7 +52,6 @@ set( ROOT_SOURCE
     ${ROOT_SOURCE_DIR}/enrole.cpp
     ${ROOT_SOURCE_DIR}/status.cpp
     ${ROOT_SOURCE_DIR}/stash.cpp
-    ${ROOT_SOURCE_DIR}/address.cpp
  )
 
 add_executable( root ${ROOT_SOURCE} )

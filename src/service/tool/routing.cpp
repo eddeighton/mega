@@ -94,14 +94,14 @@ network::Message ToolRequestConversation::RootAllBroadcast( const network::Messa
 network::Message ToolRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( MP( m_tool.getRoot() ) == mp );
+    VERIFY_RTE( MP( m_tool.getMPO() ) == mp );
     return dispatchRequest( request, yield_ctx );
 }
 
 network::Message ToolRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( MPO( m_tool.getRoot() ) == mpo );
+    VERIFY_RTE( MPO( m_tool.getMPO() ) == mpo );
     return dispatchRequest( request, yield_ctx );
 }
 

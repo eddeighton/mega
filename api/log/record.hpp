@@ -40,28 +40,25 @@ class MemoryRecord
     friend class MemoryRecordRead;
 
 public:
-    inline MemoryRecord( reference ref, bool bShared, std::string_view data )
+    inline MemoryRecord( reference ref, std::string_view data )
         : m_reference( ref )
-        , m_bShared( bShared )
         , m_data( data )
     {
     }
 
-    inline U64 size() const { return sizeof( U64 ) + sizeof( reference ) + sizeof( bool ) + m_data.size(); }
+    inline U64 size() const { return sizeof( U64 ) + sizeof( reference ) + m_data.size(); }
 
     template < typename FileType >
     inline auto write( FileType& file ) const
     {
         const U64 sz = size();
         file.write( &sz, sizeof( sz ) );
-        file.write( &m_bShared, sizeof( bool ) );
         file.write( &m_reference, sizeof( reference ) );
         return file.write( m_data.data(), m_data.size() );
     }
 
 private:
     mega::reference  m_reference;
-    bool             m_bShared;
     std::string_view m_data;
 };
 
@@ -72,11 +69,8 @@ public:
     {
         const char* p = reinterpret_cast< const char* >( pData );
 
-        const U64 size = ( *reinterpret_cast< const U64* >( p ) ) - ( sizeof( U64 ) + sizeof( reference ) + sizeof( bool ) );
+        const U64 size = ( *reinterpret_cast< const U64* >( p ) ) - ( sizeof( U64 ) + sizeof( reference ) );
         p += sizeof( U64 );
-
-        m_pShared = reinterpret_cast< const bool* >( p );
-        p += sizeof( bool );
 
         m_pReference = reinterpret_cast< const mega::reference* >( p );
         p += sizeof( reference );
@@ -96,7 +90,6 @@ public:
 
 private:
     const mega::reference* m_pReference;
-    const bool*            m_pShared;
     std::string_view       m_data;
 };
 

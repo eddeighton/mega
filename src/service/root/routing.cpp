@@ -23,6 +23,8 @@
 
 #include "root.hpp"
 
+#include "service/network/log.hpp"
+
 namespace mega::service
 {
 
@@ -50,8 +52,6 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::stash::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
-    if ( result = network::address::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;

@@ -37,7 +37,7 @@ namespace
 template < typename T >
 void new_( void* p )
 {
-    new ( p ) T{};
+    new( p ) T{};
 }
 
 template < typename T >
@@ -90,17 +90,16 @@ void copy_( const void* pFrom, void* pTo )
 }
 
 template < typename T >
-void event_( const mega::reference& ref, bool bShared, const void* p )
+void event_( const mega::reference& ref, const void* p )
 {
     mega::log::Storage& log = mega::getMPOContext()->getLog();
 
     log.record( mega::log::MemoryTrackType::Simulation,
-                mega::log::MemoryRecord(
-                    ref, bShared, std::string_view( reinterpret_cast< const char* >( p ), sizeof( T ) ) ) );
+                mega::log::MemoryRecord( ref, std::string_view( reinterpret_cast< const char* >( p ), sizeof( T ) ) ) );
 }
 
 template < typename T >
-void event_nonSimple_( const mega::reference& ref, bool bShared, const void* p )
+void event_nonSimple_( const mega::reference& ref, const void* p )
 {
     const T& value = *reinterpret_cast< const T* >( p );
     using Buffer   = std::vector< char >;
@@ -156,112 +155,112 @@ void load_end_part( const char* partName, void* pArchive )
     ar.endPart( partName );
 }
 
-#define SIMPLETYPE( manged_name, type )                                               \
-    void new_##manged_name( void* p, void* pMemory )                                  \
-    {                                                                                 \
-        new_< type >( p );                                                            \
-    }                                                                                 \
-    void delete_##manged_name( void* p )                                              \
-    {                                                                                 \
-        delete_< type >( p );                                                         \
-    }                                                                                 \
-    void save_xml_##manged_name( void* p, const char* name, void* pArchive )          \
-    {                                                                                 \
-        save_xml_< type >( p, name, pArchive );                                       \
-    }                                                                                 \
-    void load_xml_##manged_name( void* p, const char* name, void* pArchive )          \
-    {                                                                                 \
-        load_xml_< type >( p, name, pArchive );                                       \
-    }                                                                                 \
-    void save_bin_##manged_name( void* p, void* pArchive )                            \
-    {                                                                                 \
-        save_bin_< type >( p, pArchive );                                             \
-    }                                                                                 \
-    void load_bin_##manged_name( void* p, void* pArchive )                            \
-    {                                                                                 \
-        load_bin_< type >( p, pArchive );                                             \
-    }                                                                                 \
-    void copy_##manged_name( const void* pFrom, void* pTo )                           \
-    {                                                                                 \
-        copy_< type >( pFrom, pTo );                                                  \
-    }                                                                                 \
-    void event_##manged_name( const reference& ref, bool bShared, const void* pData ) \
-    {                                                                                 \
-        event_< type >( ref, bShared, pData );                                        \
+#define SIMPLETYPE( manged_name, type )                                      \
+    void new_##manged_name( void* p )                                        \
+    {                                                                        \
+        new_< type >( p );                                                   \
+    }                                                                        \
+    void delete_##manged_name( void* p )                                     \
+    {                                                                        \
+        delete_< type >( p );                                                \
+    }                                                                        \
+    void save_xml_##manged_name( void* p, const char* name, void* pArchive ) \
+    {                                                                        \
+        save_xml_< type >( p, name, pArchive );                              \
+    }                                                                        \
+    void load_xml_##manged_name( void* p, const char* name, void* pArchive ) \
+    {                                                                        \
+        load_xml_< type >( p, name, pArchive );                              \
+    }                                                                        \
+    void save_bin_##manged_name( void* p, void* pArchive )                   \
+    {                                                                        \
+        save_bin_< type >( p, pArchive );                                    \
+    }                                                                        \
+    void load_bin_##manged_name( void* p, void* pArchive )                   \
+    {                                                                        \
+        load_bin_< type >( p, pArchive );                                    \
+    }                                                                        \
+    void copy_##manged_name( const void* pFrom, void* pTo )                  \
+    {                                                                        \
+        copy_< type >( pFrom, pTo );                                         \
+    }                                                                        \
+    void event_##manged_name( const reference& ref, const void* pData )      \
+    {                                                                        \
+        event_< type >( ref, pData );                                        \
     }
 
 #include "mega/types/simple.hxx"
 #undef SIMPLETYPE
 
-#define NONSIMPLETYPE( manged_name, type )                                            \
-    void new_##manged_name( void* p, void* pMemory )                                  \
-    {                                                                                 \
-        new_< type >( p );                                                            \
-    }                                                                                 \
-    void delete_##manged_name( void* p )                                              \
-    {                                                                                 \
-        delete_< type >( p );                                                         \
-    }                                                                                 \
-    void save_xml_##manged_name( void* p, const char* name, void* pArchive )          \
-    {                                                                                 \
-        save_xml_< type >( p, name, pArchive );                                       \
-    }                                                                                 \
-    void load_xml_##manged_name( void* p, const char* name, void* pArchive )          \
-    {                                                                                 \
-        load_xml_< type >( p, name, pArchive );                                       \
-    }                                                                                 \
-    void save_bin_##manged_name( void* p, void* pArchive )                            \
-    {                                                                                 \
-        save_bin_< type >( p, pArchive );                                             \
-    }                                                                                 \
-    void load_bin_##manged_name( void* p, void* pArchive )                            \
-    {                                                                                 \
-        load_bin_< type >( p, pArchive );                                             \
-    }                                                                                 \
-    void copy_##manged_name( const void* pFrom, void* pTo )                           \
-    {                                                                                 \
-        copy_< type >( pFrom, pTo );                                                  \
-    }                                                                                 \
-    void event_##manged_name( const reference& ref, bool bShared, const void* pData ) \
-    {                                                                                 \
-        event_nonSimple_< type >( ref, bShared, pData );                              \
+#define NONSIMPLETYPE( manged_name, type )                                   \
+    void new_##manged_name( void* p )                                        \
+    {                                                                        \
+        new_< type >( p );                                                   \
+    }                                                                        \
+    void delete_##manged_name( void* p )                                     \
+    {                                                                        \
+        delete_< type >( p );                                                \
+    }                                                                        \
+    void save_xml_##manged_name( void* p, const char* name, void* pArchive ) \
+    {                                                                        \
+        save_xml_< type >( p, name, pArchive );                              \
+    }                                                                        \
+    void load_xml_##manged_name( void* p, const char* name, void* pArchive ) \
+    {                                                                        \
+        load_xml_< type >( p, name, pArchive );                              \
+    }                                                                        \
+    void save_bin_##manged_name( void* p, void* pArchive )                   \
+    {                                                                        \
+        save_bin_< type >( p, pArchive );                                    \
+    }                                                                        \
+    void load_bin_##manged_name( void* p, void* pArchive )                   \
+    {                                                                        \
+        load_bin_< type >( p, pArchive );                                    \
+    }                                                                        \
+    void copy_##manged_name( const void* pFrom, void* pTo )                  \
+    {                                                                        \
+        copy_< type >( pFrom, pTo );                                         \
+    }                                                                        \
+    void event_##manged_name( const reference& ref, const void* pData )      \
+    {                                                                        \
+        event_nonSimple_< type >( ref, pData );                              \
     }
 
 #include "mega/types/non_simple.hxx"
 #undef NONSIMPLETYPE
 
-#define ALLOCATOR( manged_name, type, size )                                          \
-    void new_##manged_name( void* p, void* pMemory )                                  \
-    {                                                                                 \
-        new_< type >( p );                                                            \
-    }                                                                                 \
-    void delete_##manged_name( void* p )                                              \
-    {                                                                                 \
-        delete_< type >( p );                                                         \
-    }                                                                                 \
-    void save_xml_##manged_name( void* p, const char* name, void* pArchive )          \
-    {                                                                                 \
-        save_xml_< type >( p, name, pArchive );                                       \
-    }                                                                                 \
-    void load_xml_##manged_name( void* p, const char* name, void* pArchive )          \
-    {                                                                                 \
-        load_xml_< type >( p, name, pArchive );                                       \
-    }                                                                                 \
-    void save_bin_##manged_name( void* p, void* pArchive )                            \
-    {                                                                                 \
-        save_bin_< type >( p, pArchive );                                             \
-    }                                                                                 \
-    void load_bin_##manged_name( void* p, void* pArchive )                            \
-    {                                                                                 \
-        load_bin_< type >( p, pArchive );                                             \
-    }                                                                                 \
-    void copy_##manged_name( const void* pFrom, void* pTo )                           \
-    {                                                                                 \
-        copy_< type >( pFrom, pTo );                                                  \
-    }                                                                                 \
-    void event_##manged_name( const reference& ref, bool bShared, const void* pData ) \
-    {                                                                                 \
-        event_< type >( ref, bShared, pData );                                        \
+#define ALLOCATOR( manged_name, type, size )                                 \
+    void new_##manged_name( void* p )                                        \
+    {                                                                        \
+        new_< type >( p );                                                   \
+    }                                                                        \
+    void delete_##manged_name( void* p )                                     \
+    {                                                                        \
+        delete_< type >( p );                                                \
+    }                                                                        \
+    void save_xml_##manged_name( void* p, const char* name, void* pArchive ) \
+    {                                                                        \
+        save_xml_< type >( p, name, pArchive );                              \
+    }                                                                        \
+    void load_xml_##manged_name( void* p, const char* name, void* pArchive ) \
+    {                                                                        \
+        load_xml_< type >( p, name, pArchive );                              \
+    }                                                                        \
+    void save_bin_##manged_name( void* p, void* pArchive )                   \
+    {                                                                        \
+        save_bin_< type >( p, pArchive );                                    \
+    }                                                                        \
+    void load_bin_##manged_name( void* p, void* pArchive )                   \
+    {                                                                        \
+        load_bin_< type >( p, pArchive );                                    \
+    }                                                                        \
+    void copy_##manged_name( const void* pFrom, void* pTo )                  \
+    {                                                                        \
+        copy_< type >( pFrom, pTo );                                         \
+    }                                                                        \
+    void event_##manged_name( const reference& ref, const void* pData )      \
+    {                                                                        \
+        event_< type >( ref, pData );                                        \
     }
 
 #include "mega/types/allocators_32.hxx"
@@ -270,8 +269,14 @@ void load_end_part( const char* partName, void* pArchive )
 #undef ALLOCATOR
 
 // std::vector< int >
-void new_classstd00vector3int4( void* p, void* pMemory ) { new_< std::vector< int > >( p ); }
-void delete_classstd00vector3int4( void* p ) { delete_< std::vector< int > >( p ); }
+void new_classstd00vector3int4( void* p )
+{
+    new_< std::vector< int > >( p );
+}
+void delete_classstd00vector3int4( void* p )
+{
+    delete_< std::vector< int > >( p );
+}
 void save_xml_classstd00vector3int4( void* p, const char* name, void* pArchive )
 {
     save_xml_< std::vector< int > >( p, name, pArchive );
@@ -280,12 +285,21 @@ void load_xml_classstd00vector3int4( void* p, const char* name, void* pArchive )
 {
     load_xml_< std::vector< int > >( p, name, pArchive );
 }
-void save_bin_classstd00vector3int4( void* p, void* pArchive ) { save_bin_< std::vector< int > >( p, pArchive ); }
-void load_bin_classstd00vector3int4( void* p, void* pArchive ) { load_bin_< std::vector< int > >( p, pArchive ); }
-void copy_classstd00vector3int4( const void* pFrom, void* pTo ) { copy_< std::vector< int > >( pFrom, pTo ); }
+void save_bin_classstd00vector3int4( void* p, void* pArchive )
+{
+    save_bin_< std::vector< int > >( p, pArchive );
+}
+void load_bin_classstd00vector3int4( void* p, void* pArchive )
+{
+    load_bin_< std::vector< int > >( p, pArchive );
+}
+void copy_classstd00vector3int4( const void* pFrom, void* pTo )
+{
+    copy_< std::vector< int > >( pFrom, pTo );
+}
 
 // mega::ReferenceVector
-void new_mega00ReferenceVector( void* p, void* pMemory )
+void new_mega00ReferenceVector( void* p )
 {
     THROW_TODO;
     // SPDLOG_TRACE( "new_mega00ReferenceVector - start" );
@@ -296,7 +310,10 @@ void new_mega00ReferenceVector( void* p, void* pMemory )
     new ( p ) ReferenceVector( Allocator( pSegmentMgr ) );*/
     // SPDLOG_TRACE( "new_mega00ReferenceVector - done" );
 }
-void delete_mega00ReferenceVector( void* p ) { delete_< mega::ReferenceVector >( p ); }
+void delete_mega00ReferenceVector( void* p )
+{
+    delete_< mega::ReferenceVector >( p );
+}
 void save_xml_mega00ReferenceVector( void* p, const char* name, void* pArchive )
 {
     // save_xml_< mega::ReferenceVector >( p, name, pArchive );
@@ -313,7 +330,10 @@ void load_bin_mega00ReferenceVector( void* p, void* pArchive )
 {
     // load_bin_< mega::ReferenceVector >( p, pArchive );
 }
-void copy_mega00ReferenceVector( const void* pFrom, void* pTo ) { copy_< mega::ReferenceVector >( pFrom, pTo ); }
+void copy_mega00ReferenceVector( const void* pFrom, void* pTo )
+{
+    copy_< mega::ReferenceVector >( pFrom, pTo );
+}
 
 // allocator routines
 Instance allocate_bool( void* p )

@@ -27,38 +27,22 @@
 
 #include "service/protocol/model/memory.hxx"
 
-#include <new>
-
 namespace mega::service
 {
 
-MPOLifetime::MPOLifetime( Leaf& leaf, LeafRequestConversation& conversation, const reference& root,
+MPOLifetime::MPOLifetime( Leaf& leaf, LeafRequestConversation& conversation, const MPO& mpo,
                           boost::asio::yield_context& yield_ctx )
     : m_leaf( leaf )
     , m_conversation( conversation )
     , m_yield_ctx( yield_ctx )
-    , m_root( root )
-    //, m_sharedMemory( m_leaf.getSharedMemory().get( m_root, [ this ]( MPO mpo ) { return memoryAccess( mpo ); } ) )
+    , m_mpo( mpo )
 {
-    m_leaf.getMPOs().insert( m_root );
-
-    auto& jit      = m_leaf.getJIT();
-    auto  compiler = conversation.getLLVMCompiler( yield_ctx );
-
-    //void* pSharedMemoryBuffer
-    //    = m_leaf.getSharedMemory().construct( compiler, jit, root, [ this ]( MPO mpo ) { return memoryAccess( mpo ); } );
-
-    //  m_leaf.getHeapMemory().allocate( compiler, jit, m_root );
-
-    SPDLOG_TRACE( "MPOLifetime constructed root: {}", m_root );
+    m_leaf.getMPOs().insert( m_mpo );
 }
 
 MPOLifetime::~MPOLifetime()
 {
-    auto& jit      = m_leaf.getJIT();
-    auto  compiler = m_conversation.getLLVMCompiler( m_yield_ctx );
-    // m_leaf.getSharedMemory().free( compiler, jit, m_root, [ this ]( MPO mpo ) { return memoryAccess( mpo ); } );
-    m_leaf.getMPOs().erase( m_root );
+    m_leaf.getMPOs().erase( m_mpo );
 }
 
 } // namespace mega::service

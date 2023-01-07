@@ -39,9 +39,12 @@ class MPOManager
 {
     class MachineAllocators
     {
-        using ProcessAllocator = mega::RingAllocator< mega::ProcessID, mega::MAX_PROCESS_PER_MACHINE >;
-        using OwnerAllocator   = mega::RingAllocator< mega::OwnerID, mega::MAX_OWNER_PER_PROCESS >;
-        using OwnerArray       = std::array< OwnerAllocator, mega::MAX_PROCESS_PER_MACHINE >;
+        static constexpr auto MAX_PROCESS_PER_MACHINE = 256U;
+        static constexpr auto MAX_OWNER_PER_PROCESS = 256U;
+
+        using ProcessAllocator = mega::RingAllocator< mega::ProcessID, MAX_PROCESS_PER_MACHINE >;
+        using OwnerAllocator   = mega::RingAllocator< mega::OwnerID, MAX_OWNER_PER_PROCESS >;
+        using OwnerArray       = std::array< OwnerAllocator, MAX_PROCESS_PER_MACHINE >;
 
         MachineID        m_machineID;
         ProcessAllocator m_processes;
@@ -121,8 +124,8 @@ class MPOManager
         }
     };
 
-    using MPOMap            = std::unordered_map< MachineID, MachineAllocators, MachineID::Hash >;
-    using MachineIDFreeList = std::unordered_set< MachineID, MachineID::Hash >;
+    using MPOMap            = std::unordered_map< MachineID, MachineAllocators >;
+    using MachineIDFreeList = std::unordered_set< MachineID >;
 
     MPOMap            m_mpoMap;
     MachineIDFreeList m_freeList;
@@ -144,8 +147,6 @@ class MPOManager
 public:
     MachineID newDaemon()
     {
-        VERIFY_RTE_MSG( m_mpoMap.size() < MAX_MACHINES, "Total machine capacity reached!" );
-
         MachineID machineID;
         if( !m_freeList.empty() )
         {

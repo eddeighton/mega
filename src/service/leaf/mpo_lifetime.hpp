@@ -33,17 +33,17 @@ class LeafRequestConversation;
 class MPOLifetime
 {
 public:
-    MPOLifetime( Leaf& leaf, LeafRequestConversation& conversation, const reference& rooty,
+    MPOLifetime( Leaf& leaf, LeafRequestConversation& conversation, const MPO& mpo,
                  boost::asio::yield_context& yield_ctx );
     ~MPOLifetime();
 
-    const reference&              getRoot() const { return m_root; }
+    const MPO& getMPO() const { return m_mpo; }
 
 private:
     Leaf&                         m_leaf;
     LeafRequestConversation&      m_conversation;
     boost::asio::yield_context&   m_yield_ctx;
-    reference                     m_root;
+    MPO                           m_mpo;
 };
 
 } // namespace mega::service

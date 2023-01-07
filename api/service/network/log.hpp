@@ -51,18 +51,18 @@ enum LoggingLevel
 LoggingLevel fromStr( const std::string& str );
 
 void configureLog( const boost::filesystem::path& logFolder,
-                  const std::string&             strLogName,
-                  LoggingLevel                   consoleLoggingLevel,
-                  LoggingLevel                   fileLoggingLevel );
+                   const std::string&             strLogName,
+                   LoggingLevel                   consoleLoggingLevel,
+                   LoggingLevel                   fileLoggingLevel );
 
 inline void logLinesInfo( const std::string strMsg )
 {
     std::istringstream is( strMsg );
-    while ( is )
+    while( is )
     {
         std::string strLine;
         std::getline( is, strLine );
-        if ( !strLine.empty() )
+        if( !strLine.empty() )
         {
             SPDLOG_INFO( "{}", strLine );
         }
@@ -71,11 +71,11 @@ inline void logLinesInfo( const std::string strMsg )
 inline void logLinesWarn( const std::string& strTaskName, const std::string strMsg )
 {
     std::istringstream is( strMsg );
-    while ( is )
+    while( is )
     {
         std::string strLine;
         std::getline( is, strLine );
-        if ( !strLine.empty() )
+        if( !strLine.empty() )
         {
             SPDLOG_WARN( "{} {}", strTaskName, strLine );
         }
@@ -87,15 +87,15 @@ inline void logLinesSuccessFail( const std::string strMsg, bool bSuccess, const 
 {
     std::istringstream is( strMsg );
     bool               bPrintedTime = false;
-    while ( is )
+    while( is )
     {
         std::string strLine;
         std::getline( is, strLine );
-        if ( !strLine.empty() )
+        if( !strLine.empty() )
         {
-            if ( !bPrintedTime )
+            if( !bPrintedTime )
             {
-                if ( bSuccess )
+                if( bSuccess )
                     SPDLOG_INFO( "{} {}", strLine, firstLinePostFix );
                 else
                     SPDLOG_WARN( "{} {}", strLine, firstLinePostFix );
@@ -103,7 +103,7 @@ inline void logLinesSuccessFail( const std::string strMsg, bool bSuccess, const 
             }
             else
             {
-                if ( bSuccess )
+                if( bSuccess )
                     SPDLOG_INFO( "{}", strLine );
                 else
                     SPDLOG_WARN( "{}", strLine );
@@ -190,39 +190,6 @@ struct formatter< mega::TypeInstance >
 };
 
 template <>
-struct formatter< mega::NetworkAddress >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    auto format( const mega::NetworkAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        return format_to( ctx.out(), "network_address:{}", address );
-    }
-};
-
-template <>
-struct formatter< mega::ProcessAddress >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    auto format( const mega::ProcessAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        return format_to( ctx.out(), "pointer:{}", address );
-    }
-};
-
-template <>
-struct formatter< mega::NetworkOrProcessAddress >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    auto format( const mega::NetworkOrProcessAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        return format_to( ctx.out(), "nop:{}", address.nop_storage );
-    }
-};
-
-template <>
 struct formatter< mega::MP >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
@@ -243,8 +210,8 @@ struct formatter< mega::MPO >
     template < typename FormatContext >
     auto format( const mega::MPO& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "mpo:{}.{}.{}.{}", address.getMachineID(), address.getProcessID(),
-                          address.getOwnerID(), address.isNetwork() );
+        return format_to(
+            ctx.out(), "mpo:{}.{}.{}", address.getMachineID(), address.getProcessID(), address.getOwnerID() );
     }
 };
 
@@ -255,17 +222,13 @@ struct formatter< mega::reference >
     template < typename FormatContext >
     auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        if ( ref.isNetwork() )
+        if( ref.isHeapAddress() )
         {
-            return format_to( ctx.out(), "{}.{}.{}", static_cast< const mega::TypeInstance& >( ref ),
-                              static_cast< const mega::MPO& >( ref ),
-                              static_cast< const mega::NetworkAddress& >( ref ) );
+            return format_to( ctx.out(), "{}.{}.{}", ref.getHeap(), ref.getOwnerID(), ref.getTypeInstance() );
         }
         else
         {
-            return format_to( ctx.out(), "{}.{}.{}", static_cast< const mega::TypeInstance& >( ref ),
-                              static_cast< const mega::MPO& >( ref ),
-                              static_cast< const mega::ProcessAddress& >( ref ) );
+            return format_to( ctx.out(), "{}.{}.{}", ref.getObjectID(), ref.getMPO(), ref.getTypeInstance() );
         }
     }
 };

@@ -17,71 +17,77 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+msg GetAllocator
+{
+    request( mega::TypeID objectTypeID, U64 ppAllocatorPtr );
+    response();
+}
+
 msg GetSaveXMLObject
 {
-    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::TypeID objectTypeID, U64 ppFunction );
     response();
 }
 msg GetLoadXMLObject
 {
-    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::TypeID objectTypeID, U64 ppFunction );
     response();
 }
 msg GetSaveBinObject
 {
-    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::TypeID objectTypeID, U64 ppFunction );
     response();
 }
 msg GetLoadBinObject
 {
-    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::TypeID objectTypeID, U64 ppFunction );
     response();
 }
 
 msg GetCallGetter
 {
-    request( JITModuleName pszUnitName, mega::TypeID objectTypeID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::TypeID objectTypeID, U64 ppFunction );
     response();
 }
 
 msg GetAllocate
 {
-    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
 msg GetRead
 {
-    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
 msg GetWrite
 {
-    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
 msg GetCall
 {
-    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
 msg GetStart
 {
-    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
 msg GetStop
 {
-    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
 msg GetSave
 {
-    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
 msg GetLoad
 {
-    request( JITModuleName pszUnitName, mega::InvocationID invocationID, JITFunctionPtr ppFunction );
+    request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
 

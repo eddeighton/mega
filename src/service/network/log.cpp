@@ -32,9 +32,21 @@
 
 namespace mega::network
 {
+namespace
+{
 static std::vector< std::string > logLevels = { std::string{ "debug" }, std::string{ "trace" }, std::string{ "info" },
                                                 std::string{ "warn" },  std::string{ "error" }, std::string{ "off" } };
-LoggingLevel                      fromStr( const std::string& str )
+
+struct StaticInit
+{
+    StaticInit()
+    {
+        spdlog::init_thread_pool( 8192, 1 ); // 1 backing thread.
+    }
+};
+}
+
+LoggingLevel fromStr( const std::string& str )
 {
     auto iter = std::find( logLevels.begin(), logLevels.end(), str );
     VERIFY_RTE_MSG( iter != logLevels.end(), "Invalid log level" );
@@ -46,6 +58,9 @@ void configureLog( const boost::filesystem::path& logFolderPath,
                                                               LoggingLevel                   consoleLoggingLevel,
                                                               LoggingLevel                   fileLoggingLevel )
 {
+    // hacks!!
+    static StaticInit init;
+
     auto consoleLevel = spdlog::level::warn;
     switch ( consoleLoggingLevel )
     {
@@ -100,7 +115,6 @@ void configureLog( const boost::filesystem::path& logFolderPath,
         console_sink->set_pattern( "%v" );
     }
     
-    spdlog::init_thread_pool(8192, 1); // 1 backing thread.
 
     if ( fileLevel == spdlog::level::off )
     {

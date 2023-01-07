@@ -48,17 +48,12 @@ class JIT_EXPORT JIT
 public:
     JIT( const network::MegastructureInstallation& megastructureInstallation, const network::Project& project );
 
-    network::SizeAlignment getRootSize() const;
-    network::SizeAlignment getSize( TypeID typeID ) const;
+    Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
 
-    void getObjectSharedAlloc( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                               const TypeID& objectTypeID, runtime::SharedCtorFunction* ppFunction );
-    void getObjectSharedDel( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                             const TypeID& objectTypeID, runtime::SharedDtorFunction* ppFunction );
-    void getObjectHeapAlloc( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                             const TypeID& objectTypeID, runtime::HeapCtorFunction* ppFunction );
-    void getObjectHeapDel( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const TypeID& objectTypeID, runtime::HeapDtorFunction* ppFunction );
+    void getObjectCtor( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                        const TypeID& objectTypeID, runtime::CtorFunction* ppFunction );
+    void getObjectDtor( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                        const TypeID& objectTypeID, runtime::DtorFunction* ppFunction );
     void getObjectSaveXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                            const TypeID& objectTypeID, runtime::SaveObjectFunction* ppFunction );
     void getObjectLoadXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
@@ -70,6 +65,7 @@ public:
 
     void getCallGetter( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
 
+    // invocation implementing functions - these perform derivation
     void getAllocate( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                       const InvocationID& invocationID, AllocateFunction* ppFunction );
     void getRead( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
@@ -87,11 +83,11 @@ public:
     void getLoad( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                   const InvocationID& invocationID, LoadFunction* ppFunction );
 
-    //void load( const CodeGenerator::LLVMCompiler& compiler, const reference& root, const Snapshot& snapshot,
-    //           bool bLoadShared, void* pSharedBase );
+    // void load( const CodeGenerator::LLVMCompiler& compiler, const reference& root, const Snapshot& snapshot,
+    //            bool bLoadShared, void* pSharedBase );
 
 private:
-    const Allocator&         getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
+    const Allocator&         getAllocatorRef( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
     JITCompiler::Module::Ptr compile( const std::string& strCode );
 
     const network::MegastructureInstallation m_megastructureInstallation;

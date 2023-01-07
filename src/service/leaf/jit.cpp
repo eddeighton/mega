@@ -21,108 +21,115 @@
 
 #include "llvm_compiler.hpp"
 
-#include "service/network/log.hpp"
-
 namespace mega::service
 {
 
 // network::jit::Impl
-void LeafRequestConversation::GetSaveXMLObject( const network::JITModuleName&  unitName,
-                                                const mega::TypeID&            objectTypeID,
-                                                const network::JITFunctionPtr& jitFunctionPtr,
-                                                boost::asio::yield_context&    yield_ctx )
+
+void LeafRequestConversation::GetAllocator( const mega::TypeID&         objectTypeID,
+                                            const mega::U64&            jitAllocatorPtr,
+                                            boost::asio::yield_context& yield_ctx )
 {
-    m_leaf.m_pJIT->getObjectSaveXML( getLLVMCompiler( yield_ctx ), network::convert( unitName ), objectTypeID,
-                                     network::convert< mega::runtime::SaveObjectFunction >( jitFunctionPtr ) );
-}
-void LeafRequestConversation::GetLoadXMLObject( const network::JITModuleName&  unitName,
-                                                const mega::TypeID&            objectTypeID,
-                                                const network::JITFunctionPtr& jitFunctionPtr,
-                                                boost::asio::yield_context&    yield_ctx )
-{
-    m_leaf.m_pJIT->getObjectLoadXML( getLLVMCompiler( yield_ctx ), network::convert( unitName ), objectTypeID,
-                                     network::convert< mega::runtime::LoadObjectFunction >( jitFunctionPtr ) );
-}
-void LeafRequestConversation::GetSaveBinObject( const network::JITModuleName&  unitName,
-                                                const mega::TypeID&            objectTypeID,
-                                                const network::JITFunctionPtr& jitFunctionPtr,
-                                                boost::asio::yield_context&    yield_ctx )
-{
-    m_leaf.m_pJIT->getObjectSaveBin( getLLVMCompiler( yield_ctx ), network::convert( unitName ), objectTypeID,
-                                     network::convert< mega::runtime::SaveObjectFunction >( jitFunctionPtr ) );
-}
-void LeafRequestConversation::GetLoadBinObject( const network::JITModuleName&  unitName,
-                                                const mega::TypeID&            objectTypeID,
-                                                const network::JITFunctionPtr& jitFunctionPtr,
-                                                boost::asio::yield_context&    yield_ctx )
-{
-    m_leaf.m_pJIT->getObjectLoadBin( getLLVMCompiler( yield_ctx ), network::convert( unitName ), objectTypeID,
-                                     network::convert< mega::runtime::LoadObjectFunction >( jitFunctionPtr ) );
-}
-void LeafRequestConversation::GetCallGetter( const network::JITModuleName&  unitName,
-                                             const mega::TypeID&            objectTypeID,
-                                             const network::JITFunctionPtr& jitFunctionPtr,
-                                             boost::asio::yield_context&    yield_ctx )
-{
-    m_leaf.m_pJIT->getCallGetter( network::convert( unitName ), objectTypeID,
-                                  network::convert< mega::runtime::TypeErasedFunction >( jitFunctionPtr ) );
+    runtime::Allocator::Ptr* pAllocatorPtr = 
+        network::type_reify< runtime::Allocator::Ptr >( jitAllocatorPtr );
+    *pAllocatorPtr
+        = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), objectTypeID );
 }
 
-void LeafRequestConversation::GetAllocate( const network::JITModuleName&  unitName,
-                                           const mega::InvocationID&      invocationID,
-                                           const network::JITFunctionPtr& jitFunctionPtr,
-                                           boost::asio::yield_context&    yield_ctx )
+void LeafRequestConversation::GetSaveXMLObject( const mega::U64&            unitName,
+                                                const mega::TypeID&         objectTypeID,
+                                                const mega::U64&            jitFunctionPtr,
+                                                boost::asio::yield_context& yield_ctx )
 {
-    m_leaf.m_pJIT->getAllocate( getLLVMCompiler( yield_ctx ), network::convert( unitName ), invocationID,
-                                network::convert< mega::runtime::AllocateFunction >( jitFunctionPtr ) );
+    m_leaf.m_pJIT->getObjectSaveXML( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ),
+                                     objectTypeID,
+                                     network::type_reify< mega::runtime::SaveObjectFunction >( jitFunctionPtr ) );
 }
-void LeafRequestConversation::GetRead( const network::JITModuleName& unitName, const mega::InvocationID& invocationID,
-                                       const network::JITFunctionPtr& jitFunctionPtr,
-                                       boost::asio::yield_context&    yield_ctx )
+void LeafRequestConversation::GetLoadXMLObject( const mega::U64&            unitName,
+                                                const mega::TypeID&         objectTypeID,
+                                                const mega::U64&            jitFunctionPtr,
+                                                boost::asio::yield_context& yield_ctx )
 {
-    m_leaf.m_pJIT->getRead( getLLVMCompiler( yield_ctx ), network::convert( unitName ), invocationID,
-                            network::convert< mega::runtime::ReadFunction >( jitFunctionPtr ) );
+    m_leaf.m_pJIT->getObjectLoadXML( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ),
+                                     objectTypeID,
+                                     network::type_reify< mega::runtime::LoadObjectFunction >( jitFunctionPtr ) );
 }
-void LeafRequestConversation::GetWrite( const network::JITModuleName& unitName, const mega::InvocationID& invocationID,
-                                        const network::JITFunctionPtr& jitFunctionPtr,
-                                        boost::asio::yield_context&    yield_ctx )
+void LeafRequestConversation::GetSaveBinObject( const mega::U64&            unitName,
+                                                const mega::TypeID&         objectTypeID,
+                                                const mega::U64&            jitFunctionPtr,
+                                                boost::asio::yield_context& yield_ctx )
 {
-    m_leaf.m_pJIT->getWrite( getLLVMCompiler( yield_ctx ), network::convert( unitName ), invocationID,
-                             network::convert< mega::runtime::WriteFunction >( jitFunctionPtr ) );
+    m_leaf.m_pJIT->getObjectSaveBin( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ),
+                                     objectTypeID,
+                                     network::type_reify< mega::runtime::SaveObjectFunction >( jitFunctionPtr ) );
 }
-void LeafRequestConversation::GetCall( const network::JITModuleName& unitName, const mega::InvocationID& invocationID,
-                                       const network::JITFunctionPtr& jitFunctionPtr,
-                                       boost::asio::yield_context&    yield_ctx )
+void LeafRequestConversation::GetLoadBinObject( const mega::U64&            unitName,
+                                                const mega::TypeID&         objectTypeID,
+                                                const mega::U64&            jitFunctionPtr,
+                                                boost::asio::yield_context& yield_ctx )
 {
-    m_leaf.m_pJIT->getCall( getLLVMCompiler( yield_ctx ), network::convert( unitName ), invocationID,
-                            network::convert< mega::runtime::CallFunction >( jitFunctionPtr ) );
+    m_leaf.m_pJIT->getObjectLoadBin( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ),
+                                     objectTypeID,
+                                     network::type_reify< mega::runtime::LoadObjectFunction >( jitFunctionPtr ) );
 }
-void LeafRequestConversation::GetStart( const network::JITModuleName& unitName, const mega::InvocationID& invocationID,
-                                        const network::JITFunctionPtr& jitFunctionPtr,
-                                        boost::asio::yield_context&    yield_ctx )
+void LeafRequestConversation::GetCallGetter( const mega::U64&            unitName,
+                                             const mega::TypeID&         objectTypeID,
+                                             const mega::U64&            jitFunctionPtr,
+                                             boost::asio::yield_context& yield_ctx )
 {
-    m_leaf.m_pJIT->getStart( getLLVMCompiler( yield_ctx ), network::convert( unitName ), invocationID,
-                             network::convert< mega::runtime::StartFunction >( jitFunctionPtr ) );
+    m_leaf.m_pJIT->getCallGetter( network::type_reify< const char >( unitName ), objectTypeID,
+                                  network::type_reify< mega::runtime::TypeErasedFunction >( jitFunctionPtr ) );
 }
-void LeafRequestConversation::GetStop( const network::JITModuleName& unitName, const mega::InvocationID& invocationID,
-                                       const network::JITFunctionPtr& jitFunctionPtr,
-                                       boost::asio::yield_context&    yield_ctx )
+
+void LeafRequestConversation::GetAllocate( const mega::U64&            unitName,
+                                           const mega::InvocationID&   invocationID,
+                                           const mega::U64&            jitFunctionPtr,
+                                           boost::asio::yield_context& yield_ctx )
 {
-    m_leaf.m_pJIT->getStop( getLLVMCompiler( yield_ctx ), network::convert( unitName ), invocationID,
-                            network::convert< mega::runtime::StopFunction >( jitFunctionPtr ) );
+    m_leaf.m_pJIT->getAllocate( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ),
+                                invocationID,
+                                network::type_reify< mega::runtime::AllocateFunction >( jitFunctionPtr ) );
 }
-void LeafRequestConversation::GetSave( const network::JITModuleName& unitName, const mega::InvocationID& invocationID,
-                                       const network::JITFunctionPtr& jitFunctionPtr,
-                                       boost::asio::yield_context&    yield_ctx )
+void LeafRequestConversation::GetRead( const mega::U64& unitName, const mega::InvocationID& invocationID,
+                                       const mega::U64& jitFunctionPtr, boost::asio::yield_context& yield_ctx )
 {
-    m_leaf.m_pJIT->getSave( getLLVMCompiler( yield_ctx ), network::convert( unitName ), invocationID,
-                            network::convert< mega::runtime::SaveFunction >( jitFunctionPtr ) );
+    m_leaf.m_pJIT->getRead( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ), invocationID,
+                            network::type_reify< mega::runtime::ReadFunction >( jitFunctionPtr ) );
 }
-void LeafRequestConversation::GetLoad( const network::JITModuleName& unitName, const mega::InvocationID& invocationID,
-                                       const network::JITFunctionPtr& jitFunctionPtr,
-                                       boost::asio::yield_context&    yield_ctx )
+void LeafRequestConversation::GetWrite( const mega::U64& unitName, const mega::InvocationID& invocationID,
+                                        const mega::U64& jitFunctionPtr, boost::asio::yield_context& yield_ctx )
 {
-    m_leaf.m_pJIT->getLoad( getLLVMCompiler( yield_ctx ), network::convert( unitName ), invocationID,
-                            network::convert< mega::runtime::LoadFunction >( jitFunctionPtr ) );
+    m_leaf.m_pJIT->getWrite( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ), invocationID,
+                             network::type_reify< mega::runtime::WriteFunction >( jitFunctionPtr ) );
+}
+void LeafRequestConversation::GetCall( const mega::U64& unitName, const mega::InvocationID& invocationID,
+                                       const mega::U64& jitFunctionPtr, boost::asio::yield_context& yield_ctx )
+{
+    m_leaf.m_pJIT->getCall( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ), invocationID,
+                            network::type_reify< mega::runtime::CallFunction >( jitFunctionPtr ) );
+}
+void LeafRequestConversation::GetStart( const mega::U64& unitName, const mega::InvocationID& invocationID,
+                                        const mega::U64& jitFunctionPtr, boost::asio::yield_context& yield_ctx )
+{
+    m_leaf.m_pJIT->getStart( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ), invocationID,
+                             network::type_reify< mega::runtime::StartFunction >( jitFunctionPtr ) );
+}
+void LeafRequestConversation::GetStop( const mega::U64& unitName, const mega::InvocationID& invocationID,
+                                       const mega::U64& jitFunctionPtr, boost::asio::yield_context& yield_ctx )
+{
+    m_leaf.m_pJIT->getStop( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ), invocationID,
+                            network::type_reify< mega::runtime::StopFunction >( jitFunctionPtr ) );
+}
+void LeafRequestConversation::GetSave( const mega::U64& unitName, const mega::InvocationID& invocationID,
+                                       const mega::U64& jitFunctionPtr, boost::asio::yield_context& yield_ctx )
+{
+    m_leaf.m_pJIT->getSave( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ), invocationID,
+                            network::type_reify< mega::runtime::SaveFunction >( jitFunctionPtr ) );
+}
+void LeafRequestConversation::GetLoad( const mega::U64& unitName, const mega::InvocationID& invocationID,
+                                       const mega::U64& jitFunctionPtr, boost::asio::yield_context& yield_ctx )
+{
+    m_leaf.m_pJIT->getLoad( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ), invocationID,
+                            network::type_reify< mega::runtime::LoadFunction >( jitFunctionPtr ) );
 }
 } // namespace mega::service

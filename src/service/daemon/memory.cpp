@@ -20,7 +20,6 @@
 #include "request.hpp"
 
 #include "service/protocol/model/memory.hxx"
-#include "service/protocol/model/address.hxx"
 
 #include "service/protocol/model/daemon_leaf.hxx"
 
@@ -54,27 +53,10 @@ void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
     VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor
                 || pConnection->getTypeOpt().value() == network::Node::Tool );
 
-    // establish shared memory region for MPO
-    /*struct Memory
-    {
-        Daemon&        daemon;
-        MPO            mpo;
-        Memory( Daemon& daemon, const MPO& mpo )
-            : daemon( daemon )
-            , mpo( mpo )
-        {
-            // SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun created root: {}", root );
-        }
-        ~Memory()
-        {
-        }
-    } wrapper( m_daemon, mpo );*/
-
     {
         // network::Server::ConnectionLabelRAII connectionLabel( m_daemon.m_server, mpo, pConnection );
         network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
-        THROW_TODO;
-        sender.RootSimRun( reference{} );
+        sender.RootSimRun( mpo );
     }
 }
 

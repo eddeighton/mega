@@ -47,26 +47,34 @@ JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
     return pModule;
 }
 
-const Allocator& JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler, const mega::TypeID& objectTypeID )
+/*
+network::SizeAlignment JIT::getRootSize() const { return m_database.getObjectSize( ROOT_TYPE_ID ); }
+network::SizeAlignment JIT::getSize( TypeID typeID ) const { return m_database.getObjectSize( typeID ); }
+*/
+Allocator::Ptr JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID )
 {
-    Allocator* pAllocator;
+    Allocator::Ptr pAllocator;
     {
         auto iFind = m_allocators.find( objectTypeID );
-        if ( iFind != m_allocators.end() )
+        if( iFind != m_allocators.end() )
         {
-            pAllocator = iFind->second.get();
+            pAllocator = iFind->second;
         }
         else
         {
             std::ostringstream osModule;
             m_codeGenerator.generate_allocation( compiler, m_database, objectTypeID, osModule );
             JITCompiler::Module::Ptr pModule = compile( osModule.str() );
-            Allocator::Ptr           pAlloc  = std::make_shared< Allocator >( objectTypeID, m_database, pModule );
-            pAllocator                       = pAlloc.get();
-            m_allocators.insert( { objectTypeID, std::move( pAlloc ) } );
+            pAllocator                       = std::make_shared< Allocator >( objectTypeID, m_database, pModule );
+            m_allocators.insert( { objectTypeID, pAllocator } );
         }
     }
-    return *pAllocator;
+    return pAllocator;
+}
+
+const Allocator& JIT::getAllocatorRef( const CodeGenerator::LLVMCompiler& compiler, const mega::TypeID& objectTypeID )
+{
+    return *getAllocator( compiler, objectTypeID );
 }
 
 void JIT::getCallGetter( const char* pszUnitName, mega::TypeID objectTypeID, TypeErasedFunction* ppFunction )
@@ -75,68 +83,50 @@ void JIT::getCallGetter( const char* pszUnitName, mega::TypeID objectTypeID, Typ
     *ppFunction = m_componentManager.getOperationFunctionPtr( objectTypeID );
 }
 
-network::SizeAlignment JIT::getRootSize() const { return m_database.getObjectSize( ROOT_TYPE_ID ); }
-
-network::SizeAlignment JIT::getSize( TypeID typeID ) const { return m_database.getObjectSize( typeID ); }
-
-void JIT::getObjectSharedAlloc( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                                const mega::TypeID& objectTypeID, mega::runtime::SharedCtorFunction* ppFunction )
+void JIT::getObjectCtor( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                         const mega::TypeID& objectTypeID, mega::runtime::CtorFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getSharedCtor();
+    *ppFunction = getAllocatorRef( compiler, objectTypeID ).getCtor();
 }
 
-void JIT::getObjectSharedDel( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                              const mega::TypeID& objectTypeID, mega::runtime::SharedDtorFunction* ppFunction )
+void JIT::getObjectDtor( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                         const mega::TypeID& objectTypeID, mega::runtime::DtorFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getSharedDtor();
-}
-
-void JIT::getObjectHeapAlloc( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                              const mega::TypeID& objectTypeID, mega::runtime::HeapCtorFunction* ppFunction )
-{
-    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getHeapCtor();
-}
-
-void JIT::getObjectHeapDel( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                            const mega::TypeID& objectTypeID, mega::runtime::HeapDtorFunction* ppFunction )
-{
-    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getHeapDtor();
+    *ppFunction = getAllocatorRef( compiler, objectTypeID ).getDtor();
 }
 
 void JIT::getObjectSaveXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                         const mega::TypeID& objectTypeID, mega::runtime::SaveObjectFunction* ppFunction )
+                            const mega::TypeID& objectTypeID, mega::runtime::SaveObjectFunction* ppFunction )
 {
     SPDLOG_TRACE( "JIT: getObjectSaveXML: {} {}", pszUnitName, objectTypeID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getSaveXML();
+    *ppFunction = getAllocatorRef( compiler, objectTypeID ).getSaveXML();
 }
 
 void JIT::getObjectLoadXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                         const mega::TypeID& objectTypeID, mega::runtime::LoadObjectFunction* ppFunction )
+                            const mega::TypeID& objectTypeID, mega::runtime::LoadObjectFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getLoadXML();
+    *ppFunction = getAllocatorRef( compiler, objectTypeID ).getLoadXML();
 }
 
 void JIT::getObjectSaveBin( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                         const mega::TypeID& objectTypeID, mega::runtime::SaveObjectFunction* ppFunction )
+                            const mega::TypeID& objectTypeID, mega::runtime::SaveObjectFunction* ppFunction )
 {
     SPDLOG_TRACE( "JIT: getObjectSaveBin: {} {}", pszUnitName, objectTypeID );
 
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getSaveBin();
+    *ppFunction = getAllocatorRef( compiler, objectTypeID ).getSaveBin();
 }
 
 void JIT::getObjectLoadBin( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                         const mega::TypeID& objectTypeID, mega::runtime::LoadObjectFunction* ppFunction )
+                            const mega::TypeID& objectTypeID, mega::runtime::LoadObjectFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-    *ppFunction = getAllocator( compiler, objectTypeID ).getLoadBin();
+    *ppFunction = getAllocatorRef( compiler, objectTypeID ).getLoadBin();
 }
 
 void JIT::getAllocate( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
@@ -149,7 +139,7 @@ void JIT::getAllocate( const CodeGenerator::LLVMCompiler& compiler, const char* 
     JITCompiler::Module::Ptr pModule;
     {
         auto iFind = m_invocations.find( invocationID );
-        if ( iFind != m_invocations.end() )
+        if( iFind != m_invocations.end() )
         {
             pModule = iFind->second;
         }
@@ -177,7 +167,7 @@ void JIT::getRead( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
     JITCompiler::Module::Ptr pModule;
     {
         auto iFind = m_invocations.find( invocationID );
-        if ( iFind != m_invocations.end() )
+        if( iFind != m_invocations.end() )
         {
             pModule = iFind->second;
         }
@@ -205,7 +195,7 @@ void JIT::getWrite( const CodeGenerator::LLVMCompiler& compiler, const char* psz
     JITCompiler::Module::Ptr pModule;
     {
         auto iFind = m_invocations.find( invocationID );
-        if ( iFind != m_invocations.end() )
+        if( iFind != m_invocations.end() )
         {
             pModule = iFind->second;
         }
@@ -234,7 +224,7 @@ void JIT::getCall( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
     JITCompiler::Module::Ptr pModule;
     {
         auto iFind = m_invocations.find( invocationID );
-        if ( iFind != m_invocations.end() )
+        if( iFind != m_invocations.end() )
         {
             pModule = iFind->second;
         }
@@ -262,7 +252,7 @@ void JIT::getStart( const CodeGenerator::LLVMCompiler& compiler, const char* psz
     JITCompiler::Module::Ptr pModule;
     {
         auto iFind = m_invocations.find( invocationID );
-        if ( iFind != m_invocations.end() )
+        if( iFind != m_invocations.end() )
         {
             pModule = iFind->second;
         }
@@ -290,7 +280,7 @@ void JIT::getStop( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
     JITCompiler::Module::Ptr pModule;
     {
         auto iFind = m_invocations.find( invocationID );
-        if ( iFind != m_invocations.end() )
+        if( iFind != m_invocations.end() )
         {
             pModule = iFind->second;
         }
@@ -318,7 +308,7 @@ void JIT::getSave( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
     JITCompiler::Module::Ptr pModule;
     {
         auto iFind = m_invocations.find( invocationID );
-        if ( iFind != m_invocations.end() )
+        if( iFind != m_invocations.end() )
         {
             pModule = iFind->second;
         }
@@ -346,7 +336,7 @@ void JIT::getLoad( const CodeGenerator::LLVMCompiler& compiler, const char* pszU
     JITCompiler::Module::Ptr pModule;
     {
         auto iFind = m_invocations.find( invocationID );
-        if ( iFind != m_invocations.end() )
+        if( iFind != m_invocations.end() )
         {
             pModule = iFind->second;
         }
@@ -369,7 +359,7 @@ void JIT::load( const CodeGenerator::LLVMCompiler& compiler, const reference& ro
 {
     SPDLOG_TRACE( "JIT: load: {} {}", root, bLoadShared );
 
-    auto pAlloc = getAllocator( compiler, root.type );
+    auto pAlloc = getAllocatorRef( compiler, root.type );
 
     BinLoadArchive archive( snapshot );
     pAlloc.getLoadBin()( root, &archive, bLoadShared );

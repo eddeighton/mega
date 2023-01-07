@@ -17,6 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include <memory>
+
 #include "service/mpo_context.hpp"
 #include "service/cycle.hpp"
 
@@ -24,18 +26,7 @@
 
 #include "mega/bin_archive.hpp"
 
-// 
-// #include <boost/archive/basic_binary_iarchive.hpp>
-// #include <boost/archive/basic_binary_oarchive.hpp>
-// #include <boost/archive/basic_binary_iprimitive.hpp>
-// #include <boost/archive/basic_binary_oprimitive.hpp>
-// 
-// #define BOOST_ARCHIVE_OR_WARCHIVE_DECL
-// #include <boost/archive/impl/basic_binary_iarchive.ipp>
-// #include <boost/archive/impl/basic_binary_oarchive.ipp>
-// #include <boost/archive/impl/basic_binary_iprimitive.ipp>
-// #include <boost/archive/impl/basic_binary_oprimitive.ipp>
-
+#include "service/network/log.hpp"
 
 namespace mega
 {
@@ -86,8 +77,34 @@ MPO MPOContext::constructMPO( MP machineProcess )
 
 reference MPOContext::getRoot( MPO mpo )
 {
-    const NetworkAddress netAddress = getRootAddressRequest().GetRootNetworkAddress( mpo );
-    return { TypeInstance::Root(), mpo, netAddress };
+    if( m_root.getMPO() == mpo )
+    {
+        return m_root;
+    }
+    else
+    {
+        THROW_TODO;
+    }
+}
+
+
+
+void MPOContext::createRoot( const mega::MPO& mpo )
+{
+    m_mpo = mpo;
+
+    m_pMemoryManager.reset();
+    m_pMemoryManager = std::make_unique< runtime::MemoryManager >(
+        mpo,
+        [ jitRequest = getLeafJITRequest() ]( TypeID typeID ) mutable -> runtime::Allocator::Ptr
+        {
+            runtime::Allocator::Ptr pAllocator;
+            jitRequest.GetAllocator( typeID, network::type_erase( &pAllocator ) );
+            return pAllocator;
+        } );
+
+    // instantiate the root
+    m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
 }
 
 // start of jit_interface
@@ -98,6 +115,7 @@ MPO MPOContext::getThisMPO()
 
 void* MPOContext::read( reference& ref )
 {
+    THROW_TODO;
     SPDLOG_TRACE( "MPOContext::read: {}", ref );
 
     /*network::MemoryBaseReference result = getLeafMemoryRequest().Read( m_root, ref, m_lockTracker.isRead( ref ) );
@@ -114,6 +132,7 @@ void* MPOContext::read( reference& ref )
 }
 void* MPOContext::write( reference& ref )
 {
+    THROW_TODO;
     SPDLOG_TRACE( "MPOContext::write {}", ref );
     /*network::MemoryBaseReference result = getLeafMemoryRequest().Write( m_root, ref, m_lockTracker.isWrite( ref ) );
     if( result.snapshotOpt.has_value() )
@@ -129,12 +148,11 @@ void* MPOContext::write( reference& ref )
 }
 reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
 {
-    // return getLeafMemoryRequest().Allocate( context, objectTypeID );
-    return reference{};
+    return m_pMemoryManager->New( objectTypeID );
 }
 reference MPOContext::networkToMachine( const reference& ref )
 {
-    if( ref.isNetwork() )
+    if( ref.isNetworkAddress() )
     {
         return getLeafMemoryRequest().NetworkToMachine( ref );
     }
@@ -147,73 +165,75 @@ void MPOContext::get_save_xml_object( const char* pszUnitName, TypeID objectType
                                       runtime::SaveObjectFunction* ppFunction )
 {
     getLeafJITRequest().GetSaveXMLObject(
-        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
+        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_load_xml_object( const char* pszUnitName, TypeID objectTypeID,
                                       runtime::LoadObjectFunction* ppFunction )
 {
     getLeafJITRequest().GetLoadXMLObject(
-        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
+        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_save_bin_object( const char* pszUnitName, TypeID objectTypeID,
                                       runtime::SaveObjectFunction* ppFunction )
 {
     getLeafJITRequest().GetSaveBinObject(
-        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
+        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_load_bin_object( const char* pszUnitName, TypeID objectTypeID,
                                       runtime::LoadObjectFunction* ppFunction )
 {
     getLeafJITRequest().GetLoadBinObject(
-        network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
+        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
 }
 
 void MPOContext::get_call_getter( const char* pszUnitName, TypeID objectTypeID,
                                   runtime::TypeErasedFunction* ppFunction )
 {
-    getLeafJITRequest().GetCallGetter( network::convert( pszUnitName ), objectTypeID, network::convert( ppFunction ) );
+    getLeafJITRequest().GetCallGetter(
+        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
 }
 
 // start of component_interface
 void MPOContext::get_allocate( const char* pszUnitName, const InvocationID& invocationID,
                                runtime::AllocateFunction* ppFunction )
 {
-    getLeafJITRequest().GetAllocate( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
+    getLeafJITRequest().GetAllocate(
+        network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_read( const char* pszUnitName, const InvocationID& invocationID,
                            runtime::ReadFunction* ppFunction )
 {
-    getLeafJITRequest().GetRead( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
+    getLeafJITRequest().GetRead( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_write( const char* pszUnitName, const InvocationID& invocationID,
                             runtime::WriteFunction* ppFunction )
 {
-    getLeafJITRequest().GetWrite( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
+    getLeafJITRequest().GetWrite( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_call( const char* pszUnitName, const InvocationID& invocationID,
                            runtime::CallFunction* ppFunction )
 {
-    getLeafJITRequest().GetCall( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
+    getLeafJITRequest().GetCall( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_start( const char* pszUnitName, const InvocationID& invocationID,
                             runtime::StartFunction* ppFunction )
 {
-    getLeafJITRequest().GetStart( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
+    getLeafJITRequest().GetStart( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_stop( const char* pszUnitName, const InvocationID& invocationID,
                            runtime::StopFunction* ppFunction )
 {
-    getLeafJITRequest().GetStop( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
+    getLeafJITRequest().GetStop( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_save( const char* pszUnitName, const InvocationID& invocationID,
                            runtime::SaveFunction* ppFunction )
 {
-    getLeafJITRequest().GetSave( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
+    getLeafJITRequest().GetSave( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
 }
 void MPOContext::get_load( const char* pszUnitName, const InvocationID& invocationID,
                            runtime::LoadFunction* ppFunction )
 {
-    getLeafJITRequest().GetLoad( network::convert( pszUnitName ), invocationID, network::convert( ppFunction ) );
+    getLeafJITRequest().GetLoad( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
 }
 
 void MPOContext::cycleComplete()
@@ -230,9 +250,9 @@ void MPOContext::cycleComplete()
         {
             const log::SchedulerRecordRead& record = *m_schedulerIter;
 
-            if( MPO( record.getReference() ) != m_mpo.value() )
+            if( MPO( record.getReference().getMPO() ) != m_mpo.value() )
             {
-                m_schedulingMap[ record.getReference() ].push_back( record );
+                m_schedulingMap[ record.getReference().getMPO() ].push_back( record );
                 SPDLOG_TRACE( "cycleComplete {} found scheduling record", m_mpo.value() );
                 ++expectedSchedulingCount;
             }
@@ -253,7 +273,7 @@ void MPOContext::cycleComplete()
                     SPDLOG_TRACE(
                         "cycleComplete {} found memory record for: {}", m_mpo.value(), record.getReference() );
 
-                    if( MPO( record.getReference() ) != m_mpo.value() )
+                    if( MPO( record.getReference().getMPO() ) != m_mpo.value() )
                     {
                         // only record the last write for each reference
                         auto ib = memoryMap.insert( { record.getReference(), record.getData() } );
@@ -301,7 +321,7 @@ void MPOContext::cycleComplete()
                      i != memoryMap.end();
                      ++i )
                 {
-                    if( MPO( i->first ) != writeLock )
+                    if( MPO( i->first.getMPO() ) != writeLock )
                         break;
                     m_transaction.addMemoryRecord( i->first, log::MemoryTrackType( iTrack ), i->second );
                     ++memoryCount;

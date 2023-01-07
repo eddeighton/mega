@@ -434,7 +434,6 @@ R"TEMPLATE(
                 // clang-format on
                 std::ostringstream os;
                 {
-                    // Note how no events are needed when allocate a new object
                     Variables::Instance* pInstance       = pAllocate->get_instance();
                     Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
 
@@ -1048,9 +1047,9 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
     std::ostringstream osObjectTypeID;
     osObjectTypeID << objectTypeID;
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
-                           { "shared_parts", nlohmann::json::array() },
-                           { "heap_parts", nlohmann::json::array() },
-                           { "has_heap_buffer", false },
+                           { "simple_parts", nlohmann::json::array() },
+                           { "parts", nlohmann::json::array() },
+                           { "has_non_simple_parts", false },
                            { "mangled_data_types", nlohmann::json::array() },
                            { "elements", nlohmann::json::array() } } );
 
@@ -1061,9 +1060,9 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
         using namespace FinalStage;
         for ( auto pBuffer : pObject->get_buffers() )
         {
-            bool bBufferIsShared = false;
+            bool bBufferIsSimple = false;
             if ( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
-                bBufferIsShared = true;
+                bBufferIsSimple = true;
 
             for ( auto pPart : pBuffer->get_parts() )
             {
@@ -1148,14 +1147,14 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                     }
                 }
 
-                if ( bBufferIsShared )
+                data[ "parts" ].push_back( part );
+                if ( bBufferIsSimple )
                 {
-                    data[ "shared_parts" ].push_back( part );
+                    data[ "simple_parts" ].push_back( part );
                 }
                 else
                 {
-                    data[ "heap_parts" ].push_back( part );
-                    data[ "has_heap_buffer" ] = true;
+                    data[ "has_non_simple_parts" ] = true;
                 }
             }
         }

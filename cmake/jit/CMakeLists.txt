@@ -57,6 +57,7 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/component_manager.hpp
     ${MEGA_API_DIR}/jit/code_generator.hpp
     ${MEGA_API_DIR}/jit/allocator.hpp
+    ${MEGA_API_DIR}/jit/object_header.hpp
 )
 
 set( RUNTIME_SOURCE

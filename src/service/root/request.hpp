@@ -30,7 +30,6 @@
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/job.hxx"
-#include "service/protocol/model/address.hxx"
 #include "service/protocol/model/sim.hxx"
 
 namespace mega::service
@@ -45,7 +44,6 @@ class RootRequestConversation : public network::InThreadConversation,
                                 public network::status::Impl,
                                 public network::stash::Impl,
                                 public network::job::Impl,
-                                public network::address::Impl,
                                 public network::sim::Impl
 {
 public:
@@ -133,17 +131,6 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual network::Status GetNetworkStatus( boost::asio::yield_context& yield_ctx ) override;
-
-    // network::address::Impl
-    virtual MPO            GetNetworkAddressMPO( const NetworkAddress&       networkAddress,
-                                                 boost::asio::yield_context& yield_ctx ) override;
-    virtual NetworkAddress GetRootNetworkAddress( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-    virtual NetworkAddress AllocateNetworkAddress( const MPO&                  mpo,
-                                                   const TypeID&               objectTypeID,
-                                                   boost::asio::yield_context& yield_ctx ) override;
-    virtual void           DeAllocateNetworkAddress( const MPO&                  mpo,
-                                                     const NetworkAddress&       networkAddress,
-                                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::stash::Impl
     virtual void           StashClear( boost::asio::yield_context& yield_ctx ) override;

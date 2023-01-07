@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,26 +18,25 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg GetNetworkAddressMPO
-{
-    request( mega::NetworkAddress networkAddress );
-    response( mega::MPO mpo );
-}
+#ifndef GUARD_2023_January_07_header
+#define GUARD_2023_January_07_header
 
-msg GetRootNetworkAddress
-{
-    request( mega::MPO mpo );
-    response( mega::NetworkAddress networkAddress );
-}
+#include "allocator.hpp"
 
-msg AllocateNetworkAddress
-{
-    request( mega::MPO mpo, mega::TypeID objectTypeID );
-    response( mega::NetworkAddress networkAddress );
-}
+#include "mega/reference.hpp"
 
-msg DeAllocateNetworkAddress
+#include <memory>
+
+namespace mega::runtime
 {
-    request( MPO mpo, NetworkAddress networkAddress );
-    response();
-}
+
+struct ObjectHeader
+{
+    reference      m_networkAddress;
+    TimeStamp      m_mrLockCycle;
+    Allocator::Ptr m_pAllocator;
+};
+
+} // namespace mega::runtime
+
+#endif // GUARD_2023_January_07_header

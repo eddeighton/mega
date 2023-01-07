@@ -56,7 +56,6 @@ set( INTERFACE_SCHEMAS
     status
     stash
     memory
-    address
     jit
 )
 

@@ -42,7 +42,7 @@ network::Status ToolRequestConversation::GetStatus( const std::vector< network::
             }
         }
         status.setConversationID( conversations );
-        status.setMPO( m_tool.getRoot() );
+        status.setMPO( m_tool.getMPO() );
         status.setDescription( m_tool.m_strProcessName );
     }
 

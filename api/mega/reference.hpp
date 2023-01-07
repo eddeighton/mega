@@ -21,327 +21,147 @@
 #define MEGA_REFERENCE_18_SEPT_2022
 
 #include "mega/native_types.hpp"
+#include "mega/type_instance.hpp"
+#include "mega/mpo.hpp"
 
 namespace mega
 {
 
-using Instance = U16;
-using SymbolID = I16;
-using TypeID   = I16;
-
-static constexpr const char* ROOT_TYPE_NAME = "Root";
-static constexpr TypeID      ROOT_TYPE_ID   = 1;
-
-struct TypeInstance
+class reference
 {
-    Instance instance = 0U;
-    TypeID   type     = 0;
-
-    TypeInstance() = default;
-    constexpr TypeInstance( Instance instance, TypeID type )
-        : instance( instance )
-        , type( type )
+    struct HeapAddressData
     {
-    }
+        HeapAddress m_heap;    // 8
+        U16         m_padding; // 2
 
-    static constexpr TypeInstance Object( TypeID type ) { return { 0, type }; }
-    static constexpr TypeInstance Root() { return Object( ROOT_TYPE_ID ); }
+        OwnerID      m_ownerID; // 1
+        Flags        m_flags;   // 1
+        TypeInstance m_type;    // 4
+    };
+    static_assert( sizeof( HeapAddressData ) == 16U, "Invalid HeapAddressData Size" );
 
-    constexpr inline bool operator==( const TypeInstance& cmp ) const
+    struct NetworkAddressData
     {
-        return ( instance == cmp.instance ) && ( type == cmp.type );
-    }
-    constexpr inline bool operator!=( const TypeInstance& cmp ) const { return !( *this == cmp ); }
-    constexpr inline bool operator<( const TypeInstance& cmp ) const
-    {
-        return ( instance != cmp.instance ) ? ( instance < cmp.instance )
-               : ( type != cmp.type )       ? ( type < cmp.type )
-                                            : false;
-    }
+        ObjectID  m_objectID;  // 4
+        MachineID m_machineID; // 4
+        ProcessID m_processID; // 2
 
-    constexpr inline bool is_valid() const { return type != 0; }
-};
-static_assert( sizeof( TypeInstance ) == 4U, "Invalid TypeInstance Size" );
+        OwnerID      m_ownerID; // 1
+        Flags        m_flags;   // 1
+        TypeInstance m_type;    // 4
+    };
+    static_assert( sizeof( NetworkAddressData ) == 16U, "Invalid NetworkAddressData Size" );
 
-using AddressStorage                         = U64; // recheck numeric_limits if change
-static constexpr AddressStorage NULL_ADDRESS = 0x0;
-
-using ProcessAddress = I64;
-using NetworkAddress = U64;
-
-inline ProcessAddress toProcessAddress( void* pMemoryBase, void* pMemory )
-{
-    return reinterpret_cast< char* >( pMemory ) - reinterpret_cast< char* >( pMemoryBase );
-}
-inline void* fromProcessAddress( void* pMemoryBase, ProcessAddress processAddress )
-{
-    return reinterpret_cast< char* >( pMemoryBase ) + processAddress;
-}
-
-struct NetworkOrProcessAddress
-{
     union
     {
-        AddressStorage nop_storage;
-        ProcessAddress pointer;
-        NetworkAddress network;
+        HeapAddressData    prc;
+        NetworkAddressData net;
     };
-    constexpr NetworkOrProcessAddress()
-        : nop_storage( NULL_ADDRESS )
-    {
-    }
-    constexpr NetworkOrProcessAddress( NetworkAddress networkAddress )
-        : network( networkAddress )
-    {
-    }
-    constexpr NetworkOrProcessAddress( ProcessAddress processAddress )
-        : pointer( processAddress )
-    {
-    }
-
-    constexpr inline bool is_null() const { return nop_storage == NULL_ADDRESS; }
-    constexpr inline      operator AddressStorage() const { return nop_storage; }
-    constexpr inline bool operator==( const NetworkOrProcessAddress& cmp ) const
-    {
-        return ( nop_storage == cmp.nop_storage );
-    }
-    constexpr inline bool operator!=( const NetworkOrProcessAddress& cmp ) const { return !( *this == cmp ); }
-    constexpr inline bool operator<( const NetworkOrProcessAddress& cmp ) const
-    {
-        return nop_storage < cmp.nop_storage;
-    }
-};
-static_assert( sizeof( NetworkOrProcessAddress ) == 8U, "Invalid NetworkAddress Size" );
-
-using ProcessID = U8;
-using OwnerID   = U16;
-
-// #define MAX_MACHINES_BITS 20
-#define MAX_MACHINES_BITS 21
-#define MAX_PROCESS_PER_MACHINE_BITS 3
-#define MAX_OWNER_PER_PROCESS_BITS 7
-#define MAX_MPO_REMAINING_BITS 1
-static_assert( MAX_MACHINES_BITS + MAX_PROCESS_PER_MACHINE_BITS + MAX_OWNER_PER_PROCESS_BITS + MAX_MPO_REMAINING_BITS
-               == 32, "invalid size for mpo bits" );
-
-// NOTE: MAX_PROCESS_PER_MACHINE used by the shared memory header to set size of heap memory pointer array - ( so keep
-// small )
-static constexpr U64 MAX_MACHINES            = 2 << ( MAX_MACHINES_BITS - 1 );            // 2097152
-static constexpr U64 MAX_PROCESS_PER_MACHINE = 2 << ( MAX_PROCESS_PER_MACHINE_BITS - 1 ); // 8
-static constexpr U64 MAX_OWNER_PER_PROCESS   = 2 << ( MAX_OWNER_PER_PROCESS_BITS - 1 );   // 128
-
-static constexpr U64 TOTAL_MACHINES  = MAX_MACHINES;                                                   // 2,097,152
-static constexpr U64 TOTAL_PROCESSES = MAX_MACHINES * MAX_PROCESS_PER_MACHINE;                         // 16,777,216
-static constexpr U64 TOTAL_OWNERS    = MAX_MACHINES * MAX_PROCESS_PER_MACHINE * MAX_OWNER_PER_PROCESS; // 2,147,483,648
-
-class MachineID
-{
-public:
-    using StorageType = U32;
-
-    MachineID() = default;
-
-    constexpr MachineID( U32 value )
-        : m_storage{ value }
-    {
-    }
-
-    constexpr MachineID( const MachineID& cpy )            = default;
-    constexpr MachineID& operator=( const MachineID& cpy ) = default;
-
-    struct Hash
-    {
-        inline U64 operator()( const MachineID& machineID ) const noexcept { return machineID.m_storage; }
-    };
-
-    constexpr operator StorageType() const { return m_storage; }
-
-    constexpr inline bool operator==( const MachineID& cmp ) const { return m_storage == cmp.m_storage; }
-    constexpr inline bool operator!=( const MachineID& cmp ) const { return !( *this == cmp ); }
-    constexpr inline bool operator<( const MachineID& cmp ) const { return m_storage < cmp.m_storage; }
-
-private:
-    StorageType m_storage;
-};
-
-class MPO;
-class MP
-{
-    using MPStorageType = U32;
-
-    // clang-format off
-    struct MachineProcess
-    {
-        U32 process : MAX_PROCESS_PER_MACHINE_BITS, 
-            machine : MAX_MACHINES_BITS,
-            reserved: 8; // NOTE: generally ensure ALL bits get initialised or mp_storage comparison can fail
-    };
-    // clang-format on
-    static_assert( sizeof( MachineProcess ) == 4U, "Invalid MachineProcess Size" );
-    static_assert( sizeof( MachineProcess ) == sizeof( MPStorageType ), "Invalid MachineProcess Size" );
 
 public:
-    union
-    {
-        MachineProcess mp;
-        MPStorageType  mp_storage;
-    };
-
     struct Hash
     {
-        inline U64 operator()( const MP& mp ) const noexcept { return mp.mp_storage; }
+        inline U64 operator()( const reference& ref ) const noexcept
+        {
+            if( ref.isHeapAddress() )
+                return reinterpret_cast< U64 >( ref.getHeap() );
+            else
+                return ref.getObjectID() + ( (U64)ref.getMachineID() << 4 );
+        }
     };
 
-    MP() = default;
+    constexpr inline HeapAddress getHeap() const { return prc.m_heap; }
 
-    constexpr MP( MachineID machineID, ProcessID processID )
-        : mp{ processID, static_cast< MachineID::StorageType >( machineID ), 0U }
+    constexpr inline ObjectID  getObjectID() const { return net.m_objectID; }
+    constexpr inline MPO       getMPO() const { return MPO{ net.m_machineID, net.m_processID, net.m_ownerID }; }
+    constexpr inline MP        getMP() const { return MP{ net.m_machineID, net.m_processID }; }
+    constexpr inline MachineID getMachineID() const { return net.m_machineID; }
+    constexpr inline ProcessID getProcessID() const { return net.m_processID; }
+
+    constexpr inline OwnerID      getOwnerID() const { return prc.m_ownerID; }
+    constexpr inline Flags        getFlags() const { return prc.m_flags; }
+    constexpr inline TypeID       getType() const { return prc.m_type.type; }
+    constexpr inline Instance     getInstance() const { return prc.m_type.instance; }
+    constexpr inline TypeInstance getTypeInstance() const { return prc.m_type; }
+
+    constexpr reference()
+        : prc{ NULL_ADDRESS, 0, OwnerID{}, HEAP_ADDRESS, TypeInstance{ 0, 0 } }
     {
     }
 
-    constexpr MP( const MP& mpo )
-        : mp{ mpo.getProcessID(), mpo.getMachineID(), 0U }
+    constexpr reference( TypeInstance typeInstance, OwnerID owner, HeapAddress heap )
+        : prc{ heap, 0, owner, HEAP_ADDRESS, typeInstance }
+    {
+    }
+    constexpr reference( TypeInstance typeInstance, MPO mpo, ObjectID object )
+        : net{ object, mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID(), HEAP_ADDRESS, typeInstance }
     {
     }
 
-    constexpr MP( const MPO& mpo );
+    constexpr inline bool isHeapAddress() const { return prc.m_flags == HEAP_ADDRESS; }
+    constexpr inline bool isNetworkAddress() const { return prc.m_flags == NETWORK_ADDRESS; }
 
-    constexpr inline MachineID getMachineID() const { return mp.machine; }
-    constexpr inline ProcessID getProcessID() const { return mp.process; }
-
-    constexpr inline bool operator==( const MP& cmp ) const { return mp_storage == cmp.mp_storage; }
-    constexpr inline bool operator!=( const MP& cmp ) const { return !( *this == cmp ); }
-    constexpr inline bool operator<( const MP& cmp ) const { return mp_storage < cmp.mp_storage; }
-
-    constexpr void setMachineID( MachineID machineID ) { mp.machine = static_cast<MachineID::StorageType>(machineID); }
-    constexpr void setProcessID( ProcessID processID ) { mp.process = processID; }
-};
-static_assert( sizeof( MP ) == 4U, "Invalid MP Size" );
-
-class MPO
-{
-    using MPOStorageType = U32;
-
-    enum AddressType : MPOStorageType
+    constexpr inline bool is_valid() const
     {
-        NETWORK_ADDRESS = 0,
-        MACHINE_ADDRESS = 1
-    };
-
-    // clang-format off
-    struct MachineProcessOwner
-    {
-        MPOStorageType  owner           : MAX_OWNER_PER_PROCESS_BITS,
-                        process         : MAX_PROCESS_PER_MACHINE_BITS,
-                        machine         : MAX_MACHINES_BITS,
-                        address_type    : MAX_MPO_REMAINING_BITS;
-    };
-    // clang-format on
-    static_assert( sizeof( MachineProcessOwner ) == 4U, "Invalid MachineProcessOwner Size" );
-    static_assert( sizeof( MachineProcessOwner ) == sizeof( MPOStorageType ), "Invalid MachineProcessOwner Size" );
-
-public:
-    union
-    {
-        MachineProcessOwner mpo;
-        MPOStorageType      mpo_storage;
-    };
-
-    struct Hash
-    {
-        inline U64 operator()( const MPO& mpo ) const noexcept { return mpo.mpo_storage; }
-    };
-
-    MPO() = default;
-    constexpr MPO( MachineID machineID, ProcessID processID, OwnerID ownerID )
-        : mpo{ ownerID, processID, static_cast<MachineID::StorageType>(machineID), MACHINE_ADDRESS }
-    {
-    }
-    constexpr MPO( MP mp, OwnerID ownerID )
-        : mpo{ ownerID, mp.getProcessID(), mp.getMachineID(), MACHINE_ADDRESS }
-    {
-    }
-
-    constexpr inline MachineID getMachineID() const { return mpo.machine; }
-    constexpr inline ProcessID getProcessID() const { return mpo.process; }
-    constexpr inline OwnerID   getOwnerID() const { return mpo.owner; }
-    constexpr inline bool      isNetwork() const { return mpo.address_type == NETWORK_ADDRESS; }
-    constexpr inline bool      isMachine() const { return mpo.address_type == MACHINE_ADDRESS; }
-
-    constexpr inline bool operator==( const MPO& cmp ) const { return mpo_storage == cmp.mpo_storage; }
-    constexpr inline bool operator!=( const MPO& cmp ) const { return !( *this == cmp ); }
-    constexpr inline bool operator<( const MPO& cmp ) const { return mpo_storage < cmp.mpo_storage; }
-
-    constexpr void setMachineID( MachineID machineID ) { mpo.machine = static_cast<MachineID::StorageType>(machineID); }
-    constexpr void setProcessID( ProcessID processID ) { mpo.process = processID; }
-    constexpr void setExecutorID( OwnerID ownerID ) { mpo.owner = ownerID; }
-    constexpr void setIsNetwork() { mpo.address_type = NETWORK_ADDRESS; }
-    constexpr void setIsMachine() { mpo.address_type = MACHINE_ADDRESS; }
-};
-
-constexpr MP::MP( const MPO& mpo )
-    : mp{ mpo.getProcessID(), mpo.getMachineID(), 0U }
-{
-}
-
-static_assert( sizeof( MPO ) == 4U, "Invalid MPO Size" );
-
-struct reference : TypeInstance, MPO, NetworkOrProcessAddress
-{
-    inline reference() = default;
-
-    constexpr reference( TypeInstance typeInstance, MPO mpo, ProcessAddress process )
-        : TypeInstance( typeInstance )
-        , MPO( mpo )
-        , NetworkOrProcessAddress( process )
-    {
-        setIsMachine();
-    }
-    constexpr reference( TypeInstance typeInstance, MPO mpo, NetworkAddress networkAddress )
-        : TypeInstance( typeInstance )
-        , MPO( mpo )
-        , NetworkOrProcessAddress( networkAddress )
-    {
-        setIsNetwork();
+        if( isHeapAddress() )
+            return ( prc.m_heap != NULL_ADDRESS ) && prc.m_type.is_valid();
+        else
+            return net.m_type.is_valid();
     }
 
     constexpr inline bool operator==( const reference& cmp ) const
     {
-        if( isMachine() == cmp.isMachine() )
+        // clang-format off
+        if( isNetworkAddress() && cmp.isNetworkAddress() )
         {
-            return TypeInstance::operator==( cmp ) && MPO::operator==( cmp )
-                   && NetworkOrProcessAddress::            operator==( cmp );
+            return prc.m_heap == cmp.prc.m_heap &&
+                   prc.m_ownerID == cmp.prc.m_ownerID &&
+                   prc.m_flags == cmp.prc.m_flags &&
+                   prc.m_type == cmp.prc.m_type;
+        }
+        else if( !isNetworkAddress() && !cmp.isNetworkAddress() )
+        {
+            return net.m_objectID == cmp.net.m_objectID &&
+                   net.m_machineID == cmp.net.m_machineID &&
+                   net.m_processID == cmp.net.m_processID &&
+                   net.m_ownerID == cmp.net.m_ownerID &&
+                   net.m_flags == cmp.net.m_flags &&
+                   net.m_type == cmp.net.m_type;
         }
         else
         {
             return false;
         }
+        // clang-format on
     }
     constexpr inline bool operator!=( const reference& cmp ) const { return !( *this == cmp ); }
+
     constexpr inline bool operator<( const reference& cmp ) const
     {
-        if( isMachine() == cmp.isMachine() )
+        // clang-format off
+        if( isNetworkAddress() && cmp.isNetworkAddress() )
         {
-            return TypeInstance::operator!=( cmp )              ? TypeInstance::operator<( cmp )
-                   : MPO::operator!=( cmp )                     ? MPO::operator<( cmp )
-                   : NetworkOrProcessAddress::operator!=( cmp ) ? NetworkOrProcessAddress::operator<( cmp )
-                                                                : false;
+            return ( prc.m_heap     != cmp.prc.m_heap  )    ?   ( prc.m_heap        < cmp.prc.m_heap        ) : 
+                   ( prc.m_ownerID  != cmp.prc.m_ownerID )  ?   ( prc.m_ownerID     < cmp.prc.m_ownerID     ) : 
+                   ( prc.m_flags    != cmp.prc.m_flags )    ?   ( prc.m_flags       < cmp.prc.m_flags       ) : 
+                                                                ( prc.m_type        < cmp.prc.m_type        ) ;
+        }
+        else if( !isNetworkAddress() && !cmp.isNetworkAddress() )
+        {
+            return ( net.m_objectID   != cmp.net.m_objectID )   ? ( net.m_objectID   < cmp.net.m_objectID ) :
+                   ( net.m_machineID  != cmp.net.m_machineID )  ? ( net.m_machineID  < cmp.net.m_machineID ) :
+                   ( net.m_processID  != cmp.net.m_processID )  ? ( net.m_processID  < cmp.net.m_processID ) :
+                   ( net.m_ownerID    != cmp.net.m_ownerID )    ? ( net.m_ownerID    < cmp.net.m_ownerID ) :
+                   ( net.m_flags      != cmp.net.m_flags )      ? ( net.m_flags      < cmp.net.m_flags ) :
+                                                                  ( net.m_type       < cmp.net.m_type );
         }
         else
         {
-            return isMachine();
+            return false;
         }
-    }
-
-    constexpr inline bool is_valid() const
-    {
-        if( isNetwork() )
-            return !NetworkOrProcessAddress::is_null();
-        else
-            return TypeInstance::is_valid();
+        // clang-format on
     }
 };
-static_assert( sizeof( reference ) == 16U, "Invalid reference Size" );
 
 } // namespace mega
 

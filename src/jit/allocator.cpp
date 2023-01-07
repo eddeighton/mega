@@ -38,38 +38,26 @@ Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompil
 
     {
         std::ostringstream os;
-        symbolPrefix( "shared_ctor_", objectTypeID, os );
-        os << "PvS_";
-        m_pSharedCtor = pModule->get< SharedCtorFunction >( os.str() );
+        symbolPrefix( "ctor_", objectTypeID, os );
+        os << "Pv";
+        m_pCtor = pModule->get< CtorFunction >( os.str() );
     }
     {
         std::ostringstream os;
-        symbolPrefix( "shared_dtor_", objectTypeID, os );
+        symbolPrefix( "dtor_", objectTypeID, os );
         os << "Pv";
-        m_pSharedDtor = pModule->get< SharedDtorFunction >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "heap_ctor_", objectTypeID, os );
-        os << "Pv";
-        m_pHeapCtor = pModule->get< HeapCtorFunction >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "heap_dtor_", objectTypeID, os );
-        os << "Pv";
-        m_pHeapDtor = pModule->get< HeapDtorFunction >( os.str() );
+        m_pDtor = pModule->get< DtorFunction >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "save_object_bin_", objectTypeID, os );
-        os << "N4mega9referenceEPvb";
+        os << "N4mega9referenceEPv";
         m_pSaveBin = pModule->get< SaveObjectFunction >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "load_object_bin_", objectTypeID, os );
-        os << "N4mega9referenceEPvb";
+        os << "N4mega9referenceEPv";
         m_pLoadBin = pModule->get< LoadObjectFunction >( os.str() );
     }
     {

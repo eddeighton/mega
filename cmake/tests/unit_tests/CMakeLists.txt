@@ -51,7 +51,6 @@ set( MEGA_UNIT_TESTS
 	${MEGA_UNIT_TESTS_DIR}/reference_tests.cpp
 	#${MEGA_UNIT_TESTS_DIR}/scheduler_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/log_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/mpo_manager_tests.cpp
 	)
 
 enable_testing()

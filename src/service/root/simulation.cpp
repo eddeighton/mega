@@ -20,9 +20,8 @@
 #include "simulation.hpp"
 
 #include "root.hpp"
-#include "mpo_manager.hpp"
 
-#include "service/protocol/model/memory.hxx"
+#include "service/protocol/model/sim.hxx"
 
 namespace mega::service
 {
@@ -44,25 +43,12 @@ network::Message RootSimulation::dispatchRequest( const network::Message& msg, b
     return RootRequestConversation::dispatchRequest( msg, yield_ctx );
 }
 
-struct Deferred
-{
-    MPOManager&      mpoManager;
-    const mega::MPO& mpo;
-    Deferred( MPOManager& mpoManager, const mega::MPO& mpo )
-        : mpoManager( mpoManager )
-        , mpo( mpo )
-    {
-    }
-    ~Deferred() { mpoManager.release( mpo ); }
-};
-
 void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootSimulation::SimStart leaf mp: {}", m_leafMP );
     mega::MPO simulationMPO = m_root.m_mpoManager.newOwner( m_leafMP, getID() );
     SPDLOG_TRACE( "RootSimulation::SimStart: {}", simulationMPO );
 
-    Deferred defered( m_root.m_mpoManager, simulationMPO );
     {
         auto stackCon = getOriginatingEndPointID();
         VERIFY_RTE( stackCon.has_value() );
@@ -78,11 +64,11 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
         }
 
         // notify to release
-        for ( auto& [ id, pCon ] : m_root.m_server.getConnections() )
+        /*for ( auto& [ id, pCon ] : m_root.m_server.getConnections() )
         {
             network::memory::Request_Sender sender( *this, *pCon, yield_ctx );
             sender.MPODestroyed( simulationMPO, false );
-        }
+        }*/
     }
 }
 

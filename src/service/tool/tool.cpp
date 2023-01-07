@@ -31,7 +31,6 @@
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"
-#include "service/protocol/model/address.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
@@ -77,13 +76,6 @@ public:
     network::mpo::Request_Sender getMPRequest( boost::asio::yield_context& yield_ctx )
     {
         return network::mpo::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
-    }
-    virtual network::address::Request_Encoder getRootAddressRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { [ leafRequest = getToolRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
-                 { return leafRequest.ToolRoot( msg ); },
-                 getID() };
     }
     virtual network::enrole::Request_Encoder getRootEnroleRequest() override
     {
@@ -137,22 +129,22 @@ public:
         m_tool.runComplete();
     }
 
-    virtual void RootSimRun( const mega::reference& root,
+    virtual void RootSimRun( const MPO& mpo,
                              boost::asio::yield_context& yield_ctx ) override
     {
-        initSharedMemory( root );
+        createRoot( mpo );
 
-        m_tool.setRoot( root );
+        m_tool.setMPO( mpo );
 
         setMPOContext( this );
         m_pYieldContext = &yield_ctx;
 
         // note the runtime will query getThisMPO while creating the root
-        SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", root );
+        SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", mpo );
         {
             m_functor( yield_ctx );
         }
-        SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", root );
+        SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", mpo );
 
         m_pYieldContext = nullptr;
         resetMPOContext();

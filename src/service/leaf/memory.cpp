@@ -64,20 +64,20 @@ void LeafRequestConversation::replicateSnapshot( const Snapshot& snapshot, const
     //auto memoryAccessor
     //    = [ &daemonMemoryRequest ]( MPO mpo ) -> std::string { return daemonMemoryRequest.Acquire( mpo ); };
 
-    ASSERT( machineRef.isMachine() );
+    ASSERT( machineRef.isHeapAddress() );
     VERIFY_RTE_MSG( snapshot.getTimeStamp() > 0, "Snapshot failed" );
 
     // construct all heap buffers in snapshot objects
-    const reference mpoRoot( TypeInstance::Root(), machineRef, machineRef.pointer );
+    const reference mpoRoot( TypeInstance::Root(), machineRef.getOwnerID(), machineRef.getHeap() );
     bool            bFoundRoot = false;
     for( const auto& objectIndex : snapshot.getObjects() )
     {
         reference object = snapshot.getTable().indexToRef( objectIndex );
-        ASSERT_MSG( object.isMachine(), "Snapshot object not machine ref" );
+        ASSERT_MSG( object.isHeapAddress(), "Snapshot object not machine ref" );
         THROW_TODO;
         //auto sharedMem = m_leaf.getSharedMemory().getOrConstruct( compiler, jit, object, memoryAccessor );
         // m_leaf.getHeapMemory().ensureAllocated( compiler, jit, sharedMem );
-        if( object.type == ROOT_TYPE_ID )
+        if( object.getType() == ROOT_TYPE_ID )
         {
             bFoundRoot = true;
         }
@@ -89,7 +89,8 @@ network::MemoryBaseReference LeafRequestConversation::Read( const MPO& requestin
                                                             const bool&                 bExistingReadLock,
                                                             boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::Read {} {} {}", requestingMPO, ref, bExistingReadLock );
+    THROW_TODO;
+    /*SPDLOG_TRACE( "LeafRequestConversation::Read {} {} {}", requestingMPO, ref, bExistingReadLock );
 
     auto& jit      = m_leaf.getJIT();
     auto  compiler = getLLVMCompiler( yield_ctx );
@@ -141,14 +142,15 @@ network::MemoryBaseReference LeafRequestConversation::Read( const MPO& requestin
         //     result.snapshotOpt = snapshot;
         // }
     }
-    return result;
+    return result;*/
 }
 
 network::MemoryBaseReference LeafRequestConversation::Write( const MPO& requestingMPO, const reference& ref,
                                                              const bool&                 bExistingWriteLock,
                                                              boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::Write {} {} {}", requestingMPO, ref, bExistingWriteLock );
+    THROW_TODO;
+    /*SPDLOG_TRACE( "LeafRequestConversation::Write {} {} {}", requestingMPO, ref, bExistingWriteLock );
 
     auto& jit      = m_leaf.getJIT();
     auto  compiler = getLLVMCompiler( yield_ctx );
@@ -200,7 +202,7 @@ network::MemoryBaseReference LeafRequestConversation::Write( const MPO& requesti
         //     result.snapshotOpt = snapshot;
         // }
     }
-    return result;
+    return result;*/
 }
 
 void LeafRequestConversation::Release( const MPO&                  requestingMPO,
@@ -208,7 +210,8 @@ void LeafRequestConversation::Release( const MPO&                  requestingMPO
                                        const network::Transaction& transaction,
                                        boost::asio::yield_context& yield_ctx )
 {
-    if( targetMPO.getMachineID() == m_leaf.m_mp.getMachineID() )
+    THROW_TODO;
+    /*if( targetMPO.getMachineID() == m_leaf.m_mp.getMachineID() )
     {
         if( targetMPO.getProcessID() == m_leaf.m_mp.getProcessID() )
         {
@@ -225,12 +228,13 @@ void LeafRequestConversation::Release( const MPO&                  requestingMPO
     {
         network::sim::Request_Sender rq( *this, m_leaf.getDaemonSender(), yield_ctx );
         rq.SimLockRelease( requestingMPO, targetMPO, transaction );
-    }
+    }*/
 }
 
 reference LeafRequestConversation::NetworkToMachine( const reference& ref, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::NetworkToMachine {}", ref );
+    THROW_TODO;
+    /*SPDLOG_TRACE( "LeafRequestConversation::NetworkToMachine {}", ref );
 
     if( ref.isNetwork() )
     {
@@ -241,7 +245,7 @@ reference LeafRequestConversation::NetworkToMachine( const reference& ref, boost
     else
     {
         return ref;
-    }
+    }*/
 }
 
 Snapshot LeafRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,

@@ -71,15 +71,15 @@ network::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType 
         {
             if ( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
             {
-                VERIFY_RTE( sizeAlignment.shared_size == 0U );
-                sizeAlignment.shared_size      = pBuffer->get_size();
-                sizeAlignment.shared_alignment = pBuffer->get_alignment();
+                VERIFY_RTE( sizeAlignment.size == 0U );
+                sizeAlignment.size      = pBuffer->get_size();
+                sizeAlignment.alignment = pBuffer->get_alignment();
             }
             else if ( db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
             {
-                VERIFY_RTE( sizeAlignment.heap_size == 0U );
-                sizeAlignment.heap_size      = pBuffer->get_size();
-                sizeAlignment.heap_alignment = pBuffer->get_alignment();
+                VERIFY_RTE( sizeAlignment.size == 0U );
+                sizeAlignment.size      = pBuffer->get_size();
+                sizeAlignment.alignment = pBuffer->get_alignment();
             }
             else
             {
