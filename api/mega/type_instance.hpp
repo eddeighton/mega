@@ -22,15 +22,15 @@
 #define GUARD_2023_January_07_type_instance
 
 #include "mega/native_types.hpp"
+#include "mega/type_id.hpp"
+
 namespace mega
 {
 
 using Instance = U16;
 using SymbolID = I16;
-using TypeID   = I16;
 
 static constexpr const char* ROOT_TYPE_NAME = "Root";
-static constexpr TypeID      ROOT_TYPE_ID   = 1;
 
 struct TypeInstance
 {

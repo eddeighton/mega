@@ -367,6 +367,8 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
         for( const auto& [ ref, str ] : transaction.getMemoryRecords( log::MemoryTrackType( i ) ) )
         {
             SPDLOG_INFO( "SIM::SimLockRelease Got memory record: {} {}", ref, str );
+
+            
         }
     }
 }
