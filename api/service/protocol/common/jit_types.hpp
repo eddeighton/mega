@@ -41,26 +41,6 @@ inline U64 type_erase( TFunctionPtrType* ppFunction )
     return reinterpret_cast< U64 >( ppFunction );
 }
 
-struct MemoryBaseReference
-{
-    reference                 machineRef;
-    std::optional< Snapshot > snapshotOpt;
-
-    MemoryBaseReference() = default;
-    MemoryBaseReference( const reference& machine )
-        : machineRef( machine )
-    {
-    }
-    
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        THROW_RTE( "Unexpected serialisation of MemoryBaseReference" );
-        archive& machineRef;
-        archive& snapshotOpt;
-    }
-};
-
 struct SizeAlignment
 {
     U64 size      = 0U;

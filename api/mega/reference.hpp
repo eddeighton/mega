@@ -24,8 +24,31 @@
 #include "mega/type_instance.hpp"
 #include "mega/mpo.hpp"
 
+#ifdef DEBUG
+#define ASSERT_IS_HEAP                                            \
+    do                                                            \
+    {                                                             \
+        if( !this->isHeapAddress() )                              \
+            throw "Mega Reference Error.  Expected heap address"; \
+    } while( ( void )0, 0 )
+
+#else // DEBUG
+#define ASSERT_IS_HEAP
+#endif
+
 namespace mega
 {
+
+using ObjectID  = U32;
+using Flags     = U8;
+
+constexpr static const ObjectID ROOT_OBJECT_ID = 0;
+
+enum FlagsType : U8 // check reference_io if change
+{
+    HEAP_ADDRESS    = 0,
+    NETWORK_ADDRESS = 1
+};
 
 class reference
 {
@@ -63,21 +86,32 @@ public:
     {
         inline U64 operator()( const reference& ref ) const noexcept
         {
-            if( ref.isHeapAddress() )
-                return reinterpret_cast< U64 >( ref.getHeap() );
-            else
-                return ref.getObjectID() + ( (U64)ref.getMachineID() << 4 );
+            // always hash using network address
+            const reference& net = ref.getNetworkAddress();
+            return net.getObjectID() + ( ( U64 )net.getMachineID() << 4 );
         }
     };
 
-    constexpr inline HeapAddress getHeap() const { return prc.m_heap; }
+    // heap only
+    constexpr inline HeapAddress getHeap() const
+    {
+        ASSERT_IS_HEAP;
+        return prc.m_heap;
+    }
 
-    constexpr inline ObjectID  getObjectID() const { return net.m_objectID; }
-    constexpr inline MPO       getMPO() const { return MPO{ net.m_machineID, net.m_processID, net.m_ownerID }; }
-    constexpr inline MP        getMP() const { return MP{ net.m_machineID, net.m_processID }; }
-    constexpr inline MachineID getMachineID() const { return net.m_machineID; }
-    constexpr inline ProcessID getProcessID() const { return net.m_processID; }
+    // heap only accessors - that use ObjectHeader
+    inline const reference& getNetworkAddress() const;
+    inline TimeStamp getLockCycle() const;
+    inline void setLockCycle( TimeStamp lockCycle );
 
+    // network - can access via heap header
+    constexpr inline ObjectID  getObjectID() const;
+    constexpr inline MPO       getMPO() const;
+    constexpr inline MP        getMP() const;
+    constexpr inline MachineID getMachineID() const;
+    constexpr inline ProcessID getProcessID() const;
+
+    // common to both
     constexpr inline OwnerID      getOwnerID() const { return prc.m_ownerID; }
     constexpr inline Flags        getFlags() const { return prc.m_flags; }
     constexpr inline TypeID       getType() const { return prc.m_type.type; }
@@ -85,7 +119,7 @@ public:
     constexpr inline TypeInstance getTypeInstance() const { return prc.m_type; }
 
     constexpr reference()
-        : prc{ NULL_ADDRESS, 0, OwnerID{}, HEAP_ADDRESS, TypeInstance{ 0, 0 } }
+        : net{ 0U, 0U, 0U, 0U, NETWORK_ADDRESS, TypeInstance{ 0, 0 } }
     {
     }
 
@@ -94,7 +128,7 @@ public:
     {
     }
     constexpr reference( TypeInstance typeInstance, MPO mpo, ObjectID object )
-        : net{ object, mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID(), HEAP_ADDRESS, typeInstance }
+        : net{ object, mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID(), NETWORK_ADDRESS, typeInstance }
     {
     }
 
@@ -103,10 +137,7 @@ public:
 
     constexpr inline bool is_valid() const
     {
-        if( isHeapAddress() )
-            return ( prc.m_heap != NULL_ADDRESS ) && prc.m_type.is_valid();
-        else
-            return net.m_type.is_valid();
+        return net.m_type.is_valid();
     }
 
     constexpr inline bool operator==( const reference& cmp ) const
@@ -139,29 +170,114 @@ public:
     constexpr inline bool operator<( const reference& cmp ) const
     {
         // clang-format off
-        if( isNetworkAddress() && cmp.isNetworkAddress() )
+        if( isHeapAddress() && cmp.isHeapAddress() )
         {
             return ( prc.m_heap     != cmp.prc.m_heap  )    ?   ( prc.m_heap        < cmp.prc.m_heap        ) : 
                    ( prc.m_ownerID  != cmp.prc.m_ownerID )  ?   ( prc.m_ownerID     < cmp.prc.m_ownerID     ) : 
                    ( prc.m_flags    != cmp.prc.m_flags )    ?   ( prc.m_flags       < cmp.prc.m_flags       ) : 
                                                                 ( prc.m_type        < cmp.prc.m_type        ) ;
         }
-        else if( !isNetworkAddress() && !cmp.isNetworkAddress() )
+        else if( isNetworkAddress() && cmp.isNetworkAddress() )
         {
-            return ( net.m_objectID   != cmp.net.m_objectID )   ? ( net.m_objectID   < cmp.net.m_objectID ) :
-                   ( net.m_machineID  != cmp.net.m_machineID )  ? ( net.m_machineID  < cmp.net.m_machineID ) :
+            // important to compare MPO first - since this is used by some algorithms 
+            return ( net.m_machineID  != cmp.net.m_machineID )  ? ( net.m_machineID  < cmp.net.m_machineID ) :
                    ( net.m_processID  != cmp.net.m_processID )  ? ( net.m_processID  < cmp.net.m_processID ) :
                    ( net.m_ownerID    != cmp.net.m_ownerID )    ? ( net.m_ownerID    < cmp.net.m_ownerID ) :
+                   ( net.m_objectID   != cmp.net.m_objectID )   ? ( net.m_objectID   < cmp.net.m_objectID ) :
                    ( net.m_flags      != cmp.net.m_flags )      ? ( net.m_flags      < cmp.net.m_flags ) :
                                                                   ( net.m_type       < cmp.net.m_type );
         }
         else
         {
-            return false;
+            return isHeapAddress();
         }
         // clang-format on
     }
 };
+
+struct ObjectHeaderBase
+{
+    reference m_networkAddress;
+    TimeStamp m_lockCycle;
+};
+
+inline TimeStamp reference::getLockCycle() const
+{
+    return reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_lockCycle;
+}
+
+inline void reference::setLockCycle( TimeStamp lockCycle )
+{
+    reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_lockCycle = lockCycle;
+}
+
+inline const reference& reference::getNetworkAddress() const
+{
+    if( isNetworkAddress() )
+    {
+        return *this;
+    }
+    else
+    {
+        return reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_networkAddress;
+    }
+}
+
+constexpr inline ObjectID reference::getObjectID() const
+{
+    if( isNetworkAddress() )
+    {
+        return net.m_objectID;
+    }
+    else
+    {
+        return getNetworkAddress().getObjectID();
+    }
+}
+constexpr inline MPO reference::getMPO() const
+{
+    if( isNetworkAddress() )
+    {
+        return MPO{ net.m_machineID, net.m_processID, net.m_ownerID };
+    }
+    else
+    {
+        return getNetworkAddress().getMPO();
+    }
+}
+constexpr inline MP reference::getMP() const
+{
+    if( isNetworkAddress() )
+    {
+        return MP{ net.m_machineID, net.m_processID };
+    }
+    else
+    {
+        return getNetworkAddress().getMP();
+    }
+}
+constexpr inline MachineID reference::getMachineID() const
+{
+    if( isNetworkAddress() )
+    {
+        return net.m_machineID;
+    }
+    else
+    {
+        return getNetworkAddress().getMachineID();
+    }
+}
+constexpr inline ProcessID reference::getProcessID() const
+{
+    if( isNetworkAddress() )
+    {
+        return net.m_processID;
+    }
+    else
+    {
+        return getNetworkAddress().getProcessID();
+    }
+}
 
 } // namespace mega
 

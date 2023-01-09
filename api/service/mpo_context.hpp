@@ -98,12 +98,13 @@ public:
 #undef FUNCTION_ARG_2
 #undef FUNCTION_ARG_3
 
-    virtual network::mpo::Request_Sender     getMPRequest()           = 0;
-    virtual network::enrole::Request_Encoder getRootEnroleRequest()   = 0;
-    virtual network::stash::Request_Encoder  getRootStashRequest()    = 0;
-    virtual network::memory::Request_Encoder getDaemonMemoryRequest() = 0;
-    virtual network::memory::Request_Sender  getLeafMemoryRequest()   = 0;
-    virtual network::jit::Request_Sender     getLeafJITRequest()      = 0;
+    virtual network::mpo::Request_Sender     getMPRequest()              = 0;
+    virtual network::enrole::Request_Encoder getRootEnroleRequest()      = 0;
+    virtual network::stash::Request_Encoder  getRootStashRequest()       = 0;
+    virtual network::memory::Request_Encoder getDaemonMemoryRequest()    = 0;
+    virtual network::sim::Request_Encoder    getMPOSimRequest( MPO mpo ) = 0;
+    virtual network::memory::Request_Sender  getLeafMemoryRequest()      = 0;
+    virtual network::jit::Request_Sender     getLeafJITRequest()         = 0;
 
     void createRoot( const mega::MPO& mpo );
 
@@ -135,8 +136,6 @@ public:
     virtual log::Storage& getLog() override { return m_log; }
 
 private:
-    void loadSnapshot( const reference& ref, const Snapshot& snapshot );
-
     // define temp data structures as members to reuse memory and avoid allocations
     using ShedulingMap   = std::map< MPO, std::vector< log::SchedulerRecordRead > >;
     using MemoryMap      = std::map< reference, std::string_view >;

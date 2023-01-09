@@ -98,6 +98,13 @@ public:
                  { return leafRequest.ToolDaemon( msg ); },
                  getID() };
     }
+    virtual network::sim::Request_Encoder getMPOSimRequest( MPO mpo ) override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
+                 { return leafRequest.MPOUp( msg, mpo ); },
+                 getID() };
+    }
     virtual network::memory::Request_Sender getLeafMemoryRequest() override
     {
         VERIFY_RTE( m_pYieldContext );
@@ -129,11 +136,8 @@ public:
         m_tool.runComplete();
     }
 
-    virtual void RootSimRun( const MPO& mpo,
-                             boost::asio::yield_context& yield_ctx ) override
+    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        createRoot( mpo );
-
         m_tool.setMPO( mpo );
 
         setMPOContext( this );
@@ -142,6 +146,7 @@ public:
         // note the runtime will query getThisMPO while creating the root
         SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", mpo );
         {
+            createRoot( mpo );
             m_functor( yield_ctx );
         }
         SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", mpo );
@@ -180,7 +185,10 @@ void Tool::shutdown()
 {
     // TODO ?
 }
-void Tool::runComplete() { m_receiverChannel.stop(); }
+void Tool::runComplete()
+{
+    m_receiverChannel.stop();
+}
 
 network::ConversationBase::Ptr Tool::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                        const network::Message&      msg )
@@ -200,7 +208,7 @@ void Tool::run( Tool::Functor& function )
                 function( yield_ctx );
                 exceptionResult = 0;
             }
-            catch ( std::exception& ex )
+            catch( std::exception& ex )
             {
                 exceptionResult = std::current_exception();
             }
@@ -215,7 +223,7 @@ void Tool::run( Tool::Functor& function )
     // run until m_tool.runComplete();
     m_io_context.run();
 
-    if ( exceptionResult->index() == 1 )
+    if( exceptionResult->index() == 1 )
         std::rethrow_exception( std::get< std::exception_ptr >( exceptionResult.value() ) );
 }
 

@@ -22,30 +22,59 @@
 
 #include "mega/reference.hpp"
 
-#include <set>
+#include "common/assert_verify.hpp"
+
+#include <map>
 
 namespace mega::service
 {
 class LockTracker
 {
-    using MPOSet = std::set< MPO >;
+    using MPOLockMap = std::map< MPO, TimeStamp >;
 
 public:
-    bool isRead( MPO mpo ) const { return ( m_reads.count( mpo ) != 0 ) || isWrite( mpo ); }
-    bool isWrite( MPO mpo ) const { return m_writes.count( mpo ) != 0; }
+    TimeStamp isRead( MPO mpo ) const 
+    { 
+        auto iFind = m_reads.find( mpo );
+        if( iFind != m_reads.end() )
+        {
+            return iFind->second;
+        }
+        return isWrite( mpo );
+    }
 
-    void onRead( MPO mpo )
+    TimeStamp isWrite( MPO mpo ) const 
+    { 
+        auto iFind = m_writes.find( mpo );
+        if( iFind != m_writes.end() )
+        {
+            return iFind->second;
+        }
+        return 0U;
+    }
+
+    TimeStamp getLockCycle( MPO mpo )
+    {
+        TimeStamp writeTime = isWrite( mpo );
+        if( writeTime == 0U )
+        {
+            writeTime = isRead( mpo );
+        }
+        return writeTime;
+    }
+
+    void onRead( MPO mpo, TimeStamp lockCycle )
     {
         if( !isWrite( mpo ) )
         {
-            m_reads.insert( mpo );
+            m_reads.insert( { mpo, lockCycle } );
         }
     }
 
-    void onWrite( MPO mpo )
+    void onWrite( MPO mpo, TimeStamp lockCycle )
     {
         m_reads.erase( mpo );
-        m_writes.insert( mpo );
+        m_writes.insert( { mpo, lockCycle } );
     }
 
     void onRelease( MPO mpo )
@@ -54,8 +83,8 @@ public:
         m_writes.erase( mpo );
     }
 
-    const MPOSet& getReads() const { return m_reads; }
-    const MPOSet& getWrites() const { return m_writes; }
+    const MPOLockMap& getReads() const { return m_reads; }
+    const MPOLockMap& getWrites() const { return m_writes; }
 
     void reset()
     {
@@ -64,7 +93,7 @@ public:
     }
 
 private:
-    MPOSet m_reads, m_writes;
+    MPOLockMap m_reads, m_writes;
 };
 } // namespace mega::service
 

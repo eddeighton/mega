@@ -54,16 +54,19 @@ public:
     virtual void             run( boost::asio::yield_context& yield_ctx ) override;
 
     // MPOContext
-    virtual network::mpo::Request_Sender      getMPRequest() override;
-    virtual network::enrole::Request_Encoder  getRootEnroleRequest() override;
-    virtual network::stash::Request_Encoder   getRootStashRequest() override;
-    virtual network::memory::Request_Encoder  getDaemonMemoryRequest() override;
-    virtual network::memory::Request_Sender   getLeafMemoryRequest() override;
-    virtual network::jit::Request_Sender      getLeafJITRequest() override;
+    virtual network::mpo::Request_Sender     getMPRequest() override;
+    virtual network::enrole::Request_Encoder getRootEnroleRequest() override;
+    virtual network::stash::Request_Encoder  getRootStashRequest() override;
+    virtual network::memory::Request_Encoder getDaemonMemoryRequest() override;
+    virtual network::sim::Request_Encoder    getMPOSimRequest( MPO mpo ) override;
+    virtual network::memory::Request_Sender  getLeafMemoryRequest() override;
+    virtual network::jit::Request_Sender     getLeafJITRequest() override;
 
     // network::sim::Impl
-    virtual Snapshot SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& ) override;
-    virtual Snapshot SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& ) override;
+    virtual Snapshot SimObjectSnapshot( const reference& object, boost::asio::yield_context& ) override;
+    virtual Snapshot SimSnapshot( const MPO&, boost::asio::yield_context& ) override;
+    virtual TimeStamp SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& ) override;
+    virtual TimeStamp SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& ) override;
     virtual void
     SimLockRelease( const MPO&, const MPO&, const network::Transaction&, boost::asio::yield_context& ) override;
     virtual void SimClock( boost::asio::yield_context& ) override;
@@ -71,8 +74,7 @@ public:
     virtual void SimDestroy( boost::asio::yield_context& ) override;
 
     // network::leaf_exe::Impl
-    virtual void RootSimRun( const MPO& mpo,
-                             boost::asio::yield_context&  yield_ctx ) override;
+    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
@@ -86,8 +88,6 @@ public:
     virtual F32       dt() override { return m_clock.dt(); }
 
 private:
-    Snapshot makeSnapshot( const MPO& requestingMPO, const MPO& targetMPO );
-
     void issueClock();
     void clock();
     void runSimulation( boost::asio::yield_context& yield_ctx );

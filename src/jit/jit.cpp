@@ -47,10 +47,6 @@ JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
     return pModule;
 }
 
-/*
-network::SizeAlignment JIT::getRootSize() const { return m_database.getObjectSize( ROOT_TYPE_ID ); }
-network::SizeAlignment JIT::getSize( TypeID typeID ) const { return m_database.getObjectSize( typeID ); }
-*/
 Allocator::Ptr JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID )
 {
     Allocator::Ptr pAllocator;

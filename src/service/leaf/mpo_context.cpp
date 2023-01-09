@@ -23,6 +23,7 @@
 #include "service/cycle.hpp"
 
 #include "common/assert_verify.hpp"
+#include "common/unreachable.hpp"
 
 #include "mega/bin_archive.hpp"
 
@@ -34,36 +35,6 @@ namespace mega
 Cycle::~Cycle()
 {
     getMPOContext()->cycleComplete();
-}
-
-void MPOContext::loadSnapshot( const reference& ref, const Snapshot& snapshot )
-{
-    SPDLOG_TRACE( "MPOContext::loadSnapshot: {}", ref );
-    static mega::runtime::LoadObjectFunction pLoadFunction = nullptr;
-
-    if( m_root.getMachineID() == ref.getMachineID() )
-    {
-        if( m_root.getProcessID() != ref.getProcessID() )
-        {
-            if( !pLoadFunction )
-            {
-                get_load_bin_object( "Simulation", ROOT_TYPE_ID, &pLoadFunction );
-            }
-
-            BinLoadArchive archive( snapshot );
-            pLoadFunction( m_root, &archive, false );
-        }
-    }
-    else
-    {
-        if( !pLoadFunction )
-        {
-            get_load_bin_object( "Simulation", ROOT_TYPE_ID, &pLoadFunction );
-        }
-
-        BinLoadArchive archive( snapshot );
-        pLoadFunction( m_root, &archive, true );
-    }
 }
 
 MPO MPOContext::constructMPO( MP machineProcess )
@@ -83,11 +54,9 @@ reference MPOContext::getRoot( MPO mpo )
     }
     else
     {
-        THROW_TODO;
+        return reference{ TypeInstance{ 0U, ROOT_TYPE_ID }, mpo, ROOT_OBJECT_ID };
     }
 }
-
-
 
 void MPOContext::createRoot( const mega::MPO& mpo )
 {
@@ -113,53 +82,63 @@ MPO MPOContext::getThisMPO()
     return m_mpo.value();
 }
 
-void* MPOContext::read( reference& ref )
+// networkToHeap ONLY called when MPO matches
+void MPOContext::networkToHeap( reference& ref )
 {
-    THROW_TODO;
-    SPDLOG_TRACE( "MPOContext::read: {}", ref );
+    SPDLOG_TRACE( "MPOContext::networkToHeap: {}", ref );
 
-    /*network::MemoryBaseReference result = getLeafMemoryRequest().Read( m_root, ref, m_lockTracker.isRead( ref ) );
-    if( result.snapshotOpt.has_value() )
+    VERIFY_RTE_MSG( ref.getMPO() == getThisMPO(), "networkToHeap used when not matching MPO" );
+
+    if( ref.isNetworkAddress() )
     {
-        SPDLOG_TRACE( "MPOContext::read loading snapshot: {}", ref );
-        loadSnapshot( ref, result.snapshotOpt.value() );
+        ASSERT( m_pMemoryManager );
+        ref = m_pMemoryManager->networkToHeap( ref );
     }
-
-    ref = result.machineRef;
-    m_lockTracker.onRead( ref );
-    return result.getBaseAddress();*/
-    return nullptr;
 }
-void* MPOContext::write( reference& ref )
+
+void MPOContext::readLock( reference& ref )
 {
-    THROW_TODO;
-    SPDLOG_TRACE( "MPOContext::write {}", ref );
-    /*network::MemoryBaseReference result = getLeafMemoryRequest().Write( m_root, ref, m_lockTracker.isWrite( ref ) );
-    if( result.snapshotOpt.has_value() )
+    SPDLOG_TRACE( "MPOContext::readLock: {}", ref );
+
+    VERIFY_RTE_MSG( ref.getMPO() != getThisMPO(), "readLock used when matching MPO" );
+
+    // acquire lock if required and get lock cycle
+    TimeStamp lockCycle = m_lockTracker.isRead( ref.getMPO() );
+    if( lockCycle == 0U )
     {
-        SPDLOG_TRACE( "MPOContext::write loading snapshot: {}", ref );
-        loadSnapshot( ref, result.snapshotOpt.value() );
+        lockCycle = getMPOSimRequest( ref.getMPO() ).SimLockRead( getThisMPO(), ref.getMPO() );
+        VERIFY_RTE_MSG( lockCycle != 0U, "Failed to acquire write lock on: " << ref );
+        m_lockTracker.onRead( ref.getMPO(), lockCycle );
     }
 
-    ref = result.machineRef;
-    m_lockTracker.onWrite( ref );
-    return result.getBaseAddress();*/
-    return nullptr;
+    if( ref.isNetworkAddress() || ( ref.getLockCycle() != lockCycle ) )
+    {
+        ref = getLeafMemoryRequest().NetworkToHeap( ref, lockCycle );
+    }
+}
+
+void MPOContext::writeLock( reference& ref )
+{
+    SPDLOG_TRACE( "MPOContext::writeLock: {}", ref );
+
+    VERIFY_RTE_MSG( ref.getMPO() != getThisMPO(), "writeLock used when matching MPO" );
+
+    TimeStamp lockCycle = m_lockTracker.isWrite( ref.getMPO() );
+    if( lockCycle == 0U )
+    {
+        lockCycle = getMPOSimRequest( ref.getMPO() ).SimLockWrite( getThisMPO(), ref.getMPO() );
+        VERIFY_RTE_MSG( lockCycle != 0U, "Failed to acquire write lock on: " << ref );
+        m_lockTracker.onWrite( ref.getMPO(), lockCycle );
+    }
+
+    if( ref.isNetworkAddress() || ( ref.getLockCycle() != lockCycle ) )
+    {
+        ref = getLeafMemoryRequest().NetworkToHeap( ref, lockCycle );
+    }
 }
 reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
 {
     return m_pMemoryManager->New( objectTypeID );
-}
-reference MPOContext::networkToMachine( const reference& ref )
-{
-    if( ref.isNetworkAddress() )
-    {
-        return getLeafMemoryRequest().NetworkToMachine( ref );
-    }
-    else
-    {
-        return ref;
-    }
 }
 void MPOContext::get_save_xml_object( const char* pszUnitName, TypeID objectTypeID,
                                       runtime::SaveObjectFunction* ppFunction )
@@ -240,7 +219,10 @@ void MPOContext::cycleComplete()
 {
     m_log.cycle();
 
-    // SPDLOG_TRACE( "cycleComplete {}", m_mpo.value() );
+    if( m_log.getTimeStamp() % 60 == 0 )
+    {
+        SPDLOG_TRACE( "cycleComplete {} {}", m_mpo.value(), m_log.getTimeStamp() );
+    }
 
     U32 expectedSchedulingCount = 0;
     U32 expectedMemoryCount     = 0;
@@ -250,7 +232,7 @@ void MPOContext::cycleComplete()
         {
             const log::SchedulerRecordRead& record = *m_schedulerIter;
 
-            if( MPO( record.getReference().getMPO() ) != m_mpo.value() )
+            if( record.getReference().getMPO() != m_mpo.value() )
             {
                 m_schedulingMap[ record.getReference().getMPO() ].push_back( record );
                 SPDLOG_TRACE( "cycleComplete {} found scheduling record", m_mpo.value() );
@@ -273,7 +255,7 @@ void MPOContext::cycleComplete()
                     SPDLOG_TRACE(
                         "cycleComplete {} found memory record for: {}", m_mpo.value(), record.getReference() );
 
-                    if( MPO( record.getReference().getMPO() ) != m_mpo.value() )
+                    if( record.getReference().getMPO() != m_mpo.value() )
                     {
                         // only record the last write for each reference
                         auto ib = memoryMap.insert( { record.getReference(), record.getData() } );
@@ -294,16 +276,17 @@ void MPOContext::cycleComplete()
     U32 schedulingCount = 0;
     U32 memoryCount     = 0;
     {
-        for( MPO writeLock : m_lockTracker.getWrites() )
+        for( const auto& [ writeLockMPO, lockCycle ] : m_lockTracker.getWrites() )
         {
+            SPDLOG_TRACE( "cycleComplete: write lock: {} with cycle: {}", writeLockMPO, lockCycle );
             m_transaction.reset(); // reuse memory
 
             {
-                auto iFind = m_schedulingMap.find( writeLock );
+                auto iFind = m_schedulingMap.find( writeLockMPO );
                 if( iFind != m_schedulingMap.end() )
                 {
                     SPDLOG_TRACE( "cycleComplete: {} sending: {} scheduling records to: {}", m_mpo.value(),
-                                  iFind->second.size(), writeLock );
+                                  iFind->second.size(), writeLockMPO );
                     m_transaction.addSchedulingRecords( iFind->second );
                     schedulingCount += iFind->second.size();
                 }
@@ -316,22 +299,23 @@ void MPOContext::cycleComplete()
 
                 MemoryMap& memoryMap = m_memoryMaps[ iTrack ];
                 int        iCounter  = 0;
-                for( auto i = memoryMap.lower_bound(
-                         reference( TypeInstance{}, writeLock, std::numeric_limits< U64 >::min() ) );
+                // here lower_bound relies on the reference::operator< comparing the MPO first in lexigraphical
+                // comparison
+                for( auto i = memoryMap.lower_bound( reference( TypeInstance{}, writeLockMPO, 0U ) );
                      i != memoryMap.end();
                      ++i )
                 {
-                    if( MPO( i->first.getMPO() ) != writeLock )
+                    if( i->first.getMPO() != writeLockMPO )
                         break;
                     m_transaction.addMemoryRecord( i->first, log::MemoryTrackType( iTrack ), i->second );
                     ++memoryCount;
                     ++iCounter;
                 }
-                SPDLOG_TRACE( "cycleComplete: {} sending: {} track: {} memory records to: {}", m_mpo.value(), iCounter,
-                              iTrack, writeLock );
+                SPDLOG_TRACE( "cycleComplete: {} sending: {} memory record to track: {} for target: {}", m_mpo.value(), iCounter,
+                              iTrack, writeLockMPO );
             }
 
-            getLeafMemoryRequest().Release( m_mpo.value(), writeLock, m_transaction );
+            getMPOSimRequest( writeLockMPO ).SimLockRelease( m_mpo.value(), writeLockMPO, m_transaction );
         }
     }
 
@@ -346,11 +330,11 @@ void MPOContext::cycleComplete()
                      schedulingCount, m_mpo.value() );
     }
 
-    for( MPO readLock : m_lockTracker.getReads() )
+    for( const auto& [ readLockMPO, lockCycle ] : m_lockTracker.getReads() )
     {
-        SPDLOG_TRACE( "cycleComplete: {} sending: read release to: {}", m_mpo.value(), readLock );
+        SPDLOG_TRACE( "cycleComplete: {} sending: read release to: {}", m_mpo.value(), readLockMPO );
         m_transaction.reset();
-        getLeafMemoryRequest().Release( m_mpo.value(), readLock, m_transaction );
+        getMPOSimRequest( readLockMPO ).SimLockRelease( m_mpo.value(), readLockMPO, m_transaction );
     }
 
     m_lockTracker.reset();

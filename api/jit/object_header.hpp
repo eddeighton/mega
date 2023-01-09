@@ -30,10 +30,8 @@
 namespace mega::runtime
 {
 
-struct ObjectHeader
+struct ObjectHeader : public mega::ObjectHeaderBase
 {
-    reference      m_networkAddress;
-    TimeStamp      m_mrLockCycle;
     Allocator::Ptr m_pAllocator;
 };
 

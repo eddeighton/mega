@@ -22,23 +22,9 @@ msg MPODestroyed
     request( MPO mpo, bool bDeleteShared );
     response();
 }
-msg Read
+
+msg NetworkToHeap
 {
-    request( MPO requestingMPO, reference ref, bool bExistingReadLock );
-    response( MemoryBaseReference ref );
-}
-msg Write
-{
-    request( MPO requestingMPO, reference ref, bool bExistingWriteLock );
-    response( MemoryBaseReference ref );
-}
-msg Release
-{
-    request( MPO requestingMPO, MPO targetMPO, network::Transaction transaction );
-    response();
-}
-msg NetworkToMachine
-{
-    request( reference ref );
+    request( reference ref, TimeStamp lockCycle );
     response( reference ref );
 }

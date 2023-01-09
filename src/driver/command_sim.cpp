@@ -106,8 +106,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strRead );
             mega::service::Terminal terminal;
-            const mega::Snapshot    resultSnapshot = terminal.SimRead( sourceMPO, targetMPO );
-            std::cout << resultSnapshot.getTimeStamp() << std::endl;
+            const mega::TimeStamp lockCycle = terminal.SimRead( sourceMPO, targetMPO );
+            std::cout << lockCycle << std::endl;
         }
         else if ( !strWrite.empty() )
         {
@@ -115,8 +115,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strWrite );
             mega::service::Terminal terminal;
-            const mega::Snapshot    resultSnapshot = terminal.SimWrite( sourceMPO, targetMPO );
-            std::cout << resultSnapshot.getTimeStamp() << std::endl;
+            const mega::TimeStamp lockCycle = terminal.SimWrite( sourceMPO, targetMPO );
+            std::cout << lockCycle << std::endl;
         }
         else if ( !strRelease.empty() )
         {

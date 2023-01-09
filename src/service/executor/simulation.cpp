@@ -46,9 +46,6 @@ Simulation::Simulation( Executor& executor, const network::ConversationID& conve
 
 network::Message Simulation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
-    network::Message result;
-    if( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
 }
 
@@ -74,6 +71,12 @@ network::memory::Request_Encoder Simulation::getDaemonMemoryRequest()
 {
     return { [ leafRequest = getLeafRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
              { return leafRequest.ExeDaemon( msg ); },
+             getID() };
+}
+network::sim::Request_Encoder Simulation::getMPOSimRequest( MPO mpo )
+{
+    return { [ leafRequest = getMPRequest(), mpo ]( const network::Message& msg ) mutable
+             { return leafRequest.MPOUp( msg, mpo ); },
              getID() };
 }
 network::memory::Request_Sender Simulation::getLeafMemoryRequest()
@@ -300,93 +303,70 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     request.SimStart();
 }
 
-Snapshot Simulation::makeSnapshot( const MPO& requestingMPO, const MPO& targetMPO )
+Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yield_context& yield_ctx) 
 {
-    SPDLOG_TRACE( "SIM::makeSnapshot: {} {} {}", requestingMPO, targetMPO, m_root );
-    static mega::runtime::SaveObjectFunction pSaveFunction = nullptr;
+    SPDLOG_TRACE( "SIM::SimSnapshot: {}", object );
+    VERIFY_RTE_MSG( object.getMPO() == getThisMPO(), "SimObjectSnapshot called on bad mpo: " << object );
 
+    mega::runtime::SaveObjectFunction pSaveFunction = nullptr;
+    get_save_bin_object( "Simulation", object.getType(), &pSaveFunction );
 
-    {
-        THROW_TODO;
-        // const mega::MPO thisMPO = getThisMPO();
-        // void* pSharedBase = base();
-        // void* pSharedBuffer = mega::fromProcessAddress( pSharedBase, m_root.pointer );
-        // void* pHeap = getHeap( thisMPO.getProcessID(), getSharedHeader( pSharedBuffer ) );
-        // SPDLOG_TRACE( "makeSnapshot {} {} {} {}", thisMPO, pSharedBase, pSharedBuffer, pHeap );
-    }
+    reference heapAddress = m_pMemoryManager->networkToHeap( object );
 
-    if( requestingMPO.getMachineID() == targetMPO.getMachineID() )
-    {
-        if( requestingMPO.getProcessID() == targetMPO.getProcessID() )
-        {
-            // same process - just return timestamp
-            return Snapshot{ m_log.getTimeStamp() };
-        }
-        else
-        {
-            if( !pSaveFunction )
-            {
-                get_save_bin_object( "Simulation", ROOT_TYPE_ID, &pSaveFunction );
-            }
+    BinSaveArchive archive;
+    archive.beginObject( heapAddress.getNetworkAddress() );
+    pSaveFunction( heapAddress.getHeap(), &archive );
 
-            BinSaveArchive archive;
-            pSaveFunction( m_root, &archive, false );
-
-            return archive.makeSnapshot( m_log.getTimeStamp() );
-        }
-    }
-    else
-    {
-        if( !pSaveFunction )
-        {
-            get_save_bin_object( "Simulation", ROOT_TYPE_ID, &pSaveFunction );
-        }
-
-        BinSaveArchive archive;
-        pSaveFunction( m_root, &archive, true );
-
-        return archive.makeSnapshot( m_log.getTimeStamp() );
-    }
+    return archive.makeSnapshot( m_log.getTimeStamp() );
 }
 
-Snapshot Simulation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
-                                  boost::asio::yield_context& yield_ctx )
+Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx)
+{
+    SPDLOG_TRACE( "SIM::SimLockRead: {} {}", mpo );
+    THROW_TODO;
+    return Snapshot{ m_log.getTimeStamp() };
+}
+
+TimeStamp Simulation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+                                   boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimLockRead: {} {}", requestingMPO, targetMPO );
     if( m_stateMachine.isTerminating() )
     {
-        return { 0U };
+        return 0U;
     }
-    return makeSnapshot( requestingMPO, targetMPO );
+    return m_log.getTimeStamp();
 }
 
-Snapshot Simulation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
-                                   boost::asio::yield_context& yield_ctx )
+TimeStamp Simulation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+                                    boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimLockWrite: {} {}", requestingMPO, targetMPO );
     if( m_stateMachine.isTerminating() )
     {
-        return { 0U };
+        return 0U;
     }
-    return makeSnapshot( requestingMPO, targetMPO );
+    return m_log.getTimeStamp();
 }
 
-void Simulation::SimLockRelease( const MPO&,
-                                 const MPO&,
+void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
                                  const network::Transaction& transaction,
                                  boost::asio::yield_context& )
 {
-    for( const auto& shedulingRecord : transaction.getSchedulingRecords() )
+    SPDLOG_TRACE( "SIM::SimLockRelease: {} {}", requestingMPO, targetMPO );
+    for( const auto& [ ref, type ] : transaction.getSchedulingRecords() )
     {
         SPDLOG_INFO(
-            "SIM::SimLockRelease Got scheduling record: {} {}", shedulingRecord.first, shedulingRecord.second );
+            "SIM::SimLockRelease Got scheduling record: {} {}", ref, type );
     }
 
     for( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
     {
-        for( const auto& memoryRecord : transaction.getMemoryRecords( log::MemoryTrackType( i ) ) )
+        if( i == log::toInt( log::TrackType::Log ) || i == log::toInt( log::TrackType::Scheduler ) )
+            continue;
+        for( const auto& [ ref, str ] : transaction.getMemoryRecords( log::MemoryTrackType( i ) ) )
         {
-            SPDLOG_INFO( "SIM::SimLockRelease Got memory record: {} {}", memoryRecord.first, memoryRecord.second );
+            SPDLOG_INFO( "SIM::SimLockRelease Got memory record: {} {}", ref, str );
         }
     }
 }
@@ -402,8 +382,7 @@ MPO Simulation::SimCreate( boost::asio::yield_context& )
     return m_mpo.value();
 }
 
-void Simulation::RootSimRun( const MPO& mpo,
-                             boost::asio::yield_context&  yield_ctx )
+void Simulation::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     // now start running the simulation
     setMPOContext( this );
@@ -411,7 +390,7 @@ void Simulation::RootSimRun( const MPO& mpo,
 
     createRoot( mpo );
     runSimulation( yield_ctx );
-    
+
     resetMPOContext();
 }
 void Simulation::SimDestroy( boost::asio::yield_context& )
@@ -433,11 +412,12 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         os << "Simulation: " << m_log.getTimeStamp();
         status.setLogIterator( m_log.getIterator() );
 
+        using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
         using MPOVec = std::vector< MPO >;
         if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
-            status.setReads( MPOVec{ reads.begin(), reads.end() } );
+            status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
         if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
-            status.setWrites( MPOVec{ writes.begin(), writes.end() } );
+            status.setWrites( MPOTimeStampVec{ writes.begin(), writes.end() } );
         if( const auto& readers = m_stateMachine.reads(); !readers.empty() )
             status.setReaders( MPOVec{ readers.begin(), readers.end() } );
         if( const auto& writer = m_stateMachine.writer(); writer.has_value() )

@@ -35,7 +35,7 @@ namespace mega
     void copy_{{copy}}(const void*,void*);
 {% endfor %}
 {% for event in events %}
-    void event_{{event}}(const reference&,bool,const void*);
+    void event_{{event}}(const reference&,const void*);
 {% endfor %}
 }
 

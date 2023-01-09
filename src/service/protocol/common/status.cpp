@@ -42,7 +42,7 @@ struct StatusPrinter
 
     std::ostream& line( int iPadding ) const
     {
-        for ( int i = 1; i < iPadding; ++i )
+        for( int i = 1; i < iPadding; ++i )
         {
             os << " ";
         }
@@ -53,36 +53,36 @@ struct StatusPrinter
     {
         using ::operator<<; //( std::ostream&, const mega::MP& );
 
-        if ( !status.getDescription().empty() )
+        if( !status.getDescription().empty() )
         {
             line( iCurrentDepth ) << "NODE[ " << status.getDescription() << " ]\n";
         }
 
         // generate padding
-        if ( status.getMachineID().has_value() )
+        if( status.getMachineID().has_value() )
         {
             const mega::MachineID& machineID = status.getMachineID().value();
             line( iCurrentDepth + 2 ) << "M: " << machineID << "\n";
         }
 
-        if ( status.getMP().has_value() )
+        if( status.getMP().has_value() )
         {
             const mega::MP& mp = status.getMP().value();
             line( iCurrentDepth + 2 ) << "MP: " << mp << "\n";
         }
 
-        if ( status.getMPO().has_value() )
+        if( status.getMPO().has_value() )
         {
             const mega::MPO& mpo = status.getMPO().value();
             line( iCurrentDepth + 2 ) << "MPO: " << mpo << "\n";
         }
 
-        if ( status.getLogIterator().has_value() )
+        if( status.getLogIterator().has_value() )
         {
             const log::IndexRecord& iter = status.getLogIterator().value();
-            for ( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
+            for( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
             {
-                if ( auto amt = iter.get( log::TrackType( i ) ).get(); amt > 0 )
+                if( auto amt = iter.get( log::TrackType( i ) ).get(); amt > 0 )
                 {
                     line( iCurrentDepth + 2 ) << "LOG: " << log::toName( log::TrackType( i ) ) << ": "
                                               << iter.get( log::TrackType( i ) ).get() << "\n";
@@ -90,41 +90,41 @@ struct StatusPrinter
             }
         }
 
-        if ( status.getReads().has_value() )
+        if( status.getReads().has_value() )
         {
-            for ( const auto& mpo : status.getReads().value() )
+            for( const auto& [ mpo, lockCycle ] : status.getReads().value() )
             {
-                line( iCurrentDepth + 2 ) << "Read: " << mpo << "\n";
+                line( iCurrentDepth + 2 ) << "Read: " << mpo << " cycle: " << lockCycle << "\n";
             }
         }
 
-        if ( status.getWrites().has_value() )
+        if( status.getWrites().has_value() )
         {
-            for ( const auto& mpo : status.getWrites().value() )
+            for( const auto& [ mpo, lockCycle ] : status.getWrites().value() )
             {
-                line( iCurrentDepth + 2 ) << "Write: " << mpo << "\n";
+                line( iCurrentDepth + 2 ) << "Write: " << mpo << " cycle: " << lockCycle << "\n";
             }
         }
 
-        if ( status.getReaders().has_value() )
+        if( status.getReaders().has_value() )
         {
-            for ( const auto& mpo : status.getReaders().value() )
+            for( const auto& mpo : status.getReaders().value() )
             {
                 line( iCurrentDepth + 2 ) << "Reader: " << mpo << "\n";
             }
         }
 
-        if ( status.getWriter().has_value() )
+        if( status.getWriter().has_value() )
         {
             line( iCurrentDepth + 2 ) << "Writer: " << status.getWriter().value() << "\n";
         }
 
-        for ( const auto& conID : status.getConversations() )
+        for( const auto& conID : status.getConversations() )
         {
             line( iCurrentDepth + 2 ) << "ConID: " << conID << "\n";
         }
 
-        for ( const Status& child : status.getChildren() )
+        for( const Status& child : status.getChildren() )
         {
             ( StatusPrinter( os, iCurrentDepth + 4 ) )( child );
         }
@@ -133,6 +133,9 @@ struct StatusPrinter
 };
 } // namespace
 
-std::ostream& operator<<( std::ostream& os, const Status& status ) { return ( StatusPrinter( os ) )( status ); }
+std::ostream& operator<<( std::ostream& os, const Status& status )
+{
+    return ( StatusPrinter( os ) )( status );
+}
 
 } // namespace mega::network

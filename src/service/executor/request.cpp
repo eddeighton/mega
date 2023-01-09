@@ -26,6 +26,8 @@
 
 #include "service/network/log.hpp"
 
+#include "common/requireSemicolon.hpp"
+
 namespace mega::service
 {
 
@@ -35,85 +37,75 @@ MPO ExecutorRequestConversation::SimCreate( boost::asio::yield_context& yield_ct
     return m_executor.createSimulation( *this, yield_ctx );
 }
 
-Snapshot ExecutorRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
-                                                       boost::asio::yield_context& yield_ctx )
-{
-    if ( Simulation::Ptr pSim = m_executor.getSimulation( targetMPO ) )
-    {
-        network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-        return rq.SimLockRead( requestingMPO, targetMPO );
-    }
-    else
-    {
-        THROW_RTE( "Failed to resolve simulation: " << requestingMPO << " : " << targetMPO );
-    }
-}
+#define FORWARD_SIM_MSG_NO_ARG_NO_RETURN( namespace_, name )                                                 \
+    case network::namespace_::MSG_##name##_Request::ID:                                                      \
+    {                                                                                                        \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
+        rq.name();                                                                                           \
+        return network::namespace_::MSG_##name##_Response::make(                                             \
+            request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{} );  \
+    }                                                                                                        \
+    break
 
-Snapshot ExecutorRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
-                                                        boost::asio::yield_context& yield_ctx )
-{
-    if ( Simulation::Ptr pSim = m_executor.getSimulation( targetMPO ) )
-    {
-        network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-        return rq.SimLockWrite( requestingMPO, targetMPO );
-    }
-    else
-    {
-        THROW_RTE( "Failed to resolve simulation: " << requestingMPO << " : " << targetMPO );
-    }
-}
+#define FORWARD_SIM_MSG_NO_ARG_ONE_RETURN( namespace_, name )                                                          \
+    case network::namespace_::MSG_##name##_Request::ID:                                                                \
+    {                                                                                                                  \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request );           \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                              \
+        return network::namespace_::MSG_##name##_Response::make(                                                       \
+            request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{ rq.name() } ); \
+    }                                                                                                                  \
+    break
 
-void ExecutorRequestConversation::SimLockRelease( const MPO&                  requestingMPO,
-                                                  const MPO&                  targetMPO,
-                                                  const network::Transaction& transaction,
-                                                  boost::asio::yield_context& yield_ctx )
-{
-    if ( Simulation::Ptr pSim = m_executor.getSimulation( targetMPO ) )
-    {
-        network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-        rq.SimLockRelease( requestingMPO, targetMPO, transaction );
-    }
-    else
-    {
-        THROW_RTE( "Failed to resolve simulation: " << requestingMPO << " : " << targetMPO );
-    }
-}
+#define FORWARD_SIM_MSG_ONE_ARG_ONE_RETURN( namespace_, name, arg1 )                                         \
+    case network::namespace_::MSG_##name##_Request::ID:                                                      \
+    {                                                                                                        \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
+        return network::namespace_::MSG_##name##_Response::make(                                             \
+            request.getReceiverID(), request.getSenderID(),                                                  \
+            network::namespace_::MSG_##name##_Response{ rq.name( msg.arg1 ) } );                             \
+    }                                                                                                        \
+    break
+
+#define FORWARD_SIM_MSG_TWO_ARG_ONE_RETURN( namespace_, name, arg1, arg2 )                                   \
+    case network::namespace_::MSG_##name##_Request::ID:                                                      \
+    {                                                                                                        \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
+        return network::namespace_::MSG_##name##_Response::make(                                             \
+            request.getReceiverID(), request.getSenderID(),                                                  \
+            network::namespace_::MSG_##name##_Response{ rq.name( msg.arg1, msg.arg2 ) } );                   \
+    }                                                                                                        \
+    break
+
+#define FORWARD_SIM_MSG_THREE_ARG_NO_RETURN( namespace_, name, arg1, arg2, arg3 )                            \
+    case network::namespace_::MSG_##name##_Request::ID:                                                      \
+    {                                                                                                        \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
+        rq.name( msg.arg1, msg.arg2, msg.arg3 );                                                             \
+        return network::namespace_::MSG_##name##_Response::make(                                             \
+            request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{} );  \
+    }                                                                                                        \
+    break
 
 network::Message ExecutorRequestConversation::MPODown( const network::Message& request, const MPO& mpo,
                                                        boost::asio::yield_context& yield_ctx )
 {
-    if ( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
+    if( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
     {
-        switch ( request.getID() )
+        switch( request.getID() )
         {
-            case network::sim::MSG_SimDestroy_Request::ID:
-            {
-                auto&                        msg = network::sim::MSG_SimDestroy_Request::get( request );
-                network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-                rq.SimDestroy();
-                return network::sim::MSG_SimDestroy_Response::make(
-                    request.getReceiverID(), request.getSenderID(), network::sim::MSG_SimDestroy_Response{} );
-            }
-            break;
+            FORWARD_SIM_MSG_ONE_ARG_ONE_RETURN( status, GetStatus, status );
+            FORWARD_SIM_MSG_ONE_ARG_ONE_RETURN( status, Ping, msg );
+            FORWARD_SIM_MSG_ONE_ARG_ONE_RETURN( sim, SimObjectSnapshot, object );
+            FORWARD_SIM_MSG_TWO_ARG_ONE_RETURN( sim, SimLockRead, requestingMPO, targetMPO );
+            FORWARD_SIM_MSG_TWO_ARG_ONE_RETURN( sim, SimLockWrite, requestingMPO, targetMPO );
+            FORWARD_SIM_MSG_THREE_ARG_NO_RETURN( sim, SimLockRelease, requestingMPO, targetMPO, transaction );
+            FORWARD_SIM_MSG_NO_ARG_NO_RETURN( sim, SimDestroy );
 
-            case network::status::MSG_GetStatus_Request::ID:
-            {
-                auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
-                network::status::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-                return network::status::MSG_GetStatus_Response::make(
-                    request.getReceiverID(), request.getSenderID(),
-                    network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) } );
-            }
-            break;
-            case network::status::MSG_Ping_Request::ID:
-            {
-                auto&                           msg = network::status::MSG_Ping_Request::get( request );
-                network::status::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-                return network::status::MSG_Ping_Response::make(
-                    request.getReceiverID(), request.getSenderID(),
-                    network::status::MSG_Ping_Response{ rq.Ping( msg.msg ) } );
-            }
-            break;
             default:
                 THROW_RTE( "Unsupported MPO request type for mpo: " << mpo << " request: " << request.getName() );
         }

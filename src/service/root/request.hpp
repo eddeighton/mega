@@ -164,9 +164,9 @@ public:
     }
 
     // network::sim::Impl
-    virtual Snapshot SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+    virtual TimeStamp SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
                                   boost::asio::yield_context& yield_ctx ) override;
-    virtual Snapshot SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+    virtual TimeStamp SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
                                    boost::asio::yield_context& yield_ctx ) override;
     virtual void     SimLockRelease( const MPO&                  requestingMPO,
                                      const MPO&                  targetMPO,

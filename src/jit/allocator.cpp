@@ -51,25 +51,25 @@ Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompil
     {
         std::ostringstream os;
         symbolPrefix( "save_object_bin_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
+        os << "PvS_";
         m_pSaveBin = pModule->get< SaveObjectFunction >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "load_object_bin_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
+        os << "PvS_";
         m_pLoadBin = pModule->get< LoadObjectFunction >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "save_object_xml_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
+        os << "PvS_";
         m_pSaveXML = pModule->get< SaveObjectFunction >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "load_object_xml_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
+        os << "PvS_";
         m_pLoadXML = pModule->get< LoadObjectFunction >( os.str() );
     }
 }

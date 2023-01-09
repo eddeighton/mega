@@ -126,30 +126,30 @@ void read_nonSimple_( std::vector< char >& buffer )
 
 namespace mega
 {
-
+/*
 void save_begin_object( const reference& ref, void* pArchive )
 {
     SPDLOG_TRACE( "save_begin_object {}", ref );
     mega::BinSaveArchive& ar = *reinterpret_cast< mega::BinSaveArchive* >( pArchive );
     ar.beginObject( ref );
-}
+}*/
 
-void save_begin_part( const char* partName, void* pArchive )
+void xml_save_begin_part( const char* partName, void* pArchive )
 {
     mega::XMLSaveArchive& ar = *reinterpret_cast< mega::XMLSaveArchive* >( pArchive );
     ar.beginPart( partName );
 }
-void save_end_part( const char* partName, void* pArchive )
+void xml_save_end_part( const char* partName, void* pArchive )
 {
     mega::XMLSaveArchive& ar = *reinterpret_cast< mega::XMLSaveArchive* >( pArchive );
     ar.endPart( partName );
 }
-void load_begin_part( const char* partName, void* pArchive )
+void xml_load_begin_part( const char* partName, void* pArchive )
 {
     mega::XMLLoadArchive& ar = *reinterpret_cast< mega::XMLLoadArchive* >( pArchive );
     ar.beginPart( partName );
 }
-void load_end_part( const char* partName, void* pArchive )
+void xml_load_end_part( const char* partName, void* pArchive )
 {
     mega::XMLLoadArchive& ar = *reinterpret_cast< mega::XMLLoadArchive* >( pArchive );
     ar.endPart( partName );
@@ -301,14 +301,7 @@ void copy_classstd00vector3int4( const void* pFrom, void* pTo )
 // mega::ReferenceVector
 void new_mega00ReferenceVector( void* p )
 {
-    THROW_TODO;
-    // SPDLOG_TRACE( "new_mega00ReferenceVector - start" );
-    /*typename mega::runtime::ManagedSharedMemory::segment_manager* pSegmentMgr
-        = reinterpret_cast< typename mega::runtime::ManagedSharedMemory::segment_manager* >( pMemory );
-    using Allocator
-        = boost::interprocess::allocator< mega::reference, mega::runtime::ManagedSharedMemory::segment_manager >;
-    new ( p ) ReferenceVector( Allocator( pSegmentMgr ) );*/
-    // SPDLOG_TRACE( "new_mega00ReferenceVector - done" );
+    new_< ReferenceVector >( p );
 }
 void delete_mega00ReferenceVector( void* p )
 {
@@ -316,19 +309,19 @@ void delete_mega00ReferenceVector( void* p )
 }
 void save_xml_mega00ReferenceVector( void* p, const char* name, void* pArchive )
 {
-    // save_xml_< mega::ReferenceVector >( p, name, pArchive );
+    save_xml_< mega::ReferenceVector >( p, name, pArchive );
 }
 void load_xml_mega00ReferenceVector( void* p, const char* name, void* pArchive )
 {
-    // load_xml_< mega::ReferenceVector >( p, name, pArchive );
+    load_xml_< mega::ReferenceVector >( p, name, pArchive );
 }
 void save_bin_mega00ReferenceVector( void* p, void* pArchive )
 {
-    // save_bin_< mega::ReferenceVector >( p, pArchive );
+    save_bin_< mega::ReferenceVector >( p, pArchive );
 }
 void load_bin_mega00ReferenceVector( void* p, void* pArchive )
 {
-    // load_bin_< mega::ReferenceVector >( p, pArchive );
+    load_bin_< mega::ReferenceVector >( p, pArchive );
 }
 void copy_mega00ReferenceVector( const void* pFrom, void* pTo )
 {

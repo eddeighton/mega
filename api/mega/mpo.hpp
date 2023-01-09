@@ -34,14 +34,6 @@ static_assert( sizeof( HeapAddress ) == 8U, "Invalid HeapAddress Size" );
 using MachineID = U32;
 using ProcessID = U16;
 using OwnerID   = U8;
-using ObjectID  = U32;
-using Flags     = U8;
-
-enum FlagsType : U8 // check reference_io if change
-{
-    HEAP_ADDRESS    = 0,
-    NETWORK_ADDRESS = 1
-};
 
 class MPO;
 class MP

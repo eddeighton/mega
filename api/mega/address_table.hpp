@@ -44,8 +44,9 @@ public:
 
     const IndexTable& getTable() const { return m_table; }
 
-    const Index& refToIndex( const reference& ref )
+    const Index& refToIndex( const reference& maybeNetAddress )
     {
+        reference ref = maybeNetAddress.getNetworkAddress();
         auto iFind = m_table.find( ref );
         if( iFind == m_table.end() )
         {

@@ -245,9 +245,29 @@ public:
         {
             return m_injaEnvironment.render( strTemplate, data );
         }
+        catch ( inja::ParserError& ex )
+        {
+            SPDLOG_ERROR( "inja::ParserError in CodeGenerator::render error: {}", ex.what() );
+            THROW_RTE( ex.what() );
+        }
         catch ( inja::RenderError& ex )
         {
-            SPDLOG_ERROR( "Code Generator render error: {}", ex.what() );
+            SPDLOG_ERROR( "inja::RenderError in CodeGenerator::render error: {}", ex.what() );
+            THROW_RTE( ex.what() );
+        }
+        catch ( inja::FileError& ex )
+        {
+            SPDLOG_ERROR( "inja::FileError in CodeGenerator::render error: {}", ex.what() );
+            THROW_RTE( ex.what() );
+        }
+        catch ( inja::DataError& ex )
+        {
+            SPDLOG_ERROR( "inja::DataError in CodeGenerator::render error: {}", ex.what() );
+            THROW_RTE( ex.what() );
+        }
+        catch ( inja::InjaError& ex )
+        {
+            SPDLOG_ERROR( "inja::InjaError in CodeGenerator::render error: {}", ex.what() );
             THROW_RTE( ex.what() );
         }
     }
@@ -606,50 +626,17 @@ R"TEMPLATE(
 static const char* szTemplate =
 R"TEMPLATE(
     {
-        mega::reference machineRef = {{ instance }};
-        if( machineRef.isNetwork() )
+        if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
         {
-            machineRef = mega::runtime::networkToMachine( {{ instance }} );
+            mega::runtime::readLock( {{ instance }} );
         }
-        
-        void* pSharedBase = mega::runtime::base();
-        const mega::MPO thisMPO = mega::runtime::getThisMPO();
-        if( mega::MPO( machineRef ) != thisMPO )
+        else if( {{ instance }}.isNetworkAddress() )
         {
-            pSharedBase = mega::runtime::read( machineRef );
+            mega::runtime::networkToHeap( {{ instance }} );
         }
-{% if shared %}
-        return 
-            reinterpret_cast< char* >
-            ( 
-                mega::fromProcessAddress
-                ( 
-                    pSharedBase, 
-                    machineRef.pointer 
-                ) 
-            )
-            + {{ part_offset }} + ( {{ part_size }} * machineRef.instance ) 
+        return reinterpret_cast< char* >( {{ instance }}.getHeap() )
+            + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
             + {{ dimension_offset }};
-{% else %}
-        return 
-            reinterpret_cast< char* >
-            ( 
-                mega::getHeap
-                ( 
-                    thisMPO.getProcessID(),
-                    mega::getSharedHeader
-                    ( 
-                        mega::fromProcessAddress
-                        ( 
-                            pSharedBase, 
-                            machineRef.pointer 
-                        ) 
-                    ) 
-                ) 
-            )
-            + {{ part_offset }} + ( {{ part_size }} * machineRef.instance ) 
-            + {{ dimension_offset }};
-{% endif %}
     }
 )TEMPLATE";
                 // clang-format on
@@ -658,12 +645,8 @@ R"TEMPLATE(
                     Concrete::Dimensions::User* pDimension = pRead->get_concrete_dimension();
                     Variables::Instance*        pInstance  = pRead->get_instance();
                     MemoryLayout::Part*         pPart      = pDimension->get_part();
-                    const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
-                    const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
 
-                    nlohmann::json templateData( { { "shared", bSimple },
-                                                   { "concrete_type_id", pDimension->get_concrete_id() },
-                                                   { "part_offset", pPart->get_offset() },
+                    nlohmann::json templateData( { { "part_offset", pPart->get_offset() },
                                                    { "part_size", pPart->get_size() },
                                                    { "dimension_offset", pDimension->get_offset() },
                                                    { "instance", get( variables, pInstance ) } } );
@@ -679,50 +662,19 @@ R"TEMPLATE(
 static const char* szTemplate =
 R"TEMPLATE(
     {
-        mega::reference machineRef = {{ instance }};
-        if( machineRef.isNetwork() )
+        if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
         {
-            machineRef = mega::runtime::networkToMachine( {{ instance }} );
+            mega::runtime::writeLock( {{ instance }} );
         }
-        
-        void* pSharedBase = mega::runtime::base();
-        const mega::MPO thisMPO = mega::runtime::getThisMPO();
-        if( mega::MPO( machineRef ) != thisMPO )
+        else if( {{ instance }}.isNetworkAddress() )
         {
-            pSharedBase = mega::runtime::read( machineRef );
+            mega::runtime::networkToHeap( {{ instance }} );
         }
-{% if shared %}
         void* pTarget = 
-            reinterpret_cast< char* >
-            ( 
-                mega::fromProcessAddress
-                ( 
-                    pSharedBase, 
-                    machineRef.pointer 
-                ) 
-            )
-            + {{ part_offset }} + ( {{ part_size }} * machineRef.instance ) 
+            reinterpret_cast< char* >( {{ instance }}.getHeap() )
+            + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
             + {{ dimension_offset }};
-{% else %}
-        void* pTarget = 
-            reinterpret_cast< char* >
-            ( 
-                mega::getHeap
-                ( 
-                    thisMPO.getProcessID(),
-                    mega::getSharedHeader
-                    ( 
-                        mega::fromProcessAddress
-                        ( 
-                            pSharedBase, 
-                            machineRef.pointer 
-                        ) 
-                    ) 
-                ) 
-            )
-            + {{ part_offset }} + ( {{ part_size }} * machineRef.instance ) 
-            + {{ dimension_offset }};
-{% endif %}
+
         mega::copy_{{ mangled_type_name }}( pData, pTarget );
         mega::event_{{ mangled_type_name }}
         (
@@ -730,16 +682,15 @@ R"TEMPLATE(
             ( 
                 mega::TypeInstance
                 ( 
-                    machineRef.instance, 
+                    {{ instance }}.getInstance(), 
                     {{ concrete_type_id }} 
                 ),
-                machineRef, 
-                machineRef.pointer 
+                {{ instance }}.getMPO(), 
+                {{ instance }}.getObjectID()
             ),
-            {{ shared }},
             pTarget
         );
-        return machineRef;
+        return {{ instance }};
     }
 )TEMPLATE";
                 // clang-format on
@@ -752,8 +703,7 @@ R"TEMPLATE(
                     const std::string strMangled
                         = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );
 
-                    nlohmann::json templateData( { { "shared", bSimple },
-                                                   { "concrete_type_id", pDimension->get_concrete_id() },
+                    nlohmann::json templateData( { { "concrete_type_id", pDimension->get_concrete_id() },
                                                    { "part_offset", pPart->get_offset() },
                                                    { "part_size", pPart->get_size() },
                                                    { "dimension_offset", pDimension->get_offset() },

@@ -218,7 +218,7 @@ network::Message RootRequestConversation::MPOUp( const network::Message& request
     return MPODown( request, mpo, yield_ctx );
 }
 
-Snapshot RootRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+TimeStamp RootRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
                                                boost::asio::yield_context& yield_ctx )
 {
     if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO.getMachineID() ) )
@@ -232,7 +232,7 @@ Snapshot RootRequestConversation::SimLockRead( const MPO& requestingMPO, const M
     }
 }
 
-Snapshot RootRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+TimeStamp RootRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
                                                 boost::asio::yield_context& yield_ctx )
 {
     if ( network::Server::Connection::Ptr pConnection = m_root.m_server.findConnection( targetMPO.getMachineID() ) )

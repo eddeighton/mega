@@ -33,8 +33,8 @@ using TypeErasedFunction = const void*;
 // allocator functions
 using CtorFunction       = void ( * )( void* );
 using DtorFunction       = void ( * )( void* );
-using SaveObjectFunction = void ( * )( reference, void*, bool );
-using LoadObjectFunction = void ( * )( reference, void*, bool );
+using SaveObjectFunction = void ( * )( void*, void* );
+using LoadObjectFunction = void ( * )( void*, void* );
 
 // invocation functions
 using AllocateFunction = reference ( * )( reference );

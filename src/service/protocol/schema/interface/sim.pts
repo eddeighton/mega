@@ -17,15 +17,28 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+
+msg SimObjectSnapshot
+{
+    request( reference object );
+    response( Snapshot snapshot );
+}
+
+msg SimSnapshot
+{
+    request( MPO mpo );
+    response( Snapshot snapshot );
+}
+
 msg SimLockRead
 {
     request( MPO requestingMPO, MPO targetMPO );
-    response( Snapshot snapshot );
+    response( TimeStamp lockCycle );
 }
 msg SimLockWrite
 {
     request( MPO requestingMPO, MPO targetMPO );
-    response( Snapshot snapshot );
+    response( TimeStamp lockCycle );
 }
 msg SimLockRelease
 {

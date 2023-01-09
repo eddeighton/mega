@@ -24,12 +24,7 @@
 
 namespace mega
 {
-    void save_begin_object(const reference&,void*);
 {% for type in mangled_data_types %}
-    void save_begin_part(const char*,void*);
-    void save_end_part(const char*,void*);
-    void load_begin_part(const char*,void*);
-    void load_end_part(const char*,void*);
     void new_{{type}}(void*);
     void delete_{{type}}(void*);
     void save_xml_{{type}}(void*,const char*,void*);
@@ -63,7 +58,7 @@ void dtor_{{ objectTypeID }}( void* pBuffer )
 {% endfor %}
 }
 
-static void save_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
+void save_object_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {
 {% for part in parts %}
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
@@ -75,7 +70,7 @@ static void save_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {% endfor %}
 }
 
-static void load_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
+void load_object_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {
 {% for part in parts %}
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
@@ -87,18 +82,10 @@ static void load_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {% endfor %}
 }
 
-void save_object_bin_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
+void save_object_xml_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {
 }
 
-void load_object_bin_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
-{
-}
-
-void save_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
-{
-}
-
-void load_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
+void load_object_xml_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {
 }

@@ -51,10 +51,10 @@ public:
     const std::vector< network::ConversationID >& getConversations() const { return m_conversationIDs; }
     const std::optional< log::IndexRecord >&      getLogIterator() const { return m_logIterator; }
 
-    const std::optional< std::vector< MPO > >& getReads() const { return m_reads; }
-    const std::optional< std::vector< MPO > >& getWrites() const { return m_writes; }
-    const std::optional< std::vector< MPO > >& getReaders() const { return m_readers; }
-    const std::optional< MPO >&                getWriter() const { return m_writer; }
+    const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getReads() const { return m_reads; }
+    const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getWrites() const { return m_writes; }
+    const std::optional< std::vector< MPO > >&                         getReaders() const { return m_readers; }
+    const std::optional< MPO >&                                        getWriter() const { return m_writer; }
 
     const std::string&  getDescription() const { return m_description; }
     const StatusVector& getChildren() const { return m_childStatus; }
@@ -68,8 +68,8 @@ public:
     }
     void setLogIterator( const log::IndexRecord& iterator ) { m_logIterator = iterator; }
 
-    void setReads( const std::optional< std::vector< MPO > >& value ) { m_reads = value; }
-    void setWrites( const std::optional< std::vector< MPO > >& value ) { m_writes = value; }
+    void setReads( const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& value ) { m_reads = value; }
+    void setWrites( const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& value ) { m_writes = value; }
     void setReaders( const std::optional< std::vector< MPO > >& value ) { m_readers = value; }
     void setWriter( const std::optional< MPO >& value ) { m_writer = value; }
 
@@ -100,10 +100,10 @@ private:
     std::vector< network::ConversationID > m_conversationIDs;
     std::optional< log::IndexRecord >      m_logIterator;
 
-    std::optional< std::vector< MPO > > m_reads;
-    std::optional< std::vector< MPO > > m_writes;
-    std::optional< std::vector< MPO > > m_readers;
-    std::optional< MPO >                m_writer;
+    std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_reads;
+    std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_writes;
+    std::optional< std::vector< MPO > >                         m_readers;
+    std::optional< MPO >                                        m_writer;
 
     std::string  m_description;
     StatusVector m_childStatus;

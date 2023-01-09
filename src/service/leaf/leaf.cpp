@@ -63,6 +63,14 @@ public:
             SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
         }
 
+        // allocate remote object memory manager
+        {
+            m_leaf.m_pRemoteMemoryManager = std::make_unique< runtime::RemoteMemoryManager >(
+                m_leaf.m_mp,
+                [ leaf = &m_leaf ]( TypeID typeID, runtime::CodeGenerator::LLVMCompiler& llvmCompiler )
+                { return leaf->getJIT().getAllocator( llvmCompiler, typeID ); } );
+        }
+
         // determine the current project and stuff and initialise the runtime
         {
             network::project::Request_Encoder projectRequest(

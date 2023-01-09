@@ -18,11 +18,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_January_07_memory_manager
-#define GUARD_2023_January_07_memory_manager
+#ifndef GUARD_2023_January_09_remote_memory_manager
+#define GUARD_2023_January_09_remote_memory_manager
 
 #include "jit/allocator.hpp"
 #include "jit/object_header.hpp"
+#include "jit/code_generator.hpp"
 
 #include <functional>
 #include <memory>
@@ -31,51 +32,63 @@
 namespace mega::runtime
 {
 
-class MemoryManager
+class RemoteMemoryManager
 {
     using HeapBufferPtr = std::unique_ptr< char[] >;
     using HeapMap       = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
     using NetMap        = std::unordered_map< reference, reference, reference::Hash >;
 
 public:
-    using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID ) >;
+    using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID, runtime::CodeGenerator::LLVMCompiler& ) >;
 
     template < typename TFunctor >
-    MemoryManager( MPO mpo, TFunctor&& getAllocatorFunction )
-        : m_mpo( mpo )
+    RemoteMemoryManager( MP mp, TFunctor&& getAllocatorFunction )
+        : m_mp( mp )
         , m_getAllocatorFPtr( std::move( getAllocatorFunction ) )
     {
     }
 
-    reference networkToHeap( const reference& networkAddress ) const
+    ObjectID allocateObjectID()
     {
-        ASSERT( networkAddress.isNetworkAddress() );
-        auto iFind = m_netMap.find( networkAddress.getNetworkAddress() );
-        VERIFY_RTE_MSG(
-            iFind != m_netMap.end(), "Failed to locate network address entry for reference: " << networkAddress );
-        return iFind->second;
+        static ObjectID objectID = 0U;
+        return ++objectID;
+    }
+    
+    bool tryNetworkToHeap( reference& networkAddress ) const
+    {
+        auto iFind = m_netMap.find( networkAddress );
+        if( iFind != m_netMap.end() )
+        {
+            networkAddress = iFind->second;
+            return true;
+        }
+        return false;
     }
 
-    reference New( TypeID typeID )
+    reference networkToHeap( const reference& networkAddress, runtime::CodeGenerator::LLVMCompiler& llvmCompiler )
     {
-        Allocator::Ptr pAllocator = m_getAllocatorFPtr( typeID );
+        reference heapAddress = networkAddress;
+        if( tryNetworkToHeap( heapAddress ) )
+        {
+            return heapAddress;
+        }
+
+        Allocator::Ptr pAllocator = m_getAllocatorFPtr( networkAddress.getType(), llvmCompiler );
 
         const network::SizeAlignment sizeAlignment = pAllocator->getSizeAlignment();
 
         HeapBufferPtr pHeapBuffer( new( std::align_val_t( sizeAlignment.alignment ) ) char[ sizeAlignment.size ] );
 
         // establish the header including the network address, lock timestamp and shared ownership of allocator
-        const ObjectID  objectID = m_objectIDCounter++;
+        const ObjectID  objectID = allocateObjectID();
         const TimeStamp lockTime = 0U;
-        const reference networkAddress{ TypeInstance{ 0, typeID }, m_mpo, objectID };
-        ASSERT( ( typeID != ROOT_TYPE_ID ) || ( objectID == ROOT_OBJECT_ID ) );
 
         new( pHeapBuffer.get() ) ObjectHeader{ ObjectHeaderBase{ networkAddress, lockTime }, pAllocator };
 
         // invoke the constructor
         pAllocator->getCtor()( pHeapBuffer.get() );
 
-        reference heapAddress{ TypeInstance( 0, typeID ), m_mpo.getOwnerID(), pHeapBuffer.get() };
+        heapAddress = reference{ networkAddress.getTypeInstance(), networkAddress.getOwnerID(), pHeapBuffer.get() };
 
         m_heapMap.insert( { heapAddress, std::move( pHeapBuffer ) } );
         m_netMap.insert( { networkAddress, heapAddress } );
@@ -112,13 +125,11 @@ public:
     }
 
 private:
-    ObjectID         m_objectIDCounter = ROOT_OBJECT_ID;
-    MPO              m_mpo;
+    MP               m_mp;
     GetAllocatorFPtr m_getAllocatorFPtr;
     HeapMap          m_heapMap;
     NetMap           m_netMap;
 };
-
 } // namespace mega::runtime
 
-#endif // GUARD_2023_January_07_memory_manager
+#endif // GUARD_2023_January_09_remote_memory_manager

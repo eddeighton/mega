@@ -40,13 +40,18 @@ void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path logFolderPath;
 
+    bool bShowLogRecords    = true;
+    bool bShowMemoryRecords = false;
+
     namespace po = boost::program_options;
     po::options_description commandOptions( " Simulation Commands" );
     {
         // clang-format off
         commandOptions.add_options()
-            ( "folder",     po::value( &logFolderPath ),    "Log folder path. ( Default argumnet )" )
+            ( "folder",     po::value( &logFolderPath ),                                "Log folder path. ( Default argumnet )" )
             
+            ( "log",        po::bool_switch( &bShowLogRecords )->default_value(true),   "Show log records." )
+            ( "memory",     po::bool_switch( &bShowMemoryRecords ),                     "Show memory records." )
             ;
         // clang-format on
     }
@@ -58,42 +63,70 @@ void command( bool bHelp, const std::vector< std::string >& args )
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
-    if ( bHelp )
+    {
+        if( bShowMemoryRecords )
+            bShowLogRecords = false;
+
+        VERIFY_RTE_MSG( ( bShowLogRecords && !bShowMemoryRecords ) || ( !bShowLogRecords && bShowMemoryRecords ),
+                        "Invalid log type specification" );
+    }
+
+    if( bHelp )
     {
         std::cout << commandOptions << "\n";
     }
     else
     {
-        if ( !logFolderPath.empty() )
+        if( !logFolderPath.empty() )
         {
             VERIFY_RTE_MSG(
                 boost::filesystem::exists( logFolderPath ), "Failed to locate folder: " << logFolderPath.string() );
             mega::log::Storage log( logFolderPath, true );
             SPDLOG_INFO( "Loaded log folder: {}", logFolderPath.string() );
 
-            for ( auto i = log.logBegin(), iEnd = log.logEnd(); i != iEnd; ++i )
+            if( bShowLogRecords )
             {
-                const auto& logMsg = *i;
-                switch ( logMsg.getType() )
+                for( auto i = log.logBegin(), iEnd = log.logEnd(); i != iEnd; ++i )
                 {
-                    case mega::log::LogMsg::eTrace:
-                        SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::trace, logMsg.getMsg() );
-                        break;
-                    case mega::log::LogMsg::eDebug:
-                        SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::debug, logMsg.getMsg() );
-                        break;
-                    case mega::log::LogMsg::eInfo:
-                        SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, logMsg.getMsg() );
-                        break;
-                    case mega::log::LogMsg::eWarn:
-                        SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::warn, logMsg.getMsg() );
-                        break;
-                    case mega::log::LogMsg::eError:
-                        SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, logMsg.getMsg() );
-                        break;
-                    case mega::log::LogMsg::eFatal:
-                        SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, logMsg.getMsg() );
-                        break;
+                    const auto& logMsg = *i;
+                    switch( logMsg.getType() )
+                    {
+                        case mega::log::LogMsg::eTrace:
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::trace, logMsg.getMsg() );
+                            break;
+                        case mega::log::LogMsg::eDebug:
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::debug, logMsg.getMsg() );
+                            break;
+                        case mega::log::LogMsg::eInfo:
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, logMsg.getMsg() );
+                            break;
+                        case mega::log::LogMsg::eWarn:
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::warn, logMsg.getMsg() );
+                            break;
+                        case mega::log::LogMsg::eError:
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, logMsg.getMsg() );
+                            break;
+                        case mega::log::LogMsg::eFatal:
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, logMsg.getMsg() );
+                            break;
+                    }
+                }
+            }
+            if( bShowMemoryRecords )
+            {
+                for( auto iTrack = 0; iTrack != mega::log::toInt( mega::log::TrackType::TOTAL ); ++iTrack )
+                {
+                    if( iTrack == mega::log::toInt( mega::log::TrackType::Log )
+                        || iTrack == mega::log::toInt( mega::log::TrackType::Scheduler ) )
+                        continue;
+
+                    const auto trackType = static_cast< mega::log::MemoryTrackType >( iTrack );
+                    for( auto i = log.memoryBegin( trackType ), iEnd = log.memoryEnd( trackType ); i != iEnd; ++i )
+                    {
+                        const mega::log::MemoryRecordRead& memoryRecord = *i;
+                        SPDLOG_LOGGER_CALL(
+                            spdlog::default_logger_raw(), spdlog::level::info, memoryRecord.getReference() );
+                    }
                 }
             }
         }

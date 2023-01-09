@@ -20,6 +20,8 @@
 #ifndef LEAF_16_JUNE_2022
 #define LEAF_16_JUNE_2022
 
+#include "service/remote_memory_manager.hpp"
+
 #include "service/network/client.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/network/sender_factory.hpp"
@@ -106,6 +108,7 @@ private:
     std::unique_ptr< runtime::JIT >                     m_pJIT;
     std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;
     std::optional< network::Project >                   m_activeProject;
+    std::unique_ptr< runtime::RemoteMemoryManager >     m_pRemoteMemoryManager;
 };
 
 } // namespace mega::service

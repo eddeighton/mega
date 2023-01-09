@@ -60,31 +60,26 @@ void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
     }
 }
 
-Snapshot DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+TimeStamp DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
                                                  boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::SimLockRead from: {} to: {}", requestingMPO, targetMPO );
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
     {
         ASSERT( m_daemon.m_machineID == targetMPO.getMachineID() );
-
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
-        Snapshot                     snapshot = sender.SimLockRead( requestingMPO, targetMPO );
-
-        return snapshot;
+        return sender.SimLockRead( requestingMPO, targetMPO );
     }
     else
     {
         ASSERT( m_daemon.m_machineID != targetMPO.getMachineID() );
 
         network::sim::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
-        Snapshot snapshot = sender.SimLockRead( requestingMPO, targetMPO );
-
-        return snapshot;
+        return sender.SimLockRead( requestingMPO, targetMPO );
     }
 }
 
-Snapshot DaemonRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+TimeStamp DaemonRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
                                                   boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::SimLockWrite from: {} to: {}", requestingMPO, targetMPO );
