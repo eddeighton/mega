@@ -46,8 +46,8 @@ namespace mega::runtime
 #define FUNCTION_ARG_3( return_type, name, a1_type, a1_name, a2_type, a2_name, a3_type, a3_name ) \
     return_type name( a1_type a1_name, a2_type a2_name, a3_type a3_name );
 
-#include "service/jit_interface.hxx"
-#include "service/component_interface.hxx"
+#include "service/jit_interface.xmc"
+#include "service/component_interface.xmc"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1

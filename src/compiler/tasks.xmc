@@ -1,0 +1,64 @@
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
+
+TASK(GenerateManifest,config.componentInfoPaths,const std::vector< boost::filesystem::path >&)
+TASK(GenerateComponents,config.componentInfoPaths,const std::vector< boost::filesystem::path >&)
+
+TASK(ParseAST,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(InterfaceTree,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
+TASK(DependencyAnalysis,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
+TASK(SymbolAnalysis,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
+
+TASK(SymbolRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
+TASK(Include,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(IncludePCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(InterfaceGeneration,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(InterfaceAnalysis,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(ConcreteTree,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
+TASK(ConcreteTypeAnalysis,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
+TASK(ConcreteTypeRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
+TASK(Derivation,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
+TASK(DerivationRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
+TASK(HyperGraph,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
+TASK(HyperGraphRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
+TASK(Allocators,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(Operations,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(OperationsPCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(Implementation,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(ImplementationObj,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
+// Component name based tasks
+TASK(CPPInclude,std::get< std::string >( task.sourceFilePath ),const std::string&)
+TASK(CPPIncludePCH,std::get< std::string >( task.sourceFilePath ),const std::string&)
+TASK(CPPInterfaceGeneration,std::get< std::string >( task.sourceFilePath ),const std::string&)
+TASK(CPPInterfaceAnalysis,std::get< std::string >( task.sourceFilePath ),const std::string&)
+
+TASK(CPPPCH,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
+TASK(CPPImplementation,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
+TASK(CPPObj,std::get< mega::io::cppFilePath >( task.sourceFilePath ),const mega::io::cppFilePath&)
+
+TASK(InterfaceComponent,std::get< std::string >( task.sourceFilePath ),const std::string&)
+TASK(LibraryComponent,std::get< std::string >( task.sourceFilePath ),const std::string&)
+TASK(Complete,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)

@@ -156,6 +156,7 @@ public:
                                boost::asio::yield_context& yield_ctx ) override;
 
     virtual void GetLoadRecord( const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetSaveRecord( const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
     virtual void GetLoadObjectRecord( const mega::U64&            pszUnitName,
                                       const mega::TypeID&         objectTypeID,
                                       const mega::U64&            ppFunction,

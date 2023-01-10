@@ -90,8 +90,8 @@ public:
 #define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
     return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
 
-#include "service/jit_interface.hxx"
-#include "service/component_interface.hxx"
+#include "service/jit_interface.xmc"
+#include "service/component_interface.xmc"
 
 #undef FUNCTION_ARG_0
 #undef FUNCTION_ARG_1

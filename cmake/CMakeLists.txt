@@ -97,9 +97,6 @@ add_subdirectory(mega)
 # always last - toolchain reads other files from build
 add_subdirectory(toolchain)
 
-# deprecated - remove vulkan
-# add_subdirectory(vulkan)
-
 # install scripts
 set( MEGA_SCRIPTS
     ${MEGA_ROOT_DIR}/scripts/run_service.sh 

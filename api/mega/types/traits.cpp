@@ -189,7 +189,7 @@ void xml_load_end_part( const char* partName, void* pArchive )
         event_< type >( ref, pData );                                        \
     }
 
-#include "mega/types/simple.hxx"
+#include "mega/types/simple.xmc"
 #undef SIMPLETYPE
 
 #define NONSIMPLETYPE( manged_name, type )                                   \
@@ -226,7 +226,7 @@ void xml_load_end_part( const char* partName, void* pArchive )
         event_nonSimple_< type >( ref, pData );                              \
     }
 
-#include "mega/types/non_simple.hxx"
+#include "mega/types/non_simple.xmc"
 #undef NONSIMPLETYPE
 
 #define ALLOCATOR( manged_name, type, size )                                 \
@@ -263,9 +263,9 @@ void xml_load_end_part( const char* partName, void* pArchive )
         event_< type >( ref, pData );                                        \
     }
 
-#include "mega/types/allocators_32.hxx"
-#include "mega/types/allocators_64.hxx"
-#include "mega/types/allocators_128.hxx"
+#include "mega/types/allocators_32.xmc"
+#include "mega/types/allocators_64.xmc"
+#include "mega/types/allocators_128.xmc"
 #undef ALLOCATOR
 
 // std::vector< int >
@@ -363,9 +363,9 @@ inline void free_( TAllocator& allocator, Instance instance )
         free_< type >( *reinterpret_cast< type* >( p ), instance );  \
     }
 
-#include "mega/types/allocators_32.hxx"
-#include "mega/types/allocators_64.hxx"
-#include "mega/types/allocators_128.hxx"
+#include "mega/types/allocators_32.xmc"
+#include "mega/types/allocators_64.xmc"
+#include "mega/types/allocators_128.xmc"
 #undef ALLOCATOR
 
 void schedule_start( const reference& ref )

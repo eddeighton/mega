@@ -28,6 +28,11 @@ msg GetLoadRecord
     request( U64 ppFunction );
     response();
 }
+msg GetSaveRecord
+{
+    request( U64 ppFunction );
+    response();
+}
 msg GetLoadObjectRecord
 {
     request( U64 pszUnitName, mega::TypeID objectTypeID, U64 ppFunction );

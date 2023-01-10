@@ -43,7 +43,7 @@ mega::U64 getBitmask32AllocatorSize( mega::U64 szLocalDomainSize )
     switch( szLocalDomainSize )
     {
 #define ALLOCATOR( manged_name, type, size ) case size: return sizeof( type ); break;
-#include "mega/types/allocators_32.hxx"
+#include "mega/types/allocators_32.xmc"
 #undef ALLOCATOR
         default:
             THROW_RTE( "Unsupported allocator type" );
@@ -56,7 +56,7 @@ mega::U64 getBitmask32AllocatorAlignment( mega::U64 szLocalDomainSize )
     switch( szLocalDomainSize )
     {
 #define ALLOCATOR( manged_name, type, size ) case size: return alignof( type ); break;
-#include "mega/types/allocators_32.hxx"
+#include "mega/types/allocators_32.xmc"
 #undef ALLOCATOR
         default:
             THROW_RTE( "Unsupported allocator type" );
@@ -70,7 +70,7 @@ mega::U64 getBitmask64AllocatorSize( mega::U64 szLocalDomainSize )
     switch( szLocalDomainSize )
     {
 #define ALLOCATOR( manged_name, type, size ) case size: return sizeof( type ); break;
-#include "mega/types/allocators_64.hxx"
+#include "mega/types/allocators_64.xmc"
 #undef ALLOCATOR
         default:
             THROW_RTE( "Unsupported allocator type" );
@@ -84,7 +84,7 @@ mega::U64 getBitmask64AllocatorAlignment( mega::U64 szLocalDomainSize )
     switch( szLocalDomainSize )
     {
 #define ALLOCATOR( manged_name, type, size ) case size: return alignof( type ); break;
-#include "mega/types/allocators_64.hxx"
+#include "mega/types/allocators_64.xmc"
 #undef ALLOCATOR
         default:
             THROW_RTE( "Unsupported allocator type" );
@@ -98,7 +98,7 @@ mega::U64 getRingAllocatorSize( mega::U64 szLocalDomainSize )
     switch( szLocalDomainSize )
     {
 #define ALLOCATOR( manged_name, type, size ) case size: return sizeof( type ); break;
-#include "mega/types/allocators_128.hxx"
+#include "mega/types/allocators_128.xmc"
 #undef ALLOCATOR
         default:
             THROW_RTE( "Unsupported allocator type" );
@@ -112,7 +112,7 @@ mega::U64 getRingAllocatorAlignment( mega::U64 szLocalDomainSize )
     switch( szLocalDomainSize )
     {
 #define ALLOCATOR( manged_name, type, size ) case size: return alignof( type ); break;
-#include "mega/types/allocators_128.hxx"
+#include "mega/types/allocators_128.xmc"
 #undef ALLOCATOR
         default:
             THROW_RTE( "Unsupported allocator type" );

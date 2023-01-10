@@ -87,8 +87,8 @@ link_common( leaf )
 link_spdlog( leaf )
 
 install( FILES ${MEGA_LEAF_API} DESTINATION include/service )
-install( FILES ${MEGA_API_DIR}/service/jit_interface.hxx DESTINATION include/service )
-install( FILES ${MEGA_API_DIR}/service/component_interface.hxx DESTINATION include/service )
+install( FILES ${MEGA_API_DIR}/service/jit_interface.xmc DESTINATION include/service )
+install( FILES ${MEGA_API_DIR}/service/component_interface.xmc DESTINATION include/service )
 
 install( TARGETS leaf EXPORT leaf DESTINATION bin)
 install( EXPORT leaf NAMESPACE MEGA:: FILE leaf-config.cmake DESTINATION share )

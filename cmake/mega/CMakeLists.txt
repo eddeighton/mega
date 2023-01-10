@@ -63,11 +63,11 @@ set( MEGA_TYPES
     ${MEGA_API_DIR}/mega/types/traits.hpp
     ${MEGA_API_DIR}/mega/types/traits.cpp
 
-    ${MEGA_API_DIR}/mega/types/simple.hxx
-    ${MEGA_API_DIR}/mega/types/non_simple.hxx
-    ${MEGA_API_DIR}/mega/types/allocators_32.hxx
-    ${MEGA_API_DIR}/mega/types/allocators_64.hxx
-    ${MEGA_API_DIR}/mega/types/allocators_128.hxx
+    ${MEGA_API_DIR}/mega/types/simple.xmc
+    ${MEGA_API_DIR}/mega/types/non_simple.xmc
+    ${MEGA_API_DIR}/mega/types/allocators_32.xmc
+    ${MEGA_API_DIR}/mega/types/allocators_64.xmc
+    ${MEGA_API_DIR}/mega/types/allocators_128.xmc
 )
 
 install( FILES ${MEGA_LIBRARY} DESTINATION include/mega )

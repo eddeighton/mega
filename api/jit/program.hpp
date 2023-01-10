@@ -18,34 +18,35 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2022_November_08_component_interface
-#define GUARD_2022_November_08_component_interface
+#ifndef GUARD_2023_January_10_program
+#define GUARD_2023_January_10_program
 
-#include "jit/functions.hpp"
+#include "api.hpp"
+#include "functions.hpp"
+#include "orc.hpp"
 
-#include "mega/invocation_id.hpp"
-#include "mega/reference.hpp"
+#include "database/database.hpp"
 
-namespace mega
+#include <memory>
+
+namespace mega::runtime
 {
-namespace runtime
+class JIT_EXPORT Program
 {
+public:
+    using Ptr = std::unique_ptr< Program >;
 
-#define FUNCTION_ARG_0( return_type, name ) return_type name();
-#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
-#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name );
-#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
+    Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
 
-#include "service/component_interface.xmc"
+    runtime::LoadRecordFunction getLoadRecord() const { return m_loadRecord; }
+    runtime::SaveRecordFunction getSaveRecord() const { return m_saveRecord; }
 
-#undef FUNCTION_ARG_0
-#undef FUNCTION_ARG_1
-#undef FUNCTION_ARG_2
-#undef FUNCTION_ARG_3
+private:
+    JITCompiler::Module::Ptr    m_pModule;
+    runtime::LoadRecordFunction m_loadRecord = nullptr;
+    runtime::SaveRecordFunction m_saveRecord = nullptr;
+};
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
-#endif //GUARD_2022_November_08_component_interface
+#endif // GUARD_2023_January_10_program

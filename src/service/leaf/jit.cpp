@@ -40,6 +40,12 @@ void LeafRequestConversation::GetLoadRecord( const mega::U64& ppFunction, boost:
         getLLVMCompiler( yield_ctx ), network::type_reify< mega::runtime::LoadRecordFunction >( ppFunction ) );
 }
 
+void LeafRequestConversation::GetSaveRecord( const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx )
+{
+    m_leaf.m_pJIT->getSaveRecord(
+        getLLVMCompiler( yield_ctx ), network::type_reify< mega::runtime::SaveRecordFunction >( ppFunction ) );
+}
+
 void LeafRequestConversation::GetLoadObjectRecord( const mega::U64&            unitName,
                                                    const mega::TypeID&         objectTypeID,
                                                    const mega::U64&            ppFunction,

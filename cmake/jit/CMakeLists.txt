@@ -59,6 +59,7 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/code_generator.hpp
     ${MEGA_API_DIR}/jit/allocator.hpp
     ${MEGA_API_DIR}/jit/object_header.hpp
+    ${MEGA_API_DIR}/jit/program.hpp
 )
 
 set( RUNTIME_SOURCE
@@ -68,6 +69,7 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/jit/code_generator.cpp
     ${MEGA_SRC_DIR}/jit/jit.cpp
     ${MEGA_SRC_DIR}/jit/allocator.cpp
+    ${MEGA_SRC_DIR}/jit/program.cpp
     
 )
 

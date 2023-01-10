@@ -79,7 +79,7 @@ namespace driver
     {                                                                          \
     extern void command( bool bHelp, const std::vector< std::string >& args ); \
     }
-#include "commands.hxx"
+#include "commands.xmc"
 #undef COMMAND
 
 } // namespace driver
@@ -87,7 +87,7 @@ namespace driver
 enum MainCommand
 {
 #define COMMAND( cmd, input, desc ) eCmd_##cmd,
-#include "commands.hxx"
+#include "commands.xmc"
 #undef COMMAND
     TOTAL_MAIN_COMMANDS
 };
@@ -115,7 +115,7 @@ int main( int argc, const char* argv[] )
         bool              bGeneralWait = false;
 
 #define COMMAND( cmd, input, desc ) bool bCmd_##cmd = false;
-#include "commands.hxx"
+#include "commands.xmc"
 #undef COMMAND
 
         po::options_description genericOptions( " General" );
@@ -134,7 +134,7 @@ int main( int argc, const char* argv[] )
         {
             commandOptions.add_options()
 #define COMMAND( cmd, input, desc ) ( input, po::bool_switch( &bCmd_##cmd ), desc )
-#include "commands.hxx"
+#include "commands.xmc"
 #undef COMMAND
                 ;
         }
@@ -183,7 +183,7 @@ int main( int argc, const char* argv[] )
         VERIFY_RTE_MSG( mainCmd == TOTAL_MAIN_COMMANDS, "Duplicate main commands specified" ); \
         mainCmd = eCmd_##cmd;                                                                  \
     }
-#include "commands.hxx"
+#include "commands.xmc"
 #undef COMMAND
 
             const bool bShowHelp = vm.count( "help" );
@@ -197,7 +197,7 @@ int main( int argc, const char* argv[] )
     case eCmd_##cmd:                                         \
         driver::cmd::command( bShowHelp, commandArguments ); \
         break;
-#include "commands.hxx"
+#include "commands.xmc"
 #undef COMMAND
 
                 case TOTAL_MAIN_COMMANDS:

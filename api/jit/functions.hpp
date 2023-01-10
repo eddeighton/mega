@@ -32,6 +32,7 @@ using TypeErasedFunction = const void*;
 
 // full program functions
 using LoadRecordFunction = void ( * )( reference, const void* );
+using SaveRecordFunction = void ( * )( reference, const void* );
 using LoadObjectRecordFunction = void ( * )( reference, const void* );
 
 // allocator functions

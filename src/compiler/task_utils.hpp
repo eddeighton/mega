@@ -31,20 +31,20 @@ class BaseTask;
 
 #define TASK( taskName, sourceFileType, argumentType ) \
     extern std::unique_ptr< BaseTask > create_Task_##taskName( const TaskArguments&, argumentType );
-#include "tasks.hxx"
+#include "tasks.xmc"
 #undef TASK
 
 enum TaskType
 {
 #define TASK( taskName, sourceFileType, argumentType ) eTask_##taskName,
-#include "tasks.hxx"
+#include "tasks.xmc"
 #undef TASK
     TOTAL_TASK_TYPES
 };
 
 const char* g_taskNames[] = {
 #define TASK( taskName, sourceFileType, argumentType ) "Task_" #taskName,
-#include "tasks.hxx"
+#include "tasks.xmc"
 #undef TASK
 };
 

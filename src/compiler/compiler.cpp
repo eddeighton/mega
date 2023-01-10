@@ -438,7 +438,7 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
         VERIFY_RTE( !pTask );                                                            \
         pTask = mega::compiler::create_Task_##taskName( taskArguments, sourceFileType ); \
     }
-#include "tasks.hxx"
+#include "tasks.xmc"
 #undef TASK
 
     VERIFY_RTE_MSG( pTask, "Failed to create task: " << task.strTaskName );

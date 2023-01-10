@@ -78,17 +78,31 @@ void JIT::getLoadRecord( const CodeGenerator::LLVMCompiler& compiler, runtime::L
     SPDLOG_TRACE( "JIT: getLoadRecord" );
     m_programFunctionPointers.insert( ppFunction );
 
-    if( !m_pProgramModule )
+    if( !m_pProgram )
     {
         std::ostringstream osModule;
         m_codeGenerator.generate_program( compiler, m_database, osModule );
-        m_pProgramModule = compile( osModule.str() );
+        auto pModule = compile( osModule.str() );
+        m_pProgram = std::make_unique< Program >( m_database, pModule );
     }
 
-    std::ostringstream os;
-    symbolPrefix( "program_load_record", os );
-    os << "N4mega9referenceEPKv";
-    *ppFunction = m_pProgramModule->get< LoadRecordFunction >( os.str() );
+    *ppFunction = m_pProgram->getLoadRecord();
+}
+
+void JIT::getSaveRecord( const CodeGenerator::LLVMCompiler& compiler, runtime::SaveRecordFunction* ppFunction )
+{
+    SPDLOG_TRACE( "JIT: getLoadRecord" );
+    m_programFunctionPointers.insert( ppFunction );
+
+    if( !m_pProgram )
+    {
+        std::ostringstream osModule;
+        m_codeGenerator.generate_program( compiler, m_database, osModule );
+        auto pModule = compile( osModule.str() );
+        m_pProgram = std::make_unique< Program >( m_database, pModule );
+    }
+
+    *ppFunction = m_pProgram->getSaveRecord();
 }
 
 void JIT::getLoadObjectRecord( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,

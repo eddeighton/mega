@@ -18,34 +18,33 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2022_November_08_component_interface
-#define GUARD_2022_November_08_component_interface
+#include "jit/program.hpp"
 
-#include "jit/functions.hpp"
+#include "jit.hpp"
+#include "symbol_utils.hpp"
 
-#include "mega/invocation_id.hpp"
-#include "mega/reference.hpp"
+#include "service/network/log.hpp"
 
-namespace mega
+#include <sstream>
+
+namespace mega::runtime
 {
-namespace runtime
+
+Program::Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
+    : m_pModule( pModule )
 {
-
-#define FUNCTION_ARG_0( return_type, name ) return_type name();
-#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
-#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name );
-#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
-
-#include "service/component_interface.xmc"
-
-#undef FUNCTION_ARG_0
-#undef FUNCTION_ARG_1
-#undef FUNCTION_ARG_2
-#undef FUNCTION_ARG_3
-
-} // namespace runtime
-} // namespace mega
-
-#endif //GUARD_2022_November_08_component_interface
+    SPDLOG_TRACE( "Program::ctor" );
+    {
+        std::ostringstream os;
+        symbolPrefix( "program_load_record", os );
+        os << "N4mega9referenceEPKv";
+        m_loadRecord = m_pModule->get< LoadRecordFunction >( os.str() );
+    }
+    {
+        std::ostringstream os;
+        symbolPrefix( "program_save_record", os );
+        os << "N4mega9referenceEPKv";
+        m_saveRecord = m_pModule->get< SaveRecordFunction >( os.str() );
+    }
+}
+} // namespace mega::runtime

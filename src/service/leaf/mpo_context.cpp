@@ -145,6 +145,10 @@ void MPOContext::get_load_record( runtime::LoadRecordFunction* ppFunction )
 {
     getLeafJITRequest().GetLoadRecord( network::type_erase( ppFunction ) );
 }
+void MPOContext::get_save_record( runtime::SaveRecordFunction* ppFunction )
+{
+    getLeafJITRequest().GetSaveRecord( network::type_erase( ppFunction ) );
+}
 void MPOContext::get_load_object_record( const char* pszUnitName, mega::TypeID objectTypeID,
                                          runtime::LoadObjectRecordFunction* ppFunction )
 {

@@ -25,6 +25,7 @@
 #include "component_manager.hpp"
 #include "code_generator.hpp"
 #include "allocator.hpp"
+#include "program.hpp"
 
 #include "database/database.hpp"
 
@@ -51,6 +52,8 @@ public:
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
 
     void getLoadRecord( const CodeGenerator::LLVMCompiler& compiler, runtime::LoadRecordFunction* ppFunction );
+    void getSaveRecord( const CodeGenerator::LLVMCompiler& compiler, runtime::SaveRecordFunction* ppFunction );
+
     void getLoadObjectRecord( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                         mega::TypeID objectTypeID, runtime::LoadObjectRecordFunction* ppFunction );
 
@@ -109,7 +112,7 @@ private:
     using FunctionPtrMap = std::multimap< const char*, void* >;
     FunctionPtrMap m_functionPointers;
 
-    JITCompiler::Module::Ptr m_pProgramModule;
+    Program::Ptr m_pProgram;
     using FunctionPtrSet = std::set< void* >;
     FunctionPtrSet m_programFunctionPointers;
 };
