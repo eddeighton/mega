@@ -28,7 +28,7 @@
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/stash.hxx"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
 #include "common/requireSemicolon.hpp"
 

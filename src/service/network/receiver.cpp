@@ -21,7 +21,7 @@
 #include "service/network/conversation_manager.hpp"
 #include "service/network/end_point.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
 #include "common/assert_verify.hpp"
 

@@ -25,7 +25,7 @@
 #include "receiver.hpp"
 #include "sender_factory.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
 #include <boost/asio/strand.hpp>
 #include <boost/asio/ip/tcp.hpp>

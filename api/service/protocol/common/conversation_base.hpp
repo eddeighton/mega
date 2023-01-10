@@ -21,7 +21,7 @@
 #define CONVERSATION_BASE_5_JAN_2023
 
 #include "service/protocol/common/sender.hpp"
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include "common/assert_verify.hpp"

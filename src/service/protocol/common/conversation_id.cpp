@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
 #include "common/assert_verify.hpp"
 

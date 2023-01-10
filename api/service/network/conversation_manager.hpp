@@ -20,7 +20,7 @@
 #ifndef CONVERSATION_MANAGER_26_MAY_2022
 #define CONVERSATION_MANAGER_26_MAY_2022
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
 #include "service/network/conversation.hpp"
 

@@ -27,7 +27,7 @@
 #include "service/network/sender_factory.hpp"
 #include "service/network/channel.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 #include "service/protocol/common/node.hpp"
 
 #include "jit/jit.hpp"

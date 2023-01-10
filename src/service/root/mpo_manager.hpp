@@ -23,7 +23,7 @@
 #include "mega/allocator.hpp"
 #include "mega/reference_io.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 #include "service/network/log.hpp"
 
 #include "common/assert_verify.hpp"

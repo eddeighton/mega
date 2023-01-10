@@ -22,7 +22,7 @@
 
 #include "network.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include <boost/asio/spawn.hpp>

@@ -27,7 +27,7 @@
 #include "service/network/conversation_manager.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"

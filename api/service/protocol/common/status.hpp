@@ -21,7 +21,7 @@
 #define STATUS_23_SEPT_2022
 
 #include "mega/reference.hpp"
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
 #include "log/record.hpp"
 

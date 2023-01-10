@@ -36,11 +36,11 @@ Server::Connection::Connection( Server& server, boost::asio::io_context& ioConte
     : m_server( server )
     , m_strand( boost::asio::make_strand( ioContext ) )
     , m_socket( m_strand )
-    , m_receiver( conversationManager, m_socket, boost::bind( &Connection::disconnected, this ) )
+    , m_receiver( conversationManager, m_socket, [ this ] { disconnected(); } )
 {
 }
 
-Server::Connection::~Connection() {}
+Server::Connection::~Connection() = default;
 
 void Server::Connection::start()
 {
@@ -67,12 +67,12 @@ void Server::Connection::stop()
 
 void Server::Connection::disconnected()
 {
-    if ( m_socket.is_open() )
+    if( m_socket.is_open() )
     {
         boost::system::error_code ec;
         m_socket.close( ec );
     }
-    if ( m_disconnectCallback.has_value() )
+    if( m_disconnectCallback.has_value() )
     {
         ( *m_disconnectCallback )( m_connectionID.value() );
     }
@@ -91,7 +91,7 @@ void Server::stop()
     m_acceptor.close();
     {
         ConnectionMap temp = m_connections;
-        for ( auto& [ id, pConnection ] : temp )
+        for( auto& [ id, pConnection ] : temp )
         {
             pConnection->stop();
         }
@@ -110,12 +110,12 @@ void Server::waitForConnection()
 
 void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::error_code& ec )
 {
-    if ( !ec )
+    if( !ec )
     {
         pNewConnection->start();
         m_connections.insert( std::make_pair( pNewConnection->getSocketConnectionID(), pNewConnection ) );
     }
-    if ( m_acceptor.is_open() )
+    if( m_acceptor.is_open() )
         waitForConnection();
 }
 
@@ -123,9 +123,9 @@ void Server::onDisconnected( Connection::Ptr pConnection )
 {
     m_connections.erase( pConnection->getSocketConnectionID() );
 
-    for ( auto i = m_connectionLabels.begin(), iEnd = m_connectionLabels.end(); i != iEnd; ++i )
+    for( auto i = m_connectionLabels.begin(), iEnd = m_connectionLabels.end(); i != iEnd; ++i )
     {
-        if ( i->second == pConnection )
+        if( i->second == pConnection )
         {
             m_connectionLabels.erase( i );
             break;
@@ -136,7 +136,7 @@ void Server::onDisconnected( Connection::Ptr pConnection )
 Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID )
 {
     auto iFind = m_connections.find( connectionID );
-    if ( iFind != m_connections.end() )
+    if( iFind != m_connections.end() )
     {
         return iFind->second;
     }

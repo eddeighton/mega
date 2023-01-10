@@ -26,7 +26,7 @@
 #include "service/protocol/common/megastructure_installation.hpp"
 
 #include "parser/parser.hpp"
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
 #include <boost/asio/io_service.hpp>
 

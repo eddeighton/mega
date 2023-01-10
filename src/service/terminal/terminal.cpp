@@ -28,7 +28,7 @@
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
 #include "service/protocol/model/leaf_term.hxx"
 #include "service/protocol/model/term_leaf.hxx"

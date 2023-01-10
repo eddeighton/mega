@@ -21,7 +21,7 @@
 #include "service/network/log.hpp"
 #include "service/network/network.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 #include "service/protocol/common/sender.hpp"
 
 #include "service/protocol/model/messages.hxx"
@@ -38,49 +38,51 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <algorithm>
 #include <sstream>
+#include <utility>
 
 namespace mega::network
 {
 
-Sender::~Sender() {}
+Sender::~Sender() = default;
 
 class SocketSender : public Sender
 {
-    Traits::Socket& m_socket;
-    ConnectionID                  m_connectionID;
+    using SendBuffer = std::vector< char >;
+
+    Traits::Socket&                                    m_socket;
+    ConnectionID                                       m_connectionID;
 
 public:
-    SocketSender( Traits::Socket& socket, const ConnectionID& connectionID )
+    SocketSender( Traits::Socket& socket, ConnectionID connectionID )
         : m_socket( socket )
-        , m_connectionID( connectionID )
+        , m_connectionID( std::move( connectionID ) )
     {
     }
 
-    virtual ~SocketSender() {}
+    virtual ~SocketSender() = default;
 
     virtual ConnectionID getConnectionID() const { return m_connectionID; }
 
     virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
-        using SendBuffer = std::vector< char >;
-        SendBuffer buffer;
+        boost::interprocess::basic_vectorbuf< SendBuffer > m_os;
+        SendBuffer                                         m_buffer;
         {
-            boost::interprocess::basic_vectorbuf< SendBuffer > os;
-            encode( os, msg );
-            const MessageSize size = os.vector().size();
+            encode( m_os, msg );
+            const MessageSize size = m_os.vector().size();
             std::string_view  sizeView( reinterpret_cast< const char* >( &size ), sizeof( MessageSize ) );
-            buffer.reserve( size + sizeof( MessageSize ) );
-            std::copy( sizeView.begin(), sizeView.end(), std::back_inserter( buffer ) );
-            std::copy( os.vector().begin(), os.vector().end(), std::back_inserter( buffer ) );
+            m_buffer.reserve( size + sizeof( MessageSize ) );
+            std::copy( sizeView.begin(), sizeView.end(), std::back_inserter( m_buffer ) );
+            std::copy( m_os.vector().begin(), m_os.vector().end(), std::back_inserter( m_buffer ) );
         }
 
         boost::system::error_code ec;
         {
             const mega::U64 szBytesWritten
-                = boost::asio::async_write( m_socket, boost::asio::buffer( buffer ), yield_ctx[ ec ] ); //
-            if ( !ec )
+                = boost::asio::async_write( m_socket, boost::asio::buffer( m_buffer ), yield_ctx[ ec ] );
+            if( !ec )
             {
-                VERIFY_RTE( szBytesWritten == buffer.size() );
+                VERIFY_RTE( szBytesWritten == m_buffer.size() );
             }
             return ec;
         }
@@ -91,7 +93,7 @@ public:
                                     boost::asio::yield_context& yield_ctx )
     {
         Message msg = make_error_msg( receivedMsg.msg.getReceiverID(), strErrorMsg );
-        if ( const boost::system::error_code ec = send( msg, yield_ctx ) )
+        if( const boost::system::error_code ec = send( msg, yield_ctx ) )
         {
             THROW_RTE( "Error sending: " << ec.what() );
         }
@@ -113,13 +115,13 @@ class ConcurrentChannelSender : public Sender
     ConnectionID       m_connectionID;
 
 public:
-    ConcurrentChannelSender( ConcurrentChannel& channel, const ConnectionID& connectionID )
+    ConcurrentChannelSender( ConcurrentChannel& channel, ConnectionID connectionID )
         : m_channel( channel )
-        , m_connectionID( connectionID )
+        , m_connectionID( std::move( connectionID ) )
     {
     }
 
-    virtual ~ConcurrentChannelSender() {}
+    virtual ~ConcurrentChannelSender() = default;
 
     virtual ConnectionID getConnectionID() const { return m_connectionID; }
 
@@ -129,10 +131,10 @@ public:
         VERIFY_RTE_MSG( m_channel.is_open(), "Channel NOT open sending:" << msg );
         m_channel.async_send( ec, msg, yield_ctx );
 
-        if ( ec != boost::system::error_code() )
+        if( ec != boost::system::error_code() )
         {
-            if ( ( ec != boost::asio::experimental::error::channel_cancelled )
-                 && ( ec != boost::asio::experimental::error::channel_closed ) )
+            if( ( ec != boost::asio::experimental::error::channel_cancelled )
+                && ( ec != boost::asio::experimental::error::channel_closed ) )
             {
                 SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
                 THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
@@ -151,7 +153,7 @@ public:
                                     boost::asio::yield_context& yield_ctx )
     {
         Message msg = make_error_msg( receivedMsg.msg.getReceiverID(), strErrorMsg );
-        if ( const boost::system::error_code ec = send( msg, yield_ctx ) )
+        if( const boost::system::error_code ec = send( msg, yield_ctx ) )
         {
             THROW_RTE( "Error sending: " << ec.what() );
         }
@@ -173,13 +175,13 @@ class ChannelSender : public Sender
     ConnectionID m_connectionID;
 
 public:
-    ChannelSender( Channel& channel, const ConnectionID& connectionID )
+    ChannelSender( Channel& channel, ConnectionID connectionID )
         : m_channel( channel )
-        , m_connectionID( connectionID )
+        , m_connectionID( std::move( connectionID ) )
     {
     }
 
-    virtual ~ChannelSender() {}
+    virtual ~ChannelSender() = default;
 
     virtual ConnectionID getConnectionID() const { return m_connectionID; }
 
@@ -189,10 +191,10 @@ public:
         VERIFY_RTE_MSG( m_channel.is_open(), "Channel NOT open" );
         m_channel.async_send( ec, msg, yield_ctx );
 
-        if ( ec != boost::system::error_code() )
+        if( ec != boost::system::error_code() )
         {
-            if ( ( ec != boost::asio::experimental::error::channel_cancelled )
-                 && ( ec != boost::asio::experimental::error::channel_closed ) )
+            if( ( ec != boost::asio::experimental::error::channel_cancelled )
+                && ( ec != boost::asio::experimental::error::channel_closed ) )
             {
                 SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
                 THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
@@ -212,7 +214,7 @@ public:
                                     boost::asio::yield_context& yield_ctx )
     {
         Message msg = make_error_msg( receivedMsg.msg.getReceiverID(), strErrorMsg );
-        if ( const boost::system::error_code ec = send( msg, yield_ctx ) )
+        if( const boost::system::error_code ec = send( msg, yield_ctx ) )
         {
             THROW_RTE( "Error sending: " << ec.what() );
         }

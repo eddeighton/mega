@@ -30,7 +30,7 @@
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 #include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/pipeline_result.hpp"
 

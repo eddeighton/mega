@@ -28,7 +28,7 @@
 #include "service/network/network.hpp"
 
 #include "service/network/conversation_manager.hpp"
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 #include "service/protocol/common/megastructure_installation.hpp"
 
 #include <boost/asio/io_service.hpp>

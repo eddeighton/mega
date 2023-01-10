@@ -32,7 +32,7 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/context.hpp"
-#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/sim.hxx"

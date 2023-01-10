@@ -17,8 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef HEADER_25_MAY_2022
-#define HEADER_25_MAY_2022
+#ifndef CONVERSATION_ID_25_MAY_2022
+#define CONVERSATION_ID_25_MAY_2022
 
 #include "common/hash.hpp"
 
@@ -27,6 +27,7 @@
 #include <string>
 #include <ostream>
 #include <istream>
+#include <utility>
 
 namespace mega::network
 {
@@ -52,9 +53,9 @@ public:
     {
     }
 
-    ConversationID( ID id, const ConnectionID& connectionID )
+    ConversationID( ID id, ConnectionID connectionID )
         : m_id( id )
-        , m_connectionID( connectionID )
+        , m_connectionID(std::move( connectionID ))
     {
     }
 
@@ -102,4 +103,4 @@ using MessageID = mega::U32;
 
 } // namespace mega::network
 
-#endif // HEADER_25_MAY_2022
+#endif // CONVERSATION_ID_25_MAY_2022

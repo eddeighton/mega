@@ -20,7 +20,7 @@
 #ifndef SENDER_1_JAN_2023
 #define SENDER_1_JAN_2023
 
-#include "header.hpp"
+#include "conversation_id.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include <boost/asio/spawn.hpp>
