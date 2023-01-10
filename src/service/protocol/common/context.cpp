@@ -24,7 +24,7 @@
 
 namespace
 {
-thread_local mega::MPOContext* g_pMPOContext = nullptr;
+static thread_local mega::MPOContext* g_pMPOContext = nullptr;
 } // namespace
 
 namespace mega

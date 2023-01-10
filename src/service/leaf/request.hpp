@@ -150,20 +150,17 @@ public:
     virtual reference NetworkToHeap( const reference& ref, const TimeStamp& lockCycle,
                                      boost::asio::yield_context& yield_ctx ) override;
 
-    // network::sim::Impl
-    /*TimeStamp SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
-                           boost::asio::yield_context& yield_ctx ) override;
-    TimeStamp SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
-                            boost::asio::yield_context& yield_ctx ) override;
-    void      SimLockRelease( const MPO&                  requestingMPO,
-                              const MPO&                  targetMPO,
-                              const network::Transaction& transaction,
-                              boost::asio::yield_context& yield_ctx ) override;*/
-
     // public network::jit::Impl
     virtual void GetAllocator( const TypeID&               objectTypeID,
                                const mega::U64&            jitAllocatorPtr,
                                boost::asio::yield_context& yield_ctx ) override;
+
+    virtual void GetLoadRecord( const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
+    virtual void GetLoadObjectRecord( const mega::U64&            pszUnitName,
+                                      const mega::TypeID&         objectTypeID,
+                                      const mega::U64&            ppFunction,
+                                      boost::asio::yield_context& yield_ctx ) override;
+
     virtual void GetSaveXMLObject( const mega::U64&            pszUnitName,
                                    const TypeID&               objectTypeID,
                                    const mega::U64&            ppFunction,
@@ -207,8 +204,8 @@ public:
     virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;
 
 private:
-    //void replicateSnapshot( const Snapshot& snapshot, const reference& ref, bool bGetShared,
-    //                        boost::asio::yield_context& yield_ctx );
+    // void replicateSnapshot( const Snapshot& snapshot, const reference& ref, bool bGetShared,
+    //                         boost::asio::yield_context& yield_ctx );
 };
 
 } // namespace mega::service

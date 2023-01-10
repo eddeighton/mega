@@ -89,3 +89,22 @@ void save_object_xml_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 void load_object_xml_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {
 }
+
+void load_object_record_{{ objectTypeID }}( mega::reference ref, void* pData )
+{
+    switch( ref.getType() )
+    {
+{% for part in parts %}
+{% for member in part.members %}
+        case {{ member.type_id }}: // {{ member.type }} {{ member.name }}
+        {
+            // TODO
+            // mega::load_bin_{{member.mangle}}( pIter + {{ member.offset }}, pData );
+        }
+        break;
+{% endfor %}
+{% endfor %}
+        default:
+            throw "Unknown record type";
+    }
+}

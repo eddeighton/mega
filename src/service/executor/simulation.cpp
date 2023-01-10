@@ -186,7 +186,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         }
                         else
                         {
-                            /// TODO.
+                            THROW_TODO;
                         }
                     } ) )
                     ;
@@ -252,16 +252,27 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
                     case StateMachine::Write::ID:
                     case StateMachine::Release::ID:
                     case StateMachine::Destroy::ID:
-                    case StateMachine::Clock::ID:
+                    {
+                        SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse queued: {}", msg.msg );
                         m_messageQueue.push_back( msg );
-                        break;
+                    }
+                    break;
+                    case StateMachine::Clock::ID:
+                    {
+                        SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse re-issued clock: {}", msg.msg );
+                        issueClock();
+                    }
+                    break;
                     default:
+                    {
+                        SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse got request: {}", msg.msg );
                         dispatchRequestImpl( msg, yield_ctx );
-                        break;
+                    }
+                    break;
                 }
 
                 // check if connection has disconnected
-                if( m_disconnections.empty() )
+                if( !m_disconnections.empty() )
                 {
                     ASSERT( !m_stack.empty() );
                     if( m_disconnections.count( m_stack.back() ) )
@@ -303,7 +314,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     request.SimStart();
 }
 
-Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yield_context& yield_ctx) 
+Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimSnapshot: {}", object );
     VERIFY_RTE_MSG( object.getMPO() == getThisMPO(), "SimObjectSnapshot called on bad mpo: " << object );
@@ -320,7 +331,7 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
     return archive.makeSnapshot( m_log.getTimeStamp() );
 }
 
-Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx)
+Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimLockRead: {} {}", mpo );
     THROW_TODO;
@@ -350,14 +361,20 @@ TimeStamp Simulation::SimLockWrite( const MPO& requestingMPO, const MPO& targetM
 }
 
 void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
-                                 const network::Transaction& transaction,
-                                 boost::asio::yield_context& )
+                                 const network::Transaction& transaction, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimLockRelease: {} {}", requestingMPO, targetMPO );
+
+    // NOTE: can context switch when call get_load_record
+    static thread_local mega::runtime::LoadRecordFunction loadRecordFPtr = nullptr;
+    while( loadRecordFPtr == nullptr )
+    {
+        get_load_record( &loadRecordFPtr );
+    }
+
     for( const auto& [ ref, type ] : transaction.getSchedulingRecords() )
     {
-        SPDLOG_INFO(
-            "SIM::SimLockRelease Got scheduling record: {} {}", ref, type );
+        SPDLOG_INFO( "SIM::SimLockRelease Got scheduling record: {} {}", ref, type );
     }
 
     for( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
@@ -368,7 +385,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
         {
             SPDLOG_INFO( "SIM::SimLockRelease Got memory record: {} {}", ref, str );
 
-            
+            loadRecordFPtr( ref, str.data() );
         }
     }
 }
@@ -415,7 +432,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         status.setLogIterator( m_log.getIterator() );
 
         using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
-        using MPOVec = std::vector< MPO >;
+        using MPOVec          = std::vector< MPO >;
         if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
             status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
         if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )

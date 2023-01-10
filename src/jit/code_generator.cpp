@@ -99,35 +99,35 @@ struct FunctionPointers
 
     void generate( nlohmann::json& data )
     {
-        for ( auto pCall : callSet )
+        for( auto pCall : callSet )
         {
             data[ "calls" ].push_back( pCall->get_concrete_id() );
         }
-        for ( auto pCopy : copySet )
+        for( auto pCopy : copySet )
         {
             data[ "copiers" ].push_back( megaMangle( pCopy->get_canonical_type() ) );
         }
-        for ( auto event : eventSet )
+        for( auto event : eventSet )
         {
             data[ "events" ].push_back( event );
         }
-        for ( auto allocator : allocatorSet )
+        for( auto allocator : allocatorSet )
         {
             data[ "allocators" ].push_back( allocator );
         }
-        for ( auto freer : freerSet )
+        for( auto freer : freerSet )
         {
             data[ "freers" ].push_back( freer );
         }
-        for ( auto pObject : objectAllocSet )
+        for( auto pObject : objectAllocSet )
         {
             data[ "object_allocators" ].push_back( pObject->get_concrete_id() );
         }
-        for ( auto pObject : objectSave )
+        for( auto pObject : objectSave )
         {
             data[ "object_savers" ].push_back( pObject->get_concrete_id() );
         }
-        for ( auto pObject : objectLoad )
+        for( auto pObject : objectLoad )
         {
             data[ "object_loaders" ].push_back( pObject->get_concrete_id() );
         }
@@ -141,26 +141,26 @@ std::string allocatorTypeName( const DatabaseInstance&                      data
 
     std::ostringstream     osTypeName;
     Allocators::Allocator* pAllocator = pAllocDim->get_allocator();
-    if ( auto pAlloc = db_cast< Allocators::Nothing >( pAllocator ) )
+    if( auto pAlloc = db_cast< Allocators::Nothing >( pAllocator ) )
     {
         // do nothing
         THROW_RTE( "Unreachable" );
     }
-    else if ( auto pAlloc = db_cast< Allocators::Singleton >( pAllocator ) )
+    else if( auto pAlloc = db_cast< Allocators::Singleton >( pAllocator ) )
     {
         osTypeName << "bool";
     }
-    else if ( auto pAlloc = db_cast< Allocators::Range32 >( pAllocator ) )
+    else if( auto pAlloc = db_cast< Allocators::Range32 >( pAllocator ) )
     {
         osTypeName << "mega::Bitmask32Allocator< "
                    << database.getLocalDomainSize( pAlloc->get_allocated_context()->get_concrete_id() ) << " >";
     }
-    else if ( auto pAlloc = db_cast< Allocators::Range64 >( pAllocator ) )
+    else if( auto pAlloc = db_cast< Allocators::Range64 >( pAllocator ) )
     {
         osTypeName << "mega::Bitmask64Allocator< "
                    << database.getLocalDomainSize( pAlloc->get_allocated_context()->get_concrete_id() ) << " >";
     }
-    else if ( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocator ) )
+    else if( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocator ) )
     {
         osTypeName << "mega::RingAllocator< mega::Instance, "
                    << database.getLocalDomainSize( pAlloc->get_allocated_context()->get_concrete_id() ) << " >";
@@ -186,6 +186,7 @@ class CodeGenerator::Pimpl
     ::inja::Template    m_stopTemplate;
     ::inja::Template    m_saveTemplate;
     ::inja::Template    m_loadTemplate;
+    ::inja::Template    m_programTemplate;
 
 public:
     Pimpl( const mega::network::MegastructureInstallation& megaInstall, const mega::network::Project& project )
@@ -200,6 +201,7 @@ public:
         m_stopTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().string() );
         m_saveTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().string() );
         m_loadTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().string() );
+        m_programTemplate    = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateProgram().string() );
     }
 
     void render_allocation( const nlohmann::json& data, std::ostream& os )
@@ -238,6 +240,10 @@ public:
     {
         m_injaEnvironment.render_to( os, m_loadTemplate, data );
     }
+    void render_program( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_programTemplate, data );
+    }
 
     std::string render( const std::string& strTemplate, const nlohmann::json& data )
     {
@@ -245,90 +251,13 @@ public:
         {
             return m_injaEnvironment.render( strTemplate, data );
         }
-        catch ( inja::ParserError& ex )
+        catch( inja::InjaError& ex )
         {
-            SPDLOG_ERROR( "inja::ParserError in CodeGenerator::render error: {}", ex.what() );
-            THROW_RTE( ex.what() );
-        }
-        catch ( inja::RenderError& ex )
-        {
-            SPDLOG_ERROR( "inja::RenderError in CodeGenerator::render error: {}", ex.what() );
-            THROW_RTE( ex.what() );
-        }
-        catch ( inja::FileError& ex )
-        {
-            SPDLOG_ERROR( "inja::FileError in CodeGenerator::render error: {}", ex.what() );
-            THROW_RTE( ex.what() );
-        }
-        catch ( inja::DataError& ex )
-        {
-            SPDLOG_ERROR( "inja::DataError in CodeGenerator::render error: {}", ex.what() );
-            THROW_RTE( ex.what() );
-        }
-        catch ( inja::InjaError& ex )
-        {
-            SPDLOG_ERROR( "inja::InjaError in CodeGenerator::render error: {}", ex.what() );
-            THROW_RTE( ex.what() );
+            SPDLOG_ERROR( "inja::InjaError in CodeGenerator::render rendering: {}", ex.what() );
+            THROW_RTE( "inja::InjaError in CodeGenerator::render rendering: " << ex.what() );
         }
     }
-    /*
-        void generateAllocate( const std::string& strAllocatorMangledType, bool bShared, mega::TypeID contextID,
-                               FinalStage::MemoryLayout::Part* pPart, const std::string& strInstanceVar,
-                               const FinalStage::Concrete::Dimensions::Allocator* pAllocator, std::ostream& os )
-        {
-            // clang-format off
-    static const char* szTemplate =
-    R"TEMPLATE(
-        {
-            char* pAllocator
-                = reinterpret_cast< char* >(
-                    _fptr_get_{{ memory_type }}_{{ context_type_id }}( {{ instance_var }} ) ) +
-                        {{ part_offset }} +
-                        ( {{ part_size }} * {{ instance_var }}.instance ) +
-                        {{ allocator_offset }};
 
-            mega::Instance newInstance = mega::allocate_{{ allocator_type }}( pAllocator );
-
-            mega::reference allocated( mega::TypeInstance( newInstance, 1 ), {{ instance_var }} );
-
-            // generate memory record
-            mega::event_{{ allocator_type }}( mega::reference( mega::TypeInstance( {{ instance_var }}.instance,
-                {{ allocator_type_id }} ), var_Root_1 ), false, pAllocator );
-
-            // generate scheduling record
-            mega::schedule_start( allocated );
-
-            return allocated;
-        }
-    )TEMPLATE";
-
-            nlohmann::json data(
-              { { "memory_type",        bShared ? "shared" : "heap" },
-                { "context_type_id",    contextID },
-                { "instance_var",       strInstanceVar },
-                { "part_offset",        pPart->get_offset() },
-                { "part_size",          pPart->get_size() },
-                { "allocator_type",     strAllocatorMangledType },
-                { "allocator_offset",   pAllocator->get_offset() },
-                { "allocator_type_id",  pAllocator->get_concrete_id() } } );
-
-            // clang-format on
-            os << render( szTemplate, data );
-        }
-    */
-    /*
-        void generateFreeDimRead( const std::string& strFreer, const std::string& strFreeInstanceVar, bool bShared,
-                                  mega::TypeID contextID, FinalStage::MemoryLayout::Part* pPart,
-                                  const std::string&                                 strInstanceVar,
-                                  const FinalStage::Concrete::Dimensions::Allocator* pAllocator, std::ostream& os )
-        {
-            const std::string strType = bShared ? "shared" : "heap";
-            os << indent << "mega::free_" << strFreer << "( reinterpret_cast< char* >(_fptr_get_" << strType << "_"
-               << contextID << "( " << strInstanceVar << " ) )"
-               << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar
-               << ".instance ) + " << pAllocator->get_offset() << ", " << strFreeInstanceVar << ") ;\n";
-        }
-    */
     void generateInstructions( const DatabaseInstance&                             database,
                                FinalStage::Invocations::Instructions::Instruction* pInstruction,
                                const VariableMap& variables, FunctionPointers& functions, nlohmann::json& data )
@@ -336,9 +265,9 @@ public:
         using namespace FinalStage;
         using namespace FinalStage::Invocations;
 
-        if ( auto pInstructionGroup = db_cast< Instructions::InstructionGroup >( pInstruction ) )
+        if( auto pInstructionGroup = db_cast< Instructions::InstructionGroup >( pInstruction ) )
         {
-            if ( auto pParentDerivation = db_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
+            if( auto pParentDerivation = db_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
             {
                 std::ostringstream os;
                 os << indent << "// ParentDerivation\n";
@@ -350,7 +279,7 @@ public:
                 const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
                 const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
 
-                if ( szLocalSize > 1 )
+                if( szLocalSize > 1 )
                 {
                     os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
                        << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ", " << s
@@ -364,7 +293,7 @@ public:
 
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pChildDerivation = db_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
+            else if( auto pChildDerivation = db_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
             {
                 std::ostringstream os;
                 os << indent << "// ChildDerivation\n";
@@ -381,29 +310,29 @@ public:
 
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pEnumDerivation = db_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
+            else if( auto pEnumDerivation = db_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
                 os << indent << "// EnumDerivation\n";
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pEnumeration = db_cast< Instructions::Enumeration >( pInstructionGroup ) )
+            else if( auto pEnumeration = db_cast< Instructions::Enumeration >( pInstructionGroup ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
                 os << indent << "// Enumeration\n";
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pDimensionReferenceRead
-                      = db_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
+            else if( auto pDimensionReferenceRead
+                     = db_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
                 os << indent << "// DimensionReferenceRead\n";
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pMonoReference = db_cast< Instructions::MonoReference >( pInstructionGroup ) )
+            else if( auto pMonoReference = db_cast< Instructions::MonoReference >( pInstructionGroup ) )
             {
                 const Variables::Instance*  pInstance  = pMonoReference->get_instance();
                 const Variables::Reference* pReference = pMonoReference->get_reference();
@@ -414,14 +343,14 @@ public:
 
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pPolyReference = db_cast< Instructions::PolyReference >( pInstructionGroup ) )
+            else if( auto pPolyReference = db_cast< Instructions::PolyReference >( pInstructionGroup ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
                 os << indent << "// PolyReference\n";
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pPolyCase = db_cast< Instructions::PolyCase >( pInstructionGroup ) )
+            else if( auto pPolyCase = db_cast< Instructions::PolyCase >( pInstructionGroup ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
@@ -433,16 +362,16 @@ public:
                 THROW_RTE( "Unknown instruction type" );
             }
 
-            for ( auto pChildInstruction : pInstructionGroup->get_children() )
+            for( auto pChildInstruction : pInstructionGroup->get_children() )
             {
                 generateInstructions( database, pChildInstruction, variables, functions, data );
             }
         }
-        else if ( auto pOperation = db_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
+        else if( auto pOperation = db_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
         {
             using namespace FinalStage::Invocations::Operations;
 
-            if ( auto pAllocate = db_cast< Allocate >( pOperation ) )
+            if( auto pAllocate = db_cast< Allocate >( pOperation ) )
             {
                 // clang-format off
 static const char* szTemplate =
@@ -467,13 +396,13 @@ R"TEMPLATE(
 
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pCall = db_cast< Call >( pOperation ) )
+            else if( auto pCall = db_cast< Call >( pOperation ) )
             {
                 // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
     {
-        if( _fptr_call_{{ concrete_type_id }} == nullptr )
+        while( _fptr_call_{{ concrete_type_id }} == nullptr )
         {
             mega::runtime::get_call_getter( g_pszModuleName, {{ concrete_type_id }},
                 &_fptr_call_{{ concrete_type_id }} );
@@ -497,7 +426,7 @@ R"TEMPLATE(
 
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pStart = db_cast< Start >( pOperation ) )
+            else if( auto pStart = db_cast< Start >( pOperation ) )
             {
                 THROW_TODO;
                 /*std::ostringstream os;
@@ -533,7 +462,7 @@ R"TEMPLATE(
 
                 functions.parts.insert( pAllocationDimension->get_part() );*/
             }
-            else if ( auto pStop = db_cast< Stop >( pOperation ) )
+            else if( auto pStop = db_cast< Stop >( pOperation ) )
             {
                 THROW_TODO;
                 /*std::ostringstream os;
@@ -565,13 +494,14 @@ R"TEMPLATE(
 
                 functions.parts.insert( pAllocationDimension->get_part() );*/
             }
-            else if ( auto pSave = db_cast< Save >( pOperation ) )
+            else if( auto pSave = db_cast< Save >( pOperation ) )
             {
+                THROW_TODO;
                 // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
     {
-        if( _fptr_save_xml_object_{{ concrete_type_id }} == nullptr )
+        while( _fptr_save_xml_object_{{ concrete_type_id }} == nullptr )
         {
             mega::runtime::get_save_xml_object( g_pszModuleName, {{ concrete_type_id }},
                 &_fptr_save_xml_object_{{ concrete_type_id }} );
@@ -595,32 +525,32 @@ R"TEMPLATE(
 
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pLoad = db_cast< Load >( pOperation ) )
+            else if( auto pLoad = db_cast< Load >( pOperation ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
                 os << indent << "// Load\n";
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pFiles = db_cast< Files >( pOperation ) )
+            else if( auto pFiles = db_cast< Files >( pOperation ) )
             {
                 THROW_TODO;
             }
-            else if ( auto pGetAction = db_cast< GetAction >( pOperation ) )
+            else if( auto pGetAction = db_cast< GetAction >( pOperation ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
                 os << indent << "// GetAction\n";
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pGetDimension = db_cast< GetDimension >( pOperation ) )
+            else if( auto pGetDimension = db_cast< GetDimension >( pOperation ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
                 os << indent << "// GetDimension\n";
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pRead = db_cast< Read >( pOperation ) )
+            else if( auto pRead = db_cast< Read >( pOperation ) )
             {
                 // clang-format off
 static const char* szTemplate =
@@ -656,7 +586,7 @@ R"TEMPLATE(
 
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pWrite = db_cast< Write >( pOperation ) )
+            else if( auto pWrite = db_cast< Write >( pOperation ) )
             {
                 // clang-format off
 static const char* szTemplate =
@@ -699,8 +629,8 @@ R"TEMPLATE(
                     Concrete::Dimensions::User* pDimension = pWrite->get_concrete_dimension();
                     Variables::Instance*        pInstance  = pWrite->get_instance();
                     MemoryLayout::Part*         pPart      = pDimension->get_part();
-                    const bool        bSimple = pDimension->get_interface_dimension()->get_simple();
-                    const std::string strMangled
+                    const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
+                    const std::string           strMangled
                         = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );
 
                     nlohmann::json templateData( { { "concrete_type_id", pDimension->get_concrete_id() },
@@ -720,14 +650,14 @@ R"TEMPLATE(
 
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pWriteLink = db_cast< WriteLink >( pOperation ) )
+            else if( auto pWriteLink = db_cast< WriteLink >( pOperation ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
                 os << indent << "// WriteLink\n";
                 data[ "assignments" ].push_back( os.str() );
             }
-            else if ( auto pRange = db_cast< Range >( pOperation ) )
+            else if( auto pRange = db_cast< Range >( pOperation ) )
             {
                 THROW_TODO;
                 std::ostringstream os;
@@ -756,9 +686,9 @@ R"TEMPLATE(
         VariableMap variables;
 
         int iVariableCounter = 0;
-        for ( auto pVariable : invocationVariables )
+        for( auto pVariable : invocationVariables )
         {
-            if ( auto pInstanceVar = db_cast< Variables::Instance >( pVariable ) )
+            if( auto pInstanceVar = db_cast< Variables::Instance >( pVariable ) )
             {
                 std::ostringstream osName;
                 {
@@ -773,7 +703,7 @@ R"TEMPLATE(
                 }
                 data[ "variables" ].push_back( osVar.str() );
             }
-            else if ( auto pDimensionVar = db_cast< Variables::Dimension >( pVariable ) )
+            else if( auto pDimensionVar = db_cast< Variables::Dimension >( pVariable ) )
             {
                 auto types = pDimensionVar->get_types();
                 VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
@@ -791,7 +721,7 @@ R"TEMPLATE(
                 }
                 data[ "variables" ].push_back( osVar.str() );
             }
-            else if ( auto pContextVar = db_cast< Variables::Context >( pVariable ) )
+            else if( auto pContextVar = db_cast< Variables::Context >( pVariable ) )
             {
                 auto types = pContextVar->get_types();
                 VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
@@ -808,7 +738,7 @@ R"TEMPLATE(
                 }
                 data[ "variables" ].push_back( osVar.str() );
 
-                if ( pRootContext == pContextVar )
+                if( pRootContext == pContextVar )
                 {
                     // generate initial assignment
                     std::ostringstream os;
@@ -840,8 +770,8 @@ std::string makeIterName( FinalStage::Concrete::Context* pContext )
     return os.str();
 }
 
-void generateDimensions( const DatabaseInstance& database, FinalStage::Concrete::Dimensions::User* pUserDim,
-                         nlohmann::json& data )
+void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::Concrete::Dimensions::User* pUserDim,
+                                  nlohmann::json& data )
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
@@ -854,12 +784,12 @@ void generateDimensions( const DatabaseInstance& database, FinalStage::Concrete:
     {
         Concrete::Context* pContext = pUserDim->get_parent();
         U64                size     = 1;
-        while ( pContext )
+        while( pContext )
         {
             parents.push_back( pContext );
             sizes.push_back( size );
             size *= database.getLocalDomainSize( pContext->get_concrete_id() );
-            if ( !!db_cast< Concrete::Object >( pContext ) )
+            if( !!db_cast< Concrete::Object >( pContext ) )
                 break;
             pContext = db_cast< Concrete::Context >( pContext->get_parent() );
         }
@@ -871,9 +801,9 @@ void generateDimensions( const DatabaseInstance& database, FinalStage::Concrete:
     offset << pPart->get_offset();
     offset << " + " << pPart->get_size() << " * (";
     bool bFirst = true;
-    for ( U64 i = 0; i != parents.size(); ++i )
+    for( U64 i = 0; i != parents.size(); ++i )
     {
-        if ( bFirst )
+        if( bFirst )
             bFirst = false;
         else
             offset << " + ";
@@ -896,7 +826,8 @@ void generateDimensions( const DatabaseInstance& database, FinalStage::Concrete:
     data[ "elements" ].push_back( element );
 }
 
-void recurseElements( const DatabaseInstance& database, FinalStage::Concrete::Context* pContext, nlohmann::json& data )
+void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Concrete::Context* pContext,
+                               nlohmann::json& data )
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
@@ -914,46 +845,46 @@ void recurseElements( const DatabaseInstance& database, FinalStage::Concrete::Co
         data[ "elements" ].push_back( element );
     }
 
-    if ( auto pNamespace = db_cast< Namespace >( pContext ) )
+    if( auto pNamespace = db_cast< Namespace >( pContext ) )
     {
-        for ( auto pUserDim : pNamespace->get_dimensions() )
+        for( auto pUserDim : pNamespace->get_dimensions() )
         {
-            generateDimensions( database, pUserDim, data );
+            generateAllocatorDimensions( database, pUserDim, data );
         }
     }
-    else if ( auto pAction = db_cast< Action >( pContext ) )
+    else if( auto pAction = db_cast< Action >( pContext ) )
     {
-        for ( auto pUserDim : pAction->get_dimensions() )
+        for( auto pUserDim : pAction->get_dimensions() )
         {
-            generateDimensions( database, pUserDim, data );
+            generateAllocatorDimensions( database, pUserDim, data );
         }
     }
-    else if ( auto pEvent = db_cast< FinalStage::Concrete::Event >( pContext ) )
+    else if( auto pEvent = db_cast< FinalStage::Concrete::Event >( pContext ) )
     {
-        for ( auto pUserDim : pEvent->get_dimensions() )
+        for( auto pUserDim : pEvent->get_dimensions() )
         {
-            generateDimensions( database, pUserDim, data );
+            generateAllocatorDimensions( database, pUserDim, data );
         }
     }
-    else if ( auto pFunction = db_cast< Function >( pContext ) )
+    else if( auto pFunction = db_cast< Function >( pContext ) )
     {
     }
-    else if ( auto pObject = db_cast< Object >( pContext ) )
+    else if( auto pObject = db_cast< Object >( pContext ) )
     {
-        for ( auto pUserDim : pObject->get_dimensions() )
+        for( auto pUserDim : pObject->get_dimensions() )
         {
-            generateDimensions( database, pUserDim, data );
+            generateAllocatorDimensions( database, pUserDim, data );
         }
     }
-    else if ( auto pLink = db_cast< Link >( pContext ) )
+    else if( auto pLink = db_cast< Link >( pContext ) )
     {
         HyperGraph::Relation*      pRelation = pLink->get_link()->get_relation();
         Dimensions::LinkReference* pLinkRef  = pLink->get_link_reference();
-        if ( auto pRange = db_cast< Dimensions::LinkMany >( pLinkRef ) )
+        if( auto pRange = db_cast< Dimensions::LinkMany >( pLinkRef ) )
         {
             // range
         }
-        else if ( auto pSingle = db_cast< Dimensions::LinkSingle >( pLinkRef ) )
+        else if( auto pSingle = db_cast< Dimensions::LinkSingle >( pLinkRef ) )
         {
             // singular
         }
@@ -962,7 +893,7 @@ void recurseElements( const DatabaseInstance& database, FinalStage::Concrete::Co
             THROW_RTE( "Unknown link type" );
         }
     }
-    else if ( auto pBuffer = db_cast< Buffer >( pContext ) )
+    else if( auto pBuffer = db_cast< Buffer >( pContext ) )
     {
     }
     else
@@ -970,9 +901,9 @@ void recurseElements( const DatabaseInstance& database, FinalStage::Concrete::Co
         THROW_RTE( "Unknown context type" );
     }
 
-    for ( auto pChildContext : pContext->get_children() )
+    for( auto pChildContext : pContext->get_children() )
     {
-        recurseElements( database, pChildContext, data );
+        recurseAllocatorElements( database, pChildContext, data );
     }
 
     {
@@ -1003,18 +934,18 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                            { "mangled_data_types", nlohmann::json::array() },
                            { "elements", nlohmann::json::array() } } );
 
-    recurseElements( database, pObject, data );
+    recurseAllocatorElements( database, pObject, data );
 
     std::set< std::string > mangledDataTypes;
     {
         using namespace FinalStage;
-        for ( auto pBuffer : pObject->get_buffers() )
+        for( auto pBuffer : pObject->get_buffers() )
         {
             bool bBufferIsSimple = false;
-            if ( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+            if( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
                 bBufferIsSimple = true;
 
-            for ( auto pPart : pBuffer->get_parts() )
+            for( auto pPart : pBuffer->get_parts() )
             {
                 std::ostringstream osPartType;
                 std::ostringstream osPartName;
@@ -1029,11 +960,12 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                                        { "total_domain", pPart->get_total_domain_size() },
                                        { "members", nlohmann::json::array() } } );
 
-                for ( auto pUserDim : pPart->get_user_dimensions() )
+                for( auto pUserDim : pPart->get_user_dimensions() )
                 {
                     const std::string strMangle
                         = megaMangle( pUserDim->get_interface_dimension()->get_canonical_type() );
                     nlohmann::json member( { { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
+                                             { "type_id", pUserDim->get_concrete_id() },
                                              { "mangle", strMangle },
                                              { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
                                              { "offset", pUserDim->get_offset() } } );
@@ -1041,26 +973,28 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                     mangledDataTypes.insert( strMangle );
                 }
 
-                for ( auto pLinkDim : pPart->get_link_dimensions() )
+                for( auto pLinkDim : pPart->get_link_dimensions() )
                 {
-                    if ( auto pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( pLinkDim ) )
+                    if( auto pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( pLinkDim ) )
                     {
                         const std::string  strMangle = megaMangle( "mega::ReferenceVector" );
                         std::ostringstream osLinkName;
                         osLinkName << "link_" << pLinkMany->get_link()->get_concrete_id();
                         nlohmann::json member( { { "type", "mega::ReferenceVector" },
+                                                 { "type_id", pLinkMany->get_concrete_id() },
                                                  { "mangle", strMangle },
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkMany->get_offset() } } );
                         part[ "members" ].push_back( member );
                         mangledDataTypes.insert( strMangle );
                     }
-                    else if ( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
+                    else if( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
                     {
                         const std::string  strMangle = megaMangle( "mega::reference" );
                         std::ostringstream osLinkName;
                         osLinkName << "link_" << pLinkSingle->get_link()->get_concrete_id();
                         nlohmann::json member( { { "type", "mega::reference" },
+                                                 { "type_id", pLinkSingle->get_concrete_id() },
                                                  { "mangle", strMangle },
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkSingle->get_offset() } } );
@@ -1072,9 +1006,9 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                         THROW_RTE( "Unknown link type" );
                     }
                 }
-                for ( auto pAllocDim : pPart->get_allocation_dimensions() )
+                for( auto pAllocDim : pPart->get_allocation_dimensions() )
                 {
-                    if ( auto pAllocator = db_cast< Concrete::Dimensions::Allocator >( pAllocDim ) )
+                    if( auto pAllocator = db_cast< Concrete::Dimensions::Allocator >( pAllocDim ) )
                     {
                         const std::string strAllocatorTypeName = allocatorTypeName( database, pAllocator );
                         const std::string strMangle            = megaMangle( strAllocatorTypeName );
@@ -1086,6 +1020,7 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                         mangledDataTypes.insert( strMangle );
 
                         nlohmann::json member( { { "type", strAllocatorTypeName },
+                                                 { "type_id", pAllocDim->get_concrete_id() },
                                                  { "mangle", strMangle },
                                                  { "name", osAllocName.str() },
                                                  { "offset", pAllocator->get_offset() } } );
@@ -1098,7 +1033,7 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                 }
 
                 data[ "parts" ].push_back( part );
-                if ( bBufferIsSimple )
+                if( bBufferIsSimple )
                 {
                     data[ "simple_parts" ].push_back( part );
                 }
@@ -1110,7 +1045,7 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
         }
     }
 
-    for ( const auto& str : mangledDataTypes )
+    for( const auto& str : mangledDataTypes )
     {
         data[ "mangled_data_types" ].push_back( str );
     }
@@ -1127,6 +1062,7 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
 
     nlohmann::json data = functions.init( invocationID, strName );
 
+    try
     {
         using namespace FinalStage;
         using namespace FinalStage::Invocations;
@@ -1136,10 +1072,15 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
         const VariableMap variables = m_pPimpl->generateVariables(
             pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), data );
 
-        for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
+        for( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
             m_pPimpl->generateInstructions( database, pInstruction, variables, functions, data );
         }
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate error: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate: " << ex.what() );
     }
 
     functions.generate( data );
@@ -1155,8 +1096,14 @@ void CodeGenerator::generate_allocate( const LLVMCompiler& compiler, const Datab
     const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
+    try
     {
         m_pPimpl->render_allocate( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_allocate: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_allocate: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
@@ -1170,8 +1117,14 @@ void CodeGenerator::generate_read( const LLVMCompiler& compiler, const DatabaseI
     const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
+    try
     {
         m_pPimpl->render_read( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_read: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_read: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
@@ -1185,8 +1138,14 @@ void CodeGenerator::generate_write( const LLVMCompiler& compiler, const Database
     const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
+    try
     {
         m_pPimpl->render_write( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_write: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_write: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
@@ -1200,8 +1159,14 @@ void CodeGenerator::generate_call( const LLVMCompiler& compiler, const DatabaseI
     const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
+    try
     {
         m_pPimpl->render_call( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_call: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_call: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
@@ -1215,8 +1180,14 @@ void CodeGenerator::generate_start( const LLVMCompiler& compiler, const Database
     const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
+    try
     {
         m_pPimpl->render_start( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_start: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_start: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
@@ -1229,8 +1200,14 @@ void CodeGenerator::generate_stop( const LLVMCompiler& compiler, const DatabaseI
     const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
+    try
     {
         m_pPimpl->render_stop( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_stop : {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_stop: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
@@ -1243,8 +1220,14 @@ void CodeGenerator::generate_save( const LLVMCompiler& compiler, const DatabaseI
     const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
+    try
     {
         m_pPimpl->render_save( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_save: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_save: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
@@ -1257,9 +1240,37 @@ void CodeGenerator::generate_load( const LLVMCompiler& compiler, const DatabaseI
     const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
+    try
     {
         m_pPimpl->render_load( data, osCPPCode );
     }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_load: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_load: " << ex.what() );
+    }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
+
+void CodeGenerator::generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os )
+{
+    SPDLOG_TRACE( "RUNTIME: generate_program" );
+
+    nlohmann::json data( { { "types", nlohmann::json::array() } } );
+    {
+    }
+
+    std::ostringstream osCPPCode;
+    try
+    {
+        m_pPimpl->render_program( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_program: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_program: " << ex.what() );
+    }
+    compiler.compileToLLVMIR( "program_module", osCPPCode.str(), os, std::nullopt );
+}
+
 } // namespace mega::runtime

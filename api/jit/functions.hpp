@@ -30,11 +30,15 @@ namespace runtime
 
 using TypeErasedFunction = const void*;
 
+// full program functions
+using LoadRecordFunction = void ( * )( reference, const void* );
+using LoadObjectRecordFunction = void ( * )( reference, const void* );
+
 // allocator functions
-using CtorFunction       = void ( * )( void* );
-using DtorFunction       = void ( * )( void* );
-using SaveObjectFunction = void ( * )( void*, void* );
-using LoadObjectFunction = void ( * )( void*, void* );
+using CtorFunction             = void ( * )( void* );
+using DtorFunction             = void ( * )( void* );
+using SaveObjectFunction       = void ( * )( void*, void* );
+using LoadObjectFunction       = void ( * )( void*, void* );
 
 // invocation functions
 using AllocateFunction = reference ( * )( reference );

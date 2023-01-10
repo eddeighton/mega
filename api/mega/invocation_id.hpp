@@ -17,15 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef INVOCATION_ID_12_AUG_2022
 #define INVOCATION_ID_12_AUG_2022
 
 #include "mega/common.hpp"
 
+#include <utility>
 #include <vector>
 #include <array>
 
@@ -54,17 +51,18 @@ public:
                                                     : ( m_operation < cmp.m_operation );
     }
 
-    InvocationID() {}
+    InvocationID() = default;
 
-    InvocationID( const SymbolIDVector& context, const SymbolIDVector& typePath, mega::OperationID operationID )
-        : m_context( context )
-        , m_type_path( typePath )
+    InvocationID( SymbolIDVector context, SymbolIDVector typePath, mega::OperationID operationID )
+        : m_context( std::move( context ) )
+        , m_type_path( std::move( typePath ) )
         , m_operation( operationID )
     {
     }
 
     template < mega::U64 Size >
-    InvocationID( mega::TypeID context, const std::array< mega::TypeID, Size >& typePath, mega::TypeID operation )
+    constexpr InvocationID( mega::TypeID context, const std::array< mega::TypeID, Size >& typePath,
+                            mega::TypeID operation )
         : m_context{ context }
         , m_type_path( typePath.begin(), typePath.end() )
         , m_operation( static_cast< mega::OperationID >( operation ) )
@@ -80,6 +78,6 @@ public:
     }
 };
 
-}
+} // namespace mega
 
-#endif //INVOCATION_ID_12_AUG_2022
+#endif // INVOCATION_ID_12_AUG_2022

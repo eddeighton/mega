@@ -23,6 +23,17 @@ msg GetAllocator
     response();
 }
 
+msg GetLoadRecord
+{
+    request( U64 ppFunction );
+    response();
+}
+msg GetLoadObjectRecord
+{
+    request( U64 pszUnitName, mega::TypeID objectTypeID, U64 ppFunction );
+    response();
+}
+
 msg GetSaveXMLObject
 {
     request( U64 pszUnitName, mega::TypeID objectTypeID, U64 ppFunction );
@@ -90,6 +101,3 @@ msg GetLoad
     request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
-
-
-

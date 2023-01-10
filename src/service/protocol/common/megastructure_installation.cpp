@@ -31,7 +31,9 @@
 namespace mega::network
 {
 
-MegastructureInstallation::MegastructureInstallation() {}
+MegastructureInstallation::MegastructureInstallation()
+{
+}
 
 MegastructureInstallation::MegastructureInstallation( const boost::filesystem::path& megastructureInstallationPath )
     : m_installationPath( megastructureInstallationPath )
@@ -46,7 +48,10 @@ MegastructureInstallation MegastructureInstallation::fromEnvironment()
     return MegastructureInstallation( os.str() );
 }
 */
-const bool MegastructureInstallation::isEmpty() const { return m_installationPath.empty(); }
+const bool MegastructureInstallation::isEmpty() const
+{
+    return m_installationPath.empty();
+}
 
 mega::utilities::ToolChain MegastructureInstallation::getToolchainXML() const
 {
@@ -66,8 +71,14 @@ mega::utilities::ToolChain MegastructureInstallation::getToolchainXML() const
     return toolChain;
 }
 
-boost::filesystem::path MegastructureInstallation::getParserPath() const { return getToolchainXML().parserDllPath; }
-boost::filesystem::path MegastructureInstallation::getClangPath() const { return getToolchainXML().clangCompilerPath; }
+boost::filesystem::path MegastructureInstallation::getParserPath() const
+{
+    return getToolchainXML().parserDllPath;
+}
+boost::filesystem::path MegastructureInstallation::getClangPath() const
+{
+    return getToolchainXML().clangCompilerPath;
+}
 
 boost::filesystem::path MegastructureInstallation::getMegaIncludePath() const
 {
@@ -110,6 +121,10 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateSave() cons
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateLoad() const
 {
     return m_installationPath / "templates/load.jinja";
+}
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateProgram() const
+{
+    return m_installationPath / "templates/program.jinja";
 }
 
 } // namespace mega::network

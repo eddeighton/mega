@@ -43,23 +43,25 @@ public:
 
     const network::SizeAlignment& getSizeAlignment() const { return m_sizeAlignment; }
 
-    CtorFunction       getCtor() const { return m_pCtor; }
-    DtorFunction       getDtor() const { return m_pDtor; }
-    SaveObjectFunction getSaveBin() const { return m_pSaveBin; }
-    LoadObjectFunction getLoadBin() const { return m_pLoadBin; }
-    SaveObjectFunction getSaveXML() const { return m_pSaveXML; }
-    LoadObjectFunction getLoadXML() const { return m_pLoadXML; }
+    CtorFunction             getCtor() const { return m_pCtor; }
+    DtorFunction             getDtor() const { return m_pDtor; }
+    SaveObjectFunction       getSaveBin() const { return m_pSaveBin; }
+    LoadObjectFunction       getLoadBin() const { return m_pLoadBin; }
+    SaveObjectFunction       getSaveXML() const { return m_pSaveXML; }
+    LoadObjectFunction       getLoadXML() const { return m_pLoadXML; }
+    LoadObjectRecordFunction getLoadObjectRecord() const { return m_pLoadRecord; }
 
 private:
     JITCompiler::Module::Ptr m_pModule;
     TypeID                   m_objectTypeID;
     network::SizeAlignment   m_sizeAlignment;
-    CtorFunction             m_pCtor    = nullptr;
-    DtorFunction             m_pDtor    = nullptr;
-    SaveObjectFunction       m_pSaveBin = nullptr;
-    LoadObjectFunction       m_pLoadBin = nullptr;
-    SaveObjectFunction       m_pSaveXML = nullptr;
-    LoadObjectFunction       m_pLoadXML = nullptr;
+    CtorFunction             m_pCtor       = nullptr;
+    DtorFunction             m_pDtor       = nullptr;
+    SaveObjectFunction       m_pSaveBin    = nullptr;
+    LoadObjectFunction       m_pLoadBin    = nullptr;
+    SaveObjectFunction       m_pSaveXML    = nullptr;
+    LoadObjectFunction       m_pLoadXML    = nullptr;
+    LoadObjectRecordFunction m_pLoadRecord = nullptr;
 };
 
 } // namespace mega::runtime

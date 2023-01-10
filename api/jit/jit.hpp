@@ -50,6 +50,10 @@ public:
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
 
+    void getLoadRecord( const CodeGenerator::LLVMCompiler& compiler, runtime::LoadRecordFunction* ppFunction );
+    void getLoadObjectRecord( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                        mega::TypeID objectTypeID, runtime::LoadObjectRecordFunction* ppFunction );
+
     void getObjectCtor( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                         const TypeID& objectTypeID, runtime::CtorFunction* ppFunction );
     void getObjectDtor( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
@@ -83,8 +87,6 @@ public:
     void getLoad( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
                   const InvocationID& invocationID, LoadFunction* ppFunction );
 
-    // void load( const CodeGenerator::LLVMCompiler& compiler, const reference& root, const Snapshot& snapshot,
-    //            bool bLoadShared, void* pSharedBase );
 
 private:
     const Allocator&         getAllocatorRef( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
@@ -106,6 +108,10 @@ private:
 
     using FunctionPtrMap = std::multimap< const char*, void* >;
     FunctionPtrMap m_functionPointers;
+
+    JITCompiler::Module::Ptr m_pProgramModule;
+    using FunctionPtrSet = std::set< void* >;
+    FunctionPtrSet m_programFunctionPointers;
 };
 
 } // namespace mega::runtime

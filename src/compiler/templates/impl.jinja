@@ -51,19 +51,19 @@ struct __invoke_impl
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
     {
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static const mega::InvocationID id{ {{ invocation.context }}::ID, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ {{ invocation.context }}::ID, g_type_path_types, {{ invocation.operation }}::ID };
 {% if invocation.explicit_operation == "Read" %}
         // Read
-        static mega::runtime::ReadFunction g_pRuntimeFunc = nullptr;
-        if( nullptr == g_pRuntimeFunc )
+        static thread_local mega::runtime::ReadFunction g_pRuntimeFunc = nullptr;
+        while( nullptr == g_pRuntimeFunc )
         {
             mega::runtime::get_read( g_unit_name, id, &g_pRuntimeFunc );
         }
         return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( g_pRuntimeFunc( context.data ) );
 {% else if invocation.explicit_operation == "Write" %}
         // Write
-        static mega::runtime::WriteFunction g_pRuntimeFunc = nullptr;
-        if( nullptr == g_pRuntimeFunc )
+        static thread_local mega::runtime::WriteFunction g_pRuntimeFunc = nullptr;
+        while( nullptr == g_pRuntimeFunc )
         {
             mega::runtime::get_write( g_unit_name, id, &g_pRuntimeFunc );
         }
@@ -71,16 +71,16 @@ struct __invoke_impl
         return g_pRuntimeFunc( context.data, (const void*)&temp );
 {% else if invocation.explicit_operation == "Allocate" %}
         // Allocate
-        static mega::runtime::AllocateFunction g_pRuntimeFunc = nullptr;
-        if( nullptr == g_pRuntimeFunc )
+        static thread_local mega::runtime::AllocateFunction g_pRuntimeFunc = nullptr;
+        while( nullptr == g_pRuntimeFunc )
         {
             mega::runtime::get_allocate( g_unit_name, id, &g_pRuntimeFunc );
         }
         return g_pRuntimeFunc( context.data );
 {% else if invocation.explicit_operation == "Call" %}
         // Call
-        static mega::runtime::CallFunction g_pRuntimeFunc = nullptr;
-        if( nullptr == g_pRuntimeFunc )
+        static thread_local mega::runtime::CallFunction g_pRuntimeFunc = nullptr;
+        while( nullptr == g_pRuntimeFunc )
         {
             mega::runtime::get_call( g_unit_name, id, &g_pRuntimeFunc );
         }
@@ -94,24 +94,24 @@ struct __invoke_impl
 {% endif %}
 {% else if invocation.explicit_operation == "Start" %}
         // Start
-        static mega::runtime::StartFunction g_pRuntimeFunc = nullptr;
-        if( nullptr == g_pRuntimeFunc )
+        static thread_local mega::runtime::StartFunction g_pRuntimeFunc = nullptr;
+        while( nullptr == g_pRuntimeFunc )
         {
             mega::runtime::get_start( g_unit_name, id, &g_pRuntimeFunc );
         }
         return g_pRuntimeFunc( context.data );
 {% else if invocation.explicit_operation == "Stop" %}
         // Stop
-        static mega::runtime::StopFunction g_pRuntimeFunc = nullptr;
-        if( nullptr == g_pRuntimeFunc )
+        static thread_local mega::runtime::StopFunction g_pRuntimeFunc = nullptr;
+        while( nullptr == g_pRuntimeFunc )
         {
             mega::runtime::get_stop( g_unit_name, id, &g_pRuntimeFunc );
         }
         return g_pRuntimeFunc( context.data );
 {% else if invocation.explicit_operation == "Save" %}
         // Save
-        static mega::runtime::SaveFunction g_pRuntimeFunc = nullptr;
-        if( nullptr == g_pRuntimeFunc )
+        static thread_local mega::runtime::SaveFunction g_pRuntimeFunc = nullptr;
+        while( nullptr == g_pRuntimeFunc )
         {
             mega::runtime::get_save( g_unit_name, id, &g_pRuntimeFunc );
         }
@@ -119,8 +119,8 @@ struct __invoke_impl
         g_pRuntimeFunc( context.data, &archive );
 {% else if invocation.explicit_operation == "Load" %}
         // Load
-        static mega::runtime::LoadFunction g_pRuntimeFunc = nullptr;
-        if( nullptr == g_pRuntimeFunc )
+        static thread_local mega::runtime::LoadFunction g_pRuntimeFunc = nullptr;
+        while( nullptr == g_pRuntimeFunc )
         {
             mega::runtime::get_load( g_unit_name, id, &g_pRuntimeFunc );
         }
@@ -144,10 +144,10 @@ struct __invoke_impl
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, const {{ invocation.runtime_return_type }}& arg ) const
     {
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static const mega::InvocationID id{ {{ invocation.context }}::ID, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ {{ invocation.context }}::ID, g_type_path_types, {{ invocation.operation }}::ID };
         // Write
-        static mega::runtime::WriteFunction g_pRuntimeFunc = nullptr;
-        if( nullptr == g_pRuntimeFunc )
+        static thread_local mega::runtime::WriteFunction g_pRuntimeFunc = nullptr;
+        while( nullptr == g_pRuntimeFunc )
         {
             mega::runtime::get_write( g_unit_name, id, &g_pRuntimeFunc );
         }

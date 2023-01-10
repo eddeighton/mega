@@ -72,6 +72,12 @@ Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompil
         os << "PvS_";
         m_pLoadXML = pModule->get< LoadObjectFunction >( os.str() );
     }
+    {
+        std::ostringstream os;
+        symbolPrefix( "load_object_record_", objectTypeID, os );
+        os << "N4mega9referenceEPv";
+        m_pLoadRecord = pModule->get< LoadObjectRecordFunction >( os.str() );
+    }
 }
 
 } // namespace mega::runtime

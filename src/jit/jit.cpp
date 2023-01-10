@@ -73,6 +73,30 @@ const Allocator& JIT::getAllocatorRef( const CodeGenerator::LLVMCompiler& compil
     return *getAllocator( compiler, objectTypeID );
 }
 
+void JIT::getLoadRecord( const CodeGenerator::LLVMCompiler& compiler, runtime::LoadRecordFunction* ppFunction )
+{
+    SPDLOG_TRACE( "JIT: getLoadRecord" );
+    m_programFunctionPointers.insert( ppFunction );
+
+    if( !m_pProgramModule )
+    {
+        std::ostringstream osModule;
+        m_codeGenerator.generate_program( compiler, m_database, osModule );
+        m_pProgramModule = compile( osModule.str() );
+    }
+
+    std::ostringstream os;
+    symbolPrefix( "program_load_record", os );
+    os << "N4mega9referenceEPKv";
+    *ppFunction = m_pProgramModule->get< LoadRecordFunction >( os.str() );
+}
+
+void JIT::getLoadObjectRecord( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
+                               mega::TypeID objectTypeID, runtime::LoadObjectRecordFunction* ppFunction )
+{
+    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+    *ppFunction = getAllocatorRef( compiler, objectTypeID ).getLoadObjectRecord();
+}
 void JIT::getCallGetter( const char* pszUnitName, mega::TypeID objectTypeID, TypeErasedFunction* ppFunction )
 {
     m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );

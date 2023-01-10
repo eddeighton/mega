@@ -25,7 +25,7 @@
 static const char* g_pszModuleName = "{{module_name}}";
 
 {% for object_type_id in object_savers %}
-static mega::runtime::SaveObjectFunction _fptr_save_xml_object_{{ object_type_id }} = nullptr;
+static thread_local mega::runtime::SaveObjectFunction _fptr_save_xml_object_{{ object_type_id }} = nullptr;
 {% endfor %}
 
 void {{ name }}( mega::reference context, void* pArchive )

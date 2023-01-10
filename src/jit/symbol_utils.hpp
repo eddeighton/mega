@@ -31,6 +31,13 @@
 namespace mega::runtime
 {
 
+static inline void symbolPrefix( const char* prefix, std::ostream& os )
+{
+    std::ostringstream osTypeID;
+    osTypeID << prefix;
+    os << "_Z" << osTypeID.str().size() << osTypeID.str();
+}
+
 static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, std::ostream& os )
 {
     std::ostringstream osTypeID;

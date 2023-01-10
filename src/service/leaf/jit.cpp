@@ -30,10 +30,24 @@ void LeafRequestConversation::GetAllocator( const mega::TypeID&         objectTy
                                             const mega::U64&            jitAllocatorPtr,
                                             boost::asio::yield_context& yield_ctx )
 {
-    runtime::Allocator::Ptr* pAllocatorPtr = 
-        network::type_reify< runtime::Allocator::Ptr >( jitAllocatorPtr );
-    *pAllocatorPtr
-        = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), objectTypeID );
+    runtime::Allocator::Ptr* pAllocatorPtr = network::type_reify< runtime::Allocator::Ptr >( jitAllocatorPtr );
+    *pAllocatorPtr                         = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), objectTypeID );
+}
+
+void LeafRequestConversation::GetLoadRecord( const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx )
+{
+    m_leaf.m_pJIT->getLoadRecord(
+        getLLVMCompiler( yield_ctx ), network::type_reify< mega::runtime::LoadRecordFunction >( ppFunction ) );
+}
+
+void LeafRequestConversation::GetLoadObjectRecord( const mega::U64&            unitName,
+                                                   const mega::TypeID&         objectTypeID,
+                                                   const mega::U64&            ppFunction,
+                                                   boost::asio::yield_context& yield_ctx )
+{
+    m_leaf.m_pJIT->getLoadObjectRecord( getLLVMCompiler( yield_ctx ), network::type_reify< const char >( unitName ),
+                                        objectTypeID,
+                                        network::type_reify< mega::runtime::LoadObjectRecordFunction >( ppFunction ) );
 }
 
 void LeafRequestConversation::GetSaveXMLObject( const mega::U64&            unitName,

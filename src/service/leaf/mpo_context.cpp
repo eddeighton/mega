@@ -140,6 +140,18 @@ reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
 {
     return m_pMemoryManager->New( objectTypeID );
 }
+
+void MPOContext::get_load_record( runtime::LoadRecordFunction* ppFunction )
+{
+    getLeafJITRequest().GetLoadRecord( network::type_erase( ppFunction ) );
+}
+void MPOContext::get_load_object_record( const char* pszUnitName, mega::TypeID objectTypeID,
+                                         runtime::LoadObjectRecordFunction* ppFunction )
+{
+    getLeafJITRequest().GetLoadObjectRecord(
+        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
+}
+
 void MPOContext::get_save_xml_object( const char* pszUnitName, TypeID objectTypeID,
                                       runtime::SaveObjectFunction* ppFunction )
 {
@@ -221,7 +233,7 @@ void MPOContext::cycleComplete()
 
     if( m_log.getTimeStamp() % 60 == 0 )
     {
-        SPDLOG_TRACE( "cycleComplete {} {}", m_mpo.value(), m_log.getTimeStamp() );
+        SPDLOG_TRACE( "MPOContext: cycleComplete {} {}", m_mpo.value(), m_log.getTimeStamp() );
     }
 
     U32 expectedSchedulingCount = 0;
@@ -235,7 +247,7 @@ void MPOContext::cycleComplete()
             if( record.getReference().getMPO() != m_mpo.value() )
             {
                 m_schedulingMap[ record.getReference().getMPO() ].push_back( record );
-                SPDLOG_TRACE( "cycleComplete {} found scheduling record", m_mpo.value() );
+                SPDLOG_TRACE( "MPOContext: cycleComplete {} found scheduling record", m_mpo.value() );
                 ++expectedSchedulingCount;
             }
         }
@@ -252,8 +264,8 @@ void MPOContext::cycleComplete()
                      iter != iEnd; ++iter )
                 {
                     const log::MemoryRecordRead& record = *iter;
-                    SPDLOG_TRACE(
-                        "cycleComplete {} found memory record for: {}", m_mpo.value(), record.getReference() );
+                    SPDLOG_TRACE( "MPOContext: cycleComplete {} found memory record for: {}", m_mpo.value(),
+                                  record.getReference() );
 
                     if( record.getReference().getMPO() != m_mpo.value() )
                     {
@@ -278,14 +290,14 @@ void MPOContext::cycleComplete()
     {
         for( const auto& [ writeLockMPO, lockCycle ] : m_lockTracker.getWrites() )
         {
-            SPDLOG_TRACE( "cycleComplete: write lock: {} with cycle: {}", writeLockMPO, lockCycle );
+            SPDLOG_TRACE( "MPOContext: cycleComplete: write lock: {} with cycle: {}", writeLockMPO, lockCycle );
             m_transaction.reset(); // reuse memory
 
             {
                 auto iFind = m_schedulingMap.find( writeLockMPO );
                 if( iFind != m_schedulingMap.end() )
                 {
-                    SPDLOG_TRACE( "cycleComplete: {} sending: {} scheduling records to: {}", m_mpo.value(),
+                    SPDLOG_TRACE( "MPOContext: cycleComplete: {} sending: {} scheduling records to: {}", m_mpo.value(),
                                   iFind->second.size(), writeLockMPO );
                     m_transaction.addSchedulingRecords( iFind->second );
                     schedulingCount += iFind->second.size();
@@ -311,8 +323,8 @@ void MPOContext::cycleComplete()
                     ++memoryCount;
                     ++iCounter;
                 }
-                SPDLOG_TRACE( "cycleComplete: {} sending: {} memory record to track: {} for target: {}", m_mpo.value(), iCounter,
-                              iTrack, writeLockMPO );
+                SPDLOG_TRACE( "MPOContext: cycleComplete: {} sending: {} memory record to track: {} for target: {}",
+                              m_mpo.value(), iCounter, iTrack, writeLockMPO );
             }
 
             getMPOSimRequest( writeLockMPO ).SimLockRelease( m_mpo.value(), writeLockMPO, m_transaction );
@@ -332,7 +344,7 @@ void MPOContext::cycleComplete()
 
     for( const auto& [ readLockMPO, lockCycle ] : m_lockTracker.getReads() )
     {
-        SPDLOG_TRACE( "cycleComplete: {} sending: read release to: {}", m_mpo.value(), readLockMPO );
+        SPDLOG_TRACE( "MPOContext: cycleComplete: {} sending: read release to: {}", m_mpo.value(), readLockMPO );
         m_transaction.reset();
         getMPOSimRequest( readLockMPO ).SimLockRelease( m_mpo.value(), readLockMPO, m_transaction );
     }

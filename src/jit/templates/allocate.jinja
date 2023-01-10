@@ -24,21 +24,6 @@
 
 static const char* g_pszModuleName = "{{module_name}}";
 
-{% for object_allocator in object_allocators %}
-static mega::runtime::CtorFunction _fptr_object_heap_alloc_{{ object_allocator }} = nullptr;
-static mega::runtime::DtorFunction _fptr_object_heap_del_{{ object_allocator }} = nullptr;
-{% endfor %}
-
-namespace mega
-{
-{% for copy in copiers %}
-    void copy_{{copy}}(const void*,void*);
-{% endfor %}
-{% for event in events %}
-    void event_{{event}}(const reference&,const void*);
-{% endfor %}
-}
-
 mega::reference {{ name }}( mega::reference context )
 {
 {% for variable in variables %}

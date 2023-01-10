@@ -17,24 +17,32 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-// ed was here
+
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
 #include "mega/jit_interface.hpp"
 
-static const char* g_pszModuleName = "{{module_name}}";
-
-{% for object_type_id in object_loaders %}
-static thread_local mega::runtime::LoadObjectFunction _fptr_load_xml_object_{{ object_type_id }} = nullptr;
-{% endfor %}
-
-void {{ name }}( mega::reference context, const char* fileName )
+void program_load_record( mega::reference ref, const void* pData )
 {
-{% for variable in variables %}
-{{ variable }}
-{% endfor %}
+    switch( ref.getType() )
+    {
+{% for type in types %}
+        case {{ type.id }}:
+        {
+            static thread_local mega::runtime::LoadObjectRecordFunction load_fptr = nullptr;
+            while( load_fptr == nullptr )
+            {
+                get_load_object_record( "program_module", {{ type.object_type_id }}, &load_fptr );
+            }
 
-{% for assignment in assignments %}
-{{ assignment }}
+        }
+        break;
 {% endfor %}
+        default:
+        {
+            //throw "Unknown type in program_load_record";
+        }
+        break;
+    }
+
 }
