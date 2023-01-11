@@ -27,35 +27,14 @@ namespace mega
 {
 namespace runtime
 {
-
+    
 using TypeErasedFunction = const void*;
-
-// full program functions
-using LoadRecordFunction = void ( * )( reference, const void* );
-using SaveRecordFunction = void ( * )( reference, const void* );
-using LoadObjectRecordFunction = void ( * )( reference, const void* );
-
-// allocator functions
-using CtorFunction             = void ( * )( void* );
-using DtorFunction             = void ( * )( void* );
-using SaveObjectFunction       = void ( * )( void*, void* );
-using LoadObjectFunction       = void ( * )( void*, void* );
-
-// invocation functions
-using AllocateFunction = reference ( * )( reference );
-using ReadFunction     = void* ( * )( reference );
-using WriteFunction    = reference ( * )( reference, const void* );
-using StartFunction    = reference ( * )( reference );
-using StopFunction     = reference ( * )( reference );
-using SaveFunction     = void ( * )( reference, void* );
-using LoadFunction     = void ( * )( reference, void* );
 
 struct JIT_EXPORT CallResult
 {
     TypeErasedFunction pFunction;
     reference          context;
 };
-using CallFunction = CallResult ( * )( reference );
 
 } // namespace runtime
 } // namespace mega

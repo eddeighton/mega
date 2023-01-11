@@ -19,6 +19,8 @@
 
 #include "request.hpp"
 
+#include "jit/program_functions.hxx"
+
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/memory.hxx"
@@ -131,12 +133,11 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
             }
 
             auto compiler  = getLLVMCompiler( yield_ctx );
-            auto allocator = m_leaf.getJIT().getAllocator( compiler, heapAddress.getType() );
 
-            mega::runtime::LoadObjectFunction pLoadFunction = allocator->getLoadBin();
+            static thread_local mega::runtime::program::ObjectLoadBin objectLoadBin;
 
             BinLoadArchive archive( objectSnapshot );
-            pLoadFunction( heapAddress.getHeap(), &archive );
+            objectLoadBin( heapAddress.getType(), heapAddress.getHeap(), &archive );
         }
         heapAddress.setLockCycle( lockCycle );
     }

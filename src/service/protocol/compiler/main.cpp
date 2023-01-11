@@ -18,9 +18,6 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-
-
-
 #include "service/protocol/compiler/json_converter.hpp"
 #include "service/protocol/compiler/generator.hpp"
 #include "service/protocol/compiler/grammar.hpp"

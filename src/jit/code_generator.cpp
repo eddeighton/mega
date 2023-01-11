@@ -402,12 +402,8 @@ R"TEMPLATE(
 static const char* szTemplate =
 R"TEMPLATE(
     {
-        while( _fptr_call_{{ concrete_type_id }} == nullptr )
-        {
-            mega::runtime::get_call_getter( g_pszModuleName, {{ concrete_type_id }},
-                &_fptr_call_{{ concrete_type_id }} );
-        }
-        return mega::runtime::CallResult{ _fptr_call_{{ concrete_type_id }}, {{ instance }} };
+        static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ concrete_type_id }} );
+        return mega::runtime::CallResult{ function(), {{ instance }} };
     }
 )TEMPLATE";
                 // clang-format on
@@ -1170,7 +1166,7 @@ void CodeGenerator::generate_call( const LLVMCompiler& compiler, const DatabaseI
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
-
+/*
 void CodeGenerator::generate_start( const LLVMCompiler& compiler, const DatabaseInstance& database,
                                     const mega::InvocationID& invocationID, std::ostream& os )
 {
@@ -1250,7 +1246,7 @@ void CodeGenerator::generate_load( const LLVMCompiler& compiler, const DatabaseI
         THROW_RTE( "inja::InjaError in CodeGenerator::generate_load: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}
+}*/
 
 void CodeGenerator::generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os )
 {

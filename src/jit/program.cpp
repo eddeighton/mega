@@ -34,7 +34,7 @@ Program::Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
     : m_pModule( pModule )
 {
     SPDLOG_TRACE( "Program::ctor" );
-    {
+    /*{
         std::ostringstream os;
         symbolPrefix( "program_load_record", os );
         os << "N4mega9referenceEPKv";
@@ -45,6 +45,6 @@ Program::Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
         symbolPrefix( "program_save_record", os );
         os << "N4mega9referenceEPKv";
         m_saveRecord = m_pModule->get< SaveRecordFunction >( os.str() );
-    }
+    }*/
 }
 } // namespace mega::runtime

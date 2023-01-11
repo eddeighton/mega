@@ -20,6 +20,8 @@
 #ifndef MPO_CONTEXT_SEPT_18_2022
 #define MPO_CONTEXT_SEPT_18_2022
 
+#include "jit_base.hpp"
+
 #include "mega/reference.hpp"
 
 #include <string>
@@ -47,10 +49,16 @@ public:
     virtual MPOVector              getMPO( MP machineProcess )         = 0;
 
     // mpo management
-    virtual MPO       getThisMPO()                      = 0;
-    virtual MPO       constructMPO( MP machineProcess ) = 0;
-    virtual reference getRoot( MPO mpo )                = 0;
-    virtual reference getThisRoot()                     = 0;
+    virtual MPO       getThisMPO()                                             = 0;
+    virtual reference getThisRoot()                                            = 0;
+    virtual reference getRoot( MPO mpo )                                       = 0;
+    virtual MPO       constructMPO( MP machineProcess )                        = 0;
+    virtual reference allocate( const reference& parent, TypeID objectTypeID ) = 0;
+    virtual void      networkToHeap( reference& ref )                          = 0;
+    virtual void      readLock( reference& ref )                               = 0;
+    virtual void      writeLock( reference& ref )                              = 0;
+    virtual void      jit( runtime::JITFunctor func )                          = 0;
+    virtual void      yield()                                                  = 0;
 
     // leaf runtime
 
@@ -67,8 +75,8 @@ public:
 
 class MPOContext;
 MPOContext* getMPOContext();
-void resetMPOContext();
-void setMPOContext( MPOContext* pMPOContext );
+void        resetMPOContext();
+void        setMPOContext( MPOContext* pMPOContext );
 
 #define SUSPEND_MPO_CONTEXT()                    \
     MPOContext* _pMPOContext_ = getMPOContext(); \

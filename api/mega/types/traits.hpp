@@ -24,14 +24,7 @@
 
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
-/*
-#include <boost/interprocess/interprocess_fwd.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/segment_manager.hpp>
-#include <boost/interprocess/sync/mutex_family.hpp>
-#include <boost/interprocess/containers/vector.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
-*/
+
 #include <cstddef>
 #include <type_traits>
 #include <utility>
@@ -57,48 +50,6 @@ struct DimensionTraits
         return std::move( T{} );
     }
 };
-
-namespace runtime
-{
-/*
-using VoidPtr = boost::interprocess::offset_ptr< void, long, unsigned long >;
-
-// using ManagedHeapMemory = boost::interprocess::basic_managed_heap_memory<
-//     char, boost::interprocess::rbtree_best_fit< boost::interprocess::null_mutex_family, VoidPtr >,
-//     boost::interprocess::iset_index >;
-
-using ManagedSharedMemory = boost::interprocess::basic_managed_shared_memory<
-    char, boost::interprocess::rbtree_best_fit< boost::interprocess::null_mutex_family, VoidPtr >,
-    boost::interprocess::iset_index >;
-*/
-} // namespace runtime
-
-/*
-using ReferenceVector = boost::interprocess::vector<
-    mega::reference,
-    boost::interprocess::allocator< mega::reference, typename mega::runtime::ManagedSharedMemory::segment_manager > >;
-   
-
-template <>
-struct DimensionTraits< ReferenceVector >
-{
-    using Allocator
-        = boost::interprocess::allocator< mega::reference, mega::runtime::ManagedSharedMemory::segment_manager >;
-
-    using Read  = const ReferenceVector&;
-    using Write = ReferenceVector;
-    using Get   = ReferenceVector&;
-
-    static const mega::U64 Size      = sizeof( ReferenceVector );
-    static const mega::U64 Alignment = alignof( ReferenceVector );
-    static const mega::U64 Simple    = true;
-
-    static inline ReferenceVector init( mega::runtime::ManagedSharedMemory::segment_manager* pSegmentManager )
-    {
-        return ReferenceVector( Allocator( pSegmentManager ) );
-    }
-};
-*/
 
 using ReferenceVector = std::vector< mega::reference >;
 

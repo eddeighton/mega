@@ -30,8 +30,9 @@
 #include "database/database.hpp"
 
 #include "service/protocol/common/project.hpp"
+#include "service/protocol/common/jit_base.hpp"
 
-#include "mega/snapshot.hpp"
+#include "mega/invocation_id.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -42,7 +43,7 @@
 namespace mega::runtime
 {
 
-class JIT_EXPORT JIT
+class JIT_EXPORT JIT : public JITBase
 {
     friend class ObjectTypeAllocator;
 
@@ -50,49 +51,16 @@ public:
     JIT( const network::MegastructureInstallation& megastructureInstallation, const network::Project& project );
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
+    
+    virtual void getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
 
-    void getLoadRecord( const CodeGenerator::LLVMCompiler& compiler, runtime::LoadRecordFunction* ppFunction );
-    void getSaveRecord( const CodeGenerator::LLVMCompiler& compiler, runtime::SaveRecordFunction* ppFunction );
-
-    void getLoadObjectRecord( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                        mega::TypeID objectTypeID, runtime::LoadObjectRecordFunction* ppFunction );
-
-    void getObjectCtor( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                        const TypeID& objectTypeID, runtime::CtorFunction* ppFunction );
-    void getObjectDtor( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                        const TypeID& objectTypeID, runtime::DtorFunction* ppFunction );
-    void getObjectSaveXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const TypeID& objectTypeID, runtime::SaveObjectFunction* ppFunction );
-    void getObjectLoadXML( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const TypeID& objectTypeID, runtime::LoadObjectFunction* ppFunction );
-    void getObjectSaveBin( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const TypeID& objectTypeID, runtime::SaveObjectFunction* ppFunction );
-    void getObjectLoadBin( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                           const TypeID& objectTypeID, runtime::LoadObjectFunction* ppFunction );
-
-    void getCallGetter( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
-
-    // invocation implementing functions - these perform derivation
-    void getAllocate( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                      const InvocationID& invocationID, AllocateFunction* ppFunction );
-    void getRead( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                  const InvocationID& invocationID, ReadFunction* ppFunction );
-    void getWrite( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                   const InvocationID& invocationID, WriteFunction* ppFunction );
-    void getCall( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                  const InvocationID& invocationID, CallFunction* ppFunction );
-    void getStart( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                   const InvocationID& invocationID, StartFunction* ppFunction );
-    void getStop( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                  const InvocationID& invocationID, StopFunction* ppFunction );
-    void getSave( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                  const InvocationID& invocationID, SaveFunction* ppFunction );
-    void getLoad( const CodeGenerator::LLVMCompiler& compiler, const char* pszUnitName,
-                  const InvocationID& invocationID, LoadFunction* ppFunction );
-
+    virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
+                                        const mega::InvocationID& invocationID, int functionType,
+                                        void** ppFunction ) override;
+    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::TypeID& typeID,
+                                    int functionType, void** ppFunction ) override;
 
 private:
-    const Allocator&         getAllocatorRef( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
     JITCompiler::Module::Ptr compile( const std::string& strCode );
 
     const network::MegastructureInstallation m_megastructureInstallation;

@@ -21,12 +21,10 @@
 #define OBJECT_ALLOCATOR_SEPT_19_2022
 
 #include "api.hpp"
-#include "functions.hpp"
 #include "orc.hpp"
+#include "size_alignment.hpp"
 
 #include "database/database.hpp"
-
-#include "service/protocol/common/jit_types.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -37,31 +35,38 @@ namespace mega::runtime
 class JIT_EXPORT Allocator
 {
 public:
+    using ObjectCtorFunction    = void ( * )( void* );
+    using ObjectDtorFunction    = void ( * )( void* );
+    using ObjectSaveBinFunction = void ( * )( void*, void* );
+    using ObjectLoadBinFunction = void ( * )( void*, void* );
+
     Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
 
     using Ptr = std::shared_ptr< Allocator >;
 
     const network::SizeAlignment& getSizeAlignment() const { return m_sizeAlignment; }
 
-    CtorFunction             getCtor() const { return m_pCtor; }
-    DtorFunction             getDtor() const { return m_pDtor; }
-    SaveObjectFunction       getSaveBin() const { return m_pSaveBin; }
-    LoadObjectFunction       getLoadBin() const { return m_pLoadBin; }
-    SaveObjectFunction       getSaveXML() const { return m_pSaveXML; }
-    LoadObjectFunction       getLoadXML() const { return m_pLoadXML; }
-    LoadObjectRecordFunction getLoadObjectRecord() const { return m_pLoadRecord; }
+    ObjectCtorFunction    getCtor() const { return m_pCtor; }
+    ObjectDtorFunction    getDtor() const { return m_pDtor; }
+    ObjectSaveBinFunction getSaveBin() const { return m_pSaveBin; }
+    ObjectLoadBinFunction getLoadBin() const { return m_pLoadBin; }
+
+    /*ObjectSaveObjectFunction       getSaveXML() const { return m_pSaveXML; }
+    ObjectLoadObjectFunction       getLoadXML() const { return m_pLoadXML; }
+    ObjectLoadObjectRecordFunction getLoadObjectRecord() const { return m_pLoadRecord; }*/
 
 private:
     JITCompiler::Module::Ptr m_pModule;
     TypeID                   m_objectTypeID;
     network::SizeAlignment   m_sizeAlignment;
-    CtorFunction             m_pCtor       = nullptr;
-    DtorFunction             m_pDtor       = nullptr;
-    SaveObjectFunction       m_pSaveBin    = nullptr;
-    LoadObjectFunction       m_pLoadBin    = nullptr;
-    SaveObjectFunction       m_pSaveXML    = nullptr;
-    LoadObjectFunction       m_pLoadXML    = nullptr;
-    LoadObjectRecordFunction m_pLoadRecord = nullptr;
+    ObjectCtorFunction       m_pCtor    = nullptr;
+    ObjectDtorFunction       m_pDtor    = nullptr;
+    ObjectSaveBinFunction    m_pSaveBin = nullptr;
+    ObjectLoadBinFunction    m_pLoadBin = nullptr;
+
+    /*ObjectSaveObjectFunction       m_pSaveXML    = nullptr;
+    ObjectLoadObjectFunction       m_pLoadXML    = nullptr;
+    ObjectLoadObjectRecordFunction m_pLoadRecord = nullptr;*/
 };
 
 } // namespace mega::runtime

@@ -36,26 +36,6 @@
 #include <chrono>
 #include <thread>
 
-/*
-namespace mega::runtime
-{
-#define FUNCTION_ARG_0( return_type, name ) return_type name();
-#define FUNCTION_ARG_1( return_type, name, a1_type, a1_name ) return_type name( a1_type a1_name );
-#define FUNCTION_ARG_2( return_type, name, a1_type, a1_name, a2_type, a2_name ) \
-    return_type name( a1_type a1_name, a2_type a2_name );
-#define FUNCTION_ARG_3( return_type, name, a1_type, a1_name, a2_type, a2_name, a3_type, a3_name ) \
-    return_type name( a1_type a1_name, a2_type a2_name, a3_type a3_name );
-
-#include "service/jit_interface.xmc"
-#include "service/component_interface.xmc"
-
-#undef FUNCTION_ARG_0
-#undef FUNCTION_ARG_1
-#undef FUNCTION_ARG_2
-#undef FUNCTION_ARG_3
-} // namespace mega::runtime
-*/
-
 int main( int argc, const char* argv[] )
 {
     using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );

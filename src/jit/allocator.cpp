@@ -19,7 +19,6 @@
 
 #include "allocator.hpp"
 
-#include "jit.hpp"
 #include "symbol_utils.hpp"
 
 #include "database/database.hpp"
@@ -40,27 +39,28 @@ Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompil
         std::ostringstream os;
         symbolPrefix( "ctor_", objectTypeID, os );
         os << "Pv";
-        m_pCtor = pModule->get< CtorFunction >( os.str() );
+        m_pCtor = pModule->get< ObjectCtorFunction >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "dtor_", objectTypeID, os );
         os << "Pv";
-        m_pDtor = pModule->get< DtorFunction >( os.str() );
+        m_pDtor = pModule->get< ObjectDtorFunction >( os.str() );
     }
+
     {
         std::ostringstream os;
         symbolPrefix( "save_object_bin_", objectTypeID, os );
         os << "PvS_";
-        m_pSaveBin = pModule->get< SaveObjectFunction >( os.str() );
+        m_pSaveBin = pModule->get< ObjectSaveBinFunction >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "load_object_bin_", objectTypeID, os );
         os << "PvS_";
-        m_pLoadBin = pModule->get< LoadObjectFunction >( os.str() );
+        m_pLoadBin = pModule->get< ObjectLoadBinFunction >( os.str() );
     }
-    {
+    /*{
         std::ostringstream os;
         symbolPrefix( "save_object_xml_", objectTypeID, os );
         os << "PvS_";
@@ -77,7 +77,7 @@ Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompil
         symbolPrefix( "load_object_record_", objectTypeID, os );
         os << "N4mega9referenceEPv";
         m_pLoadRecord = pModule->get< LoadObjectRecordFunction >( os.str() );
-    }
+    }*/
 }
 
 } // namespace mega::runtime

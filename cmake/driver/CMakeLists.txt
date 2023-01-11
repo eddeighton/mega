@@ -53,7 +53,6 @@ set( JINJA_TEMPLATES
 set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_archive.cpp
 		${DRIVER_SOURCE_DIR}/command_graph.cpp
-		${DRIVER_SOURCE_DIR}/command_inja.cpp
 		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_component_listing.cpp
 		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp

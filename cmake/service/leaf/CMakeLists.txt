@@ -29,28 +29,27 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( MEGA_LEAF_API 
-    ${MEGA_API_DIR}/service/leaf.hpp
     ${MEGA_API_DIR}/service/cycle.hpp
-    ${MEGA_API_DIR}/service/mpo_context.hpp
-    ${MEGA_API_DIR}/service/memory_manager.hpp
-    ${MEGA_API_DIR}/service/remote_memory_manager.hpp
+    ${MEGA_API_DIR}/service/leaf.hpp
     ${MEGA_API_DIR}/service/lock_tracker.hpp
+    ${MEGA_API_DIR}/service/memory_manager.hpp
+    ${MEGA_API_DIR}/service/mpo_context.hpp
+    ${MEGA_API_DIR}/service/remote_memory_manager.hpp
 )
 
 set( MEGA_LEAF_SRC 
-    ${MEGA_SRC_DIR}/service/leaf/request.hpp
+    ${MEGA_SRC_DIR}/service/leaf/jit.cpp
     ${MEGA_SRC_DIR}/service/leaf/leaf.cpp
-    ${MEGA_SRC_DIR}/service/leaf/routing.cpp
-    ${MEGA_SRC_DIR}/service/leaf/status.cpp
+    ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.cpp
+    ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.hpp
     ${MEGA_SRC_DIR}/service/leaf/memory.cpp
     ${MEGA_SRC_DIR}/service/leaf/mpo_context.cpp
-    ${MEGA_SRC_DIR}/service/leaf/jit.cpp
-    ${MEGA_SRC_DIR}/service/leaf/api.cpp
-    ${MEGA_SRC_DIR}/service/leaf/project.cpp
-    ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.hpp
     ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.cpp
-    ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.hpp
-    ${MEGA_SRC_DIR}/service/leaf/llvm_compiler.cpp
+    ${MEGA_SRC_DIR}/service/leaf/mpo_lifetime.hpp
+    ${MEGA_SRC_DIR}/service/leaf/project.cpp
+    ${MEGA_SRC_DIR}/service/leaf/request.hpp
+    ${MEGA_SRC_DIR}/service/leaf/routing.cpp
+    ${MEGA_SRC_DIR}/service/leaf/status.cpp
 )
 
 add_library( leaf
@@ -87,8 +86,6 @@ link_common( leaf )
 link_spdlog( leaf )
 
 install( FILES ${MEGA_LEAF_API} DESTINATION include/service )
-install( FILES ${MEGA_API_DIR}/service/jit_interface.xmc DESTINATION include/service )
-install( FILES ${MEGA_API_DIR}/service/component_interface.xmc DESTINATION include/service )
 
 install( TARGETS leaf EXPORT leaf DESTINATION bin)
 install( EXPORT leaf NAMESPACE MEGA:: FILE leaf-config.cmake DESTINATION share )

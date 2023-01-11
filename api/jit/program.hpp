@@ -22,7 +22,6 @@
 #define GUARD_2023_January_10_program
 
 #include "api.hpp"
-#include "functions.hpp"
 #include "orc.hpp"
 
 #include "database/database.hpp"
@@ -36,15 +35,18 @@ class JIT_EXPORT Program
 public:
     using Ptr = std::unique_ptr< Program >;
 
+    using ObjectSaveBinFunction = void ( * )( mega::TypeID, void*, void* );
+    using ObjectLoadBinFunction = void ( * )( mega::TypeID, void*, void* );
+
     Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
 
-    runtime::LoadRecordFunction getLoadRecord() const { return m_loadRecord; }
-    runtime::SaveRecordFunction getSaveRecord() const { return m_saveRecord; }
+    ObjectSaveBinFunction getObjectSaveBin() const { return m_objectSaveBin; }
+    ObjectLoadBinFunction getObjectLoadBin() const { return m_objectLoadBin; }
 
 private:
-    JITCompiler::Module::Ptr    m_pModule;
-    runtime::LoadRecordFunction m_loadRecord = nullptr;
-    runtime::SaveRecordFunction m_saveRecord = nullptr;
+    JITCompiler::Module::Ptr m_pModule;
+    ObjectSaveBinFunction    m_objectSaveBin = nullptr;
+    ObjectLoadBinFunction    m_objectLoadBin = nullptr;
 };
 
 } // namespace mega::runtime

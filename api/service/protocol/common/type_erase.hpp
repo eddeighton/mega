@@ -18,34 +18,26 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2022_November_08_component_interface
-#define GUARD_2022_November_08_component_interface
+#ifndef GUARD_2023_January_11_launder
+#define GUARD_2023_January_11_launder
 
-#include "jit/functions.hpp"
-
-#include "mega/invocation_id.hpp"
-#include "mega/reference.hpp"
+#include "mega/native_types.hpp"
 
 namespace mega
 {
-namespace runtime
+
+template < typename TPtrType >
+inline TPtrType* type_reify( U64 erasedTypePtr )
 {
+    return reinterpret_cast< TPtrType* >( erasedTypePtr );
+}
 
-#define FUNCTION_ARG_0( return_type, name ) return_type name();
-#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
-#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name );
-#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
+template < typename TPtrType >
+inline U64 type_erase( TPtrType* pObject )
+{
+    return reinterpret_cast< U64 >( pObject );
+}
 
-#include "service/component_interface.xmc"
+}
 
-#undef FUNCTION_ARG_0
-#undef FUNCTION_ARG_1
-#undef FUNCTION_ARG_2
-#undef FUNCTION_ARG_3
-
-} // namespace runtime
-} // namespace mega
-
-#endif //GUARD_2022_November_08_component_interface
+#endif //GUARD_2023_January_11_launder

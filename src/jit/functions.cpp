@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,33 +18,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "jit/functions.hpp"
+#include "service/protocol/common/context.hpp"
 
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
-#include "service/protocol/common/mpo_context_interface.hpp" 
-#include "jit/object_functions.hxx"
-
-void program_load_record( mega::reference ref, const void* pData )
+namespace mega::runtime
 {
-    switch( ref.getType() )
-    {
-{% for type in types %}
-        case {{ type.id }}:
-        {
-            static thread_local mega::runtime::LoadObjectRecordFunction load_fptr = nullptr;
-            while( load_fptr == nullptr )
-            {
-                get_load_object_record( "program_module", {{ type.object_type_id }}, &load_fptr );
-            }
 
-        }
-        break;
-{% endfor %}
-        default:
-        {
-            //throw "Unknown type in program_load_record";
-        }
-        break;
-    }
 
-}
+} // namespace mega::runtime

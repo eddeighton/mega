@@ -36,6 +36,28 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+include( ../run_inja.cmake )
+
+run_inja_template( ${MEGA_API_DIR}/jit/invocation_functions.json
+                    ${MEGA_API_DIR}/jit/invocation_functions.hxx.jinja
+                    ${MEGA_API_DIR}/jit/invocation_functions.hxx )
+run_inja_template( ${MEGA_API_DIR}/jit/invocation_functions.json
+                    ${MEGA_SRC_DIR}/jit/invocation_functions.cxx.jinja
+                    ${MEGA_SRC_DIR}/jit/invocation_functions.cxx )
+
+run_inja_template( ${MEGA_API_DIR}/jit/object_functions.json
+                ${MEGA_API_DIR}/jit/object_functions.hxx.jinja
+                ${MEGA_API_DIR}/jit/object_functions.hxx )
+run_inja_template( ${MEGA_API_DIR}/jit/object_functions.json
+                ${MEGA_SRC_DIR}/jit/object_functions.cxx.jinja
+                ${MEGA_SRC_DIR}/jit/object_functions.cxx )
+
+run_inja_template( ${MEGA_API_DIR}/jit/program_functions.json
+                ${MEGA_API_DIR}/jit/program_functions.hxx.jinja
+                ${MEGA_API_DIR}/jit/program_functions.hxx )
+run_inja_template( ${MEGA_API_DIR}/jit/program_functions.json
+                ${MEGA_SRC_DIR}/jit/program_functions.cxx.jinja
+                ${MEGA_SRC_DIR}/jit/program_functions.cxx )
 
 set( JINJA_TEMPLATES 
     ${MEGA_SRC_DIR}/jit/templates/allocation.jinja 
@@ -60,6 +82,11 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/allocator.hpp
     ${MEGA_API_DIR}/jit/object_header.hpp
     ${MEGA_API_DIR}/jit/program.hpp
+    ${MEGA_API_DIR}/jit/size_alignment.hpp
+    ${MEGA_API_DIR}/jit/invocation_functions.hxx
+    ${MEGA_API_DIR}/jit/object_functions.hxx
+    ${MEGA_API_DIR}/jit/program_functions.hxx
+
 )
 
 set( RUNTIME_SOURCE
@@ -70,6 +97,10 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/jit/jit.cpp
     ${MEGA_SRC_DIR}/jit/allocator.cpp
     ${MEGA_SRC_DIR}/jit/program.cpp
+    ${MEGA_SRC_DIR}/jit/functions.cpp
+    ${MEGA_SRC_DIR}/jit/invocation_functions.cxx
+    ${MEGA_SRC_DIR}/jit/object_functions.cxx
+    ${MEGA_SRC_DIR}/jit/program_functions.cxx
     
 )
 

@@ -154,52 +154,7 @@ public:
     virtual void GetAllocator( const TypeID&               objectTypeID,
                                const mega::U64&            jitAllocatorPtr,
                                boost::asio::yield_context& yield_ctx ) override;
-
-    virtual void GetLoadRecord( const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetSaveRecord( const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetLoadObjectRecord( const mega::U64&            pszUnitName,
-                                      const mega::TypeID&         objectTypeID,
-                                      const mega::U64&            ppFunction,
-                                      boost::asio::yield_context& yield_ctx ) override;
-
-    virtual void GetSaveXMLObject( const mega::U64&            pszUnitName,
-                                   const TypeID&               objectTypeID,
-                                   const mega::U64&            ppFunction,
-                                   boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetLoadXMLObject( const mega::U64&            pszUnitName,
-                                   const TypeID&               objectTypeID,
-                                   const mega::U64&            ppFunction,
-                                   boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetSaveBinObject( const mega::U64&            pszUnitName,
-                                   const TypeID&               objectTypeID,
-                                   const mega::U64&            ppFunction,
-                                   boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetLoadBinObject( const mega::U64&            pszUnitName,
-                                   const TypeID&               objectTypeID,
-                                   const mega::U64&            ppFunction,
-                                   boost::asio::yield_context& yield_ctx ) override;
-
-    virtual void GetCallGetter( const mega::U64&            pszUnitName,
-                                const TypeID&               objectTypeID,
-                                const mega::U64&            ppFunction,
-                                boost::asio::yield_context& yield_ctx ) override;
-
-    virtual void GetAllocate( const mega::U64& pszUnitName, const InvocationID& invocationID,
-                              const mega::U64& ppFunction, boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetRead( const mega::U64& pszUnitName, const InvocationID& invocationID, const mega::U64& ppFunction,
-                          boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetWrite( const mega::U64& pszUnitName, const InvocationID& invocationID, const mega::U64& ppFunction,
-                           boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetCall( const mega::U64& pszUnitName, const InvocationID& invocationID, const mega::U64& ppFunction,
-                          boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetStart( const mega::U64& pszUnitName, const InvocationID& invocationID, const mega::U64& ppFunction,
-                           boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetStop( const mega::U64& pszUnitName, const InvocationID& invocationID, const mega::U64& ppFunction,
-                          boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetSave( const mega::U64& pszUnitName, const InvocationID& invocationID, const mega::U64& ppFunction,
-                          boost::asio::yield_context& yield_ctx ) override;
-    virtual void GetLoad( const mega::U64& pszUnitName, const InvocationID& invocationID, const mega::U64& ppFunction,
-                          boost::asio::yield_context& yield_ctx ) override;
+    void         ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;

@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,33 +18,42 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef GUARD_2023_January_11_invocations
+#define GUARD_2023_January_11_invocations
 
-#include "mega/native_types.hpp"
+#include "api.hpp"
+#include "functions.hpp"
+
 #include "mega/reference.hpp"
-#include "service/protocol/common/mpo_context_interface.hpp" 
-#include "jit/object_functions.hxx"
+#include "mega/invocation_id.hpp"
 
-void program_load_record( mega::reference ref, const void* pData )
+namespace mega::runtime::invocation
 {
-    switch( ref.getType() )
-    {
-{% for type in types %}
-        case {{ type.id }}:
-        {
-            static thread_local mega::runtime::LoadObjectRecordFunction load_fptr = nullptr;
-            while( load_fptr == nullptr )
-            {
-                get_load_object_record( "program_module", {{ type.object_type_id }}, &load_fptr );
-            }
 
-        }
-        break;
+enum FunctionType
+{
+{% for function in functions %}
+    e{{ function.name }},
 {% endfor %}
-        default:
-        {
-            //throw "Unknown type in program_load_record";
-        }
-        break;
-    }
+    TOTAL_FUNCTION_TYPES
+};
 
-}
+{% for function in functions %}
+class JIT_EXPORT {{ function.name }}
+{
+public:
+    using FunctionPtr = {{ function.return_type }} ( * ) ({% for arg in function.arguments %}{{ arg.type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
+    {{ function.name }}( const char* pszUnitName, const mega::InvocationID& invocationID );
+    {{ function.return_type }} operator() ({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
+private:
+    const char*               m_pszUnitName;
+    const mega::InvocationID& m_invocationID;
+    mutable bool              m_bResolving;
+    mutable FunctionPtr       m_function;
+};
+
+{% endfor %}
+
+} // namespace mega::runtime::invocation
+
+#endif // GUARD_2023_January_11_invocations

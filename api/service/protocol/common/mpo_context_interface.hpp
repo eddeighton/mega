@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,43 +18,21 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef JIT_TYPES_21_OCT_2022
-#define JIT_TYPES_21_OCT_2022
+#ifndef GUARD_2023_January_11_mpo_context_interface
+#define GUARD_2023_January_11_mpo_context_interface
 
-#include "mega/native_types.hpp"
 #include "mega/reference.hpp"
-#include "mega/snapshot.hpp"
 
-#include <optional>
-
-namespace mega::network
+namespace mega
 {
-
-template < typename TFunctionPtrType >
-inline TFunctionPtrType* type_reify( U64 erasedTypePtr )
+namespace runtime
 {
-    return reinterpret_cast< TFunctionPtrType* >( erasedTypePtr );
-}
+MPO  getThisMPO();
+void networkToHeap( reference& ref );
+void readLock( reference& ref );
+void writeLock( reference& ref );
+reference allocate( const reference& parent, TypeID typeID );
+} // namespace runtime
+} // namespace mega
 
-template < typename TFunctionPtrType >
-inline U64 type_erase( TFunctionPtrType* ppFunction )
-{
-    return reinterpret_cast< U64 >( ppFunction );
-}
-
-struct SizeAlignment
-{
-    U64 size      = 0U;
-    U64 alignment = 0U;
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& size;
-        archive& alignment;
-    }
-};
-
-} // namespace mega::network
-
-#endif // JIT_TYPES_21_OCT_2022
+#endif // GUARD_2023_January_11_mpo_context_interface

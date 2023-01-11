@@ -55,12 +55,14 @@ namespace mega
 
 class MPOContext : public Context
 {
-    boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID )
-    {
-        std::ostringstream os;
-        os << "log_" << conversationID;
-        return boost::filesystem::current_path() / os.str();
-    }
+private:
+    // define temp data structures as members to reuse memory and avoid allocations
+    using ShedulingMap   = std::map< MPO, std::vector< log::SchedulerRecordRead > >;
+    using MemoryMap      = std::map< reference, std::string_view >;
+    using MemoryMapArray = std::array< MemoryMap, log::toInt( log::TrackType::TOTAL ) >;
+    ShedulingMap               m_schedulingMap;
+    MemoryMapArray             m_memoryMaps;
+    mega::network::Transaction m_transaction;
 
 protected:
     const network::ConversationID&            m_conversationIDRef;
@@ -82,22 +84,6 @@ public:
     {
     }
 
-// runtime internal interface
-#define FUNCTION_ARG_0( return_type, name ) return_type name();
-#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
-#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name );
-#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
-
-#include "service/jit_interface.xmc"
-#include "service/component_interface.xmc"
-
-#undef FUNCTION_ARG_0
-#undef FUNCTION_ARG_1
-#undef FUNCTION_ARG_2
-#undef FUNCTION_ARG_3
-
     virtual network::mpo::Request_Sender     getMPRequest()              = 0;
     virtual network::enrole::Request_Encoder getRootEnroleRequest()      = 0;
     virtual network::stash::Request_Encoder  getRootStashRequest()       = 0;
@@ -105,8 +91,6 @@ public:
     virtual network::sim::Request_Encoder    getMPOSimRequest( MPO mpo ) = 0;
     virtual network::memory::Request_Sender  getLeafMemoryRequest()      = 0;
     virtual network::jit::Request_Sender     getLeafJITRequest()         = 0;
-
-    void createRoot( const mega::MPO& mpo );
 
     //////////////////////////
     // mega::MPOContext
@@ -128,25 +112,33 @@ public:
     }
 
     // mpo management
-    virtual MPO             constructMPO( MP machineProcess ) override;
-    virtual mega::reference getRoot( MPO mpo ) override;
+    virtual MPO             getThisMPO() override { return m_mpo.value(); }
     virtual mega::reference getThisRoot() override { return m_root; }
+    virtual mega::reference getRoot( MPO mpo ) override;
+    virtual MPO             constructMPO( MP machineProcess ) override;
+    virtual reference       allocate( const reference& parent, TypeID objectTypeID ) override;
+    virtual void            networkToHeap( reference& ref ) override;
+    virtual void            readLock( reference& ref ) override;
+    virtual void            writeLock( reference& ref ) override;
+    virtual void            jit( runtime::JITFunctor func ) override;
+    virtual void            yield() override;
 
     // log
     virtual log::Storage& getLog() override { return m_log; }
 
-private:
-    // define temp data structures as members to reuse memory and avoid allocations
-    using ShedulingMap   = std::map< MPO, std::vector< log::SchedulerRecordRead > >;
-    using MemoryMap      = std::map< reference, std::string_view >;
-    using MemoryMapArray = std::array< MemoryMap, log::toInt( log::TrackType::TOTAL ) >;
-    ShedulingMap               m_schedulingMap;
-    MemoryMapArray             m_memoryMaps;
-    mega::network::Transaction m_transaction;
-
-public:
     // called by Cycle dtor
     virtual void cycleComplete();
+
+protected:
+    void createRoot( const mega::MPO& mpo );
+
+private:
+    boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID )
+    {
+        std::ostringstream os;
+        os << "log_" << conversationID;
+        return boost::filesystem::current_path() / os.str();
+    }
 };
 
 } // namespace mega

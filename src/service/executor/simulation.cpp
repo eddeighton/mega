@@ -19,6 +19,8 @@
 
 #include "simulation.hpp"
 
+#include "jit/program_functions.hxx"
+
 #include "service/executor.hpp"
 
 #include "service/network/conversation.hpp"
@@ -319,14 +321,13 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
     SPDLOG_TRACE( "SIM::SimSnapshot: {}", object );
     VERIFY_RTE_MSG( object.getMPO() == getThisMPO(), "SimObjectSnapshot called on bad mpo: " << object );
 
-    mega::runtime::SaveObjectFunction pSaveFunction = nullptr;
-    get_save_bin_object( "Simulation", object.getType(), &pSaveFunction );
+    static thread_local mega::runtime::program::ObjectSaveBin objectSaveBin;
 
     reference heapAddress = m_pMemoryManager->networkToHeap( object );
 
     BinSaveArchive archive;
     archive.beginObject( heapAddress.getNetworkAddress() );
-    pSaveFunction( heapAddress.getHeap(), &archive );
+    objectSaveBin( object.getType(), heapAddress.getHeap(), &archive );
 
     return archive.makeSnapshot( m_log.getTimeStamp() );
 }
@@ -366,10 +367,11 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
     SPDLOG_TRACE( "SIM::SimLockRelease: {} {}", requestingMPO, targetMPO );
 
     // NOTE: can context switch when call get_load_record
-    static thread_local mega::runtime::LoadRecordFunction loadRecordFPtr = nullptr;
-    while( loadRecordFPtr == nullptr )
+    //static thread_local mega::runtime::program::ProgramLoadBin programLoadBin;
+    //while( loadRecordFPtr == nullptr )
     {
-        get_load_record( &loadRecordFPtr );
+        THROW_TODO;
+        // get_load_record( &loadRecordFPtr );
     }
 
     for( const auto& [ ref, type ] : transaction.getSchedulingRecords() )
@@ -385,7 +387,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
         {
             SPDLOG_INFO( "SIM::SimLockRelease Got memory record: {} {}", ref, str );
 
-            loadRecordFPtr( ref, str.data() );
+            // loadRecordFPtr( ref, str.data() );
         }
     }
 }

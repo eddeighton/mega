@@ -107,30 +107,32 @@ add_custom_command(
     )
 
 set( MEGA_PROTOCOL_COMMON_HEADERS
-    ${MEGA_API_DIR}/service/protocol/common/environment.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/context.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/conversation_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/conversation_id.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/sender.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/node.hpp
+    ${MEGA_API_DIR}/service/protocol/common/environment.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/jit_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/megastructure_installation.hpp
+    ${MEGA_API_DIR}/service/protocol/common/node.hpp
     ${MEGA_API_DIR}/service/protocol/common/pipeline_result.hpp
     ${MEGA_API_DIR}/service/protocol/common/project.hpp
     ${MEGA_API_DIR}/service/protocol/common/root_config.hpp
+    ${MEGA_API_DIR}/service/protocol/common/sender.hpp  
     ${MEGA_API_DIR}/service/protocol/common/status.hpp
     ${MEGA_API_DIR}/service/protocol/common/transaction.hpp
-    ${MEGA_API_DIR}/service/protocol/common/jit_types.hpp
-    ${MEGA_API_DIR}/service/protocol/common/conversation_base.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/context.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/type_erase.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/mpo_context_interface.hpp  
 	)
 
 set( MEGA_PROTOCOL_COMMON_SOURCE
+    ${MEGA_SRC_DIR}/service/protocol/common/context.cpp  
+    ${MEGA_SRC_DIR}/service/protocol/common/conversation_base.cpp  
     ${MEGA_SRC_DIR}/service/protocol/common/conversation_id.cpp
-    ${MEGA_SRC_DIR}/service/protocol/common/node.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/megastructure_installation.cpp
+    ${MEGA_SRC_DIR}/service/protocol/common/node.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/project.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/root_config.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/status.cpp
-    ${MEGA_SRC_DIR}/service/protocol/common/conversation_base.cpp  
-    ${MEGA_SRC_DIR}/service/protocol/common/context.cpp  
     )
 
 add_library( protocol 

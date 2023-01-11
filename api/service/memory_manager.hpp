@@ -24,6 +24,8 @@
 #include "jit/allocator.hpp"
 #include "jit/object_header.hpp"
 
+#include "mega/reference_io.hpp"
+
 #include <functional>
 #include <memory>
 #include <unordered_map>

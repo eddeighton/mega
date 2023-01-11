@@ -24,9 +24,6 @@
 cmake_minimum_required( VERSION 3.1...3.16 )
 
 set( MEGA_LIBRARY
-    ${MEGA_API_DIR}/mega/jit_interface.hpp
-    ${MEGA_API_DIR}/mega/component_interface.hpp
-
     ${MEGA_API_DIR}/mega/address_table.hpp
     ${MEGA_API_DIR}/mega/allocator.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp

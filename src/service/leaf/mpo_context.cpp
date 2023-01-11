@@ -22,28 +22,41 @@
 #include "service/mpo_context.hpp"
 #include "service/cycle.hpp"
 
-#include "common/assert_verify.hpp"
-#include "common/unreachable.hpp"
+#include "service/protocol/common/type_erase.hpp"
 
-#include "mega/bin_archive.hpp"
+#include "common/assert_verify.hpp"
 
 #include "service/network/log.hpp"
 
 namespace mega
 {
+namespace runtime
+{
+MPO getThisMPO()
+{
+    return getMPOContext()->getThisMPO();
+}
+void networkToHeap( reference& ref )
+{
+    getMPOContext()->networkToHeap( ref );
+}
+void readLock( reference& ref )
+{
+    getMPOContext()->readLock( ref );
+}
+void writeLock( reference& ref )
+{
+    getMPOContext()->writeLock( ref );
+}
+reference allocate( const reference& parent, TypeID typeID )
+{
+    return getMPOContext()->allocate( parent, typeID );
+}
+} // namespace runtime
 
 Cycle::~Cycle()
 {
     getMPOContext()->cycleComplete();
-}
-
-MPO MPOContext::constructMPO( MP machineProcess )
-{
-    network::sim::Request_Encoder request(
-        [ mpoRequest = getMPRequest(), machineProcess ]( const network::Message& msg ) mutable
-        { return mpoRequest.MPRoot( msg, machineProcess ); },
-        m_conversationIDRef );
-    return request.SimCreate();
 }
 
 reference MPOContext::getRoot( MPO mpo )
@@ -58,28 +71,18 @@ reference MPOContext::getRoot( MPO mpo )
     }
 }
 
-void MPOContext::createRoot( const mega::MPO& mpo )
+MPO MPOContext::constructMPO( MP machineProcess )
 {
-    m_mpo = mpo;
-
-    m_pMemoryManager.reset();
-    m_pMemoryManager = std::make_unique< runtime::MemoryManager >(
-        mpo,
-        [ jitRequest = getLeafJITRequest() ]( TypeID typeID ) mutable -> runtime::Allocator::Ptr
-        {
-            runtime::Allocator::Ptr pAllocator;
-            jitRequest.GetAllocator( typeID, network::type_erase( &pAllocator ) );
-            return pAllocator;
-        } );
-
-    // instantiate the root
-    m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
+    network::sim::Request_Encoder request(
+        [ mpoRequest = getMPRequest(), machineProcess ]( const network::Message& msg ) mutable
+        { return mpoRequest.MPRoot( msg, machineProcess ); },
+        m_conversationIDRef );
+    return request.SimCreate();
 }
 
-// start of jit_interface
-MPO MPOContext::getThisMPO()
+reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
 {
-    return m_mpo.value();
+    return m_pMemoryManager->New( objectTypeID );
 }
 
 // networkToHeap ONLY called when MPO matches
@@ -136,99 +139,33 @@ void MPOContext::writeLock( reference& ref )
         ref = getLeafMemoryRequest().NetworkToHeap( ref, lockCycle );
     }
 }
-reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
+
+void MPOContext::createRoot( const mega::MPO& mpo )
 {
-    return m_pMemoryManager->New( objectTypeID );
+    m_mpo = mpo;
+
+    m_pMemoryManager.reset();
+
+    m_pMemoryManager = std::make_unique< runtime::MemoryManager >(
+        mpo,
+        [ jitRequest = getLeafJITRequest() ]( TypeID typeID ) mutable -> runtime::Allocator::Ptr
+        {
+            runtime::Allocator::Ptr pAllocator;
+            jitRequest.GetAllocator( typeID, type_erase( &pAllocator ) );
+            return pAllocator;
+        } );
+
+    // instantiate the root
+    m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
 }
 
-void MPOContext::get_load_record( runtime::LoadRecordFunction* ppFunction )
+void MPOContext::jit( runtime::JITFunctor func )
 {
-    getLeafJITRequest().GetLoadRecord( network::type_erase( ppFunction ) );
+    getLeafJITRequest().ExecuteJIT( func );
 }
-void MPOContext::get_save_record( runtime::SaveRecordFunction* ppFunction )
+void MPOContext::yield()
 {
-    getLeafJITRequest().GetSaveRecord( network::type_erase( ppFunction ) );
-}
-void MPOContext::get_load_object_record( const char* pszUnitName, mega::TypeID objectTypeID,
-                                         runtime::LoadObjectRecordFunction* ppFunction )
-{
-    getLeafJITRequest().GetLoadObjectRecord(
-        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
-}
-
-void MPOContext::get_save_xml_object( const char* pszUnitName, TypeID objectTypeID,
-                                      runtime::SaveObjectFunction* ppFunction )
-{
-    getLeafJITRequest().GetSaveXMLObject(
-        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_load_xml_object( const char* pszUnitName, TypeID objectTypeID,
-                                      runtime::LoadObjectFunction* ppFunction )
-{
-    getLeafJITRequest().GetLoadXMLObject(
-        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_save_bin_object( const char* pszUnitName, TypeID objectTypeID,
-                                      runtime::SaveObjectFunction* ppFunction )
-{
-    getLeafJITRequest().GetSaveBinObject(
-        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_load_bin_object( const char* pszUnitName, TypeID objectTypeID,
-                                      runtime::LoadObjectFunction* ppFunction )
-{
-    getLeafJITRequest().GetLoadBinObject(
-        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
-}
-
-void MPOContext::get_call_getter( const char* pszUnitName, TypeID objectTypeID,
-                                  runtime::TypeErasedFunction* ppFunction )
-{
-    getLeafJITRequest().GetCallGetter(
-        network::type_erase( pszUnitName ), objectTypeID, network::type_erase( ppFunction ) );
-}
-
-// start of component_interface
-void MPOContext::get_allocate( const char* pszUnitName, const InvocationID& invocationID,
-                               runtime::AllocateFunction* ppFunction )
-{
-    getLeafJITRequest().GetAllocate(
-        network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_read( const char* pszUnitName, const InvocationID& invocationID,
-                           runtime::ReadFunction* ppFunction )
-{
-    getLeafJITRequest().GetRead( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_write( const char* pszUnitName, const InvocationID& invocationID,
-                            runtime::WriteFunction* ppFunction )
-{
-    getLeafJITRequest().GetWrite( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_call( const char* pszUnitName, const InvocationID& invocationID,
-                           runtime::CallFunction* ppFunction )
-{
-    getLeafJITRequest().GetCall( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_start( const char* pszUnitName, const InvocationID& invocationID,
-                            runtime::StartFunction* ppFunction )
-{
-    getLeafJITRequest().GetStart( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_stop( const char* pszUnitName, const InvocationID& invocationID,
-                           runtime::StopFunction* ppFunction )
-{
-    getLeafJITRequest().GetStop( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_save( const char* pszUnitName, const InvocationID& invocationID,
-                           runtime::SaveFunction* ppFunction )
-{
-    getLeafJITRequest().GetSave( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
-}
-void MPOContext::get_load( const char* pszUnitName, const InvocationID& invocationID,
-                           runtime::LoadFunction* ppFunction )
-{
-    getLeafJITRequest().GetLoad( network::type_erase( pszUnitName ), invocationID, network::type_erase( ppFunction ) );
+    boost::asio::post( *m_pYieldContext );
 }
 
 void MPOContext::cycleComplete()

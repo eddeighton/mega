@@ -19,10 +19,17 @@
 
 msg GetAllocator
 {
-    request( mega::TypeID objectTypeID, U64 ppAllocatorPtr );
+    request( mega::TypeID objectTypeID, mega::U64 ppAllocatorPtr );
     response();
 }
 
+msg ExecuteJIT
+{
+    request( mega::runtime::JITFunctor func );
+    response();
+}
+
+/*
 msg GetLoadRecord
 {
     request( U64 ppFunction );
@@ -33,6 +40,7 @@ msg GetSaveRecord
     request( U64 ppFunction );
     response();
 }
+
 msg GetLoadObjectRecord
 {
     request( U64 pszUnitName, mega::TypeID objectTypeID, U64 ppFunction );
@@ -106,3 +114,4 @@ msg GetLoad
     request( U64 pszUnitName, mega::InvocationID invocationID, U64 ppFunction );
     response();
 }
+*/

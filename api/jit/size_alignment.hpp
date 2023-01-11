@@ -17,33 +17,27 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef RUNTIME_18_JUNE_2022
-#define RUNTIME_18_JUNE_2022
+#ifndef JIT_SIZE_ALIGNMENT_11_JAN_2023
+#define JIT_SIZE_ALIGNMENT_11_JAN_2023
 
-#include "jit/functions.hpp"
+#include "mega/native_types.hpp"
 
-#include "mega/reference.hpp"
-
-namespace mega
+namespace mega::network
 {
-namespace runtime
+    
+struct SizeAlignment
 {
+    U64 size      = 0U;
+    U64 alignment = 0U;
 
-#define FUNCTION_ARG_0( return_type, name ) return_type name();
-#define FUNCTION_ARG_1( return_type, name, arg1_type, arg1_name ) return_type name( arg1_type arg1_name );
-#define FUNCTION_ARG_2( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name );
-#define FUNCTION_ARG_3( return_type, name, arg1_type, arg1_name, arg2_type, arg2_name, arg3_type, arg3_name ) \
-    return_type name( arg1_type arg1_name, arg2_type arg2_name, arg3_type arg3_name );
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& size;
+        archive& alignment;
+    }
+};
 
-#include "service/jit_interface.xmc"
+} // namespace mega::network
 
-#undef FUNCTION_ARG_0
-#undef FUNCTION_ARG_1
-#undef FUNCTION_ARG_2
-#undef FUNCTION_ARG_3
-
-} // namespace runtime
-} // namespace mega
-
-#endif // RUNTIME_18_JUNE_2022
+#endif // JIT_SIZE_ALIGNMENT_11_JAN_2023

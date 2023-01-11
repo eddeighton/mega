@@ -20,7 +20,7 @@
 #ifndef DATABASE_8_AUG_2022
 #define DATABASE_8_AUG_2022
 
-#include "service/protocol/common/jit_types.hpp"
+#include "jit/size_alignment.hpp"
 
 #include "database/common/api.hpp"
 #include "database/common/environment_archive.hpp"

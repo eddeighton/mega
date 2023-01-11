@@ -25,6 +25,8 @@
 #include "jit/object_header.hpp"
 #include "jit/code_generator.hpp"
 
+#include "mega/reference_io.hpp"
+
 #include <functional>
 #include <memory>
 #include <unordered_map>

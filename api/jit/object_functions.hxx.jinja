@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,33 +18,50 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef GUARD_2023_January_11_object_functions
+#define GUARD_2023_January_11_object_functions
 
-#include "mega/native_types.hpp"
+#include "api.hpp"
+#include "functions.hpp"
+
 #include "mega/reference.hpp"
-#include "service/protocol/common/mpo_context_interface.hpp" 
-#include "jit/object_functions.hxx"
 
-void program_load_record( mega::reference ref, const void* pData )
+namespace mega
 {
-    switch( ref.getType() )
-    {
-{% for type in types %}
-        case {{ type.id }}:
-        {
-            static thread_local mega::runtime::LoadObjectRecordFunction load_fptr = nullptr;
-            while( load_fptr == nullptr )
-            {
-                get_load_object_record( "program_module", {{ type.object_type_id }}, &load_fptr );
-            }
+namespace runtime
+{
+namespace object
+{
 
-        }
-        break;
+enum FunctionType
+{
+{% for function in functions %}
+    e{{ function.name }},
 {% endfor %}
-        default:
-        {
-            //throw "Unknown type in program_load_record";
-        }
-        break;
-    }
+    TOTAL_FUNCTION_TYPES
+};
 
+{% for function in functions %}
+class JIT_EXPORT {{ function.name }}
+{
+public:
+{% if function.return == "function" %}
+    using FunctionPtr = mega::runtime::TypeErasedFunction;
+{% else %}
+    using FunctionPtr = {{ function.return_type }} ( * ) ({% for arg in function.arguments %}{{ arg.type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
+{% endif %}
+    {{ function.name }}( const char* pszUnitName, mega::TypeID typeID );
+    {{ function.return_type }} operator() ({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
+private:
+    const char* m_pszUnitName;
+    mega::TypeID m_typeID;
+    mutable bool        m_bResolving;
+    mutable FunctionPtr m_function;
+};
+
+{% endfor %}
 }
+}
+}
+
+#endif //GUARD_2023_January_11_object_functions
