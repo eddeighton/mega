@@ -112,14 +112,15 @@ public:
     }
 
     // mpo management
+    reference allocate( const reference& parent, TypeID objectTypeID );
+    void      networkToHeap( reference& ref );
+    void      readLock( reference& ref );
+    void      writeLock( reference& ref );
+
     virtual MPO             getThisMPO() override { return m_mpo.value(); }
     virtual mega::reference getThisRoot() override { return m_root; }
     virtual mega::reference getRoot( MPO mpo ) override;
     virtual MPO             constructMPO( MP machineProcess ) override;
-    virtual reference       allocate( const reference& parent, TypeID objectTypeID ) override;
-    virtual void            networkToHeap( reference& ref ) override;
-    virtual void            readLock( reference& ref ) override;
-    virtual void            writeLock( reference& ref ) override;
     virtual void            jit( runtime::JITFunctor func ) override;
     virtual void            yield() override;
 
@@ -127,7 +128,7 @@ public:
     virtual log::Storage& getLog() override { return m_log; }
 
     // called by Cycle dtor
-    virtual void cycleComplete();
+    void cycleComplete();
 
 protected:
     void createRoot( const mega::MPO& mpo );

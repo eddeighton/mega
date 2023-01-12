@@ -37,16 +37,19 @@ public:
 
     using ObjectSaveBinFunction = void ( * )( mega::TypeID, void*, void* );
     using ObjectLoadBinFunction = void ( * )( mega::TypeID, void*, void* );
+    using RecordLoadBinFunction = void ( * )( mega::reference, void*, U64 );
 
     Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
 
     ObjectSaveBinFunction getObjectSaveBin() const { return m_objectSaveBin; }
     ObjectLoadBinFunction getObjectLoadBin() const { return m_objectLoadBin; }
+    RecordLoadBinFunction getRecordLoadBin() const { return m_recordLoadBin; }
 
 private:
     JITCompiler::Module::Ptr m_pModule;
     ObjectSaveBinFunction    m_objectSaveBin = nullptr;
     ObjectLoadBinFunction    m_objectLoadBin = nullptr;
+    RecordLoadBinFunction    m_recordLoadBin = nullptr;
 };
 
 } // namespace mega::runtime

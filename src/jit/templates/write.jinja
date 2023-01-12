@@ -26,13 +26,13 @@
 
 static const char* g_pszModuleName = "{{module_name}}";
 
-namespace mega
+namespace mega::mangle
 {
 {% for copy in copiers %}
     void copy_{{copy}}(const void*,void*);
 {% endfor %}
 {% for event in events %}
-    void event_{{event}}(const reference&,const void*);
+    void save_record_{{event}}(void*,const reference&,const void*,int);
 {% endfor %}
 }
 

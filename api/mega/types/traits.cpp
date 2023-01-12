@@ -20,20 +20,12 @@
 #include "mega/types/traits.hpp"
 
 #include "mega/allocator.hpp"
-#include "mega/xml_archive.hpp"
-#include "mega/bin_archive.hpp"
-
-#include "service/mpo_context.hpp"
-
-#include "service/network/log.hpp"
-
-#include "log/log.hpp"
 
 #include <vector>
 
-namespace
+namespace mega
 {
-
+/*
 template < typename T >
 void new_( void* p )
 {
@@ -93,7 +85,6 @@ template < typename T >
 void event_( const mega::reference& ref, const void* p )
 {
     mega::log::Storage& log = mega::getMPOContext()->getLog();
-
     log.record( mega::log::MemoryTrackType::Simulation,
                 mega::log::MemoryRecord( ref, std::string_view( reinterpret_cast< const char* >( p ), sizeof( T ) ) ) );
 }
@@ -108,7 +99,7 @@ void event_nonSimple_( const mega::reference& ref, const void* p )
         boost::archive::binary_oarchive oa( os );
         oa&                             value;
     }
-}
+}*/
 
 /*
 template < typename T >
@@ -122,10 +113,7 @@ void read_nonSimple_( std::vector< char >& buffer )
 }
 */
 
-} // namespace
 
-namespace mega
-{
 /*
 void save_begin_object( const reference& ref, void* pArchive )
 {
@@ -133,7 +121,7 @@ void save_begin_object( const reference& ref, void* pArchive )
     mega::BinSaveArchive& ar = *reinterpret_cast< mega::BinSaveArchive* >( pArchive );
     ar.beginObject( ref );
 }*/
-
+/*
 void xml_save_begin_part( const char* partName, void* pArchive )
 {
     mega::XMLSaveArchive& ar = *reinterpret_cast< mega::XMLSaveArchive* >( pArchive );
@@ -153,12 +141,13 @@ void xml_load_end_part( const char* partName, void* pArchive )
 {
     mega::XMLLoadArchive& ar = *reinterpret_cast< mega::XMLLoadArchive* >( pArchive );
     ar.endPart( partName );
-}
-
+}*/
+/*
 #define SIMPLETYPE( manged_name, type )                                      \
     void new_##manged_name( void* p )                                        \
     {                                                                        \
         new_< type >( p );                                                   \
+        DimensionImpl< type >::construct( p );
     }                                                                        \
     void delete_##manged_name( void* p )                                     \
     {                                                                        \
@@ -379,5 +368,5 @@ void schedule_stop( const reference& ref )
     mega::log::Storage& log = mega::getMPOContext()->getLog();
     log.record( log::SchedulerRecord( ref, log::SchedulerRecord::Stop ) );
 }
-
+*/
 } // namespace mega

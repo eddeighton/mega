@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef EG_DEFAULT_TRAITS
 #define EG_DEFAULT_TRAITS
 
@@ -43,33 +41,9 @@ struct DimensionTraits
     static const mega::U64 Size      = sizeof( T );
     static const mega::U64 Alignment = alignof( T );
     static const mega::U64 Simple    = std::is_trivially_copyable< T >::value;
-
-    template < typename TSegmentManager >
-    static T&& init( TSegmentManager* )
-    {
-        return std::move( T{} );
-    }
 };
 
 using ReferenceVector = std::vector< mega::reference >;
-
-template <>
-struct DimensionTraits< ReferenceVector >
-{
-    using Read  = const ReferenceVector&;
-    using Write = ReferenceVector;
-    using Get   = ReferenceVector&;
-
-    static const mega::U64 Size      = sizeof( ReferenceVector );
-    static const mega::U64 Alignment = alignof( ReferenceVector );
-    static const mega::U64 Simple    = false;
-
-    template < typename TSegmentManager >
-    static ReferenceVector&& init( TSegmentManager* )
-    {
-        return std::move( ReferenceVector{} );
-    }
-};
 
 } // namespace mega
 

@@ -42,6 +42,8 @@
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/jit.hxx"
 
+// #include "service/protocol/common/context.hpp"
+
 namespace mega::service
 {
 
@@ -159,9 +161,6 @@ public:
     // network::project::Impl
     virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;
 
-private:
-    // void replicateSnapshot( const Snapshot& snapshot, const reference& ref, bool bGetShared,
-    //                         boost::asio::yield_context& yield_ctx );
 };
 
 } // namespace mega::service

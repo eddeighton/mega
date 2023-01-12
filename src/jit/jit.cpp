@@ -84,7 +84,7 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
         std::ostringstream osModule;
         m_codeGenerator.generate_program( compiler, m_database, osModule );
         auto pModule = compile( osModule.str() );
-        m_pProgram = std::make_unique< Program >( m_database, pModule );
+        m_pProgram   = std::make_unique< Program >( m_database, pModule );
     }
 
     const auto functionType = static_cast< mega::runtime::program::FunctionType >( fType );
@@ -92,12 +92,17 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
     {
         case program::eObjectSaveBin:
         {
-            *ppFunction = (void*)m_pProgram->getObjectSaveBin();
+            *ppFunction = ( void* )m_pProgram->getObjectSaveBin();
         }
         break;
         case program::eObjectLoadBin:
         {
-            *ppFunction = (void*)m_pProgram->getObjectLoadBin();
+            *ppFunction = ( void* )m_pProgram->getObjectLoadBin();
+        }
+        break;
+        case program::eRecordLoadBin:
+        {
+            *ppFunction = ( void* )m_pProgram->getRecordLoadBin();
         }
         break;
         case program::TOTAL_FUNCTION_TYPES:
@@ -211,13 +216,13 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const
         case mega::runtime::object::eObjectLoadBin:
         {
             auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction = (void*)pAllocator->getLoadBin();
+            *ppFunction     = ( void* )pAllocator->getLoadBin();
         }
         break;
         case mega::runtime::object::eObjectSaveBin:
         {
             auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction = (void*)pAllocator->getSaveBin();
+            *ppFunction     = ( void* )pAllocator->getSaveBin();
         }
         break;
         case mega::runtime::object::eCallGetter:

@@ -20,6 +20,7 @@
 #include "simulation.hpp"
 
 #include "jit/program_functions.hxx"
+#include "jit/jit_exception.hpp"
 
 #include "service/executor.hpp"
 
@@ -234,6 +235,11 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         SPDLOG_WARN( "SIM: Conversation: {} exception: {}", getID(), ex.what() );
         m_conversationManager.conversationCompleted( shared_from_this() );
     }
+    catch( mega::runtime::JITException& ex )
+    {
+        SPDLOG_WARN( "SIM: Conversation: {} exception: {}", getID(), ex.what() );
+        m_conversationManager.conversationCompleted( shared_from_this() );
+    }
 }
 
 network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
@@ -367,12 +373,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
     SPDLOG_TRACE( "SIM::SimLockRelease: {} {}", requestingMPO, targetMPO );
 
     // NOTE: can context switch when call get_load_record
-    //static thread_local mega::runtime::program::ProgramLoadBin programLoadBin;
-    //while( loadRecordFPtr == nullptr )
-    {
-        THROW_TODO;
-        // get_load_record( &loadRecordFPtr );
-    }
+    static thread_local mega::runtime::program::RecordLoadBin recordLoadBin;
 
     for( const auto& [ ref, type ] : transaction.getSchedulingRecords() )
     {
@@ -386,8 +387,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
         for( const auto& [ ref, str ] : transaction.getMemoryRecords( log::MemoryTrackType( i ) ) )
         {
             SPDLOG_INFO( "SIM::SimLockRelease Got memory record: {} {}", ref, str );
-
-            // loadRecordFPtr( ref, str.data() );
+            recordLoadBin( ref, (void*)str.data(), str.size() );
         }
     }
 }

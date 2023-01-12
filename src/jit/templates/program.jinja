@@ -22,28 +22,98 @@
 #include "mega/reference.hpp"
 #include "service/protocol/common/mpo_context_interface.hpp" 
 #include "jit/object_functions.hxx"
+#include "jit/jit_exception.hpp"
 
-void program_load_record( mega::reference ref, const void* pData )
+namespace mega::mangle
 {
-    switch( ref.getType() )
-    {
-{% for type in types %}
-        case {{ type.id }}:
-        {
-            static thread_local mega::runtime::LoadObjectRecordFunction load_fptr = nullptr;
-            while( load_fptr == nullptr )
-            {
-                get_load_object_record( "program_module", {{ type.object_type_id }}, &load_fptr );
-            }
+{% for event in events %}
+    void load_record_{{event}}(void*,void*,mega::U64);
+{% endfor %}
+}
 
+void object_save_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser )
+{
+    switch( objectTypeID )
+    {
+{% for type in object_types %}
+        case {{ type }}:
+        {
+            static thread_local mega::runtime::object::ObjectSaveBin objectSaveBin( "simulation", {{ type }} );
+            objectSaveBin( pData, pSerialiser );
         }
         break;
 {% endfor %}
         default:
         {
-            //throw "Unknown type in program_load_record";
+            throw mega::runtime::JITException{ "Unknown type in object_save_bin" };
         }
         break;
     }
+}
 
+void object_load_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser )
+{
+    switch( objectTypeID )
+    {
+{% for type in object_types %}
+        case {{ type }}:
+        {
+            static thread_local mega::runtime::object::ObjectLoadBin objectLoadBin( "simulation", {{ type }} );
+            objectLoadBin( pData, pSerialiser );
+        }
+        break;
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "Unknown type in object_load_bin" };
+        }
+        break;
+    }
+}
+
+mega::TypeID get_object_type_id( mega::TypeID typeID )
+{
+    switch( typeID )
+    {
+{% for type in concrete_types %}
+        case {{ type.from }}: return {{ type.to }};
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "Unknown type in object_load_bin" };
+        }
+        break;
+    }
+}
+
+void record_load_bin( mega::reference ref, void* pData, mega::U64 size )
+{
+    if( ref.isNetworkAddress() )
+    {
+        // check if read lock needed here?
+        // mega::runtime::readLock( ref );
+        mega::reference objectRef = mega::reference::make( ref, get_object_type_id( ref.getType() ) );
+        mega::runtime::networkToHeap( objectRef );
+        ref = mega::reference::make( objectRef, ref.getType() );
+    }
+
+    switch( ref.getType() )
+    {
+{% for type in dimension_types %}
+        case {{ type.type_id }}:
+        {
+            void* pTarget = 
+                reinterpret_cast< char* >( ref.getHeap() )
+                + {{ type.part_offset }} + ( {{ type.part_size }} * ref.getInstance() ) 
+                + {{ type.dimension_offset }};
+            mega::mangle::load_record_{{ type.mangled_type_name }}( pTarget, pData, size );
+        }
+        break;
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "Unknown type in object_load_bin" };
+        }
+        break;
+    }
 }

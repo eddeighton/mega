@@ -18,39 +18,23 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "jit/program.hpp"
-
-#include "jit.hpp"
-#include "symbol_utils.hpp"
-
-#include "service/network/log.hpp"
-
-#include <sstream>
+#ifndef GUARD_2023_January_12_jit_exception
+#define GUARD_2023_January_12_jit_exception
 
 namespace mega::runtime
 {
-
-Program::Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
-    : m_pModule( pModule )
+class JITException
 {
-    SPDLOG_TRACE( "Program::ctor" );
-    {   
-        std::ostringstream os;
-        symbolPrefix( "object_save_bin", os );
-        os << "sPvS_";
-        m_objectSaveBin = m_pModule->get< ObjectSaveBinFunction >( os.str() );
-    }
+    const char* m_pszString = nullptr;
+public:
+    JITException( const char* pszString )
+        :   m_pszString( pszString )
     {
-        std::ostringstream os;
-        symbolPrefix( "object_load_bin", os );
-        os << "sPvS_";
-        m_objectLoadBin = m_pModule->get< ObjectLoadBinFunction >( os.str() );
     }
-    {
-        std::ostringstream os;
-        symbolPrefix( "record_load_bin", os );
-        os << "N4mega9referenceEPvm";
-        m_recordLoadBin = m_pModule->get< RecordLoadBinFunction >( os.str() );
-    }
+    JITException( const JITException& ) = default;
+    JITException( JITException&& ) = default;
+    inline const char* what() const { return m_pszString; }
+};
 }
-} // namespace mega::runtime
+
+#endif //GUARD_2023_January_12_jit_exception

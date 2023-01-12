@@ -23,7 +23,7 @@
 #include "service/protocol/common/mpo_context_interface.hpp" 
 #include "jit/object_functions.hxx"
 
-namespace mega
+namespace mega::mangle
 {
 {% for type in mangled_data_types %}
     void new_{{type}}(void*);
@@ -41,7 +41,7 @@ void ctor_{{ objectTypeID }}( void* pBuffer )
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
-        mega::new_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+        mega::mangle::new_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
 {% endfor %}
     }
 {% endfor %}
@@ -53,7 +53,7 @@ void dtor_{{ objectTypeID }}( void* pBuffer )
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
-        mega::delete_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+        mega::mangle::delete_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
 {% endfor %}
     }
 {% endfor %}
@@ -65,7 +65,7 @@ void save_object_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
-        mega::save_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser ); // {{ member.type }} {{ member.name }}
+        mega::mangle::save_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser ); // {{ member.type }} {{ member.name }}
 {% endfor %}
     }
 {% endfor %}
@@ -77,7 +77,7 @@ void load_object_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
-        mega::load_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser ); // {{ member.type }} {{ member.name }}
+        mega::mangle::load_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser ); // {{ member.type }} {{ member.name }}
 {% endfor %}
     }
 {% endfor %}
@@ -89,23 +89,4 @@ void save_object_xml_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 
 void load_object_xml_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {
-}
-
-void load_object_record_{{ objectTypeID }}( mega::reference ref, void* pData )
-{
-    switch( ref.getType() )
-    {
-{% for part in parts %}
-{% for member in part.members %}
-        case {{ member.type_id }}: // {{ member.type }} {{ member.name }}
-        {
-            // TODO
-            // mega::load_bin_{{member.mangle}}( pIter + {{ member.offset }}, pData );
-        }
-        break;
-{% endfor %}
-{% endfor %}
-        default:
-            throw "Unknown record type";
-    }
 }

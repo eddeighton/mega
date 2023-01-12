@@ -142,6 +142,7 @@ add_library( protocol
 					${MEGA_PROTOCOL_GENERATED_SOURCES}
 				)
 
+target_link_libraries( protocol mega_interface )
 target_link_libraries( protocol utilities )
 target_link_libraries( protocol pipeline )
 

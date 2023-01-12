@@ -92,7 +92,10 @@ void compile( const boost::filesystem::path& clangPath, const boost::filesystem:
     {
         std::ostringstream osCmd;
 
-        osCmd << clangPath << " -S -emit-llvm ";
+        using namespace std::string_literals;
+        static const std::string hackFlagsForNow = " -std=c++17"s;
+
+        osCmd << clangPath << hackFlagsForNow << " -S -emit-llvm ";
 
         if ( pComponent.has_value() )
         {

@@ -280,6 +280,8 @@ set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties( database PROPERTIES VERSION "1.0.0" )
 
+target_link_libraries( database mega_interface )
+
 link_boost( database filesystem )
 link_boost( database iostreams )
 link_boost( database serialization )

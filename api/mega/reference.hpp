@@ -39,8 +39,8 @@
 namespace mega
 {
 
-using ObjectID  = U32;
-using Flags     = U8;
+using ObjectID = U32;
+using Flags    = U8;
 
 constexpr static const ObjectID ROOT_OBJECT_ID = 0;
 
@@ -101,8 +101,8 @@ public:
 
     // heap only accessors - that use ObjectHeader
     inline const reference& getNetworkAddress() const;
-    inline TimeStamp getLockCycle() const;
-    inline void setLockCycle( TimeStamp lockCycle );
+    inline TimeStamp        getLockCycle() const;
+    inline void             setLockCycle( TimeStamp lockCycle );
 
     // network - can access via heap header
     constexpr inline ObjectID  getObjectID() const;
@@ -132,13 +132,22 @@ public:
     {
     }
 
+    static constexpr reference make( const reference& other, TypeID typeID )
+    {
+        if( other.isHeapAddress() )
+        {
+            return { TypeInstance{ other.getInstance(), typeID }, other.getOwnerID(), other.getHeap() };
+        }
+        else
+        {
+            return { TypeInstance{ other.getInstance(), typeID }, other.getMPO(), other.getObjectID() };
+        }
+    }
+
     constexpr inline bool isHeapAddress() const { return prc.m_flags == HEAP_ADDRESS; }
     constexpr inline bool isNetworkAddress() const { return prc.m_flags == NETWORK_ADDRESS; }
 
-    constexpr inline bool is_valid() const
-    {
-        return net.m_type.is_valid();
-    }
+    constexpr inline bool is_valid() const { return net.m_type.is_valid(); }
 
     constexpr inline bool operator==( const reference& cmp ) const
     {

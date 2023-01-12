@@ -23,11 +23,9 @@
 #include "api.hpp"
 #include "mega/reference.hpp"
 
-namespace mega
+namespace mega::runtime
 {
-namespace runtime
-{
-    
+
 using TypeErasedFunction = const void*;
 
 struct JIT_EXPORT CallResult
@@ -36,7 +34,6 @@ struct JIT_EXPORT CallResult
     reference          context;
 };
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // RUNTIME_FUNCTIONS_17_AUG_2022

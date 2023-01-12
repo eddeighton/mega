@@ -73,19 +73,20 @@ set( JINJA_TEMPLATES
 )
 
 set( RUNTIME_HEADERS
-    ${MEGA_API_DIR}/jit/api.hpp
-    ${MEGA_API_DIR}/jit/functions.hpp
-    ${MEGA_API_DIR}/jit/jit.hpp
-    ${MEGA_API_DIR}/jit/orc.hpp
-    ${MEGA_API_DIR}/jit/component_manager.hpp
-    ${MEGA_API_DIR}/jit/code_generator.hpp
     ${MEGA_API_DIR}/jit/allocator.hpp
+    ${MEGA_API_DIR}/jit/api.hpp
+    ${MEGA_API_DIR}/jit/code_generator.hpp
+    ${MEGA_API_DIR}/jit/component_manager.hpp
+    ${MEGA_API_DIR}/jit/functions.hpp
+    ${MEGA_API_DIR}/jit/invocation_functions.hxx
+    ${MEGA_API_DIR}/jit/jit_exception.hpp
+    ${MEGA_API_DIR}/jit/jit.hpp
+    ${MEGA_API_DIR}/jit/object_functions.hxx
     ${MEGA_API_DIR}/jit/object_header.hpp
+    ${MEGA_API_DIR}/jit/orc.hpp
+    ${MEGA_API_DIR}/jit/program_functions.hxx
     ${MEGA_API_DIR}/jit/program.hpp
     ${MEGA_API_DIR}/jit/size_alignment.hpp
-    ${MEGA_API_DIR}/jit/invocation_functions.hxx
-    ${MEGA_API_DIR}/jit/object_functions.hxx
-    ${MEGA_API_DIR}/jit/program_functions.hxx
 
 )
 

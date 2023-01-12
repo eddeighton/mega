@@ -21,8 +21,10 @@
 #include "symbol_utils.hpp"
 
 #include "database/model/FinalStage.hxx"
-#include "service/network/log.hpp"
 
+#include "log/record.hpp"
+
+#include "service/network/log.hpp"
 #include "service/mpo_context.hpp"
 
 #include "nlohmann/json.hpp"
@@ -601,9 +603,10 @@ R"TEMPLATE(
             + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
             + {{ dimension_offset }};
 
-        mega::copy_{{ mangled_type_name }}( pData, pTarget );
-        mega::event_{{ mangled_type_name }}
+        mega::mangle::copy_{{ mangled_type_name }}( pData, pTarget );
+        mega::mangle::save_record_{{ mangled_type_name }}
         (
+            mega::runtime::log(),
             mega::reference
             ( 
                 mega::TypeInstance
@@ -614,7 +617,8 @@ R"TEMPLATE(
                 {{ instance }}.getMPO(), 
                 {{ instance }}.getObjectID()
             ),
-            pTarget
+            pTarget,
+            {{ log_track_type }}
         );
         return {{ instance }};
     }
@@ -629,14 +633,16 @@ R"TEMPLATE(
                     const std::string           strMangled
                         = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );
 
-                    nlohmann::json templateData( { { "concrete_type_id", pDimension->get_concrete_id() },
-                                                   { "part_offset", pPart->get_offset() },
-                                                   { "part_size", pPart->get_size() },
-                                                   { "dimension_offset", pDimension->get_offset() },
-                                                   { "mangled_type_name", strMangled },
-                                                   { "instance", get( variables, pInstance ) }
+                    nlohmann::json templateData(
+                        { { "concrete_type_id", pDimension->get_concrete_id() },
+                          { "part_offset", pPart->get_offset() },
+                          { "part_size", pPart->get_size() },
+                          { "dimension_offset", pDimension->get_offset() },
+                          { "mangled_type_name", strMangled },
+                          { "instance", get( variables, pInstance ) },
+                          { "log_track_type", mega::log::toInt( mega::log::TrackType::Simulation ) }
 
-                    } );
+                        } );
 
                     os << render( szTemplate, templateData );
 
@@ -1252,8 +1258,81 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
 {
     SPDLOG_TRACE( "RUNTIME: generate_program" );
 
-    nlohmann::json data( { { "types", nlohmann::json::array() } } );
+    nlohmann::json data( { { "events", nlohmann::json::array() },
+                           { "object_types", nlohmann::json::array() },
+                           { "concrete_types", nlohmann::json::array() },
+                           { "dimension_types", nlohmann::json::array() } } );
+    for( const auto pObject : database.getObjects() )
     {
+        data[ "object_types" ].push_back( pObject->get_concrete_id() );
+        nlohmann::json typeInfo( { { "from", pObject->get_concrete_id() }, { "to", pObject->get_concrete_id() } } );
+        data[ "concrete_types" ].push_back( typeInfo );
+    }
+    std::set< std::string > events;
+    for( auto pUserDimension : database.getUserDimensions() )
+    {
+        using namespace FinalStage;
+        using namespace FinalStage::Concrete;
+
+        MemoryLayout::Part* pPart      = pUserDimension->get_part();
+        const bool          bSimple    = pUserDimension->get_interface_dimension()->get_simple();
+        const std::string   strMangled = megaMangle( pUserDimension->get_interface_dimension()->get_canonical_type() );
+
+        nlohmann::json typeInfo( { { "type_id", pUserDimension->get_concrete_id() },
+                                   { "part_offset", pPart->get_offset() },
+                                   { "part_size", pPart->get_size() },
+                                   { "dimension_offset", pUserDimension->get_offset() },
+                                   { "mangled_type_name", strMangled } } );
+        data[ "dimension_types" ].push_back( typeInfo );
+        events.insert( strMangled );
+
+        auto pContext = pUserDimension->get_parent();
+        while( pContext )
+        {
+            if( db_cast< FinalStage::Concrete::Object >( pContext ) )
+                break;
+            pContext = db_cast< FinalStage::Concrete::Context >( pContext->get_parent() );
+        }
+        VERIFY_RTE_MSG( pContext, "Failed to locate parent object for type: " << pUserDimension->get_concrete_id() );
+
+        nlohmann::json objectTypeInfo(
+            { { "from", pUserDimension->get_concrete_id() }, { "to", pContext->get_concrete_id() } } );
+        data[ "concrete_types" ].push_back( objectTypeInfo );
+    }
+    /*for( auto pLinkDimension : database.getLinkDimensions() )
+    {
+        using namespace FinalStage;
+        using namespace FinalStage::Concrete;
+
+        std::string strMangled;
+        if ( db_cast< Concrete::Dimensions::LinkSingle >( pLinkDimension ) )
+        {
+            //const std::string   strMangled
+            //    = megaMangle( pLinkDimension->get_link()-> );
+        }
+        else if ( db_cast< Concrete::Dimensions::LinkSingle >( pLinkDimension ) )
+        {
+
+        }
+        else
+        {
+            THROW_RTE( "Unknown link reference type" );
+        }
+
+        MemoryLayout::Part* pPart   = pLinkDimension->get_part();
+
+        nlohmann::json typeInfo( { { "type_id", pLinkDimension->get_concrete_id() },
+                                    { "part_offset", pPart->get_offset() },
+                                    { "part_size", pPart->get_size() },
+                                    { "dimension_offset", pLinkDimension->get_offset() },
+                                    { "mangled_type_name", strMangled } } );
+        data[ "dimension_types" ].push_back( typeInfo );
+        events.insert( strMangled );
+    }*/
+
+    for( const auto& event : events )
+    {
+        data[ "events" ].push_back( event );
     }
 
     std::ostringstream osCPPCode;

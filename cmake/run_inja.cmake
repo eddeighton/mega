@@ -17,3 +17,4 @@ function(run_inja_template DATA TEMPLATE OUTPUT)
         COMMENT "Generating ${OUTPUT} from ${DATA} using jinja template ${TEMPLATE}"
     )
 endfunction()
+

@@ -23,6 +23,38 @@
 
 cmake_minimum_required( VERSION 3.1...3.16 )
 
+#get boost
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
+
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
+#get common
+include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
+
+include( ../run_inja.cmake )
+
+add_custom_target( generate_mangle_types
+    COMMAND inja
+        --data ${MEGA_API_DIR}/mega/types/types.json
+        --template ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja
+        --output ${MEGA_API_DIR}/mega/types/mangle_types.cxx
+    DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja inja
+    BYPRODUCTS  ${MEGA_API_DIR}/mega/types/mangle_types.cxx
+    COMMENT "Generating Type Mangle for Types" 
+    SOURCES ${MEGA_API_DIR}/mega/types/types.json
+)
+add_custom_target( generate_mangle_allocators
+    COMMAND inja
+        --data ${MEGA_API_DIR}/mega/types/allocators.json
+        --template ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja
+        --output ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
+    DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja inja
+    BYPRODUCTS  ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
+    COMMENT "Generating Type Mangle for Allocators" 
+    SOURCES ${MEGA_API_DIR}/mega/types/allocators.json
+)
+
 set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/address_table.hpp
     ${MEGA_API_DIR}/mega/allocator.hpp
@@ -51,21 +83,39 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/type_id.hpp
     ${MEGA_API_DIR}/mega/type_instance.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
+    ${MEGA_API_DIR}/mega/types/traits.hpp
     ${MEGA_API_DIR}/mega/variant.hpp
     ${MEGA_API_DIR}/mega/xml_archive.hpp
 
 )
 
-set( MEGA_TYPES
-    ${MEGA_API_DIR}/mega/types/traits.hpp
-    ${MEGA_API_DIR}/mega/types/traits.cpp
+add_library( mega_interface INTERFACE ${MEGA_LIBRARY} ${MEGA_TYPES} )
+add_dependencies( mega_interface generate_mangle_types )
+add_dependencies( mega_interface generate_mangle_allocators )
 
-    ${MEGA_API_DIR}/mega/types/simple.xmc
-    ${MEGA_API_DIR}/mega/types/non_simple.xmc
-    ${MEGA_API_DIR}/mega/types/allocators_32.xmc
-    ${MEGA_API_DIR}/mega/types/allocators_64.xmc
-    ${MEGA_API_DIR}/mega/types/allocators_128.xmc
+set( MEGA_TYPES
+    ${MEGA_API_DIR}/mega/types/mangle_types.cxx
+    ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
 )
+
+add_library( mega_mangle ${MEGA_TYPES} )
+
+target_include_directories( mega_mangle PUBLIC ${MEGA_API_DIR} )
+
+target_link_libraries( mega_mangle mega_interface )
+target_link_libraries( mega_mangle log )
+
+link_boost( mega_mangle system )
+link_boost( mega_mangle filesystem )
+link_boost( mega_mangle serialization )
+link_json( mega_mangle )
+link_common( mega_mangle )
+
+install( TARGETS mega_interface EXPORT mega_interface DESTINATION bin)
+install( EXPORT mega_interface NAMESPACE MEGA:: FILE mega_interface-config.cmake DESTINATION share )
+
+install( TARGETS mega_mangle EXPORT mega_mangle DESTINATION bin)
+install( EXPORT mega_mangle NAMESPACE MEGA:: FILE mega_mangle-config.cmake DESTINATION share )
 
 install( FILES ${MEGA_LIBRARY} DESTINATION include/mega )
 install( FILES ${MEGA_TYPES} DESTINATION include/mega/types )

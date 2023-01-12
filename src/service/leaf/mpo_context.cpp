@@ -52,11 +52,18 @@ reference allocate( const reference& parent, TypeID typeID )
 {
     return getMPOContext()->allocate( parent, typeID );
 }
+void* log()
+{
+    return &getMPOContext()->getLog();
+}
 } // namespace runtime
 
 Cycle::~Cycle()
 {
-    getMPOContext()->cycleComplete();
+    if( auto pContext = getMPOContext() )
+    {
+        pContext->cycleComplete();
+    }
 }
 
 reference MPOContext::getRoot( MPO mpo )

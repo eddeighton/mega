@@ -41,26 +41,18 @@ public:
     using MachineProcessIDVector = std::vector< MP >;
     using MPOVector              = std::vector< MPO >;
 
-    // native code interface
-
     // queries
     virtual MachineIDVector        getMachines()                       = 0;
     virtual MachineProcessIDVector getProcesses( MachineID machineID ) = 0;
     virtual MPOVector              getMPO( MP machineProcess )         = 0;
 
-    // mpo management
-    virtual MPO       getThisMPO()                                             = 0;
-    virtual reference getThisRoot()                                            = 0;
-    virtual reference getRoot( MPO mpo )                                       = 0;
-    virtual MPO       constructMPO( MP machineProcess )                        = 0;
-    virtual reference allocate( const reference& parent, TypeID objectTypeID ) = 0;
-    virtual void      networkToHeap( reference& ref )                          = 0;
-    virtual void      readLock( reference& ref )                               = 0;
-    virtual void      writeLock( reference& ref )                              = 0;
-    virtual void      jit( runtime::JITFunctor func )                          = 0;
-    virtual void      yield()                                                  = 0;
+    virtual MPO             getThisMPO()                      = 0;
+    virtual mega::reference getThisRoot()                     = 0;
+    virtual mega::reference getRoot( MPO mpo )                = 0;
+    virtual MPO             constructMPO( MP machineProcess ) = 0;
 
-    // leaf runtime
+    virtual void jit( runtime::JITFunctor func ) = 0;
+    virtual void yield()                         = 0;
 
     // clock
     virtual TimeStamp cycle() = 0;

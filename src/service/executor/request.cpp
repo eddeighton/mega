@@ -37,6 +37,7 @@ MPO ExecutorRequestConversation::SimCreate( boost::asio::yield_context& yield_ct
     return m_executor.createSimulation( *this, yield_ctx );
 }
 
+// TODO: check ording of receiverID senderID is correct way round! - they are being swapped in response
 #define FORWARD_SIM_MSG_NO_ARG_NO_RETURN( namespace_, name )                                                 \
     case network::namespace_::MSG_##name##_Request::ID:                                                      \
     {                                                                                                        \

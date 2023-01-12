@@ -44,9 +44,9 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
         VERIFY_RTE_MSG( contexts.size() > 0U, "Failed to locate Root symbol" );
 
         FinalStage::Interface::IContext* pRoot = nullptr;
-        for ( auto p : contexts )
+        for( auto p : contexts )
         {
-            if ( FinalStage::db_cast< FinalStage::Interface::Root >( p->get_parent() ) )
+            if( FinalStage::db_cast< FinalStage::Interface::Root >( p->get_parent() ) )
             {
                 VERIFY_RTE_MSG( !pRoot, "Multiple roots found" );
                 pRoot = p;
@@ -67,15 +67,15 @@ network::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType 
 
     network::SizeAlignment sizeAlignment;
     {
-        for ( auto pBuffer : getObject( objectType )->get_buffers() )
+        for( auto pBuffer : getObject( objectType )->get_buffers() )
         {
-            if ( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+            if( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
             {
                 VERIFY_RTE( sizeAlignment.size == 0U );
                 sizeAlignment.size      = pBuffer->get_size();
                 sizeAlignment.alignment = pBuffer->get_alignment();
             }
-            else if ( db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
+            else if( db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
             {
                 VERIFY_RTE( sizeAlignment.size == 0U );
                 sizeAlignment.size      = pBuffer->get_size();
@@ -96,12 +96,12 @@ const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const
     using InvocationMap = std::map< mega::InvocationID, Operations::Invocation* >;
 
     {
-        for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
             const Operations::Invocations* pInvocations = m_database.one< Operations::Invocations >( sourceFilePath );
             const InvocationMap            invocations  = pInvocations->get_invocations();
             auto                           iFind        = invocations.find( invocation );
-            if ( iFind != invocations.end() )
+            if( iFind != invocations.end() )
             {
                 const Operations::Invocation* pInvocation = iFind->second;
                 return pInvocation;
@@ -109,12 +109,12 @@ const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const
         }
     }
     {
-        for ( const mega::io::cppFilePath& sourceFilePath : m_manifest.getCppSourceFiles() )
+        for( const mega::io::cppFilePath& sourceFilePath : m_manifest.getCppSourceFiles() )
         {
             const Operations::Invocations* pInvocations = m_database.one< Operations::Invocations >( sourceFilePath );
             const InvocationMap            invocations  = pInvocations->get_invocations();
             auto                           iFind        = invocations.find( invocation );
-            if ( iFind != invocations.end() )
+            if( iFind != invocations.end() )
             {
                 const Operations::Invocation* pInvocation = iFind->second;
                 return pInvocation;
@@ -130,19 +130,19 @@ mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID )
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteTypeID );
     auto pConcreteTypeID = iFind->second;
 
-    if ( pConcreteTypeID->get_context().has_value() )
+    if( pConcreteTypeID->get_context().has_value() )
     {
         return pConcreteTypeID->get_context().value()->get_interface()->get_interface_id();
     }
-    else if ( pConcreteTypeID->get_dim_user().has_value() )
+    else if( pConcreteTypeID->get_dim_user().has_value() )
     {
         return pConcreteTypeID->get_dim_user().value()->get_interface_dimension()->get_interface_id();
     }
-    else if ( pConcreteTypeID->get_dim_allocation().has_value() )
+    else if( pConcreteTypeID->get_dim_allocation().has_value() )
     {
         THROW_RTE( "Interface ID asked for allocation dimension" );
     }
-    else if ( pConcreteTypeID->get_dim_link().has_value() )
+    else if( pConcreteTypeID->get_dim_link().has_value() )
     {
         THROW_RTE( "Interface ID asked for link dimension" );
     }
@@ -159,7 +159,7 @@ FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectTy
     auto pConcreteTypeID = iFind->second;
 
     FinalStage::Concrete::Object* pObject = nullptr;
-    if ( pConcreteTypeID->get_context().has_value() )
+    if( pConcreteTypeID->get_context().has_value() )
     {
         pObject = FinalStage::db_cast< FinalStage::Concrete::Object >( pConcreteTypeID->get_context().value() );
     }
@@ -173,7 +173,7 @@ const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::T
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
     auto pConcreteTypeID = iFind->second;
 
-    if ( pConcreteTypeID->get_context().has_value() )
+    if( pConcreteTypeID->get_context().has_value() )
     {
         return pConcreteTypeID->get_context().value()->get_component();
     }
@@ -186,7 +186,7 @@ const FinalStage::Components::Component* DatabaseInstance::getOperationComponent
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
     auto pConcreteTypeID = iFind->second;
 
-    if ( pConcreteTypeID->get_context().has_value() )
+    if( pConcreteTypeID->get_context().has_value() )
     {
         return pConcreteTypeID->get_context().value()->get_interface()->get_component();
     }
@@ -235,22 +235,22 @@ mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteID );
     auto pConcreteTypeID = iFind->second;
 
-    if ( pConcreteTypeID->get_context().has_value() )
+    if( pConcreteTypeID->get_context().has_value() )
     {
         auto pContext = pConcreteTypeID->get_context().value();
-        if ( auto pObject = db_cast< Concrete::Object >( pContext ) )
+        if( auto pObject = db_cast< Concrete::Object >( pContext ) )
         {
             return 1;
         }
-        else if ( auto pEvent = db_cast< Concrete::Event >( pContext ) )
+        else if( auto pEvent = db_cast< Concrete::Event >( pContext ) )
         {
             return pEvent->get_local_size();
         }
-        else if ( auto pAction = db_cast< Concrete::Action >( pContext ) )
+        else if( auto pAction = db_cast< Concrete::Action >( pContext ) )
         {
             return pAction->get_local_size();
         }
-        else if ( auto pLink = db_cast< Concrete::Link >( pContext ) )
+        else if( auto pLink = db_cast< Concrete::Link >( pContext ) )
         {
             return 1;
         }
@@ -263,6 +263,40 @@ mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
     {
         THROW_RTE( "Unreachable" );
     }
+}
+
+template< typename T >
+std::vector< T* > getPerCompilationFileType( const mega::io::Manifest& manifest, const FinalStage::Database& database )
+{
+    std::vector< T* > result;
+    for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    {
+        for( auto pObject : database.many< T >( sourceFilePath ) )
+        {
+            result.push_back( pObject );
+        }
+    }
+    return result;
+}
+
+std::vector< FinalStage::Concrete::Object* > DatabaseInstance::getObjects() const
+{
+    return getPerCompilationFileType< FinalStage::Concrete::Object >( m_manifest, m_database );
+}
+
+std::vector< FinalStage::Concrete::Dimensions::User* > DatabaseInstance::getUserDimensions() const
+{
+    return getPerCompilationFileType< FinalStage::Concrete::Dimensions::User >( m_manifest, m_database );
+}
+
+std::vector< FinalStage::Concrete::Dimensions::LinkReference* > DatabaseInstance::getLinkDimensions() const
+{
+    return getPerCompilationFileType< FinalStage::Concrete::Dimensions::LinkReference >( m_manifest, m_database );
+}
+
+std::vector< FinalStage::Concrete::Dimensions::Allocation* > DatabaseInstance::getAllocationDimensions() const
+{
+    return getPerCompilationFileType< FinalStage::Concrete::Dimensions::Allocation >( m_manifest, m_database );
 }
 
 } // namespace mega::runtime

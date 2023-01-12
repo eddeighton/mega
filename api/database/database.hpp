@@ -37,18 +37,22 @@ namespace mega::runtime
 
 class EGDB_EXPORT DatabaseInstance
 {
-    using ConcreteTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
-
 public:
+    using ConcreteTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
-    network::SizeAlignment                    getObjectSize( mega::TypeID objectType ) const;
-    const FinalStage::Operations::Invocation* getInvocation( const mega::InvocationID& invocation ) const;
-    mega::TypeID                              getInterfaceTypeID( mega::TypeID concreteTypeID ) const;
-    FinalStage::Concrete::Object*             getObject( mega::TypeID objectType ) const;
-    const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
-    const FinalStage::Components::Component*  getOperationComponent( mega::TypeID objectType ) const;
-    mega::U64                                 getLocalDomainSize( mega::TypeID concreteID ) const;
+    network::SizeAlignment                       getObjectSize( mega::TypeID objectType ) const;
+    const FinalStage::Operations::Invocation*    getInvocation( const mega::InvocationID& invocation ) const;
+    mega::TypeID                                 getInterfaceTypeID( mega::TypeID concreteTypeID ) const;
+    FinalStage::Concrete::Object*                getObject( mega::TypeID objectType ) const;
+    const FinalStage::Components::Component*     getComponent( mega::TypeID objectType ) const;
+    const FinalStage::Components::Component*     getOperationComponent( mega::TypeID objectType ) const;
+    mega::U64                                    getLocalDomainSize( mega::TypeID concreteID ) const;
+    std::vector< FinalStage::Concrete::Object* > getObjects() const;
+
+    std::vector< FinalStage::Concrete::Dimensions::User* > getUserDimensions() const;
+    std::vector< FinalStage::Concrete::Dimensions::LinkReference* > getLinkDimensions() const;
+    std::vector< FinalStage::Concrete::Dimensions::Allocation* > getAllocationDimensions() const;
 
 private:
     mega::io::ArchiveEnvironment                      m_environment;

@@ -103,6 +103,7 @@ target_link_libraries( executorLib database )
 target_link_libraries( executorLib orc )
 target_link_libraries( executorLib log )
 
+
 install( FILES ${EXECUTOR_LIB_API} DESTINATION include/service )
 install( TARGETS executorLib EXPORT executorLib DESTINATION bin)
 install( EXPORT executorLib NAMESPACE MEGA:: FILE executorLib-config.cmake DESTINATION share )
@@ -112,8 +113,6 @@ install( EXPORT executorLib NAMESPACE MEGA:: FILE executorLib-config.cmake DESTI
 
 set( EXECUTOR_SOURCE 
     ${MEGA_SRC_DIR}/service/executor/main.cpp 
-
-    ${MEGA_API_DIR}/mega/types/traits.cpp
     )
 
 add_executable( executor ${EXECUTOR_SOURCE}  )
@@ -126,6 +125,7 @@ target_compile_options( executor PUBLIC "-fcoroutines" )
 ENDIF( ${WIN32} )
 
 target_link_libraries( executor executorLib )
+target_link_libraries( executor mega_mangle )
 
 # target_link_libraries( executor 
 # -Wl,-whole-archive

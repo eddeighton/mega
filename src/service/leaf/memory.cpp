@@ -115,9 +115,11 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
                     const network::Message& msg ) mutable { return leafRequest.MPOUp( msg, targetMPO ); },
                 getID() };
 
-            SPDLOG_TRACE( "LeafRequestConversation::NetworkToHeap: requesting snapshot for: {}", heapAddress.getNetworkAddress() );
+            SPDLOG_TRACE( "LeafRequestConversation::NetworkToHeap: requesting snapshot for: {}",
+                          heapAddress.getNetworkAddress() );
             Snapshot objectSnapshot = simRequest.SimObjectSnapshot( heapAddress.getNetworkAddress() );
-            SPDLOG_TRACE( "LeafRequestConversation::NetworkToHeap: got snapshot for: {}", heapAddress.getNetworkAddress() );
+            SPDLOG_TRACE(
+                "LeafRequestConversation::NetworkToHeap: got snapshot for: {}", heapAddress.getNetworkAddress() );
             {
                 AddressTable& addressTable = objectSnapshot.getTable();
                 for( AddressTable::Index objectIndex : objectSnapshot.getObjects() )
@@ -132,12 +134,15 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
                 }
             }
 
-            auto compiler  = getLLVMCompiler( yield_ctx );
+            auto llvm   = getLLVMCompiler( yield_ctx );
 
-            static thread_local mega::runtime::program::ObjectLoadBin objectLoadBin;
+            // NOTE: cannot used runtime function wrapper from leaf - not a MPOContext!
+            //static thread_local mega::runtime::program::ObjectLoadBin objectLoadBin;
+            //objectLoadBin( heapAddress.getType(), heapAddress.getHeap(), &archive );
 
+            auto allocator = m_leaf.getJIT().getAllocator( llvm, heapAddress.getType() );
             BinLoadArchive archive( objectSnapshot );
-            objectLoadBin( heapAddress.getType(), heapAddress.getHeap(), &archive );
+            allocator->getLoadBin()( heapAddress.getHeap(), &archive );
         }
         heapAddress.setLockCycle( lockCycle );
     }

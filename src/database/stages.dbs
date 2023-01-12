@@ -306,4 +306,7 @@ stage FinalStage
     persource accessor array< ref< Concrete::Object > >;
     persource accessor array< ref< Parser::SystemInclude > >;
     persource accessor array< ref< Parser::CPPInclude > >;
+    persource accessor array< ref< Concrete::Dimensions::User > >;
+    persource accessor array< ref< Concrete::Dimensions::LinkReference > >;
+    persource accessor array< ref< Concrete::Dimensions::Allocation > >;
 }

@@ -49,6 +49,7 @@ add_library( invocation
     ${INVOCATION_SOURCE}
 )
 
+target_link_libraries( invocation mega_interface )
 target_link_libraries( invocation database )
 
 IF( ${WIN32} )

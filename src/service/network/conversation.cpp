@@ -24,6 +24,8 @@
 #include "service/network/end_point.hpp"
 #include "service/protocol/model/messages.hxx"
 
+#include "jit/jit_exception.hpp"
+
 #include <chrono>
 #include <iostream>
 
@@ -95,6 +97,11 @@ void Conversation::run( boost::asio::yield_context& yield_ctx )
         SPDLOG_WARN( "Conversation: {} exception: {}", getID(), ex.what() );
         m_conversationManager.conversationCompleted( shared_from_this() );
     }
+    catch( mega::runtime::JITException& ex )
+    {
+        SPDLOG_WARN( "Conversation: {} exception: {}", getID(), ex.what() );
+        m_conversationManager.conversationCompleted( shared_from_this() );
+    }
 }
 
 void Conversation::run_one( boost::asio::yield_context& yield_ctx )
@@ -158,6 +165,10 @@ void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yie
         }
     }
     catch( std::exception& ex )
+    {
+        error( msg, ex.what(), yield_ctx );
+    }
+    catch( mega::runtime::JITException& ex )
     {
         error( msg, ex.what(), yield_ctx );
     }
