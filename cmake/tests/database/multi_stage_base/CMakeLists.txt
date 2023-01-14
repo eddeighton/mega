@@ -171,6 +171,29 @@ add_executable( database_multi_stage_base_tests
                 ${MULTI_STAGE_BASE_DIR}/main.cpp 
                 )
 
+add_definitions(-DEG_DATABASE_API_SHARED_MODULE)
+
+IF( ${WIN32} )
+target_compile_options(database_multi_stage_base_tests PRIVATE /bigobj)
+
+# for windows need to work around limit of 65K symbols - /Ob2 appears to achieve this
+target_compile_options(database_multi_stage_base_tests PRIVATE /Ob2)
+
+# symbols are manually exported so ensure this is OFF
+set_property(TARGET database_multi_stage_base_tests PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
+
+# set_source_files_properties( 
+#     ${MEGA_DATABASE_SOURCES} ${MEGA_DATABASE_GENERATED_SOURCES} ${MEGA_DATABASE_STAGE_SOURCES}
+#     PROPERTIES
+#     COMPILE_FLAGS -O1 
+# )
+ELSE( ${WIN32} )
+
+set_property(TARGET database_multi_stage_base_tests PROPERTY C_VISIBILITY_PRESET hidden)
+set_property(TARGET database_multi_stage_base_tests PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+
+ENDIF( ${WIN32} )
+
 # allow access to source folder for tests - NOTE order sensitive here
 target_include_directories( database_multi_stage_base_tests PUBLIC ${MULTI_STAGE_BASE_DIR} )
 target_include_directories( database_multi_stage_base_tests PUBLIC ${MEGA_API_DIR} )

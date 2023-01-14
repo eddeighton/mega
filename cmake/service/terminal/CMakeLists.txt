@@ -53,6 +53,7 @@ add_library( terminal
 
 IF( ${WIN32} )
 target_compile_options( terminal PUBLIC "/await:strict" )
+set_property(TARGET terminal PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 ELSE( ${WIN32} )
 target_compile_options( terminal PUBLIC "-fcoroutines" )
 ENDIF( ${WIN32} )

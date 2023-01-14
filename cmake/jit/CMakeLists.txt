@@ -86,7 +86,6 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/orc.hpp
     ${MEGA_API_DIR}/jit/program_functions.hxx
     ${MEGA_API_DIR}/jit/program.hpp
-    ${MEGA_API_DIR}/jit/size_alignment.hpp
 
 )
 

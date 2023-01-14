@@ -22,7 +22,7 @@
 
 #include "api.hpp"
 #include "orc.hpp"
-#include "size_alignment.hpp"
+#include "mega/memory.hpp"
 
 #include "database/database.hpp"
 
@@ -44,7 +44,7 @@ public:
 
     using Ptr = std::shared_ptr< Allocator >;
 
-    const network::SizeAlignment& getSizeAlignment() const { return m_sizeAlignment; }
+    const mega::SizeAlignment& getSizeAlignment() const { return m_sizeAlignment; }
 
     ObjectCtorFunction    getCtor() const { return m_pCtor; }
     ObjectDtorFunction    getDtor() const { return m_pDtor; }
@@ -58,7 +58,7 @@ public:
 private:
     JITCompiler::Module::Ptr m_pModule;
     TypeID                   m_objectTypeID;
-    network::SizeAlignment   m_sizeAlignment;
+    mega::SizeAlignment      m_sizeAlignment;
     ObjectCtorFunction       m_pCtor    = nullptr;
     ObjectDtorFunction       m_pDtor    = nullptr;
     ObjectSaveBinFunction    m_pSaveBin = nullptr;

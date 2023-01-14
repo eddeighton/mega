@@ -11346,14 +11346,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_dimens
 {
     struct Visitor
     {
-        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
-        {
-            data::Ptr< data::Concrete::Concrete_Namespace > part = 
-                data::convert< data::Concrete::Concrete_Namespace >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_dimensions" );
-            return part->dimensions;
-        }
         std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
         {
             data::Ptr< data::Concrete::Concrete_Action > part = 
@@ -11382,6 +11374,14 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_dimens
         {
             data::Ptr< data::Concrete::Concrete_Buffer > part = 
                 data::convert< data::Concrete::Concrete_Buffer >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_dimensions" );
+            return part->dimensions;
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Namespace > part = 
+                data::convert< data::Concrete::Concrete_Namespace >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: get_dimensions" );
             return part->dimensions;

@@ -20,7 +20,7 @@
 #ifndef DATABASE_8_AUG_2022
 #define DATABASE_8_AUG_2022
 
-#include "jit/size_alignment.hpp"
+#include "mega/memory.hpp"
 
 #include "database/common/api.hpp"
 #include "database/common/environment_archive.hpp"
@@ -41,7 +41,7 @@ public:
     using ConcreteTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
-    network::SizeAlignment                       getObjectSize( mega::TypeID objectType ) const;
+    mega::SizeAlignment                          getObjectSize( mega::TypeID objectType ) const;
     const FinalStage::Operations::Invocation*    getInvocation( const mega::InvocationID& invocation ) const;
     mega::TypeID                                 getInterfaceTypeID( mega::TypeID concreteTypeID ) const;
     FinalStage::Concrete::Object*                getObject( mega::TypeID objectType ) const;

@@ -36,7 +36,26 @@ namespace mega::runtime
 
 class RemoteMemoryManager
 {
-    using HeapBufferPtr = std::unique_ptr< char[] >;
+    class HeapBufferPtr
+    {
+        const mega::SizeAlignment m_sizeAlignment;
+        void* m_pStorage;
+    public:
+        HeapBufferPtr( const mega::SizeAlignment& sizeAlignment )
+            :   m_sizeAlignment( sizeAlignment ),
+                m_pStorage( mega::malloc( sizeAlignment ) )
+        {
+        }
+        ~HeapBufferPtr()
+        {
+            mega::free( m_pStorage );
+        }
+        void* get() const { return m_pStorage; }
+        HeapBufferPtr( HeapBufferPtr& ) = delete;
+        HeapBufferPtr( HeapBufferPtr&& ) = default;
+        HeapBufferPtr& operator=( HeapBufferPtr& ) = delete;
+    };
+
     using HeapMap       = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
     using NetMap        = std::unordered_map< reference, reference, reference::Hash >;
 
@@ -77,9 +96,9 @@ public:
 
         Allocator::Ptr pAllocator = m_getAllocatorFPtr( networkAddress.getType(), llvmCompiler );
 
-        const network::SizeAlignment sizeAlignment = pAllocator->getSizeAlignment();
+        const mega::SizeAlignment sizeAlignment = pAllocator->getSizeAlignment();
 
-        HeapBufferPtr pHeapBuffer( new( std::align_val_t( sizeAlignment.alignment ) ) char[ sizeAlignment.size ] );
+        HeapBufferPtr pHeapBuffer( sizeAlignment );
 
         // establish the header including the network address, lock timestamp and shared ownership of allocator
         const ObjectID  objectID = allocateObjectID();
@@ -117,7 +136,7 @@ public:
         pHeader->m_pAllocator->getDtor()( pHeader );
 
         // delete the object header
-        delete pHeader;
+        pHeader->~ObjectHeader();
 
         // remove the heap address entry
         m_heapMap.erase( iFind );

@@ -176,11 +176,37 @@ add_executable( database_advanced_test
                 ${ADVANCED_DIR}/main.cpp 
                 )
 
+                
+add_definitions(-DEG_DATABASE_API_SHARED_MODULE)
+
+IF( ${WIN32} )
+target_compile_options(database_advanced_test PRIVATE /bigobj)
+
+# for windows need to work around limit of 65K symbols - /Ob2 appears to achieve this
+target_compile_options(database_advanced_test PRIVATE /Ob2)
+
+# symbols are manually exported so ensure this is OFF
+set_property(TARGET database_advanced_test PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
+
+# set_source_files_properties( 
+#     ${MEGA_DATABASE_SOURCES} ${MEGA_DATABASE_GENERATED_SOURCES} ${MEGA_DATABASE_STAGE_SOURCES}
+#     PROPERTIES
+#     COMPILE_FLAGS -O1 
+# )
+ELSE( ${WIN32} )
+
+set_property(TARGET database_advanced_test PROPERTY C_VISIBILITY_PRESET hidden)
+set_property(TARGET database_advanced_test PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+
+ENDIF( ${WIN32} )
+
 # allow access to source folder for tests - NOTE order sensitive here
 target_include_directories( database_advanced_test PUBLIC ${ADVANCED_DIR} )
 target_include_directories( database_advanced_test PUBLIC ${MEGA_API_DIR} )
 
 set_target_properties( database_advanced_test PROPERTIES FOLDER mega )
+
+target_link_libraries( database_advanced_test mega_interface )
 
 link_boost( database_advanced_test filesystem )
 link_boost( database_advanced_test system )

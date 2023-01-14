@@ -61,11 +61,11 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
     }
 }
 
-network::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType ) const
+mega::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType ) const
 {
     using namespace FinalStage;
 
-    network::SizeAlignment sizeAlignment;
+    mega::SizeAlignment sizeAlignment;
     {
         for( auto pBuffer : getObject( objectType )->get_buffers() )
         {

@@ -25,18 +25,6 @@
 namespace mega::network
 {
     
-struct SizeAlignment
-{
-    U64 size      = 0U;
-    U64 alignment = 0U;
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& size;
-        archive& alignment;
-    }
-};
 
 } // namespace mega::network
 

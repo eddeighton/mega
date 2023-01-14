@@ -27,6 +27,7 @@
 #include "mega/common.hpp"
 #include "mega/allocator.hpp"
 #include "mega/types/traits.hpp"
+#include "mega/memory.hpp"
 
 #include "common/file.hpp"
 #include <common/stash.hpp>
@@ -362,11 +363,6 @@ static U64 padToAlignment( U64 alignment, U64 offset )
 using namespace MemoryStage;
 using namespace MemoryStage::Concrete;
 
-struct SizeAlignment
-{
-    U64 size = 0U, alignment = 1U;
-};
-
 struct PartDimensions
 {
     std::vector< Concrete::Dimensions::User* >          user;
@@ -401,9 +397,9 @@ struct PartDimensions
         }
     }
 
-    SizeAlignment calculatePartLayout( MemoryStage::Database& database, MemoryLayout::Part* pPart )
+    mega::SizeAlignment calculatePartLayout( MemoryStage::Database& database, MemoryLayout::Part* pPart )
     {
-        SizeAlignment result;
+        mega::SizeAlignment result;
         for ( auto p : user )
         {
             const U64 szAlign = p->get_interface_dimension()->get_alignment();
@@ -507,7 +503,7 @@ struct PartDimensions
     {
         MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
             MemoryLayout::Part::Args{ szTotalDomainSize, pContext, user, link, alloc } );
-        const SizeAlignment sizeAlignment = calculatePartLayout( database, pContextPart );
+        const  mega::SizeAlignment sizeAlignment = calculatePartLayout( database, pContextPart );
         pContextPart->set_size( sizeAlignment.size );
         pContextPart->set_alignment( sizeAlignment.alignment );
         return pContextPart;

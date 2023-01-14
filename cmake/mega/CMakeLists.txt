@@ -44,6 +44,7 @@ add_custom_target( generate_mangle_types
     COMMENT "Generating Type Mangle for Types" 
     SOURCES ${MEGA_API_DIR}/mega/types/types.json
 )
+add_dependencies( generate_mangle_types inja )
 add_custom_target( generate_mangle_allocators
     COMMAND inja
         --data ${MEGA_API_DIR}/mega/types/allocators.json
@@ -54,6 +55,7 @@ add_custom_target( generate_mangle_allocators
     COMMENT "Generating Type Mangle for Allocators" 
     SOURCES ${MEGA_API_DIR}/mega/types/allocators.json
 )
+add_dependencies( generate_mangle_allocators inja )
 
 set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/address_table.hpp
@@ -72,6 +74,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/invocation_io.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
+    ${MEGA_API_DIR}/mega/memory.hpp
     ${MEGA_API_DIR}/mega/mpo.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp
     ${MEGA_API_DIR}/mega/operations.hpp
@@ -86,7 +89,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/types/traits.hpp
     ${MEGA_API_DIR}/mega/variant.hpp
     ${MEGA_API_DIR}/mega/xml_archive.hpp
-
 )
 
 add_library( mega_interface INTERFACE ${MEGA_LIBRARY} ${MEGA_TYPES} )
@@ -99,6 +101,15 @@ set( MEGA_TYPES
 )
 
 add_library( mega_mangle ${MEGA_TYPES} )
+
+IF( ${WIN32} )
+target_compile_options( mega_mangle PRIVATE /bigobj)
+# for windows need to work around limit of 65K symbols - /Ob2 appears to achieve this
+# target_compile_options(database PRIVATE /Ob2)
+# set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
+set_property(TARGET mega_mangle PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+ELSE( ${WIN32} )
+ENDIF( ${WIN32} )
 
 target_include_directories( mega_mangle PUBLIC ${MEGA_API_DIR} )
 
