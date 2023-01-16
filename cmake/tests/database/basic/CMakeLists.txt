@@ -203,7 +203,7 @@ ENDIF( ${WIN32} )
 target_include_directories( database_basic_tests PUBLIC ${BASIC_DIR} )
 target_include_directories( database_basic_tests PUBLIC ${MEGA_API_DIR} )
 
-set_target_properties( database_basic_tests PROPERTIES FOLDER mega )
+set_target_properties( database_basic_tests PROPERTIES FOLDER tests/database )
 
 link_boost( database_basic_tests filesystem )
 link_boost( database_basic_tests system )

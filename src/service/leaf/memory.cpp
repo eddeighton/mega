@@ -118,6 +118,7 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
             SPDLOG_TRACE( "LeafRequestConversation::NetworkToHeap: requesting snapshot for: {}",
                           heapAddress.getNetworkAddress() );
             Snapshot objectSnapshot = simRequest.SimObjectSnapshot( heapAddress.getNetworkAddress() );
+            ASSERT( objectSnapshot.getTimeStamp() == lockCycle );
             SPDLOG_TRACE(
                 "LeafRequestConversation::NetworkToHeap: got snapshot for: {}", heapAddress.getNetworkAddress() );
             {
@@ -137,8 +138,8 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
             auto llvm   = getLLVMCompiler( yield_ctx );
 
             // NOTE: cannot used runtime function wrapper from leaf - not a MPOContext!
-            //static thread_local mega::runtime::program::ObjectLoadBin objectLoadBin;
-            //objectLoadBin( heapAddress.getType(), heapAddress.getHeap(), &archive );
+            // static thread_local mega::runtime::program::ObjectLoadBin objectLoadBin;
+            // objectLoadBin( heapAddress.getType(), heapAddress.getHeap(), &archive );
 
             auto allocator = m_leaf.getJIT().getAllocator( llvm, heapAddress.getType() );
             BinLoadArchive archive( objectSnapshot );

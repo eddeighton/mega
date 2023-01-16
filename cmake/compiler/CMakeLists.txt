@@ -46,6 +46,7 @@ add_library( compiler_config
     ${COMPILER_LIB_SOURCE}
 )
 
+set_target_properties( compiler_config PROPERTIES FOLDER compiler )
 target_link_libraries( compiler_config pipeline )
 
 IF( ${WIN32} )
@@ -106,6 +107,8 @@ set( COMPILER_SOURCE
 add_library( compiler MODULE
     ${COMPILER_SOURCE}
 )
+
+set_target_properties( compiler PROPERTIES FOLDER compiler )
 
 IF( ${WIN32} )
 target_compile_options(compiler PRIVATE /bigobj)

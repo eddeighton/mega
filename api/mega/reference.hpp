@@ -39,6 +39,11 @@
 namespace mega
 {
 
+using HeapAddress                         = void*; // recheck numeric_limits if change
+static constexpr HeapAddress NULL_ADDRESS = nullptr;
+static_assert( sizeof( HeapAddress ) == 8U, "Invalid HeapAddress Size" );
+static_assert( sizeof( HeapAddress ) == sizeof( U64 ), "Invalid HeapAddress Size" );
+
 using ObjectID = U32;
 using Flags    = U8;
 

@@ -248,4 +248,8 @@ std::string Terminal::PingMPO( const mega::MPO& mpo, const std::string& strMsg )
     return getMPORequest< network::status::Request_Encoder >( mpo ).Ping( strMsg );
 }
 
+void Terminal::SimErrorCheck(const mega::MPO& mpo)
+{
+    return getMPORequest< network::sim::Request_Encoder >(mpo).SimErrorCheck();
+}
 } // namespace mega::service

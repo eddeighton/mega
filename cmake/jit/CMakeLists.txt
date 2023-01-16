@@ -30,6 +30,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 #get inja
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
@@ -109,6 +112,8 @@ add_library( jit
     ${RUNTIME_SOURCE}
 )
 
+set_target_properties( jit PROPERTIES FOLDER service )
+
 add_definitions(-DMEGA_JIT_API_SHARED_MODULE)
 
 include_directories( jit ${MEGA_API_DIR}/jit )
@@ -118,13 +123,13 @@ target_link_libraries( jit orc )
 target_link_libraries( jit protocol )
 
 IF( ${WIN32} )
-#set_property(TARGET jit PROPERTY ENABLE_EXPORTS ON )
 set_property(TARGET jit PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
 ELSE( ${WIN32} )
-target_link_options( jit PUBLIC -export-dynamic )
+#target_link_options( jit PUBLIC -export-dynamic )
+set_property(TARGET jit PROPERTY C_VISIBILITY_PRESET hidden)
+set_property(TARGET jit PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+set_property(TARGET jit PROPERTY POSITION_INDEPENDENT_CODE ON)
 ENDIF( ${WIN32} )
-
-#set_property(TARGET jit PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories( jit PUBLIC ${MEGA_API_DIR} )
 
@@ -133,6 +138,7 @@ link_boost( jit filesystem )
 link_boost( jit serialization )
 link_json( jit )
 link_inja( jit )
+link_fmt( jit )
 link_spdlog( jit )
 link_common( jit )
 

@@ -21,23 +21,17 @@
 #define JIT_8_AUG_2022
 
 #if defined( _WIN32 )
-
-// Microsoft
-#ifdef MEGA_ORC_API_SHARED_MODULE
-#define ORC_EXPORT __declspec( dllexport )
-#else
-#define ORC_EXPORT __declspec( dllimport )
-#endif
-
+#   ifdef MEGA_ORC_API_SHARED_MODULE
+#       define ORC_EXPORT __declspec( dllexport )
+#   else
+#       define ORC_EXPORT __declspec( dllimport )
+#   endif
 #elif defined( __GNUC__ )
-
-// GCC
-#ifdef MEGA_ORC_API_SHARED_MODULE
-#define ORC_EXPORT __attribute__( ( visibility( "default" ) ) )
-#else
-#define ORC_EXPORT
-#endif
-
+#   ifdef MEGA_ORC_API_SHARED_MODULE
+#       define ORC_EXPORT __attribute__( ( visibility( "default" ) ) )
+#   else
+#       define ORC_EXPORT
+#   endif
 #endif
 
 #include <memory>

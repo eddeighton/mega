@@ -204,7 +204,7 @@ ENDIF( ${WIN32} )
 target_include_directories( database_advanced_test PUBLIC ${ADVANCED_DIR} )
 target_include_directories( database_advanced_test PUBLIC ${MEGA_API_DIR} )
 
-set_target_properties( database_advanced_test PROPERTIES FOLDER mega )
+set_target_properties( database_advanced_test PROPERTIES FOLDER tests/database )
 
 target_link_libraries( database_advanced_test mega_interface )
 

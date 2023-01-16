@@ -98,6 +98,7 @@ protected:
     virtual void               requestStarted( const ConnectionID& connectionID );
     virtual void               requestCompleted();
     virtual const std::string& getProcessName() const;
+    virtual U64                getStackSize() const  { return m_stack.size(); }
     virtual void               onDisconnect( const ConnectionID& connectionID );
 
 protected:

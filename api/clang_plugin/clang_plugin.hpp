@@ -25,23 +25,17 @@
 #include "mega/common_strings.hpp"
 
 #if defined( _WIN32 )
-
-// Microsoft
-#ifdef MEGA_CLANG_PLUGIN_MODULE
-#define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllexport )
-#else
-#define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllimport )
-#endif
-
+#    ifdef MEGA_CLANG_PLUGIN_MODULE
+#        define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllexport )
+#    else
+#        define MEGA_CLANG_PLUGIN_EXPORT __declspec( dllimport )
+#    endif
 #elif defined( __GNUC__ )
-
-// GCC
-#ifdef MEGA_CLANG_PLUGIN_MODULE
-#define MEGA_CLANG_PLUGIN_EXPORT __attribute__( ( visibility( "default" ) ) )
-#else
-#define MEGA_CLANG_PLUGIN_EXPORT
-#endif
-
+#    ifdef MEGA_CLANG_PLUGIN_MODULE
+#        define MEGA_CLANG_PLUGIN_EXPORT __attribute__( ( visibility( "default" ) ) )
+#    else
+#        define MEGA_CLANG_PLUGIN_EXPORT
+#    endif
 #endif
 
 namespace clang

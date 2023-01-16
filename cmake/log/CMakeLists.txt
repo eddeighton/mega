@@ -44,6 +44,8 @@ add_library( log
     ${LOG_SOURCE}
 )
 
+set_target_properties( log PROPERTIES FOLDER service )
+
 IF( ${WIN32} )
 target_compile_options( log PUBLIC "/await:strict" )
 set_property(TARGET log PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )

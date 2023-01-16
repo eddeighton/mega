@@ -63,6 +63,33 @@ inline void free( void* p )
 #endif 
 }
 
+class HeapBufferPtr
+{
+    const SizeAlignment m_sizeAlignment;
+    void* m_pStorage;
+public:
+    inline HeapBufferPtr( const SizeAlignment& sizeAlignment )
+        :   m_sizeAlignment( sizeAlignment ),
+            m_pStorage( mega::malloc( sizeAlignment ) )
+    {
+    }
+    inline ~HeapBufferPtr()
+    {
+        if( m_pStorage )
+        {
+            mega::free( m_pStorage );
+        }
+    }
+    inline HeapBufferPtr( HeapBufferPtr&& other )
+    {
+        m_pStorage = other.m_pStorage;
+        other.m_pStorage = nullptr;
+    }
+    HeapBufferPtr( HeapBufferPtr& ) = delete;
+    HeapBufferPtr& operator=( HeapBufferPtr& ) = delete;
+    inline void* get() const { return m_pStorage; }
+};
+
 }
 
 #endif //GUARD_2023_January_13_memory

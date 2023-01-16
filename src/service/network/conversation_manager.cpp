@@ -73,15 +73,15 @@ void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pCon
     boost::asio::spawn
     (
         m_ioContext, 
-        [ pConversation, &parentSender ]( boost::asio::yield_context yield_ctx ) 
-        { 
-            ConversationBase::RequestStack stack( "Initiated", pConversation, parentSender.getConnectionID() );
-            pConversation->run( yield_ctx );
+        [pConversation, &parentSender](boost::asio::yield_context yield_ctx)
+        {
+            ConversationBase::RequestStack stack("spawnInitiatedConversation", pConversation, parentSender.getConnectionID());
+            pConversation->run(yield_ctx);
         }
-/*#ifdef WIN32
-    // segmented stacks do NOT work on windows
-        ,boost::coroutines::attributes( 0xffffff ) //16,777,215₁₀
-#endif*/
+#ifdef _WIN32
+        // segmented stacks do NOT work on windows
+        , boost::coroutines::attributes(0x0fffff) // 1048575
+#endif
     );
     // clang-format on
     // SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
@@ -110,10 +110,10 @@ void ConversationManager::conversationJoined( ConversationBase::Ptr pConversatio
         { 
             pConversation->run( yield_ctx ); 
         } 
-/*#ifdef WIN32
-    // segmented stacks do NOT work on windows
-        ,boost::coroutines::attributes( 0xffffff ) //16,777,215₁₀
-#endif*/
+#ifdef WIN32
+        // segmented stacks do NOT work on windows
+        , boost::coroutines::attributes(0x0fffff) // 1048575
+#endif
     );
     // clang-format on
     // SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
@@ -124,7 +124,7 @@ void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversa
     {
         WriteLock                          lock( m_mutex );
         ConversationPtrMap::const_iterator iFind = m_conversations.find( pConversation->getID() );
-        VERIFY_RTE( iFind != m_conversations.end() );
+        if( iFind != m_conversations.end() );
         {
             // SPDLOG_TRACE( "conversationCompleted {}", pConversation->getID() );
             m_conversations.erase( iFind );

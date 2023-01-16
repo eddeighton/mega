@@ -46,7 +46,7 @@ add_executable( system_tests ${SYSTEM_TESTS} ${SYSTEM_TESTS_DIR}/main.cpp )
 # allow access to source folder for tests
 target_include_directories(system_tests PUBLIC ${MEGA_SRC_DIR})
 
-set_target_properties( system_tests PROPERTIES FOLDER mega )
+set_target_properties( system_tests PROPERTIES FOLDER tests/system )
 
 link_boost( system_tests filesystem )
 link_boost( system_tests system )

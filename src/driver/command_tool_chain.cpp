@@ -23,6 +23,7 @@
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
+#include "common/process.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -31,12 +32,6 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/dll.hpp>
 #include <boost/shared_ptr.hpp>
-
-#pragma warning( push )
-#pragma warning( disable : 4996 ) // iterator thing
-#pragma warning( disable : 4244 ) // conversion to DWORD from system_clock::rep
-#include <boost/process.hpp>
-#pragma warning( pop )
 
 #include <string>
 #include <vector>
@@ -51,25 +46,9 @@ namespace
 
 std::string runCmd( const std::string& strCmd )
 {
-    namespace bp = boost::process;
-
-    std::ostringstream osResult;
-
-    bp::ipstream errStream, outStream; // reading pipe-stream
-    bp::child    c( strCmd, bp::std_out > outStream, bp::std_err > errStream );
-
-    std::string strOutputLine;
-    while ( c.running() && std::getline( outStream, strOutputLine ) )
-    {
-        if ( !strOutputLine.empty() )
-        {
-            osResult << strOutputLine;
-        }
-    }
-
-    c.wait();
-
-    return osResult.str();
+    std::string strOutput, strError;
+    common::runProcess( strCmd, strOutput, strError );
+    return strOutput;
 }
 
 std::string getClangVersion( const boost::filesystem::path& path_clangCompiler )
@@ -117,7 +96,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             return;
         }
     }
-
+        
     // clang-format off
     VERIFY_RTE_MSG( boost::filesystem::exists( clangCompiler ), "File not found clangCompiler at : " << clangCompiler.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( parserDll ), "File not found parserDll at : " << parserDll.string() );
@@ -138,6 +117,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             boost::archive::xml_oarchive oa( os );
             oa&                          boost::serialization::make_nvp( "toolchain", toolChain );
         }
+        boost::filesystem::ensureFoldersExist( outputFilePath );
         boost::filesystem::updateFileIfChanged( outputFilePath, os.str() );
     }
 }

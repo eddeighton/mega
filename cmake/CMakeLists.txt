@@ -25,7 +25,8 @@ cmake_policy(SET CMP0091 NEW)
 project( mega VERSION 1.1 LANGUAGES CXX )
 
 #insist on ALL projects using c++ 17
-set( CMAKE_CXX_STANDARD 17 )
+#set( CMAKE_CXX_STANDARD 17 )
+set( CMAKE_CXX_STANDARD 20 )
 
 # add_link_options("-fuse-ld=gold;LINKER:--threads,--thread-count=12,--split-stack-adjust-size=1048510")
 

@@ -17,9 +17,6 @@
 ##  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 ##  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 cmake_minimum_required( VERSION 3.1...3.16 )
 
 #get boost
@@ -48,14 +45,19 @@ set( MEGA_DATABASE_COMPILER
     ${MEGA_SRC_DIR}/database/compiler/model.cpp
 	)
 	
-add_library( database_compiler
-                    ${MEGA_DATABASE_COMPILER}
-				)
+add_library( database_compiler ${MEGA_DATABASE_COMPILER} )
 
 target_link_libraries( database_compiler utilities )
 
-set_target_properties( database_compiler PROPERTIES FOLDER database_compiler )
+set_target_properties( database_compiler PROPERTIES FOLDER database )
+
+IF( ${WIN32} )
+
 set_property(TARGET database_compiler PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+
+ELSE( ${WIN32} )
+
+ENDIF( ${WIN32} )
 
 link_boost( database_compiler filesystem )
 link_boost( database_compiler iostreams )

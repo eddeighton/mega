@@ -22,6 +22,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
@@ -74,7 +77,7 @@ target_link_libraries( leaf log )
 target_include_directories( leaf PUBLIC ${MEGA_API_DIR} )
 target_include_directories( leaf PUBLIC ${MEGA_SRC_DIR} )
 
-set_target_properties( leaf PROPERTIES FOLDER leaf )
+set_target_properties( leaf PROPERTIES FOLDER service )
 
 link_boost( leaf filesystem )
 link_boost( leaf system )
@@ -83,6 +86,7 @@ link_boost( leaf coroutine )
 link_boost( leaf serialization )
 
 link_common( leaf )
+link_fmt( leaf )
 link_spdlog( leaf )
 
 install( FILES ${MEGA_LEAF_API} DESTINATION include/service )

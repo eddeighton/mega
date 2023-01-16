@@ -25,6 +25,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
@@ -84,7 +87,7 @@ target_link_libraries( executorLib leaf )
 target_include_directories( executorLib PUBLIC ${MEGA_API_DIR} )
 target_include_directories( executorLib PUBLIC ${MEGA_SRC_DIR} )
 
-set_target_properties( executorLib PROPERTIES FOLDER executorLib )
+set_target_properties( executorLib PROPERTIES FOLDER service )
 
 link_boost( executorLib filesystem )
 link_boost( executorLib system )
@@ -92,6 +95,7 @@ link_boost( executorLib atomic )
 link_boost( executorLib coroutine )
 link_boost( executorLib serialization )
 link_common( executorLib )
+link_fmt( executorLib )
 link_spdlog( executorLib )
 
 target_link_libraries( executorLib compiler_config )
@@ -127,13 +131,7 @@ ENDIF( ${WIN32} )
 target_link_libraries( executor executorLib )
 target_link_libraries( executor mega_mangle )
 
-# target_link_libraries( executor 
-# -Wl,-whole-archive
-# runtime
-# -Wl,-no-whole-archive
-# )
-
-set_target_properties( executor PROPERTIES FOLDER driver )
+set_target_properties( executor PROPERTIES FOLDER service )
 
 link_boost( executor atomic )
 link_boost( executor program_options )
@@ -141,6 +139,7 @@ link_boost( executor timer )
 link_boost( executor filesystem )
 link_boost( executor iostreams )
 link_boost( executor serialization )
+link_fmt( executor )
 link_spdlog( executor )
 link_json( executor )
 link_inja( executor )

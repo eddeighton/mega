@@ -27,10 +27,6 @@
 namespace mega
 {
 
-using HeapAddress                         = void*; // recheck numeric_limits if change
-static constexpr HeapAddress NULL_ADDRESS = nullptr;
-static_assert( sizeof( HeapAddress ) == 8U, "Invalid HeapAddress Size" );
-
 using MachineID = U32;
 using ProcessID = U16;
 using OwnerID   = U8;

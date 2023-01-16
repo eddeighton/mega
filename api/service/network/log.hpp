@@ -122,7 +122,7 @@ struct formatter< mega::network::LogTime >
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
 
     template < typename FormatContext >
-    auto format( const mega::network::LogTime& logTime, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::network::LogTime& logTime, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         using DurationType = std::chrono::duration< mega::I64, std::ratio< 1, 1'000'000'000 > >;
         auto c             = std::chrono::duration_cast< DurationType >( logTime ).count();
@@ -144,7 +144,7 @@ struct formatter< mega::network::Message >
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
 
     template < typename FormatContext >
-    auto format( const mega::network::Message& msg, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::network::Message& msg, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
         os << msg;
@@ -157,23 +157,10 @@ struct formatter< mega::network::ConversationID >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::network::ConversationID& conversationID, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::network::ConversationID& conversationID, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
         os << conversationID;
-        return format_to( ctx.out(), "{}", os.str() );
-    }
-};
-
-template <>
-struct formatter< mega::network::ConnectionID >
-{
-    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
-    template < typename FormatContext >
-    auto format( const mega::network::ConnectionID& connectionID, FormatContext& ctx ) -> decltype( ctx.out() )
-    {
-        std::ostringstream os;
-        os << connectionID;
         return format_to( ctx.out(), "{}", os.str() );
     }
 };
@@ -183,7 +170,7 @@ struct formatter< mega::TypeInstance >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::TypeInstance& typeInstance, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::TypeInstance& typeInstance, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         return format_to( ctx.out(), "type:{}.instance:{}", typeInstance.type, typeInstance.instance );
     }
@@ -194,7 +181,7 @@ struct formatter< mega::MP >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::MP& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::MP& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
         using ::           operator<<;
@@ -208,7 +195,7 @@ struct formatter< mega::MPO >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::MPO& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::MPO& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         return format_to(
             ctx.out(), "mpo:{}.{}.{}", address.getMachineID(), address.getProcessID(), address.getOwnerID() );
@@ -220,15 +207,25 @@ struct formatter< mega::reference >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         if( ref.isHeapAddress() )
         {
-            return format_to( ctx.out(), "{}.{}.{}", ref.getHeap(), ref.getOwnerID(), ref.getTypeInstance() );
+            return format_to( ctx.out(), "{}.{}.type:{}.instance:{}", 
+                fmt::ptr( ref.getHeap() ), 
+                ref.getOwnerID(), 
+                ref.getTypeInstance().type, 
+                ref.getTypeInstance().instance 
+                );
         }
         else
         {
-            return format_to( ctx.out(), "{}.{}.{}", ref.getObjectID(), ref.getMPO(), ref.getTypeInstance() );
+            return format_to( ctx.out(), "{}.mpo:{}.{}.{}.type:{}.instance:{}", 
+                ref.getObjectID(), 
+                ref.getMPO().getMachineID(), ref.getMPO().getProcessID(), ref.getMPO().getOwnerID(),
+                ref.getTypeInstance().type, 
+                ref.getTypeInstance().instance 
+                );
         }
     }
 };
@@ -238,7 +235,7 @@ struct formatter< mega::InvocationID >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::InvocationID& invocationID, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::InvocationID& invocationID, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
         os << invocationID;

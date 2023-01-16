@@ -55,7 +55,7 @@ ENDIF( ${WIN32} )
 # allow access to source folder for tests
 target_include_directories(orc_tests PUBLIC ${MEGA_SRC_DIR})
 
-set_target_properties( orc_tests PROPERTIES FOLDER mega )
+set_target_properties( orc_tests PROPERTIES FOLDER tests/orc )
 
 link_boost( orc_tests filesystem )
 link_boost( orc_tests system )

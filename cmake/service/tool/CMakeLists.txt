@@ -25,6 +25,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
@@ -71,7 +74,7 @@ target_link_libraries( tool leaf )
 target_include_directories( tool PUBLIC ${MEGA_API_DIR} )
 target_include_directories( tool PUBLIC ${MEGA_SRC_DIR} )
 
-set_target_properties( tool PROPERTIES FOLDER tool )
+set_target_properties( tool PROPERTIES FOLDER service )
 
 link_boost( tool filesystem )
 link_boost( tool system )
@@ -79,6 +82,7 @@ link_boost( tool atomic )
 link_boost( tool coroutine )
 link_boost( tool serialization )
 link_common( tool )
+link_fmt( tool )
 link_spdlog( tool )
 
 target_link_libraries( tool protocol )

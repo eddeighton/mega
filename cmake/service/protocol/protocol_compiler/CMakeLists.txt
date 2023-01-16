@@ -59,7 +59,7 @@ ENDIF( ${WIN32} )
 
 target_link_libraries( protocol_compiler utilities )
 
-set_target_properties( protocol_compiler PROPERTIES FOLDER protocol_compiler )
+set_target_properties( protocol_compiler PROPERTIES FOLDER service/protocol )
 
 link_boost( protocol_compiler filesystem )
 link_boost( protocol_compiler iostreams )

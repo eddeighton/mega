@@ -59,7 +59,7 @@ TEST( Reference, InvalidByDefault )
 
 TEST( Reference, HeapAccess )
 {
-    mega::reference h{ mega::TypeInstance{ 123, 456 }, mega::OwnerID( 255 ), mega::HeapAddress( 0xFFFFFFFF ) };
+    mega::reference h{ mega::TypeInstance{ 123, 456 }, mega::OwnerID( 255 ), ( mega::HeapAddress )0xFFFFFFFF  };
 
     ASSERT_TRUE( h.isHeapAddress() );
     ASSERT_EQ( h.getType(), 456 );

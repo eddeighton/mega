@@ -57,6 +57,9 @@ add_custom_target( generate_mangle_allocators
 )
 add_dependencies( generate_mangle_allocators inja )
 
+set_target_properties( generate_mangle_types PROPERTIES FOLDER service )
+set_target_properties( generate_mangle_allocators PROPERTIES FOLDER service )
+
 set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/address_table.hpp
     ${MEGA_API_DIR}/mega/allocator.hpp
@@ -78,6 +81,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/mpo.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp
     ${MEGA_API_DIR}/mega/operations.hpp
+    ${MEGA_API_DIR}/mega/record_archive.hpp
     ${MEGA_API_DIR}/mega/reference_io.hpp
     ${MEGA_API_DIR}/mega/reference.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
@@ -86,21 +90,24 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/type_id.hpp
     ${MEGA_API_DIR}/mega/type_instance.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
-    ${MEGA_API_DIR}/mega/types/traits.hpp
     ${MEGA_API_DIR}/mega/variant.hpp
     ${MEGA_API_DIR}/mega/xml_archive.hpp
 )
 
 add_library( mega_interface INTERFACE ${MEGA_LIBRARY} ${MEGA_TYPES} )
+set_target_properties( mega_interface PROPERTIES FOLDER service )
 add_dependencies( mega_interface generate_mangle_types )
 add_dependencies( mega_interface generate_mangle_allocators )
 
 set( MEGA_TYPES
+    ${MEGA_API_DIR}/mega/types/traits.hpp
     ${MEGA_API_DIR}/mega/types/mangle_types.cxx
     ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
 )
 
 add_library( mega_mangle ${MEGA_TYPES} )
+
+set_target_properties( mega_mangle PROPERTIES FOLDER service )
 
 IF( ${WIN32} )
 target_compile_options( mega_mangle PRIVATE /bigobj)

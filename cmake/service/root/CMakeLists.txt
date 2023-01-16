@@ -25,6 +25,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
@@ -69,7 +72,7 @@ target_link_libraries( root protocol )
 target_link_libraries( root network )
 target_link_libraries( root pipeline )
 
-set_target_properties( root PROPERTIES FOLDER driver )
+set_target_properties( root PROPERTIES FOLDER service )
 
 link_boost( root program_options )
 link_boost( root filesystem )
@@ -77,6 +80,7 @@ link_boost( root iostreams )
 link_boost( root serialization )
 link_boost( root system )
 link_boost( root atomic )
+link_fmt( root )
 link_spdlog( root )
 link_common( root )
 

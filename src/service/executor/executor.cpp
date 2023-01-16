@@ -149,8 +149,17 @@ void Executor::conversationCompleted( network::ConversationBase::Ptr pConversati
 {
     if( Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( pConversation ) )
     {
-        WriteLock lock( m_mutex );
-        m_simulations.erase( pSim->getThisMPO() );
+        // if the simulation failed to construct then the mpo will not be initialised yet so check
+        const mega::reference root = pSim->getThisRoot();
+        if( root.is_valid() )
+        {
+            WriteLock lock( m_mutex );
+            m_simulations.erase( root.getMPO() );
+        }
+        else
+        {
+            SPDLOG_WARN( "Executor::conversationCompleted simulation failed to initialise before completing" );
+        }
     }
     network::ConversationManager::conversationCompleted( pConversation );
 }

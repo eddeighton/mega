@@ -133,8 +133,8 @@ public:
 
         if( ec != boost::system::error_code() )
         {
-            if( ( ec != boost::asio::experimental::error::channel_cancelled )
-                && ( ec != boost::asio::experimental::error::channel_closed ) )
+            if( ( ec.value() != boost::asio::experimental::error::channel_cancelled )
+                && ( ec.value() != boost::asio::experimental::error::channel_closed ) )
             {
                 SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
                 THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
@@ -193,8 +193,8 @@ public:
 
         if( ec != boost::system::error_code() )
         {
-            if( ( ec != boost::asio::experimental::error::channel_cancelled )
-                && ( ec != boost::asio::experimental::error::channel_closed ) )
+            if( ( ec.value() != boost::asio::experimental::error::channel_cancelled )
+                && ( ec.value() != boost::asio::experimental::error::channel_closed ) )
             {
                 SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
                 THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );

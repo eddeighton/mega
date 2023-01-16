@@ -25,6 +25,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
@@ -55,7 +58,7 @@ source_group( src FILES ${INJA_SOURCES} )
 
 add_executable( inja ${INJA_SOURCES} )
 
-set_target_properties( inja PROPERTIES FOLDER driver )
+set_target_properties( inja PROPERTIES FOLDER utilities )
 
 link_boost( inja atomic )
 link_boost( inja program_options )
@@ -63,6 +66,7 @@ link_boost( inja timer )
 link_boost( inja filesystem )
 link_boost( inja iostreams )
 link_boost( inja serialization )
+link_fmt( inja )
 link_spdlog( inja )
 link_json( inja )
 link_inja( inja )

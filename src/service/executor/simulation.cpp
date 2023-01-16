@@ -314,12 +314,42 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
 
 void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
-    // send request to root to start - will get request back to run
-    network::sim::Request_Encoder request(
-        [ rootRequest = ExecutorRequestConversation::getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-        { return rootRequest.MPRoot( msg, MP{} ); },
-        getID() );
-    request.SimStart();
+    try
+    {
+        // send request to root to start - will get request back to run
+        network::sim::Request_Encoder request(
+            [ rootRequest = ExecutorRequestConversation::getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+            { return rootRequest.MPRoot( msg, MP{} ); },
+            getID() );
+        request.SimStart();
+    }
+    catch( std::exception& ex )
+    {
+        m_strSimCreateError = ex.what();
+    }
+    catch( mega::runtime::JITException& ex )
+    {
+        m_strSimCreateError = ex.what();
+    }
+
+    for( const auto& msg : m_messageQueue )
+    {
+        switch( StateMachine::getMsgID( msg ) )
+        {
+            case network::sim::MSG_SimCreate_Request::ID:
+                SPDLOG_TRACE( "Simulation::run pending pending MSG_SimCreate_Request" );
+                dispatchRequestImpl( msg, yield_ctx );
+                break;
+            default:
+                THROW_RTE( "Pending message while processing SimStart" );
+                break;
+        }
+    }
+}
+
+void Simulation::SimErrorCheck(boost::asio::yield_context& yield_ctx )
+{
+    THROW_RTE( "Simulation::SimErrorCheck" );
 }
 
 Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yield_context& yield_ctx )
@@ -340,7 +370,7 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
 
 Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "SIM::SimLockRead: {} {}", mpo );
+    SPDLOG_TRACE( "SIM::SimLockRead: {}", mpo );
     THROW_TODO;
     return Snapshot{ m_log.getTimeStamp() };
 }
@@ -398,13 +428,20 @@ void Simulation::SimClock( boost::asio::yield_context& )
 
 MPO Simulation::SimCreate( boost::asio::yield_context& )
 {
-    VERIFY_RTE( m_mpo.has_value() );
+    SPDLOG_TRACE( "SIM::SimCreate" );
+
+    if( !m_strSimCreateError.empty() )
+    {
+        THROW_RTE( m_strSimCreateError );
+    }
+    VERIFY_RTE_MSG( m_mpo.has_value(), "SimCreate failed and has no mpo" );
     // This is called when RootSimRun acks the pending SimCreate from ExecutorRequestConversation::SimCreate
     return m_mpo.value();
 }
 
 void Simulation::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "SIM::RootSimRun: {}", mpo );
     // now start running the simulation
     setMPOContext( this );
     m_pYieldContext = &yield_ctx;

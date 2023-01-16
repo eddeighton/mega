@@ -80,19 +80,21 @@ void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID&
 void ExecutorRequestConversation::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                          boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "ExecutorRequestConversation::error conid:{} msg:{} err:{}", msg.connectionID, msg.msg, strErrorMsg );
     if ( ( m_executor.getLeafSender().getConnectionID() == msg.connectionID )
-         || ( m_executor.m_receiverChannel.getSender()->getConnectionID() == msg.connectionID ) )
+         || ( m_executor.m_receiverChannel.getSender()->getConnectionID() == msg.connectionID )  )
     {
         m_executor.getLeafSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
-    else if ( m_executor.m_receiverChannel.getSender()->getConnectionID() == msg.connectionID )
+    else if ( network::ConversationBase::Ptr pConversation
+              = m_executor.findExistingConversation( msg.msg.getSenderID() ) )
     {
-        m_executor.m_receiverChannel.getSender()->sendErrorResponse( msg, strErrorMsg, yield_ctx );
+        pConversation->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
     else
     {
-        SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection in error handler: {} for error: {}",
-                      msg.connectionID, strErrorMsg );
+        SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection in error handler: {} msg:{} for error: {}",
+                      msg.connectionID, msg.msg, strErrorMsg );
         THROW_RTE( "ExecutorRequestConversation: Executor Critical error in error handler: " << msg.connectionID
                                                                                              << " : " << strErrorMsg );
     }

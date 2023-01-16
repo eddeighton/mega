@@ -69,7 +69,9 @@ Client::Client( boost::asio::io_context& ioContext, ConversationManager& convers
 void Client::stop()
 {
     boost::system::error_code ec;
-    m_socket.shutdown( m_socket.shutdown_receive, ec );
+    // shutdown_receive leaving work around when shutdown on windows
+    // m_socket.shutdown( m_socket.shutdown_receive, ec );
+    m_socket.shutdown(m_socket.shutdown_both, ec);
 }
 
 void Client::disconnected() { SPDLOG_TRACE( "Client disconnected from: {}", m_connectionID ); }

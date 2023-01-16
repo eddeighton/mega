@@ -170,6 +170,7 @@ add_custom_target( GenerateDatabase
     SOURCES ${DATABASE_SCHEMAS}
     )
 
+set_target_properties( GenerateDatabase PROPERTIES FOLDER database )
 add_dependencies( GenerateDatabase database_compiler_driver )
 
 # NOTE these files are duplicated in the database tests cmake
@@ -248,36 +249,28 @@ add_library( database SHARED
 				)
                 
 add_dependencies( database GenerateDatabase )
-#add_dependencies( database database_compiler_driver )
 
 target_include_directories( database PUBLIC ${MEGA_API_DIR} )
 
 add_definitions(-DEG_DATABASE_API_SHARED_MODULE)
 
 IF( ${WIN32} )
-target_compile_options(database PRIVATE /bigobj)
 
+target_compile_options(database PRIVATE /bigobj)
 # for windows need to work around limit of 65K symbols - /Ob2 appears to achieve this
 target_compile_options(database PRIVATE /Ob2)
-
 # symbols are manually exported so ensure this is OFF
 set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
 
-# set_source_files_properties( 
-#     ${MEGA_DATABASE_SOURCES} ${MEGA_DATABASE_GENERATED_SOURCES} ${MEGA_DATABASE_STAGE_SOURCES}
-#     PROPERTIES
-#     COMPILE_FLAGS -O1 
-# )
 ELSE( ${WIN32} )
 
 set_property(TARGET database PROPERTY C_VISIBILITY_PRESET hidden)
 set_property(TARGET database PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 ENDIF( ${WIN32} )
 
 set_target_properties( database PROPERTIES FOLDER database )
-set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
-
 set_target_properties( database PROPERTIES VERSION "1.0.0" )
 
 target_link_libraries( database mega_interface )
@@ -297,35 +290,3 @@ install( FILES ${MEGA_DATABASE_STAGE_HEADERS} DESTINATION include/database/model
 
 install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )
-
-# single stage libraries
-#add_library( database_final SHARED
-#                    ${MEGA_DATABASE_COMMON}
-#					${MEGA_DATABASE_SOURCES}
-#					${MEGA_DATABASE_GENERATED_HEADERS}
-#					${MEGA_DATABASE_GENERATED_SOURCES}
-#                    
-#                    ${MEGA_API_DIR}/database/model/FinalStage.hxx
-#                    ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
-#
-#                    ${MEGA_TYPES_HEADERS}
-#                    ${MEGA_TYPES_SOURCES}
-#				)
-##add_dependencies( database_final GenerateDatabase )
-#add_dependencies( database_final database_compiler_driver )
-#
-#target_include_directories( database_final PUBLIC ${MEGA_API_DIR} )
-#
-#set_target_properties( database_final PROPERTIES FOLDER database )
-#set_property(TARGET database_final PROPERTY POSITION_INDEPENDENT_CODE ON)
-#
-#link_boost( database_final filesystem )
-#link_boost( database_final iostreams )
-#link_boost( database_final serialization )
-#link_boost( database_final system )
-#link_boost( database_final atomic )
-#link_json( database_final )
-#link_common( database_final )
-#
-#install( TARGETS database_final EXPORT database_final DESTINATION bin)
-#install( EXPORT database_final NAMESPACE MEGA:: FILE database_final-config.cmake DESTINATION share )

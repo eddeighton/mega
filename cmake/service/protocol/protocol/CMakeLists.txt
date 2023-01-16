@@ -25,6 +25,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
@@ -157,7 +160,7 @@ add_dependencies( protocol protocol_compiler_driver )
 
 target_include_directories( protocol PUBLIC ${MEGA_API_DIR} )
 
-set_target_properties( protocol PROPERTIES FOLDER protocol )
+set_target_properties( protocol PROPERTIES FOLDER service/protocol )
 
 link_boost( protocol filesystem )
 link_boost( protocol iostreams )
@@ -165,6 +168,7 @@ link_boost( protocol serialization )
 link_boost( protocol system )
 link_boost( protocol atomic )
 link_common( protocol )
+link_fmt( protocol )
 link_spdlog( protocol )
 
 install( FILES ${MEGA_PROTOCOL_COMMON_HEADERS} DESTINATION include/service/protocol/common )

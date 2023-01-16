@@ -164,6 +164,7 @@ public:
                     else
                         osGuard << "_";
                     std::string str = filePart.replace_extension( "" ).string();
+                    std::replace_if( str.begin(), str.end(), []( char ch ){ return !std::isalnum( ch ); }, '_' );
                     if ( str != "/" )
                         osGuard << str;
                 }

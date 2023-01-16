@@ -36,26 +36,6 @@ namespace mega::runtime
 
 class RemoteMemoryManager
 {
-    class HeapBufferPtr
-    {
-        const mega::SizeAlignment m_sizeAlignment;
-        void* m_pStorage;
-    public:
-        HeapBufferPtr( const mega::SizeAlignment& sizeAlignment )
-            :   m_sizeAlignment( sizeAlignment ),
-                m_pStorage( mega::malloc( sizeAlignment ) )
-        {
-        }
-        ~HeapBufferPtr()
-        {
-            mega::free( m_pStorage );
-        }
-        void* get() const { return m_pStorage; }
-        HeapBufferPtr( HeapBufferPtr& ) = delete;
-        HeapBufferPtr( HeapBufferPtr&& ) = default;
-        HeapBufferPtr& operator=( HeapBufferPtr& ) = delete;
-    };
-
     using HeapMap       = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
     using NetMap        = std::unordered_map< reference, reference, reference::Hash >;
 

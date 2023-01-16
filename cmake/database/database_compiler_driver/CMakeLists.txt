@@ -31,7 +31,7 @@ include_directories( ${MEGA_SRC_DIR} )
 
 add_executable( database_compiler_driver ${MEGA_SRC_DIR}/database/compiler/main.cpp )
 
-set_target_properties( database_compiler_driver PROPERTIES FOLDER database_compiler_driver )
+set_target_properties( database_compiler_driver PROPERTIES FOLDER database )
 
 link_boost( database_compiler_driver filesystem )
 link_boost( database_compiler_driver system )

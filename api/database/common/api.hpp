@@ -20,24 +20,22 @@
 #ifndef DATABASE_API_5_JAN_2023
 #define DATABASE_API_5_JAN_2023
 
-#if defined( _WIN32 )
-
-// Microsoft
-#ifdef EG_DATABASE_API_SHARED_MODULE
-#define EGDB_EXPORT __declspec( dllexport )
+#ifdef _DEBUG
+#   if defined( _WIN32 )
+#       ifdef EG_DATABASE_API_SHARED_MODULE
+#           define EGDB_EXPORT __declspec( dllexport )
+#       else
+#           define EGDB_EXPORT __declspec( dllimport )
+#       endif
+#   elif defined( __GNUC__ )
+#       ifdef EG_DATABASE_API_SHARED_MODULE
+#          define EGDB_EXPORT __attribute__( ( visibility( "default" ) ) )
+#       else
+#           define EGDB_EXPORT
+#       endif
+#   endif
 #else
-#define EGDB_EXPORT __declspec( dllimport )
-#endif
-
-#elif defined( __GNUC__ )
-
-// GCC
-#ifdef EG_DATABASE_API_SHARED_MODULE
-#define EGDB_EXPORT __attribute__( ( visibility( "default" ) ) )
-#else
-#define EGDB_EXPORT
-#endif
-
+#   define EGDB_EXPORT
 #endif
 
 #endif //DATABASE_API_5_JAN_2023

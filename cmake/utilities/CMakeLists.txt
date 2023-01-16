@@ -56,6 +56,8 @@ add_library( utilities
     ${UTILITIES_SOURCE}
 )
 
+set_target_properties( utilities PROPERTIES FOLDER utilities )
+
 target_include_directories( utilities PUBLIC ${MEGA_API_DIR} )
 
 set_property(TARGET utilities PROPERTY POSITION_INDEPENDENT_CODE ON)

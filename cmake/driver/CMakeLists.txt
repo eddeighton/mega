@@ -25,6 +25,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
@@ -88,7 +91,7 @@ target_link_libraries( mega network )
 target_link_libraries( mega terminal )
 target_link_libraries( mega log )
 
-set_target_properties( mega PROPERTIES FOLDER driver )
+set_target_properties( mega PROPERTIES FOLDER service )
 
 link_boost( mega atomic )
 link_boost( mega program_options )
@@ -96,6 +99,7 @@ link_boost( mega timer )
 link_boost( mega filesystem )
 link_boost( mega iostreams )
 link_boost( mega serialization )
+link_fmt( mega )
 link_spdlog( mega )
 link_json( mega )
 link_inja( mega )

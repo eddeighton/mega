@@ -2,7 +2,7 @@
 
 cmake_minimum_required( VERSION 3.4...3.16 )
 
-message( "Generating ToolChain.xml" )
+message( "Generating the ToolChain.xml" )
 
 find_path(LLVM_CONFIGURATION_PATH NAMES "llvm/install" PATHS "${CMAKE_INSTALL_PREFIX}/../../" REQUIRED NO_DEFAULT_PATH)
 

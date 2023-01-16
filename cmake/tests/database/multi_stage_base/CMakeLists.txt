@@ -198,7 +198,7 @@ ENDIF( ${WIN32} )
 target_include_directories( database_multi_stage_base_tests PUBLIC ${MULTI_STAGE_BASE_DIR} )
 target_include_directories( database_multi_stage_base_tests PUBLIC ${MEGA_API_DIR} )
 
-set_target_properties( database_multi_stage_base_tests PROPERTIES FOLDER mega )
+set_target_properties( database_multi_stage_base_tests PROPERTIES FOLDER tests/database )
 
 link_boost( database_multi_stage_base_tests filesystem )
 link_boost( database_multi_stage_base_tests system )

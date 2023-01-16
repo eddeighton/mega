@@ -28,7 +28,7 @@
 #include "common.hpp"
 #include "result_type.hpp"
 #include "coroutine.hpp"
-#include "types/traits.hpp"
+#include "mega/types/traits.hpp"
 #include "type_path.hpp"
 #include "variant.hpp"
 #include "event.hpp"

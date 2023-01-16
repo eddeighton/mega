@@ -63,6 +63,7 @@ public:
     virtual network::jit::Request_Sender     getLeafJITRequest() override;
 
     // network::sim::Impl
+    virtual void SimErrorCheck(boost::asio::yield_context& yield_ctx) override;
     virtual Snapshot SimObjectSnapshot( const reference& object, boost::asio::yield_context& ) override;
     virtual Snapshot SimSnapshot( const MPO&, boost::asio::yield_context& ) override;
     virtual TimeStamp SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& ) override;
@@ -102,6 +103,7 @@ private:
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     StateMachine::MsgVector                              m_messageQueue;
     Clock                                                m_clock;
+    std::string                                          m_strSimCreateError;
 };
 
 } // namespace mega::service

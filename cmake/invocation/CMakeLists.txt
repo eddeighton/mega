@@ -49,6 +49,8 @@ add_library( invocation
     ${INVOCATION_SOURCE}
 )
 
+set_target_properties( invocation PROPERTIES FOLDER compiler )
+
 target_link_libraries( invocation mega_interface )
 target_link_libraries( invocation database )
 

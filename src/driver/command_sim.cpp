@@ -53,7 +53,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
 {
     bool        bList = false;
     std::string strCreate, strList, strDestroy, strID, strRead, strWrite, strRelease, strSuspend, strResume, strStop,
-        strStart;
+        strStart, strErrorCheck;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Simulation Commands" );
@@ -68,6 +68,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
             ( "read",       po::value( &strRead ) ,         "Request Read Lock on specified MPO ( use id to specify who from )" )
             ( "write",      po::value( &strWrite ) ,        "Request Write Lock on specified MPO ( use id to specify who from )" )
             ( "release",    po::value( &strRelease ) ,      "Request Release Lock on specified MPO ( use id to specify who from )" )
+
+            ( "error",      po::value( &strErrorCheck ),    "Send test request to MPO that will generate exception error in simulation" )
 
             // ( "suspend",    po::value( &strSuspend ) ,      "Suspend scheduler" )
             // ( "resume",     po::value( &strResume ) ,       "Resume scheduler" )
@@ -125,6 +127,19 @@ void command( bool bHelp, const std::vector< std::string >& args )
             const mega::MPO         targetMPO = toMPO( strRelease );
             mega::service::Terminal terminal;
             terminal.SimRelease( sourceMPO, targetMPO );
+        }
+        else if( !strErrorCheck.empty() )
+        {
+            const mega::MPO         targetMPO = toMPO( strErrorCheck );
+            mega::service::Terminal terminal;
+            try
+            {
+                terminal.SimErrorCheck( targetMPO );
+            }
+            catch( std::runtime_error& ex )
+            {
+                std::cout << "Got returned error: " << ex.what() << std::endl;
+            }
         }
         else
         {

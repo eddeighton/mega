@@ -20,6 +20,8 @@
 
 #include "service/protocol/common/conversation_base.hpp"
 
+#include "service/network/log.hpp"
+
 namespace mega::network
 {
 
@@ -29,10 +31,12 @@ ConversationBase::RequestStack::RequestStack( const char* pszMsg, ConversationBa
     //, m_startTime( std::chrono::steady_clock::now() )
     , pConversation( pConversation )
 {
+    SPDLOG_DEBUG( "RequestStack::ctor prc:{} conv:{} conid:{} msg:{} stack:{}", pConversation->getProcessName(), pConversation->getID(), connectionID, m_pszMsg, pConversation->getStackSize() + 1 );
     pConversation->requestStarted( connectionID );
 }
 ConversationBase::RequestStack::~RequestStack()
 {
+    SPDLOG_DEBUG( "RequestStack::dtor prc:{} conv:{} msg:{} stack:{}", pConversation->getProcessName(), pConversation->getID(), m_pszMsg, pConversation->getStackSize() );
     // const auto timeDelta = std::chrono::steady_clock::now() - m_startTime;
     // SPDLOG_DEBUG( "{} {} {} {}", conversation.getProcessName(), conversation.getID(), m_pszMsg, timeDelta );
     pConversation->requestCompleted();

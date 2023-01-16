@@ -25,6 +25,7 @@
 
 #include "mega/xml_archive.hpp"
 #include "mega/bin_archive.hpp"
+#include "mega/record_archive.hpp"
 
 #include "log/log.hpp"
 
@@ -135,20 +136,14 @@ struct NonSimpleDimension
     static inline void save_memory_record( mega::log::Storage& log, const mega::reference& ref, const T& value,
                                            mega::log::MemoryTrackType track = mega::log::MemoryTrackType::Simulation )
     {
-        using Buffer = std::vector< char >;
-        boost::interprocess::basic_vectorbuf< Buffer > os;
-        {
-            boost::archive::binary_oarchive oa( os );
-            oa&                             value;
-        }
-        log.record( track, mega::log::MemoryRecord( ref, std::string_view{ os.vector().data(), os.vector().size() } ) );
+        RecordSaveArchive recordSaveArchive;
+        recordSaveArchive.save( value );
+        log.record( track, mega::log::MemoryRecord( ref.getNetworkAddress(), recordSaveArchive.get() ) );
     }
     static inline void load_memory_record( const void* pData, mega::U64 size, T& value )
     {
-        boost::interprocess::bufferstream buffer(
-            const_cast< char* >( reinterpret_cast< const char* >( pData ) ), size );
-        boost::archive::binary_iarchive ia( ( std::streambuf& )buffer );
-        ia&                             value;
+        RecordLoadArchive recordLoadArchive( { reinterpret_cast< const char* >( pData ), size } );
+        recordLoadArchive.load( value );
     }
 };
 } // namespace mega

@@ -39,6 +39,7 @@
 #include "common/hash.hpp"
 #include "common/stl.hpp"
 #include "common/stash.hpp"
+#include "common/process.hpp"
 
 #include <boost/filesystem/file_status.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -140,43 +141,48 @@ public:
 
     int run_cmd( mega::pipeline::Progress& taskProgress, const std::string& strCmd, bool bTreatFailureAsError = true )
     {
-        std::ostringstream os;
-        os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nCMD    : " << strCmd;
 
-        namespace bp = boost::process;
-
-        bp::ipstream errStream, outStream; // reading pipe-stream
-        bp::child    c( strCmd, bp::std_out > outStream, bp::std_err > errStream );
-
-        std::string strOutputLine;
-        while ( c.running() && std::getline( outStream, strOutputLine ) )
+        std::string strOutput, strError;
+        const int iExitCode = common::runProcess( strCmd, strOutput, strError );
+        
         {
-            if ( !strOutputLine.empty() )
+            std::ostringstream os;
+            os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nCMD    : " << strCmd;
             {
-                os << "\nOUT    : " << strOutputLine;
+                std::istringstream isOut( strOutput );
+                std::string str;
+                while ( isOut && std::getline( isOut, str ) )
+                {
+                    if ( !str.empty() )
+                    {
+                        os << "\nOUT    : " << str;
+                    }
+                }
             }
+            
+            os << common::COLOUR_END;
+            taskProgress.onProgress( os.str() );
         }
-
-        c.wait();
-
-        os << common::COLOUR_END;
-        taskProgress.onProgress( os.str() );
-
-        if ( c.exit_code() && bTreatFailureAsError )
+        
+        if ( iExitCode && bTreatFailureAsError )
         {
+            std::istringstream isErr( strError );
+        
             std::ostringstream osError;
             osError << common::COLOUR_RED_BEGIN << "FAILED : " << m_strTaskName;
-            while ( errStream && std::getline( errStream, strOutputLine ) )
+            std::string str;
+            while ( isErr && std::getline( isErr, str ) )
             {
-                if ( !strOutputLine.empty() )
+                if ( !str.empty() )
                 {
-                    osError << "\nERROR  : " << strOutputLine;
+                    osError << "\nERROR  : " << str;
                 }
             }
             osError << common::COLOUR_END;
             taskProgress.onProgress( osError.str() );
         }
-        return c.exit_code();
+        
+        return iExitCode;
     }
 
     void start( mega::pipeline::Progress& taskProgress, const char* pszName, const boost::filesystem::path& fromPath,

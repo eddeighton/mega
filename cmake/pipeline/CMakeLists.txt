@@ -43,6 +43,8 @@ add_library( pipeline
     ${PIPELINE_SOURCE}
 )
 
+set_target_properties( pipeline PROPERTIES FOLDER service )
+
 IF( ${WIN32} )
 target_compile_options(pipeline PRIVATE /bigobj)
 set_property(TARGET pipeline PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )

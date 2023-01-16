@@ -40,9 +40,17 @@ add_library( orc SHARED
     ${RUNTIME_SOURCE}
 )
 
+set_target_properties( orc PROPERTIES FOLDER service )
 add_definitions(-DMEGA_ORC_API_SHARED_MODULE)
 
+IF( ${WIN32} )
 set_property(TARGET orc PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
+ELSE( ${WIN32} )
+#target_link_options( jit PUBLIC -export-dynamic )
+set_property(TARGET orc PROPERTY C_VISIBILITY_PRESET hidden)
+set_property(TARGET orc PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+set_property(TARGET orc PROPERTY POSITION_INDEPENDENT_CODE ON)
+ENDIF( ${WIN32} )
 
 target_include_directories( orc PUBLIC ${MEGA_API_DIR} )
 

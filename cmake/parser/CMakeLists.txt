@@ -54,7 +54,7 @@ add_library( parser MODULE
 set_property(TARGET parser PROPERTY LLVM_ENABLE_RTTI ON )
 set_property(TARGET parser PROPERTY LLVM_ENABLE_EH ON )
 
-set_target_properties( parser PROPERTIES FOLDER parser )
+set_target_properties( parser PROPERTIES FOLDER compiler )
 
 link_boost( parser filesystem )
 link_boost( parser iostreams )
@@ -64,22 +64,23 @@ link_clang( parser )
 link_json( parser )
 link_common( parser )
 
-# NOTE: DOES NOT link the database
-# except on windows
 
 IF( ${WIN32} )
+
 target_compile_options(database PRIVATE /bigobj)
 set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 
+# NOTE: DOES NOT link the database
+# except on windows!
 target_link_libraries( parser database )
-# set_source_files_properties( 
-#     ${MEGA_DATABASE_SOURCES} ${MEGA_DATABASE_GENERATED_SOURCES} ${MEGA_DATABASE_STAGE_SOURCES}
-#     PROPERTIES
-#     COMPILE_FLAGS -O1 
-# )
 
 ELSE( ${WIN32} )
+
+#target_link_options( parser PUBLIC -export-dynamic )
+set_property(TARGET parser PROPERTY C_VISIBILITY_PRESET hidden)
+set_property(TARGET parser PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 set_property(TARGET parser PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 ENDIF( ${WIN32} )
 
 install( FILES ${CLANG_PLUGIN_API} DESTINATION include/parser )

@@ -31,7 +31,7 @@ include_directories( ${MEGA_SRC_DIR} )
 
 add_executable( protocol_compiler_driver ${MEGA_SRC_DIR}/service/protocol/compiler/main.cpp )
 
-set_target_properties( protocol_compiler_driver PROPERTIES FOLDER protocol_compiler_driver )
+set_target_properties( protocol_compiler_driver PROPERTIES FOLDER service/protocol )
 
 link_boost( protocol_compiler_driver filesystem )
 link_boost( protocol_compiler_driver system )

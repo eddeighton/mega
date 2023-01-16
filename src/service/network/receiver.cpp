@@ -53,18 +53,18 @@ SocketReceiver::~SocketReceiver() { m_bContinue = false; }
 
 void SocketReceiver::onError( const boost::system::error_code& ec )
 {
-    if ( ec == boost::asio::error::eof )
+    if ( ec.value() == boost::asio::error::eof )
     {
         //  This is what happens when close socket normally
     }
-    else if ( ec == boost::asio::error::operation_aborted )
+    else if ( ec.value() == boost::asio::error::operation_aborted )
     {
         //  This is what happens when close socket normally
     }
-    else if ( ec == boost::asio::error::connection_reset )
+    else if ( ec.value() == boost::asio::error::connection_reset )
     {
     }
-    else
+    else if (ec.failed())
     {
         SPDLOG_ERROR( "SocketReceiver: Connection: {} closed. Error: {}", m_connectionID, ec.what() );
     }
@@ -151,21 +151,21 @@ ConcurrentChannelReceiver::~ConcurrentChannelReceiver() { m_bContinue = false; }
 
 void ConcurrentChannelReceiver::onError( const boost::system::error_code& ec )
 {
-    if ( ec == boost::asio::error::eof )
+    if ( ec.value() == boost::asio::error::eof )
     {
         //  This is what happens when close socket normally
     }
-    else if ( ec == boost::asio::error::operation_aborted )
+    else if ( ec.value() == boost::asio::error::operation_aborted )
     {
         //  This is what happens when close socket normally
     }
-    else if ( ec == boost::asio::experimental::error::channel_closed )
+    else if ( ec.value() == boost::asio::experimental::error::channel_closed )
     {
     }
-    else if ( ec == boost::asio::experimental::error::channel_cancelled )
+    else if ( ec.value() == boost::asio::experimental::error::channel_cancelled )
     {
     }
-    else
+    else if ( ec.failed() )
     {
         SPDLOG_ERROR( "ConcurrentChannelReceiver: Connection: {} closed. Error: {}", m_connectionID, ec.what() );
     }

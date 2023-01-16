@@ -69,7 +69,7 @@ target_compile_definitions( mega_tests PUBLIC -DBOOST_PHOENIX_STL_TUPLE_H_ )
 # allow access to source folder for tests
 target_include_directories(mega_tests PUBLIC ${MEGA_SRC_DIR})
 
-set_target_properties( mega_tests PROPERTIES FOLDER mega )
+set_target_properties( mega_tests PROPERTIES FOLDER tests/unit )
 
 link_boost( mega_tests filesystem )
 link_boost( mega_tests system )

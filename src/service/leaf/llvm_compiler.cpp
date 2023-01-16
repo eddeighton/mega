@@ -29,6 +29,7 @@
 
 #include "common/file.hpp"
 #include "common/stash.hpp"
+#include "common/process.hpp"
 
 #include <boost/process.hpp>
 
@@ -43,44 +44,28 @@ namespace
 void runCompilation( const std::string& strCmd )
 {
     SPDLOG_DEBUG( "Compiling: {}", strCmd );
-
-    std::ostringstream osOutput, osError;
-    int                iCompilationResult = 0;
+    
+    std::string strOutput, strError;
+    const int iExitCode = common::runProcess( strCmd, strOutput, strError );
+    
+    if ( iExitCode != 0 )
     {
-        namespace bp = boost::process;
-
-        bp::ipstream errStream, outStream; // reading pipe-stream
-        bp::child    c( strCmd, bp::std_out > outStream, bp::std_err > errStream );
-
-        std::string strOutputLine;
-        while ( c.running() && std::getline( outStream, strOutputLine ) )
+        std::istringstream isErr( strError );
+    
+        std::ostringstream osError;
+        osError << common::COLOUR_RED_BEGIN << "FAILED : ";
+        std::string str;
+        while ( isErr && std::getline( isErr, str ) )
         {
-            if ( !strOutputLine.empty() )
+            if ( !str.empty() )
             {
-                osOutput << "\nOUT    : " << strOutputLine;
+                osError << "\nERROR  : " << str;
             }
         }
-
-        c.wait();
-        iCompilationResult = c.exit_code();
-        if ( iCompilationResult )
-        {
-            osError << common::COLOUR_RED_BEGIN << "FAILED : "; // << m_sourcePath.string();
-            while ( errStream && std::getline( errStream, strOutputLine ) )
-            {
-                if ( !strOutputLine.empty() )
-                {
-                    osError << "\nERROR  : " << strOutputLine;
-                }
-            }
-            osError << common::COLOUR_END;
-        }
-    }
-    if ( iCompilationResult != 0 )
-    {
+        osError << common::COLOUR_END;
         SPDLOG_ERROR( "Error compilation invocation: {}", osError.str() );
+        THROW_RTE( "Error compilation invocation: " << osError.str() );
     }
-    VERIFY_RTE_MSG( iCompilationResult == 0, "Error compilation invocation: " << osError.str() );
 }
 
 void compile( const boost::filesystem::path& clangPath, const boost::filesystem::path& inputCPPFilePath,

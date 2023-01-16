@@ -20,24 +20,22 @@
 #ifndef JIT_API_5_JAN_2023
 #define JIT_API_5_JAN_2023
 
-#if defined( _WIN32 )
-
-// Microsoft
-#ifdef MEGA_JIT_API_SHARED_MODULE
-#define JIT_EXPORT __declspec( dllexport )
+#ifdef _DEBUG
+#   if defined( _WIN32 )
+#       ifdef MEGA_JIT_API_SHARED_MODULE
+#           define JIT_EXPORT __declspec( dllexport )
+#       else
+#           define JIT_EXPORT __declspec( dllimport )
+#       endif
+#   elif defined( __GNUC__ )
+#       ifdef MEGA_JIT_API_SHARED_MODULE
+#           define JIT_EXPORT __attribute__( ( visibility( "default" ) ) )
+#       else
+#           define JIT_EXPORT
+#       endif
+#   endif
 #else
-#define JIT_EXPORT __declspec( dllimport )
-#endif
-
-#elif defined( __GNUC__ )
-
-// GCC
-#ifdef MEGA_JIT_API_SHARED_MODULE
-#define JIT_EXPORT __attribute__( ( visibility( "default" ) ) )
-#else
-#define JIT_EXPORT
-#endif
-
+#   define JIT_EXPORT
 #endif
 
 #endif //JIT_API_5_JAN_2023

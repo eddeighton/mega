@@ -45,23 +45,17 @@
 #include <memory>
 
 #if defined( _MSC_VER )
-
-// Microsoft
-#ifdef MEGA_PARSER_MODULE
-#define MEGA_PARSER_EXPORT __declspec( dllexport )
-#else
-#define MEGA_PARSER_EXPORT __declspec( dllimport )
-#endif
-
+#   ifdef MEGA_PARSER_MODULE
+#       define MEGA_PARSER_EXPORT __declspec( dllexport )
+#   else
+#       define MEGA_PARSER_EXPORT __declspec( dllimport )
+#   endif
 #elif defined( __GNUC__ )
-
-// GCC
-#ifdef MEGA_PARSER_MODULE
-#define MEGA_PARSER_EXPORT __attribute__( ( visibility( "default" ) ) )
-#else
-#define MEGA_PARSER_EXPORT
-#endif
-
+#   ifdef MEGA_PARSER_MODULE
+#       define MEGA_PARSER_EXPORT __attribute__( ( visibility( "default" ) ) )
+#   else
+#       define MEGA_PARSER_EXPORT
+#   endif
 #endif
 
 namespace ParserStage
