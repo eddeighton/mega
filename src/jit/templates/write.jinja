@@ -23,6 +23,7 @@
 #include "mega/reference.hpp"
 #include "service/protocol/common/mpo_context_interface.hpp" 
 #include "jit/object_functions.hxx"
+#include "jit/jit_exception.hpp"
 
 static const char* g_pszModuleName = "{{module_name}}";
 
@@ -45,4 +46,7 @@ mega::reference {{ name }}( mega::reference context, const void* pData )
 {% for assignment in assignments %}
 {{ assignment }}
 {% endfor %}
+
+    throw mega::runtime::JITException{ "Write invocation failed" };
+    return mega::reference{};
 }

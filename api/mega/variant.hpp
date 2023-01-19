@@ -46,6 +46,13 @@ struct is_convertible_many
     static constexpr const bool value = boolean_or< is_convertible< from, toRest >... >::value;
 };
 
+// same type is convertible to itself
+template < typename SameType >
+struct is_convertible< SameType, SameType >
+{
+    static constexpr const bool value = true;
+};
+
 // everything is convertible to and from an Event
 template < typename to >
 struct is_convertible< Event, to >
@@ -80,6 +87,12 @@ struct variant_runtime_type_check
 
 } // namespace mega
 
+template< typename Context, typename TypePath, typename Operation, typename... Args >
+static void invoke_impl_void( Context context, Args... args );
+
+template< typename ResultType, typename Context, typename TypePath, typename Operation, typename... Args >
+static ResultType invoke_impl( Context context, Args... args );
+
 template < typename... Ts >
 struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
 {
@@ -88,7 +101,7 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
     inline __eg_variant( const Event& from )
     {
         // when convert from event need to check runtime type against all __eg_variant types
-        if ( ( from.data.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
+        if ( ( !from.data.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
         {
             data = mega::reference{};
         }
@@ -96,6 +109,11 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
         {
             data = from.data;
         }
+    }
+    
+    inline __eg_variant( const mega::reference& from )
+    {
+        data = from;
     }
 
     template < class T >
@@ -108,7 +126,7 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
     inline __eg_variant& operator=( const Event& from )
     {
         // when convert from event need to check runtime type against all __eg_variant types
-        if ( ( from.data.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
+        if ( ( !from.data.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
         {
             data = mega::reference{};
         }
@@ -157,8 +175,15 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
         }
     }
 
-    template < typename TypePath, typename Operation, typename... Args >
-    typename mega::result_type< __eg_variant< Ts... >, TypePath, Operation >::Type invoke( Args... args ) const;
+    template< typename TypePath, typename Operation, typename... Args >
+    inline typename mega::result_type< __eg_variant< Ts... >, TypePath, Operation >::Type invoke( Args... args ) const
+    {
+        using ResultType = typename mega::result_type< __eg_variant< Ts... >, TypePath, Operation >::Type;
+        if constexpr ( std::is_same< ResultType, void >::value )
+            invoke_impl_void< __eg_variant< Ts... >, TypePath, Operation, Args... >( *this, args... );
+        if constexpr ( !std::is_same< ResultType, void >::value )
+            return invoke_impl< ResultType, __eg_variant< Ts... >, TypePath, Operation, Args... >( *this, args... );
+    }
 
     mega::reference data;
 };

@@ -130,8 +130,8 @@ namespace Invocations
         object Operation : Instructions::Instruction -> OperationsStage::Operations
         {
             ref< Variables::Instance >                   instance;
-            array< ref< Operations::InterfaceVariant > > return_types;
-            array< ref< Operations::InterfaceVariant > > parameter_types;
+            array< ref< Operations::InterfaceVariant > > derived_contexts;
+            // array< ref< Operations::InterfaceVariant > > parameter_types;
         }
 
         object BasicOperation : Operation -> OperationsStage::Operations
@@ -143,6 +143,11 @@ namespace Invocations
         {
             ref< Interface::DimensionTrait > interface_dimension;
             ref< Concrete::Dimensions::User > concrete_dimension;
+        }
+        object LinkOperation : Operation -> OperationsStage::Operations
+        {
+            ref< Interface::Link > interface_link;
+            ref< Concrete::Link > concrete_link;
         }
 
         object Allocate : BasicOperation -> OperationsStage::Operations
@@ -189,10 +194,12 @@ namespace Invocations
         {
         }
 
-        object WriteLink : DimensionOperation -> OperationsStage::Operations
+        object ReadLink : LinkOperation -> OperationsStage::Operations
         {
-            ref< Variables::Dimension > dimension_reference;
-            // LinkGroup
+        }
+
+        object WriteLink : LinkOperation -> OperationsStage::Operations
+        {
         }
 
         object Range : BasicOperation -> OperationsStage::Operations

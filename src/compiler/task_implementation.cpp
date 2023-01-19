@@ -146,17 +146,23 @@ public:
 
                 for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
+                    std::ostringstream osContextIDs;
+                    common::delimit( id.m_context.begin(), id.m_context.end(), ",", osContextIDs );
+
                     std::ostringstream osTypePathIDs;
                     common::delimit( id.m_type_path.begin(), id.m_type_path.end(), ",", osTypePathIDs );
 
                     nlohmann::json invocation(
                         { { "return_type", pInvocation->get_return_type_str() },
                           { "runtime_return_type", pInvocation->get_runtime_return_type_str() },
+                          { "runtime_param_type", pInvocation->get_runtime_parameter_type_str() },
                           { "context", pInvocation->get_context_str() },
                           { "type_path", pInvocation->get_type_path_str() },
                           { "operation", mega::getOperationString( pInvocation->get_operation() ) },
                           { "explicit_operation",
                             mega::getExplicitOperationString( pInvocation->get_explicit_operation() ) },
+                          { "context_type_id_list", osContextIDs.str() },
+                          { "context_size", id.m_context.size() },
                           { "type_path_type_id_list", osTypePathIDs.str() },
                           { "type_path_size", id.m_type_path.size() },
                           { "impl", "" } } );

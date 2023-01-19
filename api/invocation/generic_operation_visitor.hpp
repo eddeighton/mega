@@ -35,7 +35,7 @@ private:
     OperationsStage::Concrete::ContextGroup* findCommonRoot( OperationsStage::Concrete::ContextGroup* pLeft,
                                                              OperationsStage::Concrete::ContextGroup* pRight ) const;
 
-    void commonRootDerivation( OperationsStage::Concrete::ContextGroup*                       pFrom,
+    bool commonRootDerivation( OperationsStage::Concrete::ContextGroup*                       pFrom,
                                OperationsStage::Concrete::ContextGroup*                       pTo,
                                OperationsStage::Invocations::Instructions::InstructionGroup*& pInstruction,
                                OperationsStage::Invocations::Variables::Instance*&            pVariable ) const;

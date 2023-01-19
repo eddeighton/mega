@@ -67,11 +67,14 @@ set( JINJA_TEMPLATES
     ${MEGA_SRC_DIR}/jit/templates/allocate.jinja 
     ${MEGA_SRC_DIR}/jit/templates/read.jinja 
     ${MEGA_SRC_DIR}/jit/templates/write.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/read_link.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/write_link.jinja 
     ${MEGA_SRC_DIR}/jit/templates/call.jinja 
     ${MEGA_SRC_DIR}/jit/templates/start.jinja 
     ${MEGA_SRC_DIR}/jit/templates/stop.jinja 
     ${MEGA_SRC_DIR}/jit/templates/save.jinja 
     ${MEGA_SRC_DIR}/jit/templates/load.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/get.jinja 
     ${MEGA_SRC_DIR}/jit/templates/program.jinja 
 )
 

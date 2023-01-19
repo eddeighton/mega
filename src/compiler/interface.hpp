@@ -412,7 +412,7 @@ public:
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
                     for ( const nlohmann::json& trait :
-                          getInheritanceTraits( typenames, pLink, pLink->get_link_target() ) )
+                          getInheritanceTraits( typenames, pLink, pLink->get_link_interface() ) )
                     {
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );

@@ -57,8 +57,8 @@ std::optional< ::mega::U64 > getConstant( ASTContext* pASTContext, Sema* pSema, 
 QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
                          const std::vector< QualType >& typeParameters );
 
-// QualType getIteratorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-//     const clang::QualType& interfaceType, const char* pszIteratorTypeName );
+QualType getVectorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
+                         const QualType& valueType );
 
 QualType getIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
                                const clang::QualType& interfaceType, const char* pszIteratorTypeName );

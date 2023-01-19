@@ -64,6 +64,8 @@ static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings =
 { 
     std::string( "Read" ),      
     std::string( "Write" ),
+    std::string( "ReadLink" ),      
+    std::string( "WriteLink" ),
     std::string( "Allocate" ),
     std::string( "Call" ),
     std::string( "Start" ),     

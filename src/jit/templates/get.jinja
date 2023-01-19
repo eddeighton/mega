@@ -27,7 +27,7 @@
 
 static const char* g_pszModuleName = "{{module_name}}";
 
-void* {{ name }}( mega::reference context )
+mega::reference {{ name }}( mega::reference context )
 {
 {% for variable in variables %}
 {{ variable }}
@@ -37,6 +37,6 @@ void* {{ name }}( mega::reference context )
 {{ assignment }}
 {% endfor %}
 
-    throw mega::runtime::JITException{ "Read invocation failed" };
-    return nullptr;
+    throw mega::runtime::JITException{ "Get invocation failed" };
+    return mega::reference{};
 }

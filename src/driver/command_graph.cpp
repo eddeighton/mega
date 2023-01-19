@@ -504,20 +504,16 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
             Interface::LinkInterface* pSourceInterface = pRelation->get_source_interface();
             Interface::LinkInterface* pTargetInterface = pRelation->get_target_interface();
 
-            Interface::Link* pSource = pRelation->get_source();
-            Interface::Link* pTarget = pRelation->get_target();
-
             createGraphNode( links, pSourceInterface, data, true );
             createGraphNode( links, pTargetInterface, data, true );
             createEdge( pSourceInterface, pTargetInterface, edges, data );
 
-            if ( pSourceInterface != pSource )
+            for( Interface::Link* pSource : pRelation->get_sources() )
             {
                 createGraphNode( links, pSource, data, false );
                 createEdge( pSourceInterface, pSource, edges, data );
             }
-
-            if ( pTargetInterface != pTarget )
+            for( Interface::Link* pTarget : pRelation->get_targets() )
             {
                 createGraphNode( links, pTarget, data, false );
                 createEdge( pTargetInterface, pTarget, edges, data );

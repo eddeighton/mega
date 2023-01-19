@@ -102,6 +102,14 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateWrite() con
 {
     return m_installationPath / "templates/write.jinja";
 }
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateReadLink() const
+{
+    return m_installationPath / "templates/read_link.jinja";
+}
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateWriteLink() const
+{
+    return m_installationPath / "templates/write_link.jinja";
+}
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateCall() const
 {
     return m_installationPath / "templates/call.jinja";
@@ -121,6 +129,10 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateSave() cons
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateLoad() const
 {
     return m_installationPath / "templates/load.jinja";
+}
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateGet() const
+{
+    return m_installationPath / "templates/get.jinja";
 }
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateProgram() const
 {

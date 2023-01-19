@@ -69,6 +69,15 @@ public:
     {
     }
 
+    template < mega::U64 ContextSize, mega::U64 TypePathSize >
+    constexpr InvocationID( const std::array< mega::TypeID, ContextSize >&  context,
+                            const std::array< mega::TypeID, TypePathSize >& typePath, mega::TypeID operation )
+        : m_context( context.begin(), context.end() )
+        , m_type_path( typePath.begin(), typePath.end() )
+        , m_operation( static_cast< mega::OperationID >( operation ) )
+    {
+    }
+
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {

@@ -259,10 +259,8 @@ void Task_Allocators::createallocators(
     }
     else if ( auto pLink = db_cast< Link >( pContext ) )
     {
-        HyperGraph::Relation* pRelation = pLink->get_link()->get_relation();
-
         Concrete::Dimensions::LinkReference* pLinkRef = nullptr;
-        if ( pRelation->get_source_interface()->get_link_trait()->get_cardinality().maximum().isMany() )
+        if ( pLink->get_link_interface()->get_link_trait()->get_cardinality().maximum().isMany() )
         {
             // range
             pLinkRef = database.construct< Concrete::Dimensions::LinkMany >( Concrete::Dimensions::LinkMany::Args{
@@ -274,7 +272,6 @@ void Task_Allocators::createallocators(
             pLinkRef = database.construct< Concrete::Dimensions::LinkSingle >( Concrete::Dimensions::LinkSingle::Args{
                 Concrete::Dimensions::LinkReference::Args{ pParentContext, pLink } } );
         }
-
         pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize, pLinkRef } );
     }
     else if ( auto pBuffer = db_cast< Buffer >( pContext ) )

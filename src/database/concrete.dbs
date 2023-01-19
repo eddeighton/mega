@@ -126,6 +126,7 @@ namespace Concrete
     object Link : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Link > link;
+        ref< Interface::LinkInterface > link_interface;
 
         value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
         ref< Dimensions::LinkReference > link_reference -> MemoryStage::MemoryLayout;

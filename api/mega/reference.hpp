@@ -149,6 +149,18 @@ public:
         }
     }
 
+    static constexpr reference make( const reference& other, TypeInstance typeInstance )
+    {
+        if( other.isHeapAddress() )
+        {
+            return { typeInstance, other.getOwnerID(), other.getHeap() };
+        }
+        else
+        {
+            return { typeInstance, other.getMPO(), other.getObjectID() };
+        }
+    }
+
     constexpr inline bool isHeapAddress() const { return prc.m_flags == HEAP_ADDRESS; }
     constexpr inline bool isNetworkAddress() const { return prc.m_flags == NETWORK_ADDRESS; }
 

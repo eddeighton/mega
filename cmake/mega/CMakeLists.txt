@@ -105,7 +105,7 @@ set( MEGA_TYPES
     ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
 )
 
-add_library( mega_mangle ${MEGA_TYPES} )
+add_library( mega_mangle SHARED ${MEGA_TYPES} )
 
 set_target_properties( mega_mangle PROPERTIES FOLDER service )
 

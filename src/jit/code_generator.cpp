@@ -27,6 +27,8 @@
 #include "service/network/log.hpp"
 #include "service/mpo_context.hpp"
 
+#include "mega/invocation_io.hpp"
+
 #include "nlohmann/json.hpp"
 
 #include "inja/inja.hpp"
@@ -45,7 +47,29 @@ namespace mega::runtime
 namespace
 {
 
-static const std::string indent( "    " );
+struct Indent
+{
+    int        amt = 1;
+    inline int operator++()
+    {
+        ++amt;
+        return amt;
+    };
+    inline int operator--()
+    {
+        --amt;
+        return amt;
+    };
+    inline operator int() const { return amt; }
+};
+
+inline std::ostream& operator<<( std::ostream& os, const Indent& indent )
+{
+    static const std::string indentation( "    " );
+    for( int i = 0; i != indent; ++i )
+        os << indentation;
+    return os;
+}
 
 using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
 
@@ -59,7 +83,7 @@ inline std::string get( const VariableMap& varMap, const FinalStage::Invocations
 struct FunctionPointers
 {
     using CallSet        = std::set< const FinalStage::Concrete::Context* >;
-    using CopySet        = std::set< const FinalStage::Interface::DimensionTrait* >;
+    using CopySet        = std::set< std::string >;
     using EventSet       = std::set< std::string >;
     using AllocatorSet   = std::set< std::string >;
     using FreerSet       = std::set< std::string >;
@@ -81,6 +105,7 @@ struct FunctionPointers
     nlohmann::json init( const InvocationID& invocationID, std::string& strName ) const
     {
         {
+            using ::           operator<<;
             std::ostringstream osName;
             osName << invocationID;
             strName = osName.str();
@@ -105,9 +130,9 @@ struct FunctionPointers
         {
             data[ "calls" ].push_back( pCall->get_concrete_id() );
         }
-        for( auto pCopy : copySet )
+        for( auto copy : copySet )
         {
-            data[ "copiers" ].push_back( megaMangle( pCopy->get_canonical_type() ) );
+            data[ "copiers" ].push_back( copy );
         }
         for( auto event : eventSet )
         {
@@ -183,11 +208,14 @@ class CodeGenerator::Pimpl
     ::inja::Template    m_allocateTemplate;
     ::inja::Template    m_readTemplate;
     ::inja::Template    m_writeTemplate;
+    ::inja::Template    m_readLinkTemplate;
+    ::inja::Template    m_writeLinkTemplate;
     ::inja::Template    m_callTemplate;
     ::inja::Template    m_startTemplate;
     ::inja::Template    m_stopTemplate;
     ::inja::Template    m_saveTemplate;
     ::inja::Template    m_loadTemplate;
+    ::inja::Template    m_getTemplate;
     ::inja::Template    m_programTemplate;
 
 public:
@@ -198,11 +226,14 @@ public:
         m_allocateTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocate().string() );
         m_readTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().string() );
         m_writeTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().string() );
+        m_readLinkTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateReadLink().string() );
+        m_writeLinkTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWriteLink().string() );
         m_callTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().string() );
         m_startTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().string() );
         m_stopTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().string() );
         m_saveTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().string() );
         m_loadTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().string() );
+        m_getTemplate        = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateGet().string() );
         m_programTemplate    = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateProgram().string() );
     }
 
@@ -221,6 +252,14 @@ public:
     void render_write( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_writeTemplate, data );
+    }
+    void render_readLink( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_readLinkTemplate, data );
+    }
+    void render_writeLink( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_writeLinkTemplate, data );
     }
     void render_call( const nlohmann::json& data, std::ostream& os )
     {
@@ -242,6 +281,10 @@ public:
     {
         m_injaEnvironment.render_to( os, m_loadTemplate, data );
     }
+    void render_get( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_getTemplate, data );
+    }
     void render_program( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_programTemplate, data );
@@ -262,13 +305,15 @@ public:
 
     void generateInstructions( const DatabaseInstance&                             database,
                                FinalStage::Invocations::Instructions::Instruction* pInstruction,
-                               const VariableMap& variables, FunctionPointers& functions, nlohmann::json& data )
+                               const VariableMap& variables, FunctionPointers& functions, nlohmann::json& data,
+                               Indent& indent )
     {
         using namespace FinalStage;
         using namespace FinalStage::Invocations;
 
         if( auto pInstructionGroup = db_cast< Instructions::InstructionGroup >( pInstruction ) )
         {
+            bool bTailRecursion = true;
             if( auto pParentDerivation = db_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
             {
                 std::ostringstream os;
@@ -281,17 +326,9 @@ public:
                 const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
                 const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
 
-                if( szLocalSize > 1 )
-                {
-                    os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                       << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ", " << s
-                       << ".pointer };";
-                }
-                else
-                {
-                    os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                       << ".instance, " << targetType << " }, " << s << ", " << s << ".pointer };";
-                }
+                os << indent << get( variables, pTo ) << " = mega::reference::make( " << get( variables, pFrom )
+                   << ", mega::TypeInstance{ static_cast< mega::Instance >( " << s << ".getInstance() / " << szLocalSize
+                   << " ), " << targetType << "} );\n";
 
                 data[ "assignments" ].push_back( os.str() );
             }
@@ -307,8 +344,8 @@ public:
                 const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
                 const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
 
-                os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                   << ".instance, " << targetType << " }, " << s << ", " << s << ".process };";
+                os << indent << get( variables, pTo ) << " = mega::reference::make( " << get( variables, pFrom ) << ", "
+                   << targetType << " );\n";
 
                 data[ "assignments" ].push_back( os.str() );
             }
@@ -347,26 +384,92 @@ public:
             }
             else if( auto pPolyReference = db_cast< Instructions::PolyReference >( pInstructionGroup ) )
             {
-                THROW_TODO;
-                std::ostringstream os;
-                os << indent << "// PolyReference\n";
-                data[ "assignments" ].push_back( os.str() );
+                bTailRecursion = false;
+
+                {
+                    std::ostringstream os;
+                    os << indent << "// PolyReference\n";
+                    const Variables::Reference* pReference = pPolyReference->get_from_reference();
+
+                    os << indent << "switch( " << get( variables, pReference ) << ".getType() )\n";
+                    os << indent << "{";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+
+                {
+                    ++indent;
+                    for( auto pChildInstruction : pInstructionGroup->get_children() )
+                    {
+                        generateInstructions( database, pChildInstruction, variables, functions, data, indent );
+                    }
+                    --indent;
+                }
+
+                {
+                    std::ostringstream os;
+                    os << indent << "}";
+                    data[ "assignments" ].push_back( os.str() );
+                }
             }
             else if( auto pPolyCase = db_cast< Instructions::PolyCase >( pInstructionGroup ) )
             {
-                THROW_TODO;
-                std::ostringstream os;
-                os << indent << "// PolyCase\n";
-                data[ "assignments" ].push_back( os.str() );
+                bTailRecursion = false;
+
+                {
+                    std::ostringstream os;
+                    os << indent << "// PolyCase\n";
+
+                    const Variables::Reference* pReference = pPolyCase->get_reference();
+                    const Variables::Instance*  pInstance  = pPolyCase->get_to();
+
+                    os << indent << "case " << pInstance->get_concrete()->get_concrete_id() << " :\n";
+                    os << indent << "{\n";
+                    ++indent;
+                    os << indent << get( variables, pInstance ) << " = mega::reference::make( "
+                       << get( variables, pReference ) << ", " << pInstance->get_concrete()->get_concrete_id()
+                       << " );\n";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+
+                {
+                    for( auto pChildInstruction : pInstructionGroup->get_children() )
+                    {
+                        generateInstructions( database, pChildInstruction, variables, functions, data, indent );
+                    }
+                }
+
+                {
+                    --indent;
+                    std::ostringstream os;
+                    os << indent << "}";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+            }
+            else if( db_cast< Instructions::Elimination >( pInstructionGroup ) )
+            {
+                // do nothing
+            }
+            else if( db_cast< Instructions::Failure >( pInstructionGroup ) )
+            {
+                THROW_RTE( "Invalid Failure instruction" );
+            }
+            else if( db_cast< Instructions::Prune >( pInstructionGroup ) )
+            {
+                THROW_RTE( "Invalid Prune instruction" );
             }
             else
             {
                 THROW_RTE( "Unknown instruction type" );
             }
 
-            for( auto pChildInstruction : pInstructionGroup->get_children() )
+            if( bTailRecursion )
             {
-                generateInstructions( database, pChildInstruction, variables, functions, data );
+                ++indent;
+                for( auto pChildInstruction : pInstructionGroup->get_children() )
+                {
+                    generateInstructions( database, pChildInstruction, variables, functions, data, indent );
+                }
+                --indent;
             }
         }
         else if( auto pOperation = db_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
@@ -378,17 +481,20 @@ public:
                 // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
-    {
-        return mega::runtime::allocate( {{ instance }}, {{ concrete_type_id }} );
-    }
+{{ indent }}{
+{{ indent }}    return mega::runtime::allocate( {{ instance }}, {{ concrete_type_id }} );
+{{ indent }}}
 )TEMPLATE";
                 // clang-format on
                 std::ostringstream os;
                 {
                     Variables::Instance* pInstance       = pAllocate->get_instance();
                     Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
+                    std::ostringstream   osIndent;
+                    osIndent << indent;
 
                     nlohmann::json templateData( {
+                        { "indent", osIndent.str() },
                         { "concrete_type_id", pConcreteTarget->get_concrete_id() },
                         { "instance", get( variables, pInstance ) },
                     } );
@@ -403,18 +509,21 @@ R"TEMPLATE(
                 // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
-    {
-        static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ concrete_type_id }} );
-        return mega::runtime::CallResult{ function(), {{ instance }} };
-    }
+{{ indent }}{
+{{ indent }}    static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ concrete_type_id }} );
+{{ indent }}    return mega::runtime::CallResult{ function(), {{ instance }} };
+{{ indent }}}
 )TEMPLATE";
                 // clang-format on
                 std::ostringstream os;
                 {
                     Concrete::Context*   pConcreteTarget = pCall->get_concrete_target();
                     Variables::Instance* pInstance       = pCall->get_instance();
+                    std::ostringstream   osIndent;
+                    osIndent << indent;
 
-                    nlohmann::json templateData( { { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                    nlohmann::json templateData( { { "indent", osIndent.str() },
+                                                   { "concrete_type_id", pConcreteTarget->get_concrete_id() },
                                                    { "instance", get( variables, pInstance ) } } );
 
                     os << render( szTemplate, templateData );
@@ -498,14 +607,14 @@ R"TEMPLATE(
                 // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
-    {
-        while( _fptr_save_xml_object_{{ concrete_type_id }} == nullptr )
-        {
-            mega::runtime::get_save_xml_object( g_pszModuleName, {{ concrete_type_id }},
-                &_fptr_save_xml_object_{{ concrete_type_id }} );
-        }
-        _fptr_save_xml_object_{{ concrete_type_id }}( {{ instance }}, pArchive, true );
-    }
+{{ indent }}{
+{{ indent }}    while( _fptr_save_xml_object_{{ concrete_type_id }} == nullptr )
+{{ indent }}    {
+{{ indent }}        mega::runtime::get_save_xml_object( g_pszModuleName, {{ concrete_type_id }},
+{{ indent }}            &_fptr_save_xml_object_{{ concrete_type_id }} );
+{{ indent }}    }
+{{ indent }}    _fptr_save_xml_object_{{ concrete_type_id }}( {{ instance }}, pArchive, true );
+{{ indent }}}
 )TEMPLATE";
                 // clang-format on
                 std::ostringstream os;
@@ -513,7 +622,11 @@ R"TEMPLATE(
                     Concrete::Context*   pConcreteTarget = pSave->get_concrete_target();
                     Variables::Instance* pInstance       = pSave->get_instance();
 
-                    nlohmann::json templateData( { { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                    std::ostringstream osIndent;
+                    osIndent << indent;
+
+                    nlohmann::json templateData( { { "indent", osIndent.str() },
+                                                   { "concrete_type_id", pConcreteTarget->get_concrete_id() },
                                                    { "instance", get( variables, pInstance ) } } );
 
                     os << render( szTemplate, templateData );
@@ -534,18 +647,54 @@ R"TEMPLATE(
             {
                 THROW_TODO;
             }
-            else if( auto pGetAction = db_cast< GetAction >( pOperation ) )
+            else if( auto pGet = db_cast< GetAction >( pOperation ) )
             {
-                THROW_TODO;
+                // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    return {{ instance }};
+{{ indent }}}
+)TEMPLATE";
+                // clang-format on
                 std::ostringstream os;
-                os << indent << "// GetAction\n";
+                {
+                    Variables::Instance* pInstance = pGet->get_instance();
+
+                    std::ostringstream osIndent;
+                    osIndent << indent;
+
+                    nlohmann::json templateData(
+                        { { "indent", osIndent.str() }, { "instance", get( variables, pInstance ) } } );
+
+                    os << render( szTemplate, templateData );
+                }
+
                 data[ "assignments" ].push_back( os.str() );
             }
             else if( auto pGetDimension = db_cast< GetDimension >( pOperation ) )
             {
-                THROW_TODO;
+                // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    return {{ instance }};
+{{ indent }}}
+)TEMPLATE";
+                // clang-format on
                 std::ostringstream os;
-                os << indent << "// GetDimension\n";
+                {
+                    Variables::Instance* pInstance = pGetDimension->get_instance();
+
+                    std::ostringstream osIndent;
+                    osIndent << indent;
+
+                    nlohmann::json templateData(
+                        { { "indent", osIndent.str() }, { "instance", get( variables, pInstance ) } } );
+
+                    os << render( szTemplate, templateData );
+                }
+
                 data[ "assignments" ].push_back( os.str() );
             }
             else if( auto pRead = db_cast< Read >( pOperation ) )
@@ -553,19 +702,20 @@ R"TEMPLATE(
                 // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
-    {
-        if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
-        {
-            mega::runtime::readLock( {{ instance }} );
-        }
-        else if( {{ instance }}.isNetworkAddress() )
-        {
-            mega::runtime::networkToHeap( {{ instance }} );
-        }
-        return reinterpret_cast< char* >( {{ instance }}.getHeap() )
-            + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
-            + {{ dimension_offset }};
-    }
+{{ indent }}{
+{{ indent }}    // Read
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::readLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    return reinterpret_cast< char* >( {{ instance }}.getHeap() )
+{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
+{{ indent }}        + {{ dimension_offset }};
+{{ indent }}}
 )TEMPLATE";
                 // clang-format on
                 std::ostringstream os;
@@ -574,7 +724,11 @@ R"TEMPLATE(
                     Variables::Instance*        pInstance  = pRead->get_instance();
                     MemoryLayout::Part*         pPart      = pDimension->get_part();
 
-                    nlohmann::json templateData( { { "part_offset", pPart->get_offset() },
+                    std::ostringstream osIndent;
+                    osIndent << indent;
+
+                    nlohmann::json templateData( { { "indent", osIndent.str() },
+                                                   { "part_offset", pPart->get_offset() },
                                                    { "part_size", pPart->get_size() },
                                                    { "dimension_offset", pDimension->get_offset() },
                                                    { "instance", get( variables, pInstance ) } } );
@@ -589,39 +743,40 @@ R"TEMPLATE(
                 // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
-    {
-        if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
-        {
-            mega::runtime::writeLock( {{ instance }} );
-        }
-        else if( {{ instance }}.isNetworkAddress() )
-        {
-            mega::runtime::networkToHeap( {{ instance }} );
-        }
-        void* pTarget = 
-            reinterpret_cast< char* >( {{ instance }}.getHeap() )
-            + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
-            + {{ dimension_offset }};
-
-        mega::mangle::copy_{{ mangled_type_name }}( pData, pTarget );
-        mega::mangle::save_record_{{ mangled_type_name }}
-        (
-            mega::runtime::log(),
-            mega::reference
-            ( 
-                mega::TypeInstance
-                ( 
-                    {{ instance }}.getInstance(), 
-                    {{ concrete_type_id }} 
-                ),
-                {{ instance }}.getMPO(), 
-                {{ instance }}.getObjectID()
-            ),
-            pTarget,
-            {{ log_track_type }}
-        );
-        return {{ instance }};
-    }
+{{ indent }}{
+{{ indent }}    // Write
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::writeLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    void* pTarget = 
+{{ indent }}        reinterpret_cast< char* >( {{ instance }}.getHeap() )
+{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
+{{ indent }}        + {{ dimension_offset }};
+{{ indent }}
+{{ indent }}    mega::mangle::copy_{{ mangled_type_name }}( pData, pTarget );
+{{ indent }}    mega::mangle::save_record_{{ mangled_type_name }}
+{{ indent }}    (
+{{ indent }}        mega::runtime::log(),
+{{ indent }}        mega::reference
+{{ indent }}        ( 
+{{ indent }}            mega::TypeInstance
+{{ indent }}            ( 
+{{ indent }}                {{ instance }}.getInstance(), 
+{{ indent }}                {{ concrete_type_id }} 
+{{ indent }}            ),
+{{ indent }}            {{ instance }}.getMPO(), 
+{{ indent }}            {{ instance }}.getObjectID()
+{{ indent }}        ),
+{{ indent }}        pTarget,
+{{ indent }}        {{ log_track_type }}
+{{ indent }}    );
+{{ indent }}    return {{ instance }};
+{{ indent }}}
 )TEMPLATE";
                 // clang-format on
                 std::ostringstream os;
@@ -633,8 +788,12 @@ R"TEMPLATE(
                     const std::string           strMangled
                         = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );
 
+                    std::ostringstream osIndent;
+                    osIndent << indent;
+
                     nlohmann::json templateData(
-                        { { "concrete_type_id", pDimension->get_concrete_id() },
+                        { { "indent", osIndent.str() },
+                          { "concrete_type_id", pDimension->get_concrete_id() },
                           { "part_offset", pPart->get_offset() },
                           { "part_size", pPart->get_size() },
                           { "dimension_offset", pDimension->get_offset() },
@@ -646,17 +805,179 @@ R"TEMPLATE(
 
                     os << render( szTemplate, templateData );
 
-                    functions.copySet.insert( pDimension->get_interface_dimension() );
+                    functions.copySet.insert( strMangled );
                     functions.eventSet.insert( strMangled );
+                }
+
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if( auto pReadLink = db_cast< ReadLink >( pOperation ) )
+            {
+                // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    // ReadLink
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::readLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    return reinterpret_cast< char* >( {{ instance }}.getHeap() )
+{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
+{{ indent }}        + {{ dimension_offset }};
+{{ indent }}}
+)TEMPLATE";
+                // clang-format on
+                std::ostringstream os;
+                {
+                    Concrete::Link*      pLink          = pReadLink->get_concrete_link();
+                    auto                 pLinkReference = pLink->get_link_reference();
+                    Variables::Instance* pInstance      = pReadLink->get_instance();
+                    MemoryLayout::Part*  pPart          = pLinkReference->get_part();
+
+                    std::ostringstream osIndent;
+                    osIndent << indent;
+
+                    nlohmann::json templateData( { { "indent", osIndent.str() },
+                                                   { "part_offset", pPart->get_offset() },
+                                                   { "part_size", pPart->get_size() },
+                                                   { "dimension_offset", pLinkReference->get_offset() },
+                                                   { "instance", get( variables, pInstance ) } } );
+
+                    os << render( szTemplate, templateData );
                 }
 
                 data[ "assignments" ].push_back( os.str() );
             }
             else if( auto pWriteLink = db_cast< WriteLink >( pOperation ) )
             {
-                THROW_TODO;
+                // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    mega::reference& target = *reinterpret_cast< mega::reference* >( pData );
+{{ indent }}    if( target.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::writeLock( target );
+{{ indent }}    }
+{{ indent }}    else if( target.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( target );
+{{ indent }}    }
+{{ indent }}
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::writeLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
+{{ indent }}
+
+{% if source.singular %}
+
+    {% if target.singular %}
+
+{{ indent }}
+{{ indent }}    void* pTargetAddress = 
+{{ indent }}        reinterpret_cast< char* >( target.getHeap() )
+{{ indent }}        + {{ target.part_offset }} + ( {{ target.part_size }} * target.getInstance() ) 
+{{ indent }}        + {{ target.dimension_offset }};
+{{ indent }}
+{{ indent }}    mega::reference& targetDeRef = *reinterpret_cast< mega::reference* >( pTargetAddress ); 
+{{ indent }}
+{{ indent }}    void* pSourceAddress = 
+{{ indent }}        reinterpret_cast< char* >( source.getHeap() )
+{{ indent }}        + {{ source.part_offset }} + ( {{ source.part_size }} * source.getInstance() ) 
+{{ indent }}        + {{ source.dimension_offset }};
+{{ indent }}
+{{ indent }}    mega::reference& sourceDeRef = *reinterpret_cast< mega::reference* >( pSourceAddress ); 
+{{ indent }}
+{{ indent }}
+
+
+
+    {% else %}
+
+    {% endif %}
+
+{% else %}
+
+    {% if target.singular %}
+
+
+
+    {% else %}
+
+    {% endif %}
+
+{% endif %}
+
+
+{{ indent }}
+{{ indent }}    void* pTarget = 
+{{ indent }}        reinterpret_cast< char* >( {{ instance }}.getHeap() )
+{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
+{{ indent }}        + {{ dimension_offset }};
+{{ indent }}
+{{ indent }}    mega::mangle::copy_{{ mangled_type_name }}( pData, pTarget );
+{{ indent }}    mega::mangle::save_record_{{ mangled_type_name }}
+{{ indent }}    (
+{{ indent }}        mega::runtime::log(),
+{{ indent }}        mega::reference
+{{ indent }}        ( 
+{{ indent }}            mega::TypeInstance
+{{ indent }}            ( 
+{{ indent }}                {{ instance }}.getInstance(), 
+{{ indent }}                {{ concrete_type_id }} 
+{{ indent }}            ),
+{{ indent }}            {{ instance }}.getMPO(), 
+{{ indent }}            {{ instance }}.getObjectID()
+{{ indent }}        ),
+{{ indent }}        pTarget,
+{{ indent }}        {{ log_track_type }}
+{{ indent }}    );
+{{ indent }}    return {{ instance }};
+{{ indent }}}
+)TEMPLATE";
+                // clang-format on
                 std::ostringstream os;
-                os << indent << "// WriteLink\n";
+                {
+                    Concrete::Link* pLink          = pWriteLink->get_concrete_link();
+                    auto            pLinkReference = pLink->get_link_reference();
+
+                    Variables::Instance* pInstance = pWriteLink->get_instance();
+                    MemoryLayout::Part*  pPart     = pLinkReference->get_part();
+                    const bool bSimple = db_cast< FinalStage::Concrete::Dimensions::LinkSingle >( pLinkReference );
+                    const std::string strMangled
+                        = bSimple ? megaMangle( "mega::reference" ) : megaMangle( "mega::ReferenceVector" );
+
+                    std::ostringstream osIndent;
+                    osIndent << indent;
+
+                    nlohmann::json templateData(
+                        { { "indent", osIndent.str() },
+                          { "concrete_type_id", pLink->get_concrete_id() },
+                          { "part_offset", pPart->get_offset() },
+                          { "part_size", pPart->get_size() },
+                          { "dimension_offset", pLinkReference->get_offset() },
+                          { "mangled_type_name", strMangled },
+                          { "instance", get( variables, pInstance ) },
+                          { "log_track_type", mega::log::toInt( mega::log::TrackType::Simulation ) }
+
+                        } );
+
+                    os << render( szTemplate, templateData );
+
+                    functions.copySet.insert( strMangled );
+                    functions.eventSet.insert( strMangled );
+                }
+
                 data[ "assignments" ].push_back( os.str() );
             }
             else if( auto pRange = db_cast< Range >( pOperation ) )
@@ -680,7 +1001,8 @@ R"TEMPLATE(
     VariableMap
     generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
                        ::FinalStage::Invocations::Variables::Context*                        pRootContext,
-                       nlohmann::json&                                                       data )
+                       nlohmann::json&                                                       data,
+                       Indent&                                                               indent )
     {
         using namespace FinalStage;
         using namespace FinalStage::Invocations;
@@ -707,13 +1029,12 @@ R"TEMPLATE(
             }
             else if( auto pDimensionVar = db_cast< Variables::Dimension >( pVariable ) )
             {
-                auto types = pDimensionVar->get_types();
-                VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
+                auto               types    = pDimensionVar->get_types();
                 Concrete::Context* pContext = types.front();
 
                 std::ostringstream osName;
                 {
-                    osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
+                    osName << "var_" << iVariableCounter++;
                 }
                 variables.insert( { pVariable, osName.str() } );
 
@@ -725,13 +1046,12 @@ R"TEMPLATE(
             }
             else if( auto pContextVar = db_cast< Variables::Context >( pVariable ) )
             {
-                auto types = pContextVar->get_types();
-                VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
+                auto               types    = pContextVar->get_types();
                 Concrete::Context* pContext = types.front();
 
                 std::ostringstream osName;
                 {
-                    osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
+                    osName << "var_" << iVariableCounter++;
                 }
                 variables.insert( { pVariable, osName.str() } );
                 std::ostringstream osVar;
@@ -1071,12 +1391,14 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
 
         const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocationID );
 
+        Indent indent;
+
         const VariableMap variables = m_pPimpl->generateVariables(
-            pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), data );
+            pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), data, indent );
 
         for( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
-            m_pPimpl->generateInstructions( database, pInstruction, variables, functions, data );
+            m_pPimpl->generateInstructions( database, pInstruction, variables, functions, data, indent );
         }
     }
     catch( inja::InjaError& ex )
@@ -1152,6 +1474,48 @@ void CodeGenerator::generate_write( const LLVMCompiler& compiler, const Database
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 
+void CodeGenerator::generate_readLink( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                       const mega::InvocationID& invocationID, std::ostream& os )
+{
+    SPDLOG_TRACE( "RUNTIME: generate_readLink: {}", invocationID );
+
+    std::string          strName;
+    const nlohmann::json data = generate( database, invocationID, strName );
+
+    std::ostringstream osCPPCode;
+    try
+    {
+        m_pPimpl->render_readLink( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_readLink: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_readLink: " << ex.what() );
+    }
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+}
+
+void CodeGenerator::generate_writeLink( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                        const mega::InvocationID& invocationID, std::ostream& os )
+{
+    SPDLOG_TRACE( "RUNTIME: generate_writeLink: {}", invocationID );
+
+    std::string          strName;
+    const nlohmann::json data = generate( database, invocationID, strName );
+
+    std::ostringstream osCPPCode;
+    try
+    {
+        m_pPimpl->render_writeLink( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_writeLink: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_writeLink: " << ex.what() );
+    }
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+}
+
 void CodeGenerator::generate_call( const LLVMCompiler& compiler, const DatabaseInstance& database,
                                    const mega::InvocationID& invocationID, std::ostream& os )
 {
@@ -1169,6 +1533,27 @@ void CodeGenerator::generate_call( const LLVMCompiler& compiler, const DatabaseI
     {
         SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_call: {}", ex.what() );
         THROW_RTE( "inja::InjaError in CodeGenerator::generate_call: " << ex.what() );
+    }
+    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+}
+
+void CodeGenerator::generate_get( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                  const mega::InvocationID& invocationID, std::ostream& os )
+{
+    SPDLOG_TRACE( "RUNTIME: generate_get: {}", invocationID );
+
+    std::string          strName;
+    const nlohmann::json data = generate( database, invocationID, strName );
+
+    std::ostringstream osCPPCode;
+    try
+    {
+        m_pPimpl->render_get( data, osCPPCode );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_get: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_get: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }

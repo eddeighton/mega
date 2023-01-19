@@ -94,6 +94,11 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
         {
             g_pSession->setContext( g_pASTContext, g_pSema );
         }
+        
+        g_pASTContext->getEGTypePathName();
+        g_pASTContext->getEGInvocationTypeName();
+        g_pASTContext->getEGVariantName();
+        g_pASTContext->getEGInvokeName();
     }
 
     virtual void setMode( const char* strMode, const char* strSrcDir, const char* strBuildDir,
@@ -300,7 +305,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
             if ( const clang::IdentifierInfo* pIdentifierInfo
                  = clang::getOperationID( g_pSession->getASTContext(), typePathType, bHasArguments ) )
             {
-                std::cout << "getInvocationOperationType: " << pIdentifierInfo->getName().str() << std::endl;
+                // std::cout << "getInvocationOperationType: " << pIdentifierInfo->getName().str() << std::endl;
                 // return the type
                 clang::TagDecl* operatorClassDecl = nullptr;
                 {

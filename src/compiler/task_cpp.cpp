@@ -73,10 +73,10 @@ public:
         Database database( m_environment, m_environment.project_manifest() );
 
         Components::Component* pComponent = nullptr;
-        for ( Components::Component* pIter :
-              database.template many< Components::Component >( m_environment.project_manifest() ) )
+        for( Components::Component* pIter :
+             database.template many< Components::Component >( m_environment.project_manifest() ) )
         {
-            if ( pIter->get_name() == m_strComponentName )
+            if( pIter->get_name() == m_strComponentName )
             {
                 pComponent = pIter;
                 break;
@@ -123,16 +123,16 @@ public:
         {
             auto cppFileDependencies = pDependencyAnalysis->get_cpp_dependencies();
 
-            for ( const mega::io::cppFilePath& cppFile : pComponent->get_cpp_source_files() )
+            for( const mega::io::cppFilePath& cppFile : pComponent->get_cpp_source_files() )
             {
                 auto megaIter = cppFileDependencies.find( cppFile );
                 VERIFY_RTE( megaIter != cppFileDependencies.end() );
                 Dependencies::TransitiveDependencies* pTransitiveDep = megaIter->second;
 
-                for ( const mega::io::megaFilePath& megaFile : pTransitiveDep->get_mega_source_files() )
+                for( const mega::io::megaFilePath& megaFile : pTransitiveDep->get_mega_source_files() )
                 {
                     Interface::Root* pRoot = database.one< Interface::Root >( megaFile );
-                    for ( IContext* pContext : pRoot->get_children() )
+                    for( IContext* pContext : pRoot->get_children() )
                     {
                         InterfaceGen::buildInterfaceTree( pInterfaceRoot, pContext );
                     }
@@ -142,7 +142,7 @@ public:
 
         std::ostringstream os;
         {
-            for ( InterfaceGen::InterfaceNode::Ptr pInterfaceNode : pInterfaceRoot->children )
+            for( InterfaceGen::InterfaceNode::Ptr pInterfaceNode : pInterfaceRoot->children )
             {
                 InterfaceGen::recurse( templateEngine, pInterfaceNode, structs, typenames, os );
             }
@@ -157,15 +157,16 @@ public:
             std::ostringstream osGuard;
             {
                 bool bFirst = true;
-                for ( auto filePart : pComponent->get_build_dir() )
+                for( auto filePart : pComponent->get_build_dir() )
                 {
-                    if ( bFirst )
+                    if( bFirst )
                         bFirst = false;
                     else
                         osGuard << "_";
                     std::string str = filePart.replace_extension( "" ).string();
-                    std::replace_if( str.begin(), str.end(), []( char ch ){ return !std::isalnum( ch ); }, '_' );
-                    if ( str != "/" )
+                    std::replace_if(
+                        str.begin(), str.end(), []( char ch ) { return !std::isalnum( ch ); }, '_' );
+                    if( str != "/" )
                         osGuard << str;
                 }
                 osGuard << "_" << pComponent->get_name();
@@ -178,20 +179,20 @@ public:
 
             Symbols::SymbolTable* pSymbolTable
                 = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-            for ( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbol_names() )
+            for( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbol_names() )
             {
                 nlohmann::json forwardDecl( { { "symbol", pSymbol->get_id() }, { "name", symbolName } } );
 
                 bool bIsGlobal = false;
-                for ( auto pContext : pSymbol->get_contexts() )
+                for( auto pContext : pSymbol->get_contexts() )
                 {
-                    if ( db_cast< Interface::Root >( pContext->get_parent() ) )
+                    if( db_cast< Interface::Root >( pContext->get_parent() ) )
                     {
                         bIsGlobal = true;
                     }
                 }
 
-                if ( !bIsGlobal )
+                if( !bIsGlobal )
                 {
                     interfaceData[ "forward_decls" ].push_back( forwardDecl );
                 }
@@ -232,10 +233,10 @@ public:
         Database database( m_environment, m_environment.project_manifest() );
 
         Components::Component* pComponent = nullptr;
-        for ( Components::Component* pIter :
-              database.template many< Components::Component >( m_environment.project_manifest() ) )
+        for( Components::Component* pIter :
+             database.template many< Components::Component >( m_environment.project_manifest() ) )
         {
-            if ( pIter->get_name() == m_strComponentName )
+            if( pIter->get_name() == m_strComponentName )
             {
                 pComponent = pIter;
                 break;
@@ -256,7 +257,7 @@ public:
         const mega::Compilation compilationCMD
             = mega::Compilation::make_cpp_interfacePCH_compilation( m_environment, m_toolChain, pComponent );
 
-        if ( m_environment.restore( interfacePCHFilePath, determinant ) )
+        if( m_environment.restore( interfacePCHFilePath, determinant ) )
         {
             // if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
             {
@@ -266,13 +267,13 @@ public:
             }
         }
 
-        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
+        if( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             failed( taskProgress );
             return;
         }
 
-        if ( m_environment.exists( interfacePCHFilePath ) )
+        if( m_environment.exists( interfacePCHFilePath ) )
         {
             m_environment.setBuildHashCode( interfacePCHFilePath );
             m_environment.stash( interfacePCHFilePath, determinant );
@@ -326,7 +327,7 @@ public:
                                                    m_environment.FilePath( m_sourceFilePath ) } );
 
         bool bRestoredHPP = m_environment.restore( tempHPPFile, determinant );
-        if ( bRestoredHPP )
+        if( bRestoredHPP )
         {
             // if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
             {
@@ -335,7 +336,7 @@ public:
             }
         }
 
-        if ( m_environment.restore( cppPCHFile, determinant ) && m_environment.restore( compilationFile, determinant ) )
+        if( m_environment.restore( cppPCHFile, determinant ) && m_environment.restore( compilationFile, determinant ) )
         {
             m_environment.setBuildHashCode( cppPCHFile );
             m_environment.setBuildHashCode( compilationFile );
@@ -343,13 +344,13 @@ public:
             return;
         }
 
-        if ( !bRestoredHPP )
+        if( !bRestoredHPP )
         {
             const auto tempHppFilePath = m_environment.FilePath( tempHPPFile );
             const auto srcCppFilePath  = m_environment.FilePath( m_sourceFilePath );
-            if ( boost::filesystem::exists( tempHppFilePath ) )
+            if( boost::filesystem::exists( tempHppFilePath ) )
             {
-                if ( common::Hash( tempHppFilePath ) != common::Hash( srcCppFilePath ) )
+                if( common::Hash( tempHppFilePath ) != common::Hash( srcCppFilePath ) )
                 {
                     boost::filesystem::remove( tempHppFilePath );
                     boost::filesystem::copy_file(
@@ -365,14 +366,14 @@ public:
             m_environment.stash( tempHPPFile, determinant );
         }
 
-        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
+        if( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             std::ostringstream os;
             os << "Error compiling C++ source file: " << m_sourceFilePath.path();
             throw std::runtime_error( os.str() );
         }
 
-        if ( m_environment.exists( compilationFile ) && m_environment.exists( cppPCHFile ) )
+        if( m_environment.exists( compilationFile ) && m_environment.exists( cppPCHFile ) )
         {
             m_environment.setBuildHashCode( compilationFile );
             m_environment.stash( compilationFile, determinant );
@@ -439,7 +440,7 @@ public:
             { m_toolChain.toolChainHash, m_environment.ImplementationTemplate(),
               m_environment.getBuildHashCode( m_environment.OperationsStage_Operations( m_sourceFilePath ) ) } );
 
-        if ( m_environment.restore( implementationFile, determinant ) )
+        if( m_environment.restore( implementationFile, determinant ) )
         {
             m_environment.setBuildHashCode( implementationFile );
             cached( taskProgress );
@@ -465,16 +466,16 @@ public:
             std::vector< Interface::IContext* > contexts;
             {
                 std::set< Interface::IContext* > uniqueContexts;
-                for ( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                for( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
-                    for ( auto pElementVector : pInvocation->get_context()->get_vectors() )
+                    for( auto pElementVector : pInvocation->get_context()->get_vectors() )
                     {
-                        for ( auto pElement : pElementVector->get_elements() )
+                        for( auto pElement : pElementVector->get_elements() )
                         {
-                            if ( pElement->get_interface()->get_context().has_value() )
+                            if( pElement->get_interface()->get_context().has_value() )
                             {
                                 Interface::IContext* pContext = pElement->get_interface()->get_context().value();
-                                if ( uniqueContexts.count( pContext ) == 0 )
+                                if( uniqueContexts.count( pContext ) == 0 )
                                 {
                                     uniqueContexts.insert( pContext );
                                     contexts.push_back( pContext );
@@ -487,11 +488,11 @@ public:
 
             {
                 std::vector< std::string > typeNameStack;
-                for ( Interface::IContext* pContext : contexts )
+                for( Interface::IContext* pContext : contexts )
                 {
                     Interface::IContext*       pIter = pContext;
                     std::vector< std::string > typeNamePath;
-                    while ( pIter )
+                    while( pIter )
                     {
                         typeNamePath.push_back( pIter->get_identifier() );
                         pIter = db_cast< Interface::IContext >( pIter->get_parent() );
@@ -502,19 +503,25 @@ public:
                     implData[ "interfaces" ].push_back( os.str() );
                 }
 
-                for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                for( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
+                    std::ostringstream osContextIDs;
+                    common::delimit( id.m_context.begin(), id.m_context.end(), ",", osContextIDs );
+
                     std::ostringstream osTypePathIDs;
                     common::delimit( id.m_type_path.begin(), id.m_type_path.end(), ",", osTypePathIDs );
 
                     nlohmann::json invocation(
                         { { "return_type", pInvocation->get_return_type_str() },
                           { "runtime_return_type", pInvocation->get_runtime_return_type_str() },
+                          { "runtime_param_type", pInvocation->get_runtime_parameter_type_str() },
                           { "context", pInvocation->get_context_str() },
                           { "type_path", pInvocation->get_type_path_str() },
                           { "operation", mega::getOperationString( pInvocation->get_operation() ) },
                           { "explicit_operation",
                             mega::getExplicitOperationString( pInvocation->get_explicit_operation() ) },
+                          { "context_type_id_list", osContextIDs.str() },
+                          { "context_size", id.m_context.size() },
                           { "type_path_type_id_list", osTypePathIDs.str() },
                           { "type_path_size", id.m_type_path.size() },
                           { "impl", "" } } );
@@ -572,7 +579,7 @@ public:
               m_environment.getBuildHashCode( m_environment.CPPImplementation( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( m_environment.OperationsStage_Operations( m_sourceFilePath ) ) } );
 
-        if ( m_environment.restore( cppObjectFile, determinant ) )
+        if( m_environment.restore( cppObjectFile, determinant ) )
         {
             m_environment.setBuildHashCode( cppObjectFile );
             cached( taskProgress );
@@ -582,7 +589,7 @@ public:
         const mega::Compilation compilationCMD
             = mega::Compilation::make_cpp_obj_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath );
 
-        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
+        if( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             std::ostringstream os;
             os << "Error compiling C++ source file: " << m_sourceFilePath.path();
@@ -591,7 +598,7 @@ public:
             return;
         }
 
-        if ( m_environment.exists( cppObjectFile ) )
+        if( m_environment.exists( cppObjectFile ) )
         {
             m_environment.setBuildHashCode( cppObjectFile );
             m_environment.stash( cppObjectFile, determinant );

@@ -546,7 +546,7 @@ public:
             Interface::InheritanceTrait* pInheritance
                 = database.construct< Interface::InheritanceTrait >( Interface::InheritanceTrait::Args{ pLinkTarget } );
 
-            pLink->set_link_target( pInheritance );
+            pLink->set_link_interface( pInheritance );
         }
     }
     void onBuffer( InterfaceStage::Database& database, InterfaceStage::Interface::Buffer* pBuffer )

@@ -119,22 +119,15 @@ namespace HyperGraph
 {
     object Relation -> HyperGraphAnalysis::Model
     {
-        ref< Interface::Link >          source;
-        ref< Interface::Link >          target;
+        array< ref< Interface::Link > > sources;
+        array< ref< Interface::Link > > targets;
         ref< Interface::LinkInterface > source_interface;
         ref< Interface::LinkInterface > target_interface;
     }
-
-    object Relations -> HyperGraphAnalysis::Model
-    {
-        value< mega::io::megaFilePath > source_file;
-        value< mega::U64 > hash_code;
-        map< ref< Interface::Link >, ref< Relation > > relations;
-    }
-
+    
     object Graph -> HyperGraphAnalysis::Model
     {
-        array< ref< Relations > > relations;
+        map< ref< Interface::Link >, ref< Relation > > relations;
     }
 }
 

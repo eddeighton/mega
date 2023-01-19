@@ -25,6 +25,8 @@
 
 #include "service/network/log.hpp"
 
+#include "common/unreachable.hpp"
+
 namespace mega::service
 {
 
@@ -58,6 +60,7 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
     if ( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "RootRequestConversation::dispatchRequest failed: " << msg );
+    UNREACHABLE;
 }
 
 void RootRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
@@ -192,6 +195,7 @@ network::Message RootRequestConversation::MPDown( const network::Message& reques
     {
         THROW_RTE( "Failed to route to mp: " << mp );
     }
+    UNREACHABLE;
 }
 network::Message RootRequestConversation::MPUp( const network::Message& request, const MP& mp,
                                                 boost::asio::yield_context& yield_ctx )
@@ -211,6 +215,7 @@ network::Message RootRequestConversation::MPODown( const network::Message&     r
     {
         THROW_RTE( "Failed to route to mpo: " << mpo );
     }
+    UNREACHABLE;
 }
 network::Message RootRequestConversation::MPOUp( const network::Message& request, const MPO& mpo,
                                                  boost::asio::yield_context& yield_ctx )
@@ -230,6 +235,7 @@ TimeStamp RootRequestConversation::SimLockRead( const MPO& requestingMPO, const 
     {
         THROW_RTE( "Failed to route to mpo: " << targetMPO );
     }
+    UNREACHABLE;
 }
 
 TimeStamp RootRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
@@ -244,6 +250,7 @@ TimeStamp RootRequestConversation::SimLockWrite( const MPO& requestingMPO, const
     {
         THROW_RTE( "Failed to route to mpo: " << targetMPO );
     }
+    UNREACHABLE;
 }
 
 void RootRequestConversation::SimLockRelease( const MPO&                  requestingMPO,
@@ -260,6 +267,7 @@ void RootRequestConversation::SimLockRelease( const MPO&                  reques
     {
         THROW_RTE( "Failed to route to mpo: " << targetMPO );
     }
+    UNREACHABLE;
 }
 
 } // namespace mega::service

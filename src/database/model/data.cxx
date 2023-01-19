@@ -2350,7 +2350,7 @@ namespace Tree
     Interface_Link::Interface_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Link >( loader, this ) )          , p_Tree_Interface_IContext( loader )
           , p_PerSourceModel_Interface_Link( loader )
-          , link_target( loader )
+          , link_interface( loader )
     {
     }
     Interface_Link::Interface_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_LinkDef > >& link_defs)
@@ -2371,14 +2371,14 @@ namespace Tree
     {
         loader.load( p_Tree_Interface_IContext );
         loader.load( link_defs );
-        loader.load( link_target );
+        loader.load( link_interface );
     }
     void Interface_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Tree_Interface_IContext );
         storer.store( link_defs );
-        VERIFY_RTE_MSG( link_target.has_value(), "Tree::Interface_Link.link_target has NOT been set" );
-        storer.store( link_target );
+        VERIFY_RTE_MSG( link_interface.has_value(), "Tree::Interface_Link.link_interface has NOT been set" );
+        storer.store( link_interface );
     }
     void Interface_Link::to_json( nlohmann::json& _part__ ) const
     {
@@ -2398,7 +2398,7 @@ namespace Tree
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "link_target", link_target.value() } } );
+                { "link_interface", link_interface.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -3745,12 +3745,14 @@ namespace Concrete
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Link( loader )
           , link( loader )
+          , link_interface( loader )
     {
     }
-    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& link)
+    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& link, const data::Ptr< data::Tree::Interface_LinkInterface >& link_interface)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Link( loader )
           , link( link )
+          , link_interface( link_interface )
     {
     }
     bool Concrete_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -3765,11 +3767,13 @@ namespace Concrete
     {
         loader.load( p_Concrete_Concrete_Context );
         loader.load( link );
+        loader.load( link_interface );
     }
     void Concrete_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Context );
         storer.store( link );
+        storer.store( link_interface );
     }
     void Concrete_Link::to_json( nlohmann::json& _part__ ) const
     {
@@ -3785,6 +3789,11 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "link", link } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link_interface", link_interface } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -4118,15 +4127,13 @@ namespace Model
 {
     // struct HyperGraph_Relation : public mega::io::Object
     HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , source( loader )
-          , target( loader )
-          , source_interface( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , source_interface( loader )
           , target_interface( loader )
     {
     }
-    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& source, const data::Ptr< data::Tree::Interface_Link >& target, const data::Ptr< data::Tree::Interface_LinkInterface >& source_interface, const data::Ptr< data::Tree::Interface_LinkInterface >& target_interface)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , source( source )
-          , target( target )
+    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Tree::Interface_Link > >& sources, const std::vector< data::Ptr< data::Tree::Interface_Link > >& targets, const data::Ptr< data::Tree::Interface_LinkInterface >& source_interface, const data::Ptr< data::Tree::Interface_LinkInterface >& target_interface)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , sources( sources )
+          , targets( targets )
           , source_interface( source_interface )
           , target_interface( target_interface )
     {
@@ -4140,15 +4147,15 @@ namespace Model
     }
     void HyperGraph_Relation::load( mega::io::Loader& loader )
     {
-        loader.load( source );
-        loader.load( target );
+        loader.load( sources );
+        loader.load( targets );
         loader.load( source_interface );
         loader.load( target_interface );
     }
     void HyperGraph_Relation::store( mega::io::Storer& storer ) const
     {
-        storer.store( source );
-        storer.store( target );
+        storer.store( sources );
+        storer.store( targets );
         storer.store( source_interface );
         storer.store( target_interface );
     }
@@ -4165,12 +4172,12 @@ namespace Model
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "source", source } } );
+                { "sources", sources } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "target", target } } );
+                { "targets", targets } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -4185,68 +4192,11 @@ namespace Model
         }
     }
         
-    // struct HyperGraph_Relations : public mega::io::Object
-    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )    {
-    }
-    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const mega::U64& hash_code, const std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& relations)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )          , source_file( source_file )
-          , hash_code( hash_code )
-          , relations( relations )
-    {
-    }
-    bool HyperGraph_Relations::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Relations > >{ data::Ptr< data::Model::HyperGraph_Relations >( loader, const_cast< HyperGraph_Relations* >( this ) ) };
-    }
-    void HyperGraph_Relations::set_inheritance_pointer()
-    {
-    }
-    void HyperGraph_Relations::load( mega::io::Loader& loader )
-    {
-        loader.load( source_file );
-        loader.load( hash_code );
-        loader.load( relations );
-    }
-    void HyperGraph_Relations::store( mega::io::Storer& storer ) const
-    {
-        storer.store( source_file );
-        storer.store( hash_code );
-        storer.store( relations );
-    }
-    void HyperGraph_Relations::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "HyperGraph_Relations" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_file", source_file } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "hash_code", hash_code } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "relations", relations } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
     // struct HyperGraph_Graph : public mega::io::Object
     HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Graph >( loader, this ) )    {
     }
-    HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& relations)
+    HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& relations)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Graph >( loader, this ) )          , relations( relations )
     {
     }
@@ -6019,7 +5969,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Instruction::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Instruction >( loader, const_cast< Invocations_Instructions_Instruction* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Instruction >( loader, const_cast< Invocations_Instructions_Instruction* >( this ) ) };
     }
     void Invocations_Instructions_Instruction::set_inheritance_pointer()
     {
@@ -6055,7 +6005,7 @@ namespace Operations
     }
     bool Invocations_Instructions_InstructionGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >( loader, const_cast< Invocations_Instructions_InstructionGroup* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >( loader, const_cast< Invocations_Instructions_InstructionGroup* >( this ) ) };
     }
     void Invocations_Instructions_InstructionGroup::set_inheritance_pointer()
     {
@@ -6102,7 +6052,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Root >( loader, const_cast< Invocations_Instructions_Root* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Root >( loader, const_cast< Invocations_Instructions_Root* >( this ) ) };
     }
     void Invocations_Instructions_Root::set_inheritance_pointer()
     {
@@ -6151,7 +6101,7 @@ namespace Operations
     }
     bool Invocations_Instructions_ParentDerivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >( loader, const_cast< Invocations_Instructions_ParentDerivation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >( loader, const_cast< Invocations_Instructions_ParentDerivation* >( this ) ) };
     }
     void Invocations_Instructions_ParentDerivation::set_inheritance_pointer()
     {
@@ -6207,7 +6157,7 @@ namespace Operations
     }
     bool Invocations_Instructions_ChildDerivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >( loader, const_cast< Invocations_Instructions_ChildDerivation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >( loader, const_cast< Invocations_Instructions_ChildDerivation* >( this ) ) };
     }
     void Invocations_Instructions_ChildDerivation::set_inheritance_pointer()
     {
@@ -6263,7 +6213,7 @@ namespace Operations
     }
     bool Invocations_Instructions_EnumDerivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >( loader, const_cast< Invocations_Instructions_EnumDerivation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >( loader, const_cast< Invocations_Instructions_EnumDerivation* >( this ) ) };
     }
     void Invocations_Instructions_EnumDerivation::set_inheritance_pointer()
     {
@@ -6317,7 +6267,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Enumeration::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Enumeration >( loader, const_cast< Invocations_Instructions_Enumeration* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Enumeration >( loader, const_cast< Invocations_Instructions_Enumeration* >( this ) ) };
     }
     void Invocations_Instructions_Enumeration::set_inheritance_pointer()
     {
@@ -6368,7 +6318,7 @@ namespace Operations
     }
     bool Invocations_Instructions_DimensionReferenceRead::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >( loader, const_cast< Invocations_Instructions_DimensionReferenceRead* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >( loader, const_cast< Invocations_Instructions_DimensionReferenceRead* >( this ) ) };
     }
     void Invocations_Instructions_DimensionReferenceRead::set_inheritance_pointer()
     {
@@ -6431,7 +6381,7 @@ namespace Operations
     }
     bool Invocations_Instructions_MonoReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( loader, const_cast< Invocations_Instructions_MonoReference* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( loader, const_cast< Invocations_Instructions_MonoReference* >( this ) ) };
     }
     void Invocations_Instructions_MonoReference::set_inheritance_pointer()
     {
@@ -6485,7 +6435,7 @@ namespace Operations
     }
     bool Invocations_Instructions_PolyReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( loader, const_cast< Invocations_Instructions_PolyReference* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( loader, const_cast< Invocations_Instructions_PolyReference* >( this ) ) };
     }
     void Invocations_Instructions_PolyReference::set_inheritance_pointer()
     {
@@ -6534,7 +6484,7 @@ namespace Operations
     }
     bool Invocations_Instructions_PolyCase::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( loader, const_cast< Invocations_Instructions_PolyCase* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( loader, const_cast< Invocations_Instructions_PolyCase* >( this ) ) };
     }
     void Invocations_Instructions_PolyCase::set_inheritance_pointer()
     {
@@ -6582,7 +6532,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Failure::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Failure >( loader, const_cast< Invocations_Instructions_Failure* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Failure >( loader, const_cast< Invocations_Instructions_Failure* >( this ) ) };
     }
     void Invocations_Instructions_Failure::set_inheritance_pointer()
     {
@@ -6616,7 +6566,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Elimination::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Elimination >( loader, const_cast< Invocations_Instructions_Elimination* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Elimination >( loader, const_cast< Invocations_Instructions_Elimination* >( this ) ) };
     }
     void Invocations_Instructions_Elimination::set_inheritance_pointer()
     {
@@ -6650,7 +6600,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Prune::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Prune >( loader, const_cast< Invocations_Instructions_Prune* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Prune >( loader, const_cast< Invocations_Instructions_Prune* >( this ) ) };
     }
     void Invocations_Instructions_Prune::set_inheritance_pointer()
     {
@@ -6683,16 +6633,15 @@ namespace Operations
           , instance( loader )
     {
     }
-    Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance, const std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& return_types, const std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& parameter_types)
+    Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance, const std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& derived_contexts)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, this ) )          , p_Operations_Invocations_Instructions_Instruction( loader )
           , instance( instance )
-          , return_types( return_types )
-          , parameter_types( parameter_types )
+          , derived_contexts( derived_contexts )
     {
     }
     bool Invocations_Operations_Operation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, const_cast< Invocations_Operations_Operation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, const_cast< Invocations_Operations_Operation* >( this ) ) };
     }
     void Invocations_Operations_Operation::set_inheritance_pointer()
     {
@@ -6702,15 +6651,13 @@ namespace Operations
     {
         loader.load( p_Operations_Invocations_Instructions_Instruction );
         loader.load( instance );
-        loader.load( return_types );
-        loader.load( parameter_types );
+        loader.load( derived_contexts );
     }
     void Invocations_Operations_Operation::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Instructions_Instruction );
         storer.store( instance );
-        storer.store( return_types );
-        storer.store( parameter_types );
+        storer.store( derived_contexts );
     }
     void Invocations_Operations_Operation::to_json( nlohmann::json& _part__ ) const
     {
@@ -6730,12 +6677,7 @@ namespace Operations
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "return_types", return_types } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "parameter_types", parameter_types } } );
+                { "derived_contexts", derived_contexts } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -6755,7 +6697,7 @@ namespace Operations
     }
     bool Invocations_Operations_BasicOperation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_BasicOperation >( loader, const_cast< Invocations_Operations_BasicOperation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_BasicOperation >( loader, const_cast< Invocations_Operations_BasicOperation* >( this ) ) };
     }
     void Invocations_Operations_BasicOperation::set_inheritance_pointer()
     {
@@ -6811,7 +6753,7 @@ namespace Operations
     }
     bool Invocations_Operations_DimensionOperation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >( loader, const_cast< Invocations_Operations_DimensionOperation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >( loader, const_cast< Invocations_Operations_DimensionOperation* >( this ) ) };
     }
     void Invocations_Operations_DimensionOperation::set_inheritance_pointer()
     {
@@ -6852,6 +6794,62 @@ namespace Operations
         }
     }
         
+    // struct Invocations_Operations_LinkOperation : public mega::io::Object
+    Invocations_Operations_LinkOperation::Invocations_Operations_LinkOperation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >( loader, this ) )          , p_Operations_Invocations_Operations_Operation( loader )
+          , interface_link( loader )
+          , concrete_link( loader )
+    {
+    }
+    Invocations_Operations_LinkOperation::Invocations_Operations_LinkOperation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& interface_link, const data::Ptr< data::Concrete::Concrete_Link >& concrete_link)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >( loader, this ) )          , p_Operations_Invocations_Operations_Operation( loader )
+          , interface_link( interface_link )
+          , concrete_link( concrete_link )
+    {
+    }
+    bool Invocations_Operations_LinkOperation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_LinkOperation >( loader, const_cast< Invocations_Operations_LinkOperation* >( this ) ) };
+    }
+    void Invocations_Operations_LinkOperation::set_inheritance_pointer()
+    {
+        p_Operations_Invocations_Operations_Operation->m_inheritance = data::Ptr< data::Operations::Invocations_Operations_LinkOperation >( p_Operations_Invocations_Operations_Operation, this );
+    }
+    void Invocations_Operations_LinkOperation::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Operations_Invocations_Operations_Operation );
+        loader.load( interface_link );
+        loader.load( concrete_link );
+    }
+    void Invocations_Operations_LinkOperation::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Operations_Invocations_Operations_Operation );
+        storer.store( interface_link );
+        storer.store( concrete_link );
+    }
+    void Invocations_Operations_LinkOperation::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Invocations_Operations_LinkOperation" },
+                { "filetype" , "Operations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interface_link", interface_link } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_link", concrete_link } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Invocations_Operations_Allocate : public mega::io::Object
     Invocations_Operations_Allocate::Invocations_Operations_Allocate( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Allocate >( loader, this ) )          , p_Operations_Invocations_Operations_BasicOperation( loader )
@@ -6859,7 +6857,7 @@ namespace Operations
     }
     bool Invocations_Operations_Allocate::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Allocate >( loader, const_cast< Invocations_Operations_Allocate* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Allocate >( loader, const_cast< Invocations_Operations_Allocate* >( this ) ) };
     }
     void Invocations_Operations_Allocate::set_inheritance_pointer()
     {
@@ -6893,7 +6891,7 @@ namespace Operations
     }
     bool Invocations_Operations_Call::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Call >( loader, const_cast< Invocations_Operations_Call* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Call >( loader, const_cast< Invocations_Operations_Call* >( this ) ) };
     }
     void Invocations_Operations_Call::set_inheritance_pointer()
     {
@@ -6927,7 +6925,7 @@ namespace Operations
     }
     bool Invocations_Operations_Start::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Start >( loader, const_cast< Invocations_Operations_Start* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Start >( loader, const_cast< Invocations_Operations_Start* >( this ) ) };
     }
     void Invocations_Operations_Start::set_inheritance_pointer()
     {
@@ -6961,7 +6959,7 @@ namespace Operations
     }
     bool Invocations_Operations_Stop::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Stop >( loader, const_cast< Invocations_Operations_Stop* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Stop >( loader, const_cast< Invocations_Operations_Stop* >( this ) ) };
     }
     void Invocations_Operations_Stop::set_inheritance_pointer()
     {
@@ -6995,7 +6993,7 @@ namespace Operations
     }
     bool Invocations_Operations_Save::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Save >( loader, const_cast< Invocations_Operations_Save* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Save >( loader, const_cast< Invocations_Operations_Save* >( this ) ) };
     }
     void Invocations_Operations_Save::set_inheritance_pointer()
     {
@@ -7029,7 +7027,7 @@ namespace Operations
     }
     bool Invocations_Operations_Load::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Load >( loader, const_cast< Invocations_Operations_Load* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Load >( loader, const_cast< Invocations_Operations_Load* >( this ) ) };
     }
     void Invocations_Operations_Load::set_inheritance_pointer()
     {
@@ -7063,7 +7061,7 @@ namespace Operations
     }
     bool Invocations_Operations_Files::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Files >( loader, const_cast< Invocations_Operations_Files* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Files >( loader, const_cast< Invocations_Operations_Files* >( this ) ) };
     }
     void Invocations_Operations_Files::set_inheritance_pointer()
     {
@@ -7097,7 +7095,7 @@ namespace Operations
     }
     bool Invocations_Operations_GetAction::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_GetAction >( loader, const_cast< Invocations_Operations_GetAction* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_GetAction >( loader, const_cast< Invocations_Operations_GetAction* >( this ) ) };
     }
     void Invocations_Operations_GetAction::set_inheritance_pointer()
     {
@@ -7131,7 +7129,7 @@ namespace Operations
     }
     bool Invocations_Operations_GetDimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_GetDimension >( loader, const_cast< Invocations_Operations_GetDimension* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_GetDimension >( loader, const_cast< Invocations_Operations_GetDimension* >( this ) ) };
     }
     void Invocations_Operations_GetDimension::set_inheritance_pointer()
     {
@@ -7165,7 +7163,7 @@ namespace Operations
     }
     bool Invocations_Operations_Read::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Read >( loader, const_cast< Invocations_Operations_Read* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Read >( loader, const_cast< Invocations_Operations_Read* >( this ) ) };
     }
     void Invocations_Operations_Read::set_inheritance_pointer()
     {
@@ -7199,7 +7197,7 @@ namespace Operations
     }
     bool Invocations_Operations_Write::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Write >( loader, const_cast< Invocations_Operations_Write* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Write >( loader, const_cast< Invocations_Operations_Write* >( this ) ) };
     }
     void Invocations_Operations_Write::set_inheritance_pointer()
     {
@@ -7226,34 +7224,60 @@ namespace Operations
             });
     }
         
-    // struct Invocations_Operations_WriteLink : public mega::io::Object
-    Invocations_Operations_WriteLink::Invocations_Operations_WriteLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, this ) )          , p_Operations_Invocations_Operations_DimensionOperation( loader )
-          , dimension_reference( loader )
+    // struct Invocations_Operations_ReadLink : public mega::io::Object
+    Invocations_Operations_ReadLink::Invocations_Operations_ReadLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_ReadLink >( loader, this ) )          , p_Operations_Invocations_Operations_LinkOperation( loader )
     {
     }
-    Invocations_Operations_WriteLink::Invocations_Operations_WriteLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Dimension >& dimension_reference)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, this ) )          , p_Operations_Invocations_Operations_DimensionOperation( loader )
-          , dimension_reference( dimension_reference )
+    bool Invocations_Operations_ReadLink::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_ReadLink >( loader, const_cast< Invocations_Operations_ReadLink* >( this ) ) };
+    }
+    void Invocations_Operations_ReadLink::set_inheritance_pointer()
+    {
+        p_Operations_Invocations_Operations_LinkOperation->m_inheritance = data::Ptr< data::Operations::Invocations_Operations_ReadLink >( p_Operations_Invocations_Operations_LinkOperation, this );
+    }
+    void Invocations_Operations_ReadLink::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Operations_Invocations_Operations_LinkOperation );
+    }
+    void Invocations_Operations_ReadLink::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Operations_Invocations_Operations_LinkOperation );
+    }
+    void Invocations_Operations_ReadLink::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Invocations_Operations_ReadLink" },
+                { "filetype" , "Operations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Invocations_Operations_WriteLink : public mega::io::Object
+    Invocations_Operations_WriteLink::Invocations_Operations_WriteLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, this ) )          , p_Operations_Invocations_Operations_LinkOperation( loader )
     {
     }
     bool Invocations_Operations_WriteLink::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, const_cast< Invocations_Operations_WriteLink* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, const_cast< Invocations_Operations_WriteLink* >( this ) ) };
     }
     void Invocations_Operations_WriteLink::set_inheritance_pointer()
     {
-        p_Operations_Invocations_Operations_DimensionOperation->m_inheritance = data::Ptr< data::Operations::Invocations_Operations_WriteLink >( p_Operations_Invocations_Operations_DimensionOperation, this );
+        p_Operations_Invocations_Operations_LinkOperation->m_inheritance = data::Ptr< data::Operations::Invocations_Operations_WriteLink >( p_Operations_Invocations_Operations_LinkOperation, this );
     }
     void Invocations_Operations_WriteLink::load( mega::io::Loader& loader )
     {
-        loader.load( p_Operations_Invocations_Operations_DimensionOperation );
-        loader.load( dimension_reference );
+        loader.load( p_Operations_Invocations_Operations_LinkOperation );
     }
     void Invocations_Operations_WriteLink::store( mega::io::Storer& storer ) const
     {
-        storer.store( p_Operations_Invocations_Operations_DimensionOperation );
-        storer.store( dimension_reference );
+        storer.store( p_Operations_Invocations_Operations_LinkOperation );
     }
     void Invocations_Operations_WriteLink::to_json( nlohmann::json& _part__ ) const
     {
@@ -7266,11 +7290,6 @@ namespace Operations
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimension_reference", dimension_reference } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Invocations_Operations_Range : public mega::io::Object
@@ -7280,7 +7299,7 @@ namespace Operations
     }
     bool Invocations_Operations_Range::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Range >( loader, const_cast< Invocations_Operations_Range* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Range >( loader, const_cast< Invocations_Operations_Range* >( this ) ) };
     }
     void Invocations_Operations_Range::set_inheritance_pointer()
     {
@@ -7761,12 +7780,15 @@ namespace Operations
         loader.load( explicit_operation );
         loader.load( return_type_str );
         loader.load( runtime_return_type_str );
+        loader.load( runtime_parameter_type_str );
         loader.load( name_resolution );
         loader.load( root_instruction );
         loader.load( variables );
-        loader.load( return_types_context );
-        loader.load( return_types_dimension );
+        loader.load( parameter_contexts );
+        loader.load( return_type_contexts );
+        loader.load( return_type_dimensions );
         loader.load( homogeneous );
+        loader.load( singular );
         loader.load( is_function_call );
     }
     void Operations_Invocation::store( mega::io::Storer& storer ) const
@@ -7783,17 +7805,23 @@ namespace Operations
         storer.store( return_type_str );
         VERIFY_RTE_MSG( runtime_return_type_str.has_value(), "Operations::Operations_Invocation.runtime_return_type_str has NOT been set" );
         storer.store( runtime_return_type_str );
+        VERIFY_RTE_MSG( runtime_parameter_type_str.has_value(), "Operations::Operations_Invocation.runtime_parameter_type_str has NOT been set" );
+        storer.store( runtime_parameter_type_str );
         VERIFY_RTE_MSG( name_resolution.has_value(), "Operations::Operations_Invocation.name_resolution has NOT been set" );
         storer.store( name_resolution );
         VERIFY_RTE_MSG( root_instruction.has_value(), "Operations::Operations_Invocation.root_instruction has NOT been set" );
         storer.store( root_instruction );
         storer.store( variables );
-        VERIFY_RTE_MSG( return_types_context.has_value(), "Operations::Operations_Invocation.return_types_context has NOT been set" );
-        storer.store( return_types_context );
-        VERIFY_RTE_MSG( return_types_dimension.has_value(), "Operations::Operations_Invocation.return_types_dimension has NOT been set" );
-        storer.store( return_types_dimension );
+        VERIFY_RTE_MSG( parameter_contexts.has_value(), "Operations::Operations_Invocation.parameter_contexts has NOT been set" );
+        storer.store( parameter_contexts );
+        VERIFY_RTE_MSG( return_type_contexts.has_value(), "Operations::Operations_Invocation.return_type_contexts has NOT been set" );
+        storer.store( return_type_contexts );
+        VERIFY_RTE_MSG( return_type_dimensions.has_value(), "Operations::Operations_Invocation.return_type_dimensions has NOT been set" );
+        storer.store( return_type_dimensions );
         VERIFY_RTE_MSG( homogeneous.has_value(), "Operations::Operations_Invocation.homogeneous has NOT been set" );
         storer.store( homogeneous );
+        VERIFY_RTE_MSG( singular.has_value(), "Operations::Operations_Invocation.singular has NOT been set" );
+        storer.store( singular );
         VERIFY_RTE_MSG( is_function_call.has_value(), "Operations::Operations_Invocation.is_function_call has NOT been set" );
         storer.store( is_function_call );
     }
@@ -7855,6 +7883,11 @@ namespace Operations
         }
         {
             nlohmann::json property = nlohmann::json::object({
+                { "runtime_parameter_type_str", runtime_parameter_type_str.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
                 { "name_resolution", name_resolution.value() } } );
             _part__[ "properties" ].push_back( property );
         }
@@ -7870,17 +7903,27 @@ namespace Operations
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "return_types_context", return_types_context.value() } } );
+                { "parameter_contexts", parameter_contexts.value() } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "return_types_dimension", return_types_dimension.value() } } );
+                { "return_type_contexts", return_type_contexts.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "return_type_dimensions", return_type_dimensions.value() } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "homogeneous", homogeneous.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "singular", singular.value() } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -9040,7 +9083,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_children(std::
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& get_children(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& get_children(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -9164,6 +9207,10 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -9205,6 +9252,10 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
             THROW_RTE( "Database used with incorrect type" );
         }
         std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -9569,7 +9620,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_concre
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_concrete(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_concrete(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -9645,6 +9696,10 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_concrete(std::variant
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -9686,6 +9741,10 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_concrete(std::variant
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -9841,7 +9900,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete(std::
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_concrete_dimension(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_concrete_dimension(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -9917,6 +9976,10 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_concrete_dimension(st
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -9973,13 +10036,13 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_concrete_dimension(st
                 "Invalid data reference in: get_concrete_dimension" );
             return part->concrete_dimension;
         }
+        data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
         {
-            data::Ptr< data::Operations::Invocations_Operations_DimensionOperation > part = 
-                data::convert< data::Operations::Invocations_Operations_DimensionOperation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_concrete_dimension" );
-            return part->concrete_dimension;
+            THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
         {
@@ -10136,7 +10199,154 @@ mega::TypeID& get_concrete_id(std::variant< data::Ptr< data::MemoryLayout::Concr
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Concrete::Concrete_Context >& get_concrete_target(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Concrete::Concrete_Link >& get_concrete_link(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+{
+    struct Visitor
+    {
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_link" );
+            return part->concrete_link;
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_link" );
+            return part->concrete_link;
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_link" );
+            return part->concrete_link;
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+data::Ptr< data::Concrete::Concrete_Context >& get_concrete_target(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -10209,6 +10419,10 @@ data::Ptr< data::Concrete::Concrete_Context >& get_concrete_target(std::variant<
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Concrete::Concrete_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -10285,6 +10499,10 @@ data::Ptr< data::Concrete::Concrete_Context >& get_concrete_target(std::variant<
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Concrete::Concrete_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -10393,7 +10611,7 @@ data::Ptr< data::Concrete::Concrete_Context >& get_context(std::variant< data::P
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Context >& get_context(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Context >& get_context(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -10469,6 +10687,10 @@ data::Ptr< data::Operations::Invocations_Variables_Context >& get_context(std::v
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10510,6 +10732,10 @@ data::Ptr< data::Operations::Invocations_Variables_Context >& get_context(std::v
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -10880,6 +11106,213 @@ mega::DerivationDirection& get_derivation(std::variant< data::Ptr< data::AST::Pa
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& get_derived_contexts(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_derived_contexts" );
+            return part->derived_contexts;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::optional< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& get_dim_allocation(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& m_data)
 {
     struct Visitor
@@ -11033,7 +11466,7 @@ std::optional< data::Ptr< data::Tree::Interface_DimensionTrait > >& get_dimensio
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Dimension >& get_dimension_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Dimension >& get_dimension_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -11041,14 +11474,6 @@ data::Ptr< data::Operations::Invocations_Variables_Dimension >& get_dimension_re
         {
             data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead > part = 
                 data::convert< data::Operations::Invocations_Instructions_DimensionReferenceRead >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_dimension_reference" );
-            return part->dimension_reference;
-        }
-        data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_WriteLink > part = 
-                data::convert< data::Operations::Invocations_Operations_WriteLink >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: get_dimension_reference" );
             return part->dimension_reference;
@@ -11117,6 +11542,10 @@ data::Ptr< data::Operations::Invocations_Variables_Dimension >& get_dimension_re
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -11158,6 +11587,14 @@ data::Ptr< data::Operations::Invocations_Variables_Dimension >& get_dimension_re
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -11346,14 +11783,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_dimens
 {
     struct Visitor
     {
-        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
-        {
-            data::Ptr< data::Concrete::Concrete_Namespace > part = 
-                data::convert< data::Concrete::Concrete_Namespace >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_dimensions" );
-            return part->dimensions;
-        }
         std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
         {
             data::Ptr< data::Concrete::Concrete_Action > part = 
@@ -11382,6 +11811,14 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_dimens
         {
             data::Ptr< data::Concrete::Concrete_Buffer > part = 
                 data::convert< data::Concrete::Concrete_Buffer >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_dimensions" );
+            return part->dimensions;
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Namespace > part = 
+                data::convert< data::Concrete::Concrete_Namespace >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: get_dimensions" );
             return part->dimensions;
@@ -11547,7 +11984,7 @@ mega::io::ComponentFilePath& get_file_path(std::variant< data::Ptr< data::Compon
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& get_from(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Instance >& get_from(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -11631,6 +12068,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_from(std::var
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -11675,6 +12116,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_from(std::var
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -11686,7 +12131,7 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_from(std::var
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Reference >& get_from_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Reference >& get_from_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -11762,6 +12207,10 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& get_from_referen
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -11803,6 +12252,10 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& get_from_referen
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -11929,21 +12382,6 @@ mega::U64& get_hash_code(std::variant< data::Ptr< data::Derivations::Derivation_
         {
             data::Ptr< data::Derivations::Derivation_ObjectMapping > part = 
                 data::convert< data::Derivations::Derivation_ObjectMapping >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_hash_code" );
-            return part->hash_code;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-mega::U64& get_hash_code(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
-{
-    struct Visitor
-    {
-        mega::U64& operator()( data::Ptr< data::Model::HyperGraph_Relations >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relations > part = 
-                data::convert< data::Model::HyperGraph_Relations >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: get_hash_code" );
             return part->hash_code;
@@ -12680,7 +13118,7 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait 
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& get_instance(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Instance >& get_instance(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -12776,6 +13214,14 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_instance(std:
                 "Invalid data reference in: get_instance" );
             return part->instance;
         }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_instance" );
+            return part->instance;
+        }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
@@ -12857,6 +13303,14 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_instance(std:
             return part->instance;
         }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_instance" );
+            return part->instance;
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
                 data::convert< data::Operations::Invocations_Operations_Operation >( arg );
@@ -12962,7 +13416,7 @@ data::Ptr< data::Tree::Interface_IContext >& get_interface(std::variant< data::P
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Tree::Interface_IContext >& get_interface(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Tree::Interface_IContext >& get_interface(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -13035,6 +13489,10 @@ data::Ptr< data::Tree::Interface_IContext >& get_interface(std::variant< data::P
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Tree::Interface_IContext >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_IContext >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -13111,6 +13569,10 @@ data::Ptr< data::Tree::Interface_IContext >& get_interface(std::variant< data::P
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Tree::Interface_IContext >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_IContext >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -13261,7 +13723,7 @@ data::Ptr< data::Tree::Interface_DimensionTrait >& get_interface_dimension(std::
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Tree::Interface_DimensionTrait >& get_interface_dimension(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Tree::Interface_DimensionTrait >& get_interface_dimension(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -13337,6 +13799,10 @@ data::Ptr< data::Tree::Interface_DimensionTrait >& get_interface_dimension(std::
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13393,13 +13859,13 @@ data::Ptr< data::Tree::Interface_DimensionTrait >& get_interface_dimension(std::
                 "Invalid data reference in: get_interface_dimension" );
             return part->interface_dimension;
         }
+        data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
         {
-            data::Ptr< data::Operations::Invocations_Operations_DimensionOperation > part = 
-                data::convert< data::Operations::Invocations_Operations_DimensionOperation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_interface_dimension" );
-            return part->interface_dimension;
+            THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
         {
@@ -13620,6 +14086,153 @@ mega::TypeID& get_interface_id(std::variant< data::Ptr< data::Tree::Interface_Co
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: get_interface_id" );
             return part->interface_id;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+data::Ptr< data::Tree::Interface_Link >& get_interface_link(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+{
+    struct Visitor
+    {
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_interface_link" );
+            return part->interface_link;
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_interface_link" );
+            return part->interface_link;
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_interface_link" );
+            return part->interface_link;
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -14206,6 +14819,120 @@ data::Ptr< data::AST::Parser_LinkInterface >& get_link_interface(std::variant< d
     }visitor;
     return std::visit( visitor, m_data );
 }
+data::Ptr< data::Tree::Interface_LinkInterface >& get_link_interface(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Link > part = 
+                data::convert< data::Concrete::Concrete_Link >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_link_interface" );
+            return part->link_interface;
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& get_link_interface(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Link >& arg ) const
+        {
+            data::Ptr< data::Tree::Interface_Link > part = 
+                data::convert< data::Tree::Interface_Link >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_link_interface" );
+            return part->link_interface;
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_IContext >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Abstract >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Object >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_LinkInterface >& arg ) const
+        {
+            data::Ptr< data::Tree::Interface_Link > part = 
+                data::convert< data::Tree::Interface_Link >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_link_interface" );
+            return part->link_interface;
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >& get_link_reference(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     struct Visitor
@@ -14251,69 +14978,6 @@ data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >& get_link_ref
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& get_link_target(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
-{
-    struct Visitor
-    {
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Link >& arg ) const
-        {
-            data::Ptr< data::Tree::Interface_Link > part = 
-                data::convert< data::Tree::Interface_Link >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_link_target" );
-            return part->link_target;
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_ContextGroup >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_IContext >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Namespace >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Abstract >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Action >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Event >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Function >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Object >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_LinkInterface >& arg ) const
-        {
-            data::Ptr< data::Tree::Interface_Link > part = 
-                data::convert< data::Tree::Interface_Link >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_link_target" );
-            return part->link_target;
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Buffer >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -14871,193 +15535,17 @@ mega::Ownership& get_ownership(std::variant< data::Ptr< data::AST::Parser_LinkIn
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& get_parameter_types(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& get_parameter_contexts(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
     {
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
         {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_parameter_types" );
-            return part->parameter_types;
+                "Invalid data reference in: get_parameter_contexts" );
+            return part->parameter_contexts;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -15542,7 +16030,7 @@ std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& get_parts(std
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Reference >& get_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Reference >& get_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -15622,6 +16110,10 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& get_reference(st
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -15663,6 +16155,10 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& get_reference(st
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -15740,29 +16236,14 @@ data::Ptr< data::Model::HyperGraph_Relation >& get_relation(std::variant< data::
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& get_relations(std::variant< data::Ptr< data::Model::HyperGraph_Graph > >& m_data)
+std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& get_relations(std::variant< data::Ptr< data::Model::HyperGraph_Graph > >& m_data)
 {
     struct Visitor
     {
-        std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& operator()( data::Ptr< data::Model::HyperGraph_Graph >& arg ) const
+        std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& operator()( data::Ptr< data::Model::HyperGraph_Graph >& arg ) const
         {
             data::Ptr< data::Model::HyperGraph_Graph > part = 
                 data::convert< data::Model::HyperGraph_Graph >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_relations" );
-            return part->relations;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& get_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
-{
-    struct Visitor
-    {
-        std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& operator()( data::Ptr< data::Model::HyperGraph_Relations >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relations > part = 
-                data::convert< data::Model::HyperGraph_Relations >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: get_relations" );
             return part->relations;
@@ -15840,6 +16321,36 @@ data::Ptr< data::AST::Parser_ReturnType >& get_returnType(std::variant< data::Pt
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& get_return_type_contexts(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
+        {
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_return_type_contexts" );
+            return part->return_type_contexts;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& get_return_type_dimensions(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
+        {
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_return_type_dimensions" );
+            return part->return_type_dimensions;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::optional< std::string >& get_return_type_str(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
@@ -15910,227 +16421,6 @@ std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >& get_return_
         std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >& operator()( data::Ptr< data::Tree::Interface_Buffer >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& get_return_types(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
-{
-    struct Visitor
-    {
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types" );
-            return part->return_types;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& get_return_types_context(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
-{
-    struct Visitor
-    {
-        std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
-        {
-            data::Ptr< data::Operations::Operations_Invocation > part = 
-                data::convert< data::Operations::Operations_Invocation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types_context" );
-            return part->return_types_context;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& get_return_types_dimension(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
-{
-    struct Visitor
-    {
-        std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
-        {
-            data::Ptr< data::Operations::Operations_Invocation > part = 
-                data::convert< data::Operations::Operations_Invocation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_return_types_dimension" );
-            return part->return_types_dimension;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -16267,6 +16557,21 @@ data::Ptr< data::Operations::Operations_NameRoot >& get_root_name(std::variant< 
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::optional< std::string >& get_runtime_parameter_type_str(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< std::string >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
+        {
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_runtime_parameter_type_str" );
+            return part->runtime_parameter_type_str;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::optional< std::string >& get_runtime_return_type_str(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
@@ -16297,6 +16602,21 @@ bool& get_simple(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::P
         bool& operator()( data::Ptr< data::AST::Parser_Dimension >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::optional< bool >& get_singular(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< bool >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
+        {
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_singular" );
+            return part->singular;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -16515,21 +16835,6 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& 
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Tree::Interface_Link >& get_source(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
-{
-    struct Visitor
-    {
-        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relation > part = 
-                data::convert< data::Model::HyperGraph_Relation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_source" );
-            return part->source;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
 boost::filesystem::path& get_sourceFile(std::variant< data::Ptr< data::AST::Parser_SourceRoot >, data::Ptr< data::AST::Parser_IncludeRoot >, data::Ptr< data::AST::Parser_ObjectSourceRoot > >& m_data)
 {
     struct Visitor
@@ -16606,21 +16911,6 @@ mega::io::megaFilePath& get_source_file(std::variant< data::Ptr< data::Derivatio
     }visitor;
     return std::visit( visitor, m_data );
 }
-mega::io::megaFilePath& get_source_file(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
-{
-    struct Visitor
-    {
-        mega::io::megaFilePath& operator()( data::Ptr< data::Model::HyperGraph_Relations >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relations > part = 
-                data::convert< data::Model::HyperGraph_Relations >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_source_file" );
-            return part->source_file;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
 data::Ptr< data::Tree::Interface_LinkInterface >& get_source_interface(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
 {
     struct Visitor
@@ -16632,6 +16922,21 @@ data::Ptr< data::Tree::Interface_LinkInterface >& get_source_interface(std::vari
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: get_source_interface" );
             return part->source_interface;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< data::Ptr< data::Tree::Interface_Link > >& get_sources(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Tree::Interface_Link > >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_sources" );
+            return part->sources;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -17136,21 +17441,6 @@ data::Ptr< data::AST::Parser_Inheritance >& get_target(std::variant< data::Ptr< 
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Tree::Interface_Link >& get_target(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
-{
-    struct Visitor
-    {
-        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relation > part = 
-                data::convert< data::Model::HyperGraph_Relation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: get_target" );
-            return part->target;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
 data::Ptr< data::Tree::Interface_LinkInterface >& get_target_interface(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
 {
     struct Visitor
@@ -17166,7 +17456,22 @@ data::Ptr< data::Tree::Interface_LinkInterface >& get_target_interface(std::vari
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& get_to(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+std::vector< data::Ptr< data::Tree::Interface_Link > >& get_targets(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Tree::Interface_Link > >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_targets" );
+            return part->targets;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+data::Ptr< data::Operations::Invocations_Variables_Instance >& get_to(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -17254,6 +17559,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_to(std::varia
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17295,6 +17604,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_to(std::varia
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -17768,14 +18081,14 @@ std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_Transit
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& insert_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
+std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& insert_relations(std::variant< data::Ptr< data::Model::HyperGraph_Graph > >& m_data)
 {
     struct Visitor
     {
-        std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& operator()( data::Ptr< data::Model::HyperGraph_Relations >& arg ) const
+        std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& operator()( data::Ptr< data::Model::HyperGraph_Graph >& arg ) const
         {
-            data::Ptr< data::Model::HyperGraph_Relations > part = 
-                data::convert< data::Model::HyperGraph_Relations >( arg );
+            data::Ptr< data::Model::HyperGraph_Graph > part = 
+                data::convert< data::Model::HyperGraph_Graph >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: insert_relations" );
             return part->relations;
@@ -18336,7 +18649,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& push_back_children
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& push_back_children(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& push_back_children(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -18460,6 +18773,10 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -18501,6 +18818,10 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
             THROW_RTE( "Database used with incorrect type" );
         }
         std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -18940,6 +19261,213 @@ std::vector< mega::io::megaFilePath >& push_back_dependencies(std::variant< data
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: push_back_dependencies" );
             return part->dependencies;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& push_back_derived_contexts(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_derived_contexts" );
+            return part->derived_contexts;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -19808,193 +20336,17 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& 
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& push_back_parameter_types(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& push_back_parameter_contexts(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
     {
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
         {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_parameter_types" );
-            return part->parameter_types;
+                "Invalid data reference in: push_back_parameter_contexts" );
+            return part->parameter_contexts;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -20038,21 +20390,6 @@ std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& push_back_par
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& push_back_relations(std::variant< data::Ptr< data::Model::HyperGraph_Graph > >& m_data)
-{
-    struct Visitor
-    {
-        std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& operator()( data::Ptr< data::Model::HyperGraph_Graph >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Graph > part = 
-                data::convert< data::Model::HyperGraph_Graph >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_relations" );
-            return part->relations;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
 std::vector< boost::filesystem::path >& push_back_resolution(std::variant< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& m_data)
 {
     struct Visitor
@@ -20068,198 +20405,7 @@ std::vector< boost::filesystem::path >& push_back_resolution(std::variant< data:
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& push_back_return_types(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
-{
-    struct Visitor
-    {
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types" );
-            return part->return_types;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& push_back_return_types_context(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& push_back_return_type_contexts(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
     {
@@ -20268,13 +20414,13 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& pus
             data::Ptr< data::Operations::Operations_Invocation > part = 
                 data::convert< data::Operations::Operations_Invocation >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types_context" );
-            return part->return_types_context;
+                "Invalid data reference in: push_back_return_type_contexts" );
+            return part->return_type_contexts;
         }
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& push_back_return_types_dimension(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& push_back_return_type_dimensions(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
     {
@@ -20283,8 +20429,23 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > 
             data::Ptr< data::Operations::Operations_Invocation > part = 
                 data::convert< data::Operations::Operations_Invocation >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: push_back_return_types_dimension" );
-            return part->return_types_dimension;
+                "Invalid data reference in: push_back_return_type_dimensions" );
+            return part->return_type_dimensions;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< data::Ptr< data::Tree::Interface_Link > >& push_back_sources(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Tree::Interface_Link > >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_sources" );
+            return part->sources;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -20323,6 +20484,21 @@ std::vector< data::Ptr< data::SymbolTable::Symbols_SymbolTypeID > >& push_back_s
         std::vector< data::Ptr< data::SymbolTable::Symbols_SymbolTypeID > >& operator()( data::Ptr< data::AST::Parser_Dimension >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< data::Ptr< data::Tree::Interface_Link > >& push_back_targets(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Tree::Interface_Link > >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_targets" );
+            return part->targets;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -21510,7 +21686,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_children(std::
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& set_children(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& set_children(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -21634,6 +21810,10 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -21675,6 +21855,10 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
             THROW_RTE( "Database used with incorrect type" );
         }
         std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -22039,7 +22223,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_concre
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_concrete(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_concrete(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -22115,6 +22299,10 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_concrete(std::variant
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -22156,6 +22344,10 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_concrete(std::variant
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -22311,7 +22503,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete(std::
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_concrete_dimension(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_concrete_dimension(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -22387,6 +22579,10 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_concrete_dimension(st
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -22443,13 +22639,13 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_concrete_dimension(st
                 "Invalid data reference in: set_concrete_dimension" );
             return part->concrete_dimension;
         }
+        data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
         {
-            data::Ptr< data::Operations::Invocations_Operations_DimensionOperation > part = 
-                data::convert< data::Operations::Invocations_Operations_DimensionOperation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_concrete_dimension" );
-            return part->concrete_dimension;
+            THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Concrete::Concrete_Dimensions_User >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
         {
@@ -22606,7 +22802,154 @@ mega::TypeID& set_concrete_id(std::variant< data::Ptr< data::MemoryLayout::Concr
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Concrete::Concrete_Context >& set_concrete_target(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Concrete::Concrete_Link >& set_concrete_link(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+{
+    struct Visitor
+    {
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_link" );
+            return part->concrete_link;
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_link" );
+            return part->concrete_link;
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_link" );
+            return part->concrete_link;
+        }
+        data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+data::Ptr< data::Concrete::Concrete_Context >& set_concrete_target(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -22679,6 +23022,10 @@ data::Ptr< data::Concrete::Concrete_Context >& set_concrete_target(std::variant<
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Concrete::Concrete_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -22755,6 +23102,10 @@ data::Ptr< data::Concrete::Concrete_Context >& set_concrete_target(std::variant<
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Concrete::Concrete_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Concrete::Concrete_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -22863,7 +23214,7 @@ data::Ptr< data::Concrete::Concrete_Context >& set_context(std::variant< data::P
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Context >& set_context(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Context >& set_context(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -22939,6 +23290,10 @@ data::Ptr< data::Operations::Invocations_Variables_Context >& set_context(std::v
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -22980,6 +23335,10 @@ data::Ptr< data::Operations::Invocations_Variables_Context >& set_context(std::v
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Context >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -23327,6 +23686,213 @@ mega::DerivationDirection& set_derivation(std::variant< data::Ptr< data::AST::Pa
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& set_derived_contexts(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_derived_contexts" );
+            return part->derived_contexts;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::optional< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& set_dim_allocation(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > >& m_data)
 {
     struct Visitor
@@ -23480,7 +24046,7 @@ std::optional< data::Ptr< data::Tree::Interface_DimensionTrait > >& set_dimensio
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Dimension >& set_dimension_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Dimension >& set_dimension_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -23488,14 +24054,6 @@ data::Ptr< data::Operations::Invocations_Variables_Dimension >& set_dimension_re
         {
             data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead > part = 
                 data::convert< data::Operations::Invocations_Instructions_DimensionReferenceRead >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_dimension_reference" );
-            return part->dimension_reference;
-        }
-        data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_WriteLink > part = 
-                data::convert< data::Operations::Invocations_Operations_WriteLink >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: set_dimension_reference" );
             return part->dimension_reference;
@@ -23564,6 +24122,10 @@ data::Ptr< data::Operations::Invocations_Variables_Dimension >& set_dimension_re
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -23605,6 +24167,14 @@ data::Ptr< data::Operations::Invocations_Variables_Dimension >& set_dimension_re
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Dimension >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -23994,7 +24564,7 @@ mega::io::ComponentFilePath& set_file_path(std::variant< data::Ptr< data::Compon
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& set_from(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Instance >& set_from(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -24078,6 +24648,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_from(std::var
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -24122,6 +24696,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_from(std::var
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -24133,7 +24711,7 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_from(std::var
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Reference >& set_from_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Reference >& set_from_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -24209,6 +24787,10 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& set_from_referen
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -24250,6 +24832,10 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& set_from_referen
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -24376,21 +24962,6 @@ mega::U64& set_hash_code(std::variant< data::Ptr< data::Derivations::Derivation_
         {
             data::Ptr< data::Derivations::Derivation_ObjectMapping > part = 
                 data::convert< data::Derivations::Derivation_ObjectMapping >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_hash_code" );
-            return part->hash_code;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-mega::U64& set_hash_code(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
-{
-    struct Visitor
-    {
-        mega::U64& operator()( data::Ptr< data::Model::HyperGraph_Relations >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relations > part = 
-                data::convert< data::Model::HyperGraph_Relations >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: set_hash_code" );
             return part->hash_code;
@@ -25104,7 +25675,7 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait 
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& set_instance(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Instance >& set_instance(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -25200,6 +25771,14 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_instance(std:
                 "Invalid data reference in: set_instance" );
             return part->instance;
         }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_instance" );
+            return part->instance;
+        }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
@@ -25281,6 +25860,14 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_instance(std:
             return part->instance;
         }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
+                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_instance" );
+            return part->instance;
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
                 data::convert< data::Operations::Invocations_Operations_Operation >( arg );
@@ -25386,7 +25973,7 @@ data::Ptr< data::Tree::Interface_IContext >& set_interface(std::variant< data::P
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Tree::Interface_IContext >& set_interface(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Tree::Interface_IContext >& set_interface(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -25459,6 +26046,10 @@ data::Ptr< data::Tree::Interface_IContext >& set_interface(std::variant< data::P
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Tree::Interface_IContext >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_IContext >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -25535,6 +26126,10 @@ data::Ptr< data::Tree::Interface_IContext >& set_interface(std::variant< data::P
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Tree::Interface_IContext >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_IContext >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -25685,7 +26280,7 @@ data::Ptr< data::Tree::Interface_DimensionTrait >& set_interface_dimension(std::
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Tree::Interface_DimensionTrait >& set_interface_dimension(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Tree::Interface_DimensionTrait >& set_interface_dimension(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -25761,6 +26356,10 @@ data::Ptr< data::Tree::Interface_DimensionTrait >& set_interface_dimension(std::
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -25817,13 +26416,13 @@ data::Ptr< data::Tree::Interface_DimensionTrait >& set_interface_dimension(std::
                 "Invalid data reference in: set_interface_dimension" );
             return part->interface_dimension;
         }
+        data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
         {
-            data::Ptr< data::Operations::Invocations_Operations_DimensionOperation > part = 
-                data::convert< data::Operations::Invocations_Operations_DimensionOperation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_interface_dimension" );
-            return part->interface_dimension;
+            THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Tree::Interface_DimensionTrait >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
         {
@@ -26044,6 +26643,153 @@ mega::TypeID& set_interface_id(std::variant< data::Ptr< data::Tree::Interface_Co
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: set_interface_id" );
             return part->interface_id;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+data::Ptr< data::Tree::Interface_Link >& set_interface_link(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+{
+    struct Visitor
+    {
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_interface_link" );
+            return part->interface_link;
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_interface_link" );
+            return part->interface_link;
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
+        {
+            data::Ptr< data::Operations::Invocations_Operations_LinkOperation > part = 
+                data::convert< data::Operations::Invocations_Operations_LinkOperation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_interface_link" );
+            return part->interface_link;
+        }
+        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -26607,6 +27353,120 @@ data::Ptr< data::AST::Parser_LinkInterface >& set_link_interface(std::variant< d
     }visitor;
     return std::visit( visitor, m_data );
 }
+data::Ptr< data::Tree::Interface_LinkInterface >& set_link_interface(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Link > part = 
+                data::convert< data::Concrete::Concrete_Link >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_link_interface" );
+            return part->link_interface;
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Tree::Interface_LinkInterface >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& set_link_interface(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Link >& arg ) const
+        {
+            data::Ptr< data::Tree::Interface_Link > part = 
+                data::convert< data::Tree::Interface_Link >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_link_interface" );
+            return part->link_interface;
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_IContext >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Abstract >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Object >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_LinkInterface >& arg ) const
+        {
+            data::Ptr< data::Tree::Interface_Link > part = 
+                data::convert< data::Tree::Interface_Link >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_link_interface" );
+            return part->link_interface;
+        }
+        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >& set_link_reference(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     struct Visitor
@@ -26652,69 +27512,6 @@ data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >& set_link_ref
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& set_link_target(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
-{
-    struct Visitor
-    {
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Link >& arg ) const
-        {
-            data::Ptr< data::Tree::Interface_Link > part = 
-                data::convert< data::Tree::Interface_Link >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_link_target" );
-            return part->link_target;
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_ContextGroup >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_IContext >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Namespace >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Abstract >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Action >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Event >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Function >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Object >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_LinkInterface >& arg ) const
-        {
-            data::Ptr< data::Tree::Interface_Link > part = 
-                data::convert< data::Tree::Interface_Link >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_link_target" );
-            return part->link_target;
-        }
-        std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& operator()( data::Ptr< data::Tree::Interface_Buffer >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -27249,193 +28046,17 @@ mega::Ownership& set_ownership(std::variant< data::Ptr< data::AST::Parser_LinkIn
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& set_parameter_types(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& set_parameter_contexts(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
     {
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
+        std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
         {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_parameter_types" );
-            return part->parameter_types;
+                "Invalid data reference in: set_parameter_contexts" );
+            return part->parameter_contexts;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -27920,7 +28541,7 @@ std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& set_parts(std
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Reference >& set_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Reference >& set_reference(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -28000,6 +28621,10 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& set_reference(st
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -28041,6 +28666,10 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& set_reference(st
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Reference >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -28118,29 +28747,14 @@ data::Ptr< data::Model::HyperGraph_Relation >& set_relation(std::variant< data::
     }visitor;
     return std::visit( visitor, m_data );
 }
-std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& set_relations(std::variant< data::Ptr< data::Model::HyperGraph_Graph > >& m_data)
+std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& set_relations(std::variant< data::Ptr< data::Model::HyperGraph_Graph > >& m_data)
 {
     struct Visitor
     {
-        std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& operator()( data::Ptr< data::Model::HyperGraph_Graph >& arg ) const
+        std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& operator()( data::Ptr< data::Model::HyperGraph_Graph >& arg ) const
         {
             data::Ptr< data::Model::HyperGraph_Graph > part = 
                 data::convert< data::Model::HyperGraph_Graph >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_relations" );
-            return part->relations;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& set_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
-{
-    struct Visitor
-    {
-        std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& operator()( data::Ptr< data::Model::HyperGraph_Relations >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relations > part = 
-                data::convert< data::Model::HyperGraph_Relations >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: set_relations" );
             return part->relations;
@@ -28218,6 +28832,36 @@ data::Ptr< data::AST::Parser_ReturnType >& set_returnType(std::variant< data::Pt
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& set_return_type_contexts(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
+        {
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_return_type_contexts" );
+            return part->return_type_contexts;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& set_return_type_dimensions(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
+        {
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_return_type_dimensions" );
+            return part->return_type_dimensions;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::optional< std::string >& set_return_type_str(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
@@ -28288,227 +28932,6 @@ std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >& set_return_
         std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >& operator()( data::Ptr< data::Tree::Interface_Buffer >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& set_return_types(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
-{
-    struct Visitor
-    {
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Operation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Instruction >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Root >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Failure >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Elimination >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Instructions_Prune >& arg ) const
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Call >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Start >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Stop >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Save >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Load >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Files >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetAction >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_GetDimension >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Read >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_WriteLink >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-        std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
-        {
-            data::Ptr< data::Operations::Invocations_Operations_Operation > part = 
-                data::convert< data::Operations::Invocations_Operations_Operation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types" );
-            return part->return_types;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& set_return_types_context(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
-{
-    struct Visitor
-    {
-        std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
-        {
-            data::Ptr< data::Operations::Operations_Invocation > part = 
-                data::convert< data::Operations::Operations_Invocation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types_context" );
-            return part->return_types_context;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
-std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& set_return_types_dimension(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
-{
-    struct Visitor
-    {
-        std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
-        {
-            data::Ptr< data::Operations::Operations_Invocation > part = 
-                data::convert< data::Operations::Operations_Invocation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_return_types_dimension" );
-            return part->return_types_dimension;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -28645,6 +29068,21 @@ data::Ptr< data::Operations::Operations_NameRoot >& set_root_name(std::variant< 
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::optional< std::string >& set_runtime_parameter_type_str(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< std::string >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
+        {
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_runtime_parameter_type_str" );
+            return part->runtime_parameter_type_str;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::optional< std::string >& set_runtime_return_type_str(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
@@ -28675,6 +29113,21 @@ bool& set_simple(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::P
         bool& operator()( data::Ptr< data::AST::Parser_Dimension >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::optional< bool >& set_singular(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< bool >& operator()( data::Ptr< data::Operations::Operations_Invocation >& arg ) const
+        {
+            data::Ptr< data::Operations::Operations_Invocation > part = 
+                data::convert< data::Operations::Operations_Invocation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_singular" );
+            return part->singular;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -28893,21 +29346,6 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& 
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Tree::Interface_Link >& set_source(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
-{
-    struct Visitor
-    {
-        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relation > part = 
-                data::convert< data::Model::HyperGraph_Relation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_source" );
-            return part->source;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
 boost::filesystem::path& set_sourceFile(std::variant< data::Ptr< data::AST::Parser_SourceRoot >, data::Ptr< data::AST::Parser_IncludeRoot >, data::Ptr< data::AST::Parser_ObjectSourceRoot > >& m_data)
 {
     struct Visitor
@@ -28984,21 +29422,6 @@ mega::io::megaFilePath& set_source_file(std::variant< data::Ptr< data::Derivatio
     }visitor;
     return std::visit( visitor, m_data );
 }
-mega::io::megaFilePath& set_source_file(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
-{
-    struct Visitor
-    {
-        mega::io::megaFilePath& operator()( data::Ptr< data::Model::HyperGraph_Relations >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relations > part = 
-                data::convert< data::Model::HyperGraph_Relations >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_source_file" );
-            return part->source_file;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
 data::Ptr< data::Tree::Interface_LinkInterface >& set_source_interface(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
 {
     struct Visitor
@@ -29010,6 +29433,21 @@ data::Ptr< data::Tree::Interface_LinkInterface >& set_source_interface(std::vari
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: set_source_interface" );
             return part->source_interface;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< data::Ptr< data::Tree::Interface_Link > >& set_sources(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Tree::Interface_Link > >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_sources" );
+            return part->sources;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -29422,21 +29860,6 @@ data::Ptr< data::AST::Parser_Inheritance >& set_target(std::variant< data::Ptr< 
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Tree::Interface_Link >& set_target(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
-{
-    struct Visitor
-    {
-        data::Ptr< data::Tree::Interface_Link >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
-        {
-            data::Ptr< data::Model::HyperGraph_Relation > part = 
-                data::convert< data::Model::HyperGraph_Relation >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: set_target" );
-            return part->target;
-        }
-    }visitor;
-    return std::visit( visitor, m_data );
-}
 data::Ptr< data::Tree::Interface_LinkInterface >& set_target_interface(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
 {
     struct Visitor
@@ -29452,7 +29875,22 @@ data::Ptr< data::Tree::Interface_LinkInterface >& set_target_interface(std::vari
     }visitor;
     return std::visit( visitor, m_data );
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& set_to(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
+std::vector< data::Ptr< data::Tree::Interface_Link > >& set_targets(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Tree::Interface_Link > >& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_targets" );
+            return part->targets;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+data::Ptr< data::Operations::Invocations_Variables_Instance >& set_to(std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_LinkOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Save >, data::Ptr< data::Operations::Invocations_Operations_Load >, data::Ptr< data::Operations::Invocations_Operations_Files >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_ReadLink >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >& m_data)
 {
     struct Visitor
     {
@@ -29540,6 +29978,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_to(std::varia
         {
             THROW_RTE( "Database used with incorrect type" );
         }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_LinkOperation >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Allocate >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -29581,6 +30023,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_to(std::varia
             THROW_RTE( "Database used with incorrect type" );
         }
         data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_Write >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        data::Ptr< data::Operations::Invocations_Variables_Instance >& operator()( data::Ptr< data::Operations::Invocations_Operations_ReadLink >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -29890,13 +30336,13 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 55: return new Tree::Interface_Link( loader, objectInfo );
         case 57: return new Tree::Interface_LinkInterface( loader, objectInfo );
         case 58: return new Tree::Interface_Buffer( loader, objectInfo );
-        case 132: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 133: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 134: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 135: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 136: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 137: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 139: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 134: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 135: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 136: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 137: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 138: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 139: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 141: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 32: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 47: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 34: return new Clang::Interface_DimensionTrait( loader, objectInfo );
@@ -29904,55 +30350,54 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 39: return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
         case 41: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
         case 43: return new Clang::Interface_SizeTrait( loader, objectInfo );
-        case 94: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
-        case 104: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 105: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 108: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 109: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 111: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 113: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 114: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 116: return new Concrete::Concrete_Link( loader, objectInfo );
-        case 118: return new Concrete::Concrete_Buffer( loader, objectInfo );
-        case 120: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 141: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 142: return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 96: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
+        case 106: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 107: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 110: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 111: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 113: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 115: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 116: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 118: return new Concrete::Concrete_Link( loader, objectInfo );
+        case 120: return new Concrete::Concrete_Buffer( loader, objectInfo );
+        case 122: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 143: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 144: return new Derivations::Derivation_Mapping( loader, objectInfo );
         case 33: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
         case 48: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
-        case 143: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 144: return new Model::HyperGraph_Relations( loader, objectInfo );
-        case 145: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 145: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 146: return new Model::HyperGraph_Graph( loader, objectInfo );
         case 56: return new PerSourceModel::Interface_Link( loader, objectInfo );
-        case 96: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
-        case 97: return new MemoryLayout::Concrete_Dimensions_LinkReference( loader, objectInfo );
-        case 99: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
-        case 100: return new MemoryLayout::Concrete_Dimensions_LinkMany( loader, objectInfo );
-        case 101: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 103: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
-        case 107: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 110: return new MemoryLayout::Concrete_Action( loader, objectInfo );
-        case 112: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 115: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 117: return new MemoryLayout::Concrete_Link( loader, objectInfo );
-        case 119: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
-        case 146: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 147: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 148: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 149: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 150: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 151: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 152: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 153: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 154: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 155: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 156: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 157: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 138: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 140: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
-        case 95: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
-        case 98: return new PerSourceConcreteTable::Concrete_Dimensions_LinkReference( loader, objectInfo );
-        case 102: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 106: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 98: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 99: return new MemoryLayout::Concrete_Dimensions_LinkReference( loader, objectInfo );
+        case 101: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
+        case 102: return new MemoryLayout::Concrete_Dimensions_LinkMany( loader, objectInfo );
+        case 103: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 105: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
+        case 109: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 112: return new MemoryLayout::Concrete_Action( loader, objectInfo );
+        case 114: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 117: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 119: return new MemoryLayout::Concrete_Link( loader, objectInfo );
+        case 121: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
+        case 147: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 148: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 149: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 150: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 151: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 152: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 153: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 154: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 155: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 156: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
+        case 157: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 158: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 140: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 142: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 97: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
+        case 100: return new PerSourceConcreteTable::Concrete_Dimensions_LinkReference( loader, objectInfo );
+        case 104: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 108: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
         case 59: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
         case 60: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
         case 61: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
@@ -29975,30 +30420,32 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 78: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
         case 79: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
         case 80: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
-        case 81: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
-        case 82: return new Operations::Invocations_Operations_Call( loader, objectInfo );
-        case 83: return new Operations::Invocations_Operations_Start( loader, objectInfo );
-        case 84: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
-        case 85: return new Operations::Invocations_Operations_Save( loader, objectInfo );
-        case 86: return new Operations::Invocations_Operations_Load( loader, objectInfo );
-        case 87: return new Operations::Invocations_Operations_Files( loader, objectInfo );
-        case 88: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
-        case 89: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
-        case 90: return new Operations::Invocations_Operations_Read( loader, objectInfo );
-        case 91: return new Operations::Invocations_Operations_Write( loader, objectInfo );
-        case 92: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
-        case 93: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 121: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 122: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 123: return new Operations::Operations_Element( loader, objectInfo );
-        case 124: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 125: return new Operations::Operations_Context( loader, objectInfo );
-        case 126: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 127: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 128: return new Operations::Operations_Name( loader, objectInfo );
-        case 129: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 130: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 131: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 81: return new Operations::Invocations_Operations_LinkOperation( loader, objectInfo );
+        case 82: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
+        case 83: return new Operations::Invocations_Operations_Call( loader, objectInfo );
+        case 84: return new Operations::Invocations_Operations_Start( loader, objectInfo );
+        case 85: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
+        case 86: return new Operations::Invocations_Operations_Save( loader, objectInfo );
+        case 87: return new Operations::Invocations_Operations_Load( loader, objectInfo );
+        case 88: return new Operations::Invocations_Operations_Files( loader, objectInfo );
+        case 89: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
+        case 90: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
+        case 91: return new Operations::Invocations_Operations_Read( loader, objectInfo );
+        case 92: return new Operations::Invocations_Operations_Write( loader, objectInfo );
+        case 93: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
+        case 94: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
+        case 95: return new Operations::Invocations_Operations_Range( loader, objectInfo );
+        case 123: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 124: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 125: return new Operations::Operations_Element( loader, objectInfo );
+        case 126: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 127: return new Operations::Operations_Context( loader, objectInfo );
+        case 128: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 129: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 130: return new Operations::Operations_Name( loader, objectInfo );
+        case 131: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 132: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 133: return new Operations::Operations_Invocations( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

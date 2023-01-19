@@ -168,7 +168,8 @@ EliminationResult elimination( OperationsStage::Invocations::Instructions::Instr
 EliminationResult firstStageElimination( OperationsStage::Invocations::Instructions::Instruction* pInstruction )
 {
     using OperationsStage::Invocations::Instructions::Instruction;
-    auto functor = []( Instruction* pInstruction ) -> bool { return false; };
+    using OperationsStage::Invocations::Instructions::Failure;
+    auto functor = []( Instruction* pInstruction ) -> bool { return db_cast< Failure >( pInstruction ); };
     return elimination( pInstruction, functor );
 }
 

@@ -128,7 +128,7 @@ namespace Interface
     object Link : IContext -> InterfaceStage::Tree
     {
         array< ref< Parser::LinkDef > > link_defs;
-        late< ref< InheritanceTrait > > link_target;
+        late< ref< InheritanceTrait > > link_interface;
         ref< HyperGraph::Relation >     relation -> HyperGraphAnalysisRollout::PerSourceModel;
     }
     object LinkInterface : Link -> InterfaceStage::Tree

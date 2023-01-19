@@ -57,9 +57,15 @@ public:
                         const mega::InvocationID& invocationID, std::ostream& os );
     void generate_write( const LLVMCompiler& compiler, const DatabaseInstance& database,
                          const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_readLink( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                            const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_writeLink( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                             const mega::InvocationID& invocationID, std::ostream& os );
     void generate_call( const LLVMCompiler& compiler, const DatabaseInstance& database,
                         const mega::InvocationID& invocationID, std::ostream& os );
-                        
+    void generate_get( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                       const mega::InvocationID& invocationID, std::ostream& os );
+
     void generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os );
 
 private:

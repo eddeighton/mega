@@ -50,8 +50,9 @@ struct __invoke_impl
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
     {
+        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ {{ invocation.context }}::ID, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
 {% if invocation.explicit_operation == "Read" %}
         // Read
         static thread_local mega::runtime::invocation::Read function( g_unit_name, id );
@@ -60,6 +61,15 @@ struct __invoke_impl
         // Write
         static thread_local mega::runtime::invocation::Write function( g_unit_name, id );
         const {{ invocation.runtime_return_type }} temp{ args... };
+        return function( context.data, (const void*)&temp );
+{% else if invocation.explicit_operation == "ReadLink" %}
+        // ReadLink
+        static thread_local mega::runtime::invocation::ReadLink function( g_unit_name, id );
+        return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( function( context.data ) );
+{% else if invocation.explicit_operation == "WriteLink" %}
+        // WriteLink
+        static thread_local mega::runtime::invocation::WriteLink function( g_unit_name, id );
+        const {{ invocation.runtime_param_type }} temp{ args... };
         return function( context.data, (const void*)&temp );
 {% else if invocation.explicit_operation == "Allocate" %}
         // Allocate
@@ -98,8 +108,12 @@ struct __invoke_impl
         // Files
 {% else if invocation.explicit_operation == "GetAction" %}
         // GetAction
+        static thread_local mega::runtime::invocation::Get function( g_unit_name, id );
+        return function( context.data );
 {% else if invocation.explicit_operation == "GetDimension" %}
-        // GetDimension
+        // GetAction
+        static thread_local mega::runtime::invocation::Get function( g_unit_name, id );
+        return function( context.data );
 {% else if invocation.explicit_operation == "Range" %}
         // Range
 {% else if invocation.explicit_operation == "Raw" %}
@@ -111,8 +125,9 @@ struct __invoke_impl
     template<>
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, const {{ invocation.runtime_return_type }}& arg ) const
     {
+        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ {{ invocation.context }}::ID, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
         static thread_local mega::runtime::invocation::Write function( g_unit_name, id );
         return function( context.data, (const void*)&arg );
     }

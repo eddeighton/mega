@@ -476,7 +476,7 @@ public:
         {
             if ( auto pLink = db_cast< Link >( pContext ) )
             {
-                if ( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
+                if ( !inheritanceAnalysis( pLink, pLink->get_link_interface(), result.loc, result.pDeclContext ) )
                     return false;
                 bProcess = true;
             }

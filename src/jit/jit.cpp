@@ -165,6 +165,36 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
             *ppFunction = ( void* )pModule->get< invocation::Write::FunctionPtr >( os.str() );
         }
         break;
+        case invocation::eReadLink:
+        {
+            if( !pModule )
+            {
+                std::ostringstream osModule;
+                m_codeGenerator.generate_readLink( compiler, m_database, invocationID, osModule );
+                pModule = compile( osModule.str() );
+                m_invocations.insert( std::make_pair( invocationID, pModule ) );
+            }
+            std::ostringstream os;
+            symbolPrefix( invocationID, os );
+            os << "N4mega9referenceE";
+            *ppFunction = ( void* )pModule->get< invocation::ReadLink::FunctionPtr >( os.str() );
+        }
+        break;
+        case invocation::eWriteLink:
+        {
+            if( !pModule )
+            {
+                std::ostringstream osModule;
+                m_codeGenerator.generate_writeLink( compiler, m_database, invocationID, osModule );
+                pModule = compile( osModule.str() );
+                m_invocations.insert( std::make_pair( invocationID, pModule ) );
+            }
+            std::ostringstream os;
+            symbolPrefix( invocationID, os );
+            os << "N4mega9referenceEPKv";
+            *ppFunction = ( void* )pModule->get< invocation::WriteLink::FunctionPtr >( os.str() );
+        }
+        break;
         case invocation::eAllocate:
         {
             if( !pModule )
@@ -193,6 +223,21 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
             symbolPrefix( invocationID, os );
             os << "N4mega9referenceE";
             *ppFunction = ( void* )pModule->get< invocation::Call::FunctionPtr >( os.str() );
+        }
+        break;
+        case invocation::eGet:
+        {
+            if( !pModule )
+            {
+                std::ostringstream osModule;
+                m_codeGenerator.generate_get( compiler, m_database, invocationID, osModule );
+                pModule = compile( osModule.str() );
+                m_invocations.insert( std::make_pair( invocationID, pModule ) );
+            }
+            std::ostringstream os;
+            symbolPrefix( invocationID, os );
+            os << "N4mega9referenceE";
+            *ppFunction = ( void* )pModule->get< invocation::Get::FunctionPtr >( os.str() );
         }
         break;
         case invocation::TOTAL_FUNCTION_TYPES:

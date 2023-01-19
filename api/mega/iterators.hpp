@@ -27,6 +27,10 @@
 #include "clock.hpp"
 
 #include <array>
+#include <vector>
+
+template< typename T >
+using __mega_vector = std::vector< T >;
 
 /*
 template< typename ReferenceType >

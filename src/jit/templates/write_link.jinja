@@ -27,7 +27,17 @@
 
 static const char* g_pszModuleName = "{{module_name}}";
 
-void* {{ name }}( mega::reference context )
+namespace mega::mangle
+{
+{% for copy in copiers %}
+    void copy_{{copy}}(const void*,void*);
+{% endfor %}
+{% for event in events %}
+    void save_record_{{event}}(void*,const reference&,const void*,int);
+{% endfor %}
+}
+
+mega::reference {{ name }}( mega::reference context, const void* pData )
 {
 {% for variable in variables %}
 {{ variable }}
@@ -37,6 +47,6 @@ void* {{ name }}( mega::reference context )
 {{ assignment }}
 {% endfor %}
 
-    throw mega::runtime::JITException{ "Read invocation failed" };
-    return nullptr;
+    throw mega::runtime::JITException{ "WriteLink invocation failed" };
+    return mega::reference{};
 }

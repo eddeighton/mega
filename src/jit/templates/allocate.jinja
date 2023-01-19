@@ -22,6 +22,7 @@
 #include "mega/reference.hpp"
 #include "service/protocol/common/mpo_context_interface.hpp" 
 #include "jit/object_functions.hxx"
+#include "jit/jit_exception.hpp"
 
 static const char* g_pszModuleName = "{{module_name}}";
 
@@ -34,4 +35,8 @@ mega::reference {{ name }}( mega::reference context )
 {% for assignment in assignments %}
 {{ assignment }}
 {% endfor %}
+
+    // TODO: emit log error
+    throw mega::runtime::JITException{ "Allocate invocation failed" };
+    return mega::reference{};
 }

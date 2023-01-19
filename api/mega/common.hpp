@@ -70,6 +70,8 @@ enum ExplicitOperationID : TypeID
 {
     id_exp_Read,
     id_exp_Write,
+    id_exp_Read_Link,
+    id_exp_Write_Link,
     id_exp_Allocate,
     id_exp_Call,
     id_exp_Start,
