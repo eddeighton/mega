@@ -134,6 +134,10 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateGet() const
 {
     return m_installationPath / "templates/get.jinja";
 }
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateRelation() const
+{
+    return m_installationPath / "templates/relation.jinja";
+}
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateProgram() const
 {
     return m_installationPath / "templates/program.jinja";

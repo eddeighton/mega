@@ -62,20 +62,28 @@ run_inja_template( ${MEGA_API_DIR}/jit/program_functions.json
                 ${MEGA_SRC_DIR}/jit/program_functions.cxx.jinja
                 ${MEGA_SRC_DIR}/jit/program_functions.cxx )
 
+run_inja_template( ${MEGA_API_DIR}/jit/relation_functions.json
+                ${MEGA_API_DIR}/jit/relation_functions.hxx.jinja
+                ${MEGA_API_DIR}/jit/relation_functions.hxx )
+run_inja_template( ${MEGA_API_DIR}/jit/relation_functions.json
+                ${MEGA_SRC_DIR}/jit/relation_functions.cxx.jinja
+                ${MEGA_SRC_DIR}/jit/relation_functions.cxx )
+
 set( JINJA_TEMPLATES 
-    ${MEGA_SRC_DIR}/jit/templates/allocation.jinja 
     ${MEGA_SRC_DIR}/jit/templates/allocate.jinja 
-    ${MEGA_SRC_DIR}/jit/templates/read.jinja 
-    ${MEGA_SRC_DIR}/jit/templates/write.jinja 
-    ${MEGA_SRC_DIR}/jit/templates/read_link.jinja 
-    ${MEGA_SRC_DIR}/jit/templates/write_link.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/allocation.jinja 
     ${MEGA_SRC_DIR}/jit/templates/call.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/get.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/load.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/program.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/read_link.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/read.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/relation.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/save.jinja 
     ${MEGA_SRC_DIR}/jit/templates/start.jinja 
     ${MEGA_SRC_DIR}/jit/templates/stop.jinja 
-    ${MEGA_SRC_DIR}/jit/templates/save.jinja 
-    ${MEGA_SRC_DIR}/jit/templates/load.jinja 
-    ${MEGA_SRC_DIR}/jit/templates/get.jinja 
-    ${MEGA_SRC_DIR}/jit/templates/program.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/write_link.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/write.jinja 
 )
 
 set( RUNTIME_HEADERS
@@ -92,32 +100,35 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/orc.hpp
     ${MEGA_API_DIR}/jit/program_functions.hxx
     ${MEGA_API_DIR}/jit/program.hpp
+    ${MEGA_API_DIR}/jit/relation_functions.hxx
+    ${MEGA_API_DIR}/jit/relation.hpp
 
 )
 
 set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/jit/symbol_utils.hpp
 
-    ${MEGA_SRC_DIR}/jit/component_manager.cpp
-    ${MEGA_SRC_DIR}/jit/code_generator.cpp
-    ${MEGA_SRC_DIR}/jit/jit.cpp
     ${MEGA_SRC_DIR}/jit/allocator.cpp
-    ${MEGA_SRC_DIR}/jit/program.cpp
+    ${MEGA_SRC_DIR}/jit/code_generator.cpp
+    ${MEGA_SRC_DIR}/jit/component_manager.cpp
     ${MEGA_SRC_DIR}/jit/functions.cpp
     ${MEGA_SRC_DIR}/jit/invocation_functions.cxx
+    ${MEGA_SRC_DIR}/jit/jit.cpp
     ${MEGA_SRC_DIR}/jit/object_functions.cxx
     ${MEGA_SRC_DIR}/jit/program_functions.cxx
+    ${MEGA_SRC_DIR}/jit/program.cpp
+    ${MEGA_SRC_DIR}/jit/relation_functions.cxx
+    ${MEGA_SRC_DIR}/jit/relation.cpp
     
 )
 
-add_library( jit
+add_library( jit SHARED
     ${RUNTIME_HEADERS} 
     ${RUNTIME_SOURCE}
 )
 
 set_target_properties( jit PROPERTIES FOLDER service )
 
-add_definitions(-DMEGA_JIT_API_SHARED_MODULE)
 
 include_directories( jit ${MEGA_API_DIR}/jit )
 
@@ -126,9 +137,10 @@ target_link_libraries( jit orc )
 target_link_libraries( jit protocol )
 
 IF( ${WIN32} )
+add_definitions(-DMEGA_JIT_API_SHARED_MODULE)
 set_property(TARGET jit PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
 ELSE( ${WIN32} )
-#target_link_options( jit PUBLIC -export-dynamic )
+# target_link_options( jit PUBLIC -export-dynamic )
 set_property(TARGET jit PROPERTY C_VISIBILITY_PRESET hidden)
 set_property(TARGET jit PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 set_property(TARGET jit PROPERTY POSITION_INDEPENDENT_CODE ON)

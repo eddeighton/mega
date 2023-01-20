@@ -84,6 +84,8 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/record_archive.hpp
     ${MEGA_API_DIR}/mega/reference_io.hpp
     ${MEGA_API_DIR}/mega/reference.hpp
+    ${MEGA_API_DIR}/mega/relation_id.hpp
+    ${MEGA_API_DIR}/mega/relation_io.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
@@ -91,6 +93,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/type_instance.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
     ${MEGA_API_DIR}/mega/variant.hpp
+    ${MEGA_API_DIR}/mega/write_operation.hpp
     ${MEGA_API_DIR}/mega/xml_archive.hpp
 )
 
@@ -101,6 +104,7 @@ add_dependencies( mega_interface generate_mangle_allocators )
 
 set( MEGA_TYPES
     ${MEGA_API_DIR}/mega/types/traits.hpp
+    ${MEGA_API_DIR}/mega/types/traits.cpp
     ${MEGA_API_DIR}/mega/types/mangle_types.cxx
     ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
 )

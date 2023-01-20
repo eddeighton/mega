@@ -26,6 +26,7 @@
 #include "code_generator.hpp"
 #include "allocator.hpp"
 #include "program.hpp"
+#include "relation.hpp"
 
 #include "database/database.hpp"
 
@@ -33,6 +34,7 @@
 #include "service/protocol/common/jit_base.hpp"
 
 #include "mega/invocation_id.hpp"
+#include "mega/relation_id.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -51,7 +53,8 @@ public:
     JIT( const network::MegastructureInstallation& megastructureInstallation, const network::Project& project );
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
-    
+    Relation::Ptr getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
+
     virtual void getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
 
     virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
@@ -59,6 +62,9 @@ public:
                                         void** ppFunction ) override;
     virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::TypeID& typeID,
                                     int functionType, void** ppFunction ) override;
+    virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName,
+                                      const RelationID& relationID, int functionType,
+                                      void** ppFunction ) override;
 
 private:
     JITCompiler::Module::Ptr compile( const std::string& strCode );
@@ -73,6 +79,9 @@ private:
 
     using AllocatorMap = std::map< TypeID, Allocator::Ptr >;
     AllocatorMap m_allocators;
+
+    using RelationMap = std::map< RelationID, Relation::Ptr >;
+    RelationMap m_relations;
 
     using InvocationMap = std::map< InvocationID, JITCompiler::Module::Ptr >;
     InvocationMap m_invocations;

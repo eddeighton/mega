@@ -59,6 +59,22 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
         m_pConcreteRoot = FinalStage::db_cast< FinalStage::Concrete::Object >( concrete.front() );
         VERIFY_RTE_MSG( m_pConcreteRoot->get_concrete_id() == 1, "Concrete Root Type ID is NOT one!" );
     }
+
+    // for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+    {
+        for( FinalStage::HyperGraph::Relation* pRelation :
+             m_database.many< FinalStage::HyperGraph::Relation >( m_manifest.getManifestFilePath() ) )
+        {
+            m_relations.insert( { pRelation->get_id(), pRelation } );
+        }
+    }
+}
+
+FinalStage::HyperGraph::Relation* DatabaseInstance::getRelation( const RelationID& relationID ) const
+{
+    auto iFind = m_relations.find( relationID );
+    VERIFY_RTE_MSG( iFind != m_relations.end(), "Failed to locate relation: " << relationID );
+    return iFind->second;
 }
 
 mega::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType ) const
@@ -265,7 +281,7 @@ mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
     }
 }
 
-template< typename T >
+template < typename T >
 std::vector< T* > getPerCompilationFileType( const mega::io::Manifest& manifest, const FinalStage::Database& database )
 {
     std::vector< T* > result;

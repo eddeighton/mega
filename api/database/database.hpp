@@ -21,6 +21,7 @@
 #define DATABASE_8_AUG_2022
 
 #include "mega/memory.hpp"
+#include "mega/relation_id.hpp"
 
 #include "database/common/api.hpp"
 #include "database/common/environment_archive.hpp"
@@ -41,6 +42,8 @@ public:
     using ConcreteTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
+    FinalStage::HyperGraph::Relation* getRelation( const RelationID& relationID ) const;
+
     mega::SizeAlignment                          getObjectSize( mega::TypeID objectType ) const;
     const FinalStage::Operations::Invocation*    getInvocation( const mega::InvocationID& invocation ) const;
     mega::TypeID                                 getInterfaceTypeID( mega::TypeID concreteTypeID ) const;
@@ -53,7 +56,6 @@ public:
     std::vector< FinalStage::Concrete::Dimensions::User* > getUserDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::LinkReference* > getLinkDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::Allocation* > getAllocationDimensions() const;
-
 private:
     mega::io::ArchiveEnvironment                      m_environment;
     mega::io::Manifest                                m_manifest;
@@ -62,6 +64,9 @@ private:
     FinalStage::Symbols::SymbolTable*                 m_pSymbolTable;
     ConcreteTypeIDMap                                 m_concreteTypeIDs;
     FinalStage::Concrete::Object*                     m_pConcreteRoot;
+
+    using RelationMap = std::unordered_map< RelationID, FinalStage::HyperGraph::Relation*, RelationID::Hash >;
+    RelationMap m_relations;
 };
 
 } // namespace mega::runtime

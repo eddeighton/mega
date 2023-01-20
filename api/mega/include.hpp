@@ -36,5 +36,6 @@
 #include "operations.hpp"
 #include "iterators.hpp"
 #include "scheduler.hpp"
+#include "write_operation.hpp"
 
 #endif //EG_STANDARD_STUFF

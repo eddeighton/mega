@@ -19,6 +19,8 @@
 
 #include "base_task.hpp"
 
+#include "mega/relation_id.hpp"
+
 #include "database/model/DerivationAnalysis.hxx"
 #include "database/model/HyperGraphAnalysis.hxx"
 #include "database/model/HyperGraphAnalysisView.hxx"
@@ -88,7 +90,7 @@ public:
         for( Interface::Link* pLink : links )
         {
             VERIFY_RTE( !db_cast< Interface::LinkInterface >( pLink ) );
-            
+
             auto pLinkInterface = db_cast< Interface::LinkInterface >( getLinkTarget( pLink ) );
             VERIFY_RTE_MSG( pLinkInterface, "Link does not inherit link interface correctly" );
 
@@ -114,8 +116,12 @@ public:
         std::map< Interface::Link*, Relation* > relations;
         for( RelTemp::Ptr pTempRel : tempRelations )
         {
-            Relation* pRelation = database.construct< Relation >( Relation::Args{
-                pTempRel->sources, pTempRel->targets, pTempRel->pLinkInterfaceSrc, pTempRel->pLinkInterfaceTarget } );
+            const RelationID relationID{
+                pTempRel->pLinkInterfaceSrc->get_interface_id(), pTempRel->pLinkInterfaceTarget->get_interface_id() };
+
+            Relation* pRelation = database.construct< Relation >(
+                Relation::Args{ relationID, pTempRel->sources, pTempRel->targets, pTempRel->pLinkInterfaceSrc,
+                                pTempRel->pLinkInterfaceTarget } );
 
             relations.insert( { pTempRel->pLinkInterfaceSrc, pRelation } );
             relations.insert( { pTempRel->pLinkInterfaceTarget, pRelation } );
@@ -255,7 +261,7 @@ public:
 
         {
             HyperGraph::Graph* pHyperGraph = database.one< HyperGraph::Graph >( m_environment.project_manifest() );
-            auto relations = pHyperGraph->get_relations();
+            auto               relations   = pHyperGraph->get_relations();
             for( Interface::Link* pLink : database.many< Interface::Link >( m_sourceFilePath ) )
             {
                 auto iFind = relations.find( pLink );

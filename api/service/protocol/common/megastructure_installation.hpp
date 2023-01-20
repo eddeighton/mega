@@ -55,6 +55,7 @@ public:
     boost::filesystem::path getRuntimeTemplateSave() const;
     boost::filesystem::path getRuntimeTemplateLoad() const;
     boost::filesystem::path getRuntimeTemplateGet() const;
+    boost::filesystem::path getRuntimeTemplateRelation() const;
     boost::filesystem::path getRuntimeTemplateProgram() const;
 
     template < class Archive >

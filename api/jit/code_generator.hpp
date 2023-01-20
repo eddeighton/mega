@@ -21,10 +21,13 @@
 #define CODE_GENERATOR_16_AUG_2022
 
 #include "api.hpp"
+
 #include "database/database.hpp"
 
 #include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/project.hpp"
+
+#include "mega/relation_id.hpp"
 
 #include <boost/asio/spawn.hpp>
 
@@ -66,6 +69,7 @@ public:
     void generate_get( const LLVMCompiler& compiler, const DatabaseInstance& database,
                        const mega::InvocationID& invocationID, std::ostream& os );
 
+    void generate_relation( const LLVMCompiler& compiler, const DatabaseInstance& database, const RelationID& relationID, std::ostream& os );
     void generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os );
 
 private:

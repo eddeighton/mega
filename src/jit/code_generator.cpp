@@ -28,6 +28,7 @@
 #include "service/mpo_context.hpp"
 
 #include "mega/invocation_io.hpp"
+#include "mega/relation_io.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -204,37 +205,39 @@ std::string allocatorTypeName( const DatabaseInstance&                      data
 class CodeGenerator::Pimpl
 {
     ::inja::Environment m_injaEnvironment;
-    ::inja::Template    m_allocationTemplate;
     ::inja::Template    m_allocateTemplate;
-    ::inja::Template    m_readTemplate;
-    ::inja::Template    m_writeTemplate;
-    ::inja::Template    m_readLinkTemplate;
-    ::inja::Template    m_writeLinkTemplate;
+    ::inja::Template    m_allocationTemplate;
     ::inja::Template    m_callTemplate;
+    ::inja::Template    m_getTemplate;
+    ::inja::Template    m_loadTemplate;
+    ::inja::Template    m_programTemplate;
+    ::inja::Template    m_readLinkTemplate;
+    ::inja::Template    m_readTemplate;
+    ::inja::Template    m_relationTemplate;
+    ::inja::Template    m_saveTemplate;
     ::inja::Template    m_startTemplate;
     ::inja::Template    m_stopTemplate;
-    ::inja::Template    m_saveTemplate;
-    ::inja::Template    m_loadTemplate;
-    ::inja::Template    m_getTemplate;
-    ::inja::Template    m_programTemplate;
+    ::inja::Template    m_writeLinkTemplate;
+    ::inja::Template    m_writeTemplate;
 
 public:
     Pimpl( const mega::network::MegastructureInstallation& megaInstall, const mega::network::Project& project )
     {
         m_injaEnvironment.set_trim_blocks( true );
-        m_allocationTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().string() );
         m_allocateTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocate().string() );
-        m_readTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().string() );
-        m_writeTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().string() );
-        m_readLinkTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateReadLink().string() );
-        m_writeLinkTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWriteLink().string() );
+        m_allocationTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().string() );
         m_callTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().string() );
+        m_getTemplate        = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateGet().string() );
+        m_loadTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().string() );
+        m_programTemplate    = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateProgram().string() );
+        m_readLinkTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateReadLink().string() );
+        m_readTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().string() );
+        m_relationTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRelation().string() );
+        m_saveTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().string() );
         m_startTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().string() );
         m_stopTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().string() );
-        m_saveTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().string() );
-        m_loadTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().string() );
-        m_getTemplate        = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateGet().string() );
-        m_programTemplate    = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateProgram().string() );
+        m_writeLinkTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWriteLink().string() );
+        m_writeTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().string() );
     }
 
     void render_allocation( const nlohmann::json& data, std::ostream& os )
@@ -284,6 +287,10 @@ public:
     void render_get( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_getTemplate, data );
+    }
+    void render_relation( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_relationTemplate, data );
     }
     void render_program( const nlohmann::json& data, std::ostream& os )
     {
@@ -653,7 +660,7 @@ R"TEMPLATE(
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    return {{ instance }};
+{{ indent }}    return mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
 {{ indent }}}
 )TEMPLATE";
                 // clang-format on
@@ -665,7 +672,9 @@ R"TEMPLATE(
                     osIndent << indent;
 
                     nlohmann::json templateData(
-                        { { "indent", osIndent.str() }, { "instance", get( variables, pInstance ) } } );
+                        { { "indent", osIndent.str() },
+                          { "instance", get( variables, pInstance ) },
+                          { "concrete_type_id", pInstance->get_concrete()->get_concrete_id() } } );
 
                     os << render( szTemplate, templateData );
                 }
@@ -678,7 +687,7 @@ R"TEMPLATE(
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    return {{ instance }};
+{{ indent }}    return mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
 {{ indent }}}
 )TEMPLATE";
                 // clang-format on
@@ -690,7 +699,11 @@ R"TEMPLATE(
                     osIndent << indent;
 
                     nlohmann::json templateData(
-                        { { "indent", osIndent.str() }, { "instance", get( variables, pInstance ) } } );
+                        { { "indent", osIndent.str() },
+                          { "instance", get( variables, pInstance ) },
+                          { "concrete_type_id", pInstance->get_concrete()->get_concrete_id() } }
+
+                    );
 
                     os << render( szTemplate, templateData );
                 }
@@ -859,123 +872,62 @@ R"TEMPLATE(
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    mega::reference& target = *reinterpret_cast< mega::reference* >( pData );
-{{ indent }}    if( target.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    switch( overload )
 {{ indent }}    {
-{{ indent }}        mega::runtime::writeLock( target );
+{{ indent }}        case WriteOperation::DEFAULT:
+{{ indent }}        case WriteOperation::INSERT:
+{{ indent }}        {
+{{ indent }}            static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
+{{ indent }}            function( {{ instance }}, target );
+{{ indent }}        }
+{{ indent }}        break;
+{{ indent }}        case WriteOperation::REMOVE:
+{{ indent }}        {
+{{ indent }}            static thread_local mega::runtime::relation::LinkBreak function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
+{{ indent }}            function( {{ instance }}, target );
+{{ indent }}        }
+{{ indent }}        break;
+{{ indent }}        case WriteOperation::OVERWRITE:
+{{ indent }}        {
+{{ indent }}            static thread_local mega::runtime::relation::LinkOverwrite function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
+{{ indent }}            function( {{ instance }}, target );
+{{ indent }}        }
+{{ indent }}        break;
+{{ indent }}        case WriteOperation::RESET:
+{{ indent }}        {
+{{ indent }}            static thread_local mega::runtime::relation::LinkReset function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
+{{ indent }}            function( {{ instance }}, target );
+{{ indent }}        }
+{{ indent }}        break;
+{{ indent }}        case WriteOperation::TOTAL_WRITE_OPERATIONS:
+{{ indent }}        default:
+{{ indent }}            throw mega::runtime::JITException{ "Unrecognised write link overload" };
+{{ indent }}        break;
 {{ indent }}    }
-{{ indent }}    else if( target.isNetworkAddress() )
-{{ indent }}    {
-{{ indent }}        mega::runtime::networkToHeap( target );
-{{ indent }}    }
-{{ indent }}
-{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
-{{ indent }}    {
-{{ indent }}        mega::runtime::writeLock( {{ instance }} );
-{{ indent }}    }
-{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
-{{ indent }}    {
-{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
-{{ indent }}    }
-{{ indent }}
-
-{% if source.singular %}
-
-    {% if target.singular %}
-
-{{ indent }}
-{{ indent }}    void* pTargetAddress = 
-{{ indent }}        reinterpret_cast< char* >( target.getHeap() )
-{{ indent }}        + {{ target.part_offset }} + ( {{ target.part_size }} * target.getInstance() ) 
-{{ indent }}        + {{ target.dimension_offset }};
-{{ indent }}
-{{ indent }}    mega::reference& targetDeRef = *reinterpret_cast< mega::reference* >( pTargetAddress ); 
-{{ indent }}
-{{ indent }}    void* pSourceAddress = 
-{{ indent }}        reinterpret_cast< char* >( source.getHeap() )
-{{ indent }}        + {{ source.part_offset }} + ( {{ source.part_size }} * source.getInstance() ) 
-{{ indent }}        + {{ source.dimension_offset }};
-{{ indent }}
-{{ indent }}    mega::reference& sourceDeRef = *reinterpret_cast< mega::reference* >( pSourceAddress ); 
-{{ indent }}
-{{ indent }}
-
-
-
-    {% else %}
-
-    {% endif %}
-
-{% else %}
-
-    {% if target.singular %}
-
-
-
-    {% else %}
-
-    {% endif %}
-
-{% endif %}
-
-
-{{ indent }}
-{{ indent }}    void* pTarget = 
-{{ indent }}        reinterpret_cast< char* >( {{ instance }}.getHeap() )
-{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
-{{ indent }}        + {{ dimension_offset }};
-{{ indent }}
-{{ indent }}    mega::mangle::copy_{{ mangled_type_name }}( pData, pTarget );
-{{ indent }}    mega::mangle::save_record_{{ mangled_type_name }}
-{{ indent }}    (
-{{ indent }}        mega::runtime::log(),
-{{ indent }}        mega::reference
-{{ indent }}        ( 
-{{ indent }}            mega::TypeInstance
-{{ indent }}            ( 
-{{ indent }}                {{ instance }}.getInstance(), 
-{{ indent }}                {{ concrete_type_id }} 
-{{ indent }}            ),
-{{ indent }}            {{ instance }}.getMPO(), 
-{{ indent }}            {{ instance }}.getObjectID()
-{{ indent }}        ),
-{{ indent }}        pTarget,
-{{ indent }}        {{ log_track_type }}
-{{ indent }}    );
-{{ indent }}    return {{ instance }};
 {{ indent }}}
+{{ indent }}return {{ instance }};
 )TEMPLATE";
                 // clang-format on
                 std::ostringstream os;
                 {
-                    Concrete::Link* pLink          = pWriteLink->get_concrete_link();
-                    auto            pLinkReference = pLink->get_link_reference();
-
-                    Variables::Instance* pInstance = pWriteLink->get_instance();
-                    MemoryLayout::Part*  pPart     = pLinkReference->get_part();
-                    const bool bSimple = db_cast< FinalStage::Concrete::Dimensions::LinkSingle >( pLinkReference );
-                    const std::string strMangled
-                        = bSimple ? megaMangle( "mega::reference" ) : megaMangle( "mega::ReferenceVector" );
+                    Concrete::Link*      pLink          = pWriteLink->get_concrete_link();
+                    auto                 pLinkReference = pLink->get_link_reference();
+                    Variables::Instance* pInstance      = pWriteLink->get_instance();
+                    RelationID           relationID     = pLink->get_link_interface()->get_relation()->get_id();
 
                     std::ostringstream osIndent;
                     osIndent << indent;
 
                     nlohmann::json templateData(
                         { { "indent", osIndent.str() },
-                          { "concrete_type_id", pLink->get_concrete_id() },
-                          { "part_offset", pPart->get_offset() },
-                          { "part_size", pPart->get_size() },
-                          { "dimension_offset", pLinkReference->get_offset() },
-                          { "mangled_type_name", strMangled },
+                          { "relation_id_lower", relationID.getLower() },
+                          { "relation_id_upper", relationID.getUpper() },
                           { "instance", get( variables, pInstance ) },
                           { "log_track_type", mega::log::toInt( mega::log::TrackType::Simulation ) }
 
                         } );
 
                     os << render( szTemplate, templateData );
-
-                    functions.copySet.insert( strMangled );
-                    functions.eventSet.insert( strMangled );
                 }
 
                 data[ "assignments" ].push_back( os.str() );
@@ -1557,88 +1509,61 @@ void CodeGenerator::generate_get( const LLVMCompiler& compiler, const DatabaseIn
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
-/*
-void CodeGenerator::generate_start( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                    const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_start: {}", invocationID );
 
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
+void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                       const RelationID& relationID, std::ostream& os )
+{
+    SPDLOG_TRACE( "RUNTIME: generate_relation" );
+
+    auto pRelation = database.getRelation( relationID );
+
+    std::ostringstream osRelationID;
+    {
+        using ::operator<<;
+        osRelationID << relationID;
+    }
+
+    std::ostringstream osModuleName;
+    {
+        osModuleName << "relation_" << osRelationID.str();
+    }
+
+    nlohmann::json data( { { "relationID", osRelationID.str() },
+                           { "module_name", osModuleName.str() },
+                           { "sources", nlohmann::json::array() },
+                           { "targets", nlohmann::json::array() } } );
+
+    for( auto pSource : pRelation->get_sources() )
+    {
+        nlohmann::json source( { { "concrete_types", nlohmann::json::array() } } );
+        for( auto pConcrete : pSource->get_concrete() )
+        {
+            source[ "concrete_types" ].push_back( pConcrete->get_concrete_id() );
+        }
+        data[ "sources" ].push_back( source );
+    }
+    for( auto pTarget : pRelation->get_targets() )
+    {
+        nlohmann::json target( { { "concrete_types", nlohmann::json::array() } } );
+        for( auto pConcrete : pTarget->get_concrete() )
+        {
+            target[ "concrete_types" ].push_back( pConcrete->get_concrete_id() );
+        }
+        data[ "targets" ].push_back( target );
+    }
 
     std::ostringstream osCPPCode;
     try
     {
-        m_pPimpl->render_start( data, osCPPCode );
+        m_pPimpl->render_relation( data, osCPPCode );
     }
     catch( inja::InjaError& ex )
     {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_start: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_start: " << ex.what() );
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_relation: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_relation: " << ex.what() );
     }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+    compiler.compileToLLVMIR( osModuleName.str(), osCPPCode.str(), os, std::nullopt );
 }
-void CodeGenerator::generate_stop( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                   const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_stop: {}", invocationID );
-
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
-
-    std::ostringstream osCPPCode;
-    try
-    {
-        m_pPimpl->render_stop( data, osCPPCode );
-    }
-    catch( inja::InjaError& ex )
-    {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_stop : {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_stop: " << ex.what() );
-    }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}
-void CodeGenerator::generate_save( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                   const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_save: {}", invocationID );
-
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
-
-    std::ostringstream osCPPCode;
-    try
-    {
-        m_pPimpl->render_save( data, osCPPCode );
-    }
-    catch( inja::InjaError& ex )
-    {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_save: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_save: " << ex.what() );
-    }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}
-void CodeGenerator::generate_load( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                   const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_load: {}", invocationID );
-
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
-
-    std::ostringstream osCPPCode;
-    try
-    {
-        m_pPimpl->render_load( data, osCPPCode );
-    }
-    catch( inja::InjaError& ex )
-    {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_load: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_load: " << ex.what() );
-    }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}*/
-
 void CodeGenerator::generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_program" );

@@ -17,8 +17,88 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-namespace mega
+#include "mega/reference.hpp"
+#include "traits.hpp"
+
+#include <algorithm>
+
+namespace mega::mangle
 {
+namespace
+{
+template < typename T >
+inline T& reify( void* p )
+{
+    return *reinterpret_cast< T* >( p );
+}
+template < typename T >
+inline const T& reify( const void* p )
+{
+    return *reinterpret_cast< const T* >( p );
+}
+
+inline bool contains( const ReferenceVector& refVector, const reference& ref )
+{
+    return std::find( refVector.cbegin(), refVector.cend(), ref ) != refVector.end();
+}
+bool hyper_is_link( const reference& srcContext, const reference& srcValue, const reference& targetContext,
+                    const reference& targetValue )
+{
+    return ( srcContext == targetValue ) && ( targetContext == srcValue );
+}
+
+bool hyper_is_link( const reference& srcContext, const ReferenceVector& srcValue, const reference& targetContext,
+                    const reference& targetValue )
+{
+    return ( srcContext == targetValue ) && contains( srcValue, targetContext );
+}
+bool hyper_is_link( const reference& srcContext, const reference& srcValue, const reference& targetContext,
+                    const ReferenceVector& targetValue )
+{
+    return contains( targetValue, srcContext ) && ( targetContext == srcValue );
+}
+bool hyper_is_link( const reference& srcContext, const ReferenceVector& srcValue, const reference& targetContext,
+                    const ReferenceVector& targetValue )
+{
+    return contains( targetValue, srcContext ) && contains( srcValue, targetContext );
+}
+
+} // namespace
+
+bool hyper_is_link_r_r( const void* srcContext, const void* srcValue, const void* targetContext,
+                        const void* targetValue )
+{
+    return hyper_is_link( reify< reference >( srcContext ),
+                          reify< reference >( srcValue ),
+                          reify< reference >( targetContext ),
+                          reify< reference >( targetValue ) );
+}
+
+bool hyper_is_link_r_v( const void* srcContext, const void* srcValue, const void* targetContext,
+                        const void* targetValue )
+{
+    return hyper_is_link( reify< reference >( srcContext ),
+                          reify< ReferenceVector >( srcValue ),
+                          reify< reference >( targetContext ),
+                          reify< reference >( targetValue ) );
+}
+bool hyper_is_link_v_r( const void* srcContext, const void* srcValue, const void* targetContext,
+                        const void* targetValue )
+{
+    return hyper_is_link( reify< reference >( srcContext ),
+                          reify< reference >( srcValue ),
+                          reify< reference >( targetContext ),
+                          reify< ReferenceVector >( targetValue ) );
+}
+bool hyper_is_link_v_v( const void* srcContext, const void* srcValue, const void* targetContext,
+                        const void* targetValue )
+{
+    return hyper_is_link( reify< reference >( srcContext ),
+                          reify< ReferenceVector >( srcValue ),
+                          reify< reference >( targetContext ),
+                          reify< ReferenceVector >( targetValue ) );
+}
+
 /*
 void schedule_start( const reference& ref )
 {

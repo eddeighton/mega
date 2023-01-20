@@ -119,6 +119,7 @@ namespace HyperGraph
 {
     object Relation -> HyperGraphAnalysis::Model
     {
+        value< mega::RelationID > id;
         array< ref< Interface::Link > > sources;
         array< ref< Interface::Link > > targets;
         ref< Interface::LinkInterface > source_interface;

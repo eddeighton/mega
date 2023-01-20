@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,38 +18,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef GUARD_2023_January_20_write_operation
+#define GUARD_2023_January_20_write_operation
 
-// ed was here
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
-#include "mega/write_operation.hpp"
-#include "mega/relation_id.hpp"
-#include "service/protocol/common/mpo_context_interface.hpp"
-#include "jit/relation_functions.hxx"
-#include "jit/jit_exception.hpp"
-
-static const char* g_pszModuleName = "{{module_name}}";
-
-namespace mega::mangle
+enum class WriteOperation
 {
-{% for copy in copiers %}
-    void copy_{{copy}}(const void*,void*);
-{% endfor %}
-{% for event in events %}
-    void save_record_{{event}}(void*,const reference&,const void*,int);
-{% endfor %}
-}
+    DEFAULT,
+    INSERT,
+    REMOVE,
+    OVERWRITE,
+    RESET,
+    TOTAL_WRITE_OPERATIONS
+};
 
-mega::reference {{ name }}( mega::reference context, WriteOperation overload, const mega::reference& target )
-{
-{% for variable in variables %}
-{{ variable }}
-{% endfor %}
-
-{% for assignment in assignments %}
-{{ assignment }}
-{% endfor %}
-
-    throw mega::runtime::JITException{ "WriteLink invocation failed" };
-    return mega::reference{};
-}
+#endif // GUARD_2023_January_20_write_operation

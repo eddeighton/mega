@@ -1,0 +1,88 @@
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
+
+
+#include "mega/native_types.hpp"
+#include "mega/reference.hpp"
+#include "service/protocol/common/mpo_context_interface.hpp" 
+#include "jit/object_functions.hxx"
+
+namespace mega::mangle
+{
+
+bool hyper_is_link_r_r( const void* srcContext, const void* srcValue, const void* targetContext, const void* targetValue );
+bool hyper_is_link_r_v( const void* srcContext, const void* srcValue, const void* targetContext, const void* targetValue );
+bool hyper_is_link_v_r( const void* srcContext, const void* srcValue, const void* targetContext, const void* targetValue );
+bool hyper_is_link_v_v( const void* srcContext, const void* srcValue, const void* targetContext, const void* targetValue );
+
+}
+
+
+void link_make_{{ relationID }}( mega::reference source, mega::reference target )
+{
+
+    if( target.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::writeLock( target );
+    }
+    else if( target.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( target );
+    }
+
+    if( source.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::writeLock( source );
+    }
+    else if( source.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( source );
+    }
+
+}
+
+void link_break_{{ relationID }}( mega::reference source, mega::reference target )
+{
+    if( target.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::writeLock( target );
+    }
+    else if( target.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( target );
+    }
+
+    if( source.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::writeLock( source );
+    }
+    else if( source.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( source );
+    }
+
+}
+
+void link_overwrite_{{ relationID }}( mega::reference source, mega::reference target )
+{
+}
+
+void link_reset_{{ relationID }}( mega::reference source, mega::reference target )
+{
+}

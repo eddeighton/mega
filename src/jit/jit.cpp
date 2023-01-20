@@ -22,6 +22,7 @@
 #include "object_functions.hxx"
 #include "invocation_functions.hxx"
 #include "program_functions.hxx"
+#include "relation_functions.hxx"
 
 #include "service/network/log.hpp"
 
@@ -68,6 +69,27 @@ Allocator::Ptr JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler, c
         }
     }
     return pAllocator;
+}
+
+Relation::Ptr JIT::getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID )
+{
+    Relation::Ptr pRelation;
+    {
+        auto iFind = m_relations.find( relationID );
+        if( iFind != m_relations.end() )
+        {
+            pRelation = iFind->second;
+        }
+        else
+        {
+            std::ostringstream osModule;
+            m_codeGenerator.generate_relation( compiler, m_database, relationID, osModule );
+            JITCompiler::Module::Ptr pModule = compile( osModule.str() );
+            pRelation                        = std::make_shared< Relation >( relationID, m_database, pModule );
+            m_relations.insert( { relationID, pRelation } );
+        }
+    }
+    return pRelation;
 }
 
 void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction )
@@ -191,7 +213,7 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
             }
             std::ostringstream os;
             symbolPrefix( invocationID, os );
-            os << "N4mega9referenceEPKv";
+            os << "N4mega9referenceE14WriteOperationRKS0_";
             *ppFunction = ( void* )pModule->get< invocation::WriteLink::FunctionPtr >( os.str() );
         }
         break;
@@ -277,6 +299,49 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const
         }
         break;
         case mega::runtime::object::TOTAL_FUNCTION_TYPES:
+        {
+            THROW_RTE( "Unsupported object function" );
+        }
+        break;
+    }
+}
+
+void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, const RelationID& relationID, int fType,
+                               void** ppFunction )
+{
+    SPDLOG_TRACE(
+        "JIT::getRelationFunction : {} {}.{} {}", pszUnitName, relationID.getLower(), relationID.getUpper(), fType );
+    const CodeGenerator::LLVMCompiler& compiler
+        = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
+
+    const auto functionType = static_cast< mega::runtime::relation::FunctionType >( fType );
+    switch( functionType )
+    {
+        case mega::runtime::relation::eLinkMake:
+        {
+            auto pRelation = getRelation( compiler, relationID );
+            *ppFunction    = ( void* )pRelation->getMake();
+        }
+        break;
+        case mega::runtime::relation::eLinkBreak:
+        {
+            auto pRelation = getRelation( compiler, relationID );
+            *ppFunction    = ( void* )pRelation->getBreak();
+        }
+        break;
+        case mega::runtime::relation::eLinkOverwrite:
+        {
+            auto pRelation = getRelation( compiler, relationID );
+            *ppFunction    = ( void* )pRelation->getOverwrite();
+        }
+        break;
+        case mega::runtime::relation::eLinkReset:
+        {
+            auto pRelation = getRelation( compiler, relationID );
+            *ppFunction    = ( void* )pRelation->getReset();
+        }
+        break;
+        case mega::runtime::relation::TOTAL_FUNCTION_TYPES:
         {
             THROW_RTE( "Unsupported object function" );
         }

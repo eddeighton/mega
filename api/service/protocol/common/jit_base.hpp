@@ -22,6 +22,7 @@
 #define GUARD_2023_January_11_jit_base
 
 #include "mega/invocation_id.hpp"
+#include "mega/relation_id.hpp"
 
 #include "common/unreachable.hpp"
 
@@ -39,6 +40,10 @@ public:
         = 0;
     virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::TypeID& typeID,
                                     int functionType, void** ppFunction )
+        = 0;
+    virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName,
+                                      const RelationID& relationID, int functionType,
+                                      void** ppFunction )
         = 0;
 };
 

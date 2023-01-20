@@ -4131,8 +4131,9 @@ namespace Model
           , target_interface( loader )
     {
     }
-    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Tree::Interface_Link > >& sources, const std::vector< data::Ptr< data::Tree::Interface_Link > >& targets, const data::Ptr< data::Tree::Interface_LinkInterface >& source_interface, const data::Ptr< data::Tree::Interface_LinkInterface >& target_interface)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , sources( sources )
+    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::RelationID& id, const std::vector< data::Ptr< data::Tree::Interface_Link > >& sources, const std::vector< data::Ptr< data::Tree::Interface_Link > >& targets, const data::Ptr< data::Tree::Interface_LinkInterface >& source_interface, const data::Ptr< data::Tree::Interface_LinkInterface >& target_interface)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , id( id )
+          , sources( sources )
           , targets( targets )
           , source_interface( source_interface )
           , target_interface( target_interface )
@@ -4147,6 +4148,7 @@ namespace Model
     }
     void HyperGraph_Relation::load( mega::io::Loader& loader )
     {
+        loader.load( id );
         loader.load( sources );
         loader.load( targets );
         loader.load( source_interface );
@@ -4154,6 +4156,7 @@ namespace Model
     }
     void HyperGraph_Relation::store( mega::io::Storer& storer ) const
     {
+        storer.store( id );
         storer.store( sources );
         storer.store( targets );
         storer.store( source_interface );
@@ -4170,6 +4173,11 @@ namespace Model
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            _part__[ "properties" ].push_back( property );
+        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "sources", sources } } );
@@ -12584,6 +12592,21 @@ mega::TypeID& get_id(std::variant< data::Ptr< data::ConcreteTable::Symbols_Concr
         {
             data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > part = 
                 data::convert< data::ConcreteTable::Symbols_ConcreteTypeID >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_id" );
+            return part->id;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+mega::RelationID& get_id(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        mega::RelationID& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: get_id" );
             return part->id;
@@ -25141,6 +25164,21 @@ mega::TypeID& set_id(std::variant< data::Ptr< data::ConcreteTable::Symbols_Concr
         {
             data::Ptr< data::ConcreteTable::Symbols_ConcreteTypeID > part = 
                 data::convert< data::ConcreteTable::Symbols_ConcreteTypeID >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_id" );
+            return part->id;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+mega::RelationID& set_id(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        mega::RelationID& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: set_id" );
             return part->id;

@@ -18,17 +18,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_January_11_invocations
-#define GUARD_2023_January_11_invocations
+#ifndef GUARD_2023_January_20_relation_functions
+#define GUARD_2023_January_20_relation_functions
 
 #include "api.hpp"
 #include "functions.hpp"
 
+#include "mega/relation_id.hpp"
 #include "mega/reference.hpp"
-#include "mega/invocation_id.hpp"
-#include "mega/write_operation.hpp"
 
-namespace mega::runtime::invocation
+namespace mega::runtime::relation
 {
 
 enum FunctionType
@@ -43,18 +42,21 @@ enum FunctionType
 class JIT_EXPORT {{ function.name }}
 {
 public:
+{% if function.return == "function" %}
+    using FunctionPtr = mega::runtime::TypeErasedFunction;
+{% else %}
     using FunctionPtr = {{ function.return_type }} ( * ) ({% for arg in function.arguments %}{{ arg.type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
-    {{ function.name }}( const char* pszUnitName, const mega::InvocationID& invocationID );
+{% endif %}
+    {{ function.name }}( const char* pszUnitName, RelationID relationID );
     {{ function.return_type }} operator() ({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
 private:
-    const char*               m_pszUnitName;
-    const mega::InvocationID& m_invocationID;
-    mutable bool              m_bResolving;
-    mutable FunctionPtr       m_function;
+    const char*         m_pszUnitName;
+    RelationID          m_relationID;
+    mutable bool        m_bResolving;
+    mutable FunctionPtr m_function;
 };
 
 {% endfor %}
+}
 
-} // namespace mega::runtime::invocation
-
-#endif // GUARD_2023_January_11_invocations
+#endif //GUARD_2023_January_20_relation_functions
