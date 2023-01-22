@@ -20,6 +20,14 @@
 
 #include "invoke_fixture.hpp"
 
+#include "database/model/OperationsStage.hxx"
+
+#include "invocation/invocation.hpp"
+#include "invocation/name_resolution.hpp"
+
+#include "mega/invocation_io.hpp"
+#include "mega/common_strings.hpp"
+
 static constexpr const char Basic_Name[] = "Basic";
 
 // clang-format off
@@ -28,12 +36,15 @@ R"TESTCODE(
 object Root
 {
     dim int m_x;
+    dim int m_y;
 }
 )TESTCODE";
 // clang-format on
 
 struct BasicData
 {
+    std::string                context;
+    std::vector< std::string > typePath;
 };
 
 std::ostream& operator<<( std::ostream& os, const BasicData& testData )
@@ -49,13 +60,38 @@ TEST_P( BasicFixtureType, BasicParameterizedTest )
 {
     const BasicData data = GetParam();
 
-    // m_pImpl->m_environment.
+    OperationsStage::Database database( m_pImpl->m_environment, m_pImpl->m_megaSrcPath );
+
+    using namespace OperationsStage;
+    // using namespace OperationsStage::Interface;
+    Symbols::SymbolTable* pSymbolTable
+        = database.one< Symbols::SymbolTable >( m_pImpl->m_environment.project_manifest() );
+    ASSERT_TRUE( pSymbolTable );
+
+    auto symbolNames = pSymbolTable->get_symbol_names();
+
+    std::vector< mega::SymbolID > contextSymbolIDs = { symbolNames[ data.context ]->get_id() };
+    std::vector< mega::SymbolID > typePathSymbolIDs;
+    for( const auto& t : data.typePath )
+    {
+        typePathSymbolIDs.push_back( symbolNames[ t ]->get_id() );
+    }
+    mega::OperationID        operationTypeID = mega::id_Imp_NoParams;
+    const mega::InvocationID id{ contextSymbolIDs, typePathSymbolIDs, operationTypeID };
+
+    Operations::Invocation* pInvocation
+        = mega::invocation::construct( m_pImpl->m_environment, id, database, m_pImpl->m_megaSrcPath );
+    ASSERT_TRUE( pInvocation );
+
 }
+
+using namespace std::string_literals;
 
 // clang-format off
 INSTANTIATE_TEST_SUITE_P( Basic, BasicFixtureType,
         ::testing::Values
         ( 
-            BasicData{  }
+            BasicData{ "Root"s, { "m_x"s } },
+            BasicData{ "Root"s, { "m_y"s } }
         ));
 // clang-format on

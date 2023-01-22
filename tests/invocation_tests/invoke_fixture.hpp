@@ -72,6 +72,7 @@ public:
         mega::io::BuildEnvironment    m_environment;
         mega::pipeline::Configuration m_pipeline;
         boost::filesystem::path       m_srcFilePath;
+        mega::io::megaFilePath        m_megaSrcPath;
 
         Impl( mega::compiler::Directories directories )
             : m_directories{ std::move( directories ) }
@@ -85,6 +86,7 @@ public:
                 auto pSrcFileStream = boost::filesystem::createNewFileStream( m_srcFilePath );
                 *pSrcFileStream << CODE;
             }
+            m_megaSrcPath = m_environment.megaFilePath_fromPath( m_srcFilePath );
 
             const mega::io::ComponentListingFilePath componentListingFilePath
                 = m_environment.ComponentListingFilePath_fromPath( m_directories.buildDir );
@@ -122,7 +124,6 @@ public:
             return mega::pipeline::runPipelineLocally(
                 g_stashDir, g_toolChain, m_pipeline, "", "", {}, false, std::cout );
         };
-
     };
 
     static void SetUpTestSuite()
@@ -147,9 +148,7 @@ public:
         ASSERT_TRUE( result.m_bSuccess );
     }
 
-    static void TearDownTestSuite()
-    {
-    }
+    static void TearDownTestSuite() {}
 
     // Sets up the test fixture.
     virtual void SetUp() {}
@@ -158,7 +157,6 @@ public:
     virtual void TearDown() {}
 
     static typename Impl::Ptr m_pImpl;
-
 };
 
-#endif //GUARD_2023_January_22_invoke_fixture
+#endif // GUARD_2023_January_22_invoke_fixture
