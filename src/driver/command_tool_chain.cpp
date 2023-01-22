@@ -23,14 +23,12 @@
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
-#include "common/process.hpp"
 
 #include <spdlog/spdlog.h>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/archive/xml_oarchive.hpp>
-#include <boost/dll.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <string>
@@ -41,31 +39,6 @@ namespace driver
 {
 namespace tool_chain
 {
-namespace
-{
-
-std::string runCmd( const std::string& strCmd )
-{
-    std::string strOutput, strError;
-    common::runProcess( strCmd, strOutput, strError );
-    return strOutput;
-}
-
-std::string getClangVersion( const boost::filesystem::path& path_clangCompiler )
-{
-    std::ostringstream osCmd;
-    osCmd << path_clangCompiler.string() << " --version";
-    return runCmd( osCmd.str() );
-}
-
-mega::U64 getDatabaseVersion( const boost::filesystem::path& path_database )
-{
-    boost::shared_ptr< const mega::U64 > pSymbolDirect
-        = boost::dll::import_alias< const mega::U64 >( path_database, "MEGA_DATABASE_VERSION" );
-    return *pSymbolDirect;
-}
-
-} // namespace
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path clangPlugin, parserDll, megaCompiler, clangCompiler, databaseDll;
@@ -108,8 +81,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         std::ostringstream os;
         {
-            const std::string strClangVersion   = getClangVersion( clangCompiler );
-            const mega::U64   szDatabaseVersion = getDatabaseVersion( databaseDll );
+            const std::string strClangVersion   = mega::utilities::ToolChain::getClangVersion( clangCompiler );
+            const mega::U64   szDatabaseVersion = mega::utilities::ToolChain::getDatabaseVersion( databaseDll );
 
             const mega::utilities::ToolChain toolChain(
                 strClangVersion, szDatabaseVersion, parserDll, megaCompiler, clangCompiler, clangPlugin, databaseDll );

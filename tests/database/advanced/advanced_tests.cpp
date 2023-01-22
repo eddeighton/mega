@@ -71,7 +71,7 @@ public:
     {
         m_pEnvironment.reset();
         namespace bfs = boost::filesystem;
-        bfs::remove_all( boost::filesystem::temp_directory_path() / "FirstDBTest" );
+        bfs::remove_all( m_tempDir );
     }
 };
 

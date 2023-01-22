@@ -46,7 +46,7 @@ network::Message RootPipelineConversation::dispatchRequest( const network::Messa
     return RootRequestConversation::dispatchRequest( msg, yield_ctx );
 }
 
-mega::network::PipelineResult RootPipelineConversation::PipelineRun( const mega::pipeline::Configuration& configuration,
+mega::pipeline::PipelineResult RootPipelineConversation::PipelineRun( const mega::pipeline::Configuration& configuration,
                                                                      boost::asio::yield_context&          yield_ctx )
 {
     if ( !m_root.m_megastructureInstallationOpt.has_value() )
@@ -163,14 +163,14 @@ mega::network::PipelineResult RootPipelineConversation::PipelineRun( const mega:
             SPDLOG_WARN( "FAILURE: Pipeline {} failed in: {}ms", configuration.getPipelineID(),
                          std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
             os << "Pipeline: " << configuration.getPipelineID() << " failed";
-            return network::PipelineResult( false, os.str(), m_root.m_buildHashCodes.get() );
+            return pipeline::PipelineResult( false, os.str(), m_root.m_buildHashCodes.get() );
         }
         else
         {
             SPDLOG_INFO( "SUCCESS: Pipeline {} succeeded in: {}", configuration.getPipelineID(),
                          std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
             os << "Pipeline: " << configuration.getPipelineID() << " succeeded";
-            return network::PipelineResult( true, os.str(), m_root.m_buildHashCodes.get() );
+            return pipeline::PipelineResult( true, os.str(), m_root.m_buildHashCodes.get() );
         }
     }
 }

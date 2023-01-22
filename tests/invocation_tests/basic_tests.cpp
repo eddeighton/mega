@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,8 +18,44 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg PipelineRun
+#include "invoke_fixture.hpp"
+
+static constexpr const char Basic_Name[] = "Basic";
+
+// clang-format off
+static constexpr const char Basic_Code[] =
+R"TESTCODE(
+object Root
 {
-    request( mega::pipeline::Configuration configuration );
-    response( mega::pipeline::PipelineResult result );
+    dim int m_x;
 }
+)TESTCODE";
+// clang-format on
+
+struct BasicData
+{
+};
+
+std::ostream& operator<<( std::ostream& os, const BasicData& testData )
+{
+    return os;
+}
+
+using BasicFixtureType = InvocationTestFixture< Basic_Name, Basic_Code, BasicData >;
+template <>
+BasicFixtureType::Impl::Ptr BasicFixtureType::m_pImpl;
+
+TEST_P( BasicFixtureType, BasicParameterizedTest )
+{
+    const BasicData data = GetParam();
+
+    // m_pImpl->m_environment.
+}
+
+// clang-format off
+INSTANTIATE_TEST_SUITE_P( Basic, BasicFixtureType,
+        ::testing::Values
+        ( 
+            BasicData{  }
+        ));
+// clang-format on

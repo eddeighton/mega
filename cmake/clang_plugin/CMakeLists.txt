@@ -62,6 +62,7 @@ link_clang( clang_plugin )
 ELSE()
 # import clang - symbols linked dynamically when load plugin
 import_clang( clang_plugin )
+
 ENDIF()
 
 target_link_libraries( clang_plugin database )

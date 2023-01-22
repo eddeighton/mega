@@ -63,7 +63,7 @@ void RootJobConversation::JobReadyForWork( const network::ConversationID& rootCo
                 try
                 {
                     sw.reset();
-                    network::PipelineResult result = exeRequest.JobStartTask( task );
+                    pipeline::PipelineResult result = exeRequest.JobStartTask( task );
                     network::logLinesSuccessFail( result.getMessage(), result.getSuccess(),
                                                   std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                     pCoordinator->completeTask( task, result.getSuccess(), yield_ctx );

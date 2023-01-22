@@ -47,139 +47,6 @@
 namespace driver::execute_pipeline
 {
 
-mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&       stashDir,
-                                                  const mega::utilities::ToolChain&    toolChain,
-                                                  const mega::pipeline::Configuration& pipelineConfig,
-                                                  const std::string& strTaskName, const std::string& strSourceFile,
-                                                  const boost::filesystem::path& inputPipelineResultPath,
-                                                  bool                           bForceNoStash )
-{
-    VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
-    task::Stash          stash( stashDir );
-    task::BuildHashCodes buildHashCodes;
-
-    // load previous builds hash codes
-    if ( !inputPipelineResultPath.empty() )
-    {
-        mega::network::PipelineResult buildPipelineResult;
-        auto pInFileStream = boost::filesystem::createBinaryInputFileStream( inputPipelineResultPath );
-        boost::archive::xml_iarchive archive( *pInFileStream );
-        archive&                     boost::serialization::make_nvp( "PipelineResult", buildPipelineResult );
-        buildHashCodes.set( buildPipelineResult.getBuildHashCodes() );
-    }
-
-    std::ostringstream            osLog;
-    mega::pipeline::Pipeline::Ptr pPipeline = mega::pipeline::Registry::getPipeline( toolChain, pipelineConfig, osLog );
-    SPDLOG_TRACE( "PIPELINE: {}", osLog.str() );
-
-    mega::network::PipelineResult pipelineResult( true, "", buildHashCodes.get() );
-
-    struct ProgressReport : public mega::pipeline::Progress
-    {
-        task::Stash&                   m_stash;
-        task::BuildHashCodes&          m_buildHashCodes;
-        mega::network::PipelineResult& m_pipelineResult;
-        ProgressReport( mega::network::PipelineResult& pipelineResult, task::Stash& stash,
-                        task::BuildHashCodes& buildHashCodes )
-            : m_pipelineResult( pipelineResult )
-            , m_stash( stash )
-            , m_buildHashCodes( buildHashCodes )
-        {
-        }
-        virtual void onStarted( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
-        virtual void onProgress( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
-        virtual void onFailed( const std::string& strMsg )
-        {
-            SPDLOG_WARN( strMsg );
-            m_pipelineResult = mega::network::PipelineResult( false, strMsg, m_buildHashCodes.get() );
-        }
-        virtual void onCompleted( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
-    } progressReporter( pipelineResult, stash, buildHashCodes );
-
-    struct StashImpl : public mega::pipeline::Stash
-    {
-        task::Stash&          m_stash;
-        task::BuildHashCodes& m_buildHashCodes;
-        bool                  bForceNoStash;
-        StashImpl( task::Stash& stash, task::BuildHashCodes& buildHashCodes, bool bForceNoStash )
-            : m_stash( stash )
-            , m_buildHashCodes( buildHashCodes )
-            , bForceNoStash( bForceNoStash )
-        {
-        }
-
-        virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath )
-        {
-            return m_buildHashCodes.get( filePath );
-        }
-        virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode )
-        {
-            m_buildHashCodes.set( filePath, hashCode );
-        }
-        virtual void stash( const boost::filesystem::path& file, task::DeterminantHash code )
-        {
-            m_stash.stash( file, code );
-        }
-        virtual bool restore( const boost::filesystem::path& file, task::DeterminantHash code )
-        {
-            if ( bForceNoStash )
-                return false;
-            return m_stash.restore( file, code );
-        }
-    } stashImpl( stash, buildHashCodes, bForceNoStash );
-
-    struct Dependencies : public mega::pipeline::DependencyProvider
-    {
-        boost::shared_ptr< EG_PARSER_INTERFACE > m_pParser;
-        Dependencies( const mega::utilities::ToolChain& toolChain )
-        {
-            try
-            {
-                m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
-                    toolChain.parserDllPath, "g_parserSymbol", boost::dll::load_mode::append_decorations );
-                VERIFY_RTE_MSG( m_pParser, "Failed to load parser" );
-            }
-            catch ( std::exception& ex )
-            {
-                THROW_RTE( "Failed to load parser dll with exception: " << ex.what() );
-            }
-        }
-        EG_PARSER_INTERFACE* getParser() { return m_pParser.get(); }
-    } dependencies( toolChain );
-
-    mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
-
-    if ( !strTaskName.empty() && !strSourceFile.empty() )
-    {
-        std::optional< mega::pipeline::TaskDescriptor > taskOpt = schedule.getTask( strTaskName, strSourceFile );
-        VERIFY_RTE_MSG( taskOpt.has_value(),
-                        "Failed to locate task with name: " << strTaskName << " and source file: " << strSourceFile );
-        pPipeline->execute( taskOpt.value(), progressReporter, stashImpl, dependencies );
-    }
-    else
-    {
-        while ( !schedule.isComplete() && pipelineResult.getSuccess() )
-        {
-            bool bProgress = false;
-            for ( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
-            {
-                pPipeline->execute( task, progressReporter, stashImpl, dependencies );
-                if ( !pipelineResult.getSuccess() )
-                    break;
-                schedule.complete( task );
-                bProgress = true;
-            }
-            VERIFY_RTE_MSG( bProgress, "Failed to make progress executing pipeline" );
-        }
-        if ( pipelineResult.getSuccess() )
-        {
-            pipelineResult = mega::network::PipelineResult( true, "", buildHashCodes.get() );
-        }
-    }
-
-    return pipelineResult;
-}
-
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path stashDir, pipelineXML, outputPipelineResultPath, inputPipelineResultPath, toolchainXML;
@@ -235,7 +102,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         mega::pipeline::Configuration pipelineConfig;
         boost::filesystem::loadAsciiFile( pipelineXML, pipelineConfig.data() );
 
-        std::optional< mega::network::PipelineResult > pipelineResult;
+        std::optional< mega::pipeline::PipelineResult > pipelineResult;
         {
             if ( bRunLocally )
             {
@@ -249,7 +116,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     ia&                          boost::serialization::make_nvp( "toolchain", toolchain );
                 }
                 pipelineResult = runPipelineLocally( stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile,
-                                                     inputPipelineResultPath, bForceNoStash );
+                                                     inputPipelineResultPath, bForceNoStash, std::cout );
             }
             else
             {

@@ -20,7 +20,7 @@
 // TestRunner.cpp : Defines the entry point for the console application.
 //
 
-#include "edsUnitTestWrapper.hpp"
+#include "../edsUnitTestWrapper.hpp"
 
 #include <gtest/gtest.h>
 

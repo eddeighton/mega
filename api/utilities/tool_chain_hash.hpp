@@ -50,6 +50,9 @@ struct ToolChain
     common::Hash            clangCompilerHash;
     task::DeterminantHash   toolChainHash;
 
+    static std::string getClangVersion( const boost::filesystem::path& path_clangCompiler );
+    static mega::U64 getDatabaseVersion( const boost::filesystem::path& path_database );
+
     template < typename Archive, typename HashCodeType >
     void saveHashCode( Archive& archive, const char* pszName, const HashCodeType& hashcode ) const
     {
@@ -107,6 +110,7 @@ struct ToolChain
 
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
+
 
 } // namespace mega::utilities
 

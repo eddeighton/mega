@@ -49,7 +49,7 @@ IF( ${WIN32} )
 set_property(TARGET orc_tests PROPERTY ENABLE_EXPORTS ON )
 set_property(TARGET orc_tests PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 ELSE( ${WIN32} )
-target_link_options( orc_tests PUBLIC -export-dynamic )
+# target_link_options( orc_tests PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 # allow access to source folder for tests

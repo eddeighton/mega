@@ -19,7 +19,10 @@
 
 #include "utilities/tool_chain_hash.hpp"
 
+#include "common/process.hpp"
+
 #include <boost/process.hpp>
+#include <boost/dll.hpp>
 
 namespace mega::utilities
 {
@@ -53,5 +56,30 @@ ToolChain::ToolChain( const std::string& strClangCompilerVersion,
     , toolChainHash( parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseVersion )
 {
 }
+
+namespace
+{
+std::string runCmd( const std::string& strCmd )
+{
+    std::string strOutput, strError;
+    common::runProcess( strCmd, strOutput, strError );
+    return strOutput;
+}
+}
+
+std::string ToolChain::getClangVersion( const boost::filesystem::path& path_clangCompiler )
+{
+    std::ostringstream osCmd;
+    osCmd << path_clangCompiler.string() << " --version";
+    return runCmd( osCmd.str() );
+}
+
+mega::U64 ToolChain::getDatabaseVersion( const boost::filesystem::path& path_database )
+{
+    boost::shared_ptr< const mega::U64 > pSymbolDirect
+        = boost::dll::import_alias< const mega::U64 >( path_database, "MEGA_DATABASE_VERSION" );
+    return *pSymbolDirect;
+}
+
 
 } // namespace mega::utilities

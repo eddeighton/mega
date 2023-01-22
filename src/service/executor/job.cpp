@@ -85,7 +85,7 @@ network::Message JobConversation::dispatchRequest( const network::Message& msg, 
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
 }
 
-network::PipelineResult JobConversation::JobStartTask( const mega::pipeline::TaskDescriptor& task,
+pipeline::PipelineResult JobConversation::JobStartTask( const mega::pipeline::TaskDescriptor& task,
                                                        boost::asio::yield_context&           yield_ctx )
 {
     m_resultOpt.reset();
@@ -111,12 +111,12 @@ void JobConversation::onProgress( const std::string& strMsg )
 
 void JobConversation::onFailed( const std::string& strMsg )
 {
-    m_resultOpt = network::PipelineResult( false, strMsg, {} );
+    m_resultOpt = pipeline::PipelineResult( false, strMsg, {} );
 }
 
 void JobConversation::onCompleted( const std::string& strMsg )
 {
-    m_resultOpt = network::PipelineResult( true, strMsg, {} );
+    m_resultOpt = pipeline::PipelineResult( true, strMsg, {} );
 }
 
 // pipeline::Stash

@@ -86,7 +86,7 @@ public:
     virtual void onCompleted( const std::string& strMsg ) override { onProgress( strMsg ); }
 
     // network::pipeline::Impl
-    virtual mega::network::PipelineResult PipelineRun( const mega::pipeline::Configuration& configuration,
+    virtual mega::pipeline::PipelineResult PipelineRun( const mega::pipeline::Configuration& configuration,
                                                        boost::asio::yield_context&          yield_ctx ) override;
 
     mega::pipeline::TaskDescriptor getTask( boost::asio::yield_context& yield_ctx )

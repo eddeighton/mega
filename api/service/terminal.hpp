@@ -63,7 +63,7 @@ public:
     void                               SetProject( const network::Project& project );
     void                               ClearStash();
     network::Status                    GetNetworkStatus();
-    network::PipelineResult            PipelineRun( const pipeline::Configuration& pipelineConfig );
+    pipeline::PipelineResult            PipelineRun( const pipeline::Configuration& pipelineConfig );
     mega::MPO                          SimCreate( const mega::MP& mp );
     void                               SimDestroy( const mega::MPO& mpo );
     TimeStamp                          SimRead( const mega::MPO& from, const mega::MPO& to );

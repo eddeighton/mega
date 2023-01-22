@@ -18,9 +18,14 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "mega/reference.hpp"
+#include "mega/reference_io.hpp"
+
 #include "traits.hpp"
 
+#include "log/log.hpp"
+
 #include <algorithm>
+#include <iostream>
 
 namespace mega::mangle
 {
@@ -36,80 +41,44 @@ inline const T& reify( const void* p )
 {
     return *reinterpret_cast< const T* >( p );
 }
-
-inline bool contains( const ReferenceVector& refVector, const reference& ref )
-{
-    return std::find( refVector.cbegin(), refVector.cend(), ref ) != refVector.end();
-}
-bool hyper_is_link( const reference& srcContext, const reference& srcValue, const reference& targetContext,
-                    const reference& targetValue )
-{
-    return ( srcContext == targetValue ) && ( targetContext == srcValue );
-}
-
-bool hyper_is_link( const reference& srcContext, const ReferenceVector& srcValue, const reference& targetContext,
-                    const reference& targetValue )
-{
-    return ( srcContext == targetValue ) && contains( srcValue, targetContext );
-}
-bool hyper_is_link( const reference& srcContext, const reference& srcValue, const reference& targetContext,
-                    const ReferenceVector& targetValue )
-{
-    return contains( targetValue, srcContext ) && ( targetContext == srcValue );
-}
-bool hyper_is_link( const reference& srcContext, const ReferenceVector& srcValue, const reference& targetContext,
-                    const ReferenceVector& targetValue )
-{
-    return contains( targetValue, srcContext ) && contains( srcValue, targetContext );
-}
-
 } // namespace
 
-bool hyper_is_link_r_r( const void* srcContext, const void* srcValue, const void* targetContext,
-                        const void* targetValue )
+void hyper_create( const mega::reference& source, const mega::reference& target )
 {
-    return hyper_is_link( reify< reference >( srcContext ),
-                          reify< reference >( srcValue ),
-                          reify< reference >( targetContext ),
-                          reify< reference >( targetValue ) );
+    // mega::log::Storage& log = mega::getMPOContext()->getLog();
+    // log.record( track, mega::log::HyperRecord( source, target, CREATE ) );
+}
+void hyper_delete( const mega::reference& source, const mega::reference& target )
+{
+    // mega::log::Storage& log = mega::getMPOContext()->getLog();
+    // log.record( track, mega::log::HyperRecord( source, target, DELETE ) );
 }
 
-bool hyper_is_link_r_v( const void* srcContext, const void* srcValue, const void* targetContext,
-                        const void* targetValue )
+bool ref_vector_contains( void* pData, const mega::reference& ref )
 {
-    return hyper_is_link( reify< reference >( srcContext ),
-                          reify< ReferenceVector >( srcValue ),
-                          reify< reference >( targetContext ),
-                          reify< reference >( targetValue ) );
+    const ReferenceVector& vec = reify< ReferenceVector >( pData );
+    return std::find( vec.cbegin(), vec.cend(), ref ) != vec.cend();
 }
-bool hyper_is_link_v_r( const void* srcContext, const void* srcValue, const void* targetContext,
-                        const void* targetValue )
+void ref_vector_remove( void* pData, const mega::reference& ref )
 {
-    return hyper_is_link( reify< reference >( srcContext ),
-                          reify< reference >( srcValue ),
-                          reify< reference >( targetContext ),
-                          reify< ReferenceVector >( targetValue ) );
+    std::cout << "ref_vector_remove : " << ref << std::endl;
+    auto vec   = reify< ReferenceVector >( pData );
+    auto iFind = std::find( vec.begin(), vec.end(), ref );
+    if( iFind != vec.end() )
+    {
+        vec.erase( iFind );
+    }
 }
-bool hyper_is_link_v_v( const void* srcContext, const void* srcValue, const void* targetContext,
-                        const void* targetValue )
+void ref_vector_add( void* pData, const mega::reference& ref )
 {
-    return hyper_is_link( reify< reference >( srcContext ),
-                          reify< ReferenceVector >( srcValue ),
-                          reify< reference >( targetContext ),
-                          reify< ReferenceVector >( targetValue ) );
+    std::cout << "ref_vector_add : " << ref << std::endl;
+    auto vec = reify< ReferenceVector >( pData );
+    vec.push_back( ref );
 }
-
-/*
-void schedule_start( const reference& ref )
+void ref_vector_clear( void* pData )
 {
-    mega::log::Storage& log = mega::getMPOContext()->getLog();
-    log.record( log::SchedulerRecord( ref, log::SchedulerRecord::Start ) );
+    auto vec = reify< ReferenceVector >( pData );
+    vec.clear();
 }
 
-void schedule_stop( const reference& ref )
-{
-    mega::log::Storage& log = mega::getMPOContext()->getLog();
-    log.record( log::SchedulerRecord( ref, log::SchedulerRecord::Stop ) );
-}
-*/
-} // namespace mega
+} // namespace mega::mangle

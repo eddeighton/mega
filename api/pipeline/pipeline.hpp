@@ -20,6 +20,7 @@
 #ifndef PIPELINE_27_MAY_2022
 #define PIPELINE_27_MAY_2022
 
+#include "pipeline_result.hpp"
 #include "task.hpp"
 #include "stash.hpp"
 #include "configuration.hpp"
@@ -128,6 +129,12 @@ public:
     static Pipeline::Ptr getPipeline( const mega::utilities::ToolChain& toolChain, const Configuration& configuration,
                                       std::ostream& osLog );
 };
+
+PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, const mega::utilities::ToolChain& toolChain,
+                                   const mega::pipeline::Configuration& pipelineConfig, const std::string& strTaskName,
+                                   const std::string&             strSourceFile,
+                                   const boost::filesystem::path& inputPipelineResultPath, bool bForceNoStash, std::ostream& osLog );
+
 } // namespace mega::pipeline
 
 #endif // PIPELINE_27_MAY_2022

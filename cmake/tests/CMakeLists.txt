@@ -27,4 +27,5 @@ add_subdirectory(database)
 add_subdirectory(unit_tests)
 add_subdirectory(orc_tests)
 add_subdirectory(system_tests)
+add_subdirectory(invocation_tests)
 

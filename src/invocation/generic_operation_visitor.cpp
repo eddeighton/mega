@@ -293,8 +293,79 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     THROW_INVOCATION_EXCEPTION( "Invalid invocation on object" );
             }
         }
+        else if( db_cast< Concrete::Link >( pCurrentConcrete ) )
+        {
+            using OperationsStage::Invocations::Instructions::Instruction;
+            using OperationsStage::Invocations::Operations::BasicOperation;
+            using OperationsStage::Invocations::Operations::Operation;
+
+            switch( m_pInvocation->get_operation() )
+            {
+                case id_Imp_NoParams:
+                {
+                    // derive directly to the concrete context
+                    Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
+                    if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
+                        return;
+
+                    using OperationsStage::Invocations::Operations::LinkOperation;
+                    using OperationsStage::Invocations::Operations::ReadLink;
+
+                    Concrete::Link*  pConcreteLink  = db_cast< Concrete::Link >( pCurrentConcrete );
+                    Interface::Link* pInterfaceLink = pConcreteLink->get_link();
+
+                    ReadLink* pReadLink = m_database.construct< ReadLink >( ReadLink::Args{
+                        LinkOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
+                                             pInterfaceLink, pConcreteLink } } );
+
+                    pInstruction->push_back_children( pReadLink );
+                }
+                break;
+                case id_Imp_Params:
+                {
+                    // derive directly to the concrete context
+                    Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
+                    if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
+                        return;
+
+                    using OperationsStage::Invocations::Operations::LinkOperation;
+                    using OperationsStage::Invocations::Operations::WriteLink;
+
+                    Concrete::Link*  pConcreteLink  = db_cast< Concrete::Link >( pCurrentConcrete );
+                    Interface::Link* pInterfaceLink = pConcreteLink->get_link();
+
+                    WriteLink* pWriteLink = m_database.construct< WriteLink >( WriteLink::Args{
+                        LinkOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
+                                             pInterfaceLink, pConcreteLink } } );
+
+                    pInstruction->push_back_children( pWriteLink );
+                }
+                break;
+                case id_Get:
+                {
+                    // derive directly to the parent of the concrete context
+                    if( prev->get_element()->get_concrete()->get_context().has_value() )
+                    {
+                        Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
+                        if( !commonRootDerivation(
+                                pPrevConcrete, pCurrentConcrete->get_parent(), pInstruction, pInstance ) )
+                            return;
+                    }
+                    
+                    using OperationsStage::Invocations::Operations::GetAction;
+                    GetAction* pGetAction = m_database.construct< GetAction >( GetAction::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pGetAction );
+                }
+                break;
+                default:
+                    THROW_RTE( "Unreachable" );
+            }
+        }
         else
         {
+            // derive directly to the parent of the concrete context
             if( prev->get_element()->get_concrete()->get_context().has_value() )
             {
                 Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
@@ -334,20 +405,6 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                                                   pCurrentInterface, pCurrentConcrete } } );
                         pInstruction->push_back_children( pAllocate );
                     }
-                    else if( db_cast< Concrete::Link >( pCurrentConcrete ) )
-                    {
-                        using OperationsStage::Invocations::Operations::LinkOperation;
-                        using OperationsStage::Invocations::Operations::ReadLink;
-
-                        Concrete::Link*  pConcreteLink  = db_cast< Concrete::Link >( pCurrentConcrete );
-                        Interface::Link* pInterfaceLink = pConcreteLink->get_link();
-
-                        ReadLink* pReadLink = m_database.construct< ReadLink >( ReadLink::Args{
-                            LinkOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
-                                                 pInterfaceLink, pConcreteLink } } );
-
-                        pInstruction->push_back_children( pReadLink );
-                    }
                     else
                     {
                         THROW_INVOCATION_EXCEPTION( "GenericOperationVisitor:: Invalid no params implicit call" );
@@ -363,20 +420,6 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                             BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
                                                   pCurrentInterface, pCurrentConcrete } } );
                         pInstruction->push_back_children( pCall );
-                    }
-                    else if( db_cast< Concrete::Link >( pCurrentConcrete ) )
-                    {
-                        using OperationsStage::Invocations::Operations::LinkOperation;
-                        using OperationsStage::Invocations::Operations::WriteLink;
-
-                        Concrete::Link*  pConcreteLink  = db_cast< Concrete::Link >( pCurrentConcrete );
-                        Interface::Link* pInterfaceLink = pConcreteLink->get_link();
-                        
-                        WriteLink* pWriteLink = m_database.construct< WriteLink >( WriteLink::Args{
-                            LinkOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
-                                                 pInterfaceLink, pConcreteLink } } );
-
-                        pInstruction->push_back_children( pWriteLink );
                     }
                     else
                     {

@@ -40,5 +40,5 @@ msg JobProgress
 msg JobStartTask
 {
     request( mega::pipeline::TaskDescriptor task );
-    response( network::PipelineResult result );
+    response( mega::pipeline::PipelineResult result );
 }

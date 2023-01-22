@@ -32,7 +32,8 @@
 
 #include "service/protocol/common/conversation_id.hpp"
 #include "service/protocol/common/megastructure_installation.hpp"
-#include "service/protocol/common/pipeline_result.hpp"
+
+#include "pipeline/pipeline_result.hpp"
 
 #include "pipeline/task.hpp"
 #include "pipeline/pipeline.hpp"

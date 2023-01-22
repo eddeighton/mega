@@ -385,7 +385,8 @@ public:
 
                 std::ostringstream os;
                 os << indent << "// MonoReference\n";
-                os << indent << get( variables, pInstance ) << " = " << get( variables, pReference ) << ";";
+                os << indent << get( variables, pInstance ) << " = mega::reference::make( "
+                   << get( variables, pReference ) << ", " << pInstance->get_concrete()->get_concrete_id() << " );";
 
                 data[ "assignments" ].push_back( os.str() );
             }
@@ -914,6 +915,8 @@ R"TEMPLATE(
                     auto                 pLinkReference = pLink->get_link_reference();
                     Variables::Instance* pInstance      = pWriteLink->get_instance();
                     RelationID           relationID     = pLink->get_link_interface()->get_relation()->get_id();
+
+                    VERIFY_RTE_MSG( pInstance->get_concrete() == pLink, "Something is wrong!!" );
 
                     std::ostringstream osIndent;
                     osIndent << indent;
@@ -1515,7 +1518,11 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const Datab
 {
     SPDLOG_TRACE( "RUNTIME: generate_relation" );
 
-    auto pRelation = database.getRelation( relationID );
+    auto       pRelation = database.getRelation( relationID );
+    const bool bSourceSingular
+        = !pRelation->get_source_interface()->get_link_trait()->get_cardinality().maximum().isMany();
+    const bool bTargetSingular
+        = !pRelation->get_target_interface()->get_link_trait()->get_cardinality().maximum().isMany();
 
     std::ostringstream osRelationID;
     {
@@ -1530,26 +1537,46 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const Datab
 
     nlohmann::json data( { { "relationID", osRelationID.str() },
                            { "module_name", osModuleName.str() },
+                           { "source_singular", bSourceSingular },
+                           { "target_singular", bTargetSingular },
                            { "sources", nlohmann::json::array() },
                            { "targets", nlohmann::json::array() } } );
 
-    for( auto pSource : pRelation->get_sources() )
+    for( FinalStage::Interface::Link* pSource : pRelation->get_sources() )
     {
-        nlohmann::json source( { { "concrete_types", nlohmann::json::array() } } );
+        using namespace FinalStage;
         for( auto pConcrete : pSource->get_concrete() )
         {
-            source[ "concrete_types" ].push_back( pConcrete->get_concrete_id() );
+            Concrete::Link*     pLink          = db_cast< Concrete::Link >( pConcrete );
+            auto                pLinkReference = pLink->get_link_reference();
+            MemoryLayout::Part* pPart          = pLinkReference->get_part();
+
+            nlohmann::json source( { { "type", pLink->get_concrete_id() },
+                                     { "part_offset", pPart->get_offset() },
+                                     { "part_size", pPart->get_size() },
+                                     { "dimension_offset", pLinkReference->get_offset() }
+
+            } );
+            data[ "sources" ].push_back( source );
         }
-        data[ "sources" ].push_back( source );
     }
     for( auto pTarget : pRelation->get_targets() )
     {
-        nlohmann::json target( { { "concrete_types", nlohmann::json::array() } } );
+        using namespace FinalStage;
         for( auto pConcrete : pTarget->get_concrete() )
         {
-            target[ "concrete_types" ].push_back( pConcrete->get_concrete_id() );
+            Concrete::Link*     pLink          = db_cast< Concrete::Link >( pConcrete );
+            auto                pLinkReference = pLink->get_link_reference();
+            MemoryLayout::Part* pPart          = pLinkReference->get_part();
+
+            nlohmann::json target( { { "type", pLink->get_concrete_id() },
+                                     { "part_offset", pPart->get_offset() },
+                                     { "part_size", pPart->get_size() },
+                                     { "dimension_offset", pLinkReference->get_offset() }
+
+            } );
+            data[ "targets" ].push_back( target );
         }
-        data[ "targets" ].push_back( target );
     }
 
     std::ostringstream osCPPCode;

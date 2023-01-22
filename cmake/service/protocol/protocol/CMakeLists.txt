@@ -117,7 +117,6 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/jit_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/megastructure_installation.hpp
     ${MEGA_API_DIR}/service/protocol/common/node.hpp
-    ${MEGA_API_DIR}/service/protocol/common/pipeline_result.hpp
     ${MEGA_API_DIR}/service/protocol/common/project.hpp
     ${MEGA_API_DIR}/service/protocol/common/root_config.hpp
     ${MEGA_API_DIR}/service/protocol/common/sender.hpp  

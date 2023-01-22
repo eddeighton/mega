@@ -47,6 +47,13 @@ void        setMPOContext( MPOContext* pMPOContext ) {}
 
 int main( int argc, const char* argv[] )
 {
+#ifdef BOOST_USE_SEGMENTED_STACKS
+    SPDLOG_INFO( "Segmented stacks ARE enabled" );
+#else
+    SPDLOG_INFO( "Segmented stacks NOT enabled" );
+#endif
+
+
     using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
     NumThreadsType          uiNumThreads       = 1U;
     short                   portNumber         = mega::network::MegaRootPort();

@@ -35,7 +35,9 @@
 namespace mega::pipeline
 {
 
-TaskDescriptor::TaskDescriptor() {}
+TaskDescriptor::TaskDescriptor()
+{
+}
 
 TaskDescriptor::TaskDescriptor( const std::string& strName, const std::string& strSourceFileName, const Buffer& buffer )
     : m_strName( strName )
@@ -44,7 +46,9 @@ TaskDescriptor::TaskDescriptor( const std::string& strName, const std::string& s
 {
 }
 
-Configuration::Configuration() {}
+Configuration::Configuration()
+{
+}
 
 Configuration::Configuration( const Buffer& buffer )
     : m_buffer( buffer )
@@ -73,7 +77,7 @@ void Dependencies::add( const TaskDescriptor& newTask, const TaskDescriptor::Vec
 {
     VERIFY_RTE( newTask != TaskDescriptor() );
     m_tasks.insert( newTask );
-    for ( const TaskDescriptor& task : dependencies )
+    for( const TaskDescriptor& task : dependencies )
     {
         VERIFY_RTE( task != TaskDescriptor() );
         m_graph.insert( std::make_pair( newTask, task ) );
@@ -91,21 +95,21 @@ TaskDescriptor::Vector Schedule::getReady() const
     TaskDescriptor::Vector ready;
     {
         const Dependencies::Graph& graph = m_dependencies.getDependencies();
-        for ( const TaskDescriptor& task : m_dependencies.getTasks() )
+        for( const TaskDescriptor& task : m_dependencies.getTasks() )
         {
-            if ( m_complete.count( task ) )
+            if( m_complete.count( task ) )
                 continue;
             bool bWaiting = false;
-            for ( Dependencies::Graph::const_iterator i = graph.lower_bound( task ), iEnd = graph.upper_bound( task );
-                  i != iEnd; ++i )
+            for( Dependencies::Graph::const_iterator i = graph.lower_bound( task ), iEnd = graph.upper_bound( task );
+                 i != iEnd; ++i )
             {
-                if ( !m_complete.count( i->second ) )
+                if( !m_complete.count( i->second ) )
                 {
                     bWaiting = true;
                     break;
                 }
             }
-            if ( !bWaiting )
+            if( !bWaiting )
             {
                 ready.push_back( task );
             }
@@ -119,9 +123,9 @@ std::optional< TaskDescriptor > Schedule::getTask( const std::string& strTaskNam
 {
     std::optional< TaskDescriptor > result;
 
-    for ( const TaskDescriptor& task : m_dependencies.getTasks() )
+    for( const TaskDescriptor& task : m_dependencies.getTasks() )
     {
-        if ( task.getName() == strTaskName && task.getSourceFile() == strSourceFile )
+        if( task.getName() == strTaskName && task.getSourceFile() == strSourceFile )
         {
             return task;
         }
@@ -130,15 +134,27 @@ std::optional< TaskDescriptor > Schedule::getTask( const std::string& strTaskNam
     return result;
 }
 
-Stash::~Stash() {}
+Stash::~Stash()
+{
+}
 
-Progress::Progress() {}
-Progress::~Progress() {}
+Progress::Progress()
+{
+}
+Progress::~Progress()
+{
+}
 
-Pipeline::Pipeline() {}
-Pipeline::~Pipeline() {}
+Pipeline::Pipeline()
+{
+}
+Pipeline::~Pipeline()
+{
+}
 
-DependencyProvider::~DependencyProvider() {}
+DependencyProvider::~DependencyProvider()
+{
+}
 
 Pipeline::Ptr Registry::getPipeline( const mega::utilities::ToolChain& toolChain, const Configuration& configuration,
                                      std::ostream& osLog )
@@ -169,10 +185,144 @@ Pipeline::Ptr Registry::getPipeline( const mega::utilities::ToolChain& toolChain
 
         return pPipeline;
     }
-    catch ( std::exception& ex )
+    catch( std::exception& ex )
     {
         THROW_RTE( "Failed to load pipeline: " << configuration.get() << " exception: " << ex.what() );
     }
+}
+
+PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, const mega::utilities::ToolChain& toolChain,
+                                   const mega::pipeline::Configuration& pipelineConfig, const std::string& strTaskName,
+                                   const std::string&             strSourceFile,
+                                   const boost::filesystem::path& inputPipelineResultPath, bool bForceNoStash,
+                                   std::ostream& osLog )
+{
+    VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
+    task::Stash          stash( stashDir );
+    task::BuildHashCodes buildHashCodes;
+
+
+    // load previous builds hash codes
+    if( !inputPipelineResultPath.empty() )
+    {
+        mega::pipeline::PipelineResult buildPipelineResult;
+        auto pInFileStream = boost::filesystem::createBinaryInputFileStream( inputPipelineResultPath );
+        boost::archive::xml_iarchive archive( *pInFileStream );
+        archive&                     boost::serialization::make_nvp( "PipelineResult", buildPipelineResult );
+        buildHashCodes.set( buildPipelineResult.getBuildHashCodes() );
+    }
+    osLog << "Initialising pipeline" << std::endl;
+
+    mega::pipeline::Pipeline::Ptr pPipeline = mega::pipeline::Registry::getPipeline( toolChain, pipelineConfig, osLog );
+
+    mega::pipeline::PipelineResult pipelineResult( true, "", buildHashCodes.get() );
+
+    struct ProgressReport : public mega::pipeline::Progress
+    {
+        task::Stash&                    m_stash;
+        task::BuildHashCodes&           m_buildHashCodes;
+        mega::pipeline::PipelineResult& m_pipelineResult;
+        std::ostream&                   m_osLog;
+        ProgressReport( mega::pipeline::PipelineResult& pipelineResult, task::Stash& stash,
+                        task::BuildHashCodes& buildHashCodes, std::ostream& osLog )
+            : m_pipelineResult( pipelineResult )
+            , m_stash( stash )
+            , m_buildHashCodes( buildHashCodes )
+            , m_osLog( osLog )
+        {
+        }
+        virtual void onStarted( const std::string& strMsg ) { m_osLog << strMsg << std::endl; }
+        virtual void onProgress( const std::string& strMsg ) { m_osLog << strMsg << std::endl; }
+        virtual void onFailed( const std::string& strMsg )
+        {
+            m_osLog << strMsg << std::endl;
+            m_pipelineResult = mega::pipeline::PipelineResult( false, strMsg, m_buildHashCodes.get() );
+        }
+        virtual void onCompleted( const std::string& strMsg ) { m_osLog << strMsg << std::endl; }
+    } progressReporter( pipelineResult, stash, buildHashCodes, osLog );
+
+    struct StashImpl : public mega::pipeline::Stash
+    {
+        task::Stash&          m_stash;
+        task::BuildHashCodes& m_buildHashCodes;
+        bool                  bForceNoStash;
+        StashImpl( task::Stash& stash, task::BuildHashCodes& buildHashCodes, bool bForceNoStash )
+            : m_stash( stash )
+            , m_buildHashCodes( buildHashCodes )
+            , bForceNoStash( bForceNoStash )
+        {
+        }
+
+        virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath )
+        {
+            return m_buildHashCodes.get( filePath );
+        }
+        virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode )
+        {
+            m_buildHashCodes.set( filePath, hashCode );
+        }
+        virtual void stash( const boost::filesystem::path& file, task::DeterminantHash code )
+        {
+            m_stash.stash( file, code );
+        }
+        virtual bool restore( const boost::filesystem::path& file, task::DeterminantHash code )
+        {
+            if( bForceNoStash )
+                return false;
+            return m_stash.restore( file, code );
+        }
+    } stashImpl( stash, buildHashCodes, bForceNoStash );
+
+    struct Dependencies : public mega::pipeline::DependencyProvider
+    {
+        boost::shared_ptr< EG_PARSER_INTERFACE > m_pParser;
+        Dependencies( const mega::utilities::ToolChain& toolChain )
+        {
+            try
+            {
+                m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
+                    toolChain.parserDllPath, "g_parserSymbol", boost::dll::load_mode::append_decorations );
+                VERIFY_RTE_MSG( m_pParser, "Failed to load parser" );
+            }
+            catch( std::exception& ex )
+            {
+                THROW_RTE( "Failed to load parser dll with exception: " << ex.what() );
+            }
+        }
+        EG_PARSER_INTERFACE* getParser() { return m_pParser.get(); }
+    } dependencies( toolChain );
+
+    mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
+
+    if( !strTaskName.empty() && !strSourceFile.empty() )
+    {
+        std::optional< mega::pipeline::TaskDescriptor > taskOpt = schedule.getTask( strTaskName, strSourceFile );
+        VERIFY_RTE_MSG( taskOpt.has_value(),
+                        "Failed to locate task with name: " << strTaskName << " and source file: " << strSourceFile );
+        pPipeline->execute( taskOpt.value(), progressReporter, stashImpl, dependencies );
+    }
+    else
+    {
+        while( !schedule.isComplete() && pipelineResult.getSuccess() )
+        {
+            bool bProgress = false;
+            for( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
+            {
+                pPipeline->execute( task, progressReporter, stashImpl, dependencies );
+                if( !pipelineResult.getSuccess() )
+                    break;
+                schedule.complete( task );
+                bProgress = true;
+            }
+            VERIFY_RTE_MSG( bProgress, "Failed to make progress executing pipeline" );
+        }
+        if( pipelineResult.getSuccess() )
+        {
+            pipelineResult = mega::pipeline::PipelineResult( true, "", buildHashCodes.get() );
+        }
+    }
+
+    return pipelineResult;
 }
 
 } // namespace mega::pipeline

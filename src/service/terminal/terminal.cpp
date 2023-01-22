@@ -192,7 +192,7 @@ network::Status Terminal::GetNetworkStatus()
     return getRequest< network::status::Request_Encoder >().GetNetworkStatus();
 }
 
-network::PipelineResult Terminal::PipelineRun( const pipeline::Configuration& pipelineConfig )
+pipeline::PipelineResult Terminal::PipelineRun( const pipeline::Configuration& pipelineConfig )
 {
     return getRequest< network::pipeline::Request_Encoder >().PipelineRun( pipelineConfig );
 }

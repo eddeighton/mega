@@ -42,7 +42,7 @@ class JobConversation : public ExecutorRequestConversation,
     mega::pipeline::Pipeline::Ptr m_pPipeline;
     boost::asio::yield_context*   m_pYieldCtx = nullptr;
 
-    std::optional< network::PipelineResult > m_resultOpt;
+    std::optional< pipeline::PipelineResult > m_resultOpt;
 
 public:
     using Ptr = std::shared_ptr< JobConversation >;
@@ -54,7 +54,7 @@ public:
                                               boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl,
-    virtual network::PipelineResult JobStartTask( const mega::pipeline::TaskDescriptor& task,
+    virtual pipeline::PipelineResult JobStartTask( const mega::pipeline::TaskDescriptor& task,
                                                   boost::asio::yield_context&           yield_ctx ) override;
 
     // pipeline::DependencyProvider

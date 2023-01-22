@@ -78,9 +78,9 @@ void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pCon
             ConversationBase::RequestStack stack("spawnInitiatedConversation", pConversation, parentSender.getConnectionID());
             pConversation->run(yield_ctx);
         }
-#ifdef _WIN32
+#ifndef BOOST_USE_SEGMENTED_STACKS
         // segmented stacks do NOT work on windows
-        , boost::coroutines::attributes(0x0fffff) // 1048575
+        , boost::coroutines::attributes(0x00ffff) // 65535
 #endif
     );
     // clang-format on
@@ -110,9 +110,9 @@ void ConversationManager::conversationJoined( ConversationBase::Ptr pConversatio
         { 
             pConversation->run( yield_ctx ); 
         } 
-#ifdef WIN32
+#ifndef BOOST_USE_SEGMENTED_STACKS
         // segmented stacks do NOT work on windows
-        , boost::coroutines::attributes(0x0fffff) // 1048575
+        , boost::coroutines::attributes(0x00ffff) // 65535
 #endif
     );
     // clang-format on

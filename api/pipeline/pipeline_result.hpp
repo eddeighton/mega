@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,9 +18,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef PIPELINE_RESULT_2_JUNE_2022
-#define PIPELINE_RESULT_2_JUNE_2022
+#ifndef GUARD_2023_January_21_pipeline_result
+#define GUARD_2023_January_21_pipeline_result
 
+#include "build_hash_code.hpp"
 #include "common/stash.hpp"
 
 #include <boost/serialization/nvp.hpp>
@@ -28,49 +30,15 @@
 #include <string>
 #include <map>
 
-namespace mega::network
+namespace mega::pipeline
 {
-
-class BuildHashCode
-{
-public:
-    BuildHashCode() {}
-
-    BuildHashCode( const boost::filesystem::path& filePath, const task::FileHash& fileHashCode )
-        : m_filePath( filePath )
-        , m_fileHashCode( fileHashCode )
-    {
-    }
-
-    template < typename Archive >
-    void save( Archive& archive, const unsigned int v ) const
-    {
-        archive&          boost::serialization::make_nvp( "FilePath", m_filePath );
-        const std::string strHex = m_fileHashCode.toHexString();
-        archive&          boost::serialization::make_nvp( "FileHash", strHex );
-    }
-
-    template < typename Archive >
-    void load( Archive& archive, const unsigned int v )
-    {
-        archive&    boost::serialization::make_nvp( "FilePath", m_filePath );
-        std::string strHex;
-        archive&    boost::serialization::make_nvp( "FileHash", strHex );
-        m_fileHashCode.set( common::Hash::fromHexString( strHex ) );
-    }
-
-    BOOST_SERIALIZATION_SPLIT_MEMBER()
-
-    boost::filesystem::path m_filePath;
-    task::FileHash          m_fileHashCode;
-};
 
 class PipelineResult
 {
 public:
     using BuildHashCodeMap = std::map< boost::filesystem::path, task::FileHash >;
 
-    PipelineResult() {}
+    PipelineResult() = default;
 
     PipelineResult( bool bSuccess, const std::string& strMsg, const BuildHashCodeMap& buildHashCodes )
         : m_bSuccess( bSuccess )
@@ -90,7 +58,7 @@ public:
         archive& boost::serialization::make_nvp( "Message", m_strMsg );
 
         std::vector< BuildHashCode > buildHashCodes;
-        for ( const auto& [ filePath, fileHash ] : m_buildHashCodes )
+        for( const auto& [ filePath, fileHash ] : m_buildHashCodes )
         {
             buildHashCodes.push_back( BuildHashCode{ filePath, fileHash } );
         }
@@ -105,7 +73,7 @@ public:
 
         std::vector< BuildHashCode > buildHashCodes;
         archive&                     boost::serialization::make_nvp( "BuildHashCodes", buildHashCodes );
-        for ( const BuildHashCode& buildHashCode : buildHashCodes )
+        for( const BuildHashCode& buildHashCode : buildHashCodes )
         {
             m_buildHashCodes.insert( { buildHashCode.m_filePath, buildHashCode.m_fileHashCode } );
         }
@@ -117,7 +85,6 @@ public:
     std::string      m_strMsg;
     BuildHashCodeMap m_buildHashCodes;
 };
+} // namespace mega::pipeline
 
-} // namespace mega::network
-
-#endif // PIPELINE_RESULT_2_JUNE_2022
+#endif // GUARD_2023_January_21_pipeline_result
