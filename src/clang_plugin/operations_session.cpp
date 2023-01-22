@@ -201,7 +201,7 @@ public:
                 if( !bIsSingular )
                 {
                     clang::SourceLocation loc;
-                    return clang::getVectorType(
+                    return clang::getVectorConstRefType(
                         pASTContext, pSema, pASTContext->getTranslationUnitDecl(), loc, declLocType.type );
                 }
                 else
@@ -222,7 +222,7 @@ public:
                     clang::SourceLocation loc;
                     auto                  variantType = clang::getVariantType(
                         pASTContext, pSema, pASTContext->getTranslationUnitDecl(), loc, types );
-                    return clang::getVectorType(
+                    return clang::getVectorConstRefType(
                         pASTContext, pSema, pASTContext->getTranslationUnitDecl(), loc, variantType );
                 }
                 else

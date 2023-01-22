@@ -62,8 +62,8 @@ bool ref_vector_contains( void* pData, const mega::reference& ref )
 void ref_vector_remove( void* pData, const mega::reference& ref )
 {
     std::cout << "ref_vector_remove : " << ref << std::endl;
-    auto vec   = reify< ReferenceVector >( pData );
-    auto iFind = std::find( vec.begin(), vec.end(), ref );
+    auto& vec   = reify< ReferenceVector >( pData );
+    auto  iFind = std::find( vec.begin(), vec.end(), ref );
     if( iFind != vec.end() )
     {
         vec.erase( iFind );
@@ -72,12 +72,12 @@ void ref_vector_remove( void* pData, const mega::reference& ref )
 void ref_vector_add( void* pData, const mega::reference& ref )
 {
     std::cout << "ref_vector_add : " << ref << std::endl;
-    auto vec = reify< ReferenceVector >( pData );
+    auto& vec = reify< ReferenceVector >( pData );
     vec.push_back( ref );
 }
 void ref_vector_clear( void* pData )
 {
-    auto vec = reify< ReferenceVector >( pData );
+    auto& vec = reify< ReferenceVector >( pData );
     vec.clear();
 }
 

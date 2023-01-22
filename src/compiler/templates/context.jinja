@@ -4,9 +4,20 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
     mega::reference data;
     inline {{ name }}() {};
     inline {{ name }}( mega::reference reference ) : data( reference ) {}
-    inline operator ::mega::ReferenceState() const             { return ::mega::Null; }
-    inline bool operator==( ::mega::ReferenceState cmp ) const { return false; }
-    inline bool operator!=( ::mega::ReferenceState cmp ) const { return false; }
+    template< typename T >
+    inline bool operator==( const T& cmp ) const
+    {
+        return data == cmp.data;
+    }
+    template< typename T >
+    inline bool operator!=( const T& cmp ) const
+    {
+        return !this->operator==( cmp );
+    }
+    inline operator const void*() const
+    {
+        return data.is_valid() ? &data : nullptr;
+    }
 {% if has_operation %}
     {{ operation_return_type }} operator()( {{ operation_parameters }} ) const;
 {% endif %}

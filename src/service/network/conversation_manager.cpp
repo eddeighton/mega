@@ -67,6 +67,8 @@ ConversationID ConversationManager::createConversationID( const ConnectionID& co
     return ConversationID( ++m_nextConversationID, connectionID );
 }
 
+static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x0FFFFF; // 1M bytes
+
 void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pConversation, Sender& parentSender )
 {
     // clang-format off
@@ -80,7 +82,7 @@ void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pCon
         }
 #ifndef BOOST_USE_SEGMENTED_STACKS
         // segmented stacks do NOT work on windows
-        , boost::coroutines::attributes(0x00ffff) // 65535
+        , boost::coroutines::attributes(NON_SEGMENTED_STACK_SIZE)
 #endif
     );
     // clang-format on
@@ -112,7 +114,7 @@ void ConversationManager::conversationJoined( ConversationBase::Ptr pConversatio
         } 
 #ifndef BOOST_USE_SEGMENTED_STACKS
         // segmented stacks do NOT work on windows
-        , boost::coroutines::attributes(0x00ffff) // 65535
+        , boost::coroutines::attributes(NON_SEGMENTED_STACK_SIZE)
 #endif
     );
     // clang-format on

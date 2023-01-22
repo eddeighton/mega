@@ -62,25 +62,22 @@
 
 namespace mega::runtime
 {
-    namespace
+namespace
+{
+struct StaticInit
+{
+    StaticInit()
     {
-        struct StaticInit
-        {
-            StaticInit()
-            {
-                llvm::InitializeNativeTarget();
-                llvm::InitializeNativeTargetAsmPrinter();
-            }
-        };
-        static StaticInit m_staticInit;
+        llvm::InitializeNativeTarget();
+        llvm::InitializeNativeTargetAsmPrinter();
     }
+};
+static StaticInit m_staticInit;
+} // namespace
 
 llvm::ExitOnError ExitOnErr;
 
-JITCompiler::Module::~Module() 
-{
-    
-}
+JITCompiler::Module::~Module() = default;
 
 class ModuleImpl : public JITCompiler::Module
 {
@@ -123,7 +120,7 @@ class ModuleImpl : public JITCompiler::Module
         using namespace llvm;
         auto         Ctx = std::make_unique< LLVMContext >();
         SMDiagnostic Err;
-        if ( auto M = parseIR( MemoryBufferRef( Source, Name ), Err, *Ctx ) )
+        if( auto M = parseIR( MemoryBufferRef( Source, Name ), Err, *Ctx ) )
         {
             return orc::ThreadSafeModule( std::move( M ), std::move( Ctx ) );
         }
@@ -146,35 +143,6 @@ public:
     }
 
     ~ModuleImpl() { ExitOnErr( m_jit.getExecutionSession().removeJITDylib( m_jitDynLib ) ); }
-    /*
-        std::string mangleName( llvm::StringRef UnmangledName )
-        {
-            std::string MangledName;
-            {
-                llvm::raw_string_ostream MangledNameStream( MangledName );
-                llvm::Mangler::getNameWithPrefix( MangledNameStream, UnmangledName, m_jit.getDataLayout() );
-            }
-            return MangledName;
-        }
-
-        llvm::JITTargetAddress findSymbolAddress( const std::string& strSymbol )
-        {
-            auto&                          executionSession = m_jit.getExecutionSession();
-            llvm::orc::SymbolStringPtr     pNamePtr         = executionSession.intern( mangleName( strSymbol ) );
-
-            llvm::orc::JITDylibSearchOrder jitDynListSearchList{
-                std::pair< llvm::orc::JITDylib*, llvm::orc::JITDylibLookupFlags >{
-                    &m_jitDynLib, llvm::orc::JITDylibLookupFlags::MatchAllSymbols } };
-
-            llvm::JITEvaluatedSymbol jitEvaluatedSymbol
-                = ExitOnErr( executionSession.lookup( jitDynListSearchList, pNamePtr ) );
-            VERIFY_RTE( jitEvaluatedSymbol );
-
-            llvm::JITTargetAddress jitAddress = jitEvaluatedSymbol.getAddress();
-            VERIFY_RTE( jitAddress );
-            return jitAddress;
-        }
-    */
 
     virtual void* getRawFunctionPtr( const std::string& strSymbol )
     {
@@ -182,7 +150,6 @@ public:
         VERIFY_RTE_MSG( functionPtr, "Failed to locate symbol: " << strSymbol );
         return reinterpret_cast< void* >( functionPtr.getValue() );
     }
-
 
 private:
     const std::string    m_name;
@@ -227,6 +194,9 @@ JITCompiler::JITCompiler()
 {
 }
 
-JITCompiler::Module::Ptr JITCompiler::compile( const std::string& strModule ) { return m_pPimpl->compile( strModule ); }
+JITCompiler::Module::Ptr JITCompiler::compile( const std::string& strModule )
+{
+    return m_pPimpl->compile( strModule );
+}
 
 } // namespace mega::runtime

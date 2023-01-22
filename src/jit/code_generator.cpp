@@ -344,11 +344,11 @@ public:
                 std::ostringstream os;
                 os << indent << "// ChildDerivation\n";
 
-                const Variables::Instance* pFrom = pParentDerivation->get_from();
-                const Variables::Instance* pTo   = pParentDerivation->get_to();
+                const Variables::Instance* pFrom = pChildDerivation->get_from();
+                const Variables::Instance* pTo   = pChildDerivation->get_to();
 
                 const std::string  s           = get( variables, pFrom );
-                const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
+                const mega::TypeID targetType  = pTo->get_concrete()->get_concrete_id();
                 const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
 
                 os << indent << get( variables, pTo ) << " = mega::reference::make( " << get( variables, pFrom ) << ", "
@@ -675,7 +675,7 @@ R"TEMPLATE(
                     nlohmann::json templateData(
                         { { "indent", osIndent.str() },
                           { "instance", get( variables, pInstance ) },
-                          { "concrete_type_id", pInstance->get_concrete()->get_concrete_id() } } );
+                          { "concrete_type_id", pGet->get_concrete_target()->get_concrete_id() } } );
 
                     os << render( szTemplate, templateData );
                 }
@@ -702,7 +702,7 @@ R"TEMPLATE(
                     nlohmann::json templateData(
                         { { "indent", osIndent.str() },
                           { "instance", get( variables, pInstance ) },
-                          { "concrete_type_id", pInstance->get_concrete()->get_concrete_id() } }
+                          { "concrete_type_id", pGetDimension->get_concrete_dimension()->get_concrete_id() } }
 
                     );
 

@@ -429,7 +429,7 @@ QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDec
     return QualType();
 }
 
-QualType getVectorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
+QualType getVectorConstRefType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
                         const QualType& valueType )
 {
     SourceLocation  iterLoc;
@@ -448,8 +448,11 @@ QualType getVectorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDecl
                     TemplateArgument( valueType ), pASTContext->getTrivialTypeSourceInfo( valueType, loc ) ) );
             }
 
+            
+
             TemplateName templateName( pDecl );
-            return pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
+            QualType result = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
+            return pASTContext->getLValueReferenceType( pASTContext->getConstType( result ) );
         }
         else if( TypeAliasTemplateDecl* pDecl = llvm::dyn_cast< TypeAliasTemplateDecl >( result.getFoundDecl() ) )
         {
@@ -463,7 +466,8 @@ QualType getVectorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDecl
             }
 
             TemplateName templateName( pDecl );
-            return pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
+            QualType result = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
+            return pASTContext->getLValueReferenceType( pASTContext->getConstType( result ) );
         }
     }
     return QualType();

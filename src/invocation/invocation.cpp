@@ -1106,7 +1106,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 }
                 else
                 {
-                    osReturnTypeStr << "__mega_vector< " << osInterfaceReturnType.str() << " >";
+                    osReturnTypeStr << "const __mega_vector< " << osInterfaceReturnType.str() << " >&";
                     osRuntimeReturnType << "__mega_vector< " << osInterfaceReturnType.str() << " >";
                 }
             }
