@@ -32,6 +32,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <optional>
 
 namespace mega
 {
@@ -42,9 +43,9 @@ public:
     using IndexTable      = std::unordered_map< reference, Index, reference::Hash >;
     using ReferenceVector = std::vector< reference >;
 
-    const IndexTable& getTable() const { return m_table; }
+    inline const IndexTable& getTable() const { return m_table; }
 
-    const Index& refToIndex( const reference& maybeNetAddress )
+    inline const Index& refToIndex( const reference& maybeNetAddress )
     {
         reference ref = maybeNetAddress.getNetworkAddress();
         auto iFind = m_table.find( ref );
@@ -57,13 +58,23 @@ public:
         return iFind->second;
     }
 
-    const reference& indexToRef( Index index ) const
+    inline std::optional< Index > refToIndexIfExist( const reference& maybeNetAddress ) const
+    {
+        auto iFind = m_table.find( maybeNetAddress.getNetworkAddress() );
+        if( iFind != m_table.end() )
+        {
+            return iFind->second;
+        }
+        return {};
+    }
+
+    inline const reference& indexToRef( Index index ) const
     {
         ASSERT( index < m_references.size() );
         return m_references[ index ];
     }
 
-    void remap( const Index& index, const reference& ref )
+    inline void remap( const Index& index, const reference& ref )
     {
         const auto existing = indexToRef( index );
         auto       iFind    = m_table.find( existing );

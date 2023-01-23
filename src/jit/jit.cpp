@@ -155,17 +155,19 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
     }
 
     const auto functionType = static_cast< mega::runtime::invocation::FunctionType >( fType );
+
+    if( !pModule )
+    {
+        std::ostringstream osModule;
+        m_codeGenerator.generate_invocation( compiler, m_database, invocationID, functionType, osModule );
+        pModule = compile( osModule.str() );
+        m_invocations.insert( std::make_pair( invocationID, pModule ) );
+    }
+    
     switch( functionType )
     {
         case invocation::eRead:
         {
-            if( !pModule )
-            {
-                std::ostringstream osModule;
-                m_codeGenerator.generate_read( compiler, m_database, invocationID, osModule );
-                pModule = compile( osModule.str() );
-                m_invocations.insert( std::make_pair( invocationID, pModule ) );
-            }
             std::ostringstream os;
             symbolPrefix( invocationID, os );
             os << "N4mega9referenceE";
@@ -174,13 +176,6 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         break;
         case invocation::eWrite:
         {
-            if( !pModule )
-            {
-                std::ostringstream osModule;
-                m_codeGenerator.generate_write( compiler, m_database, invocationID, osModule );
-                pModule = compile( osModule.str() );
-                m_invocations.insert( std::make_pair( invocationID, pModule ) );
-            }
             std::ostringstream os;
             symbolPrefix( invocationID, os );
             os << "N4mega9referenceEPKv";
@@ -189,13 +184,6 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         break;
         case invocation::eReadLink:
         {
-            if( !pModule )
-            {
-                std::ostringstream osModule;
-                m_codeGenerator.generate_readLink( compiler, m_database, invocationID, osModule );
-                pModule = compile( osModule.str() );
-                m_invocations.insert( std::make_pair( invocationID, pModule ) );
-            }
             std::ostringstream os;
             symbolPrefix( invocationID, os );
             os << "N4mega9referenceE";
@@ -204,13 +192,6 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         break;
         case invocation::eWriteLink:
         {
-            if( !pModule )
-            {
-                std::ostringstream osModule;
-                m_codeGenerator.generate_writeLink( compiler, m_database, invocationID, osModule );
-                pModule = compile( osModule.str() );
-                m_invocations.insert( std::make_pair( invocationID, pModule ) );
-            }
             std::ostringstream os;
             symbolPrefix( invocationID, os );
             os << "N4mega9referenceE14WriteOperationRKS0_";
@@ -219,13 +200,6 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         break;
         case invocation::eAllocate:
         {
-            if( !pModule )
-            {
-                std::ostringstream osModule;
-                m_codeGenerator.generate_allocate( compiler, m_database, invocationID, osModule );
-                pModule = compile( osModule.str() );
-                m_invocations.insert( std::make_pair( invocationID, pModule ) );
-            }
             std::ostringstream os;
             symbolPrefix( invocationID, os );
             os << "N4mega9referenceE";
@@ -234,13 +208,6 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         break;
         case invocation::eCall:
         {
-            if( !pModule )
-            {
-                std::ostringstream osModule;
-                m_codeGenerator.generate_call( compiler, m_database, invocationID, osModule );
-                pModule = compile( osModule.str() );
-                m_invocations.insert( std::make_pair( invocationID, pModule ) );
-            }
             std::ostringstream os;
             symbolPrefix( invocationID, os );
             os << "N4mega9referenceE";
@@ -249,17 +216,26 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         break;
         case invocation::eGet:
         {
-            if( !pModule )
-            {
-                std::ostringstream osModule;
-                m_codeGenerator.generate_get( compiler, m_database, invocationID, osModule );
-                pModule = compile( osModule.str() );
-                m_invocations.insert( std::make_pair( invocationID, pModule ) );
-            }
             std::ostringstream os;
             symbolPrefix( invocationID, os );
             os << "N4mega9referenceE";
             *ppFunction = ( void* )pModule->get< invocation::Get::FunctionPtr >( os.str() );
+        }
+        break;
+        case invocation::eSave:
+        {
+            std::ostringstream os;
+            symbolPrefix( invocationID, os );
+            os << "N4mega9referenceEPv";
+            *ppFunction = ( void* )pModule->get< invocation::Save::FunctionPtr >( os.str() );
+        }
+        break;
+        case invocation::eLoad:
+        {
+            std::ostringstream os;
+            symbolPrefix( invocationID, os );
+            os << "N4mega9referenceEPv";
+            *ppFunction = ( void* )pModule->get< invocation::Load::FunctionPtr >( os.str() );
         }
         break;
         case invocation::TOTAL_FUNCTION_TYPES:
@@ -296,6 +272,30 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const
         {
             m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
             *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
+        }
+        break;
+        case mega::runtime::object::eObjectSaveXMLStructure:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction = ( void* )pAllocator->getSaveXMLStructure();
+        }
+        break;
+        case mega::runtime::object::eObjectLoadXMLStructure:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction = ( void* )pAllocator->getLoadXMLStructure();
+        }
+        break;
+        case mega::runtime::object::eObjectSaveXML:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction = ( void* )pAllocator->getSaveXML();
+        }
+        break;
+        case mega::runtime::object::eObjectLoadXML:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction = ( void* )pAllocator->getLoadXML();
         }
         break;
         case mega::runtime::object::TOTAL_FUNCTION_TYPES:

@@ -47,6 +47,9 @@
 
 namespace boost::archive
 {
+static constexpr auto boostBINArchiveFlags = boost::archive::no_header | boost::archive::no_codecvt
+                                             | boost::archive::no_xml_tag_checking | boost::archive::no_tracking;
+
 class SnapshotIArchive
     : public binary_iarchive_impl< SnapshotIArchive, std::istream::char_type, std::istream::traits_type >
 {
@@ -59,7 +62,7 @@ class SnapshotIArchive
 
 public:
     SnapshotIArchive( std::streambuf& bsb, const mega::Snapshot& snapshot )
-        : base( bsb, no_header )
+        : base( bsb, boostBINArchiveFlags )
         , m_snapshot( snapshot )
     {
     }
@@ -93,7 +96,7 @@ class SnapshotOArchive
 
 public:
     SnapshotOArchive( std::streambuf& bsb )
-        : base( bsb, no_header )
+        : base( bsb, boostBINArchiveFlags )
     {
     }
 
@@ -182,10 +185,7 @@ public:
         return snapshot;
     }
 
-    void beginObject( const reference& ref ) 
-    { 
-         m_archive.beginObject( ref ); 
-    }
+    void beginObject( const reference& ref ) { m_archive.beginObject( ref ); }
 
 private:
     boost::interprocess::basic_vectorbuf< Buffer > m_oVecStream;

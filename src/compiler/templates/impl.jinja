@@ -111,17 +111,6 @@ struct __invoke_impl
         static thread_local mega::runtime::invocation::WriteLink function( g_unit_name, id );
         return function( context.data, overload, interfaceRef.data );
     }
-    /*template< typename... Args >
-    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, WriteOperation overload, Args... args ) const
-    {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
-        // WriteLink
-        static thread_local mega::runtime::invocation::WriteLinkRange function( g_unit_name, id );
-        // const {{ invocation.runtime_param_type }} temp{ args... };
-        return function( context.data, overload, { args... } );
-    }*/
 {% else if invocation.explicit_operation == "Allocate" %}
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... ) const
@@ -160,15 +149,29 @@ struct __invoke_impl
         // static thread_local mega::runtime::invocation::Stop function( g_unit_name, id );
         // return function( context.data );
 {% else if invocation.explicit_operation == "Save" %}
+    template< typename... Args >
+    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
+    {
+        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
+        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
         // Save
-        // static thread_local mega::runtime::invocation::Save function( g_unit_name, id );
-        // mega::XMLSaveArchive archive( args... );
-        // function( context.data, &archive );
+        static thread_local mega::runtime::invocation::Save function( g_unit_name, id );
+        mega::XMLSaveArchive archive( args... );
+        function( context.data, &archive );
+    }
 {% else if invocation.explicit_operation == "Load" %}
+    template< typename... Args >
+    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
+    {
+        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
+        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
         // Load
-        // static thread_local mega::runtime::invocation::Load function( g_unit_name, id );
-        // mega::XMLLoadArchive archive( args... );
-        // function( context.data, &archive );
+        static thread_local mega::runtime::invocation::Load function( g_unit_name, id );
+        mega::XMLLoadArchive archive( args... );
+        function( context.data, &archive );
+    }
 {% else if invocation.explicit_operation == "Files" %}
         // Files
 {% else if invocation.explicit_operation == "GetAction" %}

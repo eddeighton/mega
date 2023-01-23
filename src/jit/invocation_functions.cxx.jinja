@@ -82,7 +82,7 @@ namespace mega::runtime::invocation
         resolve( m_pszUnitName, m_invocationID, m_bResolving, e{{ function.name }}, ( void** )( &m_function ) );
     }
 {% if function.return == "void" %}
-    m_function( ref );
+    m_function({% for arg in function.arguments %}{{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %});
 {% else if function.return == "function" %}
     return (void*)m_function;
 {% else %}

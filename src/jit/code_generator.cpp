@@ -686,17 +686,22 @@ R"TEMPLATE(
             }
             else if( auto pSave = db_cast< Save >( pOperation ) )
             {
-                THROW_TODO;
                 // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    while( _fptr_save_xml_object_{{ concrete_type_id }} == nullptr )
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
 {{ indent }}    {
-{{ indent }}        mega::runtime::get_save_xml_object( g_pszModuleName, {{ concrete_type_id }},
-{{ indent }}            &_fptr_save_xml_object_{{ concrete_type_id }} );
+{{ indent }}        mega::runtime::readLock( {{ instance }} );
 {{ indent }}    }
-{{ indent }}    _fptr_save_xml_object_{{ concrete_type_id }}( {{ instance }}, pArchive, true );
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    static thread_local mega::runtime::object::ObjectSaveXMLStructure functionStructure( g_pszModuleName, {{ concrete_type_id }} );
+{{ indent }}    functionStructure( {{ instance }}, pArchive );
+{{ indent }}    static thread_local mega::runtime::object::ObjectSaveXML function( g_pszModuleName, {{ concrete_type_id }} );
+{{ indent }}    function( {{ instance }}, pArchive );
 {{ indent }}}
 )TEMPLATE";
                 // clang-format on
@@ -721,9 +726,42 @@ R"TEMPLATE(
             }
             else if( auto pLoad = db_cast< Load >( pOperation ) )
             {
-                THROW_TODO;
+                // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::readLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    static thread_local mega::runtime::object::ObjectLoadXMLStructure functionStructure( g_pszModuleName, {{ concrete_type_id }} );
+{{ indent }}    functionStructure( {{ instance }}, pArchive );
+{{ indent }}    static thread_local mega::runtime::object::ObjectLoadXML function( g_pszModuleName, {{ concrete_type_id }} );
+{{ indent }}    function( {{ instance }}, pArchive );
+{{ indent }}}
+)TEMPLATE";
+                // clang-format on
                 std::ostringstream os;
-                os << indent << "// Load\n";
+                {
+                    Concrete::Context*   pConcreteTarget = pLoad->get_concrete_target();
+                    Variables::Instance* pInstance       = pLoad->get_instance();
+
+                    std::ostringstream osIndent;
+                    osIndent << indent;
+
+                    nlohmann::json templateData( { { "indent", osIndent.str() },
+                                                   { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                                   { "instance", get( variables, pInstance ) } } );
+
+                    os << render( szTemplate, templateData );
+
+                    functions.objectSave.insert( pConcreteTarget );
+                }
+
                 data[ "assignments" ].push_back( os.str() );
             }
             else if( auto pFiles = db_cast< Files >( pOperation ) )
@@ -1277,9 +1315,24 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
     FinalStage::Concrete::Object*            pObject    = database.getObject( objectTypeID );
     const FinalStage::Components::Component* pComponent = pObject->get_component();
 
+    std::ostringstream osFullTypeName;
+    {
+        bool bFirst = true;
+        for( FinalStage::Interface::IContext* pIContext = pObject->get_interface_object(); pIContext;
+             pIContext = db_cast< FinalStage::Interface::IContext >( pIContext->get_parent() ) )
+        {
+            if( bFirst )
+                bFirst = false;
+            else
+                osFullTypeName << '_';
+            osFullTypeName << pIContext->get_identifier();
+        }
+    }
+
     std::ostringstream osObjectTypeID;
     osObjectTypeID << objectTypeID;
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
+                           { "objectName", osFullTypeName.str() },
                            { "simple_parts", nlohmann::json::array() },
                            { "parts", nlohmann::json::array() },
                            { "has_non_simple_parts", false },
@@ -1310,7 +1363,10 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                                        { "size", pPart->get_size() },
                                        { "offset", pPart->get_offset() },
                                        { "total_domain", pPart->get_total_domain_size() },
-                                       { "members", nlohmann::json::array() } } );
+                                       { "members", nlohmann::json::array() },
+                                       { "links", nlohmann::json::array() }
+
+                } );
 
                 for( auto pUserDim : pPart->get_user_dimensions() )
                 {
@@ -1327,36 +1383,101 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
 
                 for( auto pLinkDim : pPart->get_link_dimensions() )
                 {
+                    Concrete::Link*           pConcreteLink  = pLinkDim->get_link();
+                    Interface::LinkInterface* pLinkInterface = pConcreteLink->get_link_interface();
+                    HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
+
+                    bool bSource = false;
+                    if( pRelation->get_source_interface() == pLinkInterface )
+                    {
+                        bSource = true;
+                    }
+                    else if( pRelation->get_target_interface() == pLinkInterface )
+                    {
+                        bSource = false;
+                    }
+                    else
+                    {
+                        THROW_RTE( "Invalid link" );
+                    }
+
+                    bool bOwning = false;
+                    {
+                        if( bSource )
+                        {
+                            if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
+                                bOwning = true;
+                        }
+                        else
+                        {
+                            if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
+                                bOwning = true;
+                        }
+                    }
+
+                    std::string    strMangle;
+                    nlohmann::json link( { { "type", "mega::ReferenceVector" },
+                                           { "type_id", pLinkDim->get_concrete_id() },
+                                           { "mangle", "" },
+                                           { "name", pLinkDim->get_link()->get_link()->get_identifier() },
+                                           { "offset", pLinkDim->get_offset() },
+                                           { "singular", false },
+                                           { "types", nlohmann::json::array() },
+                                           { "owning", bOwning }
+
+                    } );
+
                     if( auto pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( pLinkDim ) )
                     {
-                        const std::string  strMangle = megaMangle( "mega::ReferenceVector" );
-                        std::ostringstream osLinkName;
-                        osLinkName << "link_" << pLinkMany->get_link()->get_concrete_id();
-                        nlohmann::json member( { { "type", "mega::ReferenceVector" },
-                                                 { "type_id", pLinkMany->get_concrete_id() },
-                                                 { "mangle", strMangle },
-                                                 { "name", osLinkName.str() },
-                                                 { "offset", pLinkMany->get_offset() } } );
-                        part[ "members" ].push_back( member );
-                        mangledDataTypes.insert( strMangle );
+                        strMangle          = megaMangle( "mega::ReferenceVector" );
+                        link[ "singular" ] = false;
                     }
                     else if( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
                     {
-                        const std::string  strMangle = megaMangle( "mega::reference" );
-                        std::ostringstream osLinkName;
-                        osLinkName << "link_" << pLinkSingle->get_link()->get_concrete_id();
-                        nlohmann::json member( { { "type", "mega::reference" },
-                                                 { "type_id", pLinkSingle->get_concrete_id() },
-                                                 { "mangle", strMangle },
-                                                 { "name", osLinkName.str() },
-                                                 { "offset", pLinkSingle->get_offset() } } );
-                        part[ "members" ].push_back( member );
-                        mangledDataTypes.insert( strMangle );
+                        strMangle          = megaMangle( "mega::reference" );
+                        link[ "singular" ] = true;
                     }
                     else
                     {
                         THROW_RTE( "Unknown link type" );
                     }
+
+                    if( bSource )
+                    {
+                        for( auto pTarget : pRelation->get_targets() )
+                        {
+                            for( auto pConcreteLink : pTarget->get_concrete() )
+                            {
+                                auto pObjectOpt = pConcreteLink->get_concrete_object();
+                                VERIFY_RTE( pObjectOpt.has_value() );
+                                nlohmann::json type( { { "link_type_id", pConcreteLink->get_concrete_id() },
+                                                       { "object_type_id", pObjectOpt.value()->get_concrete_id() }
+
+                                } );
+                                link[ "types" ].push_back( type );
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for( auto pTarget : pRelation->get_sources() )
+                        {
+                            for( auto pConcreteLink : pTarget->get_concrete() )
+                            {
+                                auto pObjectOpt = pConcreteLink->get_concrete_object();
+                                VERIFY_RTE( pObjectOpt.has_value() );
+                                nlohmann::json type( { { "link_type_id", pConcreteLink->get_concrete_id() },
+                                                       { "object_type_id", pObjectOpt.value()->get_concrete_id() }
+
+                                } );
+                                link[ "types" ].push_back( type );
+                            }
+                        }
+                    }
+
+                    link[ "mangle" ] = strMangle;
+                    part[ "links" ].push_back( link );
+                    mangledDataTypes.insert( strMangle );
                 }
                 for( auto pAllocDim : pPart->get_allocation_dimensions() )
                 {
@@ -1441,10 +1562,11 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
     return data;
 }
 
-void CodeGenerator::generate_allocate( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                       const mega::InvocationID& invocationID, std::ostream& os )
+void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                                         const mega::InvocationID&               invocationID,
+                                         mega::runtime::invocation::FunctionType invocationType, std::ostream& os )
 {
-    SPDLOG_TRACE( "RUNTIME: generate_allocate: {}", invocationID );
+    SPDLOG_TRACE( "RUNTIME: generate_invocation: {} {}", invocationID, invocationID );
 
     std::string          strName;
     const nlohmann::json data = generate( database, invocationID, strName );
@@ -1452,138 +1574,45 @@ void CodeGenerator::generate_allocate( const LLVMCompiler& compiler, const Datab
     std::ostringstream osCPPCode;
     try
     {
-        m_pPimpl->render_allocate( data, osCPPCode );
+        switch( invocationType )
+        {
+            case mega::runtime::invocation::eRead:
+                m_pPimpl->render_read( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eWrite:
+                m_pPimpl->render_write( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eAllocate:
+                m_pPimpl->render_allocate( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eCall:
+                m_pPimpl->render_call( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eReadLink:
+                m_pPimpl->render_readLink( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eWriteLink:
+                m_pPimpl->render_writeLink( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eGet:
+                m_pPimpl->render_get( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eSave:
+                m_pPimpl->render_save( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eLoad:
+                m_pPimpl->render_load( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eWriteLinkRange:
+            case mega::runtime::invocation::TOTAL_FUNCTION_TYPES:
+            default:
+                THROW_RTE( "Unsupported operation type" );
+        }
     }
     catch( inja::InjaError& ex )
     {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_allocate: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_allocate: " << ex.what() );
-    }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}
-
-void CodeGenerator::generate_read( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                   const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_read: {}", invocationID );
-
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
-
-    std::ostringstream osCPPCode;
-    try
-    {
-        m_pPimpl->render_read( data, osCPPCode );
-    }
-    catch( inja::InjaError& ex )
-    {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_read: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_read: " << ex.what() );
-    }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}
-
-void CodeGenerator::generate_write( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                    const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_write: {}", invocationID );
-
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
-
-    std::ostringstream osCPPCode;
-    try
-    {
-        m_pPimpl->render_write( data, osCPPCode );
-    }
-    catch( inja::InjaError& ex )
-    {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_write: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_write: " << ex.what() );
-    }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}
-
-void CodeGenerator::generate_readLink( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                       const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_readLink: {}", invocationID );
-
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
-
-    std::ostringstream osCPPCode;
-    try
-    {
-        m_pPimpl->render_readLink( data, osCPPCode );
-    }
-    catch( inja::InjaError& ex )
-    {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_readLink: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_readLink: " << ex.what() );
-    }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}
-
-void CodeGenerator::generate_writeLink( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                        const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_writeLink: {}", invocationID );
-
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
-
-    std::ostringstream osCPPCode;
-    try
-    {
-        m_pPimpl->render_writeLink( data, osCPPCode );
-    }
-    catch( inja::InjaError& ex )
-    {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_writeLink: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_writeLink: " << ex.what() );
-    }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}
-
-void CodeGenerator::generate_call( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                   const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_call: {}", invocationID );
-
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
-
-    std::ostringstream osCPPCode;
-    try
-    {
-        m_pPimpl->render_call( data, osCPPCode );
-    }
-    catch( inja::InjaError& ex )
-    {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_call: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_call: " << ex.what() );
-    }
-    compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
-}
-
-void CodeGenerator::generate_get( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                                  const mega::InvocationID& invocationID, std::ostream& os )
-{
-    SPDLOG_TRACE( "RUNTIME: generate_get: {}", invocationID );
-
-    std::string          strName;
-    const nlohmann::json data = generate( database, invocationID, strName );
-
-    std::ostringstream osCPPCode;
-    try
-    {
-        m_pPimpl->render_get( data, osCPPCode );
-    }
-    catch( inja::InjaError& ex )
-    {
-        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_get: {}", ex.what() );
-        THROW_RTE( "inja::InjaError in CodeGenerator::generate_get: " << ex.what() );
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_invocation: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::generate_invocation: " << ex.what() );
     }
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
@@ -1666,6 +1695,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const Datab
     }
     compiler.compileToLLVMIR( osModuleName.str(), osCPPCode.str(), os, std::nullopt );
 }
+
 void CodeGenerator::generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_program" );

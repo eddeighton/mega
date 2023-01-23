@@ -35,10 +35,14 @@ namespace mega::runtime
 class JIT_EXPORT Allocator
 {
 public:
-    using ObjectCtorFunction    = void ( * )( void* );
-    using ObjectDtorFunction    = void ( * )( void* );
-    using ObjectSaveBinFunction = void ( * )( void*, void* );
-    using ObjectLoadBinFunction = void ( * )( void*, void* );
+    using ObjectCtorFunction             = void ( * )( void* );
+    using ObjectDtorFunction             = void ( * )( void* );
+    using ObjectSaveBinFunction          = void ( * )( void*, void* );
+    using ObjectLoadBinFunction          = void ( * )( void*, void* );
+    using ObjectSaveXMLStructureFunction = void ( * )( void*, const char*, void* );
+    using ObjectLoadXMLStructureFunction = void ( * )( void*, const char*, void* );
+    using ObjectSaveXMLFunction          = void ( * )( void*, const char*, void* );
+    using ObjectLoadXMLFunction          = void ( * )( void*, const char*, void* );
 
     Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
 
@@ -46,27 +50,27 @@ public:
 
     const mega::SizeAlignment& getSizeAlignment() const { return m_sizeAlignment; }
 
-    ObjectCtorFunction    getCtor() const { return m_pCtor; }
-    ObjectDtorFunction    getDtor() const { return m_pDtor; }
-    ObjectSaveBinFunction getSaveBin() const { return m_pSaveBin; }
-    ObjectLoadBinFunction getLoadBin() const { return m_pLoadBin; }
-
-    /*ObjectSaveObjectFunction       getSaveXML() const { return m_pSaveXML; }
-    ObjectLoadObjectFunction       getLoadXML() const { return m_pLoadXML; }
-    ObjectLoadObjectRecordFunction getLoadObjectRecord() const { return m_pLoadRecord; }*/
+    ObjectCtorFunction             getCtor() const { return m_pCtor; }
+    ObjectDtorFunction             getDtor() const { return m_pDtor; }
+    ObjectSaveBinFunction          getSaveBin() const { return m_pSaveBin; }
+    ObjectLoadBinFunction          getLoadBin() const { return m_pLoadBin; }
+    ObjectSaveXMLStructureFunction getSaveXMLStructure() const { return m_pSaveXMLStructure; }
+    ObjectLoadXMLStructureFunction getLoadXMLStructure() const { return m_pLoadXMLStructure; }
+    ObjectSaveXMLFunction          getSaveXML() const { return m_pSaveXML; }
+    ObjectLoadXMLFunction          getLoadXML() const { return m_pLoadXML; }
 
 private:
-    JITCompiler::Module::Ptr m_pModule;
-    TypeID                   m_objectTypeID;
-    mega::SizeAlignment      m_sizeAlignment;
-    ObjectCtorFunction       m_pCtor    = nullptr;
-    ObjectDtorFunction       m_pDtor    = nullptr;
-    ObjectSaveBinFunction    m_pSaveBin = nullptr;
-    ObjectLoadBinFunction    m_pLoadBin = nullptr;
-
-    /*ObjectSaveObjectFunction       m_pSaveXML    = nullptr;
-    ObjectLoadObjectFunction       m_pLoadXML    = nullptr;
-    ObjectLoadObjectRecordFunction m_pLoadRecord = nullptr;*/
+    JITCompiler::Module::Ptr       m_pModule;
+    TypeID                         m_objectTypeID;
+    mega::SizeAlignment            m_sizeAlignment;
+    ObjectCtorFunction             m_pCtor             = nullptr;
+    ObjectDtorFunction             m_pDtor             = nullptr;
+    ObjectSaveBinFunction          m_pSaveBin          = nullptr;
+    ObjectLoadBinFunction          m_pLoadBin          = nullptr;
+    ObjectSaveXMLStructureFunction m_pSaveXMLStructure = nullptr;
+    ObjectLoadXMLStructureFunction m_pLoadXMLStructure = nullptr;
+    ObjectSaveXMLFunction          m_pSaveXML          = nullptr;
+    ObjectLoadXMLFunction          m_pLoadXML          = nullptr;
 };
 
 } // namespace mega::runtime

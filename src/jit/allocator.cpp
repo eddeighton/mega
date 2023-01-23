@@ -60,24 +60,31 @@ Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompil
         os << "PvS_";
         m_pLoadBin = pModule->get< ObjectLoadBinFunction >( os.str() );
     }
-    /*{
+
+    {
+        std::ostringstream os;
+        symbolPrefix( "save_object_xml_structure_", objectTypeID, os );
+        os << "N4mega9referenceEPv";
+        m_pSaveXMLStructure = pModule->get< ObjectSaveXMLStructureFunction >( os.str() );
+    }
+    {
+        std::ostringstream os;
+        symbolPrefix( "load_object_xml_structure_", objectTypeID, os );
+        os << "N4mega9referenceEPv";
+        m_pLoadXMLStructure = pModule->get< ObjectLoadXMLStructureFunction >( os.str() );
+    }
+    {
         std::ostringstream os;
         symbolPrefix( "save_object_xml_", objectTypeID, os );
-        os << "PvS_";
-        m_pSaveXML = pModule->get< SaveObjectFunction >( os.str() );
+        os << "N4mega9referenceEPv";
+        m_pSaveXML = pModule->get< ObjectSaveXMLFunction >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "load_object_xml_", objectTypeID, os );
-        os << "PvS_";
-        m_pLoadXML = pModule->get< LoadObjectFunction >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "load_object_record_", objectTypeID, os );
         os << "N4mega9referenceEPv";
-        m_pLoadRecord = pModule->get< LoadObjectRecordFunction >( os.str() );
-    }*/
+        m_pLoadXML = pModule->get< ObjectLoadXMLFunction >( os.str() );
+    }
 }
 
 } // namespace mega::runtime

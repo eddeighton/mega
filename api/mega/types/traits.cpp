@@ -17,12 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "traits.hpp"
+
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
+#include "mega/xml_archive.hpp"
 
 #include "traits.hpp"
 
 #include "log/log.hpp"
+
+#include "common/assert_verify.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -61,7 +66,7 @@ bool ref_vector_contains( void* pData, const mega::reference& ref )
 }
 void ref_vector_remove( void* pData, const mega::reference& ref )
 {
-    std::cout << "ref_vector_remove : " << ref << std::endl;
+    // std::cout << "ref_vector_remove : " << ref << std::endl;
     auto& vec   = reify< ReferenceVector >( pData );
     auto  iFind = std::find( vec.begin(), vec.end(), ref );
     if( iFind != vec.end() )
@@ -71,7 +76,7 @@ void ref_vector_remove( void* pData, const mega::reference& ref )
 }
 void ref_vector_add( void* pData, const mega::reference& ref )
 {
-    std::cout << "ref_vector_add : " << ref << std::endl;
+    // std::cout << "ref_vector_add : " << ref << std::endl;
     auto& vec = reify< ReferenceVector >( pData );
     vec.push_back( ref );
 }
@@ -79,6 +84,43 @@ void ref_vector_clear( void* pData )
 {
     auto& vec = reify< ReferenceVector >( pData );
     vec.clear();
+}
+
+mega::U64 ref_vector_get_size( void* pData )
+{
+    auto& vec = reify< ReferenceVector >( pData );
+    return vec.size();
+}
+
+mega::reference& ref_vector_get_at( void* pData, mega::U64 index )
+{
+    auto& vec = reify< ReferenceVector >( pData );
+    VERIFY_RTE( index < vec.size() );
+    return vec[ index ];
+}
+
+void xml_begin_object_structure( const mega::reference& ref, void* pSerialiser )
+{
+    // std::cout << "xml_begin_object_structure : " << ref << std::endl;
+    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
+    archive.internalReference( ref );
+}
+void xml_end_object_structure( const mega::reference& ref, void* pSerialiser )
+{
+    // std::cout << "xml_end_object_structure : " << ref << std::endl;
+    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
+}
+void xml_begin_object( const mega::reference& ref, const char* pszName, void* pSerialiser )
+{
+    // std::cout << "xml_begin_object : " << ref << std::endl;
+    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
+    archive.beginPart( pszName, ref );
+}
+void xml_end_object( const mega::reference& ref, const char* pszName, void* pSerialiser )
+{
+    // std::cout << "xml_end_object : " << ref << std::endl;
+    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
+    archive.endPart( pszName, ref );
 }
 
 } // namespace mega::mangle

@@ -24,6 +24,8 @@
 
 #include "database/database.hpp"
 
+#include "invocation_functions.hxx"
+
 #include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/project.hpp"
 
@@ -54,22 +56,11 @@ public:
 
     void generate_allocation( const LLVMCompiler& compiler, const DatabaseInstance& database, mega::TypeID objectTypeID,
                               std::ostream& os );
-    void generate_allocate( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                            const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_read( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                        const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_write( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                         const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_readLink( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                            const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_writeLink( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                             const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_call( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                        const mega::InvocationID& invocationID, std::ostream& os );
-    void generate_get( const LLVMCompiler& compiler, const DatabaseInstance& database,
-                       const mega::InvocationID& invocationID, std::ostream& os );
-
-    void generate_relation( const LLVMCompiler& compiler, const DatabaseInstance& database, const RelationID& relationID, std::ostream& os );
+    void generate_invocation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                              const mega::InvocationID&               invocationID,
+                              mega::runtime::invocation::FunctionType invocationType, std::ostream& os );
+    void generate_relation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+                            const RelationID& relationID, std::ostream& os );
     void generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os );
 
 private:

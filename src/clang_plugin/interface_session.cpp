@@ -179,11 +179,28 @@ public:
                             }
                             else
                             {
-                                // diag
-                                std::ostringstream os;
-                                os << "Invalid dimension type: " << pDimensionTrait->get_id()->get_str();
-                                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
-                                return false;
+                                // may be Interface reference type
+                                auto iFind2 = m_interfaceTypeIDs.find( symbolID );
+                                if ( iFind2 != m_interfaceTypeIDs.end() )
+                                {
+                                    Symbols::InterfaceTypeID* pInterfaceTypeID = iFind2->second;
+                                    auto iFind3 = m_symbolIDs.find( pInterfaceTypeID->get_symbol_ids().front() );
+                                    if ( iFind3 != m_symbolIDs.end() )
+                                    {
+                                        Symbols::SymbolTypeID* pSymbol = iFind3->second;
+                                        symbols.push_back( pSymbol );
+                                    }
+                                    //const auto typeIDSeq = pInterfaceTypeID->get_symbol_ids();
+                                    // symbols.push_back( typeIDSeq.front() );
+                                }
+                                else
+                                {
+                                    // diag
+                                    std::ostringstream os;
+                                    os << "Invalid dimension type: " << pDimensionTrait->get_id()->get_str();
+                                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                                    return false;
+                                }
                             }
                         }
                     }
