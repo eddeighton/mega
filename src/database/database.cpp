@@ -60,7 +60,6 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
         VERIFY_RTE_MSG( m_pConcreteRoot->get_concrete_id() == 1, "Concrete Root Type ID is NOT one!" );
     }
 
-    // for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
     {
         for( FinalStage::HyperGraph::Relation* pRelation :
              m_database.many< FinalStage::HyperGraph::Relation >( m_manifest.getManifestFilePath() ) )

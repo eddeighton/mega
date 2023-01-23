@@ -177,7 +177,8 @@ public:
                             ConcreteStage::Concrete::ContextGroup*                     parentConcreteContextGroup,
                             const IdentifierMap&                                       inheritedContexts,
                             std::vector< ConcreteStage::Concrete::Context* >&          childContexts,
-                            std::vector< ConcreteStage::Concrete::Dimensions::User* >& dimensions, bool bInObjectScope,
+                            std::vector< ConcreteStage::Concrete::Dimensions::User* >& dimensions, 
+                            std::optional< ConcreteStage::Concrete::Object* >& concreteObjectOpt,
                             ConcreteStage::Components::Component* pComponent )
     {
         using namespace ConcreteStage;
@@ -186,7 +187,7 @@ public:
         for( Interface::IContext* pChildContext : inheritedContexts.contexts )
         {
             if( Context* pContext
-                = recurse( database, parentConcreteContextGroup, pChildContext, bInObjectScope, pComponent ) )
+                = recurse( database, parentConcreteContextGroup, pChildContext, concreteObjectOpt, pComponent ) )
             {
                 childContexts.push_back( pContext );
             }
@@ -204,7 +205,8 @@ public:
 
     ConcreteStage::Concrete::Context* recurse( ConcreteStage::Database&               database,
                                                ConcreteStage::Concrete::ContextGroup* pParentContextGroup,
-                                               ConcreteStage::Interface::IContext* pContext, bool bInObjectScope,
+                                               ConcreteStage::Interface::IContext* pContext, 
+                                               std::optional< ConcreteStage::Concrete::Object* >& concreteObjectOpt,
                                                ConcreteStage::Components::Component* pComponent )
     {
         using namespace ConcreteStage;
@@ -217,6 +219,7 @@ public:
                 pNamespace,
                 {} } );
             pParentContextGroup->push_back_children( pConcrete );
+            pConcrete->set_concrete_object( concreteObjectOpt );
 
             IdentifierMap inheritedContexts;
             {
@@ -227,7 +230,7 @@ public:
             std::vector< ConcreteStage::Concrete::Context* >          childContexts;
             std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
             constructElements(
-                database, pConcrete, inheritedContexts, childContexts, dimensions, bInObjectScope, pComponent );
+                database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
 
             pConcrete->set_dimensions( dimensions );
             pConcrete->set_children( childContexts );
@@ -241,13 +244,14 @@ public:
         }
         else if( auto pAction = db_cast< Interface::Action >( pContext ) )
         {
-            if( bInObjectScope )
+            if( concreteObjectOpt.has_value() )
             {
                 Action* pConcrete = database.construct< Action >( Action::Args{
                     Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pAction, {} },
                     pAction,
                     {} } );
                 pParentContextGroup->push_back_children( pConcrete );
+                pConcrete->set_concrete_object( concreteObjectOpt );
 
                 IdentifierMap inheritedContexts;
                 {
@@ -258,7 +262,7 @@ public:
                 std::vector< ConcreteStage::Concrete::Context* >          childContexts;
                 std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
                 constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, bInObjectScope, pComponent );
+                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
 
                 pConcrete->set_dimensions( dimensions );
                 pConcrete->set_children( childContexts );
@@ -272,13 +276,14 @@ public:
         }
         else if( auto pEvent = db_cast< Interface::Event >( pContext ) )
         {
-            if( bInObjectScope )
+            if( concreteObjectOpt.has_value() )
             {
                 Event* pConcrete = database.construct< Event >(
                     Event::Args{ Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pEvent, {} },
                                  pEvent,
                                  {} } );
                 pParentContextGroup->push_back_children( pConcrete );
+                pConcrete->set_concrete_object( concreteObjectOpt );
 
                 IdentifierMap inheritedContexts;
                 {
@@ -289,7 +294,7 @@ public:
                 std::vector< ConcreteStage::Concrete::Context* >          childContexts;
                 std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
                 constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, bInObjectScope, pComponent );
+                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
 
                 pConcrete->set_dimensions( dimensions );
                 pConcrete->set_children( childContexts );
@@ -303,12 +308,13 @@ public:
         }
         else if( auto pFunction = db_cast< Interface::Function >( pContext ) )
         {
-            if( bInObjectScope )
+            if( concreteObjectOpt.has_value() )
             {
                 Function* pConcrete = database.construct< Function >( Function::Args{
                     Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pFunction, {} },
                     pFunction } );
                 pParentContextGroup->push_back_children( pConcrete );
+                pConcrete->set_concrete_object( concreteObjectOpt );
 
                 IdentifierMap inheritedContexts;
                 {
@@ -319,7 +325,7 @@ public:
                 std::vector< ConcreteStage::Concrete::Context* >          childContexts;
                 std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
                 constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, bInObjectScope, pComponent );
+                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
                 VERIFY_RTE( dimensions.empty() );
 
                 pConcrete->set_children( childContexts );
@@ -338,6 +344,8 @@ public:
                               pObject,
                               {} } );
             pParentContextGroup->push_back_children( pConcrete );
+            concreteObjectOpt = pConcrete;
+            pConcrete->set_concrete_object( concreteObjectOpt );
 
             IdentifierMap inheritedContexts;
             {
@@ -347,7 +355,7 @@ public:
 
             std::vector< ConcreteStage::Concrete::Context* >          childContexts;
             std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, true, pComponent );
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
 
             pConcrete->set_dimensions( dimensions );
             pConcrete->set_children( childContexts );
@@ -361,7 +369,7 @@ public:
                 // ignor link interfaces
                 return nullptr;
             }
-            if( bInObjectScope )
+            if( concreteObjectOpt.has_value() )
             {
                 Interface::LinkInterface* pLinkInterface = nullptr;
                 {
@@ -375,6 +383,7 @@ public:
                     Link::Args{ Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pLink, {} },
                                 pLink, pLinkInterface } );
                 pParentContextGroup->push_back_children( pConcrete );
+                pConcrete->set_concrete_object( concreteObjectOpt );
 
                 IdentifierMap inheritedContexts;
                 {
@@ -385,7 +394,7 @@ public:
                 std::vector< ConcreteStage::Concrete::Context* >          childContexts;
                 std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
                 constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, bInObjectScope, pComponent );
+                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
                 VERIFY_RTE( dimensions.empty() );
 
                 pConcrete->set_children( childContexts );
@@ -399,13 +408,14 @@ public:
         }
         else if( auto pBuffer = db_cast< Interface::Buffer >( pContext ) )
         {
-            if( bInObjectScope )
+            if( concreteObjectOpt.has_value() )
             {
                 Buffer* pConcrete = database.construct< Buffer >( Buffer::Args{
                     Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pBuffer, {} },
                     pBuffer,
                     {} } );
                 pParentContextGroup->push_back_children( pConcrete );
+                pConcrete->set_concrete_object( concreteObjectOpt );
 
                 IdentifierMap inheritedContexts;
                 {
@@ -416,7 +426,7 @@ public:
                 std::vector< ConcreteStage::Concrete::Context* >          childContexts;
                 std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
                 constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, bInObjectScope, pComponent );
+                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
                 VERIFY_RTE( dimensions.empty() );
 
                 pConcrete->set_children( childContexts );
@@ -466,10 +476,11 @@ public:
 
         Concrete::Root* pConcreteRoot
             = database.construct< Root >( Root::Args{ ContextGroup::Args{ {} }, pInterfaceRoot } );
+        std::optional< Concrete::Object* > concreteObjectOpt;
 
         for( Interface::IContext* pChildContext : pInterfaceRoot->get_children() )
         {
-            recurse( database, pConcreteRoot, pChildContext, false, pComponent );
+            recurse( database, pConcreteRoot, pChildContext, concreteObjectOpt, pComponent );
         }
 
         const task::FileHash buildHash = database.save_Concrete_to_temp();

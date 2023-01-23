@@ -224,6 +224,7 @@ stage HyperGraphAnalysisRollout
     file PerSourceModel;
 
     persource accessor array< ref< Interface::Link > >;
+    persource accessor array< ref< Concrete::Object > >;
     persource accessor ref< Concrete::Root >;
     global accessor ref< HyperGraph::Graph >;
 }

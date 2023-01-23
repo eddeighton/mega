@@ -53,9 +53,9 @@ namespace graph
 std::string graphVizEscape( const std::string& str )
 {
     std::ostringstream os;
-    for ( auto c : str )
+    for( auto c : str )
     {
-        switch ( c )
+        switch( c )
         {
             case '<':
                 os << "\\<";
@@ -106,7 +106,10 @@ nlohmann::json make_property( const std::string& strName, const std::string& str
     DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _osValue; _osValue << value; \
                                      node = make_property( name, _osValue.str() ); )
 
-const std::string& getIdentifier( FinalStage::Interface::IContext* pContext ) { return pContext->get_identifier(); }
+const std::string& getIdentifier( FinalStage::Interface::IContext* pContext )
+{
+    return pContext->get_identifier();
+}
 const std::string& getIdentifier( FinalStage::Concrete::Context* pContext )
 {
     return pContext->get_interface()->get_identifier();
@@ -119,7 +122,7 @@ std::string getContextFullTypeName( TContextType* pContext )
 
     std::vector< TContextType* > path;
     {
-        while ( pContext )
+        while( pContext )
         {
             path.push_back( pContext );
             pContext = db_cast< TContextType >( pContext->get_parent() );
@@ -130,9 +133,9 @@ std::string getContextFullTypeName( TContextType* pContext )
     std::ostringstream os;
     {
         bool bFirst = true;
-        for ( TContextType* pIter : path )
+        for( TContextType* pIter : path )
         {
-            if ( !bFirst )
+            if( !bFirst )
             {
                 os << "_";
             }
@@ -158,7 +161,7 @@ void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interfa
 {
     using namespace FinalStage;
     using namespace FinalStage::Interface;
-    for ( DimensionTrait* pDimension : dimensions )
+    for( DimensionTrait* pDimension : dimensions )
     {
         nlohmann::json property;
         PROP( property, pDimension->get_id()->get_str(),
@@ -174,9 +177,9 @@ void addInheritance( const std::optional< ::FinalStage::Interface::InheritanceTr
     using namespace FinalStage;
     using namespace FinalStage::Interface;
 
-    if ( inheritance.has_value() )
+    if( inheritance.has_value() )
     {
-        for ( IContext* pInherited : inheritance.value()->get_contexts() )
+        for( IContext* pInherited : inheritance.value()->get_contexts() )
         {
             nlohmann::json property;
             PROP( property, "Inherited",
@@ -197,33 +200,33 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     nlohmann::json node;
     NODE( node, getContextFullTypeName< FinalStage::Interface::IContext >( pContext ), "" );
 
-    if ( auto pNamespace = db_cast< Namespace >( pContext ) )
+    if( auto pNamespace = db_cast< Namespace >( pContext ) )
     {
         os << "Namespace: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pNamespace->get_dimension_traits() );
     }
-    else if ( auto pAbstract = db_cast< Abstract >( pContext ) )
+    else if( auto pAbstract = db_cast< Abstract >( pContext ) )
     {
         os << "Abstract: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pAbstract->get_inheritance_trait(), node );
     }
-    else if ( auto pAction = db_cast< Action >( pContext ) )
+    else if( auto pAction = db_cast< Action >( pContext ) )
     {
         os << "Action: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pAction->get_inheritance_trait(), node );
         addProperties( node, pAction->get_dimension_traits() );
     }
-    else if ( auto pEvent = db_cast< Event >( pContext ) )
+    else if( auto pEvent = db_cast< Event >( pContext ) )
     {
         os << "Event: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pEvent->get_inheritance_trait(), node );
         addProperties( node, pEvent->get_dimension_traits() );
     }
-    else if ( auto pFunction = db_cast< Function >( pContext ) )
+    else if( auto pFunction = db_cast< Function >( pContext ) )
     {
         os << "Function: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
@@ -238,19 +241,19 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
             node[ "properties" ].push_back( return_type );
         }
     }
-    else if ( auto pObject = db_cast< Object >( pContext ) )
+    else if( auto pObject = db_cast< Object >( pContext ) )
     {
         os << "Object: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pObject->get_inheritance_trait(), node );
         addProperties( node, pObject->get_dimension_traits() );
     }
-    else if ( auto pLinkInterface = db_cast< LinkInterface >( pContext ) )
+    else if( auto pLinkInterface = db_cast< LinkInterface >( pContext ) )
     {
         os << "LinkInterface: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
     }
-    else if ( auto pLink = db_cast< Link >( pContext ) )
+    else if( auto pLink = db_cast< Link >( pContext ) )
     {
         os << "Link: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
@@ -262,7 +265,7 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
 
     data[ "nodes" ].push_back( node );
 
-    for ( Interface::IContext* pChildContext : pContext->get_children() )
+    for( Interface::IContext* pChildContext : pContext->get_children() )
     {
         recurse( data, pChildContext );
 
@@ -307,7 +310,7 @@ void addProperties( nlohmann::json& node, const std::vector< FinalStage::Concret
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
     using namespace FinalStage::Concrete::Dimensions;
-    for ( User* pDimension : dimensions )
+    for( User* pDimension : dimensions )
     {
         nlohmann::json property;
         PROP( property, pDimension->get_interface_dimension()->get_id()->get_str(),
@@ -326,25 +329,25 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
     nlohmann::json node;
     NODE( node, getContextFullTypeName< Concrete::Context >( pContext ), "" );
 
-    if ( Namespace* pNamespace = db_cast< Namespace >( pContext ) )
+    if( Namespace* pNamespace = db_cast< Namespace >( pContext ) )
     {
         os << "Namespace: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pNamespace->get_dimensions() );
     }
-    else if ( Action* pAction = db_cast< Action >( pContext ) )
+    else if( Action* pAction = db_cast< Action >( pContext ) )
     {
         os << "Action: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pAction->get_dimensions() );
     }
-    else if ( Event* pEvent = db_cast< Event >( pContext ) )
+    else if( Event* pEvent = db_cast< Event >( pContext ) )
     {
         os << "Event: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pEvent->get_dimensions() );
     }
-    else if ( Function* pFunction = db_cast< Function >( pContext ) )
+    else if( Function* pFunction = db_cast< Function >( pContext ) )
     {
         os << "Function: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
@@ -359,18 +362,18 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
             node[ "properties" ].push_back( return_type );
         }
     }
-    else if ( Object* pObject = db_cast< Object >( pContext ) )
+    else if( Object* pObject = db_cast< Object >( pContext ) )
     {
         os << "Object: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pObject->get_dimensions() );
     }
-    else if ( Link* pLink = db_cast< Link >( pContext ) )
+    else if( Link* pLink = db_cast< Link >( pContext ) )
     {
         os << "Link: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
     }
-    else if ( Buffer* pBuffer = db_cast< Buffer >( pContext ) )
+    else if( Buffer* pBuffer = db_cast< Buffer >( pContext ) )
     {
         os << "Buffer: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
@@ -382,7 +385,7 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
 
     data[ "nodes" ].push_back( node );
 
-    for ( Concrete::Context* pChildContext : pContext->get_children() )
+    for( Concrete::Context* pChildContext : pContext->get_children() )
     {
         recurse( data, pChildContext );
 
@@ -403,12 +406,12 @@ void generateInterfaceGraphVizInterface( std::ostream&          os,
     nlohmann::json data
         = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
 
-    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
     {
         Database database( environment, sourceFilePath );
-        for ( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
+        for( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
         {
-            for ( Interface::IContext* pChildContext : pRoot->get_children() )
+            for( Interface::IContext* pChildContext : pRoot->get_children() )
             {
                 recurse( data, pChildContext );
             }
@@ -426,12 +429,12 @@ void generateInterfaceGraphVizConcrete( std::ostream&          os,
     nlohmann::json data
         = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
 
-    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
     {
         Database database( environment, sourceFilePath );
-        for ( Concrete::Root* pRoot : database.many< Concrete::Root >( sourceFilePath ) )
+        for( Concrete::Root* pRoot : database.many< Concrete::Root >( sourceFilePath ) )
         {
-            for ( Concrete::Context* pContext : pRoot->get_children() )
+            for( Concrete::Context* pContext : pRoot->get_children() )
             {
                 recurse( data, pContext );
             }
@@ -446,12 +449,12 @@ void createGraphNode( std::set< FinalStage::Interface::Link* >& links, FinalStag
     using namespace FinalStage;
 
     std::ostringstream os;
-    if ( bInterface )
+    if( bInterface )
         os << "Interface: " << getContextFullTypeName< Interface::IContext >( pLink );
     else
         os << "Link: " << getContextFullTypeName< Interface::IContext >( pLink );
 
-    if ( links.find( pLink ) == links.end() )
+    if( links.find( pLink ) == links.end() )
     {
         nlohmann::json node;
         NODE( node, getContextFullTypeName< Interface::IContext >( pLink ), os.str() );
@@ -470,7 +473,7 @@ void createEdge( FinalStage::Interface::Link*                                   
     using LinkPair = std::pair< Interface::Link*, Interface::Link* >;
     // LinkPair p{ pFrom < pTo ? pFrom : pTo, pFrom < pTo ? pTo : pFrom };
     LinkPair p{ pFrom, pTo };
-    if ( !edges.count( p ) )
+    if( !edges.count( p ) )
     {
         nlohmann::json edge
             = nlohmann::json::object( { { "from", getContextFullTypeName< Interface::IContext >( pFrom ) },
@@ -492,11 +495,11 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
     using LinkPair = std::pair< Interface::Link*, Interface::Link* >;
     std::set< LinkPair > edges;
 
-    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
     {
         Database database( environment, sourceFilePath );
 
-        for ( Concrete::Link* pLink : database.many< Concrete::Link >( sourceFilePath ) )
+        for( Concrete::Link* pLink : database.many< Concrete::Link >( sourceFilePath ) )
         {
             Interface::Link*      pInterfaceLink = pLink->get_link();
             HyperGraph::Relation* pRelation      = pInterfaceLink->get_relation();
@@ -517,6 +520,129 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
             {
                 createGraphNode( links, pTarget, data, false );
                 createEdge( pTargetInterface, pTarget, edges, data );
+            }
+        }
+    }
+    os << data;
+}
+
+void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Concrete;
+
+    std::ostringstream os;
+
+    nlohmann::json node;
+    NODE( node, getContextFullTypeName< Concrete::Context >( pContext ), "" );
+
+    if( Namespace* pNamespace = db_cast< Namespace >( pContext ) )
+    {
+    }
+    else if( Action* pAction = db_cast< Action >( pContext ) )
+    {
+    }
+    else if( Event* pEvent = db_cast< Event >( pContext ) )
+    {
+    }
+    else if( Function* pFunction = db_cast< Function >( pContext ) )
+    {
+    }
+    else if( Object* pObject = db_cast< Object >( pContext ) )
+    {
+        os << "Object: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        node[ "label" ] = os.str();
+    }
+    else if( Link* pLink = db_cast< Link >( pContext ) )
+    {
+        os << "Link: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        node[ "label" ] = os.str();
+
+        Interface::LinkInterface* pLinkInterface = pLink->get_link_interface();
+        HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
+
+        const mega::Ownership ownership
+            = pRelation->get_ownership();
+
+        //const mega::DerivationDirection derivation =
+        //    pLinkInterface->get_link_trait()->get_derivation();
+
+        if( pRelation->get_source_interface() == pLinkInterface )
+        {
+            if( ownership.get() == mega::Ownership::eOwnTarget )
+            {
+                for( auto pTarget : pRelation->get_targets() )
+                {
+                    for( auto pConcreteLink : pTarget->get_concrete() )
+                    {
+                        nlohmann::json edge = nlohmann::json::object(
+                            { { "from", getContextFullTypeName< Concrete::Context >( pLink ) },
+                            { "to", getContextFullTypeName< Concrete::Context >( pConcreteLink ) },
+                            { "colour", "FF0000" } } );
+                        data[ "edges" ].push_back( edge );
+                    }
+                }
+            }
+        }
+        else if( pRelation->get_target_interface() == pLinkInterface )
+        {
+            if( ownership.get() == mega::Ownership::eOwnSource )
+            {
+                for( auto pTarget : pRelation->get_sources() )
+                {
+                    for( auto pConcreteLink : pTarget->get_concrete() )
+                    {
+                        nlohmann::json edge = nlohmann::json::object(
+                            { { "from", getContextFullTypeName< Concrete::Context >( pLink ) },
+                            { "to", getContextFullTypeName< Concrete::Context >( pConcreteLink ) },
+                            { "colour", "FF0000" } } );
+                        data[ "edges" ].push_back( edge );
+                    }
+                }
+            }
+        }
+        else
+        {
+            THROW_RTE( "Invalid relation" );
+        }
+    }
+    else if( Buffer* pBuffer = db_cast< Buffer >( pContext ) )
+    {
+    }
+    else
+    {
+        THROW_RTE( "Unknown context type" );
+    }
+
+    data[ "nodes" ].push_back( node );
+
+    for( Concrete::Context* pChildContext : pContext->get_children() )
+    {
+        recurseTree( data, pChildContext );
+
+        nlohmann::json edge
+            = nlohmann::json::object( { { "from", getContextFullTypeName< Concrete::Context >( pContext ) },
+                                        { "to", getContextFullTypeName< Concrete::Context >( pChildContext ) },
+                                        { "colour", "000000" } } );
+        data[ "edges" ].push_back( edge );
+    }
+}
+
+void generateTreeGraphViz( std::ostream& os, mega::io::Environment& environment, mega::io::Manifest& manifest )
+{
+    using namespace FinalStage;
+
+    nlohmann::json data
+        = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
+
+    for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    {
+        Database database( environment, sourceFilePath );
+        for( Concrete::Root* pRoot : database.many< Concrete::Root >( sourceFilePath ) )
+        {
+            for( Concrete::Context* pContext : pRoot->get_children() )
+            {
+                recurseTree( data, pContext );
             }
         }
     }
@@ -546,15 +672,15 @@ std::string createMemoryNode( FinalStage::MemoryLayout::Buffer* pBuffer, nlohman
     osName << "buffer_" << pBuffer->_get_object_info().getFileID() << "_" << pBuffer->_get_object_info().getType()
            << "_" << pBuffer->_get_object_info().getIndex();
 
-    if ( MemoryLayout::SimpleBuffer* pSimpleBuffer = db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+    if( MemoryLayout::SimpleBuffer* pSimpleBuffer = db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
     {
         os << "Simple";
     }
-    else if ( MemoryLayout::NonSimpleBuffer* pNonSimpleBuffer = db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
+    else if( MemoryLayout::NonSimpleBuffer* pNonSimpleBuffer = db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
     {
         os << "NonSimple";
     }
-    else if ( MemoryLayout::GPUBuffer* pGPUBuffer = db_cast< MemoryLayout::GPUBuffer >( pBuffer ) )
+    else if( MemoryLayout::GPUBuffer* pGPUBuffer = db_cast< MemoryLayout::GPUBuffer >( pBuffer ) )
     {
         os << "GPU";
     }
@@ -585,7 +711,7 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
           os.str() << " size " << pPart->get_size() << " offset " << pPart->get_offset() << " align "
                    << pPart->get_alignment() );
 
-    for ( auto p : pPart->get_user_dimensions() )
+    for( auto p : pPart->get_user_dimensions() )
     {
         nlohmann::json property;
         PROP( property, p->get_interface_dimension()->get_id()->get_str(),
@@ -593,32 +719,32 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
                                << " alignment " << p->get_interface_dimension()->get_alignment() );
         node[ "properties" ].push_back( property );
     }
-    for ( auto p : pPart->get_allocation_dimensions() )
+    for( auto p : pPart->get_allocation_dimensions() )
     {
-        if ( Concrete::Dimensions::Allocator* pAllocatorDimension = db_cast< Concrete::Dimensions::Allocator >( p ) )
+        if( Concrete::Dimensions::Allocator* pAllocatorDimension = db_cast< Concrete::Dimensions::Allocator >( p ) )
         {
             Allocators::Allocator* pAllocator = pAllocatorDimension->get_allocator();
             Concrete::Context*     pAllocated = pAllocator->get_allocated_context();
 
             std::ostringstream osValue;
             {
-                if ( auto pNothing = db_cast< Allocators::Nothing >( pAllocator ) )
+                if( auto pNothing = db_cast< Allocators::Nothing >( pAllocator ) )
                 {
                     osValue << "Nothing";
                 }
-                else if ( auto pSingleton = db_cast< Allocators::Singleton >( pAllocator ) )
+                else if( auto pSingleton = db_cast< Allocators::Singleton >( pAllocator ) )
                 {
                     osValue << "Singleton";
                 }
-                else if ( auto pRange32 = db_cast< Allocators::Range32 >( pAllocator ) )
+                else if( auto pRange32 = db_cast< Allocators::Range32 >( pAllocator ) )
                 {
                     osValue << "Range32";
                 }
-                else if ( auto pRange64 = db_cast< Allocators::Range64 >( pAllocator ) )
+                else if( auto pRange64 = db_cast< Allocators::Range64 >( pAllocator ) )
                 {
                     osValue << "Range64";
                 }
-                else if ( auto pRangeAny = db_cast< Allocators::RangeAny >( pAllocator ) )
+                else if( auto pRangeAny = db_cast< Allocators::RangeAny >( pAllocator ) )
                 {
                     osValue << "RangeAny";
                 }
@@ -640,17 +766,17 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
             THROW_RTE( "Unknown allocator dimension type" );
         }
     }
-    for ( auto p : pPart->get_link_dimensions() )
+    for( auto p : pPart->get_link_dimensions() )
     {
         Concrete::Link* pLink = p->get_link();
 
         std::ostringstream osValue;
         {
-            if ( Concrete::Dimensions::LinkSingle* pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( p ) )
+            if( Concrete::Dimensions::LinkSingle* pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( p ) )
             {
                 osValue << "Single";
             }
-            else if ( Concrete::Dimensions::LinkMany* pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( p ) )
+            else if( Concrete::Dimensions::LinkMany* pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( p ) )
             {
                 osValue << "Many";
             }
@@ -677,20 +803,20 @@ void generateMemoryGraphViz( std::ostream& os, mega::io::Environment& environmen
     nlohmann::json data
         = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
 
-    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
     {
         Database database( environment, sourceFilePath );
 
-        for ( Concrete::Object* pObject : database.many< Concrete::Object >( sourceFilePath ) )
+        for( Concrete::Object* pObject : database.many< Concrete::Object >( sourceFilePath ) )
         {
             const std::string strObject = createMemoryNode( pObject, data );
-            for ( MemoryLayout::Buffer* pBuffer : pObject->get_buffers() )
+            for( MemoryLayout::Buffer* pBuffer : pObject->get_buffers() )
             {
                 const std::string strBuffer = createMemoryNode( pBuffer, data );
                 data[ "edges" ].push_back(
                     nlohmann::json::object( { { "from", strObject }, { "to", strBuffer }, { "colour", "0000FF" } } ) );
 
-                for ( MemoryLayout::Part* pPart : pBuffer->get_parts() )
+                for( MemoryLayout::Part* pPart : pBuffer->get_parts() )
                 {
                     const std::string strPart = createMemoryNode( strBuffer, pPart, data );
                     data[ "edges" ].push_back( nlohmann::json::object(
@@ -725,7 +851,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
     po::notify( vm );
 
-    if ( bHelp )
+    if( bHelp )
     {
         std::cout << commandOptions << "\n";
     }
@@ -736,7 +862,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             std::unique_ptr< mega::io::Environment > pEnvironment;
             mega::compiler::Directories              directories{ srcDir, buildDir, "", "" };
 
-            if ( !databaseArchivePath.empty() )
+            if( !databaseArchivePath.empty() )
             {
                 pEnvironment.reset( new mega::io::ArchiveEnvironment( databaseArchivePath ) );
             }
@@ -747,19 +873,23 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
             mega::io::Manifest manifest( *pEnvironment, pEnvironment->project_manifest() );
 
-            if ( strGraphType == "interface" )
+            if( strGraphType == "interface" )
             {
                 generateInterfaceGraphVizInterface( osOutput, *pEnvironment, manifest );
             }
-            else if ( strGraphType == "concrete" )
+            else if( strGraphType == "concrete" )
             {
                 generateInterfaceGraphVizConcrete( osOutput, *pEnvironment, manifest );
             }
-            else if ( strGraphType == "hyper" )
+            else if( strGraphType == "hyper" )
             {
                 generateHyperGraphViz( osOutput, *pEnvironment, manifest );
             }
-            else if ( strGraphType == "memory" )
+            else if( strGraphType == "tree" )
+            {
+                generateTreeGraphViz( osOutput, *pEnvironment, manifest );
+            }
+            else if( strGraphType == "memory" )
             {
                 generateMemoryGraphViz( osOutput, *pEnvironment, manifest );
             }
@@ -773,9 +903,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             boost::filesystem::updateFileIfChanged( outputFilePath, osOutput.str() );
         }
-        catch ( std::exception& ex )
+        catch( std::exception& ex )
         {
-            THROW_RTE( "Error generating graph: " << ex.what() );
+            THROW_RTE( "Error generating graph: " << outputFilePath.string() << " exception: " << ex.what() );
         }
     }
 }

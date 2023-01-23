@@ -76,6 +76,7 @@ namespace Concrete
     object Context : ContextGroup -> ConcreteStage::Concrete
     {
         ref< Components::Component > component;
+        late< opt< ref< Object > > > concrete_object;
         ref< ContextGroup > parent;
         ref< Interface::IContext > interface;
         array< ref< Interface::IContext > > inheritance;
@@ -121,6 +122,9 @@ namespace Concrete
         ref< Interface::Object > interface_object;
         array< ref< Dimensions::User > > dimensions;
         array< ref< MemoryLayout::Buffer > > buffers -> MemoryStage::MemoryLayout;
+
+        array< ref< Link > > all_links -> HyperGraphAnalysisRollout::PerSourceModel;
+        array< ref< Link > > owning_links -> HyperGraphAnalysisRollout::PerSourceModel;
     }
 
     object Link : Context -> ConcreteStage::Concrete

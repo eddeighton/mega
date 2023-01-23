@@ -490,7 +490,12 @@ public:
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    return mega::runtime::allocate( {{ instance }}, {{ concrete_type_id }} );
+{{ indent }}    mega::reference allocatedRef = mega::runtime::allocate( {{ instance }}, {{ concrete_type_id }} );
+{% if has_owning_link %}
+{{ indent }}    static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
+{{ indent }}    function( {{ link_source }}, {{ link_target }} );
+{% endif %}
+{{ indent }}    return allocatedRef;
 {{ indent }}}
 )TEMPLATE";
                 // clang-format on
@@ -501,11 +506,81 @@ R"TEMPLATE(
                     std::ostringstream   osIndent;
                     osIndent << indent;
 
-                    nlohmann::json templateData( {
-                        { "indent", osIndent.str() },
-                        { "concrete_type_id", pConcreteTarget->get_concrete_id() },
-                        { "instance", get( variables, pInstance ) },
-                    } );
+                    nlohmann::json templateData( { { "indent", osIndent.str() },
+                                                   { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                                   { "instance", get( variables, pInstance ) },
+                                                   { "has_owning_link", false },
+                                                   { "link_source", "" },
+                                                   { "link_target", "" },
+                                                   { "owning_relation_id", "" } } );
+
+                    auto pConstructedObject = db_cast< Concrete::Object >( pConcreteTarget );
+                    VERIFY_RTE( pConstructedObject );
+                    std::vector< Concrete::Link* > owningLinks = pConstructedObject->get_owning_links();
+                    if( !owningLinks.empty() )
+                    {
+                        Concrete::Context* pParentContext = pInstance->get_concrete();
+                        if( Concrete::Link* pParentLink = db_cast< Concrete::Link >( pParentContext ) )
+                        {
+                            Interface::LinkInterface* pParentLinkInterface = pParentLink->get_link_interface();
+                            Interface::LinkInterface* pChildLinkInterface  = nullptr;
+                            HyperGraph::Relation*     pRelation            = pParentLinkInterface->get_relation();
+
+                            if( pRelation->get_source_interface() == pParentLinkInterface )
+                            {
+                                pChildLinkInterface = pRelation->get_target_interface();
+                            }
+                            else if( pRelation->get_target_interface() == pParentLinkInterface )
+                            {
+                                pChildLinkInterface = pRelation->get_source_interface();
+                            }
+                            else
+                            {
+                                THROW_RTE( "Bad relation" );
+                            }
+
+                            Concrete::Link* pOwningLink = nullptr;
+                            for( Concrete::Link* pLink : owningLinks )
+                            {
+                                if( pLink->get_link_interface() == pChildLinkInterface )
+                                {
+                                    VERIFY_RTE_MSG( !pOwningLink, "Duplicate owning links" );
+                                    pOwningLink = pLink;
+                                }
+                            }
+                            VERIFY_RTE_MSG( pOwningLink, "Failed to locate owning link interface for allocation" );
+                            std::ostringstream osLinkReference;
+                            osLinkReference << "mega::reference::make( allocatedRef, " << pOwningLink->get_concrete_id()
+                                            << " )";
+
+                            Interface::LinkTrait* pLinkTrait = pChildLinkInterface->get_link_trait();
+                            if( pRelation->get_source_interface() == pChildLinkInterface )
+                            {
+                                templateData[ "link_source" ] = osLinkReference.str();
+                                templateData[ "link_target" ] = get( variables, pInstance );
+                            }
+                            else if( pRelation->get_target_interface() == pChildLinkInterface )
+                            {
+                                templateData[ "link_source" ] = get( variables, pInstance );
+                                templateData[ "link_target" ] = osLinkReference.str();
+                            }
+                            else
+                            {
+                                THROW_RTE( "Invalid relation" );
+                            }
+
+                            const mega::RelationID& relationID = pRelation->get_id();
+                            std::ostringstream      osRelationID;
+                            osRelationID << relationID.getLower() << ',' << relationID.getUpper();
+
+                            templateData[ "owning_relation_id" ] = osRelationID.str();
+                            templateData[ "has_owning_link" ]    = true;
+                        }
+                        else
+                        {
+                            THROW_RTE( "Invalid allocation parent" );
+                        }
+                    }
 
                     os << render( szTemplate, templateData );
                 }

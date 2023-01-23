@@ -3422,6 +3422,7 @@ namespace Concrete
     {
         loader.load( p_Concrete_Concrete_ContextGroup );
         loader.load( component );
+        loader.load( concrete_object );
         loader.load( parent );
         loader.load( interface );
         loader.load( inheritance );
@@ -3430,6 +3431,8 @@ namespace Concrete
     {
         storer.store( p_Concrete_Concrete_ContextGroup );
         storer.store( component );
+        VERIFY_RTE_MSG( concrete_object.has_value(), "Concrete::Concrete_Context.concrete_object has NOT been set" );
+        storer.store( concrete_object );
         storer.store( parent );
         storer.store( interface );
         storer.store( inheritance );
@@ -3448,6 +3451,11 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "component", component } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_object", concrete_object.value() } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -3687,12 +3695,14 @@ namespace Concrete
     Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Object( loader )
+          , p_PerSourceModel_Concrete_Object( loader )
           , interface_object( loader )
     {
     }
     Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Object( loader )
+          , p_PerSourceModel_Concrete_Object( loader )
           , interface_object( interface_object )
           , dimensions( dimensions )
     {
@@ -4131,8 +4141,9 @@ namespace Model
           , target_interface( loader )
     {
     }
-    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::RelationID& id, const std::vector< data::Ptr< data::Tree::Interface_Link > >& sources, const std::vector< data::Ptr< data::Tree::Interface_Link > >& targets, const data::Ptr< data::Tree::Interface_LinkInterface >& source_interface, const data::Ptr< data::Tree::Interface_LinkInterface >& target_interface)
+    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::RelationID& id, const mega::Ownership& ownership, const std::vector< data::Ptr< data::Tree::Interface_Link > >& sources, const std::vector< data::Ptr< data::Tree::Interface_Link > >& targets, const data::Ptr< data::Tree::Interface_LinkInterface >& source_interface, const data::Ptr< data::Tree::Interface_LinkInterface >& target_interface)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , id( id )
+          , ownership( ownership )
           , sources( sources )
           , targets( targets )
           , source_interface( source_interface )
@@ -4149,6 +4160,7 @@ namespace Model
     void HyperGraph_Relation::load( mega::io::Loader& loader )
     {
         loader.load( id );
+        loader.load( ownership );
         loader.load( sources );
         loader.load( targets );
         loader.load( source_interface );
@@ -4157,6 +4169,7 @@ namespace Model
     void HyperGraph_Relation::store( mega::io::Storer& storer ) const
     {
         storer.store( id );
+        storer.store( ownership );
         storer.store( sources );
         storer.store( targets );
         storer.store( source_interface );
@@ -4176,6 +4189,11 @@ namespace Model
         {
             nlohmann::json property = nlohmann::json::object({
                 { "id", id } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "ownership", ownership } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -4287,6 +4305,60 @@ namespace PerSourceModel
         {
             nlohmann::json property = nlohmann::json::object({
                 { "relation", relation } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Object : public mega::io::Object
+    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Object( loader )
+    {
+    }
+    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Object > p_Concrete_Concrete_Object, const std::vector< data::Ptr< data::Concrete::Concrete_Link > >& all_links, const std::vector< data::Ptr< data::Concrete::Concrete_Link > >& owning_links)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Object( p_Concrete_Concrete_Object )
+          , all_links( all_links )
+          , owning_links( owning_links )
+    {
+    }
+    bool Concrete_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Object::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Object->p_PerSourceModel_Concrete_Object = data::Ptr< data::PerSourceModel::Concrete_Object >( p_Concrete_Concrete_Object, this );
+    }
+    void Concrete_Object::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Object );
+        loader.load( all_links );
+        loader.load( owning_links );
+    }
+    void Concrete_Object::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Object );
+        storer.store( all_links );
+        storer.store( owning_links );
+    }
+    void Concrete_Object::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Object" },
+                { "filetype" , "PerSourceModel" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "all_links", all_links } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "owning_links", owning_links } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -8175,6 +8247,57 @@ std::optional< mega::U64 >& get_alignment(std::variant< data::Ptr< data::MemoryL
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::vector< data::Ptr< data::Concrete::Concrete_Link > >& get_all_links(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            data::Ptr< data::PerSourceModel::Concrete_Object > part = 
+                data::convert< data::PerSourceModel::Concrete_Object >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_all_links" );
+            return part->all_links;
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 data::Ptr< data::Concrete::Concrete_Context >& get_allocated_context(std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > >& m_data)
 {
     struct Visitor
@@ -10348,6 +10471,85 @@ data::Ptr< data::Concrete::Concrete_Link >& get_concrete_link(std::variant< data
             return part->concrete_link;
         }
         data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& get_concrete_object(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -15558,6 +15760,72 @@ mega::Ownership& get_ownership(std::variant< data::Ptr< data::AST::Parser_LinkIn
     }visitor;
     return std::visit( visitor, m_data );
 }
+mega::Ownership& get_ownership(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        mega::Ownership& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_ownership" );
+            return part->ownership;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< data::Ptr< data::Concrete::Concrete_Link > >& get_owning_links(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            data::Ptr< data::PerSourceModel::Concrete_Object > part = 
+                data::convert< data::PerSourceModel::Concrete_Object >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_owning_links" );
+            return part->owning_links;
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& get_parameter_contexts(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
@@ -18267,6 +18535,57 @@ std::vector< data::Ptr< data::AST::Parser_ActionDef > >& push_back_action_defs(s
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::vector< data::Ptr< data::Concrete::Concrete_Link > >& push_back_all_links(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            data::Ptr< data::PerSourceModel::Concrete_Object > part = 
+                data::convert< data::PerSourceModel::Concrete_Object >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_all_links" );
+            return part->all_links;
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& push_back_allocation_dimensions(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     struct Visitor
@@ -20359,6 +20678,57 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& 
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::vector< data::Ptr< data::Concrete::Concrete_Link > >& push_back_owning_links(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            data::Ptr< data::PerSourceModel::Concrete_Object > part = 
+                data::convert< data::PerSourceModel::Concrete_Object >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_owning_links" );
+            return part->owning_links;
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& push_back_parameter_contexts(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
@@ -20812,6 +21182,57 @@ std::optional< mega::U64 >& set_alignment(std::variant< data::Ptr< data::MemoryL
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: set_alignment" );
             return part->alignment;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< data::Ptr< data::Concrete::Concrete_Link > >& set_all_links(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            data::Ptr< data::PerSourceModel::Concrete_Object > part = 
+                data::convert< data::PerSourceModel::Concrete_Object >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_all_links" );
+            return part->all_links;
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -22966,6 +23387,85 @@ data::Ptr< data::Concrete::Concrete_Link >& set_concrete_link(std::variant< data
             return part->concrete_link;
         }
         data::Ptr< data::Concrete::Concrete_Link >& operator()( data::Ptr< data::Operations::Invocations_Operations_Range >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& set_concrete_object(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            data::Ptr< data::Concrete::Concrete_Context > part = 
+                data::convert< data::Concrete::Concrete_Context >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_concrete_object" );
+            return part->concrete_object;
+        }
+        std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
         {
             THROW_RTE( "Database used with incorrect type" );
         }
@@ -28084,6 +28584,72 @@ mega::Ownership& set_ownership(std::variant< data::Ptr< data::AST::Parser_LinkIn
     }visitor;
     return std::visit( visitor, m_data );
 }
+mega::Ownership& set_ownership(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    struct Visitor
+    {
+        mega::Ownership& operator()( data::Ptr< data::Model::HyperGraph_Relation >& arg ) const
+        {
+            data::Ptr< data::Model::HyperGraph_Relation > part = 
+                data::convert< data::Model::HyperGraph_Relation >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_ownership" );
+            return part->ownership;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< data::Ptr< data::Concrete::Concrete_Link > >& set_owning_links(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Object >& arg ) const
+        {
+            data::Ptr< data::PerSourceModel::Concrete_Object > part = 
+                data::convert< data::PerSourceModel::Concrete_Object >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_owning_links" );
+            return part->owning_links;
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_ContextGroup >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Context >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Namespace >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Action >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Event >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Function >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Link >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Buffer >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+        std::vector< data::Ptr< data::Concrete::Concrete_Link > >& operator()( data::Ptr< data::Concrete::Concrete_Root >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >& set_parameter_contexts(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     struct Visitor
@@ -30374,13 +30940,13 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 55: return new Tree::Interface_Link( loader, objectInfo );
         case 57: return new Tree::Interface_LinkInterface( loader, objectInfo );
         case 58: return new Tree::Interface_Buffer( loader, objectInfo );
-        case 134: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 135: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 136: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 137: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 138: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 139: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 141: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 135: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 136: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 137: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 138: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 139: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 140: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 142: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 32: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 47: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 34: return new Clang::Interface_DimensionTrait( loader, objectInfo );
@@ -30396,16 +30962,17 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 113: return new Concrete::Concrete_Event( loader, objectInfo );
         case 115: return new Concrete::Concrete_Function( loader, objectInfo );
         case 116: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 118: return new Concrete::Concrete_Link( loader, objectInfo );
-        case 120: return new Concrete::Concrete_Buffer( loader, objectInfo );
-        case 122: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 143: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 144: return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 119: return new Concrete::Concrete_Link( loader, objectInfo );
+        case 121: return new Concrete::Concrete_Buffer( loader, objectInfo );
+        case 123: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 144: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 145: return new Derivations::Derivation_Mapping( loader, objectInfo );
         case 33: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
         case 48: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
-        case 145: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 146: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 146: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 147: return new Model::HyperGraph_Graph( loader, objectInfo );
         case 56: return new PerSourceModel::Interface_Link( loader, objectInfo );
+        case 118: return new PerSourceModel::Concrete_Object( loader, objectInfo );
         case 98: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
         case 99: return new MemoryLayout::Concrete_Dimensions_LinkReference( loader, objectInfo );
         case 101: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
@@ -30416,22 +30983,22 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 112: return new MemoryLayout::Concrete_Action( loader, objectInfo );
         case 114: return new MemoryLayout::Concrete_Event( loader, objectInfo );
         case 117: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 119: return new MemoryLayout::Concrete_Link( loader, objectInfo );
-        case 121: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
-        case 147: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 148: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 149: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 150: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 151: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 152: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 153: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 154: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 155: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 156: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 157: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 158: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 140: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 142: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 120: return new MemoryLayout::Concrete_Link( loader, objectInfo );
+        case 122: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
+        case 148: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 149: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 150: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 151: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 152: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 153: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 154: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 155: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 156: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 157: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
+        case 158: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 159: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 141: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 143: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
         case 97: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
         case 100: return new PerSourceConcreteTable::Concrete_Dimensions_LinkReference( loader, objectInfo );
         case 104: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
@@ -30473,17 +31040,17 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 93: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
         case 94: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
         case 95: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 123: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 124: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 125: return new Operations::Operations_Element( loader, objectInfo );
-        case 126: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 127: return new Operations::Operations_Context( loader, objectInfo );
-        case 128: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 129: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 130: return new Operations::Operations_Name( loader, objectInfo );
-        case 131: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 132: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 133: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 124: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 125: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 126: return new Operations::Operations_Element( loader, objectInfo );
+        case 127: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 128: return new Operations::Operations_Context( loader, objectInfo );
+        case 129: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 130: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 131: return new Operations::Operations_Name( loader, objectInfo );
+        case 132: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 133: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 134: return new Operations::Operations_Invocations( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }
