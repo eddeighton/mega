@@ -54,7 +54,7 @@ public:
     CodeGenerator( const mega::network::MegastructureInstallation& megastructureInstallation,
                    const mega::network::Project&                   project );
 
-    void generate_allocation( const LLVMCompiler& compiler, const DatabaseInstance& database, mega::TypeID objectTypeID,
+    void generate_alllocator( const LLVMCompiler& compiler, const DatabaseInstance& database, mega::TypeID objectTypeID,
                               std::ostream& os );
     void generate_invocation( const LLVMCompiler& compiler, const DatabaseInstance& database,
                               const mega::InvocationID&               invocationID,

@@ -206,7 +206,7 @@ class CodeGenerator::Pimpl
 {
     ::inja::Environment m_injaEnvironment;
     ::inja::Template    m_allocateTemplate;
-    ::inja::Template    m_allocationTemplate;
+    ::inja::Template    m_allocatorTemplate;
     ::inja::Template    m_callTemplate;
     ::inja::Template    m_getTemplate;
     ::inja::Template    m_loadTemplate;
@@ -224,25 +224,25 @@ public:
     Pimpl( const mega::network::MegastructureInstallation& megaInstall, const mega::network::Project& project )
     {
         m_injaEnvironment.set_trim_blocks( true );
-        m_allocateTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocate().string() );
-        m_allocationTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().string() );
-        m_callTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().string() );
-        m_getTemplate        = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateGet().string() );
-        m_loadTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().string() );
-        m_programTemplate    = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateProgram().string() );
-        m_readLinkTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateReadLink().string() );
-        m_readTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().string() );
-        m_relationTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRelation().string() );
-        m_saveTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().string() );
-        m_startTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().string() );
-        m_stopTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().string() );
-        m_writeLinkTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWriteLink().string() );
-        m_writeTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().string() );
+        m_allocateTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocate().string() );
+        m_allocatorTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().string() );
+        m_callTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().string() );
+        m_getTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateGet().string() );
+        m_loadTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().string() );
+        m_programTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateProgram().string() );
+        m_readLinkTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateReadLink().string() );
+        m_readTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().string() );
+        m_relationTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRelation().string() );
+        m_saveTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().string() );
+        m_startTemplate     = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().string() );
+        m_stopTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().string() );
+        m_writeLinkTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWriteLink().string() );
+        m_writeTemplate     = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().string() );
     }
 
-    void render_allocation( const nlohmann::json& data, std::ostream& os )
+    void render_allocator( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_allocationTemplate, data );
+        m_injaEnvironment.render_to( os, m_allocatorTemplate, data );
     }
     void render_allocate( const nlohmann::json& data, std::ostream& os )
     {
@@ -1160,8 +1160,8 @@ std::string makeIterName( FinalStage::Concrete::Context* pContext )
     return os.str();
 }
 
-void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::Concrete::Dimensions::User* pUserDim,
-                                  nlohmann::json& data )
+template < typename TDimensionType >
+std::string calculateElementOffset( const DatabaseInstance& database, TDimensionType* pUserDim )
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
@@ -1202,15 +1202,21 @@ void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::
 
     offset << ") + " << pUserDim->get_offset();
 
+    return offset.str();
+}
+
+void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::Concrete::Dimensions::User* pUserDim,
+                                  nlohmann::json& data )
+{
     nlohmann::json element(
         { { "concrete_id", pUserDim->get_concrete_id() },
           { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
           { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
           { "mangle", megaMangle( pUserDim->get_interface_dimension()->get_canonical_type() ) },
-          { "is_shared", !!db_cast< MemoryLayout::SimpleBuffer >( pUserDim->get_part()->get_buffer() ) },
-          { "offset", offset.str() },
+          { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::User >( database, pUserDim ) },
           { "is_part_begin", false },
-          { "is_part_end", false }
+          { "is_part_end", false },
+          { "owning", false }
 
         } );
     data[ "elements" ].push_back( element );
@@ -1222,95 +1228,190 @@ void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Con
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
 
+    if( auto pLink = db_cast< Link >( pContext ) )
     {
-        nlohmann::json element( { { "concrete_id", pContext->get_concrete_id() },
-                                  { "name", pContext->get_interface()->get_identifier() },
-                                  { "iter", makeIterName( pContext ) },
-                                  { "start", 0 },
-                                  { "end", database.getLocalDomainSize( pContext->get_concrete_id() ) },
-                                  { "is_part_begin", true },
-                                  { "is_part_end", false }
+        HyperGraph::Relation*      pRelation      = pLink->get_link()->get_relation();
+        Interface::LinkInterface*  pLinkInterface = pLink->get_link_interface();
+        Dimensions::LinkReference* pLinkRef       = pLink->get_link_reference();
 
-        } );
-        data[ "elements" ].push_back( element );
-    }
-
-    if( auto pNamespace = db_cast< Namespace >( pContext ) )
-    {
-        for( auto pUserDim : pNamespace->get_dimensions() )
+        bool bSource = false;
+        if( pRelation->get_source_interface() == pLinkInterface )
         {
-            generateAllocatorDimensions( database, pUserDim, data );
+            bSource = true;
         }
-    }
-    else if( auto pAction = db_cast< Action >( pContext ) )
-    {
-        for( auto pUserDim : pAction->get_dimensions() )
+        else if( pRelation->get_target_interface() == pLinkInterface )
         {
-            generateAllocatorDimensions( database, pUserDim, data );
-        }
-    }
-    else if( auto pEvent = db_cast< FinalStage::Concrete::Event >( pContext ) )
-    {
-        for( auto pUserDim : pEvent->get_dimensions() )
-        {
-            generateAllocatorDimensions( database, pUserDim, data );
-        }
-    }
-    else if( auto pFunction = db_cast< Function >( pContext ) )
-    {
-    }
-    else if( auto pObject = db_cast< Object >( pContext ) )
-    {
-        for( auto pUserDim : pObject->get_dimensions() )
-        {
-            generateAllocatorDimensions( database, pUserDim, data );
-        }
-    }
-    else if( auto pLink = db_cast< Link >( pContext ) )
-    {
-        HyperGraph::Relation*      pRelation = pLink->get_link()->get_relation();
-        Dimensions::LinkReference* pLinkRef  = pLink->get_link_reference();
-        if( auto pRange = db_cast< Dimensions::LinkMany >( pLinkRef ) )
-        {
-            // range
-        }
-        else if( auto pSingle = db_cast< Dimensions::LinkSingle >( pLinkRef ) )
-        {
-            // singular
+            bSource = false;
         }
         else
         {
-            THROW_RTE( "Unknown link type" );
+            THROW_RTE( "Invalid link" );
         }
-    }
-    else if( auto pBuffer = db_cast< Buffer >( pContext ) )
-    {
+
+        bool bOwning = false;
+        {
+            if( bSource )
+            {
+                if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
+                    bOwning = true;
+            }
+            else
+            {
+                if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
+                    bOwning = true;
+            }
+        }
+
+        std::string strCanonicalType;
+        bool        bSingular = true;
+        {
+            if( auto pRange = db_cast< Dimensions::LinkMany >( pLinkRef ) )
+            {
+                // range
+                strCanonicalType = "mega::ReferenceVector";
+                bSingular        = false;
+            }
+            else if( auto pSingle = db_cast< Dimensions::LinkSingle >( pLinkRef ) )
+            {
+                // singular
+                strCanonicalType = "mega::reference";
+                bSingular        = true;
+            }
+            else
+            {
+                THROW_RTE( "Unknown link type" );
+            }
+        }
+
+        nlohmann::json element( { { "concrete_id", pLink->get_concrete_id() },
+                                  { "name", pLink->get_link()->get_identifier() },
+                                  { "type", strCanonicalType },
+                                  { "mangle", megaMangle( strCanonicalType ) },
+                                  { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::LinkReference >(
+                                                  database, pLink->get_link_reference() ) },
+                                  { "is_part_begin", false },
+                                  { "is_part_end", false },
+                                  { "singular", bSingular },
+                                  { "owning", bOwning },
+                                  { "types", nlohmann::json::array() }
+
+        } );
+
+        if( bOwning )
+        {
+            if( bSource )
+            {
+                for( auto pTarget : pRelation->get_targets() )
+                {
+                    for( auto pConcreteLink : pTarget->get_concrete() )
+                    {
+                        auto pObjectOpt = pConcreteLink->get_concrete_object();
+                        VERIFY_RTE( pObjectOpt.has_value() );
+                        nlohmann::json type( { { "link_type_id", pConcreteLink->get_concrete_id() },
+                                               { "object_type_id", pObjectOpt.value()->get_concrete_id() }
+
+                        } );
+                        element[ "types" ].push_back( type );
+                    }
+                }
+            }
+            else
+            {
+                for( auto pTarget : pRelation->get_sources() )
+                {
+                    for( auto pConcreteLink : pTarget->get_concrete() )
+                    {
+                        auto pObjectOpt = pConcreteLink->get_concrete_object();
+                        VERIFY_RTE( pObjectOpt.has_value() );
+                        nlohmann::json type( { { "link_type_id", pConcreteLink->get_concrete_id() },
+                                               { "object_type_id", pObjectOpt.value()->get_concrete_id() }
+
+                        } );
+                        element[ "types" ].push_back( type );
+                    }
+                }
+            }
+        }
+
+        data[ "elements" ].push_back( element );
     }
     else
     {
-        THROW_RTE( "Unknown context type" );
-    }
+        {
+            nlohmann::json element( { { "concrete_id", pContext->get_concrete_id() },
+                                      { "name", pContext->get_interface()->get_identifier() },
+                                      { "iter", makeIterName( pContext ) },
+                                      { "start", 0 },
+                                      { "end", database.getLocalDomainSize( pContext->get_concrete_id() ) },
+                                      { "is_part_begin", true },
+                                      { "is_part_end", false },
+                                      { "owning", false }
 
-    for( auto pChildContext : pContext->get_children() )
-    {
-        recurseAllocatorElements( database, pChildContext, data );
-    }
+            } );
+            data[ "elements" ].push_back( element );
+        }
 
-    {
-        nlohmann::json element( { { "concrete_id", pContext->get_concrete_id() },
-                                  { "name", pContext->get_interface()->get_identifier() },
-                                  { "is_part_begin", false },
-                                  { "is_part_end", true }
+        if( auto pNamespace = db_cast< Namespace >( pContext ) )
+        {
+            for( auto pUserDim : pNamespace->get_dimensions() )
+            {
+                generateAllocatorDimensions( database, pUserDim, data );
+            }
+        }
+        else if( auto pAction = db_cast< Action >( pContext ) )
+        {
+            for( auto pUserDim : pAction->get_dimensions() )
+            {
+                generateAllocatorDimensions( database, pUserDim, data );
+            }
+        }
+        else if( auto pEvent = db_cast< FinalStage::Concrete::Event >( pContext ) )
+        {
+            for( auto pUserDim : pEvent->get_dimensions() )
+            {
+                generateAllocatorDimensions( database, pUserDim, data );
+            }
+        }
+        else if( auto pFunction = db_cast< Function >( pContext ) )
+        {
+        }
+        else if( auto pObject = db_cast< Object >( pContext ) )
+        {
+            for( auto pUserDim : pObject->get_dimensions() )
+            {
+                generateAllocatorDimensions( database, pUserDim, data );
+            }
+        }
+        else if( auto pBuffer = db_cast< Buffer >( pContext ) )
+        {
+        }
+        else
+        {
+            THROW_RTE( "Unknown context type" );
+        }
 
-        } );
-        data[ "elements" ].push_back( element );
+        for( auto pChildContext : pContext->get_children() )
+        {
+            recurseAllocatorElements( database, pChildContext, data );
+        }
+
+        {
+            nlohmann::json element( { { "concrete_id", pContext->get_concrete_id() },
+                                      { "name", pContext->get_interface()->get_identifier() },
+                                      { "is_part_begin", false },
+                                      { "is_part_end", true },
+                                      { "owning", false }
+
+            } );
+            data[ "elements" ].push_back( element );
+        }
     }
 }
 
-void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const DatabaseInstance& database,
                                          mega::TypeID objectTypeID, std::ostream& os )
 {
-    SPDLOG_TRACE( "RUNTIME: generate_allocation: {}", objectTypeID );
+    SPDLOG_TRACE( "RUNTIME: generate_alllocator: {}", objectTypeID );
 
     FinalStage::Concrete::Object*            pObject    = database.getObject( objectTypeID );
     const FinalStage::Components::Component* pComponent = pObject->get_component();
@@ -1333,9 +1434,7 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
     osObjectTypeID << objectTypeID;
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
                            { "objectName", osFullTypeName.str() },
-                           { "simple_parts", nlohmann::json::array() },
                            { "parts", nlohmann::json::array() },
-                           { "has_non_simple_parts", false },
                            { "mangled_data_types", nlohmann::json::array() },
                            { "elements", nlohmann::json::array() } } );
 
@@ -1506,14 +1605,6 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
                 }
 
                 data[ "parts" ].push_back( part );
-                if( bBufferIsSimple )
-                {
-                    data[ "simple_parts" ].push_back( part );
-                }
-                else
-                {
-                    data[ "has_non_simple_parts" ] = true;
-                }
             }
         }
     }
@@ -1524,7 +1615,7 @@ void CodeGenerator::generate_allocation( const LLVMCompiler& compiler, const Dat
     }
 
     std::ostringstream osCPPCode;
-    m_pPimpl->render_allocation( data, osCPPCode );
+    m_pPimpl->render_allocator( data, osCPPCode );
     compiler.compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
 }
 

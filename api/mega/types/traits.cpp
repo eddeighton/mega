@@ -110,6 +110,18 @@ void xml_end_object_structure( const mega::reference& ref, void* pSerialiser )
     // std::cout << "xml_end_object_structure : " << ref << std::endl;
     XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
 }
+void xml_begin_part( const mega::reference& ref, const char* pszName, void* pSerialiser )
+{
+    // std::cout << "xml_begin_object : " << ref << std::endl;
+    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
+    archive.beginPart( pszName, ref );
+}
+void xml_end_part( const mega::reference& ref, const char* pszName, void* pSerialiser )
+{
+    // std::cout << "xml_end_object : " << ref << std::endl;
+    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
+    archive.endPart( pszName, ref );
+}
 void xml_begin_object( const mega::reference& ref, const char* pszName, void* pSerialiser )
 {
     // std::cout << "xml_begin_object : " << ref << std::endl;

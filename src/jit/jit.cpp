@@ -62,7 +62,7 @@ Allocator::Ptr JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler, c
         else
         {
             std::ostringstream osModule;
-            m_codeGenerator.generate_allocation( compiler, m_database, objectTypeID, osModule );
+            m_codeGenerator.generate_alllocator( compiler, m_database, objectTypeID, osModule );
             JITCompiler::Module::Ptr pModule = compile( osModule.str() );
             pAllocator                       = std::make_shared< Allocator >( objectTypeID, m_database, pModule );
             m_allocators.insert( { objectTypeID, pAllocator } );
@@ -163,7 +163,7 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         pModule = compile( osModule.str() );
         m_invocations.insert( std::make_pair( invocationID, pModule ) );
     }
-    
+
     switch( functionType )
     {
         case invocation::eRead:
@@ -277,25 +277,25 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const
         case mega::runtime::object::eObjectSaveXMLStructure:
         {
             auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction = ( void* )pAllocator->getSaveXMLStructure();
+            *ppFunction     = ( void* )pAllocator->getSaveXMLStructure();
         }
         break;
         case mega::runtime::object::eObjectLoadXMLStructure:
         {
             auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction = ( void* )pAllocator->getLoadXMLStructure();
+            *ppFunction     = ( void* )pAllocator->getLoadXMLStructure();
         }
         break;
         case mega::runtime::object::eObjectSaveXML:
         {
             auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction = ( void* )pAllocator->getSaveXML();
+            *ppFunction     = ( void* )pAllocator->getSaveXML();
         }
         break;
         case mega::runtime::object::eObjectLoadXML:
         {
             auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction = ( void* )pAllocator->getLoadXML();
+            *ppFunction     = ( void* )pAllocator->getLoadXML();
         }
         break;
         case mega::runtime::object::TOTAL_FUNCTION_TYPES:

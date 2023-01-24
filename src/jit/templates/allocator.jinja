@@ -29,6 +29,8 @@ namespace mega::mangle
 {
     void xml_begin_object_structure( const mega::reference&, void* );
     void xml_end_object_structure( const mega::reference&, void* );
+    void xml_begin_part( const mega::reference&, const char*, void* );
+    void xml_end_part( const mega::reference&, const char*, void* );
     void xml_begin_object( const mega::reference&, const char*, void* );
     void xml_end_object( const mega::reference&, const char*, void* );
 
@@ -109,52 +111,59 @@ void save_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pS
 {
     mega::mangle::xml_begin_object_structure( ref, pSerialiser );
 
-    void* pBuffer = ref.getHeap();
+    char* pBuffer = reinterpret_cast< char* >( ref.getHeap() );
 
-{%  for part in parts %}
-    for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+{% for element in elements %}
+{% if element.is_part_begin %}
+    // {{ element.name }}
+    for( mega::U64 {{ element.iter }} = {{ element.start }}; {{ element.iter }} != {{ element.end }}; ++{{ element.iter }} )
     {
-{%      for link in part.links %}
-{%          if link.owning %}
-
+{% else if element.is_part_end %}
+    }
+{% else if element.owning %}
+{% if element.singular %}
+    {
+        mega::reference& linkRef = *reinterpret_cast< mega::reference* >( pBuffer + {{ element.offset }} );
+        if( linkRef.is_valid() )
         {
-            char* pLinkData = pIter + {{ link.offset }}; // {{ link.type }} {{ link.name }}
-
-{%              if link.singular %}
-            mega::reference& linkRef = *reinterpret_cast< mega::reference* >( pLinkData );
+            switch( linkRef.getType() )
+            {
+{% for type in element.types %}
+                case {{ type.link_type_id }}:
+                {
+                    static thread_local mega::runtime::object::ObjectSaveXMLStructure function( g_pszModuleName, {{ type.object_type_id }} );
+                    function( mega::reference::make( linkRef, {{ type.object_type_id }} ), pSerialiser );
+                }
+                break;
+{% endfor %}
+            }
+        }
+    }
+{% else %}
+    {
+        char* pLinkData = pBuffer + {{ element.offset }};
+        for( mega::U64 i = 0U, iCount = mega::mangle::ref_vector_get_size( pLinkData ); i != iCount; ++i )
+        {
+            mega::reference& linkRef = mega::mangle::ref_vector_get_at( pLinkData, i );
             if( linkRef.is_valid() )
             {
-{%              else %}
-            for( mega::U64 i = 0U, iCount = mega::mangle::ref_vector_get_size( pLinkData ); i != iCount; ++i )
-            {
-                mega::reference& linkRef = mega::mangle::ref_vector_get_at( pLinkData, i );
-{%              endif %}
-
-                if( linkRef.getMPO() != mega::runtime::getThisMPO() )
-                {
-                    mega::runtime::readLock( linkRef );
-                }
-                else if( linkRef.isNetworkAddress() )
-                {
-                    mega::runtime::networkToHeap( linkRef );
-                }
                 switch( linkRef.getType() )
                 {
-{%                  for type in link.types %}
+{% for type in element.types %}
                     case {{ type.link_type_id }}:
                     {
-                        static thread_local mega::runtime::object::ObjectSaveXMLStructure functionStructure( g_pszModuleName, {{ type.object_type_id }} );
-                        functionStructure( mega::reference::make( linkRef, {{ type.object_type_id }} ), pSerialiser );
+                        static thread_local mega::runtime::object::ObjectSaveXMLStructure function( g_pszModuleName, {{ type.object_type_id }} );
+                        function( mega::reference::make( linkRef, {{ type.object_type_id }} ), pSerialiser );
                     }
                     break;
-{%                  endfor %}
+{% endfor %}
                 }
             }
         }
-{%          endif %}
-{%      endfor %}
     }
-{%  endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
 
     mega::mangle::xml_end_object_structure( ref, pSerialiser );
 }
@@ -162,71 +171,71 @@ void save_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pS
 void load_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
 
+
 }
 
 void save_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
-    mega::mangle::xml_begin_object( ref, "{{ objectName }}", pSerialiser );
-    void* pBuffer = ref.getHeap();
-{% for part in parts %}
-    for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+    char* pBuffer = reinterpret_cast< char* >( ref.getHeap() );
+
+{% for element in elements %}
+{% if element.is_part_begin %}
+    for( mega::U64 {{ element.iter }} = {{ element.start }}; {{ element.iter }} != {{ element.end }}; ++{{ element.iter }} )
     {
-{% for member in part.members %}
-        mega::mangle::save_xml_{{member.mangle}}( pIter + {{ member.offset }}, "{{ member.name }}", pSerialiser ); // {{ member.type }} {{ member.name }}
+        mega::mangle::xml_begin_part( ref, "{{element.name}}", pSerialiser );
+{% else if element.is_part_end %}
+        mega::mangle::xml_end_part( ref, "{{element.name}}", pSerialiser );
+    }
+{% else if element.owning %}
+    mega::mangle::xml_begin_part( ref, "{{element.name}}", pSerialiser );
+{% if element.singular %}
+    {
+        mega::reference& linkRef = *reinterpret_cast< mega::reference* >( pBuffer + {{ element.offset }} );
+        if( linkRef.is_valid() )
+        {
+            switch( linkRef.getType() )
+            {
+{% for type in element.types %}
+                case {{ type.link_type_id }}:
+                {
+                    static thread_local mega::runtime::object::ObjectSaveXML function( g_pszModuleName, {{ type.object_type_id }} );
+                    function( mega::reference::make( linkRef, {{ type.object_type_id }} ), pSerialiser );
+                }
+                break;
 {% endfor %}
-
-{%      for link in part.links %}
-{%          if link.owning %}
-
-        { 
-            char* pLinkData = pIter + {{ link.offset }}; // {{ link.type }} {{ link.name }}
-
-{%              if link.singular %}
-            mega::reference& linkRef = *reinterpret_cast< mega::reference* >( pLinkData );
+            }
+        }
+    }
+{% else %}
+    {
+        char* pLinkData = pBuffer + {{ element.offset }};
+        for( mega::U64 i = 0U, iCount = mega::mangle::ref_vector_get_size( pLinkData ); i != iCount; ++i )
+        {
+            mega::reference& linkRef = mega::mangle::ref_vector_get_at( pLinkData, i );
             if( linkRef.is_valid() )
             {
-{%              else %}
-            for( mega::U64 i = 0U, iCount = mega::mangle::ref_vector_get_size( pLinkData ); i != iCount; ++i )
-            {
-                mega::reference& linkRef = mega::mangle::ref_vector_get_at( pLinkData, i );
-
-{%              endif %}
-
                 switch( linkRef.getType() )
                 {
-{%                  for type in link.types %}
+{% for type in element.types %}
                     case {{ type.link_type_id }}:
                     {
                         static thread_local mega::runtime::object::ObjectSaveXML function( g_pszModuleName, {{ type.object_type_id }} );
                         function( mega::reference::make( linkRef, {{ type.object_type_id }} ), pSerialiser );
                     }
                     break;
-{%                  endfor %}
+{% endfor %}
                 }
             }
         }
-
-{%          else %}
-        mega::mangle::save_xml_{{link.mangle}}( pIter + {{ link.offset }}, "{{ link.name }}", pSerialiser ); // {{ link.type }} {{ link.name }}
-{%          endif %}
-{%      endfor %}
     }
+{% endif %}
+    mega::mangle::xml_end_part( ref, "{{element.name}}", pSerialiser );
+{% else %}
+    mega::mangle::save_xml_{{element.mangle}}( pBuffer + {{ element.offset }}, "{{ element.name }}", pSerialiser ); // {{ element.type }} 
+{% endif %}
 {% endfor %}
-    mega::mangle::xml_end_object( ref, "{{ objectName }}", pSerialiser );
 }
 
 void load_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
-    void* pBuffer = ref.getHeap();
-{% for part in parts %}
-    for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
-    {
-{% for member in part.members %}
-        mega::mangle::load_xml_{{member.mangle}}( pIter + {{ member.offset }}, "{{ member.name }}", pSerialiser ); // {{ member.type }} {{ member.name }}
-{% endfor %}
-{% for member in part.links %}
-        mega::mangle::load_xml_{{member.mangle}}( pIter + {{ member.offset }}, "{{ member.name }}", pSerialiser ); // {{ member.type }} {{ member.name }}
-{% endfor %}
-    }
-{% endfor %}
 }

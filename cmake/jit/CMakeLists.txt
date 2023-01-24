@@ -71,7 +71,7 @@ run_inja_template( ${MEGA_API_DIR}/jit/relation_functions.json
 
 set( JINJA_TEMPLATES 
     ${MEGA_SRC_DIR}/jit/templates/allocate.jinja 
-    ${MEGA_SRC_DIR}/jit/templates/allocation.jinja 
+    ${MEGA_SRC_DIR}/jit/templates/allocator.jinja 
     ${MEGA_SRC_DIR}/jit/templates/call.jinja 
     ${MEGA_SRC_DIR}/jit/templates/get.jinja 
     ${MEGA_SRC_DIR}/jit/templates/load.jinja 
