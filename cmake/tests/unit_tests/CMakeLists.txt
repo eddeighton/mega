@@ -36,21 +36,22 @@ include_directories( ${MEGA_SRC_DIR} )
 set( MEGA_UNIT_TESTS_DIR ${MEGA_TEST_DIR}/unit_tests )
 
 set( MEGA_UNIT_TESTS
+	#${MEGA_UNIT_TESTS_DIR}/scheduler_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/allocator_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/asio_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/compiler_pipeline_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/database_tests.cpp 
-	${MEGA_UNIT_TESTS_DIR}/schema_grammar_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/io_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/glob_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/io_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/log_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/manifest_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/protocol_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/network_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/pipeline_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/compiler_pipeline_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/asio_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/allocator_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/sim_state_machine_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/protocol_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/reference_tests.cpp
-	#${MEGA_UNIT_TESTS_DIR}/scheduler_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/log_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/schema_grammar_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/sim_state_machine_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/xml_tag_parser_tests.cpp
 	)
 
 enable_testing()

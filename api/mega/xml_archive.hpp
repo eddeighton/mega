@@ -23,6 +23,7 @@
 
 #include "mega/reference.hpp"
 #include "mega/address_table.hpp"
+#include "mega/tag_parser.hpp"
 
 #include "common/file.hpp"
 
@@ -96,7 +97,6 @@ public:
             os << "<" << name << ">";
             m_archive.put( os.str().c_str() );
         }
-
     }
     void endPart( const char* name, bool bIsObject, const reference& ref )
     {
@@ -119,35 +119,37 @@ class XMLLoadArchive
 public:
     XMLLoadArchive( const boost::filesystem::path& filePath )
         : m_pFileStream( boost::filesystem::loadFileStream( filePath ) )
+        , m_tags( mega::parse( *m_pFileStream ) )
+        , m_tagStack{ m_tags.cbegin() }
     {
+        VERIFY_RTE_MSG( m_tags.size() == 1U, "Invalid xml file: " << filePath.string() );
+        m_pFileStream->seekg( 0 );
+        m_pArchive = std::make_unique< boost::archive::xml_iarchive >( *m_pFileStream, boostXMLArchiveFlags );
     }
 
     template < typename T >
     void load( const char* name, T& value )
     {
-        if( m_pArchive )
-        {
-            m_pFileStream->seekg( 0 );
-            *m_pArchive& boost::serialization::make_nvp( name, value );
-        }
-        else
-        {
-        }
+        *m_pArchive& boost::serialization::make_nvp( name, value );
     }
 
-
-
-    void initArchive()
+    void beginPart( const char* name, bool bIsObject, const reference& ref ) 
     {
-        if( !m_pArchive )
-        {
-            m_pArchive = std::make_unique< boost::archive::xml_iarchive >( *m_pFileStream, boostXMLArchiveFlags );
-        }
+        //
+
+    }
+
+    void endPart( const char* name, bool bIsObject, const reference& ref ) 
+    {
+        //
+
     }
 
 private:
     std::unique_ptr< std::istream >                 m_pFileStream;
     std::unique_ptr< boost::archive::xml_iarchive > m_pArchive;
+    mega::XMLTag::Vector                            m_tags;
+    mega::XMLTag::Stack                             m_tagStack;
 };
 
 } // namespace mega

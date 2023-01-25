@@ -89,6 +89,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/result_type.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
+    ${MEGA_API_DIR}/mega/tag_parser.hpp
     ${MEGA_API_DIR}/mega/type_id.hpp
     ${MEGA_API_DIR}/mega/type_instance.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
