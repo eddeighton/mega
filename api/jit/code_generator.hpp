@@ -21,6 +21,9 @@
 #define CODE_GENERATOR_16_AUG_2022
 
 #include "api.hpp"
+#include "inja.hpp"
+#include "function_declarations.hpp"
+#include "indent.hpp"
 
 #include "database/database.hpp"
 
@@ -43,6 +46,20 @@ class JIT_EXPORT CodeGenerator
     class Pimpl;
 
 public:
+    using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
+
+    /*
+    static std::string get( const VariableMap& varMap, const FinalStage::Invocations::Variables::Variable* pVar )
+    {
+        auto iFind = varMap.find( pVar );
+        VERIFY_RTE( iFind != varMap.end() );
+        return iFind->second;
+    }
+    */
+
+    static std::string allocatorTypeName( const DatabaseInstance&                      database,
+                                          FinalStage::Concrete::Dimensions::Allocator* pAllocDim );
+
     class LLVMCompiler
     {
     public:
@@ -64,11 +81,22 @@ public:
     void generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os );
 
 private:
+    VariableMap
+    generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
+                       ::FinalStage::Invocations::Variables::Context*                        pRootContext,
+                       nlohmann::json&                                                       data,
+                       Indent&                                                               indent ) const;
+
+    void generateInstructions( const DatabaseInstance&                             database,
+                               FinalStage::Invocations::Instructions::Instruction* pInstruction,
+                               const VariableMap& variables, FunctionDeclarations& functions, nlohmann::json& data,
+                               Indent& indent ) const;
+
     nlohmann::json generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                              std::string& strName ) const;
 
 private:
-    std::shared_ptr< Pimpl > m_pPimpl;
+    Inja::Ptr m_pInja;
 };
 } // namespace mega::runtime
 

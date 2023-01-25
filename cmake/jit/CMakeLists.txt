@@ -91,7 +91,10 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/api.hpp
     ${MEGA_API_DIR}/jit/code_generator.hpp
     ${MEGA_API_DIR}/jit/component_manager.hpp
+    ${MEGA_API_DIR}/jit/function_declarations.hpp
     ${MEGA_API_DIR}/jit/functions.hpp
+    ${MEGA_API_DIR}/jit/indent.hpp
+    ${MEGA_API_DIR}/jit/inja.hpp
     ${MEGA_API_DIR}/jit/invocation_functions.hxx
     ${MEGA_API_DIR}/jit/jit_exception.hpp
     ${MEGA_API_DIR}/jit/jit.hpp
@@ -109,6 +112,8 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/jit/symbol_utils.hpp
 
     ${MEGA_SRC_DIR}/jit/allocator.cpp
+    ${MEGA_SRC_DIR}/jit/code_gen_allocator.cpp
+    ${MEGA_SRC_DIR}/jit/code_gen_instructions.cpp
     ${MEGA_SRC_DIR}/jit/code_generator.cpp
     ${MEGA_SRC_DIR}/jit/component_manager.cpp
     ${MEGA_SRC_DIR}/jit/functions.cpp

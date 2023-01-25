@@ -83,6 +83,7 @@ public:
 
         // set process description
         {
+            using ::operator<<;
             std::ostringstream os;
             os << network::Node::toStr( m_leaf.m_nodeType ) << " " << m_leaf.m_mp;
             common::ProcessID::setDescription( os.str().c_str() );

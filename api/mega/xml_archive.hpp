@@ -42,19 +42,19 @@ class XMLSaveArchive
 {
 public:
     XMLSaveArchive( const boost::filesystem::path& filePath )
-        : m_pFileStream( boost::filesystem::createBinaryOutputFileStream( filePath ) )
+        : m_pFileStream( boost::filesystem::createNewFileStream( filePath ) )
         , m_archive( *m_pFileStream, boostXMLArchiveFlags )
     {
     }
 
     template < typename T >
-    inline void save( T& value, const char* name )
+    inline void save( const char* name, T& value )
     {
         m_archive& boost::serialization::make_nvp( name, value );
     }
 
-    inline void save( const mega::reference& ref, const char* name ) 
-    { 
+    inline void save( const char* name, const mega::reference& ref )
+    {
         if( auto indexOpt = m_table.refToIndexIfExist( ref ) )
         {
             m_archive& boost::serialization::make_nvp( name, indexOpt.value() );
@@ -65,8 +65,8 @@ public:
         }
     }
 
-    inline void save( const mega::reference& ref ) 
-    { 
+    inline void save( const mega::reference& ref )
+    {
         if( auto indexOpt = m_table.refToIndexIfExist( ref ) )
         {
             m_archive& boost::serialization::make_nvp( "ref", indexOpt.value() );
@@ -77,21 +77,28 @@ public:
         }
     }
 
-    inline void internalReference( const reference& ref )
-    {
-        m_table.refToIndex( ref );
-    }
-    
-    void beginPart( const char* name, const reference& ref )
+    inline void internalReference( const reference& ref ) { m_table.refToIndex( ref ); }
+
+    void beginPart( const char* name, bool bIsObject, const reference& ref )
     {
         auto indexOpt = m_table.refToIndexIfExist( ref );
         VERIFY_RTE( indexOpt.has_value() );
 
-        std::ostringstream os;
-        os << "<" << name << " index=\"" << indexOpt.value() << "\" >";
-        m_archive.put( os.str().c_str() );
+        if( bIsObject )
+        {
+            std::ostringstream os;
+            os << "<" << name << " index=\"" << indexOpt.value() << "\" >";
+            m_archive.put( os.str().c_str() );
+        }
+        else
+        {
+            std::ostringstream os;
+            os << "<" << name << ">";
+            m_archive.put( os.str().c_str() );
+        }
+
     }
-    void endPart( const char* name, const reference& ref )
+    void endPart( const char* name, bool bIsObject, const reference& ref )
     {
         auto indexOpt = m_table.refToIndexIfExist( ref );
         VERIFY_RTE( indexOpt.has_value() );
@@ -100,7 +107,7 @@ public:
         os << "</" << name << " >";
         m_archive.put( os.str().c_str() );
     }
-    
+
 private:
     std::unique_ptr< std::ostream > m_pFileStream;
     boost::archive::xml_oarchive    m_archive;
@@ -111,21 +118,36 @@ class XMLLoadArchive
 {
 public:
     XMLLoadArchive( const boost::filesystem::path& filePath )
-        : m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
-        , m_archive( *m_pFileStream, boostXMLArchiveFlags )
+        : m_pFileStream( boost::filesystem::loadFileStream( filePath ) )
     {
     }
 
     template < typename T >
-    void load( T& value, const char* name )
+    void load( const char* name, T& value )
     {
-        m_archive& boost::serialization::make_nvp( name, value );
+        if( m_pArchive )
+        {
+            m_pFileStream->seekg( 0 );
+            *m_pArchive& boost::serialization::make_nvp( name, value );
+        }
+        else
+        {
+        }
     }
-    
+
+
+
+    void initArchive()
+    {
+        if( !m_pArchive )
+        {
+            m_pArchive = std::make_unique< boost::archive::xml_iarchive >( *m_pFileStream, boostXMLArchiveFlags );
+        }
+    }
+
 private:
-    std::unique_ptr< std::istream > m_pFileStream;
-    boost::archive::xml_iarchive    m_archive;
-    AddressTable                    m_table;
+    std::unique_ptr< std::istream >                 m_pFileStream;
+    std::unique_ptr< boost::archive::xml_iarchive > m_pArchive;
 };
 
 } // namespace mega

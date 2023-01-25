@@ -23,8 +23,8 @@
 
 #include "traits.hpp"
 
-#include "mega/xml_archive.hpp"
 #include "mega/bin_archive.hpp"
+#include "mega/xml_archive.hpp"
 #include "mega/record_archive.hpp"
 
 #include "log/log.hpp"
@@ -53,12 +53,12 @@ struct SimpleDimension
     static inline void save_xml( mega::XMLSaveArchive& archive, const char* pszName, const T& value )
     {
         //
-        archive.save( value, pszName );
+        archive.save( pszName, value );
     }
     static inline void load_xml( mega::XMLLoadArchive& archive, const char* pszName, T& value )
     {
         //
-        archive.load( value, pszName );
+        archive.load( pszName, value );
     }
     static inline void save_bin( mega::BinSaveArchive& archive, const T& value )
     {
@@ -71,11 +71,7 @@ struct SimpleDimension
         archive.load( value );
     }
 
-    static inline void copy( const T& from, T& to )
-    {
-        //
-        to = from;
-    }
+    static inline void copy( const T& from, T& to ) { to = from; }
 
     static inline void save_memory_record( mega::log::Storage& log, const mega::reference& ref, const T& value,
                                            mega::log::MemoryTrackType track = mega::log::MemoryTrackType::Simulation )
@@ -108,13 +104,12 @@ struct NonSimpleDimension
 
     static inline void save_xml( mega::XMLSaveArchive& archive, const char* pszName, const T& value )
     {
-        //
-        archive.save( value, pszName );
+        archive.save( pszName, value );
     }
     static inline void load_xml( mega::XMLLoadArchive& archive, const char* pszName, T& value )
     {
         //
-        archive.load( value, pszName );
+        archive.load( pszName, value );
     }
     static inline void save_bin( mega::BinSaveArchive& archive, const T& value )
     {

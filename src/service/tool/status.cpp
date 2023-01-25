@@ -51,6 +51,7 @@ network::Status ToolRequestConversation::GetStatus( const std::vector< network::
 
 std::string ToolRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
+    using ::operator<<;
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();

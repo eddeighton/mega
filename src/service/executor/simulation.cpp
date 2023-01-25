@@ -489,6 +489,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
 
 std::string Simulation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
+    using ::operator<<;
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " simulation: " << m_root << " got: " << strMsg.size()
        << " bytes";
