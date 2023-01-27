@@ -48,6 +48,11 @@ inline const T& reify( const void* p )
 }
 } // namespace
 
+void log( const char* pszMsg )
+{
+    std::cout << pszMsg << std::endl;
+}
+
 void hyper_create( const mega::reference& source, const mega::reference& target )
 {
     // mega::log::Storage& log = mega::getMPOContext()->getLog();
@@ -89,6 +94,7 @@ void ref_vector_clear( void* pData )
 mega::U64 ref_vector_get_size( void* pData )
 {
     auto& vec = reify< ReferenceVector >( pData );
+    std::cout << "ref_vector_get_size : " << vec.size() << std::endl;
     return vec.size();
 }
 
@@ -99,49 +105,65 @@ mega::reference& ref_vector_get_at( void* pData, mega::U64 index )
     return vec[ index ];
 }
 
-void xml_save_begin_object_structure( const mega::reference& ref, void* pSerialiser )
+void xml_save_begin_structure( const mega::reference& ref, void* pSerialiser )
 {
-    // std::cout << "xml_begin_object_structure : " << ref << std::endl;
-    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
-    archive.internalReference( ref );
+    auto& archive = reify< XMLSaveArchive >( pSerialiser );
+    archive.beginStructure( ref );
 }
-void xml_save_end_object_structure( const mega::reference& ref, void* pSerialiser )
+void xml_save_end_structure( const mega::reference& ref, void* pSerialiser )
 {
-    // std::cout << "xml_end_object_structure : " << ref << std::endl;
-    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
+    auto& archive = reify< XMLSaveArchive >( pSerialiser );
+    archive.endStructure( ref );
 }
-void xml_save_begin_part( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_save_begin_data( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
-    // std::cout << "xml_begin_object : " << ref << std::endl;
-    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
-    archive.beginPart( pszName, bIsObject, ref );
+    auto& archive = reify< XMLSaveArchive >( pSerialiser );
+    archive.beginData( pszName, bIsObject, ref );
 }
-void xml_save_end_part( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_save_end_data( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
-    // std::cout << "xml_end_object : " << ref << std::endl;
-    XMLSaveArchive& archive = reify< XMLSaveArchive >( pSerialiser );
-    archive.endPart( pszName, bIsObject, ref );
+    auto& archive = reify< XMLSaveArchive >( pSerialiser );
+    archive.endData( pszName, bIsObject, ref );
 }
 
-void xml_load_begin_object_structure( const mega::reference& ref, void* pSerialiser )
+void xml_load_begin_structure( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
-    // std::cout << "xml_begin_object_structure : " << ref << std::endl;
-    XMLLoadArchive& archive = reify< XMLLoadArchive >( pSerialiser );
-    
+    auto& archive = reify< XMLLoadArchive >( pSerialiser );
+    archive.beginStructure( pszName, bIsObject, ref );
 }
-void xml_load_end_object_structure( const mega::reference& ref, void* pSerialiser )
+void xml_load_end_structure( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
-    // std::cout << "xml_end_object_structure : " << ref << std::endl;
-    XMLLoadArchive& archive = reify< XMLLoadArchive >( pSerialiser );
+    auto& archive = reify< XMLLoadArchive >( pSerialiser );
+    archive.endStructure( pszName, bIsObject, ref );
 }
-void xml_load_begin_part( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_load_begin_data( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
-    // std::cout << "xml_begin_object : " << ref << std::endl;
-    XMLLoadArchive& archive = reify< XMLLoadArchive >( pSerialiser );
+    auto& archive = reify< XMLLoadArchive >( pSerialiser );
+    archive.beginData( pszName, bIsObject, ref );
 }
-void xml_load_end_part( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
+void xml_load_end_data( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
-    // std::cout << "xml_end_object : " << ref << std::endl;
-    XMLLoadArchive& archive = reify< XMLLoadArchive >( pSerialiser );
+    auto& archive = reify< XMLLoadArchive >( pSerialiser );
+    archive.endData( pszName, bIsObject, ref );
 }
+
+bool xml_is_tag( const char* pszTag, void* pSerialiser )
+{
+    auto& archive = reify< XMLLoadArchive >( pSerialiser );
+    return archive.is_tag( pszTag );
+}
+
+void xml_load_allocation( const mega::reference& ref, void* pSerialiser )
+{
+    std::cout << "xml_load_allocation : " << ref << std::endl;
+    auto& archive = reify< XMLLoadArchive >( pSerialiser );
+    archive.allocation( ref );
+}
+
+mega::U64 xml_load_tag_count( void* pSerialiser )
+{
+    auto& archive = reify< XMLLoadArchive >( pSerialiser );
+    return archive.tag_count();
+}
+
 } // namespace mega::mangle

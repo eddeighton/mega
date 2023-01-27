@@ -19,6 +19,8 @@
 
 #include "mega/tag_parser.hpp"
 
+#include "common/file.hpp"
+
 #include <gtest/gtest.h>
 
 #include <sstream>
@@ -28,10 +30,7 @@ TEST( XMLTagParser, Basic1 )
     std::string        strInput = "<Testing></Testing>";
     std::istringstream is( strInput );
 
-    mega::XMLTag::Vector result = mega::parse( is );
-    ASSERT_EQ( result.size(), 1 );
-    const mega::XMLTag& tag = result.front();
-
+    mega::XMLTag tag = mega::parse( is );
     ASSERT_EQ( tag.key, "Testing" );
     ASSERT_FALSE( tag.indexOpt.has_value() );
 }
@@ -41,10 +40,7 @@ TEST( XMLTagParser, Basic2 )
     std::string        strInput = "<Testing index=\"123\"></Testing>";
     std::istringstream is( strInput );
 
-    mega::XMLTag::Vector result = mega::parse( is );
-    ASSERT_EQ( result.size(), 1 );
-    const mega::XMLTag& tag = result.front();
-
+    mega::XMLTag tag = mega::parse( is );
     ASSERT_EQ( tag.key, "Testing" );
     ASSERT_TRUE( tag.indexOpt.has_value() );
     ASSERT_EQ( tag.indexOpt.value(), 123 );
@@ -55,9 +51,7 @@ TEST( XMLTagParser, Basic3 )
     std::string        strInput = "< Testing  index  =  \"123\"  ></Testing>";
     std::istringstream is( strInput );
 
-    mega::XMLTag::Vector result = mega::parse( is );
-    ASSERT_EQ( result.size(), 1 );
-    const mega::XMLTag& tag = result.front();
+    mega::XMLTag tag = mega::parse( is );
 
     ASSERT_EQ( tag.key, "Testing" );
     ASSERT_TRUE( tag.indexOpt.has_value() );
@@ -78,9 +72,7 @@ R"TEMPLATE(
 
     std::istringstream is( strInput );
 
-    mega::XMLTag::Vector result = mega::parse( is );
-    ASSERT_EQ( result.size(), 1 );
-    const mega::XMLTag& tag = result.front();
+    mega::XMLTag tag = mega::parse( is );
 
     ASSERT_EQ( tag.key, "Testing" );
     ASSERT_TRUE( !tag.indexOpt.has_value() );
@@ -90,6 +82,19 @@ R"TEMPLATE(
     ASSERT_EQ( tag.children[ 1 ].key, "B" );
     ASSERT_EQ( tag.children[ 0 ].indexOpt.value(), 2 );
     ASSERT_EQ( tag.children[ 1 ].indexOpt.value(), 3 );
+}
+
+TEST( XMLTagParser, ConsumeStart )
+{
+    std::string        strInput = "<Testing>";
+    std::istringstream is( strInput );
+    mega::consumeStart( is, "Testing" );
+}
+TEST( XMLTagParser, ConsumeEnd )
+{
+    std::string        strInput = "</Testing>";
+    std::istringstream is( strInput );
+    mega::consumeEnd( is, "Testing" );
 }
 /*
 TEST( XMLTagParser, Mismatch )
@@ -108,4 +113,13 @@ R"TEMPLATE(
     ASSERT_THROW( mega::parse( is ), std::runtime_error );
 }
 */
-
+/*
+TEST( XMLTagParser, BigFile )
+{
+    std::string strInput;
+    boost::filesystem::loadAsciiFile( "test_data/xml_tags_data.xml", strInput );
+    std::istringstream is( strInput );
+    auto result = mega::parse( is );
+    ASSERT_EQ( result.key, "Root" );
+}
+*/

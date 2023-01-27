@@ -24,6 +24,23 @@
 namespace mega::runtime
 {
 
+std::string fullInterfaceTypeName( FinalStage::Interface::IContext* pIContext )
+{
+    std::ostringstream osFullTypeName;
+    {
+        bool bFirst = true;
+        for( ; pIContext; pIContext = db_cast< FinalStage::Interface::IContext >( pIContext->get_parent() ) )
+        {
+            if( bFirst )
+                bFirst = false;
+            else
+                osFullTypeName << '_';
+            osFullTypeName << pIContext->get_identifier();
+        }
+    }
+    return osFullTypeName.str();
+}
+
 std::string makeIterName( FinalStage::Concrete::Context* pContext )
 {
     using namespace FinalStage;
@@ -34,7 +51,8 @@ std::string makeIterName( FinalStage::Concrete::Context* pContext )
 }
 
 template < typename TDimensionType >
-std::string calculateElementOffset( const DatabaseInstance& database, TDimensionType* pUserDim )
+std::string calculateElementOffset( const DatabaseInstance& database, TDimensionType* pUserDim,
+                                    std::string& strInstance )
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
@@ -64,16 +82,21 @@ std::string calculateElementOffset( const DatabaseInstance& database, TDimension
     offset << pPart->get_offset();
     offset << " + " << pPart->get_size() << " * (";
     bool bFirst = true;
-    for( U64 i = 0; i != parents.size(); ++i )
+
     {
-        if( bFirst )
-            bFirst = false;
-        else
-            offset << " + ";
-        offset << sizes[ i ] << " * " << makeIterName( parents[ i ] ) << " ";
+        std::ostringstream instance;
+        for( U64 i = 0; i != parents.size(); ++i )
+        {
+            if( bFirst )
+                bFirst = false;
+            else
+                instance << " + ";
+            instance << sizes[ i ] << " * " << makeIterName( parents[ i ] ) << " ";
+        }
+        strInstance = instance.str();
     }
 
-    offset << ") + " << pUserDim->get_offset();
+    offset << strInstance << ") + " << pUserDim->get_offset();
 
     return offset.str();
 }
@@ -81,13 +104,15 @@ std::string calculateElementOffset( const DatabaseInstance& database, TDimension
 void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::Concrete::Dimensions::User* pUserDim,
                                   nlohmann::json& data )
 {
+    std::string strInstance;
     nlohmann::json element(
         { { "concrete_id", pUserDim->get_concrete_id() },
           { "is_object", false },
           { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
           { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
           { "mangle", megaMangle( pUserDim->get_interface_dimension()->get_canonical_type() ) },
-          { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::User >( database, pUserDim ) },
+          { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::User >( database, pUserDim, strInstance ) },
+          { "instance", strInstance },
           { "is_part_begin", false },
           { "is_part_end", false },
           { "owning", false }
@@ -117,6 +142,13 @@ void allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link
     else
     {
         THROW_RTE( "Invalid link" );
+    }
+
+    std::string strRelationID;
+    {
+        std::ostringstream osRelationID;
+        osRelationID << pRelation->get_id().getLower() << ',' << pRelation->get_id().getUpper();
+        strRelationID = osRelationID.str();
     }
 
     bool bOwning = false;
@@ -154,17 +186,21 @@ void allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link
         }
     }
 
+    std::string strInstance;
     nlohmann::json element( { { "concrete_id", pLink->get_concrete_id() },
                               { "is_object", false },
                               { "name", pLink->get_link()->get_identifier() },
                               { "type", strCanonicalType },
                               { "mangle", megaMangle( strCanonicalType ) },
                               { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::LinkReference >(
-                                              database, pLink->get_link_reference() ) },
+                                              database, pLink->get_link_reference(), strInstance ) },
+                              { "instance", strInstance },
                               { "is_part_begin", false },
                               { "is_part_end", false },
                               { "singular", bSingular },
                               { "owning", bOwning },
+                              { "source", bSource },
+                              { "relationID", strRelationID },
                               { "types", nlohmann::json::array() }
 
     } );
@@ -179,10 +215,12 @@ void allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link
                 {
                     auto pObjectOpt = pConcreteLink->get_concrete_object();
                     VERIFY_RTE( pObjectOpt.has_value() );
-                    nlohmann::json type( { { "link_type_id", pConcreteLink->get_concrete_id() },
-                                           { "object_type_id", pObjectOpt.value()->get_concrete_id() }
+                    nlohmann::json type(
+                        { { "link_type_id", pConcreteLink->get_concrete_id() },
+                          { "object_type_id", pObjectOpt.value()->get_concrete_id() },
+                          { "full_name", fullInterfaceTypeName( pObjectOpt.value()->get_interface_object() ) }
 
-                    } );
+                        } );
                     element[ "types" ].push_back( type );
                 }
             }
@@ -195,10 +233,12 @@ void allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link
                 {
                     auto pObjectOpt = pConcreteLink->get_concrete_object();
                     VERIFY_RTE( pObjectOpt.has_value() );
-                    nlohmann::json type( { { "link_type_id", pConcreteLink->get_concrete_id() },
-                                           { "object_type_id", pObjectOpt.value()->get_concrete_id() }
+                    nlohmann::json type(
+                        { { "link_type_id", pConcreteLink->get_concrete_id() },
+                          { "object_type_id", pObjectOpt.value()->get_concrete_id() },
+                          { "full_name", fullInterfaceTypeName( pObjectOpt.value()->get_interface_object() ) }
 
-                    } );
+                        } );
                     element[ "types" ].push_back( type );
                 }
             }
@@ -298,24 +338,12 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
     FinalStage::Concrete::Object*            pObject    = database.getObject( objectTypeID );
     const FinalStage::Components::Component* pComponent = pObject->get_component();
 
-    std::ostringstream osFullTypeName;
-    {
-        bool bFirst = true;
-        for( FinalStage::Interface::IContext* pIContext = pObject->get_interface_object(); pIContext;
-             pIContext = db_cast< FinalStage::Interface::IContext >( pIContext->get_parent() ) )
-        {
-            if( bFirst )
-                bFirst = false;
-            else
-                osFullTypeName << '_';
-            osFullTypeName << pIContext->get_identifier();
-        }
-    }
+    const std::string strFullTypeName = fullInterfaceTypeName( pObject->get_interface_object() );
 
     std::ostringstream osObjectTypeID;
     osObjectTypeID << objectTypeID;
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
-                           { "objectName", osFullTypeName.str() },
+                           { "objectName", strFullTypeName },
                            { "parts", nlohmann::json::array() },
                            { "mangled_data_types", nlohmann::json::array() },
                            { "elements", nlohmann::json::array() } } );
@@ -501,4 +529,4 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
     compiler.compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
 }
 
-}
+} // namespace mega::runtime

@@ -24,6 +24,7 @@
 #include "mega/reference.hpp"
 #include "mega/address_table.hpp"
 #include "mega/tag_parser.hpp"
+#include "mega/reference_io.hpp"
 
 #include "common/file.hpp"
 
@@ -33,6 +34,7 @@
 
 #include <string>
 #include <sstream>
+#include <unordered_map>
 
 namespace mega
 {
@@ -42,7 +44,7 @@ static constexpr auto boostXMLArchiveFlags = boost::archive::no_header | boost::
 class XMLSaveArchive
 {
 public:
-    XMLSaveArchive( const boost::filesystem::path& filePath )
+    inline XMLSaveArchive( const boost::filesystem::path& filePath )
         : m_pFileStream( boost::filesystem::createNewFileStream( filePath ) )
         , m_archive( *m_pFileStream, boostXMLArchiveFlags )
     {
@@ -56,31 +58,32 @@ public:
 
     inline void save( const char* name, const mega::reference& ref )
     {
-        if( auto indexOpt = m_table.refToIndexIfExist( ref ) )
+        std::string strEncode;
         {
-            m_archive& boost::serialization::make_nvp( name, indexOpt.value() );
+            std::ostringstream os;
+            if( auto indexOpt = m_table.refToIndexIfExist( ref ) )
+            {
+                os << indexOpt.value();
+            }
+            else
+            {
+                os << ref;
+            }
+            strEncode = os.str();
         }
-        else
-        {
-            m_archive& boost::serialization::make_nvp( name, ref );
-        }
+        m_archive& boost::serialization::make_nvp( name, strEncode );
     }
 
-    inline void save( const mega::reference& ref )
+    inline void save( const mega::reference& ref ) { this->save( "ref", ref ); }
+
+    inline void beginStructure( const reference& ref )
     {
-        if( auto indexOpt = m_table.refToIndexIfExist( ref ) )
-        {
-            m_archive& boost::serialization::make_nvp( "ref", indexOpt.value() );
-        }
-        else
-        {
-            m_archive& boost::serialization::make_nvp( "ref", ref );
-        }
+        //
+        m_table.refToIndex( ref );
     }
+    inline void endStructure( const reference& ref ) {}
 
-    inline void internalReference( const reference& ref ) { m_table.refToIndex( ref ); }
-
-    void beginPart( const char* name, bool bIsObject, const reference& ref )
+    inline void beginData( const char* name, bool bIsObject, const reference& ref )
     {
         auto indexOpt = m_table.refToIndexIfExist( ref );
         VERIFY_RTE( indexOpt.has_value() );
@@ -98,7 +101,7 @@ public:
             m_archive.put( os.str().c_str() );
         }
     }
-    void endPart( const char* name, bool bIsObject, const reference& ref )
+    inline void endData( const char* name, bool bIsObject, const reference& ref )
     {
         auto indexOpt = m_table.refToIndexIfExist( ref );
         VERIFY_RTE( indexOpt.has_value() );
@@ -116,40 +119,125 @@ private:
 
 class XMLLoadArchive
 {
+    using IndexRefMap = std::unordered_map< AddressTable::Index, reference >;
+
 public:
-    XMLLoadArchive( const boost::filesystem::path& filePath )
+    inline XMLLoadArchive( const boost::filesystem::path& filePath )
         : m_pFileStream( boost::filesystem::loadFileStream( filePath ) )
-        , m_tags( mega::parse( *m_pFileStream ) )
-        , m_tagStack{ m_tags.cbegin() }
+        , m_rootTag( mega::parse( *m_pFileStream ) )
     {
-        VERIFY_RTE_MSG( m_tags.size() == 1U, "Invalid xml file: " << filePath.string() );
         m_pFileStream->seekg( 0 );
         m_pArchive = std::make_unique< boost::archive::xml_iarchive >( *m_pFileStream, boostXMLArchiveFlags );
     }
 
     template < typename T >
-    void load( const char* name, T& value )
+    inline void load( const char* name, T& value )
     {
         *m_pArchive& boost::serialization::make_nvp( name, value );
     }
 
-    void beginPart( const char* name, bool bIsObject, const reference& ref ) 
+    inline void load( const char* name, mega::reference& ref )
     {
-        //
+        std::string        strEncoding;
+        *m_pArchive&       boost::serialization::make_nvp( name, strEncoding );
+        std::istringstream is( strEncoding );
 
+        if( strEncoding.find( '.' ) == std::string::npos )
+        {
+            AddressTable::Index index;
+            is >> index;
+            auto iFind = m_indexToRefMap.find( index );
+            VERIFY_RTE_MSG( iFind != m_indexToRefMap.end(),
+                            "Failed to locate reference index in archive for reference: " << strEncoding );
+            ref = iFind->second;
+        }
+        else
+        {
+            using ::operator>>;
+            is >> ref;
+        }
     }
 
-    void endPart( const char* name, bool bIsObject, const reference& ref ) 
+    inline void load( mega::reference& ref )
     {
         //
+        this->load( "ref", ref );
+    }
 
+    inline void beginStructure( const char* name, bool bIsObject, const reference& ref )
+    {
+        if( !m_tagStack.empty() )
+        {
+            mega::XMLTag::Vector::const_iterator& i = m_tagStack.back();
+
+            while( name != i->key ) ++i;
+
+            // VERIFY_RTE_MSG( name == i->key, "Expected name: " << name << " but have: " << i->key );
+            m_tagStack.push_back( i->children.begin() );
+            m_tagCountStack.push_back( i->children.size() );
+            ++i;
+        }
+        else
+        {
+            VERIFY_RTE_MSG( name == m_rootTag.key, "Expected name: " << name << " but have: " << m_rootTag.key );
+            m_tagStack.push_back( m_rootTag.children.begin() );
+            m_tagCountStack.push_back( m_rootTag.children.size() );
+        }
+    }
+
+    inline void endStructure( const char* name, bool bIsObject, const reference& ref )
+    {
+        ASSERT( !m_tagStack.empty() );
+        m_tagStack.pop_back();
+        m_tagCountStack.pop_back();
+    }
+
+    inline void beginData( const char* name, bool bIsObject, const reference& ref )
+    {
+        //
+        mega::consumeStart( *m_pFileStream, name );
+    }
+
+    inline void endData( const char* name, bool bIsObject, const reference& ref )
+    {
+        //
+        mega::consumeEnd( *m_pFileStream, name );
+    }
+
+    inline bool is_tag( const char* name ) { return getCurrentTag().key == name; }
+
+    inline void allocation( const reference& ref )
+    {
+        const XMLTag& tag = getCurrentTag();
+        ASSERT( tag.indexOpt.has_value() );
+        m_indexToRefMap.insert( { tag.indexOpt.value(), ref } );
+    }
+
+    inline U64 tag_count() 
+    { 
+        ASSERT( !m_tagCountStack.empty() );
+        return m_tagCountStack.back();
     }
 
 private:
+    inline const XMLTag& getCurrentTag() const
+    {
+        if( !m_tagStack.empty() )
+        {
+            return *m_tagStack.back();
+        }
+        else
+        {
+            return m_rootTag;
+        }
+    }
+
     std::unique_ptr< std::istream >                 m_pFileStream;
     std::unique_ptr< boost::archive::xml_iarchive > m_pArchive;
-    mega::XMLTag::Vector                            m_tags;
+    mega::XMLTag                                    m_rootTag;
     mega::XMLTag::Stack                             m_tagStack;
+    std::vector< U64 >                              m_tagCountStack;
+    IndexRefMap                                     m_indexToRefMap;
 };
 
 } // namespace mega

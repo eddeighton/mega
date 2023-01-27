@@ -34,25 +34,13 @@ namespace mega
 
 struct FunctionDeclarations
 {
-    using CallSet        = std::set< const FinalStage::Concrete::Context* >;
-    using CopySet        = std::set< std::string >;
-    using EventSet       = std::set< std::string >;
-    using AllocatorSet   = std::set< std::string >;
-    using FreerSet       = std::set< std::string >;
-    using ObjectAllocSet = std::set< const FinalStage::Concrete::Context* >;
-    using ObjectFreeSet  = std::set< const FinalStage::Concrete::Context* >;
-    using ObjectSaveSet  = std::set< const FinalStage::Concrete::Context* >;
-    using ObjectLoadSet  = std::set< const FinalStage::Concrete::Context* >;
+    using CallSet      = std::set< const FinalStage::Concrete::Context* >;
+    using CopySet      = std::set< std::string >;
+    using EventSet     = std::set< std::string >;
 
-    CallSet        callSet;
-    CopySet        copySet;
-    EventSet       eventSet;
-    AllocatorSet   allocatorSet;
-    FreerSet       freerSet;
-    ObjectAllocSet objectAllocSet;
-    ObjectFreeSet  objectFreeSet;
-    ObjectSaveSet  objectSave;
-    ObjectLoadSet  objectLoad;
+    CallSet  callSet;
+    CopySet  copySet;
+    EventSet eventSet;
 
     nlohmann::json init( const InvocationID& invocationID, std::string& strName ) const
     {
@@ -63,17 +51,14 @@ struct FunctionDeclarations
             strName = osName.str();
         }
 
-        return { { "name", strName },
-                 { "module_name", strName },
-                 { "calls", nlohmann::json::array() },
-                 { "copiers", nlohmann::json::array() },
-                 { "events", nlohmann::json::array() },
-                 { "allocators", nlohmann::json::array() },
-                 { "freers", nlohmann::json::array() },
-                 { "object_allocators", nlohmann::json::array() },
-                 { "variables", nlohmann::json::array() },
-                 { "assignments", nlohmann::json::array() },
-                 { "object_savers", nlohmann::json::array() } };
+        return {
+            { "name", strName },
+            { "module_name", strName },
+            { "calls", nlohmann::json::array() },
+            { "copiers", nlohmann::json::array() },
+            { "events", nlohmann::json::array() },
+
+        };
     }
 
     void generate( nlohmann::json& data )
@@ -90,29 +75,9 @@ struct FunctionDeclarations
         {
             data[ "events" ].push_back( event );
         }
-        for( auto allocator : allocatorSet )
-        {
-            data[ "allocators" ].push_back( allocator );
-        }
-        for( auto freer : freerSet )
-        {
-            data[ "freers" ].push_back( freer );
-        }
-        for( auto pObject : objectAllocSet )
-        {
-            data[ "object_allocators" ].push_back( pObject->get_concrete_id() );
-        }
-        for( auto pObject : objectSave )
-        {
-            data[ "object_savers" ].push_back( pObject->get_concrete_id() );
-        }
-        for( auto pObject : objectLoad )
-        {
-            data[ "object_loaders" ].push_back( pObject->get_concrete_id() );
-        }
     }
 };
 
-}
+} // namespace mega
 
-#endif //GUARD_2023_January_25_function_declarations
+#endif // GUARD_2023_January_25_function_declarations

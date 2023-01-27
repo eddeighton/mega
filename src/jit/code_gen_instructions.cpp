@@ -352,8 +352,6 @@ R"TEMPLATE(
                                        { "instance", args.get( pInstance ) } } );
 
         os << args.inja.render( szTemplate, templateData );
-
-        args.functions.objectSave.insert( pConcreteTarget );
     }
 
     args.data[ "assignments" ].push_back( os.str() );
@@ -378,6 +376,7 @@ R"TEMPLATE(
 {{ indent }}    {
 {{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
 {{ indent }}    }
+{{ indent }}    mega::mangle::xml_load_allocation( {{ instance }}, pArchive );
 {{ indent }}    static thread_local mega::runtime::object::ObjectLoadXMLStructure functionStructure( g_pszModuleName, {{ concrete_type_id }} );
 {{ indent }}    functionStructure( {{ instance }}, pArchive );
 {{ indent }}    static thread_local mega::runtime::object::ObjectLoadXML function( g_pszModuleName, {{ concrete_type_id }} );
@@ -399,8 +398,6 @@ R"TEMPLATE(
                                        { "instance", args.get( pInstance ) } } );
 
         os << args.inja.render( szTemplate, templateData );
-
-        args.functions.objectSave.insert( pConcreteTarget );
     }
 
     args.data[ "assignments" ].push_back( os.str() );

@@ -34,14 +34,15 @@ inline std::istream& operator>>( std::istream& is, mega::MP& mp )
     mega::U32 m;
     mega::U32 p;
     char      c;
-    is >> m >> c >> p;
+    is >> std::dec >> m >> c >> p;
     mp = mega::MP( m, p );
     return is;
 }
 
 inline std::ostream& operator<<( std::ostream& os, const mega::MP& mp )
 {
-    return os << static_cast< mega::U32 >( mp.getMachineID() ) << '.' << static_cast< mega::U32 >( mp.getProcessID() );
+    return os << std::dec << std::setw( 8 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mp.getMachineID() )
+              << '.' << std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mp.getProcessID() );
 }
 
 inline std::istream& operator>>( std::istream& is, mega::MPO& mpo )
@@ -50,33 +51,73 @@ inline std::istream& operator>>( std::istream& is, mega::MPO& mpo )
     mega::U32 p;
     mega::U32 o;
     char      c;
-    is >> m >> c >> p >> c >> o;
+    is >> std::dec >> m >> c >> p >> c >> o;
     mpo = mega::MPO( m, p, o );
     return is;
 }
 
 inline std::ostream& operator<<( std::ostream& os, const mega::MPO& mpo )
 {
-    return os << static_cast< mega::U32 >( mpo.getMachineID() ) << '.' << static_cast< mega::U32 >( mpo.getProcessID() )
-              << '.' << static_cast< mega::U32 >( mpo.getOwnerID() );
+    return os << 
+    
+    std::dec << std::setw( 8 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getMachineID() )
+              << '.' << std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getProcessID() ) << '.'
+              << std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getOwnerID() );
 }
 
 inline std::ostream& operator<<( std::ostream& os, const mega::TypeInstance& typeInstance )
 {
-    return os << '[' << typeInstance.type << "." << typeInstance.instance << ']';
+    return os << std::dec << '[' << std::setw( 4 ) << std::setfill( '0' ) << typeInstance.type << "." << std::setw( 4 )
+              << std::setfill( '0' ) << typeInstance.instance << ']';
+}
+inline std::istream& operator>>( std::istream& is, mega::TypeInstance& typeInstance )
+{
+    char c;
+    return is >> std::dec >> c >> std::setw( 4 ) >> typeInstance.type >> c >> std::setw( 4 ) >> typeInstance.instance
+           >> c;
 }
 
 inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
 {
     if( ref.isHeapAddress() )
     {
-        return os << std::hex << reinterpret_cast< mega::U64 >( ref.getHeap() ) << "."
+        return os << std::hex << "x" << std::setw( 16 ) << std::setfill( '0' )
+                  << reinterpret_cast< mega::U64 >( ref.getHeap() ) << "." << std::setw( 2 ) << std::setfill( '0' ) << std::dec
                   << static_cast< mega::U32 >( ref.getOwnerID() ) << "." << ref.getTypeInstance();
     }
     else
     {
-        return os << ref.getObjectID() << "." << ref.getMPO() << "." << ref.getTypeInstance();
+        return os << std::dec << std::setw( 8 ) << std::setfill( '0' ) << ref.getObjectID() << "." << ref.getMPO()
+                  << "." << ref.getTypeInstance();
     }
+}
+
+inline std::istream& operator>>( std::istream& is, mega::reference& ref )
+{
+    char c;
+    if( is.peek() == 'x' )
+    {
+        mega::HeapAddress  heapAddress;
+        mega::U32          ownerID;
+        mega::TypeInstance typeInstance;
+
+        is >> std::dec >> c >> std::setw( 16 ) >> heapAddress >> c >> std::setw( 2 ) >> ownerID >> std::setw( 1 ) >> c
+            >> typeInstance;
+        ref = mega::reference( typeInstance, ownerID, heapAddress );
+    }
+    else
+    {
+        mega::ObjectID     objectID;
+        mega::MachineID    machineID;
+        mega::U32          processID;
+        mega::U32          ownerID;
+        mega::TypeInstance typeInstance;
+
+        is >> std::dec >> objectID >> c >> std::setw( 8 ) >> machineID >> c >> std::setw( 4 ) >> processID >> c
+            >> std::setw( 2 ) >> ownerID >> c >> typeInstance;
+        ref = mega::reference( typeInstance, mega::MPO( machineID, processID, ownerID ), objectID );
+    }
+    return is;
 }
 
 namespace boost::serialization
@@ -216,8 +257,8 @@ inline void serialize( boost::archive::binary_iarchive& ar, mega::MP& value, con
 
 inline void serialize( boost::archive::binary_oarchive& ar, mega::MP& value, const unsigned int version )
 {
-    ar& (mega::U32)value.getMachineID();
-    ar& (mega::U32)value.getProcessID();
+    ar&( mega::U32 )value.getMachineID();
+    ar&( mega::U32 )value.getProcessID();
 }
 
 inline void serialize( boost::archive::binary_iarchive& ar, mega::MPO& value, const unsigned int version )
@@ -233,9 +274,9 @@ inline void serialize( boost::archive::binary_iarchive& ar, mega::MPO& value, co
 
 inline void serialize( boost::archive::binary_oarchive& ar, mega::MPO& value, const unsigned int version )
 {
-    ar& (mega::U32)value.getMachineID();
-    ar& (mega::U32)value.getProcessID();
-    ar& (mega::U32)value.getOwnerID();
+    ar&( mega::U32 )value.getMachineID();
+    ar&( mega::U32 )value.getProcessID();
+    ar&( mega::U32 )value.getOwnerID();
 }
 
 inline void serialize( boost::archive::binary_iarchive& ar, mega::reference& ref, const unsigned int version )
@@ -275,7 +316,7 @@ inline void serialize( boost::archive::binary_oarchive& ar, mega::reference& ref
     if( ref.isHeapAddress() )
     {
         ar& reinterpret_cast< mega::U64 >( ref.getHeap() );
-        ar& (mega::U32)ref.getOwnerID();
+        ar&( mega::U32 )ref.getOwnerID();
         ar& ref.getTypeInstance();
     }
     else

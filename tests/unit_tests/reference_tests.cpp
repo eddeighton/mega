@@ -22,6 +22,7 @@
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
 
+#include <limits>
 #include <sstream>
 
 mega::MP fromStr( const std::string& str )
@@ -59,7 +60,7 @@ TEST( Reference, InvalidByDefault )
 
 TEST( Reference, HeapAccess )
 {
-    mega::reference h{ mega::TypeInstance{ 123, 456 }, mega::OwnerID( 255 ), ( mega::HeapAddress )0xFFFFFFFF  };
+    mega::reference h{ mega::TypeInstance{ 123, 456 }, mega::OwnerID( 255 ), ( mega::HeapAddress )0xFFFFFFFF };
 
     ASSERT_TRUE( h.isHeapAddress() );
     ASSERT_EQ( h.getType(), 456 );
@@ -94,3 +95,171 @@ TEST( Reference, HeaderAccess )
     ASSERT_EQ( h.getMPO(), testMPO );
     ASSERT_EQ( h.getObjectID(), 4 );
 }
+
+struct OtherTypeInstance
+{
+    mega::Instance        instance = 0U;
+    mega::TypeID          type     = 0;
+    constexpr inline bool operator==( const OtherTypeInstance& cmp ) const
+    {
+        return ( instance == cmp.instance ) && ( type == cmp.type );
+    }
+};
+inline std::ostream& operator<<( std::ostream& os, const OtherTypeInstance& typeInstance )
+{
+    return os << '[' << typeInstance.type << "." << std::hex << typeInstance.instance << ']';
+}
+inline std::istream& operator>>( std::istream& is, OtherTypeInstance& typeInstance )
+{
+    char c;
+    return is >> c >> typeInstance.type >> c >> std::hex >> typeInstance.instance >> c;
+}
+
+TEST( Reference, TypeInstance )
+{
+    const OtherTypeInstance expected{
+        std::numeric_limits< mega::Instance >::min(), std::numeric_limits< mega::TypeID >::min() };
+
+    std::string str;
+    {
+        std::ostringstream os;
+        os << expected;
+        str = os.str();
+    }
+
+    OtherTypeInstance result;
+    {
+        std::istringstream is( str );
+        is >> result;
+    }
+    ASSERT_TRUE( result == expected ) << " failed io with str: " << str;
+}
+
+TEST( Reference, TypeInstance2 )
+{
+    const mega::TypeInstance expected{
+        std::numeric_limits< mega::Instance >::max(), std::numeric_limits< mega::TypeID >::max() };
+
+    std::string str;
+    {
+        std::ostringstream os;
+        os << expected;
+        str = os.str();
+    }
+
+    mega::TypeInstance result;
+    {
+        std::istringstream is( str );
+        is >> result;
+    }
+    ASSERT_TRUE( result == expected ) << " failed io with str: " << str;
+}
+
+struct ReferenceTestData
+{
+    mega::reference expected;
+};
+
+class ReferenceIOTest : public ::testing::TestWithParam< ReferenceTestData >
+{
+protected:
+};
+
+TEST_P( ReferenceIOTest, ReferenceIO )
+{
+    const ReferenceTestData data = GetParam();
+
+    std::string str;
+    {
+        std::ostringstream os;
+        os << data.expected;
+        str = os.str();
+    }
+
+    mega::reference result;
+    {
+        std::istringstream is( str );
+        is >> result;
+    }
+
+    std::ostringstream osError;
+    osError << " expected: " << data.expected << " actual: " << result;
+    ASSERT_TRUE( result == data.expected ) << osError.str();
+}
+
+// clang-format off
+INSTANTIATE_TEST_SUITE_P( Reference, ReferenceIOTest,
+        ::testing::Values
+        (
+            // default
+            ReferenceTestData{ mega::reference{} },
+
+            // network address
+            ReferenceTestData{ mega::reference{ mega::TypeInstance{}, mega::MPO{}, mega::ObjectID{} } },
+            ReferenceTestData
+            {
+                mega::reference
+                {
+                    mega::TypeInstance
+                    {
+                        std::numeric_limits< mega::Instance >::max(),
+                        std::numeric_limits< mega::TypeID >::max()
+                    },
+                    mega::MPO
+                    {
+                        std::numeric_limits< mega::MachineID >::max(),
+                        std::numeric_limits< mega::ProcessID >::max(),
+                        std::numeric_limits< mega::OwnerID >::max()
+                    },
+                    std::numeric_limits< mega::ObjectID >::max()
+                }
+            },
+            ReferenceTestData
+            {
+                mega::reference
+                {
+                    mega::TypeInstance
+                    {
+                        std::numeric_limits< mega::Instance >::min(),
+                        std::numeric_limits< mega::TypeID >::min()
+                    },
+                    mega::MPO
+                    {
+                        std::numeric_limits< mega::MachineID >::min(),
+                        std::numeric_limits< mega::ProcessID >::min(),
+                        std::numeric_limits< mega::OwnerID >::min()
+                    },
+                    std::numeric_limits< mega::ObjectID >::min()
+                }
+            },
+
+            // heap address
+            ReferenceTestData{ mega::reference{ mega::TypeInstance{}, mega::OwnerID{}, mega::HeapAddress{} } },
+            ReferenceTestData
+            {
+                mega::reference
+                {
+                    mega::TypeInstance
+                    {
+                        std::numeric_limits< mega::Instance >::max(),
+                        std::numeric_limits< mega::TypeID >::max()
+                    },
+                    0,//std::numeric_limits< mega::OwnerID >::max(),
+                    reinterpret_cast< void* >( std::numeric_limits< mega::U64 >::max() )
+                }
+            },
+            ReferenceTestData
+            {
+                mega::reference
+                {
+                    mega::TypeInstance
+                    {
+                        std::numeric_limits< mega::Instance >::min(),
+                        std::numeric_limits< mega::TypeID >::min()
+                    },
+                    0,//std::numeric_limits< mega::OwnerID >::min(),
+                    reinterpret_cast< void* >( std::numeric_limits< mega::U64 >::min() )
+                }
+            }
+        ));
+// clang-format on

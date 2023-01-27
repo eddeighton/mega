@@ -54,6 +54,10 @@ set( MEGA_UNIT_TESTS
 	${MEGA_UNIT_TESTS_DIR}/xml_tag_parser_tests.cpp
 	)
 
+set( MEGA_UNIT_TESTS_DATA
+		${MEGA_UNIT_TESTS_DIR}/test_data/xml_tags_data.xml
+)
+
 enable_testing()
 
 add_executable( mega_tests ${MEGA_UNIT_TESTS} ${MEGA_UNIT_TESTS_DIR}/main_test_runner.cpp )
@@ -93,5 +97,6 @@ target_link_libraries( mega_tests log)
 gtest_add_tests( TARGET mega_tests SOURCES ${MEGA_UNIT_TESTS} )
 
 install( TARGETS mega_tests DESTINATION bin )
+install( FILES ${MEGA_UNIT_TESTS_DATA} DESTINATION bin/test_data )	
 
-add_custom_command( TARGET mega_tests POST_BUILD COMMAND ctest --output-on-failure -C $<CONFIG> )
+add_custom_command( TARGET mega_tests POST_BUILD COMMAND mega_tests WORKING_DIRECTORY ${MEGA_UNIT_TESTS_DIR} )

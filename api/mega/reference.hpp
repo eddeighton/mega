@@ -70,13 +70,12 @@ class reference
 
     struct NetworkAddressData
     {
-        ObjectID  m_objectID;  // 4
-        MachineID m_machineID; // 4
-        ProcessID m_processID; // 2
-
-        OwnerID      m_ownerID; // 1
-        Flags        m_flags;   // 1
-        TypeInstance m_type;    // 4
+        ObjectID     m_objectID;  // 4
+        MachineID    m_machineID; // 4
+        ProcessID    m_processID; // 2
+        OwnerID      m_ownerID;   // 1
+        Flags        m_flags;     // 1
+        TypeInstance m_type;      // 4
     };
     static_assert( sizeof( NetworkAddressData ) == 16U, "Invalid NetworkAddressData Size" );
 
@@ -91,7 +90,6 @@ public:
     {
         inline U64 operator()( const reference& ref ) const noexcept
         {
-            // always hash using network address
             const reference& net = ref.getNetworkAddress();
             return net.getObjectID() + ( ( U64 )net.getMachineID() << 4 );
         }

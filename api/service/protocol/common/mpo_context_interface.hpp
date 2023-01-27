@@ -27,12 +27,12 @@ namespace mega
 {
 namespace runtime
 {
-MPO  getThisMPO();
-void networkToHeap( reference& ref );
-void readLock( reference& ref );
-void writeLock( reference& ref );
+MPO       getThisMPO();
+void      networkToHeap( reference& ref );
+void      readLock( reference& ref );
+void      writeLock( reference& ref );
 reference allocate( const reference& parent, TypeID typeID );
-void* log();
+void*     log();
 } // namespace runtime
 } // namespace mega
 

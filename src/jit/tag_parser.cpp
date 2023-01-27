@@ -27,6 +27,9 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_eoi.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
+// #include <boost/spirit/include/support_istream_iterator.hpp>
+
+#include <boost/spirit/include/support_multi_pass.hpp>
 
 #include <boost/phoenix/core.hpp>
 #include <boost/phoenix/stl.hpp>
@@ -40,6 +43,7 @@
 
 #include <string>
 #include <iostream>
+#include <utility>
 
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT(  mega::XMLTag,
@@ -55,13 +59,11 @@ namespace mega
 namespace
 {
 
-using UnderlyingIterType = std::string::const_iterator;
-using IteratorType       = boost::spirit::line_pos_iterator< UnderlyingIterType >;
-
+template < typename Iterator >
 struct ParseResult
 {
-    bool         bSuccess;
-    IteratorType iterReached;
+    bool     bSuccess;
+    Iterator iterReached;
 };
 
 template < typename Iterator >
@@ -116,23 +118,24 @@ private:
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // parser helper function
 
-template < class GrammarType, typename ResultType >
-inline ParseResult parse_impl( const std::string& strInput, ResultType& result, std::ostream& errorStream )
+template < class GrammarType, typename ResultType, typename Iterator >
+inline ParseResult< Iterator >
+parse_impl( std::pair< Iterator, Iterator >& iterPair, ResultType& result, std::ostream& errorStream )
 {
     GrammarType grammar;
     {
         using namespace boost::phoenix;
-        function< error_handler< IteratorType > > const error_handler( errorStream );
+        function< error_handler< Iterator > > const error_handler( errorStream );
         boost::spirit::qi::on_error< boost::spirit::qi::fail >(
             grammar.m_main_rule,
             error_handler(
                 boost::spirit::qi::_1, boost::spirit::qi::_2, boost::spirit::qi::_3, boost::spirit::qi::_4 ) );
     }
 
-    ParseResult resultPair{ false, IteratorType( strInput.begin() ) };
+    ParseResult< Iterator > resultPair{ false, iterPair.first };
 
     resultPair.bSuccess = boost::spirit::qi::phrase_parse(
-        resultPair.iterReached, IteratorType( strInput.end() ), grammar, SkipGrammar< IteratorType >(), result );
+        resultPair.iterReached, iterPair.second, grammar, SkipGrammar< Iterator >(), result );
 
     return resultPair;
 }
@@ -177,15 +180,95 @@ public:
     boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Identifier() > m_main_rule;
 };
 
-ParseResult parse( const std::string& strInput, Identifier& code, std::ostream& errorStream )
+template < typename Iterator >
+class IndexAttributeGrammar
+    : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, mega::AddressTable::Index() >
 {
-    return parse_impl< IdentifierGrammar< IteratorType > >( strInput, code, errorStream );
+public:
+    IndexAttributeGrammar()
+        : IndexAttributeGrammar::base_type( m_main_rule, "index_attribute" )
+    {
+        using namespace boost::spirit;
+        using namespace boost::spirit::qi;
+        using namespace boost::phoenix;
+        m_main_rule = lit( "index" ) >> lit( "=" ) >> lexeme[ lit( '"' ) >> int_[ _val = qi::_1 ] >> lit( '"' ) ];
+    }
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, mega::AddressTable::Index() > m_main_rule;
+};
+
+template < typename Iterator >
+class StartTagGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, XMLTag() >
+{
+public:
+    StartTagGrammar()
+        : StartTagGrammar::base_type( m_main_rule, "start_tag" )
+    {
+        using namespace boost::spirit;
+        using namespace boost::spirit::qi;
+        using namespace boost::phoenix;
+
+        // clang-format off
+        m_main_rule = 
+        
+            *( char_ - "<" ) >>
+
+            lit( "<" ) >> 
+            (
+                m_identifier_grammar[   at_c< 0 >( _val ) = qi::_1 ] >>
+                -( m_index_rule )[      at_c< 1 >( _val ) = qi::_1 ]
+            ) >> 
+            lit( ">" )
+            ;
+        // clang-format on
+    }
+
+    IdentifierGrammar< Iterator >                                          m_identifier_grammar;
+    IndexAttributeGrammar< Iterator >                                      m_index_rule;
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, XMLTag() > m_main_rule;
+};
+
+template < typename Iterator >
+ParseResult< Iterator >
+parseStartTag( std::pair< Iterator, Iterator >& iterPair, XMLTag& tag, std::ostream& errorStream )
+{
+    return parse_impl< StartTagGrammar< Iterator > >( iterPair, tag, errorStream );
 }
 
-} // namespace
-
-namespace
+template < typename Iterator >
+class EndTagGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, XMLTag() >
 {
+public:
+    EndTagGrammar()
+        : EndTagGrammar::base_type( m_main_rule, "end_tag" )
+    {
+        using namespace boost::spirit;
+        using namespace boost::spirit::qi;
+        using namespace boost::phoenix;
+
+        // clang-format off
+        m_main_rule = 
+        
+            *( char_ - "<" ) >>
+
+            lit( "</" ) >> 
+            (
+                m_identifier_grammar[ at_c< 0 >( _val ) = qi::_1 ]
+            ) >> 
+            lit( ">" )
+            ;
+        // clang-format on
+    }
+
+    IdentifierGrammar< Iterator >                                          m_identifier_grammar;
+    IndexAttributeGrammar< Iterator >                                      m_index_rule;
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, XMLTag() > m_main_rule;
+};
+
+template < typename Iterator >
+ParseResult< Iterator > parseEndTag( std::pair< Iterator, Iterator >& iterPair, XMLTag& tag, std::ostream& errorStream )
+{
+    return parse_impl< EndTagGrammar< Iterator > >( iterPair, tag, errorStream );
+}
 
 template < typename Iterator >
 class TagGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, XMLTag() >
@@ -200,7 +283,7 @@ public:
 
         // clang-format off
 
-        m_index_rule = lit( "index" ) >> lit( "=" ) >> lexeme[ lit( '"' ) >> int_[ _val = qi::_1 ] >> lit( '"' ) ];
+        //m_index_rule = lit( "index" ) >> lit( "=" ) >> lexeme[ lit( '"' ) >> int_[ _val = qi::_1 ] >> lit( '"' ) ];
 
         m_main_rule = 
             lit( "<" ) >> 
@@ -226,29 +309,79 @@ public:
         // clang-format on
     }
 
-    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, int() > m_index_rule;
-
+    IndexAttributeGrammar< Iterator >                                      m_index_rule;
     IdentifierGrammar< Iterator >                                          m_identifier_grammar;
     boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, XMLTag() > m_main_rule;
 };
 
-ParseResult parse( const std::string& strInput, XMLTag& tag, std::ostream& errorStream )
+template < typename Iterator >
+ParseResult< Iterator > parse( std::pair< Iterator, Iterator >& iterPair, XMLTag& tag, std::ostream& errorStream )
 {
-    return parse_impl< TagGrammar< IteratorType > >( strInput, tag, errorStream );
+    return parse_impl< TagGrammar< Iterator > >( iterPair, tag, errorStream );
 }
 
 } // anonymous namespace
 
-XMLTag::Vector parse( std::istream& is )
+XMLTag parse( std::istream& is )
 {
-    const std::string fileContents( ( std::istreambuf_iterator< char >( is ) ), std::istreambuf_iterator< char >() );
+    using BaseIterType       = std::istreambuf_iterator< char >;
+    using UnderlyingIterType = boost::spirit::multi_pass< BaseIterType >;
+    using IteratorType       = boost::spirit::line_pos_iterator< UnderlyingIterType >;
+    using IteratorTypePair   = std::pair< IteratorType, IteratorType >;
+
+    IteratorTypePair iterPair( boost::spirit::make_default_multi_pass( BaseIterType( is ) ), IteratorType{} );
 
     std::ostringstream osError;
     XMLTag             tag;
-    const ParseResult  result = parse( fileContents, tag, osError );
-    VERIFY_RTE_MSG( result.bSuccess && result.iterReached.base() == fileContents.end(),
-                    "Failed to parse tags with error: " << osError.str() );
-    return { tag };
+    const ParseResult  result = parse( iterPair, tag, osError );
+    VERIFY_RTE_MSG( result.bSuccess, "Failed to parse tags with error: " << osError.str() );
+    return tag;
+}
+
+void consumeStart( std::istream& is, const std::string& strTag )
+{
+    using BaseIterType       = std::istreambuf_iterator< char >;
+    using UnderlyingIterType = boost::spirit::multi_pass< BaseIterType >;
+    using IteratorType       = boost::spirit::line_pos_iterator< UnderlyingIterType >;
+    using IteratorTypePair   = std::pair< IteratorType, IteratorType >;
+
+    IteratorTypePair iterPair( boost::spirit::make_default_multi_pass( BaseIterType( is ) ), IteratorType{} );
+
+    std::ostringstream osError;
+    XMLTag             tag;
+    const ParseResult  result = parseStartTag( iterPair, tag, osError );
+    VERIFY_RTE_MSG( result.bSuccess && tag.key == strTag,
+                    "Failed to consume start tag: " << strTag << " got: " << tag.key << osError.str() );
+}
+
+void consumeEnd( std::istream& is, const std::string& strTag )
+{
+    using BaseIterType       = std::istreambuf_iterator< char >;
+    using UnderlyingIterType = boost::spirit::multi_pass< BaseIterType >;
+    using IteratorType       = boost::spirit::line_pos_iterator< UnderlyingIterType >;
+    using IteratorTypePair   = std::pair< IteratorType, IteratorType >;
+
+    IteratorTypePair iterPair( boost::spirit::make_default_multi_pass( BaseIterType( is ) ), IteratorType{} );
+
+    std::ostringstream osError;
+    XMLTag             tag;
+    const ParseResult  result = parseEndTag( iterPair, tag, osError );
+    if( !result.bSuccess )
+    {
+        const ParseResult startResult = parseStartTag( iterPair, tag, osError );
+        if( startResult.bSuccess )
+        {
+            THROW_RTE( "Got start tag: " << tag.key << " instead of end tag: " << strTag );
+        }
+        else
+        {
+            THROW_RTE( "Fail to parse any tag for tag: " << strTag );
+        }
+    }
+    else if( tag.key != strTag )
+    {
+        THROW_RTE( "Failed to consume matching end tag: " << strTag << " got: " << tag.key );
+    }
 }
 
 } // namespace mega
