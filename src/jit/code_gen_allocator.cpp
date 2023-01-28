@@ -104,24 +104,24 @@ std::string calculateElementOffset( const DatabaseInstance& database, TDimension
 void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::Concrete::Dimensions::User* pUserDim,
                                   nlohmann::json& data )
 {
-    std::string strInstance;
-    nlohmann::json element(
-        { { "concrete_id", pUserDim->get_concrete_id() },
-          { "is_object", false },
-          { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
-          { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
-          { "mangle", megaMangle( pUserDim->get_interface_dimension()->get_canonical_type() ) },
-          { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::User >( database, pUserDim, strInstance ) },
-          { "instance", strInstance },
-          { "is_part_begin", false },
-          { "is_part_end", false },
-          { "owning", false }
+    std::string    strInstance;
+    nlohmann::json element( { { "concrete_id", pUserDim->get_concrete_id() },
+                              { "is_object", false },
+                              { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
+                              { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
+                              { "mangle", megaMangle( pUserDim->get_interface_dimension()->get_canonical_type() ) },
+                              { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::User >(
+                                              database, pUserDim, strInstance ) },
+                              { "instance", strInstance },
+                              { "is_part_begin", false },
+                              { "is_part_end", false },
+                              { "owning", false }
 
-        } );
+    } );
     data[ "elements" ].push_back( element );
 }
 
-void allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link* pLink, nlohmann::json& data )
+std::optional< nlohmann::json > allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link* pLink )
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
@@ -144,13 +144,6 @@ void allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link
         THROW_RTE( "Invalid link" );
     }
 
-    std::string strRelationID;
-    {
-        std::ostringstream osRelationID;
-        osRelationID << pRelation->get_id().getLower() << ',' << pRelation->get_id().getUpper();
-        strRelationID = osRelationID.str();
-    }
-
     bool bOwning = false;
     {
         if( bSource )
@@ -165,48 +158,55 @@ void allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link
         }
     }
 
-    std::string strCanonicalType;
-    bool        bSingular = true;
-    {
-        if( auto pRange = db_cast< Dimensions::LinkMany >( pLinkRef ) )
-        {
-            // range
-            strCanonicalType = "mega::ReferenceVector";
-            bSingular        = false;
-        }
-        else if( auto pSingle = db_cast< Dimensions::LinkSingle >( pLinkRef ) )
-        {
-            // singular
-            strCanonicalType = "mega::reference";
-            bSingular        = true;
-        }
-        else
-        {
-            THROW_RTE( "Unknown link type" );
-        }
-    }
-
-    std::string strInstance;
-    nlohmann::json element( { { "concrete_id", pLink->get_concrete_id() },
-                              { "is_object", false },
-                              { "name", pLink->get_link()->get_identifier() },
-                              { "type", strCanonicalType },
-                              { "mangle", megaMangle( strCanonicalType ) },
-                              { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::LinkReference >(
-                                              database, pLink->get_link_reference(), strInstance ) },
-                              { "instance", strInstance },
-                              { "is_part_begin", false },
-                              { "is_part_end", false },
-                              { "singular", bSingular },
-                              { "owning", bOwning },
-                              { "source", bSource },
-                              { "relationID", strRelationID },
-                              { "types", nlohmann::json::array() }
-
-    } );
-
     if( bOwning )
     {
+        std::string strRelationID;
+        {
+            std::ostringstream osRelationID;
+            osRelationID << pRelation->get_id().getLower() << ',' << pRelation->get_id().getUpper();
+            strRelationID = osRelationID.str();
+        }
+
+        std::string strCanonicalType;
+        bool        bSingular = true;
+        {
+            if( auto pRange = db_cast< Dimensions::LinkMany >( pLinkRef ) )
+            {
+                // range
+                strCanonicalType = "mega::ReferenceVector";
+                bSingular        = false;
+            }
+            else if( auto pSingle = db_cast< Dimensions::LinkSingle >( pLinkRef ) )
+            {
+                // singular
+                strCanonicalType = "mega::reference";
+                bSingular        = true;
+            }
+            else
+            {
+                THROW_RTE( "Unknown link type" );
+            }
+        }
+
+        std::string    strInstance;
+        nlohmann::json element( { { "concrete_id", pLink->get_concrete_id() },
+                                  { "is_object", false },
+                                  { "name", pLink->get_link()->get_identifier() },
+                                  { "type", strCanonicalType },
+                                  { "mangle", megaMangle( strCanonicalType ) },
+                                  { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::LinkReference >(
+                                                  database, pLink->get_link_reference(), strInstance ) },
+                                  { "instance", strInstance },
+                                  { "is_part_begin", false },
+                                  { "is_part_end", false },
+                                  { "singular", bSingular },
+                                  { "owning", bOwning },
+                                  { "source", bSource },
+                                  { "relationID", strRelationID },
+                                  { "types", nlohmann::json::array() }
+
+        } );
+
         if( bSource )
         {
             for( auto pTarget : pRelation->get_targets() )
@@ -243,9 +243,14 @@ void allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link
                 }
             }
         }
-    }
 
-    data[ "elements" ].push_back( element );
+        return element;
+    }
+    else
+    {
+        // for now do not add non-owning links to xml format.
+        return {};
+    }
 }
 
 void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Concrete::Context* pContext,
@@ -253,6 +258,21 @@ void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Con
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
+
+    std::optional< nlohmann::json > linkData;
+    {
+        if( auto pLink = db_cast< Link >( pContext ) )
+        {
+            linkData = allocatorLink( database, pLink );
+            if( !linkData )
+                return;
+        }
+    }
+
+    if( auto pFunction = db_cast< Function >( pContext ) )
+    {
+        return;
+    }
 
     {
         nlohmann::json element( { { "concrete_id", pContext->get_concrete_id() },
@@ -290,9 +310,6 @@ void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Con
             generateAllocatorDimensions( database, pUserDim, data );
         }
     }
-    else if( auto pFunction = db_cast< Function >( pContext ) )
-    {
-    }
     else if( auto pObject = db_cast< Object >( pContext ) )
     {
         for( auto pUserDim : pObject->get_dimensions() )
@@ -302,7 +319,7 @@ void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Con
     }
     else if( auto pLink = db_cast< Link >( pContext ) )
     {
-        allocatorLink( database, pLink, data );
+        data[ "elements" ].push_back( linkData.value() );
     }
     else if( auto pBuffer = db_cast< Buffer >( pContext ) )
     {
@@ -312,18 +329,20 @@ void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Con
         THROW_RTE( "Unknown context type" );
     }
 
-    for( auto pChildContext : pContext->get_children() )
     {
-        recurseAllocatorElements( database, pChildContext, data );
+        for( auto pChildContext : pContext->get_children() )
+        {
+            recurseAllocatorElements( database, pChildContext, data );
+        }
     }
 
     {
         nlohmann::json element( { { "concrete_id", pContext->get_concrete_id() },
-                                  { "is_object", !!db_cast< Concrete::Object >( pContext ) },
-                                  { "name", pContext->get_interface()->get_identifier() },
-                                  { "is_part_begin", false },
-                                  { "is_part_end", true },
-                                  { "owning", false }
+                                    { "is_object", !!db_cast< Concrete::Object >( pContext ) },
+                                    { "name", pContext->get_interface()->get_identifier() },
+                                    { "is_part_begin", false },
+                                    { "is_part_end", true },
+                                    { "owning", false }
 
         } );
         data[ "elements" ].push_back( element );

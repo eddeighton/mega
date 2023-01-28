@@ -71,7 +71,6 @@ bool ref_vector_contains( void* pData, const mega::reference& ref )
 }
 void ref_vector_remove( void* pData, const mega::reference& ref )
 {
-    // std::cout << "ref_vector_remove : " << ref << std::endl;
     auto& vec   = reify< ReferenceVector >( pData );
     auto  iFind = std::find( vec.begin(), vec.end(), ref );
     if( iFind != vec.end() )
@@ -81,7 +80,6 @@ void ref_vector_remove( void* pData, const mega::reference& ref )
 }
 void ref_vector_add( void* pData, const mega::reference& ref )
 {
-    // std::cout << "ref_vector_add : " << ref << std::endl;
     auto& vec = reify< ReferenceVector >( pData );
     vec.push_back( ref );
 }
@@ -94,7 +92,6 @@ void ref_vector_clear( void* pData )
 mega::U64 ref_vector_get_size( void* pData )
 {
     auto& vec = reify< ReferenceVector >( pData );
-    std::cout << "ref_vector_get_size : " << vec.size() << std::endl;
     return vec.size();
 }
 
@@ -155,7 +152,6 @@ bool xml_is_tag( const char* pszTag, void* pSerialiser )
 
 void xml_load_allocation( const mega::reference& ref, void* pSerialiser )
 {
-    std::cout << "xml_load_allocation : " << ref << std::endl;
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
     archive.allocation( ref );
 }

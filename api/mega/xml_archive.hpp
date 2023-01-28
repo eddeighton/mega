@@ -28,10 +28,13 @@
 
 #include "common/file.hpp"
 
+
+
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include <list>
 #include <string>
 #include <sstream>
 #include <unordered_map>
@@ -54,6 +57,28 @@ public:
     inline void save( const char* name, T& value )
     {
         m_archive& boost::serialization::make_nvp( name, value );
+    }
+
+
+    inline void save( const char* name, const float& number )
+    {
+        std::string strEncode;
+        {
+            std::ostringstream os;
+            os << std::defaultfloat << number;
+            strEncode = os.str();
+        }
+        m_archive& boost::serialization::make_nvp( name, strEncode );
+    }
+    inline void save( const char* name, const double& number )
+    {
+        std::string strEncode;
+        {
+            std::ostringstream os;
+            os << std::defaultfloat << number;
+            strEncode = os.str();
+        }
+        m_archive& boost::serialization::make_nvp( name, strEncode );
     }
 
     inline void save( const char* name, const mega::reference& ref )
@@ -121,6 +146,13 @@ class XMLLoadArchive
 {
     using IndexRefMap = std::unordered_map< AddressTable::Index, reference >;
 
+    struct Frame
+    {
+        mega::XMLTag::Vector::const_iterator iter, iterEnd;
+        U64                                  size;
+        using Stack = std::list< Frame >;
+    };
+
 public:
     inline XMLLoadArchive( const boost::filesystem::path& filePath )
         : m_pFileStream( boost::filesystem::loadFileStream( filePath ) )
@@ -166,30 +198,31 @@ public:
 
     inline void beginStructure( const char* name, bool bIsObject, const reference& ref )
     {
-        if( !m_tagStack.empty() )
+        if( !m_stack.empty() )
         {
-            mega::XMLTag::Vector::const_iterator& i = m_tagStack.back();
+            Frame& frame = m_stack.back();
 
-            while( name != i->key ) ++i;
-
-            // VERIFY_RTE_MSG( name == i->key, "Expected name: " << name << " but have: " << i->key );
-            m_tagStack.push_back( i->children.begin() );
-            m_tagCountStack.push_back( i->children.size() );
-            ++i;
+            while( ( frame.iter != frame.iterEnd ) && ( name != frame.iter->key ) )
+            {
+                ++frame.iter;
+            }
+            VERIFY_RTE_MSG( name == frame.iter->key, "Expected name: " << name << " but have: " << frame.iter->key );
+            m_stack.push_back(
+                Frame{ frame.iter->children.begin(), frame.iter->children.end(), frame.iter->children.size() } );
+            ++frame.iter;
         }
         else
         {
             VERIFY_RTE_MSG( name == m_rootTag.key, "Expected name: " << name << " but have: " << m_rootTag.key );
-            m_tagStack.push_back( m_rootTag.children.begin() );
-            m_tagCountStack.push_back( m_rootTag.children.size() );
+            m_stack.push_back(
+                Frame{ m_rootTag.children.begin(), m_rootTag.children.end(), m_rootTag.children.size() } );
         }
     }
 
     inline void endStructure( const char* name, bool bIsObject, const reference& ref )
     {
-        ASSERT( !m_tagStack.empty() );
-        m_tagStack.pop_back();
-        m_tagCountStack.pop_back();
+        ASSERT( !m_stack.empty() );
+        m_stack.pop_back();
     }
 
     inline void beginData( const char* name, bool bIsObject, const reference& ref )
@@ -213,18 +246,18 @@ public:
         m_indexToRefMap.insert( { tag.indexOpt.value(), ref } );
     }
 
-    inline U64 tag_count() 
-    { 
-        ASSERT( !m_tagCountStack.empty() );
-        return m_tagCountStack.back();
+    inline U64 tag_count()
+    {
+        ASSERT( !m_stack.empty() );
+        return m_stack.back().size;
     }
 
 private:
     inline const XMLTag& getCurrentTag() const
     {
-        if( !m_tagStack.empty() )
+        if( !m_stack.empty() )
         {
-            return *m_tagStack.back();
+            return *m_stack.back().iter;
         }
         else
         {
@@ -235,8 +268,7 @@ private:
     std::unique_ptr< std::istream >                 m_pFileStream;
     std::unique_ptr< boost::archive::xml_iarchive > m_pArchive;
     mega::XMLTag                                    m_rootTag;
-    mega::XMLTag::Stack                             m_tagStack;
-    std::vector< U64 >                              m_tagCountStack;
+    Frame::Stack                                    m_stack;
     IndexRefMap                                     m_indexToRefMap;
 };
 

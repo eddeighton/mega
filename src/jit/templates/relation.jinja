@@ -229,7 +229,7 @@ void linkTarget( mega::reference& target, mega::reference& source )
 
 void link_make_{{ relationID }}( mega::reference context, mega::reference parameter )
 {
-    mega::mangle::log( "link_make_{{ relationID }}" );
+    // mega::mangle::log( "link_make_{{ relationID }}" );
     if( ( !context.is_valid() ) || ( !parameter.is_valid() ) )
     {
         throw mega::runtime::JITException{ "Invalid parameters to link_make_{{ relationID }}" };

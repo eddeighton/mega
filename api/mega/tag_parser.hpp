@@ -24,7 +24,6 @@
 #include "mega/address_table.hpp"
 
 #include <vector>
-#include <list>
 #include <string>
 #include <optional>
 #include <istream>
@@ -35,8 +34,6 @@ namespace mega
 struct XMLTag
 {
     using Vector = std::vector< XMLTag >;
-    using Stack  = std::list< Vector::const_iterator >;
-
     std::string                          key;
     std::optional< AddressTable::Index > indexOpt;
     Vector                               children;
