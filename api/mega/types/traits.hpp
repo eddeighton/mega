@@ -26,24 +26,68 @@
 #include <cstddef>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
+#include <vector>
+/*
+#include <deque>
+#include <list>
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
+*/
 namespace mega
 {
+
+template < typename T >
+concept IsReferenceType = std::is_base_of< mega::reference, T >::value;
+
+template < typename T >
+struct DimensionTraits;
+
+// reference types
+template < IsReferenceType T >
+struct DimensionTraits< T >
+{
+    using Type                       = T;
+    using Read                       = const Type&;
+    using Write                      = Type;
+    using Erased                     = mega::reference;
+    static const mega::U64 Size      = sizeof( Type );
+    static const mega::U64 Alignment = alignof( Type );
+    static const mega::U64 Simple    = std::is_trivially_copyable< Type >::value;
+};
+
+// container of reference types
+template < IsReferenceType T >
+struct DimensionTraits< std::vector< T > >
+{
+    using Type                       = std::vector< T >;
+    using Read                       = const Type&;
+    using Write                      = Type;
+    using Erased                     = std::vector< mega::reference >;
+    static const mega::U64 Size      = sizeof( Type );
+    static const mega::U64 Alignment = alignof( Type );
+    static const mega::U64 Simple    = std::is_trivially_copyable< T >::value;
+};
 
 // default dimension traits
 template < typename T >
 struct DimensionTraits
 {
-    using Read                       = const T&;
-    using Write                      = T;
-    using Get                        = T&;
-    static const mega::U64 Size      = sizeof( T );
-    static const mega::U64 Alignment = alignof( T );
-    static const mega::U64 Simple    = std::is_trivially_copyable< T >::value;
+    using Type                       = T;
+    using Read                       = const Type&;
+    using Write                      = Type;
+    using Erased                     = Type;
+    static const mega::U64 Size      = sizeof( Type );
+    static const mega::U64 Alignment = alignof( Type );
+    static const mega::U64 Simple    = std::is_trivially_copyable< Type >::value;
 };
 
 using ReferenceVector = std::vector< mega::reference >;
+
+static constexpr char psz_mega_reference[]        = "class mega::reference";
+static constexpr char psz_mega_reference_vector[] = "class mega::ReferenceVector";
 
 } // namespace mega
 

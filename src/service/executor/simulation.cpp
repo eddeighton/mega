@@ -355,6 +355,7 @@ void Simulation::SimErrorCheck(boost::asio::yield_context& yield_ctx )
 Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimSnapshot: {}", object );
+    using ::operator<<;
     VERIFY_RTE_MSG( object.getMPO() == getThisMPO(), "SimObjectSnapshot called on bad mpo: " << object );
 
     static thread_local mega::runtime::program::ObjectSaveBin objectSaveBin;

@@ -65,12 +65,10 @@ inline void free( void* p )
 
 class HeapBufferPtr
 {
-    const SizeAlignment m_sizeAlignment;
     void* m_pStorage;
 public:
     inline HeapBufferPtr( const SizeAlignment& sizeAlignment )
-        :   m_sizeAlignment( sizeAlignment ),
-            m_pStorage( mega::malloc( sizeAlignment ) )
+        :   m_pStorage( mega::malloc( sizeAlignment ) )
     {
     }
     inline ~HeapBufferPtr()

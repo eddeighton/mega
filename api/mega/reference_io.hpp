@@ -22,12 +22,8 @@
 
 #include "reference.hpp"
 
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-
 #include <iostream>
+#include <iomanip>
 
 inline std::istream& operator>>( std::istream& is, mega::MP& mp )
 {
@@ -119,6 +115,21 @@ inline std::istream& operator>>( std::istream& is, mega::reference& ref )
     }
     return is;
 }
+/*
+namespace boost::archive
+{
+    inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
+    {
+        return ::operator<<( os, ref );
+    }
+}
+*/
+// the boost serialisation error handlers use iostream
+// boost/archive/basic_text_oprimitive.hpp:130
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 namespace boost::serialization
 {

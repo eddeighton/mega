@@ -275,7 +275,7 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
 
         MemoryLayout::Part* pPart      = pUserDimension->get_part();
         const bool          bSimple    = pUserDimension->get_interface_dimension()->get_simple();
-        const std::string   strMangled = megaMangle( pUserDimension->get_interface_dimension()->get_canonical_type() );
+        const std::string   strMangled = megaMangle( pUserDimension->get_interface_dimension()->get_erased_type() );
 
         nlohmann::json typeInfo( { { "type_id", pUserDimension->get_concrete_id() },
                                    { "part_offset", pPart->get_offset() },

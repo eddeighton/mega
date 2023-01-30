@@ -390,7 +390,7 @@ private:
 
     void event_insert( EventRefMap& eventMap, ActiveActionMap::iterator iterAction, const Event& ev )
     {
-        EventRefMap::iterator i = eventMap.insert( std::make_pair( ev.data, iterAction ) );
+        EventRefMap::iterator i = eventMap.insert( std::make_pair( ev, iterAction ) );
         iterAction->second->iter_event_ref.push_back( i );
     }
 

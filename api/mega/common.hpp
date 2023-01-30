@@ -113,16 +113,7 @@ enum InvocableID : TypeID
     id_Variant = HIGHEST_OPERATION_TYPE,
     id_TypePath
 };
-/*
-enum ReferenceState
-{
-    Null,
-    Invalid,
-    Stopped,
-    Paused,
-    Running
-};
-*/
+
 } // namespace mega
 
 #endif // EG_COMMON_22_04_2019

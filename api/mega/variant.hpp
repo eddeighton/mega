@@ -23,6 +23,7 @@
 #define EG_VARIANT
 
 #include "common.hpp"
+#include "reference.hpp"
 #include "event.hpp"
 //#include "result_type.hpp"
 
@@ -94,45 +95,47 @@ template< typename ResultType, typename Context, typename TypePath, typename Ope
 static ResultType invoke_impl( Context context, Args... args );
 
 template < typename... Ts >
-struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
+struct [[clang::eg_type( mega::id_Variant )]] __eg_variant : public mega::reference
 {
-    inline __eg_variant() {}
+    inline __eg_variant() = default;
+    
+    // always allow conversion from reference
+    inline __eg_variant( const mega::reference& from )
+        :   mega::reference( from )
+    {
+    }
 
+    // everything else does type checking before assign using reference
     inline __eg_variant( const Event& from )
     {
         // when convert from event need to check runtime type against all __eg_variant types
-        if ( ( !from.data.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
+        if ( ( !from.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
         {
-            data = mega::reference{};
+            *this = mega::reference{};
         }
         else
         {
-            data = from.data;
+            *this = (const mega::reference&)from;
         }
-    }
-    
-    inline __eg_variant( const mega::reference& from )
-    {
-        data = from;
     }
 
     template < class T >
     inline __eg_variant( const T& from )
+        :   mega::reference( from )
     {
         static_assert( mega::is_convertible_many< T, Ts... >::value, "Incompatible mega type conversion" );
-        data = from.data;
     }
 
     inline __eg_variant& operator=( const Event& from )
     {
         // when convert from event need to check runtime type against all __eg_variant types
-        if ( ( !from.data.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
+        if ( ( !from.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
         {
-            data = mega::reference{};
+            *this = mega::reference{};
         }
         else
         {
-            data = from.data;
+            *this = (const mega::reference&)from;
         }
         return *this;
     }
@@ -141,38 +144,31 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
     inline __eg_variant& operator=( const T& from )
     {
         static_assert( mega::is_convertible_many< T, Ts... >::value, "Incompatible mega type conversion" );
-        data = from.data;
+        *this = static_cast< const mega::reference& >( from );
         return *this;
     }
 
     template < typename TComp >
     inline bool operator==( const TComp& cmp ) const
     {
-        return data == cmp.data;
+        return this->mega::reference::operator==( cmp );
     }
 
     template < typename TComp >
     inline bool operator!=( const TComp& cmp ) const
     {
-        return !( data == cmp.data );
+        return !this->mega::reference::operator==( cmp );
     }
 
     template < typename TComp >
     inline bool operator<( const TComp& cmp ) const
     {
-        return data < cmp.data;
+        return this->mega::reference::operator<( cmp );
     }
 
     inline operator const void*() const
     {
-        if ( data.is_valid() )
-        {
-            return reinterpret_cast< const void* >( &data );
-        }
-        else
-        {
-            return nullptr;
-        }
+        return is_valid() ? this : nullptr;
     }
 
     template< typename TypePath, typename Operation, typename... Args >
@@ -184,8 +180,6 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
         if constexpr ( !std::is_same< ResultType, void >::value )
             return invoke_impl< ResultType, __eg_variant< Ts... >, TypePath, Operation, Args... >( *this, args... );
     }
-
-    mega::reference data;
 };
 
 template < typename... Args >

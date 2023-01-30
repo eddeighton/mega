@@ -173,7 +173,7 @@ public:
                 }
                 {
                     std::ostringstream osTrait;
-                    osTrait << "using Get = mega::DimensionTraits< " << strType << " >::Get";
+                    osTrait << "using Erased = mega::DimensionTraits< " << strType << " >::Erased";
                     trait_struct[ "traits" ].push_back( osTrait.str() );
                 }
             }

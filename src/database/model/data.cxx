@@ -3034,9 +3034,10 @@ namespace Clang
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( loader )
     {
     }
-    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::string& canonical_type, const mega::U64& size, const mega::U64& alignment, const bool& simple, const std::vector< data::Ptr< data::SymbolTable::Symbols_SymbolTypeID > >& symbols)
+    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::string& canonical_type, const std::string& erased_type, const mega::U64& size, const mega::U64& alignment, const bool& simple, const std::vector< data::Ptr< data::SymbolTable::Symbols_SymbolTypeID > >& symbols)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait )
           , canonical_type( canonical_type )
+          , erased_type( erased_type )
           , size( size )
           , alignment( alignment )
           , simple( simple )
@@ -3055,6 +3056,7 @@ namespace Clang
     {
         loader.load( p_Tree_Interface_DimensionTrait );
         loader.load( canonical_type );
+        loader.load( erased_type );
         loader.load( size );
         loader.load( alignment );
         loader.load( simple );
@@ -3064,6 +3066,7 @@ namespace Clang
     {
         storer.store( p_Tree_Interface_DimensionTrait );
         storer.store( canonical_type );
+        storer.store( erased_type );
         storer.store( size );
         storer.store( alignment );
         storer.store( simple );
@@ -3083,6 +3086,11 @@ namespace Clang
         {
             nlohmann::json property = nlohmann::json::object({
                 { "canonical_type", canonical_type } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "erased_type", erased_type } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -12101,6 +12109,25 @@ std::vector< data::Ptr< data::Operations::Operations_Element > >& get_elements(s
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: get_elements" );
             return part->elements;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::string& get_erased_type(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+{
+    struct Visitor
+    {
+        std::string& operator()( data::Ptr< data::Tree::Interface_DimensionTrait >& arg ) const
+        {
+            data::Ptr< data::Clang::Interface_DimensionTrait > part = 
+                data::convert< data::Clang::Interface_DimensionTrait >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_erased_type" );
+            return part->erased_type;
+        }
+        std::string& operator()( data::Ptr< data::AST::Parser_Dimension >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -24994,6 +25021,25 @@ std::vector< data::Ptr< data::Operations::Operations_Element > >& set_elements(s
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: set_elements" );
             return part->elements;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::string& set_erased_type(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+{
+    struct Visitor
+    {
+        std::string& operator()( data::Ptr< data::Tree::Interface_DimensionTrait >& arg ) const
+        {
+            data::Ptr< data::Clang::Interface_DimensionTrait > part = 
+                data::convert< data::Clang::Interface_DimensionTrait >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_erased_type" );
+            return part->erased_type;
+        }
+        std::string& operator()( data::Ptr< data::AST::Parser_Dimension >& arg ) const
+        {
+            THROW_RTE( "Database used with incorrect type" );
         }
     }visitor;
     return std::visit( visitor, m_data );

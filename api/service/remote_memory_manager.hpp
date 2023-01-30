@@ -100,6 +100,8 @@ public:
     void Delete( reference& ref )
     {
         auto iFind = m_heapMap.find( ref );
+
+        using ::operator<<;
         VERIFY_RTE_MSG( iFind != m_heapMap.end(), "Failed to locate reference heap buffer: " << ref );
 
         // remove the network address entry

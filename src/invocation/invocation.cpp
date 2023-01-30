@@ -30,6 +30,8 @@
 #include "mega/common_strings.hpp"
 #include "mega/invocation_io.hpp"
 
+#include "mega/types/traits.hpp"
+
 #include <optional>
 
 namespace mega::invocation
@@ -1132,13 +1134,13 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 }
 
                 printContextType( contexts, osReturnTypeStr );
-                osRuntimeReturnType << "mega::reference";
+                osRuntimeReturnType << mega::psz_mega_reference;
             }
             break;
             case mega::id_exp_Allocate:
             {
                 printContextType( contexts, osReturnTypeStr );
-                osRuntimeReturnType << "mega::reference";
+                osRuntimeReturnType << mega::psz_mega_reference;
             }
             break;
             case mega::id_exp_Call:
@@ -1152,7 +1154,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                     osReturnTypeStr << strFunctionReturnTypeOpt.value();
                 }
                 // define function pointer type
-                osRuntimeReturnType << osReturnTypeStr.str() << "(*)( mega::reference";
+                osRuntimeReturnType << osReturnTypeStr.str() << "(*)( " << mega::psz_mega_reference;
                 if( functionParameterTypesOpt.has_value() )
                 {
                     for( const std::string& strType : functionParameterTypesOpt.value() )
@@ -1165,14 +1167,14 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
             case mega::id_exp_Stop:
             {
                 printContextType( contexts, osReturnTypeStr );
-                osRuntimeReturnType << "mega::reference";
+                osRuntimeReturnType << mega::psz_mega_reference;
                 break;
             }
             case mega::id_exp_GetAction:
             case mega::id_exp_GetDimension:
             {
                 printContextType( contexts, osReturnTypeStr );
-                osRuntimeReturnType << "mega::reference";
+                osRuntimeReturnType << mega::psz_mega_reference;
             }
             break;
             case mega::id_exp_Save:

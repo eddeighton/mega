@@ -21,6 +21,8 @@
 #include "code_generator.hpp"
 #include "symbol_utils.hpp"
 
+#include "mega/types/traits.hpp"
+
 namespace mega::runtime
 {
 
@@ -109,7 +111,7 @@ void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::
                               { "is_object", false },
                               { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
                               { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
-                              { "mangle", megaMangle( pUserDim->get_interface_dimension()->get_canonical_type() ) },
+                              { "mangle", megaMangle( pUserDim->get_interface_dimension()->get_erased_type() ) },
                               { "offset", calculateElementOffset< FinalStage::Concrete::Dimensions::User >(
                                               database, pUserDim, strInstance ) },
                               { "instance", strInstance },
@@ -173,13 +175,13 @@ std::optional< nlohmann::json > allocatorLink( const DatabaseInstance& database,
             if( auto pRange = db_cast< Dimensions::LinkMany >( pLinkRef ) )
             {
                 // range
-                strCanonicalType = "mega::ReferenceVector";
+                strCanonicalType = mega::psz_mega_reference_vector;
                 bSingular        = false;
             }
             else if( auto pSingle = db_cast< Dimensions::LinkSingle >( pLinkRef ) )
             {
                 // singular
-                strCanonicalType = "mega::reference";
+                strCanonicalType = mega::psz_mega_reference;
                 bSingular        = true;
             }
             else
@@ -399,7 +401,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
                 for( auto pUserDim : pPart->get_user_dimensions() )
                 {
                     const std::string strMangle
-                        = megaMangle( pUserDim->get_interface_dimension()->get_canonical_type() );
+                        = megaMangle( pUserDim->get_interface_dimension()->get_erased_type() );
                     nlohmann::json member( { { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
                                              { "type_id", pUserDim->get_concrete_id() },
                                              { "mangle", strMangle },
@@ -444,7 +446,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
                     }
 
                     std::string    strMangle;
-                    nlohmann::json link( { { "type", "mega::ReferenceVector" },
+                    nlohmann::json link( { { "type", mega::psz_mega_reference_vector },
                                            { "type_id", pLinkDim->get_concrete_id() },
                                            { "mangle", "" },
                                            { "name", pLinkDim->get_link()->get_link()->get_identifier() },
@@ -457,12 +459,12 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
 
                     if( auto pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( pLinkDim ) )
                     {
-                        strMangle          = megaMangle( "mega::ReferenceVector" );
+                        strMangle          = megaMangle( mega::psz_mega_reference_vector );
                         link[ "singular" ] = false;
                     }
                     else if( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
                     {
-                        strMangle          = megaMangle( "mega::reference" );
+                        strMangle          = megaMangle( mega::psz_mega_reference );
                         link[ "singular" ] = true;
                     }
                     else

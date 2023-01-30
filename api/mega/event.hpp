@@ -28,56 +28,44 @@ namespace mega
 {
 // an event is effectively a type erased reference
 // it is NOT possible to invoke on an event in c++
-struct Event
+struct Event : public mega::reference
 {
     inline Event() = default;
 
-    inline Event( const reference& from ) { data = from; }
+    inline Event( const reference& from ) : mega::reference( from ) {}
 
     template < class T >
-    inline Event( const T& from )
-    {
-        data = from.data;
-    }
+    inline Event( const T& from ) : mega::reference( from ) {}
 
     template < class T >
     inline auto operator=( const T& from ) -> Event&
     {
-        data = from.data;
+        this->mega::reference::operator=( from );
         return *this;
     }
 
     template < typename TComp >
     inline bool operator==( const TComp& cmp ) const
     {
-        return data == cmp.data;
+        return this->mega::reference::operator==( cmp );
     }
 
     template < typename TComp >
     inline bool operator!=( const TComp& cmp ) const
     {
-        return !( data == cmp.data );
+        return !this->mega::reference::operator==( cmp );
     }
 
     template < typename TComp >
     inline bool operator<( const TComp& cmp ) const
     {
-        return data < cmp.data;
+        return this->mega::reference::operator<( cmp );
     }
 
     inline operator const void*() const
     {
-        if ( data.is_valid() )
-        {
-            return reinterpret_cast< const void* >( &data );
-        }
-        else
-        {
-            return nullptr;
-        }
+        return is_valid() ? this : nullptr;
     }
-
-    reference data;
 };
 } // namespace mega
 

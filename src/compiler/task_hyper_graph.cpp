@@ -313,12 +313,15 @@ public:
     {
         const mega::io::CompilationFilePath hyperGraphAnalysisCompilationFile
             = m_environment.HyperGraphAnalysis_Model( m_environment.project_manifest() );
+        const mega::io::CompilationFilePath concreteTreeCompilationFile
+            = m_environment.ConcreteStage_Concrete( m_sourceFilePath );
         const mega::io::CompilationFilePath rolloutCompilationFile
             = m_environment.HyperGraphAnalysisRollout_PerSourceModel( m_sourceFilePath );
         start( taskProgress, "Task_ConcreteTypeRollout", m_sourceFilePath.path(), rolloutCompilationFile.path() );
 
         const task::DeterminantHash determinant
-            = { m_environment.getBuildHashCode( hyperGraphAnalysisCompilationFile ) };
+            = { m_environment.getBuildHashCode( concreteTreeCompilationFile ),
+                m_environment.getBuildHashCode( hyperGraphAnalysisCompilationFile ) };
 
         if( m_environment.restore( rolloutCompilationFile, determinant ) )
         {

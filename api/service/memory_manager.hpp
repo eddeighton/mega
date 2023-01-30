@@ -54,6 +54,7 @@ public:
     {
         ASSERT( networkAddress.isNetworkAddress() );
         auto iFind = m_netMap.find( networkAddress.getNetworkAddress() );
+        using ::operator<<;
         VERIFY_RTE_MSG(
             iFind != m_netMap.end(), "Failed to locate network address entry for reference: " << networkAddress );
         return iFind->second;
@@ -64,6 +65,7 @@ public:
         Allocator::Ptr pAllocator = m_getAllocatorFPtr( typeID );
 
         const mega::SizeAlignment sizeAlignment = pAllocator->getSizeAlignment();
+        VERIFY_RTE_MSG( sizeAlignment.size > 0U, "Invalid size alignment" );
 
         HeapBufferPtr pHeapBuffer( sizeAlignment );
 
@@ -89,6 +91,7 @@ public:
     void Delete( reference& ref )
     {
         auto iFind = m_heapMap.find( ref );
+        using ::operator<<;
         VERIFY_RTE_MSG( iFind != m_heapMap.end(), "Failed to locate reference heap buffer: " << ref );
 
         // remove the network address entry

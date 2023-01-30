@@ -571,7 +571,7 @@ R"TEMPLATE(
         Variables::Instance*        pInstance  = pWrite->get_instance();
         MemoryLayout::Part*         pPart      = pDimension->get_part();
         const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
-        const std::string strMangled = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );
+        const std::string strMangled = megaMangle( pDimension->get_interface_dimension()->get_erased_type() );
 
         std::ostringstream osIndent;
         osIndent << args.indent;

@@ -28,7 +28,14 @@
 
 #include "common/file.hpp"
 
+#include <boost/archive/basic_xml_iarchive.hpp>
+#include <boost/archive/basic_xml_oarchive.hpp>
 
+#include <boost/archive/impl/basic_xml_grammar.hpp>
+#include <boost/archive/impl/basic_xml_iarchive.ipp>
+#include <boost/archive/impl/basic_xml_oarchive.ipp>
+#include <boost/archive/impl/xml_iarchive_impl.ipp>
+#include <boost/archive/impl/xml_oarchive_impl.ipp>
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
@@ -39,17 +46,199 @@
 #include <sstream>
 #include <unordered_map>
 
-namespace mega
+namespace boost::archive
 {
 static constexpr auto boostXMLArchiveFlags = boost::archive::no_header | boost::archive::no_codecvt
                                              | boost::archive::no_xml_tag_checking | boost::archive::no_tracking;
+
+class XMLIArchive : public xml_iarchive_impl< XMLIArchive >
+{
+    using base = boost::archive::xml_iarchive_impl< XMLIArchive >;
+
+    friend class detail::common_iarchive< XMLIArchive >;
+    friend class basic_xml_iarchive< XMLIArchive >;
+    friend class boost::archive::load_access;
+
+    using IndexRefMap = std::unordered_map< mega::AddressTable::Index, mega::reference >;
+
+public:
+    XMLIArchive()                     = delete;
+    XMLIArchive( const XMLIArchive& ) = delete;
+    inline XMLIArchive( std::istream& bsb )
+        : base( bsb, boostXMLArchiveFlags )
+    {
+    }
+
+    template < typename T >
+    inline void load( T& value )
+    {
+        base::load( value );
+    }
+
+    inline void load( mega::reference& ref )
+    {
+        std::string strEncoding;
+        base::load( strEncoding );
+        std::istringstream is( strEncoding );
+
+        if( strEncoding.find( '.' ) == std::string::npos )
+        {
+            mega::AddressTable::Index index;
+            is >> index;
+            auto iFind = m_indexToRefMap.find( index );
+            VERIFY_RTE_MSG( iFind != m_indexToRefMap.end(),
+                            "Failed to locate reference index in archive for reference: " << strEncoding );
+            ref = iFind->second;
+        }
+        else
+        {
+            using ::operator>>;
+            is >> ref;
+        }
+    }
+
+    void mapIndex( mega::AddressTable::Index index, const mega::reference& ref )
+    {
+        m_indexToRefMap.insert( { index, ref } );
+    }
+
+private:
+    IndexRefMap m_indexToRefMap;
+};
+
+class XMLOArchive : public xml_oarchive_impl< XMLOArchive >
+{
+    using base = boost::archive::xml_oarchive_impl< XMLOArchive >;
+
+    friend class detail::common_oarchive< XMLOArchive >;
+    friend class basic_xml_oarchive< XMLOArchive >;
+    friend class boost::archive::save_access;
+
+public:
+    XMLOArchive()                     = delete;
+    XMLOArchive( const XMLOArchive& ) = delete;
+    inline XMLOArchive( std::ostream& bsb )
+        : base( bsb, boostXMLArchiveFlags )
+    {
+    }
+
+    // Anything not an attribute and not a name-value pair is an
+    // error and should be trapped here.
+    template < class T >
+    void save_override( T& t )
+    {
+        // If your program fails to compile here, its most likely due to
+        // not specifying an nvp wrapper around the variable to
+        // be serialized.
+        BOOST_MPL_ASSERT( ( serialization::is_wrapper< T > ));
+        this->detail_common_oarchive::save_override( t );
+    }
+
+    // special treatment for name-value pairs.
+    template < class T >
+    void save_override( const ::boost::serialization::nvp< T >& t )
+    {
+        this->This()->save_start( t.name() );
+        this->detail_common_oarchive::save_override( t.const_value() );
+        this->This()->save_end( t.name() );
+    }
+
+    // specific overrides for attributes - not name value pairs so we
+    // want to trap them before the above "fall through"
+    void save_override( const class_id_type& t ) {}
+    void save_override( const class_id_optional_type& t ) {}
+    void save_override( const class_id_reference_type& t ) {}
+    void save_override( const object_id_type& t ) {}
+    void save_override( const object_reference_type& t ) {}
+    void save_override( const version_type& t ) {}
+    void save_override( const class_name_type& t ) {}
+    void save_override( const tracking_type& t ) {}
+
+    template < typename T >
+    inline void save( const T& value )
+    {
+        base::save( value );
+    }
+
+    inline void save( const float& number )
+    {
+        std::string strEncode;
+        {
+            std::ostringstream os;
+            os << std::defaultfloat << number;
+            strEncode = os.str();
+        }
+        base::save( strEncode );
+    }
+    inline void save( const double& number )
+    {
+        std::string strEncode;
+        {
+            std::ostringstream os;
+            os << std::defaultfloat << number;
+            strEncode = os.str();
+        }
+        base::save( strEncode );
+    }
+
+    inline void save( mega::reference& ref )
+    {
+        this->end_preamble();
+
+        std::string strEncode;
+        {
+            std::ostringstream os;
+            if( auto indexOpt = refToIndexIfExist( ref ) )
+            {
+                os << indexOpt.value();
+            }
+            else
+            {
+                using ::operator<<;
+                os << ref;
+            }
+            strEncode = os.str();
+        }
+        base::save( strEncode );
+    }
+
+    inline std::optional< mega::AddressTable::Index > refToIndexIfExist( const mega::reference& maybeNetAddress ) const
+    {
+        return m_table.refToIndexIfExist( maybeNetAddress );
+    }
+    inline const mega::AddressTable::Index& refToIndex( const mega::reference& maybeNetAddress )
+    {
+        return m_table.refToIndex( maybeNetAddress );
+    }
+
+private:
+    mega::AddressTable m_table;
+};
+
+} // namespace boost::archive
+
+namespace boost::serialization
+{
+inline void serialize( boost::archive::XMLIArchive& ar, mega::reference& value, const unsigned int )
+{
+    ar.load( value );
+}
+
+inline void serialize( boost::archive::XMLOArchive& ar, mega::reference& value, const unsigned int )
+{
+    ar.save( value );
+}
+} // namespace boost::serialization
+
+namespace mega
+{
 
 class XMLSaveArchive
 {
 public:
     inline XMLSaveArchive( const boost::filesystem::path& filePath )
         : m_pFileStream( boost::filesystem::createNewFileStream( filePath ) )
-        , m_archive( *m_pFileStream, boostXMLArchiveFlags )
+        , m_archive( *m_pFileStream )
     {
     }
 
@@ -59,58 +248,16 @@ public:
         m_archive& boost::serialization::make_nvp( name, value );
     }
 
-
-    inline void save( const char* name, const float& number )
-    {
-        std::string strEncode;
-        {
-            std::ostringstream os;
-            os << std::defaultfloat << number;
-            strEncode = os.str();
-        }
-        m_archive& boost::serialization::make_nvp( name, strEncode );
-    }
-    inline void save( const char* name, const double& number )
-    {
-        std::string strEncode;
-        {
-            std::ostringstream os;
-            os << std::defaultfloat << number;
-            strEncode = os.str();
-        }
-        m_archive& boost::serialization::make_nvp( name, strEncode );
-    }
-
-    inline void save( const char* name, const mega::reference& ref )
-    {
-        std::string strEncode;
-        {
-            std::ostringstream os;
-            if( auto indexOpt = m_table.refToIndexIfExist( ref ) )
-            {
-                os << indexOpt.value();
-            }
-            else
-            {
-                os << ref;
-            }
-            strEncode = os.str();
-        }
-        m_archive& boost::serialization::make_nvp( name, strEncode );
-    }
-
-    inline void save( const mega::reference& ref ) { this->save( "ref", ref ); }
-
     inline void beginStructure( const reference& ref )
     {
         //
-        m_table.refToIndex( ref );
+        m_archive.refToIndex( ref );
     }
     inline void endStructure( const reference& ref ) {}
 
     inline void beginData( const char* name, bool bIsObject, const reference& ref )
     {
-        auto indexOpt = m_table.refToIndexIfExist( ref );
+        auto indexOpt = m_archive.refToIndexIfExist( ref );
         VERIFY_RTE( indexOpt.has_value() );
 
         if( bIsObject )
@@ -128,7 +275,7 @@ public:
     }
     inline void endData( const char* name, bool bIsObject, const reference& ref )
     {
-        auto indexOpt = m_table.refToIndexIfExist( ref );
+        auto indexOpt = m_archive.refToIndexIfExist( ref );
         VERIFY_RTE( indexOpt.has_value() );
 
         std::ostringstream os;
@@ -138,14 +285,11 @@ public:
 
 private:
     std::unique_ptr< std::ostream > m_pFileStream;
-    boost::archive::xml_oarchive    m_archive;
-    AddressTable                    m_table;
+    boost::archive::XMLOArchive     m_archive;
 };
 
 class XMLLoadArchive
 {
-    using IndexRefMap = std::unordered_map< AddressTable::Index, reference >;
-
     struct Frame
     {
         mega::XMLTag::Vector::const_iterator iter, iterEnd;
@@ -153,47 +297,25 @@ class XMLLoadArchive
         using Stack = std::list< Frame >;
     };
 
+    static inline mega::XMLTag parseTagsAndResetStream( std::istream& is )
+    {
+        auto result = mega::parse( is );
+        is.seekg( 0 );
+        return result;
+    }
+
 public:
     inline XMLLoadArchive( const boost::filesystem::path& filePath )
         : m_pFileStream( boost::filesystem::loadFileStream( filePath ) )
-        , m_rootTag( mega::parse( *m_pFileStream ) )
+        , m_rootTag( parseTagsAndResetStream( *m_pFileStream ) )
+        , m_archive( *m_pFileStream )
     {
-        m_pFileStream->seekg( 0 );
-        m_pArchive = std::make_unique< boost::archive::xml_iarchive >( *m_pFileStream, boostXMLArchiveFlags );
     }
 
     template < typename T >
     inline void load( const char* name, T& value )
     {
-        *m_pArchive& boost::serialization::make_nvp( name, value );
-    }
-
-    inline void load( const char* name, mega::reference& ref )
-    {
-        std::string        strEncoding;
-        *m_pArchive&       boost::serialization::make_nvp( name, strEncoding );
-        std::istringstream is( strEncoding );
-
-        if( strEncoding.find( '.' ) == std::string::npos )
-        {
-            AddressTable::Index index;
-            is >> index;
-            auto iFind = m_indexToRefMap.find( index );
-            VERIFY_RTE_MSG( iFind != m_indexToRefMap.end(),
-                            "Failed to locate reference index in archive for reference: " << strEncoding );
-            ref = iFind->second;
-        }
-        else
-        {
-            using ::operator>>;
-            is >> ref;
-        }
-    }
-
-    inline void load( mega::reference& ref )
-    {
-        //
-        this->load( "ref", ref );
+        m_archive& boost::serialization::make_nvp( name, value );
     }
 
     inline void beginStructure( const char* name, bool bIsObject, const reference& ref )
@@ -243,7 +365,7 @@ public:
     {
         const XMLTag& tag = getCurrentTag();
         ASSERT( tag.indexOpt.has_value() );
-        m_indexToRefMap.insert( { tag.indexOpt.value(), ref } );
+        m_archive.mapIndex( tag.indexOpt.value(), ref );
     }
 
     inline U64 tag_count()
@@ -265,11 +387,10 @@ private:
         }
     }
 
-    std::unique_ptr< std::istream >                 m_pFileStream;
-    std::unique_ptr< boost::archive::xml_iarchive > m_pArchive;
-    mega::XMLTag                                    m_rootTag;
-    Frame::Stack                                    m_stack;
-    IndexRefMap                                     m_indexToRefMap;
+    std::unique_ptr< std::istream > m_pFileStream;
+    mega::XMLTag                    m_rootTag;
+    boost::archive::XMLIArchive     m_archive;
+    Frame::Stack                    m_stack;
 };
 
 } // namespace mega

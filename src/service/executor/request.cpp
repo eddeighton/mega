@@ -112,6 +112,7 @@ DO_STUFF_AND_REQUIRE_SEMI_COLON( code )
 network::Message ExecutorRequestConversation::MPODown( const network::Message& request, const MPO& mpo,
                                                        boost::asio::yield_context& yield_ctx )
 {
+    using ::operator<<;
     if( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
     {
         switch( request.getID() )
