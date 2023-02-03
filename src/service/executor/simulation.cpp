@@ -405,7 +405,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
 
     // NOTE: can context switch when call get_load_record
     static thread_local mega::runtime::program::RecordLoadBin recordLoadBin;
-
+/*
     for( const auto& [ ref, type ] : transaction.getSchedulingRecords() )
     {
         SPDLOG_INFO( "SIM::SimLockRelease Got scheduling record: {} {}", ref, type );
@@ -421,6 +421,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
             recordLoadBin( ref, (void*)str.data(), str.size() );
         }
     }
+*/
 }
 void Simulation::SimClock( boost::asio::yield_context& )
 {

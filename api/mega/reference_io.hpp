@@ -25,6 +25,7 @@
 #include <iostream>
 #include <iomanip>
 
+
 inline std::istream& operator>>( std::istream& is, mega::MP& mp )
 {
     mega::U32 m;

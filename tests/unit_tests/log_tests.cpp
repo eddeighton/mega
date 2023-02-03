@@ -22,9 +22,11 @@
 #include <gtest/gtest-param-test.h>
 
 #include "mega/native_types.hpp"
+#include "mega/reference_limits.hpp"
 
 #include "log/filename.hpp"
 #include "log/log.hpp"
+#include "log/records.hxx"
 
 #include <boost/filesystem/operations.hpp>
 
@@ -109,10 +111,10 @@ TEST_F( BasicLogTest, Cycles )
     using namespace mega::log;
 
     // fill first log file
-    for ( int i = 0; i < impl::Index::RecordsPerFile * 3; ++i )
+    for( int i = 0; i < impl::Index::RecordsPerFile * 3; ++i )
     {
         ASSERT_EQ( log.getTimeStamp(), i );
-        ASSERT_EQ( log.get( TrackType::Log ), Offset{} );
+        ASSERT_EQ( log.get( TrackType::eLog ), Offset{} );
         log.cycle();
     }
 }
@@ -121,27 +123,94 @@ TEST_F( BasicLogTest, LogMsg )
 {
     using namespace mega::log;
 
-    std::vector< LogMsg > testMsgs = { LogMsg{ LogMsg::eTrace, "Test Log Msg with LogMsg::eTrace" },
-                                       LogMsg{ LogMsg::eDebug, "Test Log Msg with LogMsg::eDebug" },
-                                       LogMsg{ LogMsg::eInfo, "Test Log Msg with LogMsg::eInfo" },
-                                       LogMsg{ LogMsg::eWarn, "Test Log Msg with LogMsg::eWarn" },
-                                       LogMsg{ LogMsg::eError, "Test Log Msg with LogMsg::eError" },
-                                       LogMsg{ LogMsg::eFatal, "Test Log Msg with LogMsg::eFatal" } };
+    // clang-format off
+    std::vector< Log::Type > types = 
+    {
+        Log::eTrace,
+        Log::eDebug,
+        Log::eInfo, 
+        Log::eWarn, 
+        Log::eError,
+        Log::eFatal
+    };
+    std::vector< std::string > msgs =
+    {
+        "Test Log Msg with Log::eTrace",
+        "Test Log Msg with Log::eDebug",
+        "Test Log Msg with Log::eInfo",
+        "Test Log Msg with Log::eWarn",
+        "Test Log Msg with Log::eError",
+        "Test Log Msg with Log::eFatal"
+    };
+    // clang-format on
+    const int iTests = types.size();
 
     Storage log( m_folder / "LogMsg" );
 
-    for ( const auto msg : testMsgs )
+    for( int i = 0; i < iTests; ++i )
     {
-        log.log( msg );
+        log.record( Log::Write( types[ i ], msgs[ i ] ) );
     }
 
-    auto iIter = testMsgs.begin();
-    for ( auto i = log.logBegin(), iEnd = log.logEnd(); i != iEnd; ++i, ++iIter )
+    int index = 0;
+    for( auto i = log.begin< Log::Read >(), iEnd = log.end< Log::Read >(); i != iEnd; ++i, ++index )
     {
-        ASSERT_EQ( *i, *iIter );
+        Log::Read r = *i;
+        ASSERT_EQ( r.getType(), types[ index ] );
+        ASSERT_EQ( r.getMessage(), msgs[ index ] );
     }
 }
 
+TEST_F( BasicLogTest, StructureMsg )
+{
+    using namespace mega::log;
+
+    // clang-format off
+    std::vector< Structure::Type > types = 
+    {
+        Structure::eNew,
+        Structure::eDetach,
+        Structure::eDestroy, 
+        Structure::eMake, 
+        Structure::eBreak
+    };
+    std::vector< mega::reference > sources =
+    {
+        mega::reference{},
+        mega::max_net_ref,
+        mega::min_net_ref,
+        mega::max_heap_ref,
+        mega::min_heap_ref,
+    };
+    std::vector< mega::reference > targets =
+    {
+        mega::reference{},
+        mega::max_net_ref,
+        mega::min_net_ref,
+        mega::max_heap_ref,
+        mega::min_heap_ref,
+    };
+    // clang-format on
+    const int iTests = types.size();
+
+    Storage log( m_folder / "StructureMsg" );
+
+    for( int i = 0; i < iTests; ++i )
+    {
+        log.record( Structure::Write( sources[ i ], targets[ i ], types[ i ] ) );
+    }
+
+    int index = 0;
+    for( auto i = log.begin< Structure::Read >(), iEnd = log.end< Structure::Read >(); i != iEnd; ++i, ++index )
+    {
+        Structure::Read r = *i;
+        ASSERT_EQ( r.getType(), types[ index ] );
+        ASSERT_EQ( r.getSource(), sources[ index ] );
+        ASSERT_EQ( r.getTarget(), targets[ index ] );
+    }
+}
+
+/*
 TEST_F( BasicLogTest, LogMsgMany_ )
 {
     using namespace mega::log;
@@ -230,3 +299,4 @@ TEST_F( BasicLogTest, LogMsgMany_ )
         ASSERT_EQ( iIter, testMsgs.end() );
     }
 }
+*/

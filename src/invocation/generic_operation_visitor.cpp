@@ -351,7 +351,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                                 pPrevConcrete, pCurrentConcrete->get_parent(), pInstruction, pInstance ) )
                             return;
                     }
-                    
+
                     using OperationsStage::Invocations::Operations::GetAction;
                     GetAction* pGetAction = m_database.construct< GetAction >( GetAction::Args{
                         BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
@@ -366,11 +366,24 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
         else
         {
             // derive directly to the parent of the concrete context
-            if( prev->get_element()->get_concrete()->get_context().has_value() )
+            if( prev )
             {
-                Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
-                if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete->get_parent(), pInstruction, pInstance ) )
-                    return;
+                if( auto pPrevElement = prev->get_element() )
+                {
+                    if( auto pPrevConcrete = pPrevElement->get_concrete() )
+                    {
+                        if( auto pPrevConcreteContext = pPrevConcrete->get_context() )
+                        {
+                            if( pPrevConcreteContext.has_value() )
+                            {
+                                Concrete::Context* pPrevConcrete = pPrevConcreteContext.value();
+                                if( !commonRootDerivation(
+                                        pPrevConcrete, pCurrentConcrete->get_parent(), pInstruction, pInstance ) )
+                                    return;
+                            }
+                        }
+                    }
+                }
             }
 
             using OperationsStage::Invocations::Instructions::Instruction;
@@ -445,7 +458,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     pInstruction->push_back_children( pStop );
                 }
                 break;
-                case id_Save:
+                /*case id_Save:
                 {
                     using OperationsStage::Invocations::Operations::Save;
                     Save* pSave = m_database.construct< Save >( Save::Args{
@@ -471,7 +484,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                                               pCurrentInterface, pCurrentConcrete } } );
                     pInstruction->push_back_children( pFiles );
                 }
-                break;
+                break;*/
                 case id_Get:
                 {
                     using OperationsStage::Invocations::Operations::GetAction;

@@ -23,7 +23,7 @@
 #include "mega/reference.hpp"
 #include "service/protocol/common/conversation_id.hpp"
 
-#include "log/record.hpp"
+#include "log/index.hpp"
 
 #include <utility>
 #include <vector>

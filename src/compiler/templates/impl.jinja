@@ -141,13 +141,27 @@ struct __invoke_impl
 {% endif %}
     }
 {% else if invocation.explicit_operation == "Start" %}
+    template< typename... Args >
+    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... ) const
+    {
+        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
+        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
         // Start
-        // static thread_local mega::runtime::invocation::Start function( g_unit_name, id );
-        // return function( context );
+        static thread_local mega::runtime::invocation::Start function( g_unit_name, id );
+        return function( context );
+    }
 {% else if invocation.explicit_operation == "Stop" %}
+    template< typename... Args >
+    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... ) const
+    {
+        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
+        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
         // Stop
-        // static thread_local mega::runtime::invocation::Stop function( g_unit_name, id );
-        // return function( context );
+        static thread_local mega::runtime::invocation::Stop function( g_unit_name, id );
+        function( context );
+    }
 {% else if invocation.explicit_operation == "Save" %}
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const

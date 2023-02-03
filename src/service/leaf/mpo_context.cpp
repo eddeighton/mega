@@ -183,7 +183,7 @@ void MPOContext::cycleComplete()
     {
         SPDLOG_TRACE( "MPOContext: cycleComplete {} {}", m_mpo.value(), m_log.getTimeStamp() );
     }
-
+/*
     U32 expectedSchedulingCount = 0;
     U32 expectedMemoryCount     = 0;
     {
@@ -296,7 +296,7 @@ void MPOContext::cycleComplete()
         m_transaction.reset();
         getMPOSimRequest( readLockMPO ).SimLockRelease( m_mpo.value(), readLockMPO, m_transaction );
     }
-
+*/
     m_lockTracker.reset();
 }
 

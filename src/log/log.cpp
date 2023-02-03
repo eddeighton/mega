@@ -38,7 +38,7 @@ boost::filesystem::path File::constructLogFile( const boost::filesystem::path& l
 {
     boost::filesystem::path filePath = toFilePath( logFolderPath, strFileType, fileIndex );
     // ensure file exists
-    if ( !boost::filesystem::exists( filePath ) )
+    if( !boost::filesystem::exists( filePath ) )
     {
         boost::filesystem::ensureFoldersExist( filePath );
         std::filebuf fileBuf;
@@ -65,14 +65,20 @@ File::File( const boost::filesystem::path& logFolderPath, const std::string& str
     m_region.advise( boost::interprocess::mapped_region::advice_sequential );
 }
 
-File::~File() { m_region.flush( 0U, m_region.get_size() ); }
+File::~File()
+{
+    m_region.flush( 0U, m_region.get_size() );
+}
 
 const void* File::read( InterFileOffset offset ) const
 {
     return reinterpret_cast< char* >( m_region.get_address() ) + offset.get();
 }
 
-bool File::fit( U64 size ) const { return m_iterator.get() + size <= LogFileSize; }
+bool File::fit( U64 size ) const
+{
+    return m_iterator.get() + size <= LogFileSize;
+}
 
 InterFileOffset File::write( const void* pData, U64 size )
 {
@@ -84,11 +90,16 @@ InterFileOffset File::write( const void* pData, U64 size )
 
 void File::terminate()
 {
-    if ( m_iterator.get() + sizeof( U64 ) <= LogFileSize )
+    if( m_iterator.get() + sizeof( U64 ) <= LogFileSize )
     {
         static const U64 nullsize = 0U;
         write( &nullsize, sizeof( U64 ) );
     }
+}
+bool File::isTerminate() const
+{
+    return ( ( LogFileSize - m_iterator.get() ) < sizeof( U64 ) )
+           || ( ( *reinterpret_cast< U64* >( m_region.get_address() ) + m_iterator.get() ) == 0U );
 }
 
 FileSequence::FileSequence( const boost::filesystem::path& folderPath, const std::string& strName )
@@ -100,7 +111,7 @@ FileSequence::FileSequence( const boost::filesystem::path& folderPath, const std
 File* FileSequence::getFile( FileIndex fileIndex )
 {
     auto iFind = m_files.find( fileIndex );
-    if ( iFind != m_files.end() )
+    if( iFind != m_files.end() )
     {
         return iFind->second.get();
     }
@@ -117,7 +128,7 @@ File* FileSequence::getFile( FileIndex fileIndex )
 const File* FileSequence::getFile( FileIndex fileIndex ) const
 {
     auto iFind = m_files.find( fileIndex );
-    if ( iFind != m_files.end() )
+    if( iFind != m_files.end() )
     {
         return iFind->second.get();
     }
@@ -130,7 +141,7 @@ const File* FileSequence::getFile( FileIndex fileIndex ) const
     }
 }
 
-FileSequence::~FileSequence() {}
+FileSequence::~FileSequence() = default;
 
 const char* Index::INDEX_TRACE_NAME = "index";
 
@@ -143,28 +154,28 @@ Storage::Storage( const boost::filesystem::path& folderPath, bool bLoad )
                 Track{ m_folderPath, TrackType( 6 ) }, Track{ m_folderPath, TrackType( 7 ) } }
     , m_timestamp( 0U )
 {
-    if ( !boost::filesystem::is_directory( m_folderPath ) )
+    if( !boost::filesystem::is_directory( m_folderPath ) )
     {
-        if ( !boost::filesystem::create_directories( m_folderPath ) )
+        if( !boost::filesystem::create_directories( m_folderPath ) )
         {
             THROW_RTE( "Failed to create directories for: " << m_folderPath.string() );
             throw std::runtime_error( "Failed to create directories" );
         }
     }
 
-    if ( bLoad )
+    if( bLoad )
     {
         // collect all index files in order of FileIndex
         std::map< FileIndex, std::string > files;
         {
-            for ( boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator( m_folderPath ) )
+            for( boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator( m_folderPath ) )
             {
                 const boost::filesystem::path& filePath = entry.path();
                 std::string                    diskFileName;
                 FileIndex                      diskFileIndex;
-                if ( fromFilePath( filePath, diskFileName, diskFileIndex ) )
+                if( fromFilePath( filePath, diskFileName, diskFileIndex ) )
                 {
-                    if ( diskFileName == Index::INDEX_TRACE_NAME )
+                    if( diskFileName == Index::INDEX_TRACE_NAME )
                     {
                         ASSERT( files.insert( { diskFileIndex, diskFileName } ).second );
                     }
@@ -176,19 +187,19 @@ Storage::Storage( const boost::filesystem::path& folderPath, bool bLoad )
         // first point a cycle record was not written
         FileIndex nextFileIndex;
         bool      bFoundLastCycle = false;
-        for ( auto i = files.begin(), iEnd = files.end(); i != iEnd && !bFoundLastCycle; ++i )
+        for( auto i = files.begin(), iEnd = files.end(); i != iEnd && !bFoundLastCycle; ++i )
         {
-            if ( i->first != nextFileIndex )
+            if( i->first != nextFileIndex )
                 break;
             nextFileIndex = FileIndex( nextFileIndex.get() + 1 );
 
             File::Ptr pFile = std::make_unique< File >( m_folderPath, i->second, i->first );
 
             m_timestamp = Index::RecordsPerFile * i->first.get();
-            for ( InterFileOffset offset = 0; offset != InterFileOffset{ LogFileSize }; offset += Index::RecordSize )
+            for( InterFileOffset offset = 0; offset != InterFileOffset{ LogFileSize }; offset += Index::RecordSize )
             {
                 auto pRecord = reinterpret_cast< const IndexRecord* >( pFile->read( offset ) );
-                if ( *pRecord < m_iterator )
+                if( *pRecord < m_iterator )
                 {
                     bFoundLastCycle = true;
                     break;
@@ -233,7 +244,7 @@ Offset Storage::get( TrackType track ) const
 
 Offset Storage::get( TrackType track, TimeStamp timestamp ) const
 {
-    if ( timestamp <= m_timestamp )
+    if( timestamp <= m_timestamp )
     {
         const File* pFile   = m_index.getFile( m_index.toFileIndex( timestamp ) );
         const void* pData   = pFile->read( ( timestamp % Index::RecordsPerFile ) * Index::RecordSize );

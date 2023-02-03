@@ -27,6 +27,8 @@
 
 #include "log/log.hpp"
 
+#include "service/protocol/common/context.hpp"
+
 #include "common/assert_verify.hpp"
 
 #include <algorithm>
@@ -50,18 +52,45 @@ inline const T& reify( const void* p )
 
 void log( const char* pszMsg )
 {
-    std::cout << pszMsg << std::endl;
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Log::Write( mega::log::Log::eTrace, pszMsg ) );
 }
 
-void hyper_create( const mega::reference& source, const mega::reference& target )
+void structure_new( const mega::reference& source, const mega::reference& target )
 {
-    // mega::log::Storage& log = mega::getMPOContext()->getLog();
-    // log.record( track, mega::log::HyperRecord( source, target, CREATE ) );
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eNew ) );
 }
-void hyper_delete( const mega::reference& source, const mega::reference& target )
+void structure_detach( const mega::reference& source, const mega::reference& target )
 {
-    // mega::log::Storage& log = mega::getMPOContext()->getLog();
-    // log.record( track, mega::log::HyperRecord( source, target, DELETE ) );
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eDetach ) );
+}
+void structure_destroy( const mega::reference& source, const mega::reference& target )
+{
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eDestroy ) );
+}
+void structure_create( const mega::reference& source, const mega::reference& target )
+{
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eMake ) );
+}
+void structure_break( const mega::reference& source, const mega::reference& target )
+{
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eBreak ) );
+}
+
+void action_start( const mega::reference& source )
+{
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Scheduling::Write( source, mega::log::Scheduling::eStart ) );
+}
+void action_stop( const mega::reference& source )
+{
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Scheduling::Write( source, mega::log::Scheduling::eStop ) );
 }
 
 bool ref_vector_contains( void* pData, const mega::reference& ref )

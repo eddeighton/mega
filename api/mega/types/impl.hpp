@@ -27,6 +27,9 @@
 #include "mega/xml_archive.hpp"
 #include "mega/record_archive.hpp"
 
+#include "service/protocol/common/context.hpp"
+
+#include "log/records.hxx"
 #include "log/log.hpp"
 
 #include <boost/interprocess/streams/bufferstream.hpp>
@@ -73,11 +76,11 @@ struct SimpleDimension
 
     static inline void copy( const T& from, T& to ) { to = from; }
 
-    static inline void save_memory_record( mega::log::Storage& log, const mega::reference& ref, const T& value,
-                                           mega::log::MemoryTrackType track = mega::log::MemoryTrackType::Simulation )
+    static inline void save_memory_record( const mega::reference& ref, const T& value )
     {
-        log.record( track, mega::log::MemoryRecord(
-                               ref, std::string_view( reinterpret_cast< const char* >( &value ), sizeof( T ) ) ) );
+        mega::log::Storage& log = mega::Context::get()->getLog();
+        log.record( mega::log::Memory::Write{
+            ref.getNetworkAddress(), std::string_view( reinterpret_cast< const char* >( &value ), sizeof( T ) ) } );
     }
     static inline void load_memory_record( const void* pData, mega::U64 size, T& value )
     {
@@ -128,12 +131,13 @@ struct NonSimpleDimension
         to = from;
     }
 
-    static inline void save_memory_record( mega::log::Storage& log, const mega::reference& ref, const T& value,
-                                           mega::log::MemoryTrackType track = mega::log::MemoryTrackType::Simulation )
+    static inline void save_memory_record( const mega::reference& ref, const T& value )
     {
         RecordSaveArchive recordSaveArchive;
         recordSaveArchive.save( value );
-        log.record( track, mega::log::MemoryRecord( ref.getNetworkAddress(), recordSaveArchive.get() ) );
+
+        mega::log::Storage& log = mega::Context::get()->getLog();
+        log.record( mega::log::Memory::Write{ ref.getNetworkAddress(), recordSaveArchive.get() } );
     }
     static inline void load_memory_record( const void* pData, mega::U64 size, T& value )
     {

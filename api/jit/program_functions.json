@@ -1,0 +1,61 @@
+{
+    "functions": [
+        {
+            "name": "ObjectLoadBin",
+            "return": "void",
+            "return_type": "void",
+            "arguments": [
+                {
+                    "name": "typeID",
+                    "type": "mega::TypeID"
+                },
+                {
+                    "name": "pBuffer",
+                    "type": "void*"
+                },
+                {
+                    "name": "pSerialiser",
+                    "type": "void*"
+                }
+            ]
+        },
+        {
+            "name": "ObjectSaveBin",
+            "return": "void",
+            "return_type": "void",
+            "arguments": [
+                {
+                    "name": "typeID",
+                    "type": "mega::TypeID"
+                },
+                {
+                    "name": "pBuffer",
+                    "type": "void*"
+                },
+                {
+                    "name": "pSerialiser",
+                    "type": "void*"
+                }
+            ]
+        },
+        {
+            "name": "RecordLoadBin",
+            "return": "void",
+            "return_type": "void",
+            "arguments": [
+                {
+                    "name": "ref",
+                    "type": "mega::reference"
+                },
+                {
+                    "name": "pData",
+                    "type": "void*"
+                },
+                {
+                    "name": "size",
+                    "type": "mega::U64"
+                }
+            ]
+        }
+    ]
+}

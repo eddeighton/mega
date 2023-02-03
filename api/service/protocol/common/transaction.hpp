@@ -23,7 +23,7 @@
 
 #include "mega/reference.hpp"
 
-#include "log/record.hpp"
+#include "log/index.hpp"
 
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/array_wrapper.hpp>
@@ -40,11 +40,11 @@ namespace mega::network
 
 class Transaction
 {
-    using MemoryMap       = std::unordered_map< mega::reference, std::string_view, mega::reference::Hash >;
-    using MemoryRecordsIn = std::array< MemoryMap, log::toInt( log::TrackType::TOTAL ) >;
+    //using MemoryMap       = std::unordered_map< mega::reference, std::string_view, mega::reference::Hash >;
+    //using MemoryRecordsIn = std::array< MemoryMap, log::toInt( log::TrackType::TOTAL ) >;
 
 public:
-    using SchedulingRecordsIn  = std::vector< log::SchedulerRecordRead >;
+   /* using SchedulingRecordsIn  = std::vector< log::SchedulerRecordRead >;
     using SchedulingRecordsOut = std::vector< std::pair< reference, log::SchedulerRecord::Type > >;
     using MemoryTrackOut       = std::vector< std::pair< reference, std::string > >;
     using MemoryRecordsOut     = std::array< MemoryTrackOut, log::toInt( log::TrackType::TOTAL ) >;
@@ -55,20 +55,20 @@ private:
 
     MemoryRecordsIn  m_memoryRecordsIn;
     MemoryRecordsOut m_memoryRecordsOut;
-    bool             m_bLoaded = false;
+    bool             m_bLoaded = false;*/
 
 public:
-    const SchedulingRecordsOut& getSchedulingRecords() const { return m_schedulingRecordsOut; }
+    /*const SchedulingRecordsOut& getSchedulingRecords() const { return m_schedulingRecordsOut; }
     const MemoryTrackOut&       getMemoryRecords( log::MemoryTrackType track ) const
     {
         return m_memoryRecordsOut[ log::toInt( log::toTrackType( track ) ) ];
-    }
+    }*/
 
     template < typename Archive >
     void save( Archive& ar, const unsigned int ) const
     {
         // save the input in case this is node creating transaction
-        if ( !m_bLoaded )
+        /*if ( !m_bLoaded )
         {
             ar& m_schedulingRecordsIn.size();
             for ( const auto& s : m_schedulingRecordsIn )
@@ -110,13 +110,13 @@ public:
                     }
                 }
             }
-        }
+        }*/
     }
 
     template < typename Archive >
     void load( Archive& ar, const unsigned int )
     {
-        m_bLoaded = true;
+        /*m_bLoaded = true;
         {
             U64 size{};
             ar& size;
@@ -143,12 +143,12 @@ public:
                 ar&                                 s.second;
                 records.push_back( s );
             }
-        }
+        }*/
     }
 
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 
-    void addSchedulingRecords( const SchedulingRecordsIn& records ) { m_schedulingRecordsIn = records; }
+    /*void addSchedulingRecords( const SchedulingRecordsIn& records ) { m_schedulingRecordsIn = records; }
 
     void addMemoryRecord( const reference& ref, log::MemoryTrackType track, const std::string_view& str_view )
     {
@@ -168,7 +168,7 @@ public:
         {
             m.clear();
         }
-    }
+    }*/
 };
 } // namespace mega::network
 

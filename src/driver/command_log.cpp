@@ -40,8 +40,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path logFolderPath;
 
-    bool bShowLogRecords    = true;
-    bool bShowMemoryRecords = false;
+    bool bShowLogRecords        = true;
+    bool bShowMemoryRecords     = false;
+    bool bShowSchedulingRecords = false;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Simulation Commands" );
@@ -52,6 +53,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             
             ( "log",        po::bool_switch( &bShowLogRecords )->default_value(true),   "Show log records." )
             ( "memory",     po::bool_switch( &bShowMemoryRecords ),                     "Show memory records." )
+            ( "schedule",   po::bool_switch( &bShowSchedulingRecords ),                 "Show scheduling records." )
             ;
         // clang-format on
     }
@@ -66,9 +68,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         if( bShowMemoryRecords )
             bShowLogRecords = false;
-
-        VERIFY_RTE_MSG( ( bShowLogRecords && !bShowMemoryRecords ) || ( !bShowLogRecords && bShowMemoryRecords ),
-                        "Invalid log type specification" );
+        if( bShowSchedulingRecords )
+            bShowLogRecords = false;
     }
 
     if( bHelp )
@@ -83,7 +84,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 boost::filesystem::exists( logFolderPath ), "Failed to locate folder: " << logFolderPath.string() );
             mega::log::Storage log( logFolderPath, true );
             SPDLOG_INFO( "Loaded log folder: {}", logFolderPath.string() );
-
+/*
             if( bShowLogRecords )
             {
                 for( auto i = log.logBegin(), iEnd = log.logEnd(); i != iEnd; ++i )
@@ -129,6 +130,33 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     }
                 }
             }
+            if( bShowSchedulingRecords )
+            {
+                for( auto i = log.schedBegin(), iEnd = log.schedEnd(); i != iEnd; ++i )
+                {
+                    const mega::log::SchedulerRecordRead& schedulerRecord = *i;
+                    switch( schedulerRecord.getType() )
+                    {
+                        case mega::log::SchedulerRecord::Start:
+                        {
+                            std::ostringstream os;
+                            os << "START: " << schedulerRecord.getReference();
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, os.str() );
+                        }
+                        break;
+                        case mega::log::SchedulerRecord::Stop:
+                        {
+                            std::ostringstream os;
+                            os << "STOP:  " << schedulerRecord.getReference();
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, os.str() );
+                        }
+                        break;
+                        default:
+                            THROW_RTE( "Unknown scheduling record type" );
+                            break;
+                    }
+                }
+            }*/
         }
         else
         {

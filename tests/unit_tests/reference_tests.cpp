@@ -21,6 +21,7 @@
 
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
+#include "mega/reference_limits.hpp"
 
 #include <limits>
 #include <sstream>
@@ -196,70 +197,12 @@ INSTANTIATE_TEST_SUITE_P( Reference, ReferenceIOTest,
 
             // network address
             ReferenceTestData{ mega::reference{ mega::TypeInstance{}, mega::MPO{}, mega::ObjectID{} } },
-            ReferenceTestData
-            {
-                mega::reference
-                {
-                    mega::TypeInstance
-                    {
-                        std::numeric_limits< mega::Instance >::max(),
-                        std::numeric_limits< mega::TypeID >::max()
-                    },
-                    mega::MPO
-                    {
-                        std::numeric_limits< mega::MachineID >::max(),
-                        std::numeric_limits< mega::ProcessID >::max(),
-                        std::numeric_limits< mega::OwnerID >::max()
-                    },
-                    std::numeric_limits< mega::ObjectID >::max()
-                }
-            },
-            ReferenceTestData
-            {
-                mega::reference
-                {
-                    mega::TypeInstance
-                    {
-                        std::numeric_limits< mega::Instance >::min(),
-                        std::numeric_limits< mega::TypeID >::min()
-                    },
-                    mega::MPO
-                    {
-                        std::numeric_limits< mega::MachineID >::min(),
-                        std::numeric_limits< mega::ProcessID >::min(),
-                        std::numeric_limits< mega::OwnerID >::min()
-                    },
-                    std::numeric_limits< mega::ObjectID >::min()
-                }
-            },
+            ReferenceTestData{ mega::max_net_ref },
+            ReferenceTestData{ mega::min_net_ref },
 
             // heap address
             ReferenceTestData{ mega::reference{ mega::TypeInstance{}, mega::OwnerID{}, mega::HeapAddress{} } },
-            ReferenceTestData
-            {
-                mega::reference
-                {
-                    mega::TypeInstance
-                    {
-                        std::numeric_limits< mega::Instance >::max(),
-                        std::numeric_limits< mega::TypeID >::max()
-                    },
-                    0,//std::numeric_limits< mega::OwnerID >::max(),
-                    reinterpret_cast< void* >( std::numeric_limits< mega::U64 >::max() )
-                }
-            },
-            ReferenceTestData
-            {
-                mega::reference
-                {
-                    mega::TypeInstance
-                    {
-                        std::numeric_limits< mega::Instance >::min(),
-                        std::numeric_limits< mega::TypeID >::min()
-                    },
-                    0,//std::numeric_limits< mega::OwnerID >::min(),
-                    reinterpret_cast< void* >( std::numeric_limits< mega::U64 >::min() )
-                }
-            }
+            ReferenceTestData{ mega::max_heap_ref },
+            ReferenceTestData{ mega::min_heap_ref }
         ));
 // clang-format on

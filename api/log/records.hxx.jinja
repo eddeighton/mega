@@ -1,0 +1,262 @@
+
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
+
+#ifndef GUARD_2023_February_03_records
+#define GUARD_2023_February_03_records
+
+#include "mega/native_types.hpp"
+#include "mega/reference.hpp"
+
+#include "common/assert_verify.hpp"
+
+#include <string_view>
+#include <string>
+#include <type_traits>
+#include <array>
+
+namespace mega::log
+{
+
+enum class TrackType : U8
+{
+{% for record in records %}
+    e{{ record.type }},
+{% endfor %}
+    TOTAL
+};
+
+inline constexpr typename std::underlying_type< TrackType >::type toInt( TrackType e ) noexcept
+{
+    return static_cast< typename std::underlying_type< TrackType >::type >( e );
+}
+
+inline const std::string& toName( TrackType trackType )
+{
+    using namespace std::string_literals;
+    static const std::array< std::string, toInt( TrackType::TOTAL ) > strings
+        // clang-format off
+    = { 
+{% for record in records %}
+        "{{ record.type }}"s{% if not loop.is_last%},{% endif %}
+
+{% endfor %}
+    };
+    // clang-format on
+    return strings[ toInt( trackType ) ];
+}
+
+using SizeType = U16;
+static const char nullbyte = '\0';
+
+inline const void* inc( const char*& p, U64 size )
+{
+    const char* pResult = p;
+    p += size;
+    return pResult;
+}
+
+{% for record in records %}
+namespace {{ record.type }}
+{
+{%      for enum in record.enums %}
+    enum {{ enum.name }}
+    {
+{%          for value in enum.values %}
+        e{{ value }}{% if not loop.is_last%},{% endif %}
+
+{%          endfor %}
+    };
+
+    inline static const char* toString( {{ enum.name }} value )
+    {
+        static const char* strings[] =
+        {
+{%          for value in enum.values %}
+            "{{ value }}"{% if not loop.is_last%},{% endif %}
+
+{%          endfor %}
+        };
+        return strings[ static_cast< std::underlying_type< {{ enum.name }} >::type >( value ) ];
+    }
+{%      endfor %}
+
+    static_assert
+    (
+        (
+{% for field in record.fields %}
+            sizeof( {{ field.type }} ) +
+{% endfor %}
+{% for enum in record.enums %}
+            sizeof( {{ enum.name }} ) +
+{% endfor %}
+            {{ record.padding }}
+        ) %
+        {{ record.align }} == 0U, "Incorrect alignment and padding for record type: {{ record.type }}"
+    );
+
+    class Read
+    {
+    public:
+        static constexpr TrackType Track = TrackType::e{{ record.type }};
+
+        Read( const void* pData )
+        {
+            ASSERT( reinterpret_cast< U64 >( pData ) % {{ record.align }} == 0U );
+            const char* pIter = reinterpret_cast< const char* >( pData );
+{%      for field in record.fields %}
+            m_p{{ field.name }} = reinterpret_cast< const {{ field.type }}* >( inc( pIter, sizeof( {{ field.type }} ) ) );
+{%      endfor %}
+{%      for enum in record.enums %}
+            m_p{{ enum.name }} = reinterpret_cast< const {{ enum.name }}* >( inc( pIter, sizeof( {{ enum.name }} ) ) );
+{%      endfor %}
+{%      for buffer in record.buffers %}
+            m_{{ buffer.name }} = std::string_view( pIter + sizeof( SizeType ), *reinterpret_cast< const SizeType* >( pIter ) );
+            pIter += sizeof( SizeType ) + m_{{ buffer.name }}.size();
+{%      endfor %}
+        }
+
+        inline U64 size() const
+        {
+            return
+{%      for field in record.fields %}
+                sizeof( {{ field.type }} ) +
+{%      endfor %}
+{%      for enum in record.enums %}
+                sizeof( {{ enum.name }} ) +
+{%      endfor %}
+{%      for buffer in record.buffers %}
+                m_{{ buffer.name }}.size() + sizeof( SizeType ) + 1U +
+{%      endfor %}
+                {{ record.padding }};
+        }
+
+{%      for field in record.fields %}
+        inline {{ field.type }} get{{ field.name }}() const { return *m_p{{ field.name }}; }
+{%      endfor %}
+{%      for enum in record.enums %}
+        inline {{ enum.name }} get{{ enum.name }}() const { return *m_p{{ enum.name }}; }
+{%      endfor %}
+{%      for buffer in record.buffers %}
+        inline const std::string_view& get{{ buffer.name }}() const { return m_{{ buffer.name }}; }
+{%      endfor %}
+
+    private:
+{%      for field in record.fields %}
+        const {{ field.type }}* m_p{{ field.name }};
+{%      endfor %}
+{%      for enum in record.enums %}
+        const {{ enum.name }}* m_p{{ enum.name }};
+{%      endfor %}
+{%      for buffer in record.buffers %}
+        std::string_view m_{{ buffer.name }};
+{%      endfor %}
+    };
+
+    class Write
+    {
+    public:
+        static constexpr TrackType Track = TrackType::e{{ record.type }};
+
+        Write(
+{%      for field in record.fields %}
+            const {{ field.type }}& _{{ field.name }}{% if not loop.is_last or record.has_enum or record.has_buffer%},{% endif %}
+
+{%      endfor %}
+{%      for enum in record.enums %}
+            {{ enum.name }} _{{ enum.name }}{% if not loop.is_last or record.has_buffer%},{% endif %}
+
+{%      endfor %}
+{%      for buffer in record.buffers %}
+            const std::string_view& _{{ buffer.name }}{% if not loop.is_last%},{% endif %}
+
+{%      endfor %}
+        )
+{% if record.has_field or record.has_enum or record.has_buffer%}:{% endif %}
+
+{%      for field in record.fields %}
+            m_{{ field.name }}( _{{ field.name }} ){% if not loop.is_last or record.has_enum or record.has_buffer%},{% endif %}
+
+{%      endfor %}
+{%      for enum in record.enums %}
+            m_{{ enum.name }}( _{{ enum.name }} ){% if not loop.is_last or record.has_buffer%},{% endif %}
+
+{%      endfor %}
+{%      for buffer in record.buffers %}
+            m_{{ buffer.name }}( _{{ buffer.name }} ){% if not loop.is_last%},{% endif %}
+
+{%      endfor %}
+        {}
+
+        inline U64 size() const
+        {
+            return
+{%      for field in record.fields %}
+                sizeof( {{ field.type }} ) +
+{%      endfor %}
+{%      for enum in record.enums %}
+                sizeof( {{ enum.name }} ) +
+{%      endfor %}
+{%      for buffer in record.buffers %}
+                m_{{ buffer.name }}.size() + sizeof( SizeType ) + 1U +
+{%      endfor %}
+                {{ record.padding }};
+        }
+
+        template< typename FileType >
+        inline auto write( FileType& file ) const
+        {
+{%      for field in record.fields %}
+            {% if loop.is_last and not record.has_enum and not record.has_buffer and not record.padding%}return {% endif %}file.write( &m_{{ field.name }}, sizeof( {{ field.type }} ) );
+{%      endfor %}
+{%      for enum in record.enums %}
+            {% if loop.is_last and not record.has_buffer and not record.padding%}return {% endif %}file.write( &m_{{ enum.name }}, sizeof( {{ enum.name }} ) );
+{%      endfor %}
+{%      for buffer in record.buffers %}
+            {
+                const SizeType sz = static_cast< SizeType >( m_{{ buffer.name }}.size() );
+                file.write( &sz, sizeof( SizeType ) );
+                file.write( m_{{ buffer.name }}.data(), sz );
+                {% if loop.is_last  and not record.padding%}return {% endif %}file.write( &nullbyte, 1 );
+            }
+{%      endfor %}
+{% if record.padding %}
+            {
+                static const char padding[ {{ record.padding }} ] = { 0U };
+                return file.write( &padding[ 0 ], {{ record.padding }} );
+            }
+{% endif %}
+        }
+    private:
+        //data
+{%      for field in record.fields %}
+        {{ field.type }} m_{{ field.name }};
+{%      endfor %}
+{%      for enum in record.enums %}
+        {{ enum.name }} m_{{ enum.name }};
+{%      endfor %}
+{%      for buffer in record.buffers %}
+        std::string_view m_{{ buffer.name }};
+{%      endfor %}
+    };
+}
+{% endfor %}
+}
+
+#endif //GUARD_2023_February_03_records.hxx

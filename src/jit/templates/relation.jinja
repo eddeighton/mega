@@ -28,8 +28,8 @@
 
 namespace mega::mangle
 {
-    void hyper_create( const mega::reference& source, const mega::reference& target );
-    void hyper_delete( const mega::reference& source, const mega::reference& target );
+    void structure_make( const mega::reference& source, const mega::reference& target );
+    void structure_delete( const mega::reference& source, const mega::reference& target );
 
     bool ref_vector_contains( void* pData, const mega::reference& ref );
     void ref_vector_remove( void* pData, const mega::reference& ref );
@@ -130,7 +130,7 @@ void unlinkSource( mega::reference& source )
         }
 
         // generate edge delete record
-        mega::mangle::hyper_delete( targetRef, sourceRef );
+        mega::mangle::structure_break( targetRef, sourceRef );
         sourceRef = mega::reference{};
         targetRef = mega::reference{};
     }
@@ -150,7 +150,7 @@ void unlinkSource( mega::reference& source )
         }
 
         // generate edge delete record
-        mega::mangle::hyper_delete( targetRef, sourceRef );
+        mega::mangle::structure_break( targetRef, sourceRef );
         mega::mangle::ref_vector_remove( pTargetData, source );
         sourceRef = mega::reference{};
     }
@@ -174,7 +174,7 @@ void unlinkTarget( mega::reference& target )
         }
 
         // generate edge delete record
-        mega::mangle::hyper_delete( targetRef, sourceRef );
+        mega::mangle::structure_break( targetRef, sourceRef );
         sourceRef = mega::reference{};
         targetRef = mega::reference{};
     }
@@ -194,7 +194,7 @@ void unlinkTarget( mega::reference& target )
         }
 
         // generate edge delete record
-        mega::mangle::hyper_delete( targetRef, target );
+        mega::mangle::structure_break( targetRef, target );
         mega::mangle::ref_vector_remove( pSourceData, target );
         targetRef = mega::reference{};
     }
@@ -258,7 +258,7 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
 
     linkSource( source, target );
     linkTarget( target, source );
-    mega::mangle::hyper_create( source, target );
+    mega::mangle::structure_make( source, target );
 }
 
 void link_break_{{ relationID }}( mega::reference context, mega::reference parameter )
@@ -294,7 +294,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
         {
             throw mega::runtime::JITException{ "link_make_{{ relationID }} error found while breaking link" };
         }
-        mega::mangle::hyper_delete( source, target );
+        mega::mangle::structure_break( source, target );
         sourceRef = mega::reference{};
         targetRef = mega::reference{};
     }
@@ -308,7 +308,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
         {
             throw mega::runtime::JITException{ "link_make_{{ relationID }} error found while breaking link" };
         }
-        mega::mangle::hyper_delete( source, target );
+        mega::mangle::structure_break( source, target );
         sourceRef = mega::reference{};
         mega::mangle::ref_vector_remove( pTargetData, source );
     }
@@ -324,7 +324,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
         {
             throw mega::runtime::JITException{ "link_make_{{ relationID }} error found while breaking link" };
         }
-        mega::mangle::hyper_delete( source, target );
+        mega::mangle::structure_break( source, target );
         mega::mangle::ref_vector_remove( pSourceData, target );
         targetRef = mega::reference{};
     }
@@ -337,7 +337,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
         {
             throw mega::runtime::JITException{ "link_make_{{ relationID }} error found while breaking link" };
         }
-        mega::mangle::hyper_delete( source, target );
+        mega::mangle::structure_break( source, target );
         mega::mangle::ref_vector_remove( pSourceData, target );
         mega::mangle::ref_vector_remove( pTargetData, source );
     }

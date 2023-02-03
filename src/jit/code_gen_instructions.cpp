@@ -299,7 +299,38 @@ void gen( Args args, FinalStage::Invocations::Operations::Start* pStart )
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
 
-    THROW_TODO;
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
+{{ indent }}    mega::mangle::action_start( action );
+{{ indent }}    return action;
+{{ indent }}}
+)TEMPLATE";
+    // clang-format on
+
+    std::ostringstream os;
+    {
+        Concrete::Context*   pConcreteTarget = pStart->get_concrete_target();
+        Variables::Instance* pInstance       = pStart->get_instance();
+        std::ostringstream   osIndent;
+        osIndent << args.indent;
+
+        VERIFY_RTE_MSG( ( pConcreteTarget->get_parent() == pInstance->get_concrete() )
+                            || ( pConcreteTarget == pInstance->get_concrete() ),
+                        "Start operation target is not child or equal to instance variable type" );
+
+        nlohmann::json templateData( { { "indent", osIndent.str() },
+                                       { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                       { "instance", args.get( pInstance ) } } );
+
+        os << args.inja.render( szTemplate, templateData );
+
+        args.functions.callSet.insert( pConcreteTarget );
+    }
+
+    args.data[ "assignments" ].push_back( os.str() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,7 +340,38 @@ void gen( Args args, FinalStage::Invocations::Operations::Stop* pStop )
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
 
-    THROW_TODO;
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
+{{ indent }}    mega::mangle::action_stop( action );
+{{ indent }}    return action;
+{{ indent }}}
+)TEMPLATE";
+    // clang-format on
+
+    std::ostringstream os;
+    {
+        Concrete::Context*   pConcreteTarget = pStop->get_concrete_target();
+        Variables::Instance* pInstance       = pStop->get_instance();
+        std::ostringstream   osIndent;
+        osIndent << args.indent;
+
+        VERIFY_RTE_MSG( ( pConcreteTarget->get_parent() == pInstance->get_concrete() )
+                            || ( pConcreteTarget == pInstance->get_concrete() ),
+                        "Start operation target is not child or equal to instance variable type" );
+
+        nlohmann::json templateData( { { "indent", osIndent.str() },
+                                       { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                       { "instance", args.get( pInstance ) } } );
+
+        os << args.inja.render( szTemplate, templateData );
+
+        args.functions.callSet.insert( pConcreteTarget );
+    }
+
+    args.data[ "assignments" ].push_back( os.str() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -547,7 +609,6 @@ R"TEMPLATE(
 {{ indent }}    mega::mangle::copy_{{ mangled_type_name }}( pData, pTarget );
 {{ indent }}    mega::mangle::save_record_{{ mangled_type_name }}
 {{ indent }}    (
-{{ indent }}        mega::runtime::log(),
 {{ indent }}        mega::reference
 {{ indent }}        ( 
 {{ indent }}            mega::TypeInstance
@@ -558,8 +619,7 @@ R"TEMPLATE(
 {{ indent }}            {{ instance }}.getMPO(), 
 {{ indent }}            {{ instance }}.getObjectID()
 {{ indent }}        ),
-{{ indent }}        pTarget,
-{{ indent }}        {{ log_track_type }}
+{{ indent }}        pTarget
 {{ indent }}    );
 {{ indent }}    return {{ instance }};
 {{ indent }}}
@@ -571,7 +631,7 @@ R"TEMPLATE(
         Variables::Instance*        pInstance  = pWrite->get_instance();
         MemoryLayout::Part*         pPart      = pDimension->get_part();
         const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
-        const std::string strMangled = megaMangle( pDimension->get_interface_dimension()->get_erased_type() );
+        const std::string           strMangled = megaMangle( pDimension->get_interface_dimension()->get_erased_type() );
 
         std::ostringstream osIndent;
         osIndent << args.indent;
@@ -582,8 +642,7 @@ R"TEMPLATE(
                                        { "part_size", pPart->get_size() },
                                        { "dimension_offset", pDimension->get_offset() },
                                        { "mangled_type_name", strMangled },
-                                       { "instance", args.get( pInstance ) },
-                                       { "log_track_type", mega::log::toInt( mega::log::TrackType::Simulation ) }
+                                       { "instance", args.get( pInstance ) }
 
         } );
 
@@ -707,8 +766,7 @@ R"TEMPLATE(
         nlohmann::json templateData( { { "indent", osIndent.str() },
                                        { "relation_id_lower", relationID.getLower() },
                                        { "relation_id_upper", relationID.getUpper() },
-                                       { "instance", args.get( pInstance ) },
-                                       { "log_track_type", mega::log::toInt( mega::log::TrackType::Simulation ) }
+                                       { "instance", args.get( pInstance ) }
 
         } );
 
@@ -809,7 +867,8 @@ void CodeGenerator::generateInstructions( const DatabaseInstance&               
                 os << indent << "{\n";
                 ++indent;
                 os << indent << Args::get( variables, pInstance ) << " = mega::reference::make( "
-                   << Args::get( variables, pReference ) << ", " << pInstance->get_concrete()->get_concrete_id() << " );\n";
+                   << Args::get( variables, pReference ) << ", " << pInstance->get_concrete()->get_concrete_id()
+                   << " );\n";
                 data[ "assignments" ].push_back( os.str() );
             }
 

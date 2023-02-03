@@ -1,0 +1,144 @@
+{
+    "types": [
+        {
+            "mangle": "unsigned_char",
+            "canon": "unsigned char",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "signed_char",
+            "canon": "signed char",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "unsigned_short",
+            "canon": "unsigned short",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "signed_short",
+            "canon": "signed short",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "unsigned_int",
+            "canon": "unsigned int",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "signed_int",
+            "canon": "signed int",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "int",
+            "canon": "int",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "unsigned_long_int",
+            "canon": "unsigned long int",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "signed_long_int",
+            "canon": "signed long int",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "float",
+            "canon": "float",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "double",
+            "canon": "double",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "bool",
+            "canon": "bool",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "U8",
+            "canon": "mega::U8",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "I8",
+            "canon": "mega::I8",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "U16",
+            "canon": "mega::U16",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "I16",
+            "canon": "mega::I16",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "U32",
+            "canon": "mega::U32",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "I32",
+            "canon": "mega::I32",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "U64",
+            "canon": "mega::U64",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "I64",
+            "canon": "mega::I64",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "F32",
+            "canon": "mega::F32",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "F64",
+            "canon": "mega::F64",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "TimeStamp",
+            "canon": "mega::TimeStamp",
+            "impl": "Simple"
+        },
+        {
+            "mangle": "classmega00reference",
+            "canon": "mega::reference",
+            "impl": "NonSimple"
+        },
+        {
+            "mangle": "classmega00ReferenceVector",
+            "canon": "mega::ReferenceVector",
+            "impl": "NonSimple"
+        },
+        {
+            "mangle": "classstd00vector3classmega00reference4",
+            "canon": "std::vector< mega::reference >",
+            "impl": "NonSimple"
+        },
+        {
+            "mangle": "classstd00basic_string3char4",
+            "canon": "std::basic_string<char>",
+            "impl": "NonSimple"
+        },
+        {
+            "mangle": "classstd00vector3int4",
+            "canon": "std::vector<int>",
+            "impl": "NonSimple"
+        }
+    ]
+}

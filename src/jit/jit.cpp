@@ -238,6 +238,22 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
             *ppFunction = ( void* )pModule->get< invocation::Load::FunctionPtr >( os.str() );
         }
         break;
+        case invocation::eStart:
+        {
+            std::ostringstream os;
+            symbolPrefix( invocationID, os );
+            os << "N4mega9referenceE";
+            *ppFunction = ( void* )pModule->get< invocation::Start::FunctionPtr >( os.str() );
+        }
+        break;
+        case invocation::eStop:
+        {
+            std::ostringstream os;
+            symbolPrefix( invocationID, os );
+            os << "N4mega9referenceE";
+            *ppFunction = ( void* )pModule->get< invocation::Stop::FunctionPtr >( os.str() );
+        }
+        break;
         case invocation::TOTAL_FUNCTION_TYPES:
         {
             THROW_RTE( "Unsupported invocation function" );

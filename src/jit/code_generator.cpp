@@ -22,7 +22,7 @@
 
 #include "database/model/FinalStage.hxx"
 
-#include "log/record.hpp"
+#include "log/index.hpp"
 
 #include "service/network/log.hpp"
 #include "service/mpo_context.hpp"
@@ -159,6 +159,12 @@ void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const Dat
                 break;
             case mega::runtime::invocation::eLoad:
                 m_pInja->render_load( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eStart:
+                m_pInja->render_start( data, osCPPCode );
+                break;
+            case mega::runtime::invocation::eStop:
+                m_pInja->render_stop( data, osCPPCode );
                 break;
             case mega::runtime::invocation::eWriteLinkRange:
             case mega::runtime::invocation::TOTAL_FUNCTION_TYPES:

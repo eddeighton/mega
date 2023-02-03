@@ -1164,7 +1164,6 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
             }
             break;
             case mega::id_exp_Start:
-            case mega::id_exp_Stop:
             {
                 printContextType( contexts, osReturnTypeStr );
                 osRuntimeReturnType << mega::psz_mega_reference;
@@ -1177,6 +1176,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 osRuntimeReturnType << mega::psz_mega_reference;
             }
             break;
+            case mega::id_exp_Stop:
             case mega::id_exp_Save:
             case mega::id_exp_Load:
             case mega::id_exp_Files:

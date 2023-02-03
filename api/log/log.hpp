@@ -23,7 +23,8 @@
 
 #include "offset.hpp"
 #include "filename.hpp"
-#include "record.hpp"
+#include "index.hpp"
+#include "records.hxx"
 
 #include "mega/native_types.hpp"
 
@@ -57,6 +58,7 @@ public:
 
     InterFileOffset write( const void* pData, U64 size );
     void            terminate();
+    bool            isTerminate() const;
 
 private:
     boost::filesystem::path            m_filePath;
@@ -125,19 +127,17 @@ class Iterator
 {
     friend class Storage;
 
-    const void* get() const
+    inline const void* get() const
     {
         using namespace impl;
-        if ( !m_pFile )
+        if( !m_pFile )
         {
             m_pFile = m_track.getFile( m_position );
         }
         ASSERT( m_pFile );
         const void* pData = m_pFile->read( m_position );
 
-        // if there is no space for nullsize or nullsize is present
-        if ( ( ( LogFileSize - InterFileOffset( m_position ).get() ) < sizeof( U64 ) )
-             || *reinterpret_cast< const U64* >( pData ) == 0U )
+        if( m_pFile->isTerminate() )
         {
             // then skip to next file
             FileIndex fileIndex = m_position;
@@ -148,38 +148,29 @@ class Iterator
         return pData;
     }
 
-    Iterator( const impl::Track& track )
+    inline Iterator( const impl::Track& track )
         : m_track( track )
     {
     }
-    Iterator( const impl::Track& track, Offset offset )
+    inline Iterator( const impl::Track& track, Offset offset )
         : m_track( track )
         , m_position( offset )
     {
     }
 
 public:
-    bool operator==( const Iterator& cmp ) const { return m_position == cmp.m_position; }
-    bool operator!=( const Iterator& cmp ) const { return !this->operator==( cmp ); }
+    inline bool operator==( const Iterator& cmp ) const { return m_position == cmp.m_position; }
+    inline bool operator!=( const Iterator& cmp ) const { return !this->operator==( cmp ); }
 
-    RecordType operator*() const { return RecordType( get() ); }
+    inline RecordType operator*() const { return RecordType( get() ); }
 
-    RecordType operator++()
+    inline void operator++() // pre increment only
     {
-        RecordType temp( get() );
-        const U64* pSize = reinterpret_cast< const U64* >( get() );
-        m_position       = Offset( m_position, InterFileOffset{ InterFileOffset( m_position ).get() + *pSize } );
-        return temp;
+        RecordType record( get() );
+        m_position = Offset( m_position, InterFileOffset{ InterFileOffset( m_position ).get() + record.size() } );
     }
 
-    RecordType operator++( int )
-    {
-        const U64* pSize = reinterpret_cast< const U64* >( get() );
-        m_position       = Offset( m_position, InterFileOffset{ InterFileOffset( m_position ).get() + *pSize } );
-        return RecordType( get() );
-    }
-
-    const Offset& position() const { return m_position; }
+    inline const Offset& position() const { return m_position; }
 
 private:
     const impl::Track&        m_track;
@@ -212,7 +203,7 @@ class Storage
         Track& track = getTrack( trackType );
         File*  pFile = track.getFile( fileIndex );
 
-        if ( !pFile->fit( msg.size() ) )
+        if( !pFile->fit( msg.size() ) )
         {
             pFile->terminate();
             fileIndex = FileIndex{ fileIndex.get() + 1 };
@@ -224,61 +215,48 @@ class Storage
     }
 
 public:
-    using LogMsgIter    = Iterator< LogMsgRead >;
-    using MemoryIter    = Iterator< MemoryRecordRead >;
-    using SchedulerIter = Iterator< SchedulerRecordRead >;
-
     Storage( const boost::filesystem::path& folderPath, bool bLoad = false );
     ~Storage();
 
+public:
+    // WRITE interface
+
+    // per cycle update routine - generates index
     void cycle();
 
-    inline void log( const LogMsg& logMsg ) { write( logMsg, TrackType::Log ); }
-    inline void record( MemoryTrackType recordType, const MemoryRecord& record )
+    template < typename RecordType >
+    inline void record( const RecordType& record )
     {
-        write( record, toTrackType( recordType ) );
+        write( record, RecordType::Track );
     }
-    inline void record( const SchedulerRecord& record ) { write( record, TrackType::Scheduler ); }
 
+public:
+    // READ interface
+
+    // general access
     Offset get( TrackType track ) const;
     Offset get( TrackType track, TimeStamp timestamp ) const;
 
-    inline LogMsgIter logBegin() const { return { getTrack( TrackType::Log ) }; }
-    inline LogMsgIter logBegin( TimeStamp timestamp ) const
+    template < typename RecordType >
+    inline Iterator< RecordType > begin() const
     {
-        return { getTrack( TrackType::Log ), get( TrackType::Log, timestamp ) };
+        return { getTrack( RecordType::Track ) };
     }
-    inline LogMsgIter logEnd() const { return { getTrack( TrackType::Log ), get( TrackType::Log ) }; }
-
-    using MemoryIters = std::array< log::Storage::MemoryIter, log::toInt( log::TrackType::TOTAL ) >;
-    inline MemoryIters memoryBegin() const
+    template < typename RecordType >
+    inline Iterator< RecordType > begin( TimeStamp timestamp ) const
     {
-        return { getTrack( TrackType( 0 ) ), getTrack( TrackType( 1 ) ), getTrack( TrackType( 2 ) ),
-                 getTrack( TrackType( 3 ) ), getTrack( TrackType( 4 ) ), getTrack( TrackType( 5 ) ),
-                 getTrack( TrackType( 6 ) ), getTrack( TrackType( 7 ) ) };
+        return { getTrack( RecordType::Track ), get( RecordType::Track, timestamp ) };
     }
-
-    inline MemoryIter memoryBegin( MemoryTrackType recordType ) const
+    template < typename RecordType >
+    inline Iterator< RecordType > end() const
     {
-        return { getTrack( toTrackType( recordType ) ) };
-    }
-    inline MemoryIter memoryBegin( MemoryTrackType recordType, TimeStamp timestamp ) const
-    {
-        return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ), timestamp ) };
-    }
-    inline MemoryIter memoryEnd( MemoryTrackType recordType ) const
-    {
-        return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ) ) };
+        return { getTrack( RecordType::Track ), get( RecordType::Track ) };
     }
 
-    inline SchedulerIter schedBegin() const { return { getTrack( TrackType::Scheduler ) }; }
-    inline SchedulerIter schedBegin( TimeStamp timestamp ) const
-    {
-        return { getTrack( TrackType::Scheduler ), get( TrackType::Scheduler, timestamp ) };
-    }
-    inline SchedulerIter schedEnd() const { return { getTrack( TrackType::Scheduler ), get( TrackType::Scheduler ) }; }
+    // access current time stamp
+    TimeStamp getTimeStamp() const { return m_timestamp; }
 
-    TimeStamp          getTimeStamp() const { return m_timestamp; }
+    // access current index
     const IndexRecord& getIterator() const { return m_iterator; }
 
 private:

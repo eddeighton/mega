@@ -61,9 +61,9 @@ namespace mega::mangle
     {
         {{ type.impl }}Dimension< {{ type.canon }} >::load_bin( reify< mega::BinLoadArchive >( pArchive ), reify< {{ type.canon }} >( p ) );
     }
-    void save_record_{{ type.mangle }}( void* pLog, const mega::reference& ref, const void* pData, int track )
+    void save_record_{{ type.mangle }}( const mega::reference& ref, const void* pData )
     {
-        {{ type.impl }}Dimension< {{ type.canon }} >::save_memory_record( reify< mega::log::Storage >( pLog ), ref, reify< {{ type.canon }} >( pData ), static_cast< mega::log::MemoryTrackType >( track ) );
+        {{ type.impl }}Dimension< {{ type.canon }} >::save_memory_record( ref, reify< {{ type.canon }} >( pData ) );
     }
     void load_record_{{ type.mangle }}( void* pData, void* pRecord, mega::U64 size)
     {

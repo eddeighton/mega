@@ -28,22 +28,7 @@ static const char* g_pszModuleName = "{{module_name}}";
 
 namespace mega::mangle
 {
-    void schedule_start(const reference&);
-
-{% for copy in copiers %}
-    void copy_{{copy}}(const void*,void*);
-{% endfor %}
-{% for event in events %}
-    void event_{{event}}(const reference&,const void*);
-{% endfor %}
-
-{% for allocate in allocators %}
-    Instance allocate_{{allocate}}(void*);
-{% endfor %}
-{% for free in freers %}
-    void free_{{free}}(void*,Instance);
-{% endfor %}
-
+    void action_start( const mega::reference& );
 }
 
 mega::reference {{ name }}( mega::reference context )
