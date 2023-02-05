@@ -227,15 +227,15 @@ void Terminal::SimDestroy( const mega::MPO& mpo )
 
 TimeStamp Terminal::SimRead( const mega::MPO& from, const mega::MPO& to )
 {
-    return getRequest< network::sim::Request_Encoder >().SimLockRead( from, to );
+    return getMPORequest< network::sim::Request_Encoder >( to ).SimLockRead( from, to );
 }
 TimeStamp Terminal::SimWrite( const mega::MPO& from, const mega::MPO& to )
 {
-    return getRequest< network::sim::Request_Encoder >().SimLockWrite( from, to );
+    return getMPORequest< network::sim::Request_Encoder >( to ).SimLockWrite( from, to );
 }
 void Terminal::SimRelease( const mega::MPO& from, const mega::MPO& to )
 {
-    return getRequest< network::sim::Request_Encoder >().SimLockRelease( from, to, network::Transaction{} );
+    return getMPORequest< network::sim::Request_Encoder >( to ).SimLockRelease( from, to, network::Transaction{} );
 }
 
 std::string Terminal::PingMP( const mega::MP& mp, const std::string& strMsg )
