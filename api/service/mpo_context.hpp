@@ -55,22 +55,12 @@ namespace mega
 
 class MPOContext : public Context
 {
-private:
-    // define temp data structures as members to reuse memory and avoid allocations
-    /*using ShedulingMap   = std::map< MPO, std::vector< log::SchedulerRecordRead > >;
-    using MemoryMap      = std::map< reference, std::string_view >;
-    using MemoryMapArray = std::array< MemoryMap, log::toInt( log::TrackType::TOTAL ) >;
-    ShedulingMap               m_schedulingMap;
-    MemoryMapArray             m_memoryMaps;
-    mega::network::Transaction m_transaction;*/
-
 protected:
     const network::ConversationID&            m_conversationIDRef;
     std::optional< mega::MPO >                m_mpo;
     log::Storage                              m_log;
-    //log::Storage::SchedulerIter               m_schedulerIter;
-    //log::Storage::MemoryIters                 m_memoryIters;
     mega::service::LockTracker                m_lockTracker;
+    network::TransactionProducer              m_transactionProducer;
     boost::asio::yield_context*               m_pYieldContext = nullptr;
     reference                                 m_root;
     std::unique_ptr< runtime::MemoryManager > m_pMemoryManager;
@@ -79,8 +69,7 @@ public:
     MPOContext( const network::ConversationID& conversationID )
         : m_conversationIDRef( conversationID )
         , m_log( makeLogDirectory( conversationID ) )
-        //, m_schedulerIter( m_log.schedBegin() )
-        //, m_memoryIters( m_log.memoryBegin() )
+        , m_transactionProducer( m_log )
     {
     }
 
@@ -128,6 +117,7 @@ public:
     virtual log::Storage& getLog() override { return m_log; }
 
     // called by Cycle dtor
+    void applyTransaction( const network::Transaction& transaction );
     void cycleComplete();
 
 protected:

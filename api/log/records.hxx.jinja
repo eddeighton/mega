@@ -25,6 +25,10 @@
 #include "mega/reference.hpp"
 
 #include "common/assert_verify.hpp"
+#include "common/unreachable.hpp"
+
+#include <boost/serialization/split_member.hpp>
+#include <boost/serialization/array_wrapper.hpp>
 
 #include <string_view>
 #include <string>
@@ -76,7 +80,7 @@ inline const void* inc( const char*& p, U64 size )
 namespace {{ record.type }}
 {
 {%      for enum in record.enums %}
-    enum {{ enum.name }}
+    enum {{ enum.name }} : U8
     {
 {%          for value in enum.values %}
         e{{ value }}{% if not loop.is_last%},{% endif %}
@@ -97,73 +101,113 @@ namespace {{ record.type }}
     }
 {%      endfor %}
 
-    static_assert
-    (
-        (
+    struct Data
+    {
 {% for field in record.fields %}
-            sizeof( {{ field.type }} ) +
+        {{ field.type }} m_{{ field.name }};
 {% endfor %}
 {% for enum in record.enums %}
-            sizeof( {{ enum.name }} ) +
+        {{ enum.name }} m_{{ enum.name }};
 {% endfor %}
-            {{ record.padding }}
-        ) %
-        {{ record.align }} == 0U, "Incorrect alignment and padding for record type: {{ record.type }}"
+{% if record.padding %}
+        std::array< char, {{ record.padding }} > _padding;
+{% endif %}
+    };
+
+    struct DataIO
+    {
+        Data m_data;
+{%      for buffer in record.buffers %}
+        std::string m_{{ buffer.name }};
+{%      endfor %}
+
+        template < typename Archive >
+        void serialize( Archive& ar, const unsigned int )
+        {
+            ar & boost::serialization::make_array( (char*)&m_data, sizeof( Data ) );
+{%      for buffer in record.buffers %}
+            ar & m_{{ buffer.name }};
+{%      endfor %}
+        }
+    };
+
+    static_assert
+    (
+        sizeof( Data ) % {{ record.align }} == 0U, "Incorrect alignment and padding for record type: {{ record.type }}"
     );
 
     class Read
     {
     public:
         static constexpr TrackType Track = TrackType::e{{ record.type }};
+        static constexpr bool Variable = {{ record.has_buffer }};
 
         Read( const void* pData )
         {
             ASSERT( reinterpret_cast< U64 >( pData ) % {{ record.align }} == 0U );
             const char* pIter = reinterpret_cast< const char* >( pData );
-{%      for field in record.fields %}
-            m_p{{ field.name }} = reinterpret_cast< const {{ field.type }}* >( inc( pIter, sizeof( {{ field.type }} ) ) );
-{%      endfor %}
-{%      for enum in record.enums %}
-            m_p{{ enum.name }} = reinterpret_cast< const {{ enum.name }}* >( inc( pIter, sizeof( {{ enum.name }} ) ) );
-{%      endfor %}
+{% if record.has_buffer %}
+            inc( pIter, sizeof( SizeType ) ); // read the variable size header
+{% endif %}
+            m_pData = reinterpret_cast< const Data* >( inc( pIter, sizeof( Data ) ) );
 {%      for buffer in record.buffers %}
             m_{{ buffer.name }} = std::string_view( pIter + sizeof( SizeType ), *reinterpret_cast< const SizeType* >( pIter ) );
             pIter += sizeof( SizeType ) + m_{{ buffer.name }}.size();
 {%      endfor %}
         }
 
-        inline U64 size() const
+        BOOST_SERIALIZATION_SPLIT_MEMBER()
+
+        template < typename Archive >
+        void load( Archive& ar, const unsigned int ) const
         {
-            return
-{%      for field in record.fields %}
-                sizeof( {{ field.type }} ) +
-{%      endfor %}
-{%      for enum in record.enums %}
-                sizeof( {{ enum.name }} ) +
-{%      endfor %}
+            UNREACHABLE;
+        }
+        template < typename Archive >
+        void save( Archive& ar, const unsigned int ) const
+        {
+            ar & boost::serialization::make_array( (char*)m_pData, sizeof( Data ) );
 {%      for buffer in record.buffers %}
-                m_{{ buffer.name }}.size() + sizeof( SizeType ) + 1U +
+            ar & std::string( m_{{ buffer.name }}.data(), m_{{ buffer.name }}.size() );
+            // ar & boost::serialization::make_array( m_{{ buffer.name }}.data(), m_{{ buffer.name }}.size() );
 {%      endfor %}
-                {{ record.padding }};
         }
 
+{% if not record.has_buffer %}
+        static constexpr U64 size()
+        {
+            return sizeof( Data );
+        }
+{% else %}
+        static U64 getVariableSize( const void* pData )
+        {
+            return *reinterpret_cast< const SizeType* >( pData );
+        }
+        inline U64 size() const
+        {
+            return sizeof( Data )
+{% if record.has_buffer %}
+                 + sizeof( SizeType )
+{% endif %}
+{%      for buffer in record.buffers %}
+                 + m_{{ buffer.name }}.size() + sizeof( SizeType ) + 1U
+{%      endfor %}
+            ;
+        }
+{% endif %}
+
 {%      for field in record.fields %}
-        inline {{ field.type }} get{{ field.name }}() const { return *m_p{{ field.name }}; }
+        inline {{ field.type }} get{{ field.name }}() const { return m_pData->m_{{ field.name }}; }
 {%      endfor %}
 {%      for enum in record.enums %}
-        inline {{ enum.name }} get{{ enum.name }}() const { return *m_p{{ enum.name }}; }
+        inline {{ enum.name }} get{{ enum.name }}() const { return m_pData->m_{{ enum.name }}; }
 {%      endfor %}
 {%      for buffer in record.buffers %}
         inline const std::string_view& get{{ buffer.name }}() const { return m_{{ buffer.name }}; }
 {%      endfor %}
 
     private:
-{%      for field in record.fields %}
-        const {{ field.type }}* m_p{{ field.name }};
-{%      endfor %}
-{%      for enum in record.enums %}
-        const {{ enum.name }}* m_p{{ enum.name }};
-{%      endfor %}
+        const Data* m_pData;
 {%      for buffer in record.buffers %}
         std::string_view m_{{ buffer.name }};
 {%      endfor %}
@@ -173,6 +217,19 @@ namespace {{ record.type }}
     {
     public:
         static constexpr TrackType Track = TrackType::e{{ record.type }};
+        static constexpr bool Variable = {{ record.has_buffer }};
+
+        Write( const Data& data 
+{%      for buffer in record.buffers %}
+            , const std::string_view& _{{ buffer.name }}
+{%      endfor %} 
+        )
+        : m_data( data )
+{%      for buffer in record.buffers %}
+            , m_{{ buffer.name }}( _{{ buffer.name }} )
+{%      endfor %}
+        {
+        }
 
         Write(
 {%      for field in record.fields %}
@@ -188,69 +245,64 @@ namespace {{ record.type }}
 
 {%      endfor %}
         )
-{% if record.has_field or record.has_enum or record.has_buffer%}:{% endif %}
-
+        : m_data
+            { 
 {%      for field in record.fields %}
-            m_{{ field.name }}( _{{ field.name }} ){% if not loop.is_last or record.has_enum or record.has_buffer%},{% endif %}
+                _{{ field.name }}{% if not loop.is_last or record.has_enum or record.has_buffer%},{% endif %}
 
 {%      endfor %}
 {%      for enum in record.enums %}
-            m_{{ enum.name }}( _{{ enum.name }} ){% if not loop.is_last or record.has_buffer%},{% endif %}
+                _{{ enum.name }}{% if not loop.is_last or record.has_buffer%},{% endif %}
 
 {%      endfor %}
+            }
 {%      for buffer in record.buffers %}
-            m_{{ buffer.name }}( _{{ buffer.name }} ){% if not loop.is_last%},{% endif %}
-
+            , m_{{ buffer.name }}( _{{ buffer.name }} )
 {%      endfor %}
         {}
 
+{% if not record.has_buffer %}
+        static constexpr U64 size()
+        {
+            return sizeof( Data );
+        }
+{% else %}
         inline U64 size() const
         {
-            return
-{%      for field in record.fields %}
-                sizeof( {{ field.type }} ) +
-{%      endfor %}
-{%      for enum in record.enums %}
-                sizeof( {{ enum.name }} ) +
-{%      endfor %}
+            return sizeof( Data )
+{% if record.has_buffer %}
+                 + sizeof( SizeType )
+{% endif %}
 {%      for buffer in record.buffers %}
-                m_{{ buffer.name }}.size() + sizeof( SizeType ) + 1U +
+                 + m_{{ buffer.name }}.size() + sizeof( SizeType ) + 1U
 {%      endfor %}
-                {{ record.padding }};
+            ;
         }
+{% endif %}
 
         template< typename FileType >
         inline auto write( FileType& file ) const
         {
-{%      for field in record.fields %}
-            {% if loop.is_last and not record.has_enum and not record.has_buffer and not record.padding%}return {% endif %}file.write( &m_{{ field.name }}, sizeof( {{ field.type }} ) );
-{%      endfor %}
-{%      for enum in record.enums %}
-            {% if loop.is_last and not record.has_buffer and not record.padding%}return {% endif %}file.write( &m_{{ enum.name }}, sizeof( {{ enum.name }} ) );
-{%      endfor %}
+{% if record.has_buffer %}
+            {
+                // write the variable size
+                SizeType variableSize = size();
+                file.write( &variableSize, sizeof( SizeType ) );
+            }
+{% endif %}
+            {% if not record.has_buffer %}return {% endif %}file.write( &m_data, sizeof( Data ) );
 {%      for buffer in record.buffers %}
             {
                 const SizeType sz = static_cast< SizeType >( m_{{ buffer.name }}.size() );
                 file.write( &sz, sizeof( SizeType ) );
                 file.write( m_{{ buffer.name }}.data(), sz );
-                {% if loop.is_last  and not record.padding%}return {% endif %}file.write( &nullbyte, 1 );
+                {% if loop.is_last %}return {% endif %}file.write( &nullbyte, 1 );
             }
 {%      endfor %}
-{% if record.padding %}
-            {
-                static const char padding[ {{ record.padding }} ] = { 0U };
-                return file.write( &padding[ 0 ], {{ record.padding }} );
-            }
-{% endif %}
         }
     private:
         //data
-{%      for field in record.fields %}
-        {{ field.type }} m_{{ field.name }};
-{%      endfor %}
-{%      for enum in record.enums %}
-        {{ enum.name }} m_{{ enum.name }};
-{%      endfor %}
+        Data m_data;
 {%      for buffer in record.buffers %}
         std::string_view m_{{ buffer.name }};
 {%      endfor %}

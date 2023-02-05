@@ -59,7 +59,7 @@ File::File( const boost::filesystem::path& logFolderPath, const std::string& str
     , m_fileMapping( m_filePath.string().c_str(), boost::interprocess::read_write )
     , m_region( m_fileMapping, boost::interprocess::read_write, 0,
                 LogFileSize /*, nullptr, boost::interprocess::default_map_options*/ )
-    , m_iterator( 0 )
+    , m_writePosition( 0 )
 
 {
     m_region.advise( boost::interprocess::mapped_region::advice_sequential );
@@ -68,38 +68,6 @@ File::File( const boost::filesystem::path& logFolderPath, const std::string& str
 File::~File()
 {
     m_region.flush( 0U, m_region.get_size() );
-}
-
-const void* File::read( InterFileOffset offset ) const
-{
-    return reinterpret_cast< char* >( m_region.get_address() ) + offset.get();
-}
-
-bool File::fit( U64 size ) const
-{
-    return m_iterator.get() + size <= LogFileSize;
-}
-
-InterFileOffset File::write( const void* pData, U64 size )
-{
-    std::memcpy( reinterpret_cast< char* >( m_region.get_address() ) + m_iterator.get(),
-                 reinterpret_cast< const char* >( pData ), size );
-    m_iterator = InterFileOffset{ m_iterator.get() + size };
-    return m_iterator;
-}
-
-void File::terminate()
-{
-    if( m_iterator.get() + sizeof( U64 ) <= LogFileSize )
-    {
-        static const U64 nullsize = 0U;
-        write( &nullsize, sizeof( U64 ) );
-    }
-}
-bool File::isTerminate() const
-{
-    return ( ( LogFileSize - m_iterator.get() ) < sizeof( U64 ) )
-           || ( ( *reinterpret_cast< U64* >( m_region.get_address() ) + m_iterator.get() ) == 0U );
 }
 
 FileSequence::FileSequence( const boost::filesystem::path& folderPath, const std::string& strName )

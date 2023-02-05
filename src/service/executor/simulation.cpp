@@ -19,8 +19,8 @@
 
 #include "simulation.hpp"
 
-#include "jit/program_functions.hxx"
 #include "jit/jit_exception.hpp"
+#include "jit/program_functions.hxx"
 
 #include "service/executor.hpp"
 
@@ -43,6 +43,7 @@ namespace mega::service
 Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
     , MPOContext( conversationID )
+    , m_scheduler( m_log )
     , m_timer( executor.m_io_context )
 {
 }
@@ -402,26 +403,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
                                  const network::Transaction& transaction, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimLockRelease: {} {}", requestingMPO, targetMPO );
-
-    // NOTE: can context switch when call get_load_record
-    static thread_local mega::runtime::program::RecordLoadBin recordLoadBin;
-/*
-    for( const auto& [ ref, type ] : transaction.getSchedulingRecords() )
-    {
-        SPDLOG_INFO( "SIM::SimLockRelease Got scheduling record: {} {}", ref, type );
-    }
-
-    for( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
-    {
-        if( i == log::toInt( log::TrackType::Log ) || i == log::toInt( log::TrackType::Scheduler ) )
-            continue;
-        for( const auto& [ ref, str ] : transaction.getMemoryRecords( log::MemoryTrackType( i ) ) )
-        {
-            SPDLOG_INFO( "SIM::SimLockRelease Got memory record: {} {}", ref, str );
-            recordLoadBin( ref, (void*)str.data(), str.size() );
-        }
-    }
-*/
+    applyTransaction( transaction );
 }
 void Simulation::SimClock( boost::asio::yield_context& )
 {

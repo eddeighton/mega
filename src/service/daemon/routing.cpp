@@ -243,6 +243,7 @@ network::Message DaemonRequestConversation::MPODown( const network::Message&    
     else
     {
         THROW_RTE( "Routing error cannot locate mpo: " << mpo );
+        return network::Message{};
     }
 }
 network::Message DaemonRequestConversation::MPOUp( const network::Message&     request,

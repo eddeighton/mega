@@ -53,18 +53,53 @@ public:
     File( const boost::filesystem::path& logFolderPath, const std::string& strFileType, FileIndex fileIndex );
     ~File();
 
-    const void* read( InterFileOffset offset ) const;
-    bool        fit( U64 size ) const;
+    inline const void* read( InterFileOffset offset ) const noexcept
+    {
+        return reinterpret_cast< char* >( m_region.get_address() ) + offset.get();
+    }
 
-    InterFileOffset write( const void* pData, U64 size );
-    void            terminate();
-    bool            isTerminate() const;
+    inline bool fit( U64 size ) const noexcept { return m_writePosition.get() + size <= LogFileSize; }
+
+    inline InterFileOffset write( const void* pData, U64 size ) noexcept
+    {
+        std::memcpy( reinterpret_cast< char* >( m_region.get_address() ) + m_writePosition.get(),
+                     reinterpret_cast< const char* >( pData ), size );
+        m_writePosition = InterFileOffset{ m_writePosition.get() + size };
+        return m_writePosition;
+    }
+
+    template < typename RecordType >
+    void terminate() noexcept
+    {
+        if constexpr( RecordType::Variable )
+        {
+            if( fit( sizeof( SizeType ) ) )
+            {
+                static const SizeType nullsize = 0U;
+                write( &nullsize, sizeof( SizeType ) );
+            }
+        }
+    }
+
+    template < typename RecordType >
+    bool isTerminated() const noexcept
+    {
+        static_assert( !RecordType::Variable, "incorrect isTerminated function used" );
+        return !fit( RecordType::size() );
+    }
+
+    template < typename RecordType >
+    bool isTerminated( InterFileOffset readPosition ) const noexcept
+    {
+        static_assert( RecordType::Variable, "incorrect isTerminated function used" );
+        return !fit( sizeof( SizeType ) ) || ( RecordType::getVariableSize( read( readPosition ) ) == 0U );
+    }
 
 private:
     boost::filesystem::path            m_filePath;
     boost::interprocess::file_mapping  m_fileMapping;
     boost::interprocess::mapped_region m_region;
-    InterFileOffset                    m_iterator;
+    InterFileOffset                    m_writePosition;
 };
 
 class FileSequence
@@ -100,7 +135,7 @@ public:
     static_assert( RecordSize == 64U, "Unexpected record size" );
     static constexpr auto RecordsPerFile = LogFileSize / RecordSize;
 
-    static FileIndex toFileIndex( TimeStamp timeStamp )
+    static FileIndex toFileIndex( TimeStamp timeStamp ) noexcept
     {
         return FileIndex{ static_cast< U32 >( timeStamp / RecordsPerFile ) };
     }
@@ -137,13 +172,25 @@ class Iterator
         ASSERT( m_pFile );
         const void* pData = m_pFile->read( m_position );
 
-        if( m_pFile->isTerminate() )
+        bool bIsTerminated = false;
+        if constexpr ( RecordType::Variable )
+        {
+            bIsTerminated = m_pFile->isTerminated< RecordType >( m_position );
+        }
+        else
+        {
+            bIsTerminated = m_pFile->isTerminated< RecordType >();
+        }
+
+        if( bIsTerminated )
         {
             // then skip to next file
             FileIndex fileIndex = m_position;
             m_position          = Offset( FileIndex{ fileIndex.get() + 1 }, InterFileOffset{} );
-            m_pFile             = nullptr;
-            return get();
+
+            m_pFile = m_track.getFile( m_position );
+            ASSERT( m_pFile );
+            pData = m_pFile->read( m_position );
         }
         return pData;
     }
@@ -159,18 +206,26 @@ class Iterator
     }
 
 public:
-    inline bool operator==( const Iterator& cmp ) const { return m_position == cmp.m_position; }
-    inline bool operator!=( const Iterator& cmp ) const { return !this->operator==( cmp ); }
+    inline bool operator==( const Iterator& cmp ) const noexcept { return m_position == cmp.m_position; }
+    inline bool operator!=( const Iterator& cmp ) const noexcept { return !this->operator==( cmp ); }
 
-    inline RecordType operator*() const { return RecordType( get() ); }
+    inline RecordType operator*() const noexcept { return RecordType( get() ); }
 
-    inline void operator++() // pre increment only
+    inline void operator++() noexcept // pre increment only
     {
-        RecordType record( get() );
-        m_position = Offset( m_position, InterFileOffset{ InterFileOffset( m_position ).get() + record.size() } );
+        if constexpr( RecordType::Variable )
+        {
+            m_position = Offset( m_position, InterFileOffset{ InterFileOffset( m_position ).get()
+                                                              + RecordType::getVariableSize( get() ) } );
+        }
+        else
+        {
+            m_position
+                = Offset( m_position, InterFileOffset{ InterFileOffset( m_position ).get() + RecordType::size() } );
+        }
     }
 
-    inline const Offset& position() const { return m_position; }
+    inline const Offset& position() const noexcept { return m_position; }
 
 private:
     const impl::Track&        m_track;
@@ -193,8 +248,8 @@ class Storage
         return m_tracks[ toInt( trackType ) ];
     }
 
-    template < typename MsgType >
-    inline void write( const MsgType& msg, TrackType trackType )
+    template < typename RecordType >
+    inline void write( const RecordType& record, TrackType trackType )
     {
         using namespace impl;
         Offset&   offset    = m_iterator.get( trackType );
@@ -203,15 +258,15 @@ class Storage
         Track& track = getTrack( trackType );
         File*  pFile = track.getFile( fileIndex );
 
-        if( !pFile->fit( msg.size() ) )
+        if( !pFile->fit( record.size() ) )
         {
-            pFile->terminate();
+            pFile->terminate< RecordType >();
             fileIndex = FileIndex{ fileIndex.get() + 1 };
             pFile     = track.getFile( fileIndex );
         }
-        ASSERT( pFile->fit( msg.size() ) );
+        ASSERT( pFile->fit( record.size() ) );
 
-        offset = Offset{ fileIndex, msg.template write< File >( *pFile ) };
+        offset = Offset{ fileIndex, record.template write< File >( *pFile ) };
     }
 
 public:
@@ -243,6 +298,11 @@ public:
         return { getTrack( RecordType::Track ) };
     }
     template < typename RecordType >
+    inline Iterator< RecordType > begin( const IndexRecord& position ) const
+    {
+        return { getTrack( RecordType::Track ), position.get< RecordType::Track >() };
+    }
+    template < typename RecordType >
     inline Iterator< RecordType > begin( TimeStamp timestamp ) const
     {
         return { getTrack( RecordType::Track ), get( RecordType::Track, timestamp ) };
@@ -254,10 +314,14 @@ public:
     }
 
     // access current time stamp
-    TimeStamp getTimeStamp() const { return m_timestamp; }
+    inline TimeStamp getTimeStamp() const { return m_timestamp; }
 
     // access current index
-    const IndexRecord& getIterator() const { return m_iterator; }
+    inline const IndexRecord& getIterator() const { return m_iterator; }
+
+    // get the current offset of a given track
+    template < typename RecordType >
+    inline const Offset& getTrackEnd() const { return m_iterator.get< RecordType::Track >(); }
 
 private:
     const boost::filesystem::path m_folderPath;

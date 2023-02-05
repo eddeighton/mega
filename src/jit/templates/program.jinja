@@ -28,6 +28,7 @@ namespace mega::mangle
 {
 {% for event in events %}
     void load_record_{{event}}(void*,void*,mega::U64);
+    void save_record_{{event}}(const reference&,const void*);
 {% endfor %}
 }
 
@@ -107,6 +108,7 @@ void record_load_bin( mega::reference ref, void* pData, mega::U64 size )
                 + {{ type.part_offset }} + ( {{ type.part_size }} * ref.getInstance() ) 
                 + {{ type.dimension_offset }};
             mega::mangle::load_record_{{ type.mangled_type_name }}( pTarget, pData, size );
+            mega::mangle::save_record_{{ type.mangled_type_name }}( ref, pTarget );
         }
         break;
 {% endfor %}

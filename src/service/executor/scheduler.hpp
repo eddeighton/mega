@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,57 +18,26 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef BASIC_SCHEDULER_12_SEPT_2022
-#define BASIC_SCHEDULER_12_SEPT_2022
+#ifndef GUARD_2023_February_04_scheduler
+#define GUARD_2023_February_04_scheduler
 
-#include "mega/reference.hpp"
-#include "mega/coroutine.hpp"
+#include "log/log.hpp"
 
-#include <functional>
-#include <memory>
-
-namespace mega
+namespace mega::service
 {
 
-////////////////////////////////////////////////////////////////////////////
-// the scheduler interface
 class Scheduler
 {
 public:
-    using StopperFunctionPtr = void (*)(mega::Instance);
-    using ActionOperator = std::function< mega::ActionCoroutine() >;
+    Scheduler( log::Storage& log );
 
-    Scheduler();
-
-    void allocated( const reference& ref, StopperFunctionPtr pStopper );
-    void call( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
-    void signal( const reference& ref );
-    void stop( const reference& ref );
-    void pause( const reference& ref );
-    void unpause( const reference& ref );
-
-    template < typename T, typename... Args >
-    void call( const T& staticRef, StopperFunctionPtr pStopper, Args... args )
-    {
-        using namespace std::placeholders;
-        call( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, args... ) );
-    }
-
-    // stopper callback
-    void stopped( const reference& ref );
-
-    // are there any active actions
-    bool active();
-
-    // run a cycle
     void cycle();
 
-    class SchedulerImpl;
-
 private:
-    std::shared_ptr< SchedulerImpl > m_pPimpl;
+    log::Storage& m_log;
+    log::Iterator< log::Scheduling::Read > m_schedulingIter;
 };
 
-} // namespace mega
+} // namespace mega::service
 
-#endif // BASIC_SCHEDULER_12_SEPT_2022
+#endif // GUARD_2023_February_04_scheduler

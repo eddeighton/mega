@@ -41,6 +41,10 @@ class IndexRecord
     static_assert( toInt( TrackType::TOTAL ) == 8, "Unexpected number of tracks" );
 
 public:
+
+    template< TrackType trackType >
+    inline const Offset& get() const { return m_offsets[ toInt( trackType ) ]; }
+
     inline const Offset& get( TrackType track ) const { return m_offsets[ toInt( track ) ]; }
     inline Offset&       get( TrackType track ) { return m_offsets[ toInt( track ) ]; }
 

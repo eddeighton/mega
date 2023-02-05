@@ -35,7 +35,7 @@ namespace mega::mangle
     void copy_{{copy}}(const void*,void*);
 {% endfor %}
 {% for event in events %}
-    void save_record_{{event}}(void*,const reference&,const void*,int);
+    void save_record_{{event}}(const reference&,const void*);
 {% endfor %}
 }
 
