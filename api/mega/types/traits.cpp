@@ -56,22 +56,7 @@ void log( const char* pszMsg )
     log.record( mega::log::Log::Write( mega::log::Log::eTrace, pszMsg ) );
 }
 
-void structure_new( const mega::reference& source, const mega::reference& target )
-{
-    mega::log::Storage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eNew ) );
-}
-void structure_detach( const mega::reference& source, const mega::reference& target )
-{
-    mega::log::Storage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eDetach ) );
-}
-void structure_destroy( const mega::reference& source, const mega::reference& target )
-{
-    mega::log::Storage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eDestroy ) );
-}
-void structure_create( const mega::reference& source, const mega::reference& target )
+void structure_make( const mega::reference& source, const mega::reference& target )
 {
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eMake ) );

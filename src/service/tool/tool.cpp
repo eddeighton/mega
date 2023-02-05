@@ -155,6 +155,48 @@ public:
         resetMPOContext();
     }
 
+    virtual network::Status GetStatus( const std::vector< network::Status >& childNodeStatus,
+                                       boost::asio::yield_context&           yield_ctx ) override
+    {
+        SPDLOG_TRACE( "ToolRequestConversation::GetStatus" );
+
+        network::Status status{ childNodeStatus };
+        {
+            std::vector< network::ConversationID > conversations;
+            {
+                for( const auto& id : m_tool.reportConversations() )
+                {
+                    if( id != getID() )
+                    {
+                        conversations.push_back( id );
+                    }
+                }
+            }
+            status.setConversationID( conversations );
+            status.setMPO( m_tool.getMPO() );
+            status.setDescription( m_tool.getProcessName() );
+
+            using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
+            using MPOVec          = std::vector< MPO >;
+            if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
+                status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
+            if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
+                status.setWrites( MPOTimeStampVec{ writes.begin(), writes.end() } );
+
+            {
+                std::ostringstream os;
+                os << "Tool: " << m_log.getTimeStamp();
+            }
+
+            status.setLogIterator( m_log.getIterator() );
+
+            status.setObjectID( m_pMemoryManager->getObjectID() );
+            status.setObjectCount( m_pMemoryManager->getObjectCount() );
+        }
+
+        return status;
+    }
+
     // mega::MPOContext
     // clock
     virtual TimeStamp cycle() override { return TimeStamp{}; }

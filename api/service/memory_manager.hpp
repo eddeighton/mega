@@ -50,6 +50,9 @@ public:
     {
     }
 
+    ObjectID getObjectID() const { return m_objectIDCounter; }
+    U64 getObjectCount() const { return m_heapMap.size(); }
+
     reference networkToHeap( const reference& networkAddress ) const
     {
         ASSERT( networkAddress.isNetworkAddress() );
@@ -60,32 +63,39 @@ public:
         return iFind->second;
     }
 
-    reference New( TypeID typeID )
+private:
+    reference New( const reference& networkAddress )
     {
-        Allocator::Ptr pAllocator = m_getAllocatorFPtr( typeID );
+        Allocator::Ptr pAllocator = m_getAllocatorFPtr( networkAddress.getType() );
 
         const mega::SizeAlignment sizeAlignment = pAllocator->getSizeAlignment();
         VERIFY_RTE_MSG( sizeAlignment.size > 0U, "Invalid size alignment" );
 
         HeapBufferPtr pHeapBuffer( sizeAlignment );
 
-        // establish the header including the network address, lock timestamp and shared ownership of allocator
-        const ObjectID  objectID = m_objectIDCounter++;
         const TimeStamp lockTime = 0U;
-        const reference networkAddress{ TypeInstance{ 0, typeID }, m_mpo, objectID };
-        ASSERT( ( typeID != ROOT_TYPE_ID ) || ( objectID == ROOT_OBJECT_ID ) );
 
         new( pHeapBuffer.get() ) ObjectHeader{ ObjectHeaderBase{ networkAddress, lockTime }, pAllocator };
 
         // invoke the constructor
         pAllocator->getCtor()( pHeapBuffer.get() );
 
-        reference heapAddress{ TypeInstance( 0, typeID ), m_mpo.getOwnerID(), pHeapBuffer.get() };
+        reference heapAddress{ networkAddress.getTypeInstance(), m_mpo.getOwnerID(), pHeapBuffer.get() };
 
-        m_heapMap.insert( { heapAddress, std::move( pHeapBuffer ) } );
-        m_netMap.insert( { networkAddress, heapAddress } );
+        VERIFY_RTE( m_heapMap.insert( { heapAddress, std::move( pHeapBuffer ) } ).second );
+        VERIFY_RTE( m_netMap.insert( { networkAddress, heapAddress } ).second );
 
         return heapAddress;
+    }
+
+public:
+    reference New( TypeID typeID )
+    {
+        // establish the header including the network address, lock timestamp and shared ownership of allocator
+        const ObjectID  objectID = m_objectIDCounter++;
+        const reference networkAddress{ TypeInstance{ 0, typeID }, m_mpo, objectID };
+        ASSERT( ( typeID != ROOT_TYPE_ID ) || ( objectID == ROOT_OBJECT_ID ) );
+        return New( networkAddress );
     }
 
     void Delete( reference& ref )

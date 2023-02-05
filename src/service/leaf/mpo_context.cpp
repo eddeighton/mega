@@ -89,9 +89,24 @@ MPO MPOContext::constructMPO( MP machineProcess )
     return request.SimCreate();
 }
 
-reference MPOContext::allocate( const reference& context, TypeID objectTypeID )
+reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )
 {
-    return m_pMemoryManager->New( objectTypeID );
+    if( parent.getMPO() == getThisMPO() )
+    {
+        return m_pMemoryManager->New( objectTypeID );
+    }
+    else
+    {
+        MPO targetMPO = parent.getMPO();
+        TimeStamp lockCycle = m_lockTracker.isWrite( targetMPO );
+        if( lockCycle == 0U )
+        {
+            lockCycle = getMPOSimRequest( targetMPO ).SimLockWrite( getThisMPO(), targetMPO );
+            VERIFY_RTE_MSG( lockCycle != 0U, "Failed to acquire write lock on: " << targetMPO );
+            m_lockTracker.onWrite( targetMPO, lockCycle );
+        }
+        return getLeafMemoryRequest().NetworkAllocate( targetMPO, objectTypeID, lockCycle );
+    }
 }
 
 // networkToHeap ONLY called when MPO matches
@@ -181,6 +196,8 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
 {
     // NOTE: can context switch when call get_load_record
     static thread_local mega::runtime::program::RecordLoadBin recordLoadBin;
+    static thread_local mega::runtime::program::RecordMake    recordMake;
+    static thread_local mega::runtime::program::RecordBreak   recordBreak;
 
     const network::Transaction::In& data = transaction.m_in.value();
     {
@@ -188,6 +205,20 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
         {
             SPDLOG_TRACE( "SIM::SimLockRelease Got structure record: {} {} {}", structure.m_data.m_Source,
                           structure.m_data.m_Target, log::Structure::toString( structure.m_data.m_Type ) );
+
+            switch( structure.m_data.m_Type )
+            {
+                case log::Structure::eMake:
+                    recordMake( structure.m_data.m_Source, structure.m_data.m_Target );
+                    break;
+                case log::Structure::eBreak:
+                    recordBreak( structure.m_data.m_Source, structure.m_data.m_Target );
+                    break;
+                default:
+                    THROW_RTE(
+                        "Unsupported structure record type: " << log::Structure::toString( structure.m_data.m_Type ) );
+                    break;
+            }
         }
     }
     {
@@ -195,6 +226,7 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
         {
             SPDLOG_TRACE( "SIM::SimLockRelease Got scheduling record: {} {}", scheduling.m_data.m_Ref,
                           log::Scheduling::toString( scheduling.m_data.m_Type ) );
+            m_log.record( log::Scheduling::Write( scheduling.m_data.m_Ref, scheduling.m_data.m_Type ) );
         }
     }
     {

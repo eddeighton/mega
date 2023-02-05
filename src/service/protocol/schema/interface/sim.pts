@@ -29,6 +29,12 @@ msg SimObjectSnapshot
     response( Snapshot snapshot );
 }
 
+msg SimAllocate
+{
+    request( TypeID objectTypeID );
+    response( reference result );
+}
+
 msg SimSnapshot
 {
     request( MPO mpo );

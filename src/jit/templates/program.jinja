@@ -81,7 +81,7 @@ mega::TypeID get_object_type_id( mega::TypeID typeID )
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "Unknown type in object_load_bin" };
+            throw mega::runtime::JITException{ "Unknown type in get_object_type_id" };
         }
         break;
     }
@@ -118,4 +118,12 @@ void record_load_bin( mega::reference ref, void* pData, mega::U64 size )
         }
         break;
     }
+}
+
+void record_make( mega::reference source, mega::reference target )
+{
+}
+
+void record_break( mega::reference source, mega::reference target )
+{
 }

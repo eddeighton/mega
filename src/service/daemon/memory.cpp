@@ -29,16 +29,14 @@ namespace mega::service
 {
 
 // network::memory::Impl
-void DaemonRequestConversation::MPODestroyed( const MPO& mpo, const bool& bDeleteShared,
+void DaemonRequestConversation::MPODestroyed( const MPO& mpo,
                                               boost::asio::yield_context& yield_ctx )
 {
-    /*bool bFirst = true;
     for( auto& [ id, pCon ] : m_daemon.m_server.getConnections() )
     {
         network::memory::Request_Sender sender( *this, *pCon, yield_ctx );
-        sender.MPODestroyed( mpo, bFirst );
-        bFirst = false;
-    }*/
+        sender.MPODestroyed( mpo );
+    }
 }
 
 void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,

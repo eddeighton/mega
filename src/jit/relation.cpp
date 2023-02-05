@@ -39,25 +39,25 @@ Relation::Relation( const RelationID& relationID, DatabaseInstance& database, JI
         std::ostringstream os;
         symbolPrefix( "link_make_", relationID, os );
         os << "N4mega9referenceES0_";
-        m_pMake = pModule->get< LinkMakeFunction >( os.str() );
+        m_pMake = pModule->get< relation::LinkMake::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "link_break_", relationID, os );
         os << "N4mega9referenceES0_";
-        m_pBreak = pModule->get< LinkBreakFunction >( os.str() );
+        m_pBreak = pModule->get< relation::LinkBreak::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "link_overwrite_", relationID, os );
         os << "N4mega9referenceES0_";
-        m_pOverwrite = pModule->get< LinkOverwriteFunction >( os.str() );
+        m_pOverwrite = pModule->get< relation::LinkOverwrite::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "link_reset_", relationID, os );
         os << "N4mega9referenceES0_";
-        m_pReset = pModule->get< LinkResetFunction >( os.str() );
+        m_pReset = pModule->get< relation::LinkReset::FunctionPtr >( os.str() );
     }
 }
 

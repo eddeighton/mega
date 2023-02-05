@@ -370,6 +370,12 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
     return archive.makeSnapshot( m_log.getTimeStamp() );
 }
 
+reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "SIM::SimAllocate: {}", objectTypeID );
+    return m_pMemoryManager->New( objectTypeID ).getNetworkAddress();
+}
+
 Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimLockRead: {}", mpo );
@@ -450,8 +456,11 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
     {
         status.setConversationID( { getID() } );
         status.setMPO( m_mpo.value() );
-        std::ostringstream os;
-        os << "Simulation: " << m_log.getTimeStamp();
+        {
+            std::ostringstream os;
+            os << "Simulation: " << m_log.getTimeStamp();
+            status.setDescription( os.str() );
+        }
         status.setLogIterator( m_log.getIterator() );
 
         using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
@@ -465,7 +474,8 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         if( const auto& writer = m_stateMachine.writer(); writer.has_value() )
             status.setWriter( writer.value() );
 
-        status.setDescription( os.str() );
+        status.setObjectID( m_pMemoryManager->getObjectID() );
+        status.setObjectCount( m_pMemoryManager->getObjectCount() );
     }
 
     return status;

@@ -1,6 +1,28 @@
 {
     "functions": [
         {
+            "name": "ObjectCtor",
+            "return": "void",
+            "return_type": "void",
+            "arguments": [
+                {
+                    "name": "pData",
+                    "type": "void*"
+                }
+            ]
+        },
+        {
+            "name": "ObjectDtor",
+            "return": "void",
+            "return_type": "void",
+            "arguments": [
+                {
+                    "name": "pBuffer",
+                    "type": "void*"
+                }
+            ]
+        },
+        {
             "name": "ObjectLoadBin",
             "return": "void",
             "return_type": "void",

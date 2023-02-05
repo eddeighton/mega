@@ -34,9 +34,9 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
     {
         std::vector< network::ConversationID > conversations;
         {
-            for ( const auto& [ id, pCon ] : m_leaf.m_conversations )
+            for( const auto& [ id, pCon ] : m_leaf.m_conversations )
             {
-                if ( id != getID() )
+                if( id != getID() )
                 {
                     conversations.push_back( id );
                 }
@@ -47,6 +47,8 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
         std::ostringstream os;
         os << m_leaf.getProcessName() << " of type: " << mega::network::Node::toStr( m_leaf.m_nodeType );
         status.setDescription( os.str() );
+
+        status.setObjectCount( m_leaf.m_pRemoteMemoryManager->getObjectCount() );
     }
 
     return status;
@@ -54,7 +56,7 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
 
 std::string LeafRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
-    using ::operator<<;
+    using ::           operator<<;
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";
     return os.str();

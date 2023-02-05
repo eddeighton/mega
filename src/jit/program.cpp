@@ -34,23 +34,41 @@ Program::Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
     : m_pModule( pModule )
 {
     SPDLOG_TRACE( "Program::ctor" );
-    {   
+    {
+        std::ostringstream os;
+        symbolPrefix( "get_object_type_id", os );
+        os << "s";
+        m_objectTypeID = m_pModule->get< program::ObjectTypeID::FunctionPtr >( os.str() );
+    }
+    {
         std::ostringstream os;
         symbolPrefix( "object_save_bin", os );
         os << "sPvS_";
-        m_objectSaveBin = m_pModule->get< ObjectSaveBinFunction >( os.str() );
+        m_objectSaveBin = m_pModule->get< program::ObjectSaveBin::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "object_load_bin", os );
         os << "sPvS_";
-        m_objectLoadBin = m_pModule->get< ObjectLoadBinFunction >( os.str() );
+        m_objectLoadBin = m_pModule->get< program::ObjectLoadBin::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "record_load_bin", os );
         os << "N4mega9referenceEPvm";
-        m_recordLoadBin = m_pModule->get< RecordLoadBinFunction >( os.str() );
+        m_recordLoadBin = m_pModule->get< program::RecordLoadBin::FunctionPtr >( os.str() );
+    }
+    {
+        std::ostringstream os;
+        symbolPrefix( "record_make", os );
+        os << "N4mega9referenceES0_";
+        m_recordMake = m_pModule->get< program::RecordMake::FunctionPtr >( os.str() );
+    }
+    {
+        std::ostringstream os;
+        symbolPrefix( "record_break", os );
+        os << "N4mega9referenceES0_";
+        m_recordBreak = m_pModule->get< program::RecordBreak::FunctionPtr >( os.str() );
     }
 }
 } // namespace mega::runtime

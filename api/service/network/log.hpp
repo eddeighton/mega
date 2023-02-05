@@ -172,7 +172,10 @@ struct formatter< mega::TypeInstance >
     template < typename FormatContext >
     inline auto format( const mega::TypeInstance& typeInstance, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "type:{}.instance:{}", typeInstance.type, typeInstance.instance );
+        std::ostringstream os;
+        using ::           operator<<;
+        os << typeInstance;
+        return format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -181,12 +184,12 @@ struct formatter< mega::MP >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    inline auto format( const mega::MP& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::MP& mp, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
         using ::           operator<<;
-        os << address;
-        return format_to( ctx.out(), "mp:{}", os.str() );
+        os << mp;
+        return format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -195,10 +198,12 @@ struct formatter< mega::MPO >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    inline auto format( const mega::MPO& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::MPO& mpo, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to(
-            ctx.out(), "mpo:{}.{}.{}", address.getMachineID(), address.getProcessID(), address.getOwnerID() );
+        std::ostringstream os;
+        using ::           operator<<;
+        os << mpo;
+        return format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -209,24 +214,10 @@ struct formatter< mega::reference >
     template < typename FormatContext >
     inline auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        if( ref.isHeapAddress() )
-        {
-            return format_to( ctx.out(), "{}.{}.type:{}.instance:{}", 
-                fmt::ptr( ref.getHeap() ), 
-                ref.getOwnerID(), 
-                ref.getTypeInstance().type, 
-                ref.getTypeInstance().instance 
-                );
-        }
-        else
-        {
-            return format_to( ctx.out(), "{}.mpo:{}.{}.{}.type:{}.instance:{}", 
-                ref.getObjectID(), 
-                ref.getMPO().getMachineID(), ref.getMPO().getProcessID(), ref.getMPO().getOwnerID(),
-                ref.getTypeInstance().type, 
-                ref.getTypeInstance().instance 
-                );
-        }
+        std::ostringstream os;
+        using ::           operator<<;
+        os << ref;
+        return format_to( ctx.out(), "{}", os.str() );
     }
 };
 

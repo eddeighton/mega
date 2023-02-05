@@ -37,70 +37,63 @@ namespace mega::service
 {
 
 // network::memory::Impl
-void LeafRequestConversation::MPODestroyed( const MPO& mpo, const bool& bDeleteShared,
-                                            boost::asio::yield_context& yield_ctx )
+void LeafRequestConversation::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised" );
-    // auto& jit      = m_leaf.getJIT();
-    // auto  compiler = getLLVMCompiler( yield_ctx );
-
-    // auto memoryAccess = [ &conversationBase = *this, &leaf = m_leaf, &yield_ctx = yield_ctx ]( MPO mpo ) ->
-    // std::string { return network::memory::Request_Sender( conversationBase, leaf.getDaemonSender(), yield_ctx
-    //).Acquire( mpo ); };
-
-    // if( bDeleteShared )
-    //{
-    //     m_leaf.getSharedMemory().freeAll( compiler, jit, mpo, memoryAccess );
-    // }
-
-    // m_leaf.getHeapMemory().freeAll( compiler, jit, mpo );
+    m_leaf.m_pRemoteMemoryManager->MPODestroyed( mpo );
 }
-/*
-void LeafRequestConversation::replicateSnapshot( const Snapshot& snapshot, const reference& machineRef, bool bGetShared,
-                                                 boost::asio::yield_context& yield_ctx )
+
+reference LeafRequestConversation::NetworkAllocate( const MPO& parent, const TypeID& objectTypeID,
+                                                    const TimeStamp& lockCycle, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::replicateSnapshot {} {}", machineRef, bGetShared );
+    SPDLOG_TRACE( "LeafRequestConversation::NetworkAllocate: {} {}", parent, objectTypeID );
 
-    auto& jit      = m_leaf.getJIT();
-    auto  compiler = getLLVMCompiler( yield_ctx );
+    reference result;
 
-    // auto daemonMemoryRequest = network::memory::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
-    // auto memoryAccessor
-    //     = [ &daemonMemoryRequest ]( MPO mpo ) -> std::string { return daemonMemoryRequest.Acquire( mpo ); };
-
-    ASSERT( machineRef.isHeapAddress() );
-    VERIFY_RTE_MSG( snapshot.getTimeStamp() > 0, "Snapshot failed" );
-
-    // construct all heap buffers in snapshot objects
-    const reference mpoRoot( TypeInstance::Root(), machineRef.getOwnerID(), machineRef.getHeap() );
-    bool            bFoundRoot = false;
-    for( const auto& objectIndex : snapshot.getObjects() )
+    if( MP( parent ) != m_leaf.m_mp )
     {
-        reference object = snapshot.getTable().indexToRef( objectIndex );
-        ASSERT_MSG( object.isHeapAddress(), "Snapshot object not machine ref" );
-        THROW_TODO;
-        // auto sharedMem = m_leaf.getSharedMemory().getOrConstruct( compiler, jit, object, memoryAccessor );
-        //  m_leaf.getHeapMemory().ensureAllocated( compiler, jit, sharedMem );
-        if( object.getType() == ROOT_TYPE_ID )
-        {
-            bFoundRoot = true;
-        }
+        network::sim::Request_Encoder simRequest{
+            [ leafRequest = getMPOUpSender( yield_ctx ), targetMPO = parent ]( const network::Message& msg ) mutable
+            { return leafRequest.MPOUp( msg, targetMPO ); },
+            getID() };
+
+        result = simRequest.SimAllocate( objectTypeID );
     }
-    VERIFY_RTE_MSG( bFoundRoot, "Failed to locate root in snapshot" );
-}*/
+    else
+    {
+        network::sim::Request_Encoder simRequest{
+            [ leafRequest = getMPODownSender( yield_ctx ), targetMPO = parent ]( const network::Message& msg ) mutable
+            { return leafRequest.MPODown( msg, targetMPO ); },
+            getID() };
+
+        result = simRequest.SimAllocate( objectTypeID );
+    }
+
+    auto llvm = getLLVMCompiler( yield_ctx );
+    return m_leaf.m_pRemoteMemoryManager->networkToHeap( result, llvm );
+}
 
 reference LeafRequestConversation::NetworkToHeap( const reference& ref, const TimeStamp& lockCycle,
                                                   boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestConversation::NetworkToHeap: {} {}", ref, lockCycle );
 
+    // short circuit if already got it
+    if( ref.isHeapAddress() && ref.getLockCycle() != lockCycle )
+    {
+        return ref;
+    }
+
+    auto llvm = getLLVMCompiler( yield_ctx );
+
+    const TypeID objectTypeID = m_leaf.getJIT().getProgram( llvm )->getObjectTypeID()( ref.getType() );
+
     // caller has called this because they ALREADY have appropriate read or write lock
-    reference heapAddress = ref;
+    reference heapAddress = reference::make( ref, TypeInstance{ 0U, objectTypeID } );
     {
         if( heapAddress.isNetworkAddress() )
         {
             // if not already heap address then get or construct heap object
-            auto llvm   = getLLVMCompiler( yield_ctx );
             heapAddress = m_leaf.m_pRemoteMemoryManager->networkToHeap( heapAddress, llvm );
         }
     }
@@ -135,20 +128,14 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
                 }
             }
 
-            auto llvm   = getLLVMCompiler( yield_ctx );
-
-            // NOTE: cannot used runtime function wrapper from leaf - not a MPOContext!
-            // static thread_local mega::runtime::program::ObjectLoadBin objectLoadBin;
-            // objectLoadBin( heapAddress.getType(), heapAddress.getHeap(), &archive );
-
-            auto allocator = m_leaf.getJIT().getAllocator( llvm, heapAddress.getType() );
+            auto           allocator = m_leaf.getJIT().getAllocator( llvm, heapAddress.getType() );
             BinLoadArchive archive( objectSnapshot );
             allocator->getLoadBin()( heapAddress.getHeap(), &archive );
         }
         heapAddress.setLockCycle( lockCycle );
     }
 
-    return heapAddress;
+    return reference::make( heapAddress, ref.getTypeInstance() );
 }
 
 } // namespace mega::service

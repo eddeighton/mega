@@ -92,6 +92,18 @@ Relation::Ptr JIT::getRelation( const CodeGenerator::LLVMCompiler& compiler, con
     return pRelation;
 }
 
+Program::Ptr JIT::getProgram( const CodeGenerator::LLVMCompiler& compiler ) 
+{
+    if( !m_pProgram )
+    {
+        std::ostringstream osModule;
+        m_codeGenerator.generate_program( compiler, m_database, osModule );
+        auto pModule = compile( osModule.str() );
+        m_pProgram   = std::make_unique< Program >( m_database, pModule );
+    }
+    return m_pProgram;
+}
+
 void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction )
 {
     SPDLOG_TRACE( "JIT: getProgramFunction: {}", fType );
@@ -101,17 +113,16 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
 
     m_programFunctionPointers.insert( ppFunction );
 
-    if( !m_pProgram )
-    {
-        std::ostringstream osModule;
-        m_codeGenerator.generate_program( compiler, m_database, osModule );
-        auto pModule = compile( osModule.str() );
-        m_pProgram   = std::make_unique< Program >( m_database, pModule );
-    }
+    getProgram( compiler );
 
     const auto functionType = static_cast< mega::runtime::program::FunctionType >( fType );
     switch( functionType )
     {
+        case program::eObjectTypeID:
+        {
+            *ppFunction = ( void* )m_pProgram->getObjectTypeID();
+        }
+        break;
         case program::eObjectSaveBin:
         {
             *ppFunction = ( void* )m_pProgram->getObjectSaveBin();
@@ -125,6 +136,16 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
         case program::eRecordLoadBin:
         {
             *ppFunction = ( void* )m_pProgram->getRecordLoadBin();
+        }
+        break;
+        case program::eRecordMake:
+        {
+            *ppFunction = ( void* )m_pProgram->getRecordMake();
+        }
+        break;
+        case program::eRecordBreak:
+        {
+            *ppFunction = ( void* )m_pProgram->getRecordBreak();
         }
         break;
         case program::TOTAL_FUNCTION_TYPES:

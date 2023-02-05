@@ -22,6 +22,7 @@
 #include "root.hpp"
 
 #include "service/protocol/model/sim.hxx"
+#include "service/protocol/model/memory.hxx"
 
 namespace mega::service
 {
@@ -64,11 +65,11 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
         }
 
         // notify to release
-        /*for ( auto& [ id, pCon ] : m_root.m_server.getConnections() )
+        for ( auto& [ id, pCon ] : m_root.m_server.getConnections() )
         {
             network::memory::Request_Sender sender( *this, *pCon, yield_ctx );
-            sender.MPODestroyed( simulationMPO, false );
-        }*/
+            sender.MPODestroyed( simulationMPO );
+        }
     }
 }
 

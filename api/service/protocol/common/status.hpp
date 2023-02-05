@@ -50,6 +50,8 @@ public:
     const std::optional< MPO >&                   getMPO() const { return m_mpo; }
     const std::vector< network::ConversationID >& getConversations() const { return m_conversationIDs; }
     const std::optional< log::IndexRecord >&      getLogIterator() const { return m_logIterator; }
+    const std::optional< U64 >&                   getObjectID() const { return m_objectID; }
+    const std::optional< U64 >&                   getObjectCount() const { return m_objectCount; }
 
     const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getReads() const { return m_reads; }
     const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getWrites() const { return m_writes; }
@@ -67,6 +69,8 @@ public:
         m_conversationIDs = conversations;
     }
     void setLogIterator( const log::IndexRecord& iterator ) { m_logIterator = iterator; }
+    void setObjectID( U64 id ) { m_objectID = id; }
+    void setObjectCount( U64 count ) { m_objectCount = count; }
 
     void setReads( const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& value ) { m_reads = value; }
     void setWrites( const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& value ) { m_writes = value; }
@@ -83,6 +87,8 @@ public:
         archive& m_mpo;
         archive& m_conversationIDs;
         archive& m_logIterator;
+        archive& m_objectID;
+        archive& m_objectCount;
 
         archive& m_reads;
         archive& m_writes;
@@ -99,6 +105,8 @@ private:
     std::optional< MPO >                   m_mpo;
     std::vector< network::ConversationID > m_conversationIDs;
     std::optional< log::IndexRecord >      m_logIterator;
+    std::optional< U64 >                   m_objectID;
+    std::optional< U64 >                   m_objectCount;
 
     std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_reads;
     std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_writes;

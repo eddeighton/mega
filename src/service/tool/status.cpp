@@ -24,30 +24,6 @@
 namespace mega::service
 {
 // network::project::Impl
-network::Status ToolRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                    boost::asio::yield_context&           yield_ctx )
-{
-    SPDLOG_TRACE( "ToolRequestConversation::GetStatus" );
-
-    network::Status status{ childNodeStatus };
-    {
-        std::vector< network::ConversationID > conversations;
-        {
-            for ( const auto& id : m_tool.reportConversations() )
-            {
-                if ( id != getID() )
-                {
-                    conversations.push_back( id );
-                }
-            }
-        }
-        status.setConversationID( conversations );
-        status.setMPO( m_tool.getMPO() );
-        status.setDescription( m_tool.m_strProcessName );
-    }
-
-    return status;
-}
 
 std::string ToolRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {

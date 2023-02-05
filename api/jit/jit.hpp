@@ -54,6 +54,7 @@ public:
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
     Relation::Ptr getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
+    Program::Ptr getProgram( const CodeGenerator::LLVMCompiler& compiler ) ;
 
     virtual void getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
 

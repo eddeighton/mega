@@ -99,8 +99,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void             RootSimRun( const MPO& mpo,
-                                         boost::asio::yield_context& yield_ctx ) override;
+    virtual void             RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
     virtual network::Message MPRoot( const network::Message& request, const MP& mp,
@@ -123,8 +122,7 @@ public:
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
     // network::memory::Impl
-    virtual void        MPODestroyed( const MPO& mpo, const bool& bDeleteShared,
-                                      boost::asio::yield_context& yield_ctx ) override;
+    virtual void MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;
@@ -138,9 +136,9 @@ public:
               boost::asio::yield_context&                                  yield_ctx ) override
     {
         std::vector< network::ConversationID > result;
-        for ( const auto& j : jobs )
+        for( const auto& j : jobs )
         {
-            for ( const auto& k : j )
+            for( const auto& k : j )
                 result.push_back( k );
         }
         return result;
@@ -148,13 +146,13 @@ public:
 
     // network::sim::Impl
     virtual TimeStamp SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
-                                  boost::asio::yield_context& yield_ctx ) override;
-    virtual TimeStamp SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
                                    boost::asio::yield_context& yield_ctx ) override;
-    virtual void     SimLockRelease( const MPO&                  requestingMPO,
-                                     const MPO&                  targetMPO,
-                                     const network::Transaction& transaction,
-                                     boost::asio::yield_context& yield_ctx ) override;
+    virtual TimeStamp SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+                                    boost::asio::yield_context& yield_ctx ) override;
+    virtual void      SimLockRelease( const MPO&                  requestingMPO,
+                                      const MPO&                  targetMPO,
+                                      const network::Transaction& transaction,
+                                      boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

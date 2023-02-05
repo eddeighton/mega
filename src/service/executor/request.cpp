@@ -40,20 +40,6 @@ MPO ExecutorRequestConversation::SimCreate( boost::asio::yield_context& yield_ct
 #define FORWARDED_MSG_ERROR( code ) \
 DO_STUFF_AND_REQUIRE_SEMI_COLON( code )
 
-//try                                                                                                  \
-//{
-//    code                                                                                                    \
-//}
-// catch( std::exception& ex )                                                                          \
-// {                                                                                                    \
-//     error( network::ReceivedMsg{ {}, request }, ex.what(), yield_ctx );  \
-// }                                                                                                    \
-// catch( mega::runtime::JITException& ex )                                                             \
-// {                                                                                                    \
-//     error( network::ReceivedMsg{ {}, request }, ex.what(), yield_ctx );  \
-// }                                                                                                    \
-
-
 // TODO: check ording of receiverID senderID is correct way round! - they are being swapped in response
 #define FORWARD_SIM_MSG_NO_ARG_NO_RETURN( namespace_, name )                                                 \
     case network::namespace_::MSG_##name##_Request::ID:                                                      \
@@ -121,6 +107,7 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
             FORWARD_SIM_MSG_ONE_ARG_ONE_RETURN( status, GetStatus, status );
             FORWARD_SIM_MSG_ONE_ARG_ONE_RETURN( status, Ping, msg );
             FORWARD_SIM_MSG_ONE_ARG_ONE_RETURN( sim, SimObjectSnapshot, object );
+            FORWARD_SIM_MSG_ONE_ARG_ONE_RETURN( sim, SimAllocate, objectTypeID );
             FORWARD_SIM_MSG_TWO_ARG_ONE_RETURN( sim, SimLockRead, requestingMPO, targetMPO );
             FORWARD_SIM_MSG_TWO_ARG_ONE_RETURN( sim, SimLockWrite, requestingMPO, targetMPO );
             FORWARD_SIM_MSG_THREE_ARG_NO_RETURN( sim, SimLockRelease, requestingMPO, targetMPO, transaction );

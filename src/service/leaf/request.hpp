@@ -147,10 +147,11 @@ public:
     }
 
     // network::memory::Impl
-    virtual void      MPODestroyed( const MPO& mpo, const bool& bDeleteShared,
-                                    boost::asio::yield_context& yield_ctx ) override;
+    virtual void      MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
     virtual reference NetworkToHeap( const reference& ref, const TimeStamp& lockCycle,
                                      boost::asio::yield_context& yield_ctx ) override;
+    virtual reference NetworkAllocate( const MPO& parent, const TypeID& objectTypeID, const TimeStamp& lockCycle,
+                                       boost::asio::yield_context& yield_ctx ) override;
 
     // public network::jit::Impl
     virtual void GetAllocator( const TypeID&               objectTypeID,
@@ -160,7 +161,6 @@ public:
 
     // network::project::Impl
     virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;
-
 };
 
 } // namespace mega::service

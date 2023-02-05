@@ -39,51 +39,51 @@ Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompil
         std::ostringstream os;
         symbolPrefix( "ctor_", objectTypeID, os );
         os << "Pv";
-        m_pCtor = pModule->get< ObjectCtorFunction >( os.str() );
+        m_pCtor = pModule->get< object::ObjectCtor::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "dtor_", objectTypeID, os );
         os << "Pv";
-        m_pDtor = pModule->get< ObjectDtorFunction >( os.str() );
+        m_pDtor = pModule->get< object::ObjectDtor::FunctionPtr >( os.str() );
     }
 
     {
         std::ostringstream os;
         symbolPrefix( "save_object_bin_", objectTypeID, os );
         os << "PvS_";
-        m_pSaveBin = pModule->get< ObjectSaveBinFunction >( os.str() );
+        m_pSaveBin = pModule->get< object::ObjectSaveBin::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "load_object_bin_", objectTypeID, os );
         os << "PvS_";
-        m_pLoadBin = pModule->get< ObjectLoadBinFunction >( os.str() );
+        m_pLoadBin = pModule->get< object::ObjectLoadBin::FunctionPtr >( os.str() );
     }
 
     {
         std::ostringstream os;
         symbolPrefix( "save_object_xml_structure_", objectTypeID, os );
         os << "N4mega9referenceEPv";
-        m_pSaveXMLStructure = pModule->get< ObjectSaveXMLStructureFunction >( os.str() );
+        m_pSaveXMLStructure = pModule->get< object::ObjectSaveXMLStructure::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "load_object_xml_structure_", objectTypeID, os );
         os << "N4mega9referenceEPv";
-        m_pLoadXMLStructure = pModule->get< ObjectLoadXMLStructureFunction >( os.str() );
+        m_pLoadXMLStructure = pModule->get< object::ObjectLoadXMLStructure::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "save_object_xml_", objectTypeID, os );
         os << "N4mega9referenceEPv";
-        m_pSaveXML = pModule->get< ObjectSaveXMLFunction >( os.str() );
+        m_pSaveXML = pModule->get< object::ObjectSaveXML::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "load_object_xml_", objectTypeID, os );
         os << "N4mega9referenceEPv";
-        m_pLoadXML = pModule->get< ObjectLoadXMLFunction >( os.str() );
+        m_pLoadXML = pModule->get< object::ObjectLoadXML::FunctionPtr >( os.str() );
     }
 }
 

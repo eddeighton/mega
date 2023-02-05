@@ -90,6 +90,16 @@ struct StatusPrinter
             }
         }
 
+        if( status.getObjectID().has_value() )
+        {
+            line( iCurrentDepth + 2 ) << "Object Allocations: " << status.getObjectID().value() << "\n";
+        }
+
+        if( status.getObjectCount().has_value() )
+        {
+            line( iCurrentDepth + 2 ) << "Active objects: " << status.getObjectCount().value() << "\n";
+        }
+
         if( status.getReads().has_value() )
         {
             for( const auto& [ mpo, lockCycle ] : status.getReads().value() )

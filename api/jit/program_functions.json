@@ -1,6 +1,17 @@
 {
     "functions": [
         {
+            "name": "ObjectTypeID",
+            "return": "mega::TypeID",
+            "return_type": "mega::TypeID",
+            "arguments": [
+                {
+                    "name": "typeID",
+                    "type": "mega::TypeID"
+                }
+            ]
+        },
+        {
             "name": "ObjectLoadBin",
             "return": "void",
             "return_type": "void",
@@ -54,6 +65,36 @@
                 {
                     "name": "size",
                     "type": "mega::U64"
+                }
+            ]
+        },
+        {
+            "name": "RecordMake",
+            "return": "void",
+            "return_type": "void",
+            "arguments": [
+                {
+                    "name": "source",
+                    "type": "mega::reference"
+                },
+                {
+                    "name": "target",
+                    "type": "mega::reference"
+                }
+            ]
+        },
+        {
+            "name": "RecordBreak",
+            "return": "void",
+            "return_type": "void",
+            "arguments": [
+                {
+                    "name": "source",
+                    "type": "mega::reference"
+                },
+                {
+                    "name": "target",
+                    "type": "mega::reference"
                 }
             ]
         }

@@ -168,9 +168,9 @@ TEST_F( BasicLogTest, StructureMsg )
     // clang-format off
     std::vector< Structure::Type > types = 
     {
-        Structure::eNew,
-        Structure::eDetach,
-        Structure::eDestroy, 
+        Structure::eMake, 
+        Structure::eMake, 
+        Structure::eBreak,
         Structure::eMake, 
         Structure::eBreak
     };

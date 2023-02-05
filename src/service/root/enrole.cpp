@@ -65,7 +65,7 @@ void RootRequestConversation::EnroleLeafDisconnect( const MP& mp, boost::asio::y
     network::memory::Request_Sender sender( *this, *pConnection, yield_ctx );
     for ( MPO mpo : terminatedMPOS )
     {
-        sender.MPODestroyed( mpo, false );
+        sender.MPODestroyed( mpo );
     }
 }
 

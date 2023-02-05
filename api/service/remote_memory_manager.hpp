@@ -36,8 +36,8 @@ namespace mega::runtime
 
 class RemoteMemoryManager
 {
-    using HeapMap       = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
-    using NetMap        = std::unordered_map< reference, reference, reference::Hash >;
+    using HeapMap = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
+    using NetMap  = std::unordered_map< reference, reference, reference::Hash >;
 
 public:
     using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID, runtime::CodeGenerator::LLVMCompiler& ) >;
@@ -49,12 +49,27 @@ public:
     {
     }
 
-    ObjectID allocateObjectID()
-    {
-        static ObjectID objectID = 0U;
-        return ++objectID;
-    }
+    U64 getObjectCount() const { return m_heapMap.size(); }
     
+    void MPODestroyed( const MPO& mpo )
+    {
+        std::vector< reference > heapAddresses;
+        {
+            for( auto i = m_heapMap.begin(), iEnd = m_heapMap.end(); i != iEnd; ++i )
+            {
+                if( i->first.getMPO() == mpo )
+                {
+                    heapAddresses.push_back( i->first );
+                }
+            }
+        }
+        for( const reference& ref : heapAddresses )
+        {
+            m_heapMap.erase( ref );
+            m_netMap.erase( ref.getNetworkAddress() );
+        }
+    }
+
     bool tryNetworkToHeap( reference& networkAddress ) const
     {
         auto iFind = m_netMap.find( networkAddress );
@@ -81,7 +96,6 @@ public:
         HeapBufferPtr pHeapBuffer( sizeAlignment );
 
         // establish the header including the network address, lock timestamp and shared ownership of allocator
-        const ObjectID  objectID = allocateObjectID();
         const TimeStamp lockTime = 0U;
 
         new( pHeapBuffer.get() ) ObjectHeader{ ObjectHeaderBase{ networkAddress, lockTime }, pAllocator };

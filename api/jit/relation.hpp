@@ -24,6 +24,8 @@
 #include "api.hpp"
 #include "orc.hpp"
 
+#include "relation_functions.hxx"
+
 #include "database/database.hpp"
 
 #include "mega/relation_id.hpp"
@@ -37,25 +39,20 @@ class JIT_EXPORT Relation
 public:
     using Ptr = std::shared_ptr< Relation >;
 
-    using LinkMakeFunction      = void ( * )( mega::reference, mega::reference );
-    using LinkBreakFunction     = void ( * )( mega::reference, mega::reference );
-    using LinkOverwriteFunction = void ( * )( mega::reference, mega::reference );
-    using LinkResetFunction     = void ( * )( mega::reference, mega::reference );
-
     Relation( const RelationID& relationID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
 
-    LinkMakeFunction      getMake() const { return m_pMake; }
-    LinkBreakFunction     getBreak() const { return m_pBreak; }
-    LinkOverwriteFunction getOverwrite() const { return m_pOverwrite; }
-    LinkResetFunction     getReset() const { return m_pReset; }
+    relation::LinkMake::FunctionPtr      getMake() const { return m_pMake; }
+    relation::LinkBreak::FunctionPtr     getBreak() const { return m_pBreak; }
+    relation::LinkOverwrite::FunctionPtr getOverwrite() const { return m_pOverwrite; }
+    relation::LinkReset::FunctionPtr     getReset() const { return m_pReset; }
 
 private:
-    RelationID               m_relationID;
-    JITCompiler::Module::Ptr m_pModule;
-    LinkMakeFunction         m_pMake      = nullptr;
-    LinkBreakFunction        m_pBreak     = nullptr;
-    LinkOverwriteFunction    m_pOverwrite = nullptr;
-    LinkResetFunction        m_pReset     = nullptr;
+    RelationID                           m_relationID;
+    JITCompiler::Module::Ptr             m_pModule;
+    relation::LinkMake::FunctionPtr      m_pMake      = nullptr;
+    relation::LinkBreak::FunctionPtr     m_pBreak     = nullptr;
+    relation::LinkOverwrite::FunctionPtr m_pOverwrite = nullptr;
+    relation::LinkReset::FunctionPtr     m_pReset     = nullptr;
 };
 } // namespace mega::runtime
 

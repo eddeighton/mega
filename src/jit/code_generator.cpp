@@ -279,61 +279,86 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
         using namespace FinalStage;
         using namespace FinalStage::Concrete;
 
-        MemoryLayout::Part* pPart      = pUserDimension->get_part();
-        const bool          bSimple    = pUserDimension->get_interface_dimension()->get_simple();
-        const std::string   strMangled = megaMangle( pUserDimension->get_interface_dimension()->get_erased_type() );
-
-        nlohmann::json typeInfo( { { "type_id", pUserDimension->get_concrete_id() },
-                                   { "part_offset", pPart->get_offset() },
-                                   { "part_size", pPart->get_size() },
-                                   { "dimension_offset", pUserDimension->get_offset() },
-                                   { "mangled_type_name", strMangled } } );
-        data[ "dimension_types" ].push_back( typeInfo );
-        events.insert( strMangled );
-
-        auto pContext = pUserDimension->get_parent();
-        while( pContext )
         {
-            if( db_cast< FinalStage::Concrete::Object >( pContext ) )
-                break;
-            pContext = db_cast< FinalStage::Concrete::Context >( pContext->get_parent() );
-        }
-        VERIFY_RTE_MSG( pContext, "Failed to locate parent object for type: " << pUserDimension->get_concrete_id() );
+            MemoryLayout::Part* pPart = pUserDimension->get_part();
+            // const bool          bSimple    = pUserDimension->get_interface_dimension()->get_simple();
+            const std::string strMangled = megaMangle( pUserDimension->get_interface_dimension()->get_erased_type() );
 
-        nlohmann::json objectTypeInfo(
-            { { "from", pUserDimension->get_concrete_id() }, { "to", pContext->get_concrete_id() } } );
-        data[ "concrete_types" ].push_back( objectTypeInfo );
+            nlohmann::json typeInfo( { { "type_id", pUserDimension->get_concrete_id() },
+                                       { "part_offset", pPart->get_offset() },
+                                       { "part_size", pPart->get_size() },
+                                       { "dimension_offset", pUserDimension->get_offset() },
+                                       { "mangled_type_name", strMangled } } );
+            data[ "dimension_types" ].push_back( typeInfo );
+            events.insert( strMangled );
+        }
+
+        {
+            auto pContext = pUserDimension->get_parent();
+            while( pContext )
+            {
+                if( db_cast< FinalStage::Concrete::Object >( pContext ) )
+                    break;
+                pContext = db_cast< FinalStage::Concrete::Context >( pContext->get_parent() );
+            }
+            VERIFY_RTE_MSG(
+                pContext, "Failed to locate parent object for type: " << pUserDimension->get_concrete_id() );
+
+            nlohmann::json objectTypeInfo(
+                { { "from", pUserDimension->get_concrete_id() }, { "to", pContext->get_concrete_id() } } );
+            data[ "concrete_types" ].push_back( objectTypeInfo );
+        }
     }
-    /*for( auto pLinkDimension : database.getLinkDimensions() )
+    for( auto pLinkDimension : database.getLinkDimensions() )
     {
         using namespace FinalStage;
         using namespace FinalStage::Concrete;
 
         std::string strMangled;
-        if ( db_cast< Concrete::Dimensions::LinkSingle >( pLinkDimension ) )
+        if( db_cast< Concrete::Dimensions::LinkMany >( pLinkDimension ) )
         {
-            //const std::string   strMangled
-            //    = megaMangle( pLinkDimension->get_link()-> );
+            // const std::string   strMangled
+            //     = megaMangle( pLinkDimension->get_link()-> );
         }
-        else if ( db_cast< Concrete::Dimensions::LinkSingle >( pLinkDimension ) )
+        else if( db_cast< Concrete::Dimensions::LinkSingle >( pLinkDimension ) )
         {
-
         }
         else
         {
             THROW_RTE( "Unknown link reference type" );
         }
 
-        MemoryLayout::Part* pPart   = pLinkDimension->get_part();
+        /*
+            MemoryLayout::Part* pPart = pLinkDimension->get_part();
+            nlohmann::json typeInfo( { { "type_id", pLinkDimension->get_concrete_id() },
+                                        { "part_offset", pPart->get_offset() },
+                                        { "part_size", pPart->get_size() },
+                                        { "dimension_offset", pLinkDimension->get_offset() },
+                                        { "mangled_type_name", strMangled } } );
+            data[ "dimension_types" ].push_back( typeInfo );
+            events.insert( strMangled );
+        */
 
-        nlohmann::json typeInfo( { { "type_id", pLinkDimension->get_concrete_id() },
-                                    { "part_offset", pPart->get_offset() },
-                                    { "part_size", pPart->get_size() },
-                                    { "dimension_offset", pLinkDimension->get_offset() },
-                                    { "mangled_type_name", strMangled } } );
-        data[ "dimension_types" ].push_back( typeInfo );
-        events.insert( strMangled );
-    }*/
+        {
+            auto pContext = pLinkDimension->get_parent();
+            while( pContext )
+            {
+                if( db_cast< FinalStage::Concrete::Object >( pContext ) )
+                    break;
+                pContext = db_cast< FinalStage::Concrete::Context >( pContext->get_parent() );
+            }
+            VERIFY_RTE_MSG(
+                pContext, "Failed to locate parent object for type: " << pLinkDimension->get_concrete_id() );
+
+            nlohmann::json objectTypeInfo(
+                { { "from", pLinkDimension->get_concrete_id() }, { "to", pContext->get_concrete_id() } } );
+            data[ "concrete_types" ].push_back( objectTypeInfo );
+
+            nlohmann::json objectTypeInfo2(
+                { { "from", pLinkDimension->get_link()->get_concrete_id() }, { "to", pContext->get_concrete_id() } } );
+            data[ "concrete_types" ].push_back( objectTypeInfo2 );
+        }
+    }
 
     for( const auto& event : events )
     {

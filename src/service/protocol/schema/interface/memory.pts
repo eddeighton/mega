@@ -19,12 +19,18 @@
 
 msg MPODestroyed
 {
-    request( MPO mpo, bool bDeleteShared );
+    request( MPO mpo );
     response();
 }
 
 msg NetworkToHeap
 {
     request( reference ref, TimeStamp lockCycle );
+    response( reference ref );
+}
+
+msg NetworkAllocate
+{
+    request( MPO parent, TypeID objectTypeID, TimeStamp lockCycle );
     response( reference ref );
 }
