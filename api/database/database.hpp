@@ -48,14 +48,19 @@ public:
     const FinalStage::Operations::Invocation*    getInvocation( const mega::InvocationID& invocation ) const;
     mega::TypeID                                 getInterfaceTypeID( mega::TypeID concreteTypeID ) const;
     FinalStage::Concrete::Object*                getObject( mega::TypeID objectType ) const;
+    FinalStage::Concrete::Action*                getAction( mega::TypeID actionType ) const;
     const FinalStage::Components::Component*     getComponent( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*     getOperationComponent( mega::TypeID objectType ) const;
     mega::U64                                    getLocalDomainSize( mega::TypeID concreteID ) const;
     std::vector< FinalStage::Concrete::Object* > getObjects() const;
 
-    std::vector< FinalStage::Concrete::Dimensions::User* > getUserDimensions() const;
+    std::vector< FinalStage::Concrete::Dimensions::User* >          getUserDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::LinkReference* > getLinkDimensions() const;
-    std::vector< FinalStage::Concrete::Dimensions::Allocation* > getAllocationDimensions() const;
+    std::vector< FinalStage::Concrete::Dimensions::Allocation* >    getAllocationDimensions() const;
+
+    using ObjectTypes = std::vector< std::pair< TypeID, TypeID > >;
+    void getObjectTypes( ObjectTypes& objectTypes ) const;
+
 private:
     mega::io::ArchiveEnvironment                      m_environment;
     mega::io::Manifest                                m_manifest;

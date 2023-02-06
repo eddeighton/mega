@@ -364,7 +364,7 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
     reference heapAddress = m_pMemoryManager->networkToHeap( object );
 
     BinSaveArchive archive;
-    archive.beginObject( heapAddress.getNetworkAddress() );
+    archive.beginObject( heapAddress.getHeaderAddress() );
     objectSaveBin( object.getType(), heapAddress.getHeap(), &archive );
 
     return archive.makeSnapshot( m_log.getTimeStamp() );
@@ -373,7 +373,7 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
 reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimAllocate: {}", objectTypeID );
-    return m_pMemoryManager->New( objectTypeID ).getNetworkAddress();
+    return m_pMemoryManager->New( objectTypeID ).getHeaderAddress();
 }
 
 Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx )

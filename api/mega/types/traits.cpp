@@ -59,23 +59,25 @@ void log( const char* pszMsg )
 void structure_make( const mega::reference& source, const mega::reference& target )
 {
     mega::log::Storage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eMake ) );
+    log.record( mega::log::Structure::Write(
+        source.getNetworkAddress(), target.getNetworkAddress(), mega::log::Structure::eMake ) );
 }
 void structure_break( const mega::reference& source, const mega::reference& target )
 {
     mega::log::Storage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write( source, target, mega::log::Structure::eBreak ) );
+    log.record( mega::log::Structure::Write(
+        source.getNetworkAddress(), target.getNetworkAddress(), mega::log::Structure::eBreak ) );
 }
 
 void action_start( const mega::reference& source )
 {
     mega::log::Storage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Scheduling::Write( source, mega::log::Scheduling::eStart ) );
+    log.record( mega::log::Scheduling::Write( source.getNetworkAddress(), mega::log::Scheduling::eStart ) );
 }
 void action_stop( const mega::reference& source )
 {
     mega::log::Storage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Scheduling::Write( source, mega::log::Scheduling::eStop ) );
+    log.record( mega::log::Scheduling::Write( source.getNetworkAddress(), mega::log::Scheduling::eStop ) );
 }
 
 bool ref_vector_contains( void* pData, const mega::reference& ref )

@@ -38,13 +38,24 @@ public:
     virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                         const mega::InvocationID& invocationID, int functionType, void** ppFunction )
         = 0;
-    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::TypeID& typeID,
+    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega::TypeID typeID,
                                     int functionType, void** ppFunction )
         = 0;
-    virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName,
-                                      const RelationID& relationID, int functionType,
-                                      void** ppFunction )
+    virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, const RelationID& relationID,
+                                      int functionType, void** ppFunction )
         = 0;
+
+    struct ActionInfo
+    {
+        enum Type
+        {
+            eCycle,
+            eAction,
+            TOTAL_TYPES
+        };
+        Type type;
+    };
+    virtual void getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo ) = 0;
 };
 
 class JITFunctor

@@ -1154,7 +1154,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                     osReturnTypeStr << strFunctionReturnTypeOpt.value();
                 }
                 // define function pointer type
-                osRuntimeReturnType << osReturnTypeStr.str() << "(*)( " << mega::psz_mega_reference;
+                osRuntimeReturnType << osReturnTypeStr.str() << "(*)( " << mega::psz_mega_reference << "* ";
                 if( functionParameterTypesOpt.has_value() )
                 {
                     for( const std::string& strType : functionParameterTypesOpt.value() )

@@ -66,7 +66,7 @@ public:
         for( const reference& ref : heapAddresses )
         {
             m_heapMap.erase( ref );
-            m_netMap.erase( ref.getNetworkAddress() );
+            m_netMap.erase( ref.getHeaderAddress() );
         }
     }
 
@@ -120,7 +120,7 @@ public:
 
         // remove the network address entry
         {
-            auto iFind2 = m_netMap.find( ref.getNetworkAddress() );
+            auto iFind2 = m_netMap.find( ref.getHeaderAddress() );
             VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for reference: " << ref );
             m_netMap.erase( iFind2 );
         }

@@ -92,7 +92,7 @@ Relation::Ptr JIT::getRelation( const CodeGenerator::LLVMCompiler& compiler, con
     return pRelation;
 }
 
-Program::Ptr JIT::getProgram( const CodeGenerator::LLVMCompiler& compiler ) 
+Program::Ptr JIT::getProgram( const CodeGenerator::LLVMCompiler& compiler )
 {
     if( !m_pProgram )
     {
@@ -283,7 +283,7 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
     }
 }
 
-void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::TypeID& typeID, int fType,
+void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega::TypeID typeID, int fType,
                              void** ppFunction )
 {
     SPDLOG_TRACE( "JIT::getObjectFunction : {} {} {}", pszUnitName, typeID, fType );
@@ -384,6 +384,17 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
         }
         break;
     }
+}
+
+void JIT::getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo )
+{
+    SPDLOG_TRACE( "JIT::getActionFunction : {}", typeID );
+    *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
+
+
+    const FinalStage::Concrete::Action* pAction = m_database.getAction( typeID );
+    actionInfo.type = ActionInfo::eAction;
+    
 }
 
 } // namespace mega::runtime

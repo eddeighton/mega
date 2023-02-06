@@ -61,11 +61,12 @@ public:
     virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                         const mega::InvocationID& invocationID, int functionType,
                                         void** ppFunction ) override;
-    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::TypeID& typeID,
+    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega::TypeID typeID,
                                     int functionType, void** ppFunction ) override;
     virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                       const RelationID& relationID, int functionType,
                                       void** ppFunction ) override;
+    virtual void getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo ) override;
 
 private:
     JITCompiler::Module::Ptr compile( const std::string& strCode );
@@ -93,6 +94,7 @@ private:
     Program::Ptr m_pProgram;
     using FunctionPtrSet = std::set< void* >;
     FunctionPtrSet m_programFunctionPointers;
+
 };
 
 } // namespace mega::runtime

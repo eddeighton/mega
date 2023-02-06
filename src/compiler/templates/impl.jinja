@@ -135,9 +135,9 @@ struct __invoke_impl
         using FunctionType = {{ invocation.runtime_return_type }};
         const FunctionType pFunction = (const FunctionType)( result.pFunction );
 {% if invocation.return_type == "void" %}
-        pFunction( result.context, args... );
+        pFunction( &result.context, args... );
 {% else %}
-        return pFunction( result.context, args... );
+        return pFunction( &result.context, args... );
 {% endif %}
     }
 {% else if invocation.explicit_operation == "Start" %}

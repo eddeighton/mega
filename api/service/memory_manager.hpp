@@ -56,7 +56,7 @@ public:
     reference networkToHeap( const reference& networkAddress ) const
     {
         ASSERT( networkAddress.isNetworkAddress() );
-        auto iFind = m_netMap.find( networkAddress.getNetworkAddress() );
+        auto iFind = m_netMap.find( networkAddress );
         using ::operator<<;
         VERIFY_RTE_MSG(
             iFind != m_netMap.end(), "Failed to locate network address entry for reference: " << networkAddress );
@@ -106,7 +106,7 @@ public:
 
         // remove the network address entry
         {
-            auto iFind2 = m_netMap.find( ref.getNetworkAddress() );
+            auto iFind2 = m_netMap.find( ref.getHeaderAddress() );
             VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for reference: " << ref );
             m_netMap.erase( iFind2 );
         }

@@ -90,7 +90,7 @@ public:
     {
         inline U64 operator()( const reference& ref ) const noexcept
         {
-            const reference& net = ref.getNetworkAddress();
+            const reference& net = ref.getHeaderAddress();
             return net.getObjectID() + ( ( U64 )net.getMachineID() << 4 );
         }
     };
@@ -102,8 +102,8 @@ public:
         return prc.m_heap;
     }
 
-    // heap only accessors - that use ObjectHeader
-    inline const reference& getNetworkAddress() const;
+    inline const reference& getHeaderAddress() const;
+    inline reference        getNetworkAddress() const;
     inline TimeStamp        getLockCycle() const;
     inline void             setLockCycle( TimeStamp lockCycle );
 
@@ -234,8 +234,7 @@ inline void reference::setLockCycle( TimeStamp lockCycle )
 {
     reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_lockCycle = lockCycle;
 }
-
-inline const reference& reference::getNetworkAddress() const
+inline const reference& reference::getHeaderAddress() const
 {
     if( isNetworkAddress() )
     {
@@ -247,6 +246,18 @@ inline const reference& reference::getNetworkAddress() const
     }
 }
 
+inline reference reference::getNetworkAddress() const
+{
+    if( isNetworkAddress() )
+    {
+        return *this;
+    }
+    else
+    {
+        return make( reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_networkAddress, getTypeInstance() );
+    }
+}
+
 constexpr inline ObjectID reference::getObjectID() const
 {
     if( isNetworkAddress() )
@@ -255,7 +266,7 @@ constexpr inline ObjectID reference::getObjectID() const
     }
     else
     {
-        return getNetworkAddress().getObjectID();
+        return getHeaderAddress().getObjectID();
     }
 }
 constexpr inline MPO reference::getMPO() const
@@ -266,7 +277,7 @@ constexpr inline MPO reference::getMPO() const
     }
     else
     {
-        return getNetworkAddress().getMPO();
+        return getHeaderAddress().getMPO();
     }
 }
 constexpr inline MP reference::getMP() const
@@ -277,7 +288,7 @@ constexpr inline MP reference::getMP() const
     }
     else
     {
-        return getNetworkAddress().getMP();
+        return getHeaderAddress().getMP();
     }
 }
 constexpr inline MachineID reference::getMachineID() const
@@ -288,7 +299,7 @@ constexpr inline MachineID reference::getMachineID() const
     }
     else
     {
-        return getNetworkAddress().getMachineID();
+        return getHeaderAddress().getMachineID();
     }
 }
 constexpr inline ProcessID reference::getProcessID() const
@@ -299,7 +310,7 @@ constexpr inline ProcessID reference::getProcessID() const
     }
     else
     {
-        return getNetworkAddress().getProcessID();
+        return getHeaderAddress().getProcessID();
     }
 }
 

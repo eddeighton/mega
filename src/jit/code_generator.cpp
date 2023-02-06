@@ -267,11 +267,20 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
                            { "object_types", nlohmann::json::array() },
                            { "concrete_types", nlohmann::json::array() },
                            { "dimension_types", nlohmann::json::array() } } );
+
+    {   
+        DatabaseInstance::ObjectTypes objectTypes;
+        database.getObjectTypes( objectTypes );
+        for( const auto& type : objectTypes )
+        {
+            nlohmann::json typeInfo( { { "from", type.first }, { "to", type.second } } );
+            data[ "concrete_types" ].push_back( typeInfo );
+        }
+    }
+
     for( const auto pObject : database.getObjects() )
     {
         data[ "object_types" ].push_back( pObject->get_concrete_id() );
-        nlohmann::json typeInfo( { { "from", pObject->get_concrete_id() }, { "to", pObject->get_concrete_id() } } );
-        data[ "concrete_types" ].push_back( typeInfo );
     }
     std::set< std::string > events;
     for( auto pUserDimension : database.getUserDimensions() )
@@ -291,22 +300,6 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
                                        { "mangled_type_name", strMangled } } );
             data[ "dimension_types" ].push_back( typeInfo );
             events.insert( strMangled );
-        }
-
-        {
-            auto pContext = pUserDimension->get_parent();
-            while( pContext )
-            {
-                if( db_cast< FinalStage::Concrete::Object >( pContext ) )
-                    break;
-                pContext = db_cast< FinalStage::Concrete::Context >( pContext->get_parent() );
-            }
-            VERIFY_RTE_MSG(
-                pContext, "Failed to locate parent object for type: " << pUserDimension->get_concrete_id() );
-
-            nlohmann::json objectTypeInfo(
-                { { "from", pUserDimension->get_concrete_id() }, { "to", pContext->get_concrete_id() } } );
-            data[ "concrete_types" ].push_back( objectTypeInfo );
         }
     }
     for( auto pLinkDimension : database.getLinkDimensions() )
@@ -338,26 +331,6 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
             data[ "dimension_types" ].push_back( typeInfo );
             events.insert( strMangled );
         */
-
-        {
-            auto pContext = pLinkDimension->get_parent();
-            while( pContext )
-            {
-                if( db_cast< FinalStage::Concrete::Object >( pContext ) )
-                    break;
-                pContext = db_cast< FinalStage::Concrete::Context >( pContext->get_parent() );
-            }
-            VERIFY_RTE_MSG(
-                pContext, "Failed to locate parent object for type: " << pLinkDimension->get_concrete_id() );
-
-            nlohmann::json objectTypeInfo(
-                { { "from", pLinkDimension->get_concrete_id() }, { "to", pContext->get_concrete_id() } } );
-            data[ "concrete_types" ].push_back( objectTypeInfo );
-
-            nlohmann::json objectTypeInfo2(
-                { { "from", pLinkDimension->get_link()->get_concrete_id() }, { "to", pContext->get_concrete_id() } } );
-            data[ "concrete_types" ].push_back( objectTypeInfo2 );
-        }
     }
 
     for( const auto& event : events )

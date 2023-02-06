@@ -69,6 +69,40 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
     }
 }
 
+void DatabaseInstance::getObjectTypes( ObjectTypes& objectTypes ) const
+{
+    for( const auto& [ id, pConcreteTypeID ] : m_concreteTypeIDs )
+    {
+        std::optional< FinalStage::Concrete::Object* > pObjectOpt;
+        {
+            if( pConcreteTypeID->get_context().has_value() )
+            {
+                pObjectOpt = pConcreteTypeID->get_context().value()->get_concrete_object();
+            }
+            else if( pConcreteTypeID->get_dim_user().has_value() )
+            {
+                pObjectOpt = pConcreteTypeID->get_dim_user().value()->get_parent()->get_concrete_object();
+            }
+            else if( pConcreteTypeID->get_dim_allocation().has_value() )
+            {
+                pObjectOpt = pConcreteTypeID->get_dim_allocation().value()->get_parent()->get_concrete_object();
+            }
+            else if( pConcreteTypeID->get_dim_link().has_value() )
+            {
+                pObjectOpt = pConcreteTypeID->get_dim_link().value()->get_parent()->get_concrete_object();
+            }
+            else
+            {
+                THROW_RTE( "Unreachable" );
+            }
+        }
+        if( pObjectOpt.has_value() )
+        {
+            objectTypes.push_back( { id, pObjectOpt.value()->get_concrete_id() } );
+        }
+    }
+}
+
 FinalStage::HyperGraph::Relation* DatabaseInstance::getRelation( const RelationID& relationID ) const
 {
     auto iFind = m_relations.find( relationID );
@@ -180,6 +214,21 @@ FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectTy
     }
     VERIFY_RTE_MSG( pObject, "Failed to locate concrete object id: " << objectType );
     return pObject;
+}
+
+FinalStage::Concrete::Action* DatabaseInstance::getAction( mega::TypeID actionType ) const
+{
+    auto iFind = m_concreteTypeIDs.find( actionType );
+    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << actionType );
+    auto pConcreteTypeID = iFind->second;
+
+    FinalStage::Concrete::Action* pAction = nullptr;
+    if( pConcreteTypeID->get_context().has_value() )
+    {
+        pAction = FinalStage::db_cast< FinalStage::Concrete::Action >( pConcreteTypeID->get_context().value() );
+    }
+    VERIFY_RTE_MSG( pAction, "Failed to locate concrete action id: " << actionType );
+    return pAction;
 }
 
 const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::TypeID objectType ) const

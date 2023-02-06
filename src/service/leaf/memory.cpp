@@ -109,11 +109,11 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
                 getID() };
 
             SPDLOG_TRACE( "LeafRequestConversation::NetworkToHeap: requesting snapshot for: {}",
-                          heapAddress.getNetworkAddress() );
-            Snapshot objectSnapshot = simRequest.SimObjectSnapshot( heapAddress.getNetworkAddress() );
+                          heapAddress.getHeaderAddress() );
+            Snapshot objectSnapshot = simRequest.SimObjectSnapshot( heapAddress.getHeaderAddress() );
             ASSERT( objectSnapshot.getTimeStamp() == lockCycle );
             SPDLOG_TRACE(
-                "LeafRequestConversation::NetworkToHeap: got snapshot for: {}", heapAddress.getNetworkAddress() );
+                "LeafRequestConversation::NetworkToHeap: got snapshot for: {}", heapAddress.getHeaderAddress() );
             {
                 AddressTable& addressTable = objectSnapshot.getTable();
                 for( AddressTable::Index objectIndex : objectSnapshot.getObjects() )

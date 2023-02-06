@@ -50,7 +50,7 @@ void resolve( const char* pszUnitName, const mega::RelationID& relationID, bool&
             // when jit returns EITHER
             // 1. the thread has started here and NOT from beginning
             //      In this case resolving == false && pFunction == nullptr
-            //      In which case it will call getObjectFunction
+            //      In which case it will call getRelationFunction
             // 2. or the thread already started from beginning
             //      Could be resuming any coroutine - but the jit call MUST have completed
             //      resolving == true

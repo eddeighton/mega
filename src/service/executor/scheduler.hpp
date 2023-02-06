@@ -21,21 +21,42 @@
 #ifndef GUARD_2023_February_04_scheduler
 #define GUARD_2023_February_04_scheduler
 
+#include "jit/functions.hpp"
+
+#include "service/protocol/common/jit_base.hpp"
+
 #include "log/log.hpp"
+
+#include "mega/coroutine.hpp"
+
+#include <unordered_map>
 
 namespace mega::service
 {
 
 class Scheduler
 {
+    struct ActionFunction
+    {
+        using FunctionType = mega::ActionCoroutine (*)( mega::reference*);
+        FunctionType functionPtr;
+        runtime::JITBase::ActionInfo info;
+    };
+    using ActionFunctionMap = std::unordered_map< TypeID, ActionFunction >;
+
 public:
     Scheduler( log::Storage& log );
 
     void cycle();
 
 private:
+    const ActionFunction& getActionFunction( TypeID typeID );
+
+private:
     log::Storage& m_log;
     log::Iterator< log::Scheduling::Read > m_schedulingIter;
+
+    ActionFunctionMap m_actionFunctions;
 };
 
 } // namespace mega::service

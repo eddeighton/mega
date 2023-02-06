@@ -303,6 +303,14 @@ void gen( Args args, FinalStage::Invocations::Operations::Start* pStart )
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::writeLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
 {{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
 {{ indent }}    mega::mangle::action_start( action );
 {{ indent }}    return action;
@@ -344,6 +352,14 @@ void gen( Args args, FinalStage::Invocations::Operations::Stop* pStop )
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::writeLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
 {{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
 {{ indent }}    mega::mangle::action_stop( action );
 {{ indent }}    return action;
