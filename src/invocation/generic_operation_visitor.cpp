@@ -141,37 +141,6 @@ bool GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
         {
             pInstruction = make_failure_ins( m_database, pInstruction );
             return false;
-
-            /*Concrete::Context* pFromContext = db_cast< Concrete::Context >( pFrom );
-            Concrete::Context* pToContext   = db_cast< Concrete::Context >( pTo );
-            if( pFromContext && pToContext )
-            {
-                pInstruction = make_failure_ins( m_database, pInstruction );
-                return false;
-                //THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root. From: "
-                //                            << pFromContext->get_interface()->get_identifier()
-                //                            << " To: " << pToContext->get_interface()->get_identifier() );
-            }
-            else if( pFromContext )
-            {
-                pInstruction = make_failure_ins( m_database, pInstruction );
-                return false;
-                //THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root. From: "
-                //                            << pFromContext->get_interface()->get_identifier() );
-            }
-            else if( pToContext )
-            {
-                pInstruction = make_failure_ins( m_database, pInstruction );
-                return false;
-                //THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root.  To: "
-                //                            << pToContext->get_interface()->get_identifier() );
-            }
-            else
-            {
-                pInstruction = make_failure_ins( m_database, pInstruction );
-                return false;
-                //THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root. " );
-            }*/
         }
 
         while( pFrom != pCommon )
@@ -254,6 +223,13 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
             {
                 case id_Imp_NoParams:
                 {
+                    // Allocate can ignor deriving concrete types other than matching one
+                    if( pCurrentConcrete->get_interface() != pCurrentInterface )
+                    {
+                        pInstruction = make_failure_ins( m_database, pInstruction );
+                        return;
+                    }
+
                     // only derive the parent for the starter
                     using OperationsStage::Invocations::Operations::Allocate;
                     Allocate* pAllocate = m_database.construct< Allocate >( Allocate::Args{
@@ -432,6 +408,12 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     }
                     else if( db_cast< Concrete::Object >( pCurrentConcrete ) )
                     {
+                        if( pCurrentConcrete->get_interface() != pCurrentInterface )
+                        {
+                            pInstruction = make_failure_ins( m_database, pInstruction );
+                            return;
+                        }
+
                         using OperationsStage::Invocations::Operations::Allocate;
                         Allocate* pAllocate = m_database.construct< Allocate >( Allocate::Args{
                             BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
@@ -478,33 +460,6 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     pInstruction->push_back_children( pStop );
                 }
                 break;
-                /*case id_Save:
-                {
-                    using OperationsStage::Invocations::Operations::Save;
-                    Save* pSave = m_database.construct< Save >( Save::Args{
-                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
-                                              pCurrentInterface, pCurrentConcrete } } );
-                    pInstruction->push_back_children( pSave );
-                }
-                break;
-                case id_Load:
-                {
-                    using OperationsStage::Invocations::Operations::Load;
-                    Load* pLoad = m_database.construct< Load >( Load::Args{
-                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
-                                              pCurrentInterface, pCurrentConcrete } } );
-                    pInstruction->push_back_children( pLoad );
-                }
-                break;
-                case id_Files:
-                {
-                    using OperationsStage::Invocations::Operations::Files;
-                    Files* pFiles = m_database.construct< Files >( Files::Args{
-                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
-                                              pCurrentInterface, pCurrentConcrete } } );
-                    pInstruction->push_back_children( pFiles );
-                }
-                break;*/
                 case id_Get:
                 {
                     using OperationsStage::Invocations::Operations::GetAction;

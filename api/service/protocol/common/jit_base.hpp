@@ -38,8 +38,8 @@ public:
     virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                         const mega::InvocationID& invocationID, int functionType, void** ppFunction )
         = 0;
-    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega::TypeID typeID,
-                                    int functionType, void** ppFunction )
+    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega::TypeID typeID, int functionType,
+                                    void** ppFunction )
         = 0;
     virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, const RelationID& relationID,
                                       int functionType, void** ppFunction )
@@ -56,6 +56,10 @@ public:
         Type type;
     };
     virtual void getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo ) = 0;
+
+    virtual void getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int functionType,
+                                      void** ppFunction )
+        = 0;
 };
 
 class JITFunctor

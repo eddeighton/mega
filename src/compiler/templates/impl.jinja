@@ -22,6 +22,7 @@
 #include <typeinfo>
 
 #include "jit/invocation_functions.hxx"
+#include "jit/operator_functions.hxx"
 
 namespace 
 {
@@ -233,4 +234,25 @@ static ResultType invoke_impl( Context context, Args... args )
 {
     using TypePathCanonical = typename mega::CanonicaliseTypePath< TypePath >::Type;
     return __invoke_impl< ResultType, Context, TypePathCanonical, Operation >()( context, args... );
+}
+
+template< typename To, typename From >
+static To mega_cast( const From& from )
+{
+    static thread_local mega::runtime::operators::Cast function( g_unit_name, To::ID );
+    return function( from );
+}
+
+template< typename Context >
+static bool mega_active( const Context& context )
+{
+    static thread_local mega::runtime::operators::Active function( g_unit_name, Context::ID );
+    return function( context );
+}
+
+template< typename Context >
+static bool mega_stopped( const Context& context )
+{
+    static thread_local mega::runtime::operators::Stopped function( g_unit_name, Context::ID );
+    return function( context );
 }

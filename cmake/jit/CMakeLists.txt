@@ -69,6 +69,13 @@ run_inja_template( ${MEGA_API_DIR}/jit/relation_functions.json
                 ${MEGA_SRC_DIR}/jit/relation_functions.cxx.jinja
                 ${MEGA_SRC_DIR}/jit/relation_functions.cxx )
 
+run_inja_template( ${MEGA_API_DIR}/jit/operator_functions.json
+                ${MEGA_API_DIR}/jit/operator_functions.hxx.jinja
+                ${MEGA_API_DIR}/jit/operator_functions.hxx )
+run_inja_template( ${MEGA_API_DIR}/jit/operator_functions.json
+                ${MEGA_SRC_DIR}/jit/operator_functions.cxx.jinja
+                ${MEGA_SRC_DIR}/jit/operator_functions.cxx )
+
 set( JINJA_TEMPLATES 
     ${MEGA_SRC_DIR}/jit/templates/allocate.jinja 
     ${MEGA_SRC_DIR}/jit/templates/allocator.jinja 
@@ -100,6 +107,7 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/jit.hpp
     ${MEGA_API_DIR}/jit/object_functions.hxx
     ${MEGA_API_DIR}/jit/object_header.hpp
+    ${MEGA_API_DIR}/jit/operator_functions.hxx
     ${MEGA_API_DIR}/jit/orc.hpp
     ${MEGA_API_DIR}/jit/program_functions.hxx
     ${MEGA_API_DIR}/jit/program.hpp
@@ -114,12 +122,14 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/jit/allocator.cpp
     ${MEGA_SRC_DIR}/jit/code_gen_allocator.cpp
     ${MEGA_SRC_DIR}/jit/code_gen_instructions.cpp
+    ${MEGA_SRC_DIR}/jit/code_gen_operators.cpp
     ${MEGA_SRC_DIR}/jit/code_generator.cpp
     ${MEGA_SRC_DIR}/jit/component_manager.cpp
     ${MEGA_SRC_DIR}/jit/functions.cpp
     ${MEGA_SRC_DIR}/jit/invocation_functions.cxx
     ${MEGA_SRC_DIR}/jit/jit.cpp
     ${MEGA_SRC_DIR}/jit/object_functions.cxx
+    ${MEGA_SRC_DIR}/jit/operator_functions.cxx
     ${MEGA_SRC_DIR}/jit/program_functions.cxx
     ${MEGA_SRC_DIR}/jit/program.cpp
     ${MEGA_SRC_DIR}/jit/relation_functions.cxx

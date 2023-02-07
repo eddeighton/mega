@@ -38,20 +38,23 @@ namespace mega::runtime
 
 class EGDB_EXPORT DatabaseInstance
 {
+    using InterfaceTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::InterfaceTypeID* >;
+    using ConcreteTypeIDMap  = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
+
 public:
-    using ConcreteTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
     FinalStage::HyperGraph::Relation* getRelation( const RelationID& relationID ) const;
 
-    mega::SizeAlignment                          getObjectSize( mega::TypeID objectType ) const;
-    const FinalStage::Operations::Invocation*    getInvocation( const mega::InvocationID& invocation ) const;
-    mega::TypeID                                 getInterfaceTypeID( mega::TypeID concreteTypeID ) const;
-    FinalStage::Concrete::Object*                getObject( mega::TypeID objectType ) const;
-    FinalStage::Concrete::Action*                getAction( mega::TypeID actionType ) const;
-    const FinalStage::Components::Component*     getComponent( mega::TypeID objectType ) const;
-    const FinalStage::Components::Component*     getOperationComponent( mega::TypeID objectType ) const;
-    mega::U64                                    getLocalDomainSize( mega::TypeID concreteID ) const;
+    SizeAlignment                                getObjectSize( TypeID objectType ) const;
+    const FinalStage::Operations::Invocation*    getInvocation( const InvocationID& invocation ) const;
+    TypeID                                       getInterfaceTypeID( TypeID concreteTypeID ) const;
+    std::vector< TypeID >                        getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
+    FinalStage::Concrete::Object*                getObject( TypeID objectType ) const;
+    FinalStage::Concrete::Action*                getAction( TypeID actionType ) const;
+    const FinalStage::Components::Component*     getComponent( TypeID objectType ) const;
+    const FinalStage::Components::Component*     getOperationComponent( TypeID objectType ) const;
+    U64                                          getLocalDomainSize( TypeID concreteID ) const;
     std::vector< FinalStage::Concrete::Object* > getObjects() const;
 
     std::vector< FinalStage::Concrete::Dimensions::User* >          getUserDimensions() const;
@@ -62,12 +65,13 @@ public:
     void getObjectTypes( ObjectTypes& objectTypes ) const;
 
 private:
-    mega::io::ArchiveEnvironment                      m_environment;
-    mega::io::Manifest                                m_manifest;
+    io::ArchiveEnvironment                            m_environment;
+    io::Manifest                                      m_manifest;
     FinalStage::Database                              m_database;
     std::vector< FinalStage::Components::Component* > m_components;
     FinalStage::Symbols::SymbolTable*                 m_pSymbolTable;
     ConcreteTypeIDMap                                 m_concreteTypeIDs;
+    InterfaceTypeIDMap                                m_interfaceTypeIDs;
     FinalStage::Concrete::Object*                     m_pConcreteRoot;
 
     using RelationMap = std::unordered_map< RelationID, FinalStage::HyperGraph::Relation*, RelationID::Hash >;

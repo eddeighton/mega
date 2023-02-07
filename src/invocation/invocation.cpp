@@ -727,10 +727,10 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
                 THROW_INVOCATION_EXCEPTION( "Mixed dimension and action invocation return types" );
             }
         }
-        if( derivedContexts.size() )
+        /*if( derivedContexts.size() )
         {
             bIsHomogenous = derivedContexts.size() == 1U;
-        }
+        }*/
         if( derivedDimensions.size() )
         {
             std::optional< std::string > typeOpt;
@@ -1070,7 +1070,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
             case mega::id_exp_Read:
             {
                 VERIFY_RTE_MSG( !dimensions.empty(), "Read has no dimensions" );
-                VERIFY_RTE_MSG( pInvocation->get_homogeneous(), "Non-homogenous dimensions" );
+                VERIFY_RTE_MSG( pInvocation->get_homogeneous(), "Read operation Non-homogenous dimensions" );
 
                 std::ostringstream osDimensionTrait;
                 {

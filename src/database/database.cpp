@@ -33,6 +33,7 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
     , m_components( m_database.many< FinalStage::Components::Component >( m_manifest.getManifestFilePath() ) )
     , m_pSymbolTable( m_database.one< FinalStage::Symbols::SymbolTable >( m_manifest.getManifestFilePath() ) )
     , m_concreteTypeIDs( m_pSymbolTable->get_concrete_type_ids() )
+    , m_interfaceTypeIDs( m_pSymbolTable->get_interface_type_ids() )
 {
     // determine the root concrete type ID
     {
@@ -199,6 +200,27 @@ mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID )
     {
         THROW_RTE( "Unreachable" );
     }
+}
+
+std::vector< TypeID > DatabaseInstance::getCompatibleConcreteTypes( TypeID interfaceTypeID ) const
+{
+    std::vector< TypeID > result;
+
+    auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
+    VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate interface type id: " << interfaceTypeID );
+    auto pInterfaceTypeID = iFind->second;
+
+    auto pContextOPT = pInterfaceTypeID->get_context();
+    VERIFY_RTE_MSG( pContextOPT.has_value(), "Interface type not a context for type id: " << interfaceTypeID );
+    if( pContextOPT.has_value() )
+    {
+        FinalStage::Interface::IContext* pIContext = pContextOPT.value();
+        for( auto pConcrete : pIContext->get_concrete() )
+        {
+            result.push_back( pConcrete->get_concrete_id() );
+        }
+    }
+    return result;
 }
 
 FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectType ) const

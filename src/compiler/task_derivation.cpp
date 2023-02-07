@@ -55,6 +55,55 @@ public:
         {
         }
 
+        void addInheritance( ContextMap& contextInheritance, DerivationAnalysis::Interface::IContext* pIContext, DerivationAnalysis::Concrete::Context* pContext ) const
+        {
+            using namespace DerivationAnalysis;
+            using namespace DerivationAnalysis::Derivation;
+            
+            contextInheritance.insert( { pIContext, pContext } );
+
+            if( auto pAbstract = db_cast< Interface::Abstract >( pIContext ) )
+            {
+                if( auto opt = pAbstract->get_inheritance_trait(); opt.has_value() )
+                {
+                    for( auto pInheritedIContext : opt.value()->get_contexts() )
+                    {
+                        addInheritance( contextInheritance, pInheritedIContext, pContext );
+                    }
+                }
+            }
+            else if( auto pAction = db_cast< Interface::Action >( pIContext ) )
+            {
+                if( auto opt = pAction->get_inheritance_trait(); opt.has_value() )
+                {
+                    for( auto pInheritedIContext : opt.value()->get_contexts() )
+                    {
+                        addInheritance( contextInheritance, pInheritedIContext, pContext );
+                    }
+                }
+            }
+            else if( auto pEvent = db_cast< Interface::Event >( pIContext ) )
+            {
+                if( auto opt = pEvent->get_inheritance_trait(); opt.has_value() )
+                {
+                    for( auto pInheritedIContext : opt.value()->get_contexts() )
+                    {
+                        addInheritance( contextInheritance, pInheritedIContext, pContext );
+                    }
+                }
+            }
+            else if( auto pObject = db_cast< Interface::Object >( pIContext ) )
+            {
+                if( auto opt = pObject->get_inheritance_trait(); opt.has_value() )
+                {
+                    for( auto pInheritedIContext : opt.value()->get_contexts() )
+                    {
+                        addInheritance( contextInheritance, pInheritedIContext, pContext );
+                    }
+                }
+            }
+        }
+
         DerivationAnalysis::Derivation::ObjectMapping* operator()( DerivationAnalysis::Database& database,
                                                                    const mega::io::megaFilePath& sourceFilePath,
                                                                    const task::DeterminantHash   interfaceHash ) const
@@ -66,7 +115,8 @@ public:
             {
                 for ( Concrete::Context* pContext : database.many< Concrete::Context >( sourceFilePath ) )
                 {
-                    contextInheritance.insert( { pContext->get_interface(), pContext } );
+                    Interface::IContext* pIContext = pContext->get_interface();
+                    addInheritance( contextInheritance, pIContext, pContext );
                 }
             }
 

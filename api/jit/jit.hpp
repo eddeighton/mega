@@ -53,20 +53,21 @@ public:
     JIT( const network::MegastructureInstallation& megastructureInstallation, const network::Project& project );
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
-    Relation::Ptr getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
-    Program::Ptr getProgram( const CodeGenerator::LLVMCompiler& compiler ) ;
+    Relation::Ptr  getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
+    Program::Ptr   getProgram( const CodeGenerator::LLVMCompiler& compiler );
 
     virtual void getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
 
     virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                         const mega::InvocationID& invocationID, int functionType,
                                         void** ppFunction ) override;
-    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega::TypeID typeID,
-                                    int functionType, void** ppFunction ) override;
-    virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName,
-                                      const RelationID& relationID, int functionType,
-                                      void** ppFunction ) override;
+    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega::TypeID typeID, int functionType,
+                                    void** ppFunction ) override;
+    virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, const RelationID& relationID,
+                                      int functionType, void** ppFunction ) override;
     virtual void getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo ) override;
+    virtual void getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int functionType,
+                                      void** ppFunction ) override;
 
 private:
     JITCompiler::Module::Ptr compile( const std::string& strCode );
@@ -95,6 +96,9 @@ private:
     using FunctionPtrSet = std::set< void* >;
     FunctionPtrSet m_programFunctionPointers;
 
+    using OperatorID   = std::pair< TypeID, int >;
+    using OperatorsMap = std::map< OperatorID, JITCompiler::Module::Ptr >;
+    OperatorsMap m_operators;
 };
 
 } // namespace mega::runtime

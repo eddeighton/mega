@@ -62,6 +62,14 @@ static inline void symbolPrefix( const mega::InvocationID& invocationID, std::os
     os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 
+static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, mega::TypeID objectTypeID2, std::ostream& os )
+{
+    using ::operator<<;
+    std::ostringstream osTypeID;
+    osTypeID << prefix << objectTypeID << '_' << objectTypeID2;
+    os << "_Z" << osTypeID.str().size() << osTypeID.str();
+}
+
 static std::string megaMangle( const std::string& strCanonicalTypeName )
 {
     std::ostringstream os;

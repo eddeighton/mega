@@ -268,7 +268,7 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
                            { "concrete_types", nlohmann::json::array() },
                            { "dimension_types", nlohmann::json::array() } } );
 
-    {   
+    {
         DatabaseInstance::ObjectTypes objectTypes;
         database.getObjectTypes( objectTypes );
         for( const auto& type : objectTypes )

@@ -23,6 +23,7 @@
 #include "invocation_functions.hxx"
 #include "program_functions.hxx"
 #include "relation_functions.hxx"
+#include "operator_functions.hxx"
 
 #include "service/network/log.hpp"
 
@@ -44,7 +45,7 @@ JIT::JIT( const mega::network::MegastructureInstallation& megastructureInstallat
 
 JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
 {
-    auto                     startTime = std::chrono::steady_clock::now();
+    // auto startTime = std::chrono::steady_clock::now();
     JITCompiler::Module::Ptr pModule   = m_jitCompiler.compile( strCode );
     // SPDLOG_TRACE( "JIT: JIT Compilation time: {}", std::chrono::steady_clock::now() - startTime );
     return pModule;
@@ -115,7 +116,7 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
 
     getProgram( compiler );
 
-    const auto functionType = static_cast< mega::runtime::program::FunctionType >( fType );
+    const auto functionType = static_cast< program::FunctionType >( fType );
     switch( functionType )
     {
         case program::eObjectTypeID:
@@ -175,7 +176,7 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         }
     }
 
-    const auto functionType = static_cast< mega::runtime::invocation::FunctionType >( fType );
+    const auto functionType = static_cast< invocation::FunctionType >( fType );
 
     if( !pModule )
     {
@@ -217,6 +218,14 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
             symbolPrefix( invocationID, os );
             os << "N4mega9referenceE14WriteOperationRKS0_";
             *ppFunction = ( void* )pModule->get< invocation::WriteLink::FunctionPtr >( os.str() );
+        }
+        break;
+        case invocation::eWriteLinkRange:
+        {
+            std::ostringstream os;
+            symbolPrefix( invocationID, os );
+            os << "N4mega9referenceE14WriteOperationRKS0_";
+            *ppFunction = ( void* )pModule->get< invocation::WriteLinkRange::FunctionPtr >( os.str() );
         }
         break;
         case invocation::eAllocate:
@@ -290,52 +299,64 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
     const CodeGenerator::LLVMCompiler& compiler
         = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
 
-    const auto functionType = static_cast< mega::runtime::object::FunctionType >( fType );
+    const auto functionType = static_cast< object::FunctionType >( fType );
     switch( functionType )
     {
-        case mega::runtime::object::eObjectLoadBin:
+        case object::eObjectCtor:
         {
             auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction     = ( void* )pAllocator->getLoadBin();
+            *ppFunction     = ( void* )pAllocator->getCtor();
         }
         break;
-        case mega::runtime::object::eObjectSaveBin:
+        case object::eObjectDtor:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction     = ( void* )pAllocator->getDtor();
+        }
+        break;
+        case object::eObjectSaveBin:
         {
             auto pAllocator = getAllocator( compiler, typeID );
             *ppFunction     = ( void* )pAllocator->getSaveBin();
         }
         break;
-        case mega::runtime::object::eCallGetter:
+        case object::eObjectLoadBin:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction     = ( void* )pAllocator->getLoadBin();
+        }
+        break;
+        case object::eCallGetter:
         {
             m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
             *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
         }
         break;
-        case mega::runtime::object::eObjectSaveXMLStructure:
+        case object::eObjectSaveXMLStructure:
         {
             auto pAllocator = getAllocator( compiler, typeID );
             *ppFunction     = ( void* )pAllocator->getSaveXMLStructure();
         }
         break;
-        case mega::runtime::object::eObjectLoadXMLStructure:
+        case object::eObjectLoadXMLStructure:
         {
             auto pAllocator = getAllocator( compiler, typeID );
             *ppFunction     = ( void* )pAllocator->getLoadXMLStructure();
         }
         break;
-        case mega::runtime::object::eObjectSaveXML:
+        case object::eObjectSaveXML:
         {
             auto pAllocator = getAllocator( compiler, typeID );
             *ppFunction     = ( void* )pAllocator->getSaveXML();
         }
         break;
-        case mega::runtime::object::eObjectLoadXML:
+        case object::eObjectLoadXML:
         {
             auto pAllocator = getAllocator( compiler, typeID );
             *ppFunction     = ( void* )pAllocator->getLoadXML();
         }
         break;
-        case mega::runtime::object::TOTAL_FUNCTION_TYPES:
+        case object::TOTAL_FUNCTION_TYPES:
         {
             THROW_RTE( "Unsupported object function" );
         }
@@ -351,34 +372,34 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
     const CodeGenerator::LLVMCompiler& compiler
         = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
 
-    const auto functionType = static_cast< mega::runtime::relation::FunctionType >( fType );
+    const auto functionType = static_cast< relation::FunctionType >( fType );
     switch( functionType )
     {
-        case mega::runtime::relation::eLinkMake:
+        case relation::eLinkMake:
         {
             auto pRelation = getRelation( compiler, relationID );
             *ppFunction    = ( void* )pRelation->getMake();
         }
         break;
-        case mega::runtime::relation::eLinkBreak:
+        case relation::eLinkBreak:
         {
             auto pRelation = getRelation( compiler, relationID );
             *ppFunction    = ( void* )pRelation->getBreak();
         }
         break;
-        case mega::runtime::relation::eLinkOverwrite:
+        case relation::eLinkOverwrite:
         {
             auto pRelation = getRelation( compiler, relationID );
             *ppFunction    = ( void* )pRelation->getOverwrite();
         }
         break;
-        case mega::runtime::relation::eLinkReset:
+        case relation::eLinkReset:
         {
             auto pRelation = getRelation( compiler, relationID );
             *ppFunction    = ( void* )pRelation->getReset();
         }
         break;
-        case mega::runtime::relation::TOTAL_FUNCTION_TYPES:
+        case relation::TOTAL_FUNCTION_TYPES:
         {
             THROW_RTE( "Unsupported object function" );
         }
@@ -391,10 +412,72 @@ void JIT::getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo&
     SPDLOG_TRACE( "JIT::getActionFunction : {}", typeID );
     *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
 
-
     const FinalStage::Concrete::Action* pAction = m_database.getAction( typeID );
     actionInfo.type = ActionInfo::eAction;
-    
+
 }
 
+void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target,
+                                    int fType, void** ppFunction )
+{
+    SPDLOG_TRACE(
+        "JIT::getOperatorFunction : {} {} {}", pszUnitName, target, fType );
+    const CodeGenerator::LLVMCompiler& compiler
+        = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
+
+    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+
+    const OperatorID operatorID = { target, fType };
+
+    JITCompiler::Module::Ptr pModule;
+    {
+        auto iFind = m_operators.find( operatorID );
+        if( iFind != m_operators.end() )
+        {
+            pModule = iFind->second;
+        }
+    }
+
+    const auto functionType = static_cast< operators::FunctionType >( fType );
+    if( !pModule )
+    {
+        std::ostringstream osModule;
+        m_codeGenerator.generate_operator( compiler, m_database, target, functionType, osModule );
+        pModule = compile( osModule.str() );
+        m_operators.insert( std::make_pair( operatorID, pModule ) );
+    }
+
+    switch( functionType )
+    {
+        case operators::eCast:
+        {
+            std::ostringstream os;
+            symbolPrefix( "mega_cast_", target, os );
+            os << "RKN4mega9referenceE";
+            *ppFunction = ( void* )pModule->get< operators::Cast::FunctionPtr >( os.str() );
+        }
+        break;
+        case operators::eActive:
+        {
+            std::ostringstream os;
+            symbolPrefix( "mega_cast_", target, os );
+            os << "RKN4mega9referenceE";
+            *ppFunction = ( void* )pModule->get< operators::Active::FunctionPtr >( os.str() );
+        }
+        break;
+        case operators::eStopped:
+        {
+            std::ostringstream os;
+            symbolPrefix( "mega_cast_", target, os );
+            os << "RKN4mega9referenceE";
+            *ppFunction = ( void* )pModule->get< operators::Stopped::FunctionPtr >( os.str() );
+        }
+        break;
+        case operators::TOTAL_FUNCTION_TYPES:
+        {
+            THROW_RTE( "Unsupported object function" );
+        }
+        break;
+    }
+}
 } // namespace mega::runtime

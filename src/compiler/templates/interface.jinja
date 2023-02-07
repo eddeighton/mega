@@ -36,6 +36,15 @@ static void invoke_impl_void( Context context, Args... args );
 template< typename ResultType, typename Context, typename TypePath, typename Operation, typename... Args >
 static ResultType invoke_impl( Context context, Args... args );
 
+template< typename To, typename From >
+static To mega_cast( const From& from );
+
+template< typename Context >
+static bool mega_active( const Context& context );
+
+template< typename Context >
+static bool mega_stopped( const Context& context );
+
 {{ interface }}
 
 {% for struct in structs %}

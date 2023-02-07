@@ -28,6 +28,7 @@
 #include "database/database.hpp"
 
 #include "invocation_functions.hxx"
+#include "operator_functions.hxx"
 
 #include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/project.hpp"
@@ -47,15 +48,6 @@ class JIT_EXPORT CodeGenerator
 
 public:
     using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
-
-    /*
-    static std::string get( const VariableMap& varMap, const FinalStage::Invocations::Variables::Variable* pVar )
-    {
-        auto iFind = varMap.find( pVar );
-        VERIFY_RTE( iFind != varMap.end() );
-        return iFind->second;
-    }
-    */
 
     static std::string allocatorTypeName( const DatabaseInstance&                      database,
                                           FinalStage::Concrete::Dimensions::Allocator* pAllocDim );
@@ -79,6 +71,9 @@ public:
     void generate_relation( const LLVMCompiler& compiler, const DatabaseInstance& database,
                             const RelationID& relationID, std::ostream& os );
     void generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os );
+
+    void generate_operator( const LLVMCompiler& compiler, const DatabaseInstance& database, TypeID target,
+                            mega::runtime::operators::FunctionType invocationType, std::ostream& os );
 
 private:
     VariableMap

@@ -1,0 +1,95 @@
+
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
+
+#include "jit/operator_functions.hxx"
+
+#include "service/network/log.hpp"
+#include "service/protocol/common/context.hpp"
+
+namespace
+{
+    void resolve( const char* pszUnitName, mega::TypeID targetTypeID, bool& resolving, 
+        mega::runtime::operators::FunctionType functionType, void** pFunction )
+    {
+        SPDLOG_TRACE( "RUNTIME: operator_functions::resolve : {} {}", pszUnitName, functionType );
+        // WARNING: the following code is precarious!
+        // This code is designed to be thread safe where the class
+        // is thread_local and expected to run on multiple coroutines and threads
+        // ALSO: m_resolving MUST always return to FALSE once the function pointer is set.
+        while( *pFunction == nullptr )
+        {
+            while( resolving )
+            {
+                mega::Context::get()->yield();
+            }
+            if( *pFunction == nullptr )
+            {
+                resolving          = true;
+                mega::runtime::JITFunctor functor(
+                    [ pszUnitName, targetTypeID, functionType, pFunction ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
+                    {
+                        jit.getOperatorFunction( pLLVMCompiler, pszUnitName, targetTypeID, functionType, pFunction );
+                    } );
+                // NOTE: call to jit MAY return with THIS coroutine resumed in DIFFERENT thread!
+                mega::Context::get()->jit( functor );
+                // when jit returns EITHER
+                // 1. the thread has started here and NOT from beginning
+                //      In this case resolving == false && pFunction == nullptr
+                //      In which case it will call getInvocationFunction
+                // 2. or the thread already started from beginning
+                //      Could be resuming any coroutine - but the jit call MUST have completed
+                //      resolving == true
+                //      pFunction will have been set!
+            }
+        }
+        resolving = false;
+    }
+}
+
+namespace mega::runtime::operators
+{
+
+{% for function in functions %}
+{{ function.name }}::{{ function.name }}( const char* pszUnitName, TypeID target )
+    : m_pszUnitName( pszUnitName )
+    , m_targetTypeID( target )
+    , m_bResolving( false )
+    , m_function( nullptr )
+{
+}
+
+{{ function.return_type }} {{ function.name }}::operator()({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const
+{
+    if( !m_function )
+    {
+        resolve( m_pszUnitName, m_targetTypeID, m_bResolving, e{{ function.name }}, ( void** )( &m_function ) );
+    }
+{% if function.return == "void" %}
+    m_function({% for arg in function.arguments %}{{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %});
+{% else if function.return == "function" %}
+    return (void*)m_function;
+{% else %}
+    return m_function({% for arg in function.arguments %}{{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %});
+{% endif %}
+}
+
+{% endfor %}
+
+} // namespace mega::runtime::operators

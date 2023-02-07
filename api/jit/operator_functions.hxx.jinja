@@ -18,18 +18,41 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_January_09_type_id
-#define GUARD_2023_January_09_type_id
+#ifndef GUARD_2023_February_7_invocations
+#define GUARD_2023_February_7_invocations
 
-#include "mega/native_types.hpp"
+#include "api.hpp"
+#include "functions.hpp"
 
-namespace mega
+#include "mega/reference.hpp"
+
+namespace mega::runtime::operators
 {
 
-using TypeID = I16;
+enum FunctionType
+{
+{% for function in functions %}
+    e{{ function.name }},
+{% endfor %}
+    TOTAL_FUNCTION_TYPES
+};
 
-static constexpr TypeID ROOT_TYPE_ID{ 1 };
+{% for function in functions %}
+class JIT_EXPORT {{ function.name }}
+{
+public:
+    using FunctionPtr = {{ function.return_type }} ( * ) ({% for arg in function.arguments %}{{ arg.type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
+    {{ function.name }}( const char* pszUnitName, TypeID target );
+    {{ function.return_type }} operator() ({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
+private:
+    const char*         m_pszUnitName;
+    const TypeID        m_targetTypeID;
+    mutable bool        m_bResolving;
+    mutable FunctionPtr m_function;
+};
 
-} // namespace mega
+{% endfor %}
 
-#endif // GUARD_2023_January_09_type_id
+} // namespace mega::runtime::operators
+
+#endif // GUARD_2023_February_7_invocations
