@@ -38,11 +38,33 @@ class Scheduler
 {
     struct ActionFunction
     {
-        using FunctionType = mega::ActionCoroutine (*)( mega::reference*);
-        FunctionType functionPtr;
+        using FunctionType = mega::ActionCoroutine ( * )( mega::reference* );
+        FunctionType                 functionPtr;
         runtime::JITBase::ActionInfo info;
     };
     using ActionFunctionMap = std::unordered_map< TypeID, ActionFunction >;
+
+    struct Activation
+    {
+        inline Activation( const mega::reference& ref, const ActionFunction& function )
+            : m_ref( ref )
+            , m_function( function )
+            , m_routine( m_function.functionPtr( &m_ref ) )
+        {
+        }
+        inline void run()
+        {
+            if( m_routine.done() )
+            {
+                m_routine = m_function.functionPtr( &m_ref );
+            }
+            m_routine.resume();
+        }
+        mega::reference       m_ref;
+        const ActionFunction& m_function;
+        mega::ActionCoroutine m_routine;
+    };
+    using ActivationMap = std::unordered_map< mega::reference, Activation, mega::reference::Hash >;
 
 public:
     Scheduler( log::Storage& log );
@@ -53,10 +75,11 @@ private:
     const ActionFunction& getActionFunction( TypeID typeID );
 
 private:
-    log::Storage& m_log;
+    log::Storage&                          m_log;
     log::Iterator< log::Scheduling::Read > m_schedulingIter;
 
     ActionFunctionMap m_actionFunctions;
+    ActivationMap     m_activations;
 };
 
 } // namespace mega::service

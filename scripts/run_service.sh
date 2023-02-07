@@ -20,7 +20,7 @@ sleep 1
 
 ${BUILD_PATH}/${CFG_TUPLE}/mega/install/bin/executor --level info --console error &
 
-#tail -f ./log/root* | egrep -h "SUCCESS|CACHE|FAIL|warn|error" --color=none
+tail -f ./log/root* | egrep -h "SUCCESS|CACHE|FAIL|warn|error" --color=none
 #tail -f ./log/root* | egrep -h "SUCCESS|CACHE|FAIL|MSG|warn|error" --color=none
 
-tail -f ./log/*
+#tail -f ./log/*

@@ -76,18 +76,32 @@ void Scheduler::cycle()
     {
         const log::Scheduling::Read read = *m_schedulingIter;
 
+        switch( read.getType() )
+        {
+            case log::Scheduling::eStart:
+            {
+                reference             ref      = read.getRef();
+                const ActionFunction& function = getActionFunction( ref.getType() );
+                m_activations.insert( { ref, Activation( ref, function ) } );
+            }
+            break;
+            case log::Scheduling::eStop:
+            {
+                m_activations.erase( read.getRef() );
+            }
+            break;
+            default:
+                THROW_RTE( "Unknown scheduling event type" );
+                break;
+        }
+
         std::cout << "Scheduler got scheduling event: " << log::Scheduling::toString( read.getType() ) << " : "
                   << read.getRef() << std::endl;
+    }
 
-        reference ref = read.getRef();
-
-        const ActionFunction& function = getActionFunction( ref.getType() );
-
-        auto result = function.functionPtr( &ref );
-        result.resume();
-
-
-        
+    for( auto& [ _, activation ] : m_activations )
+    {
+        activation.run();
     }
 }
 

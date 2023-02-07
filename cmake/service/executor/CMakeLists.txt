@@ -126,6 +126,7 @@ target_compile_options( executor PUBLIC "/await:strict" )
 target_compile_options( executor PRIVATE "/bigobj" )
 ELSE( ${WIN32} )
 target_compile_options( executor PUBLIC "-fcoroutines" )
+target_link_options( executor PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 target_link_libraries( executor executorLib )
