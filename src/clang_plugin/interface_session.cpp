@@ -155,7 +155,7 @@ public:
                     QualType typeType
                         = getTypeTrait( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Type" );
                     QualType                      typeTypeCanonical = typeType.getCanonicalType();
-                    std::vector< mega::SymbolID > dimensionTypes;
+                    // std::vector< mega::TypeID > dimensionTypes;
 
                     strCanonicalType = typeTypeCanonical.getAsString();
 
@@ -171,7 +171,7 @@ public:
                     }
                     else if( !dimensionTypes.empty() )
                     {
-                        for( mega::SymbolID symbolID : dimensionTypes )
+                        for( mega::TypeID symbolID : dimensionTypes )
                         {
                             auto iFind = m_symbolIDs.find( symbolID );
                             if( iFind != m_symbolIDs.end() )
@@ -328,8 +328,8 @@ public:
                 if( pTypeDeclContext )
                 {
                     QualType typeTypeCanonical = typeType.getCanonicalType();
-                    if( std::optional< mega::SymbolID > inheritanceTypeIDOpt
-                        = getEGSymbolID( pASTContext, typeTypeCanonical ) )
+                    if( std::optional< mega::TypeID > inheritanceTypeIDOpt
+                        = getMegaTypeID( pASTContext, typeTypeCanonical ) )
                     {
                         auto iFind = m_interfaceTypeIDs.find( inheritanceTypeIDOpt.value() );
                         if( iFind != m_interfaceTypeIDs.end() )

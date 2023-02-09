@@ -23,7 +23,7 @@
 {% for forward_decl in forward_decls %}
 struct [[clang::eg_type( {{ forward_decl.symbol }} )]]{{ forward_decl.name }}
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = {{ forward_decl.symbol }}
     };
@@ -50,7 +50,7 @@ static bool mega_stopped( const Context& context );
 {% for struct in structs %}
 struct [[clang::eg_type( {{ struct.typeid }} )]] {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endif %}{% endfor %}
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = {{ struct.typeid }}
     };

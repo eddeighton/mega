@@ -152,7 +152,7 @@ public:
 
             for ( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbol_names() )
             {
-                nlohmann::json forwardDecl( { { "symbol", pSymbol->get_id() }, { "name", symbolName } } );
+                nlohmann::json forwardDecl( { { "symbol", pSymbol->get_id().getSymbolID() }, { "name", symbolName } } );
 
                 bool bIsGlobal = false;
                 for ( auto pContext : pSymbol->get_contexts() )

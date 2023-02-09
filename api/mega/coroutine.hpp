@@ -22,7 +22,7 @@
 #ifndef EG_COROUTINE
 #define EG_COROUTINE
 
-#include "common.hpp"
+#include "operation_id.hpp"
 #include "event.hpp"
 
 

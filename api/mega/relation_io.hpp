@@ -22,6 +22,7 @@
 #define GUARD_2023_January_20_relation_io
 
 #include "mega/relation_id.hpp"
+#include "mega/type_id_io.hpp"
 
 #include "nlohmann/json.hpp"
 

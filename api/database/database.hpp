@@ -21,6 +21,7 @@
 #define DATABASE_8_AUG_2022
 
 #include "mega/memory.hpp"
+#include "mega/type_id.hpp"
 #include "mega/relation_id.hpp"
 
 #include "database/common/api.hpp"

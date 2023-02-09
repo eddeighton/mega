@@ -21,6 +21,7 @@
 #define INVOCATION_ID_7_JUNE_2022
 
 #include "mega/invocation_id.hpp"
+#include "mega/type_id_io.hpp"
 
 #include "database/types/operation.hpp"
 
@@ -32,6 +33,14 @@
 
 namespace mega
 {
+inline void to_json( nlohmann::json& j, const mega::TypeID& typeID )
+{
+    std::ostringstream os;
+    using ::           operator<<;
+    os << typeID;
+    j = nlohmann::json{ { "typeID", os.str() } };
+}
+
 inline void to_json( nlohmann::json& j, const mega::InvocationID& invocationID )
 {
     j = nlohmann::json{ { "context", invocationID.m_context },
@@ -48,15 +57,16 @@ namespace detail
         for( Iter p = pBegin, pNext = pBegin; p!=pEnd; ++p )
         {
             ++pNext;
-            if( *p >= 0 )
+            const mega::TypeID typeID = *p;
+            if( typeID.isSymbolID() )
             {
-                // type id
-                os << 't' << *p;
+                // symbol id
+                os << 's' << -typeID.getSymbolID();
             }
             else
             {
-                // symbol id
-                os << 's' << -*p;
+                // context id
+                os << 't' << typeID.getObjectID() << '_' << typeID.getSubObjectID();
             }
             if( pNext != pEnd )
             {

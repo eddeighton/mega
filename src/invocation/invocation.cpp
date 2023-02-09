@@ -26,7 +26,7 @@
 #include "database/model/OperationsStage.hxx"
 #include "database/types/operation.hpp"
 
-#include "mega/common.hpp"
+#include "mega/operation_id.hpp"
 #include "mega/common_strings.hpp"
 #include "mega/invocation_io.hpp"
 
@@ -116,15 +116,15 @@ InterfaceVariantVector symbolToInterfaceVariantVector( Database& database, Symbo
 }
 
 InterfaceVariantVector symbolIDToInterfaceVariant( Database& database, const SymbolMaps& symbolMaps,
-                                                   mega::SymbolID symbolID )
+                                                   mega::TypeID typeID )
 {
-    if( symbolID < 0 )
+    if( typeID.isSymbolID() )
     {
-        return symbolToInterfaceVariantVector( database, symbolMaps.findSymbolTypeID( symbolID ) );
+        return symbolToInterfaceVariantVector( database, symbolMaps.findSymbolTypeID( typeID ) );
     }
     else
     {
-        auto pInterfaceTypeID = symbolMaps.findInterfaceTypeID( symbolID );
+        auto pInterfaceTypeID = symbolMaps.findInterfaceTypeID( typeID );
         if( pInterfaceTypeID->get_context().has_value() )
         {
             InterfaceVariantVector result;
@@ -163,16 +163,16 @@ symbolVectorToInterfaceVariantVector( Database& database, const std::vector< Sym
 
 InterfaceVariantVectorVector
 symbolIDVectorToInterfaceVariantVector( Database& database, const SymbolMaps& symbolMaps,
-                                        const std::vector< mega::SymbolID >& symbolIDs,
-                                        std::optional< mega::OperationID >&  operationIDOpt )
+                                        const std::vector< mega::TypeID >&  symbolIDs,
+                                        std::optional< mega::OperationID >& operationIDOpt )
 {
     InterfaceVariantVectorVector result;
 
-    for( mega::SymbolID symbolID : symbolIDs )
+    for( mega::TypeID symbolID : symbolIDs )
     {
         if( isOperationType( symbolID ) )
         {
-            operationIDOpt = static_cast< mega::OperationID >( symbolID );
+            operationIDOpt = static_cast< mega::OperationID >( symbolID.getSymbolID() );
             continue;
         }
         InterfaceVariantVector interfaceVariantVector = symbolIDToInterfaceVariant( database, symbolMaps, symbolID );
@@ -774,15 +774,15 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
         case id_exp_Read_Link:
         {
             parameterContextTypes = calculateLinkOperationTypes( derivedContexts, bSingular );
-            contextReturnTypes   = parameterContextTypes;
-            dimensionReturnTypes = derivedDimensions;
+            contextReturnTypes    = parameterContextTypes;
+            dimensionReturnTypes  = derivedDimensions;
         }
         break;
         case id_exp_Write_Link:
         {
             parameterContextTypes = calculateLinkOperationTypes( derivedContexts, bSingular );
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
+            contextReturnTypes    = derivedContexts;
+            dimensionReturnTypes  = derivedDimensions;
         }
         break;
         case id_exp_Allocate:
@@ -891,6 +891,10 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
             "Type path operation type of: " << operationIDOpt.value() << " does not match invocation type of: " << id );
     }
 
+    VERIFY_RTE_MSG( static_cast< int >( id.m_operation ) >= mega::TypeID::LOWEST_SYMBOL_ID
+                        && static_cast< int >( id.m_operation ) < mega::HIGHEST_OPERATION_TYPE,
+                    "Invalid operation type in invocation: " << id );
+
     // 2. Convert from Interface Contexts to Interface/Concrete context pair element vectors
     std::vector< ElementVector* > contextElements  = toElementVector( database, context );
     std::vector< ElementVector* > typePathElements = toElementVector( database, typePath );
@@ -903,17 +907,17 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
     {
         osTypePathStr << mega::EG_TYPE_PATH << "< ";
         bool bFirst = true;
-        for( mega::SymbolID symbolID : id.m_type_path )
+        for( mega::TypeID symbolID : id.m_type_path )
         {
             if( bFirst )
                 bFirst = false;
             else
                 osTypePathStr << ", ";
-            if( symbolID < 0 )
+            if( symbolID.isSymbolID() )
             {
                 if( isOperationType( symbolID ) )
                 {
-                    osTypePathStr << getOperationString( static_cast< OperationID >( symbolID ) );
+                    osTypePathStr << getOperationString( static_cast< OperationID >( symbolID.getSymbolID() ) );
                 }
                 else
                 {

@@ -20,7 +20,8 @@
 #include "daemon.hpp"
 #include "request.hpp"
 
-#include "mega/common.hpp"
+#include "mega/operation_id.hpp"
+
 #include "service/network/conversation.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"

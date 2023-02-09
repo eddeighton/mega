@@ -20,7 +20,7 @@
 #ifndef STATE_MACHINE_16_SEPT_2022
 #define STATE_MACHINE_16_SEPT_2022
 
-#include "mega/common.hpp"
+#include "mega/operation_id.hpp"
 
 #include "service/network/sender_factory.hpp"
 #include "service/network/log.hpp"

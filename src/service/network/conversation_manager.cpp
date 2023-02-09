@@ -35,14 +35,19 @@ ConversationManager::ConversationManager( const std::string& strProcessName, boo
     , m_ioContext( ioContext )
 {
 }
-ConversationManager::~ConversationManager() {}
+ConversationManager::~ConversationManager()
+{
+}
 
-boost::asio::io_context& ConversationManager::getIOContext() const { return m_ioContext; }
+boost::asio::io_context& ConversationManager::getIOContext() const
+{
+    return m_ioContext;
+}
 
 void ConversationManager::onDisconnect( const ConnectionID& connectionID )
 {
     WriteLock lock( m_mutex );
-    for ( const auto& [ id, pConversation ] : m_conversations )
+    for( const auto& [ id, pConversation ] : m_conversations )
     {
         pConversation->onDisconnect( connectionID );
     }
@@ -53,7 +58,7 @@ std::vector< ConversationID > ConversationManager::reportConversations() const
     std::vector< ConversationID > activities;
     {
         ReadLock lock( m_mutex );
-        for ( const auto& [ id, pConversation ] : m_conversations )
+        for( const auto& [ id, pConversation ] : m_conversations )
         {
             activities.push_back( id );
         }
@@ -67,7 +72,8 @@ ConversationID ConversationManager::createConversationID( const ConnectionID& co
     return ConversationID( ++m_nextConversationID, connectionID );
 }
 
-static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x0FFFFF; // 1M bytes
+// static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x0FFFFF; // 1M bytes
+static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0xAFFFFF; // 4M bytes
 
 void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pConversation, Sender& parentSender )
 {
@@ -80,8 +86,8 @@ void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pCon
             ConversationBase::RequestStack stack("spawnInitiatedConversation", pConversation, parentSender.getConnectionID());
             pConversation->run(yield_ctx);
         }
-#ifndef BOOST_USE_SEGMENTED_STACKS
         // segmented stacks do NOT work on windows
+#ifndef BOOST_USE_SEGMENTED_STACKS
         , boost::coroutines::attributes(NON_SEGMENTED_STACK_SIZE)
 #endif
     );
@@ -112,8 +118,8 @@ void ConversationManager::conversationJoined( ConversationBase::Ptr pConversatio
         { 
             pConversation->run( yield_ctx ); 
         } 
-#ifndef BOOST_USE_SEGMENTED_STACKS
         // segmented stacks do NOT work on windows
+#ifndef BOOST_USE_SEGMENTED_STACKS
         , boost::coroutines::attributes(NON_SEGMENTED_STACK_SIZE)
 #endif
     );
@@ -126,7 +132,8 @@ void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversa
     {
         WriteLock                          lock( m_mutex );
         ConversationPtrMap::const_iterator iFind = m_conversations.find( pConversation->getID() );
-        if( iFind != m_conversations.end() );
+        if( iFind != m_conversations.end() )
+            ;
         {
             // SPDLOG_TRACE( "conversationCompleted {}", pConversation->getID() );
             m_conversations.erase( iFind );
@@ -139,7 +146,7 @@ ConversationBase::Ptr ConversationManager::findExistingConversation( const Conve
 {
     ReadLock                           lock( m_mutex );
     ConversationPtrMap::const_iterator iFind = m_conversations.find( conversationID );
-    if ( iFind != m_conversations.end() )
+    if( iFind != m_conversations.end() )
     {
         return iFind->second;
     }
@@ -152,7 +159,7 @@ ConversationBase::Ptr ConversationManager::findExistingConversation( const Conve
 void ConversationManager::dispatch( const ReceivedMsg& msg )
 {
     ConversationBase::Ptr pConversation = findExistingConversation( msg.msg.getReceiverID() );
-    if ( !pConversation )
+    if( !pConversation )
     {
         pConversation = joinConversation( msg.connectionID, msg.msg );
         conversationJoined( pConversation );

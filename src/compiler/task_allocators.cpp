@@ -24,7 +24,7 @@
 
 #include "jit/object_header.hpp"
 
-#include "mega/common.hpp"
+#include "mega/operation_id.hpp"
 #include "mega/allocator.hpp"
 #include "mega/types/traits.hpp"
 #include "mega/memory.hpp"

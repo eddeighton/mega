@@ -54,7 +54,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // Read
         static thread_local mega::runtime::invocation::Read function( g_unit_name, id );
         return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( function( context ) );
@@ -65,7 +65,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // Write
         static thread_local mega::runtime::invocation::Write function( g_unit_name, id );
         const {{ invocation.runtime_return_type }} temp{ args... };
@@ -76,7 +76,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         static thread_local mega::runtime::invocation::Write function( g_unit_name, id );
         return function( context, (const void*)&arg );
     }
@@ -86,7 +86,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // ReadLink
         static thread_local mega::runtime::invocation::ReadLink function( g_unit_name, id );
         return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( function( context ) );
@@ -97,7 +97,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // WriteLink
         static thread_local mega::runtime::invocation::WriteLink function( g_unit_name, id );
         return function( context, WriteOperation::DEFAULT, interfaceRef );
@@ -107,7 +107,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // WriteLink
         static thread_local mega::runtime::invocation::WriteLink function( g_unit_name, id );
         return function( context, overload, interfaceRef );
@@ -118,7 +118,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // Allocate
         static thread_local mega::runtime::invocation::Allocate function( g_unit_name, id );
         return function( context );
@@ -129,7 +129,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // Call
         static thread_local mega::runtime::invocation::Call function( g_unit_name, id );
         mega::runtime::CallResult result = function( context );
@@ -147,7 +147,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // Start
         static thread_local mega::runtime::invocation::Start function( g_unit_name, id );
         return function( context );
@@ -158,7 +158,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // Stop
         static thread_local mega::runtime::invocation::Stop function( g_unit_name, id );
         function( context );
@@ -169,7 +169,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // Save
         static thread_local mega::runtime::invocation::Save function( g_unit_name, id );
         mega::XMLSaveArchive archive( args... );
@@ -181,7 +181,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // Load
         static thread_local mega::runtime::invocation::Load function( g_unit_name, id );
         mega::XMLLoadArchive archive( args... );
@@ -195,7 +195,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // GetAction
         static thread_local mega::runtime::invocation::Get function( g_unit_name, id );
         return function( context );
@@ -206,7 +206,7 @@ struct __invoke_impl
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, {{ invocation.operation }}::ID };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // GetAction
         static thread_local mega::runtime::invocation::Get function( g_unit_name, id );
         return function( context );

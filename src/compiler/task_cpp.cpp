@@ -30,7 +30,7 @@
 
 #include "utilities/clang_format.hpp"
 
-#include "mega/common.hpp"
+#include "mega/operation_id.hpp"
 #include "mega/common_strings.hpp"
 
 #include "common/file.hpp"
@@ -181,7 +181,7 @@ public:
                 = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
             for( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbol_names() )
             {
-                nlohmann::json forwardDecl( { { "symbol", pSymbol->get_id() }, { "name", symbolName } } );
+                nlohmann::json forwardDecl( { { "symbol", pSymbol->get_id().getSymbolID() }, { "name", symbolName } } );
 
                 bool bIsGlobal = false;
                 for( auto pContext : pSymbol->get_contexts() )
@@ -506,10 +506,26 @@ public:
                 for( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
                     std::ostringstream osContextIDs;
-                    common::delimit( id.m_context.begin(), id.m_context.end(), ",", osContextIDs );
+                    {
+                        bool bFirst = true;
+                        for( TypeID typeID : id.m_context )
+                        {
+                            if( bFirst ) bFirst = false;
+                            else osContextIDs << ',';
+                            osContextIDs << "mega::TypeID{ " << typeID.getSymbolID() << " }";
+                        }
+                    }
 
                     std::ostringstream osTypePathIDs;
-                    common::delimit( id.m_type_path.begin(), id.m_type_path.end(), ",", osTypePathIDs );
+                    {
+                        bool bFirst = true;
+                        for( TypeID typeID : id.m_type_path )
+                        {
+                            if( bFirst ) bFirst = false;
+                            else osTypePathIDs << ',';
+                            osTypePathIDs << "mega::TypeID{ " << typeID.getSymbolID() << " }";
+                        }
+                    }
 
                     nlohmann::json invocation(
                         { { "return_type", pInvocation->get_return_type_str() },

@@ -22,11 +22,11 @@
 #ifndef EG_OPERATION_TYPES
 #define EG_OPERATION_TYPES
 
-#include "common.hpp"
+#include "operation_id.hpp"
 
 struct [[clang::eg_type( mega::id_Imp_NoParams )]] __eg_ImpNoParams
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Imp_NoParams
     };
@@ -34,7 +34,7 @@ struct [[clang::eg_type( mega::id_Imp_NoParams )]] __eg_ImpNoParams
 
 struct [[clang::eg_type( mega::id_Imp_Params )]] __eg_ImpParams
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Imp_Params
     };
@@ -42,7 +42,7 @@ struct [[clang::eg_type( mega::id_Imp_Params )]] __eg_ImpParams
 
 struct [[clang::eg_type( mega::id_Start )]] Start
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Start
     };
@@ -50,7 +50,7 @@ struct [[clang::eg_type( mega::id_Start )]] Start
 
 struct [[clang::eg_type( mega::id_Stop )]] Stop
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Stop
     };
@@ -58,7 +58,7 @@ struct [[clang::eg_type( mega::id_Stop )]] Stop
 
 struct [[clang::eg_type( mega::id_Save )]] Save
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Save
     };
@@ -66,7 +66,7 @@ struct [[clang::eg_type( mega::id_Save )]] Save
 
 struct [[clang::eg_type( mega::id_Load )]] Load
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Load
     };
@@ -74,7 +74,7 @@ struct [[clang::eg_type( mega::id_Load )]] Load
 
 struct [[clang::eg_type( mega::id_Files )]] Files
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Files
     };
@@ -82,7 +82,7 @@ struct [[clang::eg_type( mega::id_Files )]] Files
 
 struct [[clang::eg_type( mega::id_Get )]] Get
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Get
     };
@@ -90,7 +90,7 @@ struct [[clang::eg_type( mega::id_Get )]] Get
 
 struct [[clang::eg_type( mega::id_Range )]] Range
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Range
     };
@@ -98,7 +98,7 @@ struct [[clang::eg_type( mega::id_Range )]] Range
 
 struct [[clang::eg_type( mega::id_Raw )]] Raw
 {
-    enum : mega::TypeID
+    enum : mega::TypeID::ValueType
     {
         ID = mega::id_Raw
     };

@@ -22,7 +22,8 @@
 #define GUARD_2022_October_04_type_id
 
 #include "database/common/api.hpp"
-#include "mega/reference.hpp"
+
+#include "mega/type_id.hpp"
 
 #include <vector>
 #include <ostream>

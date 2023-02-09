@@ -25,7 +25,7 @@
 
 #include "native_types.hpp"
 #include "reference.hpp"
-#include "common.hpp"
+#include "operation_id.hpp"
 #include "result_type.hpp"
 #include "coroutine.hpp"
 #include "mega/types/traits.hpp"

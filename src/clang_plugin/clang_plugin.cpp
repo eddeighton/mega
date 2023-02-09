@@ -206,7 +206,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
     {
         if ( g_pSession )
         {
-            if ( clang::getEGSymbolID( g_pSession->getASTContext(), type ) )
+            if ( clang::getMegaTypeID( g_pSession->getASTContext(), type ) )
                 return true;
             else
                 return false;
@@ -229,7 +229,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
             {
                 if ( g_pSession )
                 {
-                    if ( clang::getEGSymbolID( g_pSession->getASTContext(), type ) )
+                    if ( clang::getMegaTypeID( g_pSession->getASTContext(), type ) )
                         return true;
                     else
                         return false;
@@ -305,7 +305,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
             if ( const clang::IdentifierInfo* pIdentifierInfo
                  = clang::getOperationID( g_pSession->getASTContext(), typePathType, bHasArguments ) )
             {
-                // std::cout << "getInvocationOperationType: " << pIdentifierInfo->getName().str() << std::endl;
+                //std::cout << "getInvocationOperationType: " << typePathType.getAsString() << std::endl;
                 // return the type
                 clang::TagDecl* operatorClassDecl = nullptr;
                 {

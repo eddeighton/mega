@@ -31,14 +31,13 @@
 #include <memory>
 #include <unordered_map>
 
-
 namespace mega::runtime
 {
 
 class MemoryManager
 {
-    using HeapMap       = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
-    using NetMap        = std::unordered_map< reference, reference, reference::Hash >;
+    using HeapMap = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
+    using NetMap  = std::unordered_map< reference, reference, reference::Hash >;
 
 public:
     using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID ) >;
@@ -50,13 +49,13 @@ public:
     {
     }
 
-    ObjectID getObjectID() const { return m_objectIDCounter; }
-    U64 getObjectCount() const { return m_heapMap.size(); }
+    AllocationID getObjectID() const { return m_allocationIDCounter; }
+    U64          getObjectCount() const { return m_heapMap.size(); }
 
     reference networkToHeap( const reference& networkAddress ) const
     {
         ASSERT( networkAddress.isNetworkAddress() );
-        auto iFind = m_netMap.find( networkAddress );
+        auto    iFind = m_netMap.find( networkAddress );
         using ::operator<<;
         VERIFY_RTE_MSG(
             iFind != m_netMap.end(), "Failed to locate network address entry for reference: " << networkAddress );
@@ -92,15 +91,15 @@ public:
     reference New( TypeID typeID )
     {
         // establish the header including the network address, lock timestamp and shared ownership of allocator
-        const ObjectID  objectID = m_objectIDCounter++;
-        const reference networkAddress{ TypeInstance{ 0, typeID }, m_mpo, objectID };
+        const AllocationID objectID = m_allocationIDCounter++;
+        const reference    networkAddress{ TypeInstance{ 0, typeID }, m_mpo, objectID };
         ASSERT( ( typeID != ROOT_TYPE_ID ) || ( objectID == ROOT_OBJECT_ID ) );
         return New( networkAddress );
     }
 
     void Delete( reference& ref )
     {
-        auto iFind = m_heapMap.find( ref );
+        auto    iFind = m_heapMap.find( ref );
         using ::operator<<;
         VERIFY_RTE_MSG( iFind != m_heapMap.end(), "Failed to locate reference heap buffer: " << ref );
 
@@ -128,7 +127,7 @@ public:
     }
 
 private:
-    ObjectID         m_objectIDCounter = ROOT_OBJECT_ID;
+    AllocationID     m_allocationIDCounter = ROOT_OBJECT_ID;
     MPO              m_mpo;
     GetAllocatorFPtr m_getAllocatorFPtr;
     HeapMap          m_heapMap;

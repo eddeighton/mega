@@ -20,7 +20,10 @@
 #ifndef INVOCATION_ID_12_AUG_2022
 #define INVOCATION_ID_12_AUG_2022
 
-#include "mega/common.hpp"
+#include "mega/type_id.hpp"
+#include "mega/operation_id.hpp"
+
+#include "common/assert_verify.hpp"
 
 #include <utility>
 #include <vector>
@@ -32,11 +35,11 @@ namespace mega
 class InvocationID
 {
 public:
-    using SymbolIDVector = std::vector< mega::SymbolID >;
+    using SymbolIDVector = std::vector< mega::TypeID >;
 
     SymbolIDVector    m_context;
     SymbolIDVector    m_type_path;
-    mega::OperationID m_operation;
+    mega::OperationID m_operation = mega::HIGHEST_OPERATION_TYPE;
 
     inline bool operator==( const InvocationID& cmp ) const
     {
@@ -58,6 +61,8 @@ public:
         , m_type_path( std::move( typePath ) )
         , m_operation( operationID )
     {
+        ASSERT( static_cast< int >( m_operation ) >= mega::TypeID::LOWEST_SYMBOL_ID );
+        ASSERT( static_cast< int >( m_operation ) < mega::HIGHEST_OPERATION_TYPE );
     }
 
     template < mega::U64 Size >
@@ -65,7 +70,7 @@ public:
                             mega::TypeID operation )
         : m_context{ context }
         , m_type_path( typePath.begin(), typePath.end() )
-        , m_operation( static_cast< mega::OperationID >( operation ) )
+        , m_operation( static_cast< mega::OperationID >( operation.getSymbolID() ) )
     {
     }
 
@@ -74,7 +79,7 @@ public:
                             const std::array< mega::TypeID, TypePathSize >& typePath, mega::TypeID operation )
         : m_context( context.begin(), context.end() )
         , m_type_path( typePath.begin(), typePath.end() )
-        , m_operation( static_cast< mega::OperationID >( operation ) )
+        , m_operation( static_cast< mega::OperationID >( operation.getSymbolID() ) )
     {
     }
 

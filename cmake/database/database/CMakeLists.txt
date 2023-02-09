@@ -209,17 +209,17 @@ set( MEGA_DATABASE_SOURCES
     )
 
 set( MEGA_TYPES_HEADERS
-    ${MEGA_API_DIR}/database/types/cardinality.hpp
-    ${MEGA_API_DIR}/database/types/operation.hpp
-    ${MEGA_API_DIR}/database/types/ownership.hpp
-    ${MEGA_API_DIR}/database/types/derivation.hpp
-    ${MEGA_API_DIR}/database/types/sources.hpp
-    ${MEGA_API_DIR}/database/types/modes.hpp
-    ${MEGA_API_DIR}/database/types/component_type.hpp
-    ${MEGA_API_DIR}/database/types/clang_compilation.hpp
-    ${MEGA_API_DIR}/database/types/type_id.hpp
     
     ${MEGA_API_DIR}/database/database.hpp
+    ${MEGA_API_DIR}/database/types/cardinality.hpp
+    ${MEGA_API_DIR}/database/types/clang_compilation.hpp
+    ${MEGA_API_DIR}/database/types/component_type.hpp
+    ${MEGA_API_DIR}/database/types/derivation.hpp
+    ${MEGA_API_DIR}/database/types/modes.hpp
+    ${MEGA_API_DIR}/database/types/operation.hpp
+    ${MEGA_API_DIR}/database/types/ownership.hpp
+    ${MEGA_API_DIR}/database/types/sources.hpp
+    ${MEGA_API_DIR}/database/types/type_id.hpp
 )
 
 set( MEGA_TYPES_SOURCES

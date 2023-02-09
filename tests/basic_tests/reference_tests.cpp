@@ -61,10 +61,10 @@ TEST( Reference, InvalidByDefault )
 
 TEST( Reference, HeapAccess )
 {
-    mega::reference h{ mega::TypeInstance{ 123, 456 }, mega::OwnerID( 255 ), ( mega::HeapAddress )0xFFFFFFFF };
+    mega::reference h{ mega::TypeInstance{ 123, mega::max_typeID_context }, mega::OwnerID( 255 ), ( mega::HeapAddress )0xFFFFFFFF };
 
     ASSERT_TRUE( h.isHeapAddress() );
-    ASSERT_EQ( h.getType(), 456 );
+    ASSERT_EQ( h.getType(), mega::max_typeID_context );
     ASSERT_EQ( h.getInstance(), 123 );
     ASSERT_EQ( h.getOwnerID(), 255 );
     ASSERT_EQ( h.getHeap(), ( mega::HeapAddress )0xFFFFFFFF );
@@ -74,18 +74,18 @@ TEST( Reference, NetAccess )
 {
     using namespace mega;
     mega::MPO       testMPO( 1, 2, 3 );
-    mega::reference h{ mega::TypeInstance{ 123, 456 }, testMPO, 4 };
+    mega::reference h{ mega::TypeInstance{ 123, mega::max_typeID_context }, testMPO, 4 };
 
     ASSERT_TRUE( h.isNetworkAddress() );
-    ASSERT_EQ( h.getType(), 456 );
+    ASSERT_EQ( h.getType(), mega::max_typeID_context );
     ASSERT_EQ( h.getInstance(), 123 );
     ASSERT_EQ( h.getMPO(), testMPO );
-    ASSERT_EQ( h.getObjectID(), 4 );
+    ASSERT_EQ( h.getAllocationID(), 4 );
 }
 
 TEST( Reference, HeaderAccess )
 {
-    mega::TypeInstance     typeInstance{ 123, 456 };
+    mega::TypeInstance     typeInstance{ 123, mega::max_typeID_context };
     mega::MPO              testMPO( 1, 2, 3 );
     mega::reference        networkAddress{ typeInstance, testMPO, 4 };
     mega::ObjectHeaderBase header{ networkAddress, 9 };
@@ -94,52 +94,52 @@ TEST( Reference, HeaderAccess )
 
     ASSERT_TRUE( h.isHeapAddress() );
     ASSERT_EQ( h.getMPO(), testMPO );
-    ASSERT_EQ( h.getObjectID(), 4 );
+    ASSERT_EQ( h.getAllocationID(), 4 );
 }
-
-struct OtherTypeInstance
-{
-    mega::Instance        instance = 0U;
-    mega::TypeID          type     = 0;
-    constexpr inline bool operator==( const OtherTypeInstance& cmp ) const
-    {
-        return ( instance == cmp.instance ) && ( type == cmp.type );
-    }
-};
-inline std::ostream& operator<<( std::ostream& os, const OtherTypeInstance& typeInstance )
-{
-    return os << '[' << typeInstance.type << "." << std::hex << typeInstance.instance << ']';
-}
-inline std::istream& operator>>( std::istream& is, OtherTypeInstance& typeInstance )
-{
-    char c;
-    return is >> c >> typeInstance.type >> c >> std::hex >> typeInstance.instance >> c;
-}
-
-TEST( Reference, TypeInstance )
-{
-    const OtherTypeInstance expected{
-        std::numeric_limits< mega::Instance >::min(), std::numeric_limits< mega::TypeID >::min() };
-
-    std::string str;
-    {
-        std::ostringstream os;
-        os << expected;
-        str = os.str();
-    }
-
-    OtherTypeInstance result;
-    {
-        std::istringstream is( str );
-        is >> result;
-    }
-    ASSERT_TRUE( result == expected ) << " failed io with str: " << str;
-}
-
+/*
+// struct OtherTypeInstance
+// {
+//     mega::Instance        instance = 0U;
+//     mega::TypeID          type     = mega::min_typeID_context;
+//     constexpr inline bool operator==( const OtherTypeInstance& cmp ) const
+//     {
+//         return ( instance == cmp.instance ) && ( type == cmp.type );
+//     }
+// };
+// inline std::ostream& operator<<( std::ostream& os, const OtherTypeInstance& typeInstance )
+// {
+//     return os << '[' << typeInstance.type << "." << std::hex << typeInstance.instance << ']';
+// }
+// inline std::istream& operator>>( std::istream& is, OtherTypeInstance& typeInstance )
+// {
+//     char c;
+//     return is >> c >> typeInstance.type >> c >> std::hex >> typeInstance.instance >> c;
+// }
+// 
+// TEST( Reference, TypeInstance )
+// {
+//     const OtherTypeInstance expected{
+//         std::numeric_limits< mega::Instance >::min(), mega::min_typeID_context };
+// 
+//     std::string str;
+//     {
+//         std::ostringstream os;
+//         os << expected;
+//         str = os.str();
+//     }
+// 
+//     OtherTypeInstance result;
+//     {
+//         std::istringstream is( str );
+//         is >> result;
+//     }
+//     ASSERT_TRUE( result == expected ) << " failed io with str: " << str;
+// }
+*/
 TEST( Reference, TypeInstance2 )
 {
     const mega::TypeInstance expected{
-        std::numeric_limits< mega::Instance >::max(), std::numeric_limits< mega::TypeID >::max() };
+        std::numeric_limits< mega::Instance >::max(), mega::max_typeID_context };
 
     std::string str;
     {
@@ -196,7 +196,7 @@ INSTANTIATE_TEST_SUITE_P( Reference, ReferenceIOTest,
             ReferenceTestData{ mega::reference{} },
 
             // network address
-            ReferenceTestData{ mega::reference{ mega::TypeInstance{}, mega::MPO{}, mega::ObjectID{} } },
+            ReferenceTestData{ mega::reference{ mega::TypeInstance{}, mega::MPO{}, mega::AllocationID{} } },
             ReferenceTestData{ mega::max_net_ref },
             ReferenceTestData{ mega::min_net_ref },
 

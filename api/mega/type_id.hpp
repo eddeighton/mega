@@ -26,9 +26,84 @@
 namespace mega
 {
 
-using TypeID = I16;
+class TypeID
+{
+public:
+    using ValueType = I16;
 
-static constexpr TypeID ROOT_TYPE_ID{ 1 };
+private:
+    struct ContextID
+    {
+        U16 object : 8, subObject : 7, flag : 1;
+    };
+
+    union
+    {
+        ContextID contextID;
+        ValueType value;
+    };
+
+    enum Flag
+    {
+        eType   = 0,
+        eSymbol = 1 // must match sign bit - ALL symbolIDs are negative
+    };
+
+    constexpr TypeID( ContextID contextID )
+        : contextID( contextID )
+    {
+    }
+
+public:
+    static constexpr I16 LOWEST_SYMBOL_ID = -32768; // -std::numeric_limits< TypeID::ValueType >::max()
+
+    struct Hash
+    {
+        inline U64 operator()( const TypeID& ref ) const noexcept
+        {
+            return ref.getSymbolID();
+        }
+    };
+
+    constexpr TypeID()
+        : value( 0U )
+    {
+    }
+
+    constexpr explicit TypeID( ValueType value )
+        : value( value )
+    {
+    }
+
+    constexpr TypeID( const TypeID& cpy ) = default;
+
+    constexpr inline bool isSymbolID() const { return contextID.flag == eSymbol; }
+    constexpr inline bool isContextID() const { return contextID.flag == eType; }
+    constexpr inline bool isObject() const { return isContextID() && contextID.subObject == 0; }
+
+    constexpr inline I16 getSymbolID() const { return value; }
+    constexpr inline U8  getObjectID() const { return contextID.object; }
+    constexpr inline U8  getSubObjectID() const { return contextID.subObject; }
+
+    constexpr inline operator ValueType() const { return value; }
+
+    constexpr inline bool operator==( const TypeID& cmp ) const { return value == cmp.value; }
+    constexpr inline bool operator!=( const TypeID& cmp ) const { return !( *this == cmp ); }
+    constexpr inline bool operator<( const TypeID& cmp ) const { return value < cmp.value; }
+
+    constexpr static inline TypeID make_context( U8 objectID, U8 subObjectID = 0 )
+    {
+        return TypeID{ ContextID{ objectID, subObjectID, eType } };
+    }
+    constexpr static inline TypeID make_object_type( TypeID typeID )
+    {
+        return TypeID{ ContextID{ typeID.getObjectID(), 0U, eType } };
+    }
+};
+static_assert( sizeof( TypeID ) == 2U, "Invalid TypeID Size" );
+
+static constexpr TypeID ROOT_SYMBOL_ID = TypeID( -1 );
+static constexpr TypeID ROOT_TYPE_ID = TypeID::make_context( 1, 0 );
 
 } // namespace mega
 

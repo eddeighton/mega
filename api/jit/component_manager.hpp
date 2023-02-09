@@ -44,7 +44,7 @@ class JIT_EXPORT ComponentManager
     using ComponentPath = boost::dll::fs::path;
 
     using FunctionPtr    = boost::shared_ptr< TypeErasedFunction* >;
-    using FunctionPtrMap = std::unordered_map< mega::TypeID, FunctionPtr >;
+    using FunctionPtrMap = std::unordered_map< mega::TypeID, FunctionPtr, mega::TypeID::Hash >;
 
     struct InterfaceComponent
     {

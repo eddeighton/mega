@@ -23,7 +23,7 @@
 #ifndef EG_ITERATORS_02_05_2019
 #define EG_ITERATORS_02_05_2019
 
-#include "common.hpp"
+#include "operation_id.hpp"
 #include "clock.hpp"
 
 #include <array>

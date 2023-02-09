@@ -27,6 +27,7 @@
 
 #include "mega/invocation_io.hpp"
 #include "mega/common_strings.hpp"
+#include "mega/invocation_id.hpp"
 
 #include "clang/Basic/SourceLocation.h"
 
@@ -402,7 +403,7 @@ public:
     virtual bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& type,
                                           clang::QualType& resultType )
     {
-        //std::cout << "getInvocationResultType type: " << type.getCanonicalType().getAsString() << std::endl;
+        // std::cout << "getInvocationResultType type: " << type.getCanonicalType().getAsString() << std::endl;
 
         if( type.getTypePtrOrNull() )
         {
@@ -425,9 +426,10 @@ public:
                                     clang::QualType typePath      = pTemplateType->getArg( 1U ).getAsType();
                                     clang::QualType operationType = pTemplateType->getArg( 2U ).getAsType();
 
-        //std::cout << "getInvocationResultType type path: " << typePath.getCanonicalType().getAsString() << std::endl;
+                                    //std::cout << "getInvocationResultType type path: "
+                                    //          << typePath.getCanonicalType().getAsString() << std::endl;
 
-                                    std::vector< mega::SymbolID > contextSymbolIDs;
+                                    mega::InvocationID::SymbolIDVector contextSymbolIDs;
                                     if( !clang::getContextSymbolIDs( pASTContext, context, contextSymbolIDs ) )
                                     {
                                         std::ostringstream os;
@@ -440,7 +442,7 @@ public:
                                         return false;
                                     }
 
-                                    std::vector< mega::SymbolID > typePathSymbolIDs;
+                                    mega::InvocationID::SymbolIDVector typePathSymbolIDs;
                                     if( !clang::getTypePathSymbolIDs( pASTContext, typePath, typePathSymbolIDs ) )
                                     {
                                         pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
@@ -450,18 +452,26 @@ public:
                                         return false;
                                     }
 
-                                    std::optional< mega::SymbolID > operationTypeIDOpt
-                                        = getEGSymbolID( pASTContext, operationType );
-                                    if( !operationTypeIDOpt )
+                                    mega::OperationID operationTypeID;
                                     {
-                                        pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                                            << "Invalid operation for invocation";
-                                        std::cout << "getInvocationResultType failed" << std::endl;
-                                        m_bError = true;
-                                        return false;
+                                        std::optional< mega::TypeID > operationTypeIDOpt
+                                            = getMegaTypeID( pASTContext, operationType );
+                                        if( !operationTypeIDOpt )
+                                        {
+                                            pASTContext->getDiagnostics().Report(
+                                                loc, clang::diag::err_mega_generic_error )
+                                                << "Invalid operation for invocation";
+                                            std::cout << "getInvocationResultType failed" << std::endl;
+                                            m_bError = true;
+                                            return false;
+                                        }
+                                        operationTypeID = static_cast< mega::OperationID >(
+                                            operationTypeIDOpt.value().getSymbolID() );
+                                        VERIFY_RTE_MSG(
+                                            ( static_cast< int >( operationTypeID ) >= mega::TypeID::LOWEST_SYMBOL_ID ) && 
+                                            ( static_cast< int >( operationTypeID ) < mega::HIGHEST_OPERATION_TYPE ),
+                                            "Invalid operation ID" );
                                     }
-                                    mega::OperationID operationTypeID
-                                        = static_cast< mega::OperationID >( operationTypeIDOpt.value() );
 
                                     using namespace OperationsStage;
 

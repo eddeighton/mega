@@ -44,10 +44,10 @@ static constexpr HeapAddress NULL_ADDRESS = nullptr;
 static_assert( sizeof( HeapAddress ) == 8U, "Invalid HeapAddress Size" );
 static_assert( sizeof( HeapAddress ) == sizeof( U64 ), "Invalid HeapAddress Size" );
 
-using ObjectID = U32;
-using Flags    = U8;
+using AllocationID = U32;
+using Flags        = U8;
 
-constexpr static const ObjectID ROOT_OBJECT_ID = 0;
+constexpr static const AllocationID ROOT_OBJECT_ID = 0;
 
 enum FlagsType : U8 // check reference_io if change
 {
@@ -70,12 +70,12 @@ class reference
 
     struct NetworkAddressData
     {
-        ObjectID     m_objectID;  // 4
-        MachineID    m_machineID; // 4
-        ProcessID    m_processID; // 2
-        OwnerID      m_ownerID;   // 1
-        Flags        m_flags;     // 1
-        TypeInstance m_type;      // 4
+        AllocationID m_allocationID; // 4
+        MachineID    m_machineID;    // 4
+        ProcessID    m_processID;    // 2
+        OwnerID      m_ownerID;      // 1
+        Flags        m_flags;        // 1
+        TypeInstance m_type;         // 4
     };
     static_assert( sizeof( NetworkAddressData ) == 16U, "Invalid NetworkAddressData Size" );
 
@@ -91,7 +91,7 @@ public:
         inline U64 operator()( const reference& ref ) const noexcept
         {
             const reference& net = ref.getHeaderAddress();
-            return net.getObjectID() + ( ( U64 )net.getMachineID() << 4 );
+            return net.getAllocationID() + ( ( U64 )net.getMachineID() << 4 );
         }
     };
 
@@ -108,11 +108,11 @@ public:
     inline void             setLockCycle( TimeStamp lockCycle );
 
     // network - can access via heap header
-    constexpr inline ObjectID  getObjectID() const;
-    constexpr inline MPO       getMPO() const;
-    constexpr inline MP        getMP() const;
-    constexpr inline MachineID getMachineID() const;
-    constexpr inline ProcessID getProcessID() const;
+    constexpr inline AllocationID getAllocationID() const;
+    constexpr inline MPO          getMPO() const;
+    constexpr inline MP           getMP() const;
+    constexpr inline MachineID    getMachineID() const;
+    constexpr inline ProcessID    getProcessID() const;
 
     // common to both
     constexpr inline OwnerID      getOwnerID() const { return prc.m_ownerID; }
@@ -122,7 +122,7 @@ public:
     constexpr inline TypeInstance getTypeInstance() const { return prc.m_type; }
 
     constexpr reference()
-        : net{ 0U, 0U, 0U, 0U, NETWORK_ADDRESS, TypeInstance{ 0, 0 } }
+        : net{ 0U, 0U, 0U, 0U, NETWORK_ADDRESS, TypeInstance{} }
     {
     }
 
@@ -130,8 +130,8 @@ public:
         : prc{ heap, 0, owner, HEAP_ADDRESS, typeInstance }
     {
     }
-    constexpr reference( TypeInstance typeInstance, MPO mpo, ObjectID object )
-        : net{ object, mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID(), NETWORK_ADDRESS, typeInstance }
+    constexpr reference( TypeInstance typeInstance, MPO mpo, AllocationID allocationID )
+        : net{ allocationID, mpo.getMachineID(), mpo.getProcessID(), mpo.getOwnerID(), NETWORK_ADDRESS, typeInstance }
     {
     }
 
@@ -143,7 +143,7 @@ public:
         }
         else
         {
-            return { TypeInstance{ other.getInstance(), typeID }, other.getMPO(), other.getObjectID() };
+            return { TypeInstance{ other.getInstance(), typeID }, other.getMPO(), other.getAllocationID() };
         }
     }
 
@@ -155,7 +155,7 @@ public:
         }
         else
         {
-            return { typeInstance, other.getMPO(), other.getObjectID() };
+            return { typeInstance, other.getMPO(), other.getAllocationID() };
         }
     }
 
@@ -176,7 +176,7 @@ public:
         }
         else if( !isNetworkAddress() && !cmp.isNetworkAddress() )
         {
-            return net.m_objectID == cmp.net.m_objectID &&
+            return net.m_allocationID == cmp.net.m_allocationID &&
                    net.m_machineID == cmp.net.m_machineID &&
                    net.m_processID == cmp.net.m_processID &&
                    net.m_ownerID == cmp.net.m_ownerID &&
@@ -204,12 +204,12 @@ public:
         else if( isNetworkAddress() && cmp.isNetworkAddress() )
         {
             // important to compare MPO first - since this is used by some algorithms 
-            return ( net.m_machineID  != cmp.net.m_machineID )  ? ( net.m_machineID  < cmp.net.m_machineID ) :
-                   ( net.m_processID  != cmp.net.m_processID )  ? ( net.m_processID  < cmp.net.m_processID ) :
-                   ( net.m_ownerID    != cmp.net.m_ownerID )    ? ( net.m_ownerID    < cmp.net.m_ownerID ) :
-                   ( net.m_objectID   != cmp.net.m_objectID )   ? ( net.m_objectID   < cmp.net.m_objectID ) :
-                   ( net.m_flags      != cmp.net.m_flags )      ? ( net.m_flags      < cmp.net.m_flags ) :
-                                                                  ( net.m_type       < cmp.net.m_type );
+            return ( net.m_machineID      != cmp.net.m_machineID )      ? ( net.m_machineID     < cmp.net.m_machineID ) :
+                   ( net.m_processID      != cmp.net.m_processID )      ? ( net.m_processID     < cmp.net.m_processID ) :
+                   ( net.m_ownerID        != cmp.net.m_ownerID )        ? ( net.m_ownerID       < cmp.net.m_ownerID ) :
+                   ( net.m_allocationID   != cmp.net.m_allocationID )   ? ( net.m_allocationID  < cmp.net.m_allocationID ) :
+                   ( net.m_flags          != cmp.net.m_flags )          ? ( net.m_flags         < cmp.net.m_flags ) :
+                                                                          ( net.m_type          < cmp.net.m_type );
         }
         else
         {
@@ -258,15 +258,15 @@ inline reference reference::getNetworkAddress() const
     }
 }
 
-constexpr inline ObjectID reference::getObjectID() const
+constexpr inline AllocationID reference::getAllocationID() const
 {
     if( isNetworkAddress() )
     {
-        return net.m_objectID;
+        return net.m_allocationID;
     }
     else
     {
-        return getHeaderAddress().getObjectID();
+        return getHeaderAddress().getAllocationID();
     }
 }
 constexpr inline MPO reference::getMPO() const

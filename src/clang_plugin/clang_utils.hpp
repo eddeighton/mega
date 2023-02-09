@@ -22,7 +22,8 @@
 #ifndef CLANG_UTILS_19_04_2019
 #define CLANG_UTILS_19_04_2019
 
-#include "mega/common.hpp"
+#include "mega/operation_id.hpp"
+#include "mega/invocation_id.hpp"
 
 #include "common/clang_warnings.hpp"
 #include "common/requireSemicolon.hpp"
@@ -43,13 +44,13 @@
 
 namespace clang
 {
-std::optional< mega::TypeID > getEGSymbolID( ASTContext* pASTContext, QualType type );
+std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType type );
 
 const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters );
 
-bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, std::vector< mega::SymbolID >& contextTypes );
+bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, mega::InvocationID::SymbolIDVector& contextTypes );
 
-bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, std::vector< mega::SymbolID >& typePathTypes );
+bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, mega::InvocationID::SymbolIDVector& typePathTypes );
 
 std::optional< ::mega::U64 > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext,
                                           const SourceLocation& loc, const std::string& strConstantName );

@@ -104,7 +104,7 @@ public:
             traitNames.push_back( os.str() );
 
             nlohmann::json trait_struct( { { "name", os.str() },
-                                           { "typeid", pContext->get_interface_id() },
+                                           { "typeid", pContext->get_interface_id().getSymbolID() },
                                            { "types", traitNames },
                                            { "traits", nlohmann::json::array() } } );
 
@@ -133,7 +133,7 @@ public:
             traitNames.push_back( os.str() );
 
             nlohmann::json trait_struct( { { "name", os.str() },
-                                           { "typeid", pDimensionTrait->get_interface_id() },
+                                           { "typeid", pDimensionTrait->get_interface_id().getSymbolID() },
                                            { "types", traitNames },
                                            { "traits", nlohmann::json::array() } } );
 
@@ -192,7 +192,7 @@ public:
         traitNames.push_back( os.str() );
 
         nlohmann::json trait_struct( { { "name", os.str() },
-                                       { "typeid", pContext->get_interface_id() },
+                                       { "typeid", pContext->get_interface_id().getSymbolID() },
                                        { "types", traitNames },
                                        { "traits", nlohmann::json::array() } } );
 
@@ -215,7 +215,7 @@ public:
         traitNames.push_back( os.str() );
 
         nlohmann::json trait_struct( { { "name", os.str() },
-                                       { "typeid", pContext->get_interface_id() },
+                                       { "typeid", pContext->get_interface_id().getSymbolID() },
                                        { "types", traitNames },
                                        { "traits", nlohmann::json::array() } } );
         {
@@ -235,7 +235,7 @@ public:
         nlohmann::json typenames = parentTypeNames;
         typenames.push_back( pFirstContext->get_identifier() );
 
-        mega::SymbolID id;
+        mega::TypeID id;
         {
             if ( pInterfaceNode->contexts.size() > 1 )
             {
@@ -254,7 +254,7 @@ public:
         }
 
         nlohmann::json contextData( { { "name", pFirstContext->get_identifier() },
-                                      { "typeid", id },
+                                      { "typeid", id.getSymbolID() },
                                       { "trait_structs", nlohmann::json::array() },
                                       { "nested", osNested.str() },
                                       { "has_operation", false },

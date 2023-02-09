@@ -131,6 +131,7 @@ public:
     template < typename Archive >
     void save( Archive& ar, const unsigned int version ) const
     {
+        ASSERT( m_pObjectInfo.get() );
         ar&* m_pObjectInfo;
 
         boost::archive::MegaOArchive& mar = dynamic_cast< boost::archive::MegaOArchive& >( ar );

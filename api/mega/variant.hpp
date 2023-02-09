@@ -22,7 +22,7 @@
 #ifndef EG_VARIANT
 #define EG_VARIANT
 
-#include "common.hpp"
+#include "operation_id.hpp"
 #include "reference.hpp"
 #include "event.hpp"
 //#include "result_type.hpp"

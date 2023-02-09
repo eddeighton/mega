@@ -23,7 +23,7 @@
 #ifndef EG_TYPE_PATH
 #define EG_TYPE_PATH
 
-#include "common.hpp"
+#include "operation_id.hpp"
 
 #include <array>
 

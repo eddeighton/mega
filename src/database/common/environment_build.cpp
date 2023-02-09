@@ -48,11 +48,9 @@ void BuildEnvironment::copyToTargetPath( const boost::filesystem::path& from, co
     boost::filesystem::ensureFoldersExist( to );
 
     // attempt rename - which may fail if temp file is not on same volume as target
-    try
-    {
-        boost::filesystem::rename( from, to );
-    }
-    catch ( boost::filesystem::filesystem_error& ex )
+    boost::system::error_code ec;
+    boost::filesystem::rename( from, to, ec );
+    if( ec.failed() )
     {
         boost::filesystem::copy( from, to, boost::filesystem::copy_options::synchronize );
     }

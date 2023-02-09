@@ -1,6 +1,6 @@
 struct [[clang::eg_type( {{ typeid }} )]]{{ name }} : public mega::reference
 {
-    enum : mega::TypeID { ID = {{ typeid }} };
+    enum : mega::TypeID::ValueType { ID = {{ typeid }} };
     inline {{ name }}() = default;
     inline {{ name }}( mega::reference reference ) : mega::reference( reference ) {}
     template< typename T >

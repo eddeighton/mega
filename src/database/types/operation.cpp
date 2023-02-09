@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/types/operation.hpp"
 
 #include "common/assert_verify.hpp"
@@ -40,24 +39,30 @@ static const OperationIDStringArray g_pszOperationStrings = {
     std::string( "Range" ),
     std::string( "Raw" ),
 };
+static_assert( HIGHEST_OPERATION_TYPE - TypeID::LOWEST_SYMBOL_ID == g_pszOperationStrings.size(),
+               "Incorrect operation strings" );
 
 const std::string& getOperationString( OperationID op )
 {
-    return g_pszOperationStrings[ op - std::numeric_limits< TypeID >::min() ];
+    ASSERT( static_cast< int >( op ) >= TypeID::LOWEST_SYMBOL_ID );
+    ASSERT( static_cast< int >( op ) < HIGHEST_OPERATION_TYPE );
+    return g_pszOperationStrings[ op - TypeID::LOWEST_SYMBOL_ID ];
 }
 
 OperationID getOperationName( const std::string& strName )
 {
-    OperationIDStringArray::const_iterator iFind
-        = std::find( g_pszOperationStrings.begin(), g_pszOperationStrings.end(), strName );
-    if ( iFind == g_pszOperationStrings.end() )
+    auto iFind = std::find( g_pszOperationStrings.begin(), g_pszOperationStrings.end(), strName );
+    if( iFind == g_pszOperationStrings.end() )
         return HIGHEST_OPERATION_TYPE;
     else
-        return static_cast< OperationID >( std::numeric_limits< TypeID >::min()
+        return static_cast< OperationID >( TypeID::LOWEST_SYMBOL_ID
                                            + std::distance( g_pszOperationStrings.begin(), iFind ) );
 }
 
-const OperationIDStringArray& getOperationStrings() { return g_pszOperationStrings; }
+const OperationIDStringArray& getOperationStrings()
+{
+    return g_pszOperationStrings;
+}
 
 // clang-format off
 static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings = 
@@ -79,6 +84,8 @@ static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings =
     std::string( "Raw" ) 
 };
 // clang-format on
+static_assert( HIGHEST_EXPLICIT_OPERATION_TYPE == g_pszExplicitOperationStrings.size(),
+               "Incorrect explicit operation strings" );
 
 const std::string& getExplicitOperationString( ExplicitOperationID op )
 {
@@ -89,15 +96,16 @@ const std::string& getExplicitOperationString( ExplicitOperationID op )
 
 ExplicitOperationID getExplicitOperationName( const std::string& strName )
 {
-    ExplicitOperationIDStringArray::const_iterator iFind
-        = std::find( g_pszExplicitOperationStrings.begin(), g_pszExplicitOperationStrings.end(), strName );
-    if ( iFind == g_pszExplicitOperationStrings.end() )
+    auto iFind = std::find( g_pszExplicitOperationStrings.begin(), g_pszExplicitOperationStrings.end(), strName );
+    if( iFind == g_pszExplicitOperationStrings.end() )
         return HIGHEST_EXPLICIT_OPERATION_TYPE;
     else
-        return static_cast< ExplicitOperationID >( std::numeric_limits< TypeID >::min()
-                                                   + std::distance( g_pszExplicitOperationStrings.begin(), iFind ) );
+        return static_cast< ExplicitOperationID >( std::distance( g_pszExplicitOperationStrings.begin(), iFind ) );
 }
 
-const ExplicitOperationIDStringArray& getExplicitOperationStrings() { return g_pszExplicitOperationStrings; }
+const ExplicitOperationIDStringArray& getExplicitOperationStrings()
+{
+    return g_pszExplicitOperationStrings;
+}
 
 } // namespace mega

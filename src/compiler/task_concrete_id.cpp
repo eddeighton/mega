@@ -69,7 +69,7 @@ public:
     PathSet getSortedSourceFiles() const
     {
         PathSet srcFiles;
-        for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
             srcFiles.insert( sourceFilePath );
         }
@@ -110,7 +110,7 @@ public:
 
         void recurse( ContextGroup* pContextGroup, TypeIDSequence& sequence ) const
         {
-            if ( auto pContext = castFunctor( pContextGroup ) )
+            if( auto pContext = castFunctor( pContextGroup ) )
             {
                 sequence.push_back( getTypeID( pContext->get_interface() ) );
                 recurse( pContext->get_parent(), sequence );
@@ -145,7 +145,7 @@ public:
         }
         TypeIDSequence operator()( DimAlloc* pDimAlloc ) const
         {
-            if ( auto pDimAllocator = dimCastFunctor( pDimAlloc ) )
+            if( auto pDimAllocator = dimCastFunctor( pDimAlloc ) )
             {
                 auto pAllocator        = pDimAllocator->get_allocator();
                 auto pAllocatedContext = pAllocator->get_allocated_context();
@@ -182,22 +182,18 @@ public:
         NewTypeIDMap                                                        new_concrete_type_ids;
         std::set< TypeID >                                                  usedTypeIDs;
 
-        TypeIDSequenceGen 
-        <
-            ConcreteTypeAnalysis::Symbols::ConcreteTypeID,
-            ConcreteTypeAnalysis::Interface::IContext,
-            ConcreteTypeAnalysis::Interface::DimensionTrait,
-            ConcreteTypeAnalysis::Interface::LinkTrait,
-            ConcreteTypeAnalysis::Concrete::Context,
-            ConcreteTypeAnalysis::Concrete::ContextGroup,
-            ConcreteTypeAnalysis::Concrete::Dimensions::User,
-            ConcreteTypeAnalysis::Concrete::Dimensions::LinkReference,
-            ConcreteTypeAnalysis::Concrete::Dimensions::Allocation,
-            ConcreteTypeAnalysis::Concrete::Dimensions::Allocator
-        >
-        idgen(
-            &New::db_cast< New::Concrete::Context, New::Concrete::ContextGroup >,
-            &New::db_cast< New::Concrete::Dimensions::Allocator, New::Concrete::Dimensions::Allocation > );
+        TypeIDSequenceGen< New::Symbols::ConcreteTypeID,
+                           New::Interface::IContext,
+                           New::Interface::DimensionTrait,
+                           New::Interface::LinkTrait,
+                           New::Concrete::Context,
+                           New::Concrete::ContextGroup,
+                           New::Concrete::Dimensions::User,
+                           New::Concrete::Dimensions::LinkReference,
+                           New::Concrete::Dimensions::Allocation,
+                           New::Concrete::Dimensions::Allocator >
+            idgen( &New::db_cast< New::Concrete::Context, New::Concrete::ContextGroup >,
+                   &New::db_cast< New::Concrete::Dimensions::Allocator, New::Concrete::Dimensions::Allocation > );
 
         {
             auto pNewConcreteSymbol
@@ -209,13 +205,13 @@ public:
             new_concrete_type_id_sequences.insert( { TypeIDSequence{ ROOT_TYPE_ID }, pNewConcreteSymbol } );
         }
 
-        for ( const mega::io::megaFilePath& newSourceFile : getSortedSourceFiles() )
+        for( const mega::io::megaFilePath& newSourceFile : getSortedSourceFiles() )
         {
-            for ( New::Concrete::Context* pContext : newDatabase.many< New::Concrete::Context >( newSourceFile ) )
+            for( New::Concrete::Context* pContext : newDatabase.many< New::Concrete::Context >( newSourceFile ) )
             {
                 const TypeIDSequence idSeq = idgen( pContext );
 
-                if ( idSeq == TypeIDSequence{ ROOT_TYPE_ID } )
+                if( idSeq == TypeIDSequence{ ROOT_TYPE_ID } )
                 {
                     // special case for root
                     auto jFind = new_concrete_type_id_sequences.find( idSeq );
@@ -229,7 +225,7 @@ public:
                     New::Symbols::ConcreteTypeID* pNewConcreteSymbol = nullptr;
                     {
                         auto iFind = oldConcreteTypeIDSequences.find( idSeq );
-                        if ( iFind != oldConcreteTypeIDSequences.end() )
+                        if( iFind != oldConcreteTypeIDSequences.end() )
                         {
                             auto         pOldConcreteTypeID = iFind->second;
                             const TypeID oldTypeID          = pOldConcreteTypeID->get_id();
@@ -243,20 +239,20 @@ public:
                         {
                             pNewConcreteSymbol = newDatabase.construct< New::Symbols::ConcreteTypeID >(
                                 New::Symbols::ConcreteTypeID::Args{
-                                    0, pContext, std::nullopt, std::nullopt, std::nullopt } );
+                                    TypeID{}, pContext, std::nullopt, std::nullopt, std::nullopt } );
                         }
                     }
                     VERIFY_RTE( new_concrete_type_id_sequences.insert( { idSeq, pNewConcreteSymbol } ).second );
                 }
             }
-            for ( New::Concrete::Dimensions::User* pUserDimension :
-                  newDatabase.many< New::Concrete::Dimensions::User >( newSourceFile ) )
+            for( New::Concrete::Dimensions::User* pUserDimension :
+                 newDatabase.many< New::Concrete::Dimensions::User >( newSourceFile ) )
             {
                 const TypeIDSequence          idSeq              = idgen( pUserDimension );
                 New::Symbols::ConcreteTypeID* pNewConcreteSymbol = nullptr;
                 {
                     auto iFind = oldConcreteTypeIDSequences.find( idSeq );
-                    if ( iFind != oldConcreteTypeIDSequences.end() )
+                    if( iFind != oldConcreteTypeIDSequences.end() )
                     {
                         auto         pOldConcreteTypeID = iFind->second;
                         const TypeID oldTypeID          = pOldConcreteTypeID->get_id();
@@ -270,19 +266,19 @@ public:
                     {
                         pNewConcreteSymbol
                             = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
-                                0, std::nullopt, pUserDimension, std::nullopt, std::nullopt } );
+                                TypeID{}, std::nullopt, pUserDimension, std::nullopt, std::nullopt } );
                     }
                 }
                 VERIFY_RTE( new_concrete_type_id_sequences.insert( { idSeq, pNewConcreteSymbol } ).second );
             }
-            for ( New::Concrete::Dimensions::LinkReference* pLinkDimension :
-                  newDatabase.many< New::Concrete::Dimensions::LinkReference >( newSourceFile ) )
+            for( New::Concrete::Dimensions::LinkReference* pLinkDimension :
+                 newDatabase.many< New::Concrete::Dimensions::LinkReference >( newSourceFile ) )
             {
                 const TypeIDSequencePair      idSeqPair          = idgen( pLinkDimension );
                 New::Symbols::ConcreteTypeID* pNewConcreteSymbol = nullptr;
                 {
                     auto iFind = oldLinkIDSequences.find( idSeqPair );
-                    if ( iFind != oldLinkIDSequences.end() )
+                    if( iFind != oldLinkIDSequences.end() )
                     {
                         auto         pOldConcreteTypeID = iFind->second;
                         const TypeID oldTypeID          = pOldConcreteTypeID->get_id();
@@ -296,19 +292,19 @@ public:
                     {
                         pNewConcreteSymbol
                             = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
-                                0, std::nullopt, std::nullopt, pLinkDimension, std::nullopt } );
+                                TypeID{}, std::nullopt, std::nullopt, pLinkDimension, std::nullopt } );
                     }
                 }
                 VERIFY_RTE( new_concrete_type_id_set_link.insert( { idSeqPair, pNewConcreteSymbol } ).second );
             }
-            for ( New::Concrete::Dimensions::Allocation* pAllocationDimension :
-                  newDatabase.many< New::Concrete::Dimensions::Allocation >( newSourceFile ) )
+            for( New::Concrete::Dimensions::Allocation* pAllocationDimension :
+                 newDatabase.many< New::Concrete::Dimensions::Allocation >( newSourceFile ) )
             {
                 const TypeIDSequence          idSeq              = idgen( pAllocationDimension );
                 New::Symbols::ConcreteTypeID* pNewConcreteSymbol = nullptr;
                 {
                     auto iFind = oldAllocIDSequences.find( idSeq );
-                    if ( iFind != oldAllocIDSequences.end() )
+                    if( iFind != oldAllocIDSequences.end() )
                     {
                         auto         pOldConcreteTypeID = iFind->second;
                         const TypeID oldTypeID          = pOldConcreteTypeID->get_id();
@@ -322,7 +318,7 @@ public:
                     {
                         pNewConcreteSymbol
                             = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
-                                0, std::nullopt, std::nullopt, std::nullopt, pAllocationDimension } );
+                                TypeID{}, std::nullopt, std::nullopt, std::nullopt, pAllocationDimension } );
                     }
                 }
                 VERIFY_RTE( new_concrete_type_id_seq_alloc.insert( { idSeq, pNewConcreteSymbol } ).second );
@@ -330,48 +326,137 @@ public:
         }
 
         // generate symbol ids - avoiding existing
+
+        // set object ID first
+        std::map< New::Concrete::Object*, New::Symbols::ConcreteTypeID* > objectConcreteTypeIDs;
+        {
+            std::set< U8 > usedObjectIDs;
+            for( auto typeID : usedTypeIDs )
+            {
+                usedObjectIDs.insert( typeID.getObjectID() );
+            }
+            auto usedIter        = usedObjectIDs.begin();
+            U8   objectIDCounter = ROOT_TYPE_ID.getObjectID();
+
+            for( auto [ _, pSymbolTypeID ] : new_concrete_type_id_sequences )
+            {
+                if( auto pContextOpt = pSymbolTypeID->get_context(); pContextOpt.has_value() )
+                {
+                    if( auto pObject = New::db_cast< New::Concrete::Object >( pContextOpt.value() ) )
+                    {
+                        if( pSymbolTypeID->get_id() == TypeID{} )
+                        {
+                            while( ( usedIter != usedObjectIDs.end() ) && ( objectIDCounter == *usedIter ) )
+                            {
+                                ++usedIter;
+                                ++objectIDCounter;
+                            }
+                            const TypeID newTypeID = TypeID::make_context( objectIDCounter );
+                            pSymbolTypeID->set_id( newTypeID );
+                            new_concrete_type_ids.insert( { newTypeID, pSymbolTypeID } );
+                            ++objectIDCounter;
+                        }
+                        objectConcreteTypeIDs.insert( { pObject, pSymbolTypeID } );
+                    }
+                }
+            }
+        }
+
+        // establish the used subObjectIDs per objectID
+        std::multimap< U8, U8 > usedSubObjectIDs;
+        for( const auto typeID : usedTypeIDs )
+        {
+            usedSubObjectIDs.insert( { typeID.getObjectID(), typeID.getSubObjectID() } );
+        }
+
+        auto genSubObject
+            = [ &objectConcreteTypeIDs, &usedSubObjectIDs, &new_concrete_type_ids ](
+                  New::Symbols::ConcreteTypeID* pConcreteTypeID, New::Concrete::ContextGroup* pContextGroup )
+        {
+            // locate the object
+            U8 objectID = 0;
+            {
+                New::Concrete::Object* pObject = nullptr;
+                {
+                    VERIFY_RTE( pContextGroup );
+                    while( auto pContext = db_cast< New::Concrete::Context >( pContextGroup ) )
+                    {
+                        if( db_cast< New::Concrete::Object >( pContext ) )
+                            break;
+                        else
+                            pContextGroup = pContext->get_parent();
+                    }
+                    pObject = db_cast< New::Concrete::Object >( pContextGroup );
+                }
+                if( pObject )
+                {
+                    New::Symbols::ConcreteTypeID* pObjectInterfaceTypeID = objectConcreteTypeIDs[ pObject ];
+                    VERIFY_RTE_MSG( pObjectInterfaceTypeID, "Failed locating object concrete typeid" );
+
+                    const TypeID objectTypeID = pObjectInterfaceTypeID->get_id();
+                    ASSERT( objectTypeID.isContextID() && objectTypeID.getSubObjectID() == 0 );
+                    objectID = objectTypeID.getObjectID();
+                }
+            }
+
+            // find the begining of the object TypeID range in usedTypeIDS
+            TypeID newTypeID;
+            {
+                auto i           = usedSubObjectIDs.lower_bound( objectID );
+                auto iEnd        = usedSubObjectIDs.upper_bound( objectID );
+                U8   subObjectID = 0U;
+                while( ( i != iEnd ) && ( subObjectID == i->second ) )
+                {
+                    ++i;
+                    ++subObjectID;
+                    VERIFY_RTE_MSG( subObjectID != 0, "SubObjectID overflow" );
+                }
+                // there may not be an object in which case subObjectID 0 will not be used
+                if( subObjectID == 0U )
+                {
+                    usedSubObjectIDs.insert( { objectID, subObjectID } );
+                    ++subObjectID;
+                }
+                usedSubObjectIDs.insert( { objectID, subObjectID } );
+                newTypeID = TypeID::make_context( objectID, subObjectID );
+            }
+
+            pConcreteTypeID->set_id( newTypeID );
+            VERIFY_RTE( new_concrete_type_ids.insert( { newTypeID, pConcreteTypeID } ).second );
+        };
+
         auto   usedIter      = usedTypeIDs.begin();
-        TypeID typeIDCounter = 1U;
-        for ( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_sequences )
+        TypeID typeIDCounter = TypeID{ 1U };
+        for( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_sequences )
         {
-            if ( pSymbolTypeID->get_id() == 0 )
+            if( pSymbolTypeID->get_id() == 0 )
             {
-                while ( ( usedIter != usedTypeIDs.end() ) && ( typeIDCounter == *usedIter ) )
+                if( pSymbolTypeID->get_context().has_value() )
                 {
-                    ++usedIter;
-                    ++typeIDCounter;
+                    genSubObject( pSymbolTypeID, pSymbolTypeID->get_context().value() );
                 }
-                pSymbolTypeID->set_id( typeIDCounter );
-                new_concrete_type_ids.insert( { typeIDCounter, pSymbolTypeID } );
-                ++typeIDCounter;
+                else if( pSymbolTypeID->get_dim_user().has_value() )
+                {
+                    genSubObject( pSymbolTypeID, pSymbolTypeID->get_dim_user().value()->get_parent() );
+                }
+                else
+                {
+                    THROW_RTE( "Unexpected symbol type" );
+                }
             }
         }
-        for ( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_set_link )
+        for( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_set_link )
         {
-            if ( pSymbolTypeID->get_id() == 0 )
+            if( pSymbolTypeID->get_id() == 0 )
             {
-                while ( ( usedIter != usedTypeIDs.end() ) && ( typeIDCounter == *usedIter ) )
-                {
-                    ++usedIter;
-                    ++typeIDCounter;
-                }
-                pSymbolTypeID->set_id( typeIDCounter );
-                new_concrete_type_ids.insert( { typeIDCounter, pSymbolTypeID } );
-                ++typeIDCounter;
+                genSubObject( pSymbolTypeID, pSymbolTypeID->get_dim_link().value()->get_parent() );
             }
         }
-        for ( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_seq_alloc )
+        for( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_seq_alloc )
         {
-            if ( pSymbolTypeID->get_id() == 0 )
+            if( pSymbolTypeID->get_id() == 0 )
             {
-                while ( ( usedIter != usedTypeIDs.end() ) && ( typeIDCounter == *usedIter ) )
-                {
-                    ++usedIter;
-                    ++typeIDCounter;
-                }
-                pSymbolTypeID->set_id( typeIDCounter );
-                new_concrete_type_ids.insert( { typeIDCounter, pSymbolTypeID } );
-                ++typeIDCounter;
+                genSubObject( pSymbolTypeID, pSymbolTypeID->get_dim_allocation().value()->get_parent() );
             }
         }
 
@@ -391,23 +476,17 @@ public:
         task::DeterminantHash determinant(
             m_toolChain.toolChainHash,
             m_environment.getBuildHashCode( m_environment.SymbolAnalysis_SymbolTable( manifestFilePath ) ) );
-        for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
             const task::DeterminantHash hashCode(
                 m_environment.getBuildHashCode( m_environment.ConcreteStage_Concrete( sourceFilePath ) ),
                 m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) ),
                 m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( sourceFilePath ) ),
                 m_environment.getBuildHashCode( m_environment.InterfaceAnalysisStage_Clang( sourceFilePath ) ) );
-
-            // os << sourceFilePath.path() << " : " << hashCode.toHexString() << std::endl;
             determinant ^= hashCode;
         }
-        //{
-        //    os << "determinant : " << symbolCompilationFile.path() << " : " << determinant.toHexString();
-        //    msg( taskProgress, os.str() );
-        //}
 
-        if ( m_environment.restore( symbolCompilationFile, determinant ) )
+        if( m_environment.restore( symbolCompilationFile, determinant ) )
         {
             m_environment.setBuildHashCode( symbolCompilationFile );
             cached( taskProgress );
@@ -417,7 +496,7 @@ public:
         ConcreteHashCodeGenerator hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
         bool bReusedOldDatabase = false;
-        if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
+        if( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
         {
             try
             {
@@ -459,13 +538,13 @@ public:
                 succeeded( taskProgress );
                 bReusedOldDatabase = true;
             }
-            catch ( mega::io::DatabaseVersionException& )
+            catch( mega::io::DatabaseVersionException& )
             {
                 bReusedOldDatabase = false;
             }
         }
 
-        if ( !bReusedOldDatabase )
+        if( !bReusedOldDatabase )
         {
             using namespace ConcreteTypeAnalysis;
             using namespace ConcreteTypeAnalysis::Symbols;
@@ -517,7 +596,7 @@ public:
         Task_ConcreteTypeAnalysis::ConcreteHashCodeGenerator hashGen( m_environment, m_toolChain.toolChainHash );
         const task::DeterminantHash                          determinant = hashGen( m_sourceFilePath );
 
-        if ( m_environment.restore( symbolRolloutFilePath, determinant ) )
+        if( m_environment.restore( symbolRolloutFilePath, determinant ) )
         {
             m_environment.setBuildHashCode( symbolRolloutFilePath );
             cached( taskProgress );
@@ -550,20 +629,20 @@ public:
             idgen( &db_cast< Concrete::Context, Concrete::ContextGroup >,
                    &db_cast< Concrete::Dimensions::Allocator, Concrete::Dimensions::Allocation > );
 
-        for ( auto pContext : database.many< Concrete::Context >( m_sourceFilePath ) )
+        for( auto pContext : database.many< Concrete::Context >( m_sourceFilePath ) )
         {
             auto iFind = oldConcreteTypeIDSequences.find( idgen( pContext ) );
             VERIFY_RTE( iFind != oldConcreteTypeIDSequences.end() );
             database.construct< Concrete::Context >( Concrete::Context::Args{ pContext, iFind->second->get_id() } );
         }
-        for ( auto pUserDimension : database.many< Concrete::Dimensions::User >( m_sourceFilePath ) )
+        for( auto pUserDimension : database.many< Concrete::Dimensions::User >( m_sourceFilePath ) )
         {
             auto iFind = oldConcreteTypeIDSequences.find( idgen( pUserDimension ) );
             VERIFY_RTE( iFind != oldConcreteTypeIDSequences.end() );
             database.construct< Concrete::Dimensions::User >(
                 Concrete::Dimensions::User::Args{ pUserDimension, iFind->second->get_id() } );
         }
-        for ( auto pLinkDimension : database.many< Concrete::Dimensions::LinkReference >( m_sourceFilePath ) )
+        for( auto pLinkDimension : database.many< Concrete::Dimensions::LinkReference >( m_sourceFilePath ) )
         {
             const TypeIDSequencePair idSeqPair = idgen( pLinkDimension );
             auto                     iFind     = oldLinkIDSequences.find( idSeqPair );
@@ -571,7 +650,7 @@ public:
             database.construct< Concrete::Dimensions::LinkReference >(
                 Concrete::Dimensions::LinkReference::Args{ pLinkDimension, iFind->second->get_id() } );
         }
-        for ( auto pAllocationDimension : database.many< Concrete::Dimensions::Allocation >( m_sourceFilePath ) )
+        for( auto pAllocationDimension : database.many< Concrete::Dimensions::Allocation >( m_sourceFilePath ) )
         {
             const TypeIDSequence idSeq = idgen( pAllocationDimension );
             auto                 iFind = oldAllocIDSequences.find( idSeq );

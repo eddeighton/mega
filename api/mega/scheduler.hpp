@@ -23,7 +23,6 @@
 #ifndef EG_SCHEDULER
 #define EG_SCHEDULER
 
-#include "common.hpp"
 #include "event.hpp"
 #include "coroutine.hpp"
 

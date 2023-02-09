@@ -147,10 +147,26 @@ public:
                 for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
                     std::ostringstream osContextIDs;
-                    common::delimit( id.m_context.begin(), id.m_context.end(), ",", osContextIDs );
+                    {
+                        bool bFirst = true;
+                        for( TypeID typeID : id.m_context )
+                        {
+                            if( bFirst ) bFirst = false;
+                            else osContextIDs << ',';
+                            osContextIDs << "mega::TypeID{ " << typeID.getSymbolID() << " }";
+                        }
+                    }
 
                     std::ostringstream osTypePathIDs;
-                    common::delimit( id.m_type_path.begin(), id.m_type_path.end(), ",", osTypePathIDs );
+                    {
+                        bool bFirst = true;
+                        for( TypeID typeID : id.m_type_path )
+                        {
+                            if( bFirst ) bFirst = false;
+                            else osTypePathIDs << ',';
+                            osTypePathIDs << "mega::TypeID{ " << typeID.getSymbolID() << " }";
+                        }
+                    }
 
                     nlohmann::json invocation(
                         { { "return_type", pInvocation->get_return_type_str() },

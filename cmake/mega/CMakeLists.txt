@@ -67,7 +67,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/bin_archive.hpp
     ${MEGA_API_DIR}/mega/clock.hpp
     ${MEGA_API_DIR}/mega/common_strings.hpp 
-    ${MEGA_API_DIR}/mega/common.hpp 
     ${MEGA_API_DIR}/mega/coroutine.hpp
     ${MEGA_API_DIR}/mega/eg_common_strings.hpp
     ${MEGA_API_DIR}/mega/event_log.hpp
@@ -80,6 +79,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/memory.hpp
     ${MEGA_API_DIR}/mega/mpo.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp
+    ${MEGA_API_DIR}/mega/operation_id.hpp 
     ${MEGA_API_DIR}/mega/operations.hpp
     ${MEGA_API_DIR}/mega/record_archive.hpp
     ${MEGA_API_DIR}/mega/reference_io.hpp
@@ -91,6 +91,8 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
     ${MEGA_API_DIR}/mega/tag_parser.hpp
+    ${MEGA_API_DIR}/mega/type_id_io.hpp
+    ${MEGA_API_DIR}/mega/type_id_limits.hpp
     ${MEGA_API_DIR}/mega/type_id.hpp
     ${MEGA_API_DIR}/mega/type_instance.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp

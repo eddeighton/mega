@@ -45,7 +45,7 @@
 namespace clang
 {
 
-std::optional< mega::SymbolID > getEGSymbolID( ASTContext* pASTContext, QualType type )
+std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType type )
 {
     if( type.getTypePtrOrNull() && !type->isDependentType() )
     {
@@ -55,7 +55,7 @@ std::optional< mega::SymbolID > getEGSymbolID( ASTContext* pASTContext, QualType
         {
             if( pBaseTypeID == pASTContext->getEGTypePathName() )
             {
-                return mega::id_TypePath;
+                return mega::TypeID( mega::id_TypePath );
             }
         }
 
@@ -65,11 +65,10 @@ std::optional< mega::SymbolID > getEGSymbolID( ASTContext* pASTContext, QualType
             {
                 if( EGTypeIDAttr* pAttr = pRecordDecl->getAttr< EGTypeIDAttr >() )
                 {
-                    return pAttr->getId();
+                    return mega::TypeID( static_cast< mega::TypeID::ValueType >( pAttr->getId() ) );
                 }
             }
         }
-
         /*
             if( canonicalType->hasAttr< EGTypeIDAttr >() )
             {
@@ -92,7 +91,7 @@ std::optional< mega::SymbolID > getEGSymbolID( ASTContext* pASTContext, QualType
 
     // CLANG_PLUGIN_LOG( "No symbol id for: "  << type.getAsString() );
 
-    return std::optional< mega::SymbolID >();
+    return std::optional< mega::TypeID >();
 }
 
 const IdentifierInfo* getOperationIdentifier( ASTContext* pASTContext, const std::string& strName )
@@ -192,7 +191,8 @@ const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool
     return nullptr;
 }
 
-bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, std::vector< mega::SymbolID >& contextTypes )
+bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType,
+                          mega::InvocationID::SymbolIDVector& contextTypes )
 {
     QualType canonicalType = contextType.getCanonicalType();
     if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
@@ -272,9 +272,10 @@ bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, std::ve
         }
         else
         {
-            if( std::optional< mega::SymbolID > egTypeID = getEGSymbolID( pASTContext, canonicalType ) )
+            if( std::optional< mega::TypeID > typeIDOpt = getMegaTypeID( pASTContext, canonicalType );
+                typeIDOpt.has_value() )
             {
-                contextTypes.push_back( egTypeID.value() );
+                contextTypes.push_back( typeIDOpt.value() );
                 return true;
             }
             else
@@ -289,7 +290,8 @@ bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, std::ve
     }
 }
 
-bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, std::vector< mega::SymbolID >& typePathTypes )
+bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath,
+                           mega::InvocationID::SymbolIDVector& typePathTypes )
 {
     QualType              canonicalType = typePath.getCanonicalType();
     const IdentifierInfo* pBaseTypeID   = canonicalType.getBaseTypeIdentifier();
@@ -307,8 +309,7 @@ bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, std::vect
 
             bool bSuccess = false;
             for( TemplateSpecializationType::iterator pIter = pTemplateType->begin(), pIterEnd = pTemplateType->end();
-                 pIter != pIterEnd;
-                 ++pIter )
+                 pIter != pIterEnd; ++pIter )
             {
                 if( !getTypePathSymbolIDs( pASTContext, pIter->getAsType(), typePathTypes ) )
                     return false;
@@ -369,9 +370,10 @@ bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, std::vect
     }
     else
     {
-        if( std::optional< mega::SymbolID > egTypeID = getEGSymbolID( pASTContext, canonicalType ) )
+        if( std::optional< mega::TypeID > typeIDOpt = getMegaTypeID( pASTContext, canonicalType );
+            typeIDOpt.has_value() )
         {
-            typePathTypes.push_back( egTypeID.value() );
+            typePathTypes.push_back( typeIDOpt.value() );
             return true;
         }
         else
@@ -430,7 +432,7 @@ QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDec
 }
 
 QualType getVectorConstRefType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                        const QualType& valueType )
+                                const QualType& valueType )
 {
     SourceLocation  iterLoc;
     IdentifierInfo& identifierInfo = pASTContext->Idents.get( "__mega_vector" );
@@ -448,10 +450,8 @@ QualType getVectorConstRefType( ASTContext* pASTContext, Sema* pSema, DeclContex
                     TemplateArgument( valueType ), pASTContext->getTrivialTypeSourceInfo( valueType, loc ) ) );
             }
 
-            
-
             TemplateName templateName( pDecl );
-            QualType result = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
+            QualType     result = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
             return pASTContext->getLValueReferenceType( pASTContext->getConstType( result ) );
         }
         else if( TypeAliasTemplateDecl* pDecl = llvm::dyn_cast< TypeAliasTemplateDecl >( result.getFoundDecl() ) )
@@ -466,7 +466,7 @@ QualType getVectorConstRefType( ASTContext* pASTContext, Sema* pSema, DeclContex
             }
 
             TemplateName templateName( pDecl );
-            QualType result = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
+            QualType     result = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
             return pASTContext->getLValueReferenceType( pASTContext->getConstType( result ) );
         }
     }

@@ -561,11 +561,10 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
         Interface::LinkInterface* pLinkInterface = pLink->get_link_interface();
         HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
 
-        const mega::Ownership ownership
-            = pRelation->get_ownership();
+        const mega::Ownership ownership = pRelation->get_ownership();
 
-        //const mega::DerivationDirection derivation =
-        //    pLinkInterface->get_link_trait()->get_derivation();
+        // const mega::DerivationDirection derivation =
+        //     pLinkInterface->get_link_trait()->get_derivation();
 
         if( pRelation->get_source_interface() == pLinkInterface )
         {
@@ -577,8 +576,8 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
                     {
                         nlohmann::json edge = nlohmann::json::object(
                             { { "from", getContextFullTypeName< Concrete::Context >( pLink ) },
-                            { "to", getContextFullTypeName< Concrete::Context >( pConcreteLink ) },
-                            { "colour", "FF0000" } } );
+                              { "to", getContextFullTypeName< Concrete::Context >( pConcreteLink ) },
+                              { "colour", "FF0000" } } );
                         data[ "edges" ].push_back( edge );
                     }
                 }
@@ -594,8 +593,8 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
                     {
                         nlohmann::json edge = nlohmann::json::object(
                             { { "from", getContextFullTypeName< Concrete::Context >( pLink ) },
-                            { "to", getContextFullTypeName< Concrete::Context >( pConcreteLink ) },
-                            { "colour", "FF0000" } } );
+                              { "to", getContextFullTypeName< Concrete::Context >( pConcreteLink ) },
+                              { "colour", "FF0000" } } );
                         data[ "edges" ].push_back( edge );
                     }
                 }
@@ -701,7 +700,8 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
     using namespace FinalStage;
 
     std::ostringstream osName;
-    osName << strBufferName << "part_" << getContextFullTypeName( pPart->get_context() );
+    osName << strBufferName << "part_" << pPart->_get_object_info().getFileID() << "_"
+           << pPart->_get_object_info().getType() << "_" << pPart->_get_object_info().getIndex();
 
     std::ostringstream os;
     os << "Part: " << getContextFullTypeName( pPart->get_context() );

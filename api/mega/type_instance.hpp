@@ -28,23 +28,23 @@ namespace mega
 {
 
 using Instance = U16;
-using SymbolID = I16;
 
 static constexpr const char* ROOT_TYPE_NAME = "Root";
 
 struct TypeInstance
 {
     Instance instance = 0U;
-    TypeID   type     = 0;
+    TypeID   type     = {};
 
     TypeInstance() = default;
+    
     constexpr TypeInstance( Instance instance, TypeID type )
         : instance( instance )
         , type( type )
     {
     }
 
-    static constexpr TypeInstance Object( TypeID type ) { return { 0, type }; }
+    static constexpr TypeInstance Object( TypeID type ) { return { 0, TypeID::make_object_type( type ) }; }
     static constexpr TypeInstance Root() { return Object( ROOT_TYPE_ID ); }
 
     constexpr inline bool operator==( const TypeInstance& cmp ) const
@@ -63,6 +63,6 @@ struct TypeInstance
 };
 static_assert( sizeof( TypeInstance ) == 4U, "Invalid TypeInstance Size" );
 
-}
+} // namespace mega
 
-#endif //GUARD_2023_January_07_type_instance
+#endif // GUARD_2023_January_07_type_instance

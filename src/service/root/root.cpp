@@ -23,8 +23,6 @@
 #include "job.hpp"
 #include "simulation.hpp"
 
-#include "mega/common.hpp"
-
 #include "service/network/conversation.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"

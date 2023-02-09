@@ -42,7 +42,7 @@ class Scheduler
         FunctionType                 functionPtr;
         runtime::JITBase::ActionInfo info;
     };
-    using ActionFunctionMap = std::unordered_map< TypeID, ActionFunction >;
+    using ActionFunctionMap = std::unordered_map< TypeID, ActionFunction, TypeID::Hash >;
 
     struct Activation
     {

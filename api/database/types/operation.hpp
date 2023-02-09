@@ -24,7 +24,7 @@
 #define OPERATIONS_10_MAY_2022
 
 #include "database/common/api.hpp"
-#include "mega/common.hpp"
+#include "mega/operation_id.hpp"
 
 #include <array>
 #include <string>

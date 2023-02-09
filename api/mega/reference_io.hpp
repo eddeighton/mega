@@ -22,9 +22,17 @@
 
 #include "reference.hpp"
 
+#include "type_id_io.hpp"
+
+// the boost serialisation error handlers use iostream
+// boost/archive/basic_text_oprimitive.hpp:130
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+
 #include <iostream>
 #include <iomanip>
-
 
 inline std::istream& operator>>( std::istream& is, mega::MP& mp )
 {
@@ -55,22 +63,22 @@ inline std::istream& operator>>( std::istream& is, mega::MPO& mpo )
 
 inline std::ostream& operator<<( std::ostream& os, const mega::MPO& mpo )
 {
-    return os << 
-    
-    std::dec << std::setw( 8 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getMachineID() )
-              << '.' << std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getProcessID() ) << '.'
+    return os <<
+
+           std::dec << std::setw( 8 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getMachineID() ) << '.'
+              << std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getProcessID() ) << '.'
               << std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U32 >( mpo.getOwnerID() );
 }
 
 inline std::ostream& operator<<( std::ostream& os, const mega::TypeInstance& typeInstance )
 {
-    return os << std::dec << '[' << std::setw( 4 ) << std::setfill( '0' ) << typeInstance.type << "." << std::setw( 4 )
+    return os << std::dec << '[' << typeInstance.type << "." << std::setw( 4 )
               << std::setfill( '0' ) << typeInstance.instance << ']';
 }
 inline std::istream& operator>>( std::istream& is, mega::TypeInstance& typeInstance )
 {
     char c;
-    return is >> std::dec >> c >> std::setw( 4 ) >> typeInstance.type >> c >> std::setw( 4 ) >> typeInstance.instance
+    return is >> std::dec >> c >> typeInstance.type >> c >> std::setw( 4 ) >> typeInstance.instance
            >> c;
 }
 
@@ -79,12 +87,12 @@ inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
     if( ref.isHeapAddress() )
     {
         return os << std::hex << "x" << std::setw( 16 ) << std::setfill( '0' )
-                  << reinterpret_cast< mega::U64 >( ref.getHeap() ) << "." << std::setw( 2 ) << std::setfill( '0' ) << std::dec
-                  << static_cast< mega::U32 >( ref.getOwnerID() ) << "." << ref.getTypeInstance();
+                  << reinterpret_cast< mega::U64 >( ref.getHeap() ) << "." << std::setw( 2 ) << std::setfill( '0' )
+                  << std::dec << static_cast< mega::U32 >( ref.getOwnerID() ) << "." << ref.getTypeInstance();
     }
     else
     {
-        return os << std::dec << std::setw( 8 ) << std::setfill( '0' ) << ref.getObjectID() << "." << ref.getMPO()
+        return os << std::dec << std::setw( 8 ) << std::setfill( '0' ) << ref.getAllocationID() << "." << ref.getMPO()
                   << "." << ref.getTypeInstance();
     }
 }
@@ -104,38 +112,23 @@ inline std::istream& operator>>( std::istream& is, mega::reference& ref )
     }
     else
     {
-        mega::ObjectID     objectID;
+        mega::AllocationID allocationID;
         mega::MachineID    machineID;
         mega::U32          processID;
         mega::U32          ownerID;
         mega::TypeInstance typeInstance;
 
-        is >> std::dec >> objectID >> c >> std::setw( 8 ) >> machineID >> c >> std::setw( 4 ) >> processID >> c
+        is >> std::dec >> allocationID >> c >> std::setw( 8 ) >> machineID >> c >> std::setw( 4 ) >> processID >> c
             >> std::setw( 2 ) >> ownerID >> c >> typeInstance;
-        ref = mega::reference( typeInstance, mega::MPO( machineID, processID, ownerID ), objectID );
+        ref = mega::reference( typeInstance, mega::MPO( machineID, processID, ownerID ), allocationID );
     }
     return is;
 }
-/*
-namespace boost::archive
-{
-    inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
-    {
-        return ::operator<<( os, ref );
-    }
-}
-*/
-// the boost serialisation error handlers use iostream
-// boost/archive/basic_text_oprimitive.hpp:130
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
 
 namespace boost::serialization
 {
 
-// xml
+
 inline void serialize( boost::archive::xml_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
 {
     ar& boost::serialization::make_nvp( "instance", value.instance );
@@ -206,17 +199,17 @@ inline void serialize( boost::archive::xml_iarchive& ar, mega::reference& ref, c
     }
     else
     {
-        mega::ObjectID     object{};
+        mega::AllocationID allocationID{};
         mega::MPO          mpo{};
         mega::Flags        flags{};
         mega::TypeInstance typeInstance{};
 
-        ar& boost::serialization::make_nvp( "object", object );
+        ar& boost::serialization::make_nvp( "allocationID", allocationID );
         ar& boost::serialization::make_nvp( "mpo", mpo );
         ar& boost::serialization::make_nvp( "flags", flags );
         ar& boost::serialization::make_nvp( "type_instance", typeInstance );
 
-        ref = mega::reference( typeInstance, mpo, object );
+        ref = mega::reference( typeInstance, mpo, allocationID );
     }
 }
 
@@ -236,8 +229,8 @@ inline void serialize( boost::archive::xml_oarchive& ar, mega::reference& ref, c
     }
     else
     {
-        mega::ObjectID     object = ref.getObjectID();
-        ar&                boost::serialization::make_nvp( "object", object );
+        mega::AllocationID allocationID = ref.getAllocationID();
+        ar&                boost::serialization::make_nvp( "allocationID", allocationID );
         mega::MPO          mpo = ref.getMPO();
         ar&                boost::serialization::make_nvp( "mpo", mpo );
         mega::TypeInstance typeInstance = ref.getTypeInstance();
@@ -246,6 +239,7 @@ inline void serialize( boost::archive::xml_oarchive& ar, mega::reference& ref, c
 }
 
 // binary
+
 inline void serialize( boost::archive::binary_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
 {
     ar& value.instance;
@@ -310,15 +304,15 @@ inline void serialize( boost::archive::binary_iarchive& ar, mega::reference& ref
     }
     else
     {
-        mega::ObjectID     object{};
+        mega::AllocationID allocationID{};
         mega::MPO          mpo{};
         mega::TypeInstance typeInstance{};
 
-        ar& object;
+        ar& allocationID;
         ar& mpo;
         ar& typeInstance;
 
-        ref = mega::reference( typeInstance, mpo, object );
+        ref = mega::reference( typeInstance, mpo, allocationID );
     }
 }
 
@@ -333,7 +327,7 @@ inline void serialize( boost::archive::binary_oarchive& ar, mega::reference& ref
     }
     else
     {
-        ar& ref.getObjectID();
+        ar& ref.getAllocationID();
         ar& ref.getMPO();
         ar& ref.getTypeInstance();
     }

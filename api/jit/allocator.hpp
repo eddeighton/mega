@@ -25,6 +25,7 @@
 
 #include "object_functions.hxx"
 
+#include "mega/type_id.hpp"
 #include "mega/memory.hpp"
 
 #include "database/database.hpp"

@@ -68,17 +68,17 @@ ComponentManager::InterfaceComponent::InterfaceComponent( const ComponentPath&  
     SPDLOG_TRACE( "RUNTIME: InterfaceComponent loaded : {}", m_path.string() );
 
     // load all functions from mega alias section
-    for ( const std::string& strSymbol : m_libraryInfo.symbols( "mega" ) )
+    for( const std::string& strSymbol : m_libraryInfo.symbols( "mega" ) )
     {
         SPDLOG_TRACE( "RUNTIME: InterfaceComponent symbol : {}", strSymbol );
-        mega::TypeID interfaceTypeID = 0U;
+        mega::TypeID interfaceTypeID;
         {
             // symbol is always '_ma123'
             VERIFY_RTE_MSG( strSymbol.size() > 3, "Invalid symbol in mega alias section: " << strSymbol );
             const std::string  strID( strSymbol.begin() + 3, strSymbol.end() );
             std::istringstream is( strID );
             is >> interfaceTypeID;
-            VERIFY_RTE_MSG( interfaceTypeID != 0U, "Invalid type ID decoded from symbol: " << strSymbol );
+            VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Invalid type ID decoded from symbol: " << strSymbol );
         }
         ComponentManager::FunctionPtr pFunctionPtr
             = boost::dll::import_alias< TypeErasedFunction* >( m_library, strSymbol );
@@ -101,7 +101,7 @@ TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concr
 
     {
         auto iFind = m_functions.find( interfaceTypeID );
-        if ( iFind != m_functions.end() )
+        if( iFind != m_functions.end() )
         {
             return iFind->second.get();
         }
@@ -113,7 +113,7 @@ TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concr
         const boost::filesystem::path componentPath = m_project.getProjectBin() / componentBuildPath.path().filename();
 
         auto iFind = m_interfaceComponents.find( componentPath );
-        if ( iFind == m_interfaceComponents.end() )
+        if( iFind == m_interfaceComponents.end() )
         {
             InterfaceComponent::Ptr pComponent = std::make_shared< InterfaceComponent >( componentPath, m_functions );
             m_interfaceComponents.insert( { componentPath, pComponent } );
@@ -122,7 +122,7 @@ TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concr
 
     {
         auto iFind = m_functions.find( interfaceTypeID );
-        if ( iFind != m_functions.end() )
+        if( iFind != m_functions.end() )
         {
             return iFind->second.get();
         }

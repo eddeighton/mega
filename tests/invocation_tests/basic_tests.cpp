@@ -70,8 +70,8 @@ TEST_P( BasicFixtureType, BasicParameterizedTest )
 
     auto symbolNames = pSymbolTable->get_symbol_names();
 
-    std::vector< mega::SymbolID > contextSymbolIDs = { symbolNames[ data.context ]->get_id() };
-    std::vector< mega::SymbolID > typePathSymbolIDs;
+    std::vector< mega::TypeID > contextSymbolIDs = { symbolNames[ data.context ]->get_id() };
+    std::vector< mega::TypeID > typePathSymbolIDs;
     for( const auto& t : data.typePath )
     {
         typePathSymbolIDs.push_back( symbolNames[ t ]->get_id() );
