@@ -166,6 +166,20 @@ struct formatter< mega::network::ConversationID >
 };
 
 template <>
+struct formatter< mega::TypeID >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    inline auto format( const mega::TypeID& typeID, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        std::ostringstream os;
+        using ::           operator<<;
+        os << typeID;
+        return format_to( ctx.out(), "{}", os.str() );
+    }
+};
+
+template <>
 struct formatter< mega::TypeInstance >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }

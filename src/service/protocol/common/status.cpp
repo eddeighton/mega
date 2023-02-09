@@ -90,14 +90,14 @@ struct StatusPrinter
             }
         }
 
-        if( status.getObjectID().has_value() )
+        if( status.getAllocationID().has_value() )
         {
-            line( iCurrentDepth + 2 ) << "Object Allocations: " << status.getObjectID().value() << "\n";
+            line( iCurrentDepth + 2 ) << "Object Allocations: " << status.getAllocationID().value() << "\n";
         }
 
-        if( status.getObjectCount().has_value() )
+        if( status.getAllocationCount().has_value() )
         {
-            line( iCurrentDepth + 2 ) << "Active objects: " << status.getObjectCount().value() << "\n";
+            line( iCurrentDepth + 2 ) << "Active objects: " << status.getAllocationCount().value() << "\n";
         }
 
         if( status.getReads().has_value() )

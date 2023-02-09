@@ -34,12 +34,12 @@ namespace mega::mangle
 
 void object_save_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser )
 {
-    switch( objectTypeID )
+    switch( objectTypeID.getSymbolID() )
     {
 {% for type in object_types %}
         case {{ type }}:
         {
-            static thread_local mega::runtime::object::ObjectSaveBin objectSaveBin( "simulation", {{ type }} );
+            static thread_local mega::runtime::object::ObjectSaveBin objectSaveBin( "simulation", mega::TypeID{ {{ type }} } );
             objectSaveBin( pData, pSerialiser );
         }
         break;
@@ -54,12 +54,12 @@ void object_save_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser 
 
 void object_load_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser )
 {
-    switch( objectTypeID )
+    switch( objectTypeID.getSymbolID() )
     {
 {% for type in object_types %}
         case {{ type }}:
         {
-            static thread_local mega::runtime::object::ObjectLoadBin objectLoadBin( "simulation", {{ type }} );
+            static thread_local mega::runtime::object::ObjectLoadBin objectLoadBin( "simulation", mega::TypeID{ {{ type }} } );
             objectLoadBin( pData, pSerialiser );
         }
         break;
@@ -72,33 +72,14 @@ void object_load_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser 
     }
 }
 
-mega::TypeID get_object_type_id( mega::TypeID typeID )
-{
-    switch( typeID )
-    {
-{% for type in concrete_types %}
-        case {{ type.from }}: return {{ type.to }};
-{% endfor %}
-        default:
-        {
-            throw mega::runtime::JITException{ "Unknown type in get_object_type_id" };
-        }
-        break;
-    }
-}
-
 void record_load_bin( mega::reference ref, void* pData, mega::U64 size )
 {
     if( ref.isNetworkAddress() )
     {
-        // check if read lock needed here?
-        // mega::runtime::readLock( ref );
-        mega::reference objectRef = mega::reference::make( ref, get_object_type_id( ref.getType() ) );
-        mega::runtime::networkToHeap( objectRef );
-        ref = mega::reference::make( objectRef, ref.getType() );
+        mega::runtime::networkToHeap( ref );
     }
 
-    switch( ref.getType() )
+    switch( ref.getType().getSymbolID() )
     {
 {% for type in dimension_types %}
         case {{ type.type_id }}:

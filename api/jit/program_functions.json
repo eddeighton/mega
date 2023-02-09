@@ -1,17 +1,6 @@
 {
     "functions": [
         {
-            "name": "ObjectTypeID",
-            "return": "mega::TypeID",
-            "return_type": "mega::TypeID",
-            "arguments": [
-                {
-                    "name": "typeID",
-                    "type": "mega::TypeID"
-                }
-            ]
-        },
-        {
             "name": "ObjectLoadBin",
             "return": "void",
             "return_type": "void",

@@ -71,7 +71,7 @@ void gen( Args args, FinalStage::Invocations::Instructions::ParentDerivation* pP
 
     os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
        << ", mega::TypeInstance{ static_cast< mega::Instance >( " << s << ".getInstance() / " << szLocalSize << " ), "
-       << targetType << "} );\n";
+       << targetType.getSymbolID() << "} );\n";
 
     args.data[ "assignments" ].push_back( os.str() );
 }
@@ -93,7 +93,7 @@ void gen( Args args, FinalStage::Invocations::Instructions::ChildDerivation* pCh
     const mega::TypeID targetType  = pTo->get_concrete()->get_concrete_id();
     const mega::U64    szLocalSize = args.database.getLocalDomainSize( targetType );
 
-    os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom ) << ", " << targetType
+    os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom ) << ", " << targetType.getSymbolID()
        << " );\n";
 
     args.data[ "assignments" ].push_back( os.str() );
@@ -142,7 +142,7 @@ void gen( Args args, FinalStage::Invocations::Instructions::MonoReference* pMono
     std::ostringstream os;
     os << args.indent << "// MonoReference\n";
     os << args.indent << args.get( pInstance ) << " = mega::reference::make( " << args.get( pReference ) << ", "
-       << pInstance->get_concrete()->get_concrete_id() << " );";
+       << pInstance->get_concrete()->get_concrete_id().getSymbolID() << " );";
 
     args.data[ "assignments" ].push_back( os.str() );
 }
@@ -176,7 +176,7 @@ R"TEMPLATE(
         osIndent << args.indent;
 
         nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                       { "concrete_type_id", pConcreteTarget->get_concrete_id().getSymbolID() },
                                        { "instance", args.get( pInstance ) },
                                        { "has_owning_link", false },
                                        { "link_source", "" },
@@ -219,7 +219,7 @@ R"TEMPLATE(
                 }
                 VERIFY_RTE_MSG( pOwningLink, "Failed to locate owning link interface for allocation" );
                 std::ostringstream osLinkReference;
-                osLinkReference << "mega::reference::make( allocatedRef, " << pOwningLink->get_concrete_id() << " )";
+                osLinkReference << "mega::reference::make( allocatedRef, " << pOwningLink->get_concrete_id().getSymbolID() << " )";
 
                 Interface::LinkTrait* pLinkTrait = pChildLinkInterface->get_link_trait();
                 if( pRelation->get_source_interface() == pChildLinkInterface )
@@ -281,7 +281,7 @@ R"TEMPLATE(
         osIndent << args.indent;
 
         nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                       { "concrete_type_id", pConcreteTarget->get_concrete_id().getSymbolID() },
                                        { "instance", args.get( pInstance ) } } );
 
         os << args.inja.render( szTemplate, templateData );
@@ -330,7 +330,7 @@ R"TEMPLATE(
                         "Start operation target is not child or equal to instance variable type" );
 
         nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                       { "concrete_type_id", pConcreteTarget->get_concrete_id().getSymbolID() },
                                        { "instance", args.get( pInstance ) } } );
 
         os << args.inja.render( szTemplate, templateData );
@@ -379,7 +379,7 @@ R"TEMPLATE(
                         "Start operation target is not child or equal to instance variable type" );
 
         nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                       { "concrete_type_id", pConcreteTarget->get_concrete_id().getSymbolID() },
                                        { "instance", args.get( pInstance ) } } );
 
         os << args.inja.render( szTemplate, templateData );
@@ -426,7 +426,7 @@ R"TEMPLATE(
         osIndent << args.indent;
 
         nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                       { "concrete_type_id", pConcreteTarget->get_concrete_id().getSymbolID() },
                                        { "instance", args.get( pInstance ) } } );
 
         os << args.inja.render( szTemplate, templateData );
@@ -472,7 +472,7 @@ R"TEMPLATE(
         osIndent << args.indent;
 
         nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", pConcreteTarget->get_concrete_id() },
+                                       { "concrete_type_id", pConcreteTarget->get_concrete_id().getSymbolID() },
                                        { "instance", args.get( pInstance ) } } );
 
         os << args.inja.render( szTemplate, templateData );
@@ -506,7 +506,7 @@ R"TEMPLATE(
 
         nlohmann::json templateData( { { "indent", osIndent.str() },
                                        { "instance", args.get( pInstance ) },
-                                       { "concrete_type_id", pGet->get_concrete_target()->get_concrete_id() } } );
+                                       { "concrete_type_id", pGet->get_concrete_target()->get_concrete_id().getSymbolID() } } );
 
         os << args.inja.render( szTemplate, templateData );
     }
@@ -540,7 +540,7 @@ R"TEMPLATE(
         nlohmann::json templateData(
             { { "indent", osIndent.str() },
               { "instance", args.get( pInstance ) },
-              { "concrete_type_id", pGetDimension->get_concrete_dimension()->get_concrete_id() } }
+              { "concrete_type_id", pGetDimension->get_concrete_dimension()->get_concrete_id().getSymbolID() } }
 
         );
 
@@ -633,7 +633,7 @@ R"TEMPLATE(
 {{ indent }}                {{ concrete_type_id }} 
 {{ indent }}            ),
 {{ indent }}            {{ instance }}.getMPO(), 
-{{ indent }}            {{ instance }}.getObjectID()
+{{ indent }}            {{ instance }}.getAllocationID()
 {{ indent }}        ),
 {{ indent }}        pTarget
 {{ indent }}    );
@@ -653,7 +653,7 @@ R"TEMPLATE(
         osIndent << args.indent;
 
         nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", pDimension->get_concrete_id() },
+                                       { "concrete_type_id", pDimension->get_concrete_id().getSymbolID() },
                                        { "part_offset", pPart->get_offset() },
                                        { "part_size", pPart->get_size() },
                                        { "dimension_offset", pDimension->get_offset() },
@@ -780,8 +780,8 @@ R"TEMPLATE(
         osIndent << args.indent;
 
         nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "relation_id_lower", relationID.getLower() },
-                                       { "relation_id_upper", relationID.getUpper() },
+                                       { "relation_id_lower", relationID.getLower().getSymbolID() },
+                                       { "relation_id_upper", relationID.getUpper().getSymbolID() },
                                        { "instance", args.get( pInstance ) }
 
         } );
@@ -879,11 +879,11 @@ void CodeGenerator::generateInstructions( const DatabaseInstance&               
                 const Variables::Reference* pReference = pPolyCase->get_reference();
                 const Variables::Instance*  pInstance  = pPolyCase->get_to();
 
-                os << indent << "case " << pInstance->get_concrete()->get_concrete_id() << " :\n";
+                os << indent << "case " << pInstance->get_concrete()->get_concrete_id().getSymbolID() << " :\n";
                 os << indent << "{\n";
                 ++indent;
                 os << indent << Args::get( variables, pInstance ) << " = mega::reference::make( "
-                   << Args::get( variables, pReference ) << ", " << pInstance->get_concrete()->get_concrete_id()
+                   << Args::get( variables, pReference ) << ", " << pInstance->get_concrete()->get_concrete_id().getSymbolID()
                    << " );\n";
                 data[ "assignments" ].push_back( os.str() );
             }

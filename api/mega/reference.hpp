@@ -104,6 +104,7 @@ public:
 
     inline const reference& getHeaderAddress() const;
     inline reference        getNetworkAddress() const;
+    inline reference        getObjectAddress() const;
     inline TimeStamp        getLockCycle() const;
     inline void             setLockCycle( TimeStamp lockCycle );
 
@@ -135,7 +136,7 @@ public:
     {
     }
 
-    static constexpr reference make( const reference& other, TypeID typeID )
+    static constexpr inline reference make( const reference& other, TypeID typeID )
     {
         if( other.isHeapAddress() )
         {
@@ -147,7 +148,12 @@ public:
         }
     }
 
-    static constexpr reference make( const reference& other, TypeInstance typeInstance )
+    static constexpr inline reference make( const reference& other, TypeID::ValueType typeID )
+    {
+        return reference::make( other, TypeID{ typeID } );
+    }
+
+    static constexpr inline reference make( const reference& other, TypeInstance typeInstance )
     {
         if( other.isHeapAddress() )
         {
@@ -256,6 +262,11 @@ inline reference reference::getNetworkAddress() const
     {
         return make( reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_networkAddress, getTypeInstance() );
     }
+}
+
+inline reference reference::getObjectAddress() const
+{
+    return reference::make( *this, TypeID::make_object_type( getType() ) );
 }
 
 constexpr inline AllocationID reference::getAllocationID() const

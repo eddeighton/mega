@@ -43,6 +43,7 @@ class JIT_EXPORT {{ function.name }}
 public:
     using FunctionPtr = {{ function.return_type }} ( * ) ({% for arg in function.arguments %}{{ arg.type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
     {{ function.name }}( const char* pszUnitName, TypeID target );
+    {{ function.name }}( const char* pszUnitName, TypeID::ValueType target );
     {{ function.return_type }} operator() ({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
 private:
     const char*         m_pszUnitName;

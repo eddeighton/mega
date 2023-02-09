@@ -86,15 +86,17 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
 
     auto llvm = getLLVMCompiler( yield_ctx );
 
-    const TypeID objectTypeID = m_leaf.getJIT().getProgram( llvm )->getObjectTypeID()( ref.getType() );
-
     // caller has called this because they ALREADY have appropriate read or write lock
-    reference heapAddress = reference::make( ref, TypeInstance{ 0U, objectTypeID } );
+    reference heapAddress;
     {
-        if( heapAddress.isNetworkAddress() )
+        if( ref.isNetworkAddress() )
         {
             // if not already heap address then get or construct heap object
-            heapAddress = m_leaf.m_pRemoteMemoryManager->networkToHeap( heapAddress, llvm );
+            heapAddress = m_leaf.m_pRemoteMemoryManager->networkToHeap( ref, llvm );
+        }
+        else
+        {
+            heapAddress = ref.getObjectAddress();
         }
     }
 

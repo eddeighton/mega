@@ -74,6 +74,14 @@ namespace mega::runtime::operators
     , m_function( nullptr )
 {
 }
+{{ function.name }}::{{ function.name }}( const char* pszUnitName, TypeID::ValueType target )
+    : m_pszUnitName( pszUnitName )
+    , m_targetTypeID( target )
+    , m_bResolving( false )
+    , m_function( nullptr )
+{
+}
+
 
 {{ function.return_type }} {{ function.name }}::operator()({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const
 {

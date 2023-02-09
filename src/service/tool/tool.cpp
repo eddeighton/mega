@@ -190,8 +190,8 @@ public:
 
             status.setLogIterator( m_log.getIterator() );
 
-            status.setObjectID( m_pMemoryManager->getObjectID() );
-            status.setObjectCount( m_pMemoryManager->getObjectCount() );
+            status.setAllocationID( m_pMemoryManager->getAllocationID() );
+            status.setAllocationCount( m_pMemoryManager->getAllocationCount() );
         }
 
         return status;

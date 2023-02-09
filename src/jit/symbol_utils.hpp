@@ -42,7 +42,7 @@ static inline void symbolPrefix( const char* prefix, std::ostream& os )
 static inline void symbolPrefix( const char* prefix, RelationID relationID, std::ostream& os )
 {
     std::ostringstream osTypeID;
-    osTypeID << prefix << relationID.getLower() << '_' << relationID.getUpper();
+    osTypeID << prefix << relationID.getLower().getSymbolID() << '_' << relationID.getUpper().getSymbolID();
     os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 
@@ -50,7 +50,7 @@ static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, 
 {
     using ::operator<<;
     std::ostringstream osTypeID;
-    osTypeID << prefix << objectTypeID;
+    osTypeID << prefix << objectTypeID.getSymbolID();
     os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 
@@ -66,7 +66,7 @@ static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, 
 {
     using ::operator<<;
     std::ostringstream osTypeID;
-    osTypeID << prefix << objectTypeID << '_' << objectTypeID2;
+    osTypeID << prefix << objectTypeID.getSymbolID() << '_' << objectTypeID2.getSymbolID();
     os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 

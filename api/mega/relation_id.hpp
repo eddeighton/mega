@@ -36,6 +36,11 @@ public:
         , m_upper( ( lower < upper ) ? upper : lower )
     {
     }
+    constexpr inline RelationID( TypeID::ValueType lower, TypeID::ValueType upper )
+        : m_lower( ( lower < upper ) ? lower : upper )
+        , m_upper( ( lower < upper ) ? upper : lower )
+    {
+    }
 
     constexpr inline bool operator==( const RelationID& cmp ) const
     {

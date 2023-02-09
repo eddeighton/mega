@@ -49,23 +49,24 @@ public:
     {
     }
 
-    AllocationID getObjectID() const { return m_allocationIDCounter; }
-    U64          getObjectCount() const { return m_heapMap.size(); }
+    AllocationID getAllocationID() const { return m_allocationIDCounter; }
+    U64          getAllocationCount() const { return m_heapMap.size(); }
 
     reference networkToHeap( const reference& networkAddress ) const
     {
         ASSERT( networkAddress.isNetworkAddress() );
-        auto    iFind = m_netMap.find( networkAddress );
+        auto    iFind = m_netMap.find( networkAddress.getObjectAddress() );
         using ::operator<<;
         VERIFY_RTE_MSG(
             iFind != m_netMap.end(), "Failed to locate network address entry for reference: " << networkAddress );
-        return iFind->second;
+        return reference::make( iFind->second, networkAddress.getTypeInstance() );
     }
 
 private:
     reference New( const reference& networkAddress )
     {
-        Allocator::Ptr pAllocator = m_getAllocatorFPtr( networkAddress.getType() );
+        const reference objectNetAddress = networkAddress.getObjectAddress();
+        Allocator::Ptr  pAllocator       = m_getAllocatorFPtr( objectNetAddress.getType() );
 
         const mega::SizeAlignment sizeAlignment = pAllocator->getSizeAlignment();
         VERIFY_RTE_MSG( sizeAlignment.size > 0U, "Invalid size alignment" );
@@ -74,32 +75,34 @@ private:
 
         const TimeStamp lockTime = 0U;
 
-        new( pHeapBuffer.get() ) ObjectHeader{ ObjectHeaderBase{ networkAddress, lockTime }, pAllocator };
+        new( pHeapBuffer.get() ) ObjectHeader{ ObjectHeaderBase{ objectNetAddress, lockTime }, pAllocator };
 
         // invoke the constructor
         pAllocator->getCtor()( pHeapBuffer.get() );
 
-        reference heapAddress{ networkAddress.getTypeInstance(), m_mpo.getOwnerID(), pHeapBuffer.get() };
+        reference heapAddress{ objectNetAddress.getTypeInstance(), m_mpo.getOwnerID(), pHeapBuffer.get() };
 
         VERIFY_RTE( m_heapMap.insert( { heapAddress, std::move( pHeapBuffer ) } ).second );
-        VERIFY_RTE( m_netMap.insert( { networkAddress, heapAddress } ).second );
+        VERIFY_RTE( m_netMap.insert( { objectNetAddress, heapAddress } ).second );
 
-        return heapAddress;
+        return reference::make( heapAddress, networkAddress.getTypeInstance() );
     }
 
 public:
     reference New( TypeID typeID )
     {
         // establish the header including the network address, lock timestamp and shared ownership of allocator
-        const AllocationID objectID = m_allocationIDCounter++;
-        const reference    networkAddress{ TypeInstance{ 0, typeID }, m_mpo, objectID };
-        ASSERT( ( typeID != ROOT_TYPE_ID ) || ( objectID == ROOT_OBJECT_ID ) );
+        const AllocationID allocationID = m_allocationIDCounter++;
+        const reference    networkAddress{ TypeInstance{ 0, typeID }, m_mpo, allocationID };
+        ASSERT( ( typeID != ROOT_TYPE_ID ) || ( allocationID == ROOT_OBJECT_ID ) );
         return New( networkAddress );
     }
 
     void Delete( reference& ref )
     {
-        auto    iFind = m_heapMap.find( ref );
+        ASSERT( ref.isHeapAddress() );
+
+        auto    iFind = m_heapMap.find( ref.getObjectAddress() );
         using ::operator<<;
         VERIFY_RTE_MSG( iFind != m_heapMap.end(), "Failed to locate reference heap buffer: " << ref );
 

@@ -119,11 +119,6 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
     const auto functionType = static_cast< program::FunctionType >( fType );
     switch( functionType )
     {
-        case program::eObjectTypeID:
-        {
-            *ppFunction = ( void* )m_pProgram->getObjectTypeID();
-        }
-        break;
         case program::eObjectSaveBin:
         {
             *ppFunction = ( void* )m_pProgram->getObjectSaveBin();

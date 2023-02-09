@@ -287,7 +287,7 @@ void load_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pS
 {%              for type in element.types %}
         if( mega::mangle::xml_is_tag( "{{ type.full_name }}", pSerialiser ) )
         {
-            const mega::reference newObject = mega::runtime::allocate( parentLinkInterface, {{ type.object_type_id }} );
+            const mega::reference newObject = mega::runtime::allocate( parentLinkInterface, mega::TypeID{ {{ type.object_type_id }} } );
 
             static thread_local mega::runtime::relation::LinkMake linkMakeFunction( g_pszModuleName, mega::RelationID{ {{ element.relationID }} } );
 {%                  if element.source %}
@@ -335,7 +335,7 @@ void load_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pS
 {%              for type in element.types %}
             {% if ( not loop.is_first ) %}else {% endif %}if( mega::mangle::xml_is_tag( "{{ type.full_name }}", pSerialiser ) )
             {
-                const mega::reference newObject = mega::runtime::allocate( parentLinkInterface, {{ type.object_type_id }} );
+                const mega::reference newObject = mega::runtime::allocate( parentLinkInterface, mega::TypeID{ {{ type.object_type_id }} } );
 
             static thread_local mega::runtime::relation::LinkMake linkMakeFunction( g_pszModuleName, mega::RelationID{ {{ element.relationID }} } );
 {%                  if element.source %}

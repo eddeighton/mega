@@ -474,8 +474,8 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         if( const auto& writer = m_stateMachine.writer(); writer.has_value() )
             status.setWriter( writer.value() );
 
-        status.setObjectID( m_pMemoryManager->getObjectID() );
-        status.setObjectCount( m_pMemoryManager->getObjectCount() );
+        status.setAllocationID( m_pMemoryManager->getAllocationID() );
+        status.setAllocationCount( m_pMemoryManager->getAllocationCount() );
     }
 
     return status;

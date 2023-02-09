@@ -49,7 +49,7 @@ public:
     {
     }
 
-    U64 getObjectCount() const { return m_heapMap.size(); }
+    U64 getAllocationCount() const { return m_heapMap.size(); }
     
     void MPODestroyed( const MPO& mpo )
     {
@@ -72,7 +72,7 @@ public:
 
     bool tryNetworkToHeap( reference& networkAddress ) const
     {
-        auto iFind = m_netMap.find( networkAddress );
+        auto iFind = m_netMap.find( networkAddress.getObjectAddress() );
         if( iFind != m_netMap.end() )
         {
             networkAddress = iFind->second;
@@ -83,13 +83,13 @@ public:
 
     reference networkToHeap( const reference& networkAddress, runtime::CodeGenerator::LLVMCompiler& llvmCompiler )
     {
-        reference heapAddress = networkAddress;
-        if( tryNetworkToHeap( heapAddress ) )
+        reference objectAddress = networkAddress.getObjectAddress();
+        if( tryNetworkToHeap( objectAddress ) )
         {
-            return heapAddress;
+            return objectAddress;
         }
 
-        Allocator::Ptr pAllocator = m_getAllocatorFPtr( networkAddress.getType(), llvmCompiler );
+        Allocator::Ptr pAllocator = m_getAllocatorFPtr( objectAddress.getType(), llvmCompiler );
 
         const mega::SizeAlignment sizeAlignment = pAllocator->getSizeAlignment();
 
@@ -98,22 +98,22 @@ public:
         // establish the header including the network address, lock timestamp and shared ownership of allocator
         const TimeStamp lockTime = 0U;
 
-        new( pHeapBuffer.get() ) ObjectHeader{ ObjectHeaderBase{ networkAddress, lockTime }, pAllocator };
+        new( pHeapBuffer.get() ) ObjectHeader{ ObjectHeaderBase{ objectAddress, lockTime }, pAllocator };
 
         // invoke the constructor
         pAllocator->getCtor()( pHeapBuffer.get() );
 
-        heapAddress = reference{ networkAddress.getTypeInstance(), networkAddress.getOwnerID(), pHeapBuffer.get() };
+        const reference heapAddress = reference{ objectAddress.getTypeInstance(), objectAddress.getOwnerID(), pHeapBuffer.get() };
 
         m_heapMap.insert( { heapAddress, std::move( pHeapBuffer ) } );
-        m_netMap.insert( { networkAddress, heapAddress } );
+        m_netMap.insert( { objectAddress, heapAddress } );
 
         return heapAddress;
     }
 
     void Delete( reference& ref )
     {
-        auto iFind = m_heapMap.find( ref );
+        auto iFind = m_heapMap.find( ref.getObjectAddress() );
 
         using ::operator<<;
         VERIFY_RTE_MSG( iFind != m_heapMap.end(), "Failed to locate reference heap buffer: " << ref );

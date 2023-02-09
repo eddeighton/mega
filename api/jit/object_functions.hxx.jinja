@@ -47,6 +47,7 @@ public:
     using FunctionPtr = {{ function.return_type }} ( * ) ({% for arg in function.arguments %}{{ arg.type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
 {% endif %}
     {{ function.name }}( const char* pszUnitName, mega::TypeID typeID );
+    {{ function.name }}( const char* pszUnitName, mega::TypeID::ValueType typeID );
     {{ function.return_type }} operator() ({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
 private:
     const char* m_pszUnitName;

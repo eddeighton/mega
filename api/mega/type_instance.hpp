@@ -43,6 +43,11 @@ struct TypeInstance
         , type( type )
     {
     }
+    constexpr TypeInstance( Instance instance, TypeID::ValueType type )
+        : instance( instance )
+        , type( type )
+    {
+    }
 
     static constexpr TypeInstance Object( TypeID type ) { return { 0, TypeID::make_object_type( type ) }; }
     static constexpr TypeInstance Root() { return Object( ROOT_TYPE_ID ); }

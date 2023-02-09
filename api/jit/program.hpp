@@ -39,7 +39,6 @@ public:
 
     Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
 
-    program::ObjectTypeID::FunctionPtr  getObjectTypeID() const { return m_objectTypeID; }
     program::ObjectSaveBin::FunctionPtr getObjectSaveBin() const { return m_objectSaveBin; }
     program::ObjectLoadBin::FunctionPtr getObjectLoadBin() const { return m_objectLoadBin; }
     program::RecordLoadBin::FunctionPtr getRecordLoadBin() const { return m_recordLoadBin; }
@@ -48,7 +47,6 @@ public:
 
 private:
     JITCompiler::Module::Ptr            m_pModule;
-    program::ObjectTypeID::FunctionPtr  m_objectTypeID  = nullptr;
     program::ObjectSaveBin::FunctionPtr m_objectSaveBin = nullptr;
     program::ObjectLoadBin::FunctionPtr m_objectLoadBin = nullptr;
     program::RecordLoadBin::FunctionPtr m_recordLoadBin = nullptr;

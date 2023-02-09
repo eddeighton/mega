@@ -36,20 +36,14 @@ Program::Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
     SPDLOG_TRACE( "Program::ctor" );
     {
         std::ostringstream os;
-        symbolPrefix( "get_object_type_id", os );
-        os << "s";
-        m_objectTypeID = m_pModule->get< program::ObjectTypeID::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
         symbolPrefix( "object_save_bin", os );
-        os << "sPvS_";
+        os << "N4mega6TypeIDEPvS1_";
         m_objectSaveBin = m_pModule->get< program::ObjectSaveBin::FunctionPtr >( os.str() );
     }
     {
         std::ostringstream os;
         symbolPrefix( "object_load_bin", os );
-        os << "sPvS_";
+        os << "N4mega6TypeIDEPvS1_";
         m_objectLoadBin = m_pModule->get< program::ObjectLoadBin::FunctionPtr >( os.str() );
     }
     {

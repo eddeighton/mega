@@ -72,6 +72,13 @@ namespace mega::runtime::object
     , m_function( nullptr )
 {
 }
+{{ function.name }}::{{ function.name }}( const char* pszUnitName, mega::TypeID::ValueType typeID )
+    : m_pszUnitName( pszUnitName )
+    , m_typeID( typeID )
+    , m_bResolving( false )
+    , m_function( nullptr )
+{
+}
 
 {{ function.return_type }} {{ function.name }}::operator()({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const
 {

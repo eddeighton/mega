@@ -113,6 +113,7 @@ FinalStage::HyperGraph::Relation* DatabaseInstance::getRelation( const RelationI
 
 mega::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType ) const
 {
+    VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getObjectSize" );
     using namespace FinalStage;
 
     mega::SizeAlignment sizeAlignment;
@@ -176,6 +177,7 @@ const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const
 
 mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID ) const
 {
+    VERIFY_RTE_MSG( concreteTypeID != mega::TypeID{}, "Null TypeID in getInterfaceTypeID" );
     auto iFind = m_concreteTypeIDs.find( concreteTypeID );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteTypeID );
     auto pConcreteTypeID = iFind->second;
@@ -204,6 +206,7 @@ mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID )
 
 std::vector< TypeID > DatabaseInstance::getCompatibleConcreteTypes( TypeID interfaceTypeID ) const
 {
+    VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getCompatibleConcreteTypes" );
     std::vector< TypeID > result;
 
     auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
@@ -225,6 +228,7 @@ std::vector< TypeID > DatabaseInstance::getCompatibleConcreteTypes( TypeID inter
 
 FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectType ) const
 {
+    VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getObject" );
     auto iFind = m_concreteTypeIDs.find( objectType );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
     auto pConcreteTypeID = iFind->second;
@@ -240,6 +244,7 @@ FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectTy
 
 FinalStage::Concrete::Action* DatabaseInstance::getAction( mega::TypeID actionType ) const
 {
+    VERIFY_RTE_MSG( actionType != mega::TypeID{}, "Null TypeID in getAction" );
     auto iFind = m_concreteTypeIDs.find( actionType );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << actionType );
     auto pConcreteTypeID = iFind->second;
@@ -255,6 +260,7 @@ FinalStage::Concrete::Action* DatabaseInstance::getAction( mega::TypeID actionTy
 
 const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::TypeID objectType ) const
 {
+    VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getComponent" );
     auto iFind = m_concreteTypeIDs.find( objectType );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
     auto pConcreteTypeID = iFind->second;
@@ -268,6 +274,7 @@ const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::T
 
 const FinalStage::Components::Component* DatabaseInstance::getOperationComponent( mega::TypeID objectType ) const
 {
+    VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getOperationComponent" );
     auto iFind = m_concreteTypeIDs.find( objectType );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
     auto pConcreteTypeID = iFind->second;
@@ -315,6 +322,7 @@ mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
 */
 mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
 {
+    VERIFY_RTE_MSG( concreteID != mega::TypeID{}, "Null TypeID in getLocalDomainSize" );
     using namespace FinalStage;
 
     auto iFind = m_concreteTypeIDs.find( concreteID );
