@@ -83,6 +83,8 @@ add_subdirectory(pipeline)
 
 add_subdirectory(database)
 
+add_subdirectory(map)
+
 add_subdirectory(invocation)
 add_subdirectory(clang_plugin)
 
