@@ -55,6 +55,8 @@ EditBase::EditBase( EditRoot& editRoot, GlyphFactory& glyphFactory, Node::Ptr pN
 void EditBase::onEditted( bool bCommandCompleted )
 {
     m_glyphFactory.onEditted( bCommandCompleted );
+    
+    update();
 }
 
 Lock& EditBase::getNodeStructureLock() const

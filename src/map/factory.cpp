@@ -163,7 +163,7 @@ void save( File::PtrCst pFile, const boost::filesystem::path& filePath )
 
     std::ofstream outFile( strFilePath, std::ios::out | std::ios::trunc | std::ios::binary );
     // file.SerializeToOstream( &outFile );
-    THROW_TODO;
+    // THROW_TODO;
 }
 
 Site::Ptr construct( Node::Ptr pParent, const format::Site& site )

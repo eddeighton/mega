@@ -97,6 +97,7 @@ add_subdirectory(service)
 add_subdirectory(driver)
 add_subdirectory(tests)
 add_subdirectory(mega)
+add_subdirectory(editor)
 
 # always last - toolchain reads other files from build
 add_subdirectory(toolchain)
