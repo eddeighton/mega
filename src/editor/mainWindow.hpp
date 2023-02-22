@@ -29,7 +29,7 @@ namespace Ui
 
 namespace editor
 {
-    class MainWindow : public QMainWindow
+    class MainWindow : public QMainWindow, public DocumentChangeObserver
     {
         Q_OBJECT
 
@@ -44,7 +44,7 @@ namespace editor
 
         using ActionMap = std::map< QAction*, int >;
         
-        void fifoMonitor();
+        //void fifoMonitor();
     public:
         explicit MainWindow(QWidget *parent = 0);
         virtual ~MainWindow();
@@ -61,13 +61,14 @@ namespace editor
         void OnNewSchematic( SchematicDocument::Ptr pNewSchematic );
 
         bool TestClosingDocument( DocViewWidget& docView );
+
+    protected:
+        //DocumentChangeObserver
+        virtual void OnDocumentChanged( Document* pDocument );
+
     public:
-    
-    signals:
-        void OnDocumentTaskCompleted( const void* );
-        
+            
     public slots:
-        void OnDocumentTaskCompletedSlot( const void* pDocument );
         void OnDocumentSaved( const void* pDocument );
 
         void OnFloatingWidgetCreated( ads::CFloatingDockContainer* pFloatingWidget );
@@ -93,11 +94,6 @@ namespace editor
         DocumentViewMap m_docViewMap;
         ActionMap m_actionRefCountMap;
         Toolbox::Ptr m_pToolbox;
-        
-        task::StatusFIFO m_fifo;
-        task::Scheduler m_scheduler;
-        std::thread m_fifoMonitorThread;
-        std::atomic< bool > m_bQuit;
     };
 
 }

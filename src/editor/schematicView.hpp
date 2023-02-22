@@ -38,8 +38,8 @@ signals:
 
 public slots:
     //commands
-    void CmdSave();
-    void CmdSaveAs();
+    bool CmdSave();
+    bool CmdSaveAs();
     void CmdUndo();
     void CmdRedo();
     

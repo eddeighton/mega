@@ -38,15 +38,15 @@ namespace map
 class IGlyph : public boost::enable_shared_from_this< IGlyph >
 {
 public:
-    typedef boost::shared_ptr< IGlyph > Ptr;
-    typedef std::vector< Ptr >          PtrVector;
-    typedef std::set< Ptr >             PtrSet;
+    using Ptr       = boost::shared_ptr< IGlyph >;
+    using PtrVector = std::vector< Ptr >;
+    using PtrSet    = std::set< Ptr >;
     IGlyph( const GlyphSpec* pGlyphSpec, Ptr pParent )
         : m_pGlyphSpec( pGlyphSpec )
         , m_pParent( pParent )
     {
     }
-    virtual ~IGlyph() {}
+    virtual ~IGlyph() = default;
     virtual void     update() = 0;
     const GlyphSpec* getGlyphSpec() const { return m_pGlyphSpec; }
     Ptr              getParent() const { return m_pParent; }

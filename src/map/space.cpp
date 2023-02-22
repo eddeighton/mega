@@ -86,12 +86,12 @@ void Space::init()
     if( !m_pInteriorPolygonMarkup.get() )
     {
         m_pInteriorPolygonMarkup.reset( new SimplePolygonMarkup(
-            *this, this, getRootFile()->getMarkupLock(), false, Schematic::eStage_Extrusion ) );
+            *this, this, false, Schematic::eStage_Extrusion ) );
     }
     if( !m_pInnerExteriorPolygonsMarkup.get() )
     {
         m_pInnerExteriorPolygonsMarkup.reset(
-            new MultiPolygonMarkup( *this, this, getRootFile()->getMarkupLock(), false, Schematic::eStage_Extrusion ) );
+            new MultiPolygonMarkup( *this, this, false, Schematic::eStage_Extrusion ) );
     }
 
     if( !( m_pContour = get< Feature_Contour >( "contour" ) ) )

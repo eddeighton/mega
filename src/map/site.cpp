@@ -120,13 +120,13 @@ void Site::init()
     if( !m_pMarkupContour.get() )
     {
         m_pMarkupContour.reset(
-            new SimplePolygonMarkup( *this, this, getRootFile()->getMarkupLock(), true, Schematic::eStage_Site ) );
+            new SimplePolygonMarkup( *this, this, true, Schematic::eStage_Site ) );
     }
 
     if( !m_pMarkupContourOutline.get() )
     {
         m_pMarkupContourOutline.reset( new SimplePolygonMarkup(
-            *this, this, getRootFile()->getMarkupLock(), false, Schematic::eStage_SiteContour ) );
+            *this, this, false, Schematic::eStage_SiteContour ) );
     }
 
     m_strLabelText.clear();

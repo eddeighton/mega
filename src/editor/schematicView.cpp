@@ -161,11 +161,11 @@ void SchematicView::mouseReleaseEvent( QMouseEvent* pEvent )
     }
 }
     
-void SchematicView::CmdSave()
+bool SchematicView::CmdSave()
 {
     if( !m_pSchematicDocument->getFilePath().has_value() )
     {
-        CmdSaveAs();
+        return CmdSaveAs();
     }
     else
     {
@@ -175,6 +175,7 @@ void SchematicView::CmdSave()
         {
             m_pSchematicDocument->save();
             emit OnDocumentSaved( m_pSchematicDocument.get() );
+            return true;
         }
         catch( std::exception& ex )
         {
@@ -183,10 +184,11 @@ void SchematicView::CmdSave()
             QMessageBox::warning( this, tr( "Schematic Edittor" ),
                                   QString::fromUtf8( os.str().c_str() ) );
         }
+        return false;
     }
 }
 
-void SchematicView::CmdSaveAs()
+bool SchematicView::CmdSaveAs()
 {
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     QString strDefaultPath = environment.value( "BLUEPRINT_TOOLBOX_PATH" );
@@ -207,6 +209,7 @@ void SchematicView::CmdSaveAs()
         {
             m_pSchematicDocument->saveAs( strFilePath.toStdString() );
             emit OnDocumentSaved( m_pSchematicDocument.get() );
+            return true;
         }
         catch( std::exception& ex )
         {
@@ -216,6 +219,7 @@ void SchematicView::CmdSaveAs()
                                   QString::fromUtf8( os.str().c_str() ) );
         }
     }
+    return false;
 }
 
     

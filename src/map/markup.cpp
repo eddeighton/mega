@@ -24,12 +24,10 @@ namespace map
 
 SimplePolygonMarkup::SimplePolygonMarkup( const GlyphSpecProducer& producer,
                                           const GlyphSpec*         pParent,
-                                          Lock&                    markupLock,
                                           bool                     bFill,
                                           CompilationStage         compilationStage )
     : m_producer( producer )
     , m_pParent( pParent )
-    , m_markupLock( markupLock )
     , m_bFill( bFill )
     , m_compilationStage( compilationStage )
 {
@@ -47,8 +45,6 @@ bool SimplePolygonMarkup::isPolygonsFilled() const
 
 bool SimplePolygonMarkup::paint( Painter& painter ) const
 {
-    ReaderLock lock( m_markupLock );
-
     if( painter.needsUpdate( m_updateTick ) )
     {
         painter.reset();
@@ -64,14 +60,12 @@ bool SimplePolygonMarkup::paint( Painter& painter ) const
 
 void SimplePolygonMarkup::reset()
 {
-    WriterLock lock( m_markupLock );
     m_polygon.clear();
     m_updateTick.update();
 }
 
 void SimplePolygonMarkup::setPolygon( const Polygon& polygon )
 {
-    WriterLock lock( m_markupLock );
     m_polygon = polygon;
     m_updateTick.update();
 }
@@ -80,12 +74,10 @@ void SimplePolygonMarkup::setPolygon( const Polygon& polygon )
 //////////////////////////////////////////////////////////////////////////////
 MultiPolygonMarkup::MultiPolygonMarkup( const GlyphSpecProducer& producer,
                                         const GlyphSpec*         pParent,
-                                        Lock&                    markupLock,
                                         bool                     bFill,
                                         CompilationStage         compilationStage )
     : m_producer( producer )
     , m_pParent( pParent )
-    , m_markupLock( markupLock )
     , m_bFill( bFill )
     , m_compilationStage( compilationStage )
 {
@@ -103,8 +95,6 @@ bool MultiPolygonMarkup::isPolygonsFilled() const
 
 bool MultiPolygonMarkup::paint( Painter& painter ) const
 {
-    ReaderLock lock( m_markupLock );
-
     if( painter.needsUpdate( m_updateTick ) )
     {
         painter.reset();
@@ -121,14 +111,12 @@ bool MultiPolygonMarkup::paint( Painter& painter ) const
 
 void MultiPolygonMarkup::reset()
 {
-    WriterLock lock( m_markupLock );
     m_polygons.clear();
     m_updateTick.update();
 }
 
 void MultiPolygonMarkup::setPolygons( const PolygonVector& polygons )
 {
-    WriterLock lock( m_markupLock );
     m_polygons = polygons;
     m_updateTick.update();
 }
@@ -137,11 +125,9 @@ void MultiPolygonMarkup::setPolygons( const PolygonVector& polygons )
 //////////////////////////////////////////////////////////////////////////////
 MultiPathMarkup::MultiPathMarkup( const GlyphSpecProducer& producer,
                                   const GlyphSpec*         pParent,
-                                  Lock&                    markupLock,
                                   CompilationStage         compilationStage )
     : m_producer( producer )
     , m_pParent( pParent )
-    , m_markupLock( markupLock )
     , m_compilationStage( compilationStage )
 {
 }
@@ -158,8 +144,6 @@ bool MultiPathMarkup::isPolygonsFilled() const
 
 bool MultiPathMarkup::paint( Painter& painter ) const
 {
-    ReaderLock lock( m_markupLock );
-
     if( painter.needsUpdate( m_updateTick ) )
     {
         painter.reset();
@@ -181,13 +165,11 @@ bool MultiPathMarkup::paint( Painter& painter ) const
 
 void MultiPathMarkup::reset()
 {
-    WriterLock lock( m_markupLock );
     m_updateTick.update();
 }
 
 void MultiPathMarkup::set( const std::vector< Segment >& segments )
 {
-    WriterLock lock( m_markupLock );
     m_segments = segments;
     m_updateTick.update();
 }

@@ -49,14 +49,4 @@ EditRoot::EditRoot( GlyphFactory& glyphFactory, Node::Ptr pNode )
     }
 }
 
-Lock& EditRoot::getNodeStructureLock() const
-{
-    return m_pFile->getNodeStructureLock();
-}
-
-Lock& EditRoot::getNodeDataLock() const
-{
-    return m_pFile->getNodeDataLock();
-}
-
 } // namespace map

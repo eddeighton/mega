@@ -1,0 +1,104 @@
+
+background
+{
+    colour( 255, 255, 255, 255 )
+    step( 4 )
+    text
+    {
+        colour( 0, 0, 0, 255 )
+    }
+    lines
+    {
+        width( 0.5 )
+        main
+        {
+            colour( 100, 100, 100, 255 )
+        }
+        other
+        {
+            colour( 225, 225, 225, 255 )
+        }
+    }
+}
+view
+{
+    zoom
+    {
+        default( 512 ) //amount of visible space
+    }
+    quantise
+    {
+        default( 16 )
+    }
+}
+visibility
+{
+    paths
+    {
+        colour( 75,75,75,255 )
+        width( 0.5 )
+    }
+}
+glyphs
+{
+    points
+    {
+        colour( 255, 255, 255, 255 )
+        width( 8 )
+    }
+    paths
+    {
+        colour( 125,125,125,255 )
+        width( 1 )
+    }
+    polygons
+    {
+        colour( 125,125,125,255 )
+        width( 4 )
+    }
+    origin
+    {
+        colourx( 255,0,0,125 )
+        coloury( 0,255,0,125 )
+        length( 5 )
+        width( 0.5 )
+        
+        active( 200, 200, 0, 25 )
+        selected( 0, 255, 0, 25 )
+        idle( 0, 0, 255 , 25 )
+    }
+    text
+    {
+        colour( 50, 50, 50, 255 )
+    }
+}
+toolbox
+{
+    item
+    {
+        width( 128 )
+        height( 128 )
+        spacing( 4 )
+        scaling( 2 ) //reduce control point size
+        background
+        {
+            colour( 225,225,225,255 )
+        }
+        text
+        {
+            colour( 255,255,255,255 )
+            font(Courier;)
+            fontsize(16)
+        }
+    }
+    selection
+    {
+        width( 2 )
+        colour( 0,0,255,125 )
+        background( 125,125,255,125 )
+    }
+    folders
+    {
+        ignor(/data/ships,/data/test)
+    }
+}

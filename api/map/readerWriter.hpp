@@ -31,10 +31,6 @@
 
 namespace map
 {
-using Lock       = std::shared_mutex;
-using ReaderLock = std::shared_lock< Lock >;
-using WriterLock = std::unique_lock< Lock >;
-
 } // namespace map
 
 #endif // DERIVED_DATA_10_FEB_2021

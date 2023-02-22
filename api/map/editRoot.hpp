@@ -35,9 +35,6 @@ public:
 
     EditRoot( GlyphFactory& glyphFactory, Node::Ptr pNode );
 
-    virtual Lock& getNodeStructureLock() const;
-    virtual Lock& getNodeDataLock() const;
-
 protected:
     boost::shared_ptr< File > m_pFile;
 };

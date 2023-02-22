@@ -48,19 +48,6 @@ public:
 
     using CompilationConfig = std::bitset< 16 >;
 
-    virtual task::Schedule::Ptr createSchedule( const CompilationConfig& config ) = 0;
-
-    // markup lock is used directly by the markup when reading or writing
-    Lock& getMarkupLock() const { return m_markupLock; }
-
-    // structure and data lock is used at high level entry points
-    Lock& getNodeStructureLock() const { return m_nodeStructureLock; }
-    Lock& getNodeDataLock() const { return m_nodeDataLock; }
-
-protected:
-    mutable Lock m_markupLock;
-    mutable Lock m_nodeStructureLock;
-    mutable Lock m_nodeDataLock;
 };
 
 } // namespace map

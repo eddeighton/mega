@@ -54,9 +54,6 @@ protected:
 public:
     void onEditted( bool bCommandCompleted );
 
-    virtual Lock& getNodeStructureLock() const;
-    virtual Lock& getNodeDataLock() const;
-    virtual Lock& getSiteContourLock() const;
     ///////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////
     // IEditContext

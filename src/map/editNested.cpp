@@ -274,9 +274,6 @@ bool EditNested::interaction_hover( Float x, Float y, IGlyph*& pPoint1, IGlyph*&
 {
     bool bFound = false;
 
-    ReaderLock lock1( getNodeStructureLock() );
-    ReaderLock lock2( getNodeDataLock() );
-
     if( Site::Ptr pSite = boost::dynamic_pointer_cast< Site >( m_pNode ) )
     {
         if( Feature_Contour::Ptr pContour = pSite->getContour() )

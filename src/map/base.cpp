@@ -51,9 +51,6 @@ Node::Ptr Base::copy( Node::Ptr pParent, const std::string& strName ) const
 
 void Base::load( const format::File& file )
 {
-    WriterLock lock1( m_nodeStructureLock );
-    WriterLock lock2( m_nodeDataLock );
-
     VERIFY_RTE( file.has_schematic() );
     const format::File::Schematic& schematic = file.schematic();
 
@@ -65,9 +62,6 @@ void Base::load( const format::File& file )
 
 void Base::save( format::File& file ) const
 {
-    ReaderLock lock1( m_nodeStructureLock );
-    ReaderLock lock2( m_nodeDataLock );
-
     format::File::Schematic&       schematic = *file.mutable_schematic();
     format::File::Schematic::Base& base      = *schematic.mutable_base();
 

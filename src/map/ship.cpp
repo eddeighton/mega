@@ -48,9 +48,6 @@ Node::Ptr Ship::copy( Node::Ptr pParent, const std::string& strName ) const
 
 void Ship::load( const format::File& file )
 {
-    WriterLock lock1( m_nodeStructureLock );
-    WriterLock lock2( m_nodeDataLock );
-
     VERIFY_RTE( file.has_schematic() );
     const format::File::Schematic& schematic = file.schematic();
 
@@ -62,9 +59,6 @@ void Ship::load( const format::File& file )
 
 void Ship::save( format::File& file ) const
 {
-    ReaderLock lock1( m_nodeStructureLock );
-    ReaderLock lock2( m_nodeDataLock );
-
     format::File::Schematic&       schematic = *file.mutable_schematic();
     format::File::Schematic::Ship& ship      = *schematic.mutable_ship();
 

@@ -54,9 +54,6 @@ task::Schedule::Ptr Mission::createSchedule( const CompilationConfig& config )
 
 void Mission::load( const format::File& file )
 {
-    WriterLock lock1( m_nodeStructureLock );
-    WriterLock lock2( m_nodeDataLock );
-
     THROW_TODO;
     // VERIFY_RTE( file.has_mission() );
     // const format::File::Mission& map = file.map();
@@ -64,9 +61,6 @@ void Mission::load( const format::File& file )
 
 void Mission::save( format::File& file ) const
 {
-    ReaderLock lock1( m_nodeStructureLock );
-    ReaderLock lock2( m_nodeDataLock );
-
     THROW_TODO;
     // format::File::Mission& map = *file.mutable_mission();
 }

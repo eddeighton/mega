@@ -127,12 +127,10 @@ ENDIF( ${WIN32} )
 
 target_link_libraries( map mega_interface )
 
-#link_boost( map atomic )
-#link_boost( map program_options )
-#link_boost( map timer )
-#link_boost( map filesystem )
-#link_boost( map iostreams )
-#link_boost( map serialization )
+link_boost( map system )
+link_boost( map filesystem )
+link_boost( map iostreams )
+link_boost( map serialization )
 
 link_cgal( map )
 link_common( map )

@@ -49,9 +49,6 @@ Node::Ptr Clip::copy( Node::Ptr pParent, const std::string& strName ) const
 
 void Clip::load( const format::File& file )
 {
-    ReaderLock lock1( m_nodeStructureLock );
-    ReaderLock lock2( m_nodeDataLock );
-
     VERIFY_RTE( file.has_schematic() );
     const format::File::Schematic& schematic = file.schematic();
 
@@ -63,9 +60,6 @@ void Clip::load( const format::File& file )
 
 void Clip::save( format::File& file ) const
 {
-    WriterLock lock1( m_nodeStructureLock );
-    WriterLock lock2( m_nodeDataLock );
-
     format::File::Schematic&       schematic = *file.mutable_schematic();
     format::File::Schematic::Clip& clip      = *schematic.mutable_clip();
 

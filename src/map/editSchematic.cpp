@@ -47,9 +47,4 @@ EditSchematic::EditSchematic( GlyphFactory& glyphFactory, Schematic::Ptr pSchema
 {
 }
 
-Lock& EditSchematic::getSiteContourLock() const
-{
-    return m_pSchematic->getSiteContourLock();
-}
-
 } // namespace map

@@ -132,9 +132,6 @@ Interaction::Interaction( EditBase& edit, IEditContext::ToolMode toolMode, Float
 void Interaction::OnMove( Float x, Float y )
 {
     {
-        ReaderLock lock1( m_edit.getNodeStructureLock() );
-        WriterLock lock2( m_edit.getNodeDataLock() );
-
         Float fDeltaX = Math::quantize_roundUp( x - m_startX, m_qX );
         Float fDeltaY = Math::quantize_roundUp( y - m_startY, m_qY );
 
@@ -197,13 +194,7 @@ InteractionToolWrapper::InteractionToolWrapper( EditBase& edit, IInteraction::Pt
 
 void InteractionToolWrapper::OnMove( Float x, Float y )
 {
-    {
-        ReaderLock lock1( m_edit.getNodeStructureLock() );
-        WriterLock lock2( m_edit.getNodeDataLock() );
-
-        m_pToolInteraction->OnMove( x, y );
-    }
-
+    m_pToolInteraction->OnMove( x, y );
     m_edit.onEditted( false );
 }
 
@@ -214,7 +205,8 @@ Node::Ptr InteractionToolWrapper::GetInteractionNode() const
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-Polygon_Interaction::Polygon_Interaction( Site& site, Float x, Float y, Float qX, Float qY, std::size_t szIndex )
+Polygon_Interaction::Polygon_Interaction( Site& site, Float x, Float y, Float qX, Float qY,
+                                          std::size_t szIndex )
     : m_site( site )
     , m_qX( qX )
     , m_qY( qY )

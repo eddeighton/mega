@@ -55,21 +55,6 @@ EditBase::EditBase( EditRoot& editRoot, GlyphFactory& glyphFactory, Node::Ptr pN
 void EditBase::onEditted( bool bCommandCompleted )
 {
     m_glyphFactory.onEditted( bCommandCompleted );
-    
-    update();
-}
-
-Lock& EditBase::getNodeStructureLock() const
-{
-    return m_editRoot.getNodeStructureLock();
-}
-Lock& EditBase::getNodeDataLock() const
-{
-    return m_editRoot.getNodeDataLock();
-}
-Lock& EditBase::getSiteContourLock() const
-{
-    return m_editRoot.getSiteContourLock();
 }
 
 bool EditBase::interaction_hover( Float x, Float y, IGlyph*& pPoint1, IGlyph*& pPoint2 )
@@ -80,9 +65,6 @@ bool EditBase::interaction_hover( Float x, Float y, IGlyph*& pPoint1, IGlyph*& p
 IInteraction::Ptr EditBase::interaction_start( ToolMode toolMode, Float x, Float y, Float qX, Float qY,
                                                IGlyph* pHitGlyph, const std::set< IGlyph* >& selection )
 {
-    WriterLock lock1( getNodeStructureLock() );
-    WriterLock lock2( getNodeDataLock() );
-
     ASSERT( !m_pActiveInteraction );
 
     IGlyph::PtrSet selectionShared;
@@ -96,22 +78,16 @@ IInteraction::Ptr EditBase::interaction_start( ToolMode toolMode, Float x, Float
     return make_interaction_ptr( this, m_pActiveInteraction );
 }
 
-IInteraction::Ptr EditBase::interaction_draw_point( Float x, Float y, Float qX, Float qY, IGlyph* pPoint1,
-                                                    IGlyph* pPoint2, SiteType siteType )
+IInteraction::Ptr EditBase::interaction_draw_point( Float x, Float y, Float qX, Float qY, IGlyph* pHit1,
+                                                    IGlyph* pHit2, SiteType siteType )
 {
     ASSERT( !m_pActiveInteraction );
-
-    IGlyph::Ptr pHit1 = pPoint1 ? pPoint1->shared_from_this() : IGlyph::Ptr();
-    IGlyph::Ptr pHit2 = pPoint2 ? pPoint2->shared_from_this() : IGlyph::Ptr();
 
     x = Math::quantize_roundUp( x, qX );
     y = Math::quantize_roundUp( y, qY );
 
     if( pHit1 && pHit2 )
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-
         using CtrlPoint = ControlPointCallback< Feature_Contour >;
 
         const CtrlPoint* pControlPoint1 = dynamic_cast< const CtrlPoint* >( pHit1->getGlyphSpec() );
@@ -135,9 +111,6 @@ IInteraction::Ptr EditBase::interaction_draw_point( Float x, Float y, Float qX, 
     {
         Site::Ptr pNewNode;
         {
-            WriterLock lock1( getNodeStructureLock() );
-            WriterLock lock2( getNodeDataLock() );
-
             switch( siteType )
             {
                 case eSpace:
@@ -162,12 +135,9 @@ IInteraction::Ptr EditBase::interaction_draw_point( Float x, Float y, Float qX, 
         update();
 
         {
-            WriterLock lock1( getNodeStructureLock() );
-            WriterLock lock2( getNodeDataLock() );
-
             EditBase* pNewEdit = dynamic_cast< EditBase* >( getNodeContext( pNewNode ) );
             VERIFY_RTE( pNewEdit );
-
+            
             IInteraction::Ptr pToolInteraction( new Polygon_Interaction( *pNewNode, x, y, qX, qY, 0U ) );
             pNewEdit->m_pActiveInteraction = new InteractionToolWrapper( *pNewEdit, pToolInteraction );
             pNewEdit->onEditted( false );
@@ -187,9 +157,6 @@ IInteraction::Ptr EditBase::interaction_draw_clip( Float x, Float y, Float qX, F
     Node::PtrSet newNodes;
 
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-
         const Transform drawTransform = calculateInitTransform( Point( x, y ) );
 
         if( Schematic::Ptr pSchematic = boost::dynamic_pointer_cast< Schematic >( pNode ) )
@@ -241,9 +208,6 @@ IInteraction::Ptr EditBase::interaction_draw_clip( Float x, Float y, Float qX, F
     update();
 
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-
         IGlyph::PtrSet selection;
         for( Node::PtrSet::iterator i = newNodes.begin(), iEnd = newNodes.end(); i != iEnd; ++i )
         {
@@ -385,10 +349,6 @@ bool EditBase::canEdit( IGlyph* pGlyph, ToolType toolType, ToolMode toolMode, bo
 
 void EditBase::update()
 {
-    ReaderLock lock1( getNodeStructureLock() );
-    ReaderLock lock2( getNodeDataLock() );
-    ReaderLock lock3( getSiteContourLock() );
-
     updateGlyphs();
 }
 
@@ -444,10 +404,6 @@ void EditBase::interaction_end( IInteraction* pInteraction )
 void EditBase::cmd_delete( const std::set< IGlyph* >& selection )
 {
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         cmd_delete_impl( selection );
     }
 
@@ -478,10 +434,6 @@ Node::Ptr EditBase::cmd_cut( const std::set< IGlyph* >& selection )
 {
     Node::Ptr pResult;
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         Node::PtrSet nodes;
         for( std::set< IGlyph* >::const_iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
@@ -522,10 +474,6 @@ Node::Ptr EditBase::cmd_copy( const std::set< IGlyph* >& selection )
 {
     Node::Ptr pResult;
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         Node::PtrSet nodes;
         for( std::set< IGlyph* >::const_iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
@@ -614,10 +562,6 @@ IInteraction::Ptr EditBase::cmd_paste( Node::PtrVector nodes, Float x, Float y, 
 {
     IInteraction::Ptr pNewInteraction;
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         ASSERT( !m_pActiveInteraction );
 
         IGlyph::PtrSet copies;
@@ -651,10 +595,6 @@ IInteraction::Ptr EditBase::cmd_paste( Node::PtrVector nodes, Float x, Float y, 
 void EditBase::cmd_rotateLeft( const std::set< IGlyph* >& selection )
 {
     {
-        ReaderLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        // WriterLock lock3( getSiteContourLock() );
-
         std::vector< Site* > nodes;
         for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
@@ -678,9 +618,6 @@ void EditBase::cmd_rotateLeft( const std::set< IGlyph* >& selection )
 void EditBase::cmd_rotateRight( const std::set< IGlyph* >& selection )
 {
     {
-        ReaderLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-
         std::vector< Site* > areas;
         for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
@@ -701,9 +638,6 @@ void EditBase::cmd_rotateRight( const std::set< IGlyph* >& selection )
 void EditBase::cmd_flipHorizontally( const std::set< IGlyph* >& selection )
 {
     {
-        ReaderLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-
         std::vector< Site* > areas;
         for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
@@ -724,9 +658,6 @@ void EditBase::cmd_flipHorizontally( const std::set< IGlyph* >& selection )
 void EditBase::cmd_flipVertically( const std::set< IGlyph* >& selection )
 {
     {
-        ReaderLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-
         std::vector< Site* > areas;
         for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
@@ -748,10 +679,6 @@ void EditBase::cmd_flipVertically( const std::set< IGlyph* >& selection )
 void EditBase::cmd_shrink( const std::set< IGlyph* >& selection, double dbAmount )
 {
     {
-        ReaderLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         std::vector< Site* > areas;
         for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
@@ -770,10 +697,6 @@ void EditBase::cmd_shrink( const std::set< IGlyph* >& selection, double dbAmount
 void EditBase::cmd_extrude( const std::set< IGlyph* >& selection, double dbAmount )
 {
     {
-        ReaderLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         std::vector< Site* > areas;
         for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
@@ -972,10 +895,6 @@ void EditBase::cmd_union_impl( const std::vector< Site* >& sites, bool bCreateWa
 void EditBase::cmd_union( const std::set< IGlyph* >& selection )
 {
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         std::vector< Site* > spaces;
         std::vector< Site* > walls;
         std::vector< Site* > objects;
@@ -1000,10 +919,6 @@ void EditBase::cmd_union( const std::set< IGlyph* >& selection )
 void EditBase::cmd_filter( const std::set< IGlyph* >& selection )
 {
     {
-        ReaderLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
         {
             if( const Site* pSiteCst = dynamic_cast< const Site* >( ( *i )->getGlyphSpec() ) )
@@ -1019,10 +934,6 @@ void EditBase::cmd_filter( const std::set< IGlyph* >& selection )
 void EditBase::cmd_aabb( const std::set< IGlyph* >& selection )
 {
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         Site::PtrVector sites;
         {
             for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
@@ -1046,10 +957,6 @@ void EditBase::cmd_aabb( const std::set< IGlyph* >& selection )
 void EditBase::cmd_convexHull( const std::set< IGlyph* >& selection )
 {
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         Site::PtrVector sites;
         {
             for( std::set< IGlyph* >::iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
@@ -1073,10 +980,6 @@ void EditBase::cmd_convexHull( const std::set< IGlyph* >& selection )
 void EditBase::cmd_reparent( const std::set< IGlyph* >& selection )
 {
     {
-        WriterLock lock1( getNodeStructureLock() );
-        WriterLock lock2( getNodeDataLock() );
-        WriterLock lock3( getSiteContourLock() );
-
         Site::PtrVector sites;
         {
             Site::PtrSet sitesSet;

@@ -46,8 +46,7 @@ void Schematic::init()
 
     if( !m_pCompilationMarkup.get() )
     {
-        m_pCompilationMarkup.reset(
-            new MultiPathMarkup( *this, nullptr, getRootFile()->getMarkupLock(), Schematic::eStage_Compilation ) );
+        m_pCompilationMarkup.reset( new MultiPathMarkup( *this, nullptr, Schematic::eStage_Compilation ) );
     }
 }
 
@@ -87,6 +86,25 @@ void Schematic::save( format::File::Schematic& schematic ) const
     }
 }
 
+void Schematic::task_contours()
+{
+    for( Site::Ptr pSite : getSites() )
+    {
+        pSite->task_contour();
+    }
+}
+
+void Schematic::task_extrusions()
+{
+    for( Site::Ptr pSite : getSites() )
+    {
+        if( Space::Ptr pSpace = boost::dynamic_pointer_cast< Space >( pSite ) )
+        {
+            pSpace->task_extrusions();
+        }
+    }
+}
+/*
 task::Schedule::Ptr Schematic::createSchedule( const CompilationConfig& config )
 {
     Schematic::Ptr pSchematic = boost::dynamic_pointer_cast< Schematic >( getPtr() );
@@ -133,7 +151,8 @@ void Schematic::task_compilation()
 
     m_pCompilationMarkup->set( edges );
 }
-
+*/
+/*
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 SiteContourTask::SiteContourTask( Schematic::Ptr pSchematic, const task::Task::RawPtrSet& dependencies )
@@ -154,10 +173,6 @@ void SiteContourTask::run( task::Progress& taskProgress )
     }
 
     {
-        ReaderLock lock1( pSchematic->getNodeStructureLock() );
-        ReaderLock lock2( pSchematic->getNodeDataLock() );
-        WriterLock lock3( pSchematic->getSiteContourLock() );
-
         for( Site::Ptr pSite : pSchematic->getSites() )
         {
             pSite->task_contour();
@@ -187,10 +202,6 @@ void SiteExtrusionTask::run( task::Progress& taskProgress )
     }
 
     {
-        ReaderLock lock1( pSchematic->getNodeStructureLock() );
-        ReaderLock lock2( pSchematic->getSiteContourLock() );
-        WriterLock lock3( pSchematic->getSiteExtrusionLock() );
-
         for( Site::Ptr pSite : pSchematic->getSites() )
         {
             if( Space::Ptr pSpace = boost::dynamic_pointer_cast< Space >( pSite ) )
@@ -223,10 +234,6 @@ void CompilationTask::run( task::Progress& taskProgress )
     }
 
     {
-        ReaderLock lock1( pSchematic->getNodeStructureLock() );
-        ReaderLock lock2( pSchematic->getSiteContourLock() );
-        ReaderLock lock3( pSchematic->getSiteExtrusionLock() );
-
         try
         {
             pSchematic->task_compilation();
@@ -240,5 +247,5 @@ void CompilationTask::run( task::Progress& taskProgress )
 
     taskProgress.succeeded();
 }
-
+*/
 } // namespace map

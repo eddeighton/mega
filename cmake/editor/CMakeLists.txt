@@ -110,5 +110,6 @@ link_common( editor )
 
 
 install( FILES ${EDITOR_HEADERS} DESTINATION include/editor )
+install( FILES ${EDITOR_SRC_DIR}/config.ed DESTINATION bin )
 install( TARGETS editor EXPORT editor DESTINATION bin)
 install( EXPORT editor NAMESPACE MEGA:: FILE editor-config.cmake DESTINATION share )

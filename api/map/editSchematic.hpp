@@ -35,8 +35,6 @@ public:
 
     EditSchematic( GlyphFactory& glyphFactory, Schematic::Ptr pSchematic );
 
-    virtual Lock& getSiteContourLock() const;
-
 private:
     Schematic::Ptr m_pSchematic;
 };

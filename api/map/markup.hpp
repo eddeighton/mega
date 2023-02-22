@@ -100,7 +100,6 @@ class SimplePolygonMarkup : public MarkupPolygonGroup
 public:
     SimplePolygonMarkup( const GlyphSpecProducer& producer,
                          const GlyphSpec*         pParent,
-                         Lock&                    markupLock,
                          bool                     bFill,
                          CompilationStage         compilationStage );
 
@@ -115,7 +114,6 @@ public:
 private:
     const GlyphSpecProducer& m_producer;
     const GlyphSpec*         m_pParent;
-    Lock&                    m_markupLock;
     Timing::UpdateTick       m_updateTick;
     Polygon                  m_polygon;
     bool                     m_bFill;
@@ -132,7 +130,6 @@ public:
 
     MultiPolygonMarkup( const GlyphSpecProducer& producer,
                         const GlyphSpec*         pParent,
-                        Lock&                    markupLock,
                         bool                     bFill,
                         CompilationStage         compilationStage );
 
@@ -147,7 +144,6 @@ public:
 private:
     const GlyphSpecProducer& m_producer;
     const GlyphSpec*         m_pParent;
-    Lock&                    m_markupLock;
     Timing::UpdateTick       m_updateTick;
     PolygonVector            m_polygons;
     bool                     m_bFill;
@@ -161,7 +157,6 @@ class MultiPathMarkup : public MarkupPolygonGroup
 public:
     MultiPathMarkup( const GlyphSpecProducer& producer,
                      const GlyphSpec*         pParent,
-                     Lock&                    markupLock,
                      CompilationStage         compilationStage );
 
     virtual const GlyphSpec*         getParent() const;
@@ -175,7 +170,6 @@ public:
 private:
     const GlyphSpecProducer& m_producer;
     const GlyphSpec*         m_pParent;
-    Lock&                    m_markupLock;
     Timing::UpdateTick       m_updateTick;
     std::vector< Segment >   m_segments;
     CompilationStage         m_compilationStage;

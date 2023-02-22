@@ -66,13 +66,14 @@ public:
         eStage_AStar*/
     };
 
-    virtual task::Schedule::Ptr createSchedule( const CompilationConfig& config );
-
-    Lock& getSiteContourLock() const { return m_siteContourLock; }
-    Lock& getSiteExtrusionLock() const { return m_siteExtrusionLock; }
+    // virtual task::Schedule::Ptr createSchedule( const CompilationConfig& config );
 
     // schematic tasks
-    void task_compilation();
+    // void task_compilation();
+
+
+    void task_contours();
+    void task_extrusions();
 
     // GlyphSpecProducer
     virtual void getMarkupPolygonGroups( MarkupPolygonGroup::List& polyGroups )
@@ -82,15 +83,13 @@ public:
     }
 
 private:
-    mutable Lock m_siteContourLock;
-    mutable Lock m_siteExtrusionLock;
-
     Compilation::Ptr                   m_pCompilation;
     std::unique_ptr< MultiPathMarkup > m_pCompilationMarkup;
 };
 
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
+/*
 class SiteContourTask : public task::Task
 {
     Schematic::WeakPtr m_pSchematic;
@@ -121,7 +120,7 @@ public:
     CompilationTask( Schematic::Ptr pSchematic, const task::Task::RawPtrSet& dependencies );
     virtual void run( task::Progress& taskProgress );
 };
-
+*/
 } // namespace map
 
 #endif // SCHEMATIC_API_28_JAN_2021
