@@ -195,6 +195,8 @@ namespace mega::io
             FileMapCst& readOnlyFiles, FileInfo::Stage stage, 
             ObjectInfo::FileID fileID, std::vector< File::Ptr >& loadedFiles ) const
     {
+        VERIFY_RTE_MSG( fileID != ObjectInfo::NO_FILE, "Invalid file ID passed to manifest" );
+
         FileMapCst::const_iterator iFind = readOnlyFiles.find( fileID );
         if( iFind != readOnlyFiles.end() )
             return iFind->second;
@@ -220,6 +222,8 @@ namespace mega::io
     File::PtrCst Manifest::loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
         FileInfo::Stage stage, ObjectInfo::FileID fileID ) const
     {
+        VERIFY_RTE_MSG( fileID != ObjectInfo::NO_FILE, "Invalid file ID passed to manifest" );
+        
         std::vector< File::Ptr > loadedFiles;
         File::PtrCst pResult = loadFileImpl( environment, loader, readOnlyFiles, stage, fileID, loadedFiles );
         for( File::Ptr pFile : loadedFiles )

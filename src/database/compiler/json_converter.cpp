@@ -40,7 +40,7 @@ void writeJSON( const boost::filesystem::path& filePath, const nlohmann::json& d
     std::ostringstream os;
     os << data;
 
-    if ( boost::filesystem::updateFileIfChanged( filePath, os.str() ) )
+    if( boost::filesystem::updateFileIfChanged( filePath, os.str() ) )
     {
         std::cout << "Regenerated: " << filePath.string() << std::endl;
     }
@@ -49,19 +49,19 @@ void writeJSON( const boost::filesystem::path& filePath, const nlohmann::json& d
 void insertFunctionVariantIfUnique( nlohmann::json& function, const nlohmann::json& variant )
 {
     bool bFound = false;
-    
+
     for( const auto& existingVariant : function[ "variants" ] )
     {
         // see data.cxx.jinja:175 - visitor dispatch over unique primaryobjectpart
         // NOTE: not comparing existingVariant[ "dataobjectpart" ]     == variant[ "dataobjectpart" ] &&
-        if( existingVariant[ "matched" ]            == variant[ "matched" ] &&
-            existingVariant[ "primaryobjectpart" ]  == variant[ "primaryobjectpart" ] )
+        if( existingVariant[ "matched" ] == variant[ "matched" ]
+            && existingVariant[ "primaryobjectpart" ] == variant[ "primaryobjectpart" ] )
         {
             bFound = true;
             break;
         }
     }
-    
+
     if( !bFound )
     {
         function[ "variants" ].push_back( variant );
@@ -75,15 +75,15 @@ void writeStageData( const boost::filesystem::path& dataDir, model::Schema::Ptr 
                            { "schema_version", pSchema->m_schemaHash.toHexString() } } );
 
     // get the unique source types
-    for ( model::Source::Ptr pSource : pSchema->m_sources )
+    for( model::Source::Ptr pSource : pSchema->m_sources )
     {
         nlohmann::json source
             = nlohmann::json::object( { { "type", pSource->m_strName }, { "files", nlohmann::json::array() } } );
 
-        for ( std::weak_ptr< model::Stage > pStageWeak : pSource->m_stages )
+        for( std::weak_ptr< model::Stage > pStageWeak : pSource->m_stages )
         {
             model::Stage::Ptr pStage = pStageWeak.lock();
-            for ( model::File::Ptr pFile : pStage->m_files )
+            for( model::File::Ptr pFile : pStage->m_files )
             {
                 nlohmann::json file
                     = nlohmann::json::object( { { "name", pFile->m_strName }, { "stage", pStage->m_strName } } );
@@ -92,24 +92,24 @@ void writeStageData( const boost::filesystem::path& dataDir, model::Schema::Ptr 
         }
         data[ "sources" ].push_back( source );
     }
-    for ( model::Stage::Ptr pStage : pSchema->m_stages )
+    for( model::Stage::Ptr pStage : pSchema->m_stages )
     {
         VERIFY_RTE( !pStage->m_sources.empty() );
         nlohmann::json stage = nlohmann::json::object( { { "name", pStage->m_strName },
                                                          { "sources", nlohmann::json::array() },
                                                          { "files", nlohmann::json::array() } } );
 
-        for ( model::Source::Ptr pSource : pStage->m_sources )
+        for( model::Source::Ptr pSource : pStage->m_sources )
         {
             stage[ "sources" ].push_back( pSource->m_strName );
         }
 
-        for ( model::File::Ptr pFile : pStage->m_files )
+        for( model::File::Ptr pFile : pStage->m_files )
         {
             nlohmann::json file = nlohmann::json::object(
                 { { "name", pFile->m_strName }, { "dependencies", nlohmann::json::array() } } );
 
-            for ( std::weak_ptr< model::File > pDependencyWeak : pFile->m_dependencies )
+            for( std::weak_ptr< model::File > pDependencyWeak : pFile->m_dependencies )
             {
                 model::File::Ptr pDependency    = pDependencyWeak.lock();
                 nlohmann::json   dependencyFile = nlohmann::json::object(
@@ -128,10 +128,11 @@ void writeStageData( const boost::filesystem::path& dataDir, model::Schema::Ptr 
 nlohmann::json writeFunctionSignature( model::Stage::Ptr pStage, model::Function::Ptr pFunction )
 {
     nlohmann::json function;
-    function[ "name" ]       = pFunction->getName();
+    function[ "short_name" ] = pFunction->getShortName();
+    function[ "long_name" ]  = pFunction->getLongName();
     function[ "returntype" ] = pFunction->getReturnType( pStage->m_strName );
     function[ "params" ]     = nlohmann::json::array();
-    for ( const auto& param : pFunction->getParams( pStage->m_strName ) )
+    for( const auto& param : pFunction->getParams( pStage->m_strName ) )
     {
         const nlohmann::json paramData = nlohmann::json::object( { { "name", param.name }, { "type", param.type } } );
         function[ "params" ].push_back( paramData );
@@ -153,7 +154,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
     } );
 
     // base interface
-    if ( pInterface->m_base )
+    if( pInterface->m_base )
     {
         interface[ "has_base" ] = true;
         interface[ "base" ]     = pInterface->m_base->delimitTypeName( pStage->m_strName, "::" );
@@ -163,7 +164,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
         interface[ "has_base" ] = false;
     }
 
-    for ( model::Interface::Ptr pOtherInterface : pInterface->m_superInterface.lock()->m_interfaces )
+    for( model::Interface::Ptr pOtherInterface : pInterface->m_superInterface.lock()->m_interfaces )
     {
         interface[ "tests" ].push_back( pOtherInterface->delimitTypeName( pStage->m_strName, "_" ) );
     }
@@ -174,14 +175,14 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
         {
             model::Namespace::Ptr pNamespace = pObject->m_namespace.lock();
             VERIFY_RTE( pNamespace );
-            while ( pNamespace )
+            while( pNamespace )
             {
                 namespaces.push_back( pNamespace );
                 pNamespace = pNamespace->m_namespace.lock();
             }
         }
         std::reverse( namespaces.begin(), namespaces.end() );
-        for ( model::Namespace::Ptr pNamespace : namespaces )
+        for( model::Namespace::Ptr pNamespace : namespaces )
         {
             interface[ "namespaces" ].push_back( pNamespace->m_strName );
         }
@@ -190,10 +191,10 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
     // functions
     {
         std::set< std::string > uniqueFunctions;
-        for ( model::Function::Ptr pFunction : pInterface->m_functions )
+        for( model::Function::Ptr pFunction : pInterface->m_functions )
         {
             const std::string strMangled = pFunction->getMangledName( "" );
-            if ( uniqueFunctions.count( strMangled ) == 0U )
+            if( uniqueFunctions.count( strMangled ) == 0U )
             {
                 uniqueFunctions.insert( strMangled );
                 interface[ "functions" ].push_back( writeFunctionSignature( pStage, pFunction ) );
@@ -202,19 +203,19 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
     }
 
     // args
-    if ( pInterface->m_isReadWrite )
+    if( pInterface->m_isReadWrite )
     {
         // calculate ctor overloads...
-        if ( !pInterface->m_args.empty() )
+        if( !pInterface->m_args.empty() )
         {
             // add default
             nlohmann::json ctor = nlohmann::json::object( { { "params", nlohmann::json::array() } } );
             interface[ "args_ctors" ].push_back( ctor );
         }
 
-        if ( pInterface->m_base )
+        if( pInterface->m_base )
         {
-            if ( pInterface->m_base->ownsPrimaryObjectPart( pStage ) )
+            if( pInterface->m_base->ownsPrimaryObjectPart( pStage ) )
             {
                 std::ostringstream osBaseArgs;
                 {
@@ -227,7 +228,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
                         { { "name", "base" }, { "type", osBaseArgs.str() }, { "value", "base" } } );
                     ctorBaseArgs[ "params" ].push_back( baseArg );
 
-                    for ( model::Property::Ptr pProperty : pInterface->m_args )
+                    for( model::Property::Ptr pProperty : pInterface->m_args )
                     {
                         nlohmann::json param = nlohmann::json::object(
                             { { "name", pProperty->m_strName },
@@ -250,7 +251,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
                         { { "name", "base" }, { "type", osBasePointer.str() }, { "value", "base" } } );
                     ctorBasePointer[ "params" ].push_back( baseArg );
 
-                    for ( model::Property::Ptr pProperty : pInterface->m_args )
+                    for( model::Property::Ptr pProperty : pInterface->m_args )
                     {
                         nlohmann::json param = nlohmann::json::object(
                             { { "name", pProperty->m_strName },
@@ -276,7 +277,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
             {
                 std::ostringstream osBasePointer;
 
-                if ( !pInterface->ownsPrimaryObjectPart( pStage ) )
+                if( !pInterface->ownsPrimaryObjectPart( pStage ) )
                 {
                     osBasePointer << pInterface->delimitTypeName( pStage->m_strName, "::" ) << "*";
                 }
@@ -292,7 +293,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
                         { { "name", "base" }, { "type", osBasePointer.str() }, { "value", "base" } } );
                     ctorBasePointer[ "params" ].push_back( baseArg );
 
-                    for ( model::Property::Ptr pProperty : pInterface->m_args )
+                    for( model::Property::Ptr pProperty : pInterface->m_args )
                     {
                         nlohmann::json param = nlohmann::json::object(
                             { { "name", pProperty->m_strName },
@@ -313,7 +314,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
         {
             nlohmann::json ctor = nlohmann::json::object( { { "params", nlohmann::json::array() } } );
 
-            if ( !pInterface->ownsPrimaryObjectPart( pStage ) )
+            if( !pInterface->ownsPrimaryObjectPart( pStage ) )
             {
                 std::ostringstream osBasePointer;
                 {
@@ -330,7 +331,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
                 interface[ "args_values" ].push_back( value );
             }
 
-            for ( model::Property::Ptr pProperty : pInterface->m_args )
+            for( model::Property::Ptr pProperty : pInterface->m_args )
             {
                 nlohmann::json param
                     = nlohmann::json::object( { { "name", pProperty->m_strName },
@@ -342,7 +343,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
             interface[ "args_ctors" ].push_back( ctor );
         }
 
-        for ( model::Property::Ptr pProperty : pInterface->m_args )
+        for( model::Property::Ptr pProperty : pInterface->m_args )
         {
             std::ostringstream osType;
             osType << "std::optional< " << pProperty->m_type->getViewType( pStage->m_strName, false ) << " >";
@@ -359,11 +360,11 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
 {
     std::vector< model::Stage::Ptr > dependencies;
     pStage->getDependencies( dependencies );
-    for ( model::Stage::Ptr pStageIter : dependencies )
+    for( model::Stage::Ptr pStageIter : dependencies )
     {
-        for ( model::File::Ptr pFile : pStageIter->m_files )
+        for( model::File::Ptr pFile : pStageIter->m_files )
         {
-            for ( model::ObjectPart::Ptr pPart : pFile->m_parts )
+            for( model::ObjectPart::Ptr pPart : pFile->m_parts )
             {
                 VERIFY_RTE_MSG( pStage->isInterface( pPart->m_object.lock() ), "Stage missing interface for object" );
                 {
@@ -380,7 +381,7 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
         }
     }
     // std::set< std::string > conversionsUnique;
-    for ( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
+    for( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
     {
         auto pPart = pInterface->getPrimaryObjectPart( pStage );
         // for ( auto pPart : pInterface->getPrimaryObjectParts() )
@@ -403,9 +404,9 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
         }
     }
 
-    for ( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
+    for( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
     {
-        for ( auto pPart : pInterface->getPrimaryObjectParts() )
+        for( auto pPart : pInterface->getPrimaryObjectParts() )
         {
             const std::string     strType = pInterface->delimitTypeName( pStage->m_strName, "::" );
             model::SuperType::Ptr pSuper  = pInterface->m_superInterface.lock();
@@ -427,7 +428,7 @@ nlohmann::json writeAccessor( model::Stage::Ptr pStage, model::Interface::Ptr pI
                                     { "longname", pInterface->delimitTypeName( pStage->m_strName, "_" ) },
                                     { "files", nlohmann::json::array() } } );
 
-    for ( auto pPrimaryPart : pInterface->getPrimaryObjectParts() )
+    for( auto pPrimaryPart : pInterface->getPrimaryObjectParts() )
     {
         model::File::Ptr pFile = pPrimaryPart->m_file.lock();
         const bool       bReadWrite
@@ -447,9 +448,9 @@ nlohmann::json writeAccessor( model::Stage::Ptr pStage, model::Interface::Ptr pI
 void writeAccessors( nlohmann::json& stage, model::Stage::Ptr pStage )
 {
     std::set< model::Interface::Ptr, model::CountedObjectComparator< model::Interface::Ptr > > manyAccessors;
-    for ( model::Accessor::Ptr pAccessor : pStage->m_accessors )
+    for( model::Accessor::Ptr pAccessor : pStage->m_accessors )
     {
-        if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pAccessor->m_type ) )
+        if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pAccessor->m_type ) )
         {
             model::Object::Ptr pObject = pRef->m_object;
             VERIFY_RTE_MSG( pStage->isInterface( pObject ), "Stage missing interface for accessor" );
@@ -458,21 +459,21 @@ void writeAccessors( nlohmann::json& stage, model::Stage::Ptr pStage )
             nlohmann::json accessor = writeAccessor( pStage, pInterface );
 
             stage[ "one_accessors" ].push_back( accessor );
-            if ( manyAccessors.count( pInterface ) == 0 )
+            if( manyAccessors.count( pInterface ) == 0 )
             {
                 manyAccessors.insert( pInterface );
                 stage[ "many_accessors" ].push_back( accessor );
             }
         }
-        else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pAccessor->m_type ) )
+        else if( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pAccessor->m_type ) )
         {
-            if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pArray->m_underlyingType ) )
+            if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pArray->m_underlyingType ) )
             {
                 model::Object::Ptr pObject = pRef->m_object;
                 VERIFY_RTE_MSG( pStage->isInterface( pObject ), "Stage missing interface for accessor" );
                 model::Interface::Ptr pInterface = pStage->getInterface( pObject );
 
-                if ( manyAccessors.count( pInterface ) == 0 )
+                if( manyAccessors.count( pInterface ) == 0 )
                 {
                     manyAccessors.insert( pInterface );
                     nlohmann::json accessor = writeAccessor( pStage, pInterface );
@@ -497,22 +498,22 @@ nlohmann::json writeCtorPart( model::Stage::Ptr pStage, model::ObjectPart::Ptr p
                                                     { "file", pPart->m_file.lock()->m_strName },
                                                     { "args", nlohmann::json::array() } } );
     {
-        if ( bAddBaseArg )
+        if( bAddBaseArg )
         {
             nlohmann::json arg = nlohmann::json::object(
                 { { "expression", "pPrimaryObjectPart" }, { "validation", false }, { "errormsg", "" } } );
             part[ "args" ].push_back( arg );
         }
 
-        for ( model::Property::Ptr pProperty : pPart->m_properties )
+        for( model::Property::Ptr pProperty : pPart->m_properties )
         {
             model::Type::Ptr pType = pProperty->m_type;
 
-            if ( !pType->m_bLate )
+            if( !pType->m_bLate )
             {
                 std::ostringstream osExpression, osValidation, osErrorMsg;
                 osErrorMsg << '"';
-                if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
+                if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
                 {
                     model::Object::Ptr pObject = pRef->m_object;
                     osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
@@ -520,24 +521,23 @@ nlohmann::json writeCtorPart( model::Stage::Ptr pStage, model::ObjectPart::Ptr p
                                  << pProperty->m_strName << ".value()";
                     osErrorMsg << pProperty->m_strName << " is not initialised";
                 }
-                else if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
+                else if( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
                 {
                     osExpression << "arguments." << pProperty->m_strName << ".value()";
                     osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                     osErrorMsg << pProperty->m_strName << " is not initialised";
                 }
-                else if ( model::OptType::Ptr pOptional = std::dynamic_pointer_cast< model::OptType >( pType ) )
+                else if( model::OptType::Ptr pOptional = std::dynamic_pointer_cast< model::OptType >( pType ) )
                 {
                     model::Type::Ptr pUnderlyingType = pOptional->m_underlyingType;
-                    if ( model::ValueType::Ptr pValue
-                         = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+                    if( model::ValueType::Ptr pValue
+                        = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
                     {
                         osExpression << "arguments." << pProperty->m_strName << ".value()";
                         osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                         osErrorMsg << pProperty->m_strName << " is not initialised";
                     }
-                    else if ( model::RefType::Ptr pRef
-                              = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
+                    else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                     {
                         model::Object::Ptr pObject = pRef->m_object;
                         osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
@@ -549,18 +549,17 @@ nlohmann::json writeCtorPart( model::Stage::Ptr pStage, model::ObjectPart::Ptr p
                         THROW_RTE( "Unsupported type for ctor" );
                     }
                 }
-                else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
+                else if( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
                 {
                     model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
-                    if ( model::ValueType::Ptr pValue
-                         = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+                    if( model::ValueType::Ptr pValue
+                        = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
                     {
                         osExpression << "arguments." << pProperty->m_strName << ".value()";
                         osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                         osErrorMsg << pProperty->m_strName << " is not initialised";
                     }
-                    else if ( model::RefType::Ptr pRef
-                              = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
+                    else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                     {
                         model::Object::Ptr pObject = pRef->m_object;
                         osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
@@ -572,20 +571,20 @@ nlohmann::json writeCtorPart( model::Stage::Ptr pStage, model::ObjectPart::Ptr p
                         THROW_RTE( "Unsupported type for ctor" );
                     }
                 }
-                else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
+                else if( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
                 {
                     model::Type::Ptr pFrom = pMap->m_fromType;
                     model::Type::Ptr pTo   = pMap->m_toType;
 
-                    if ( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
+                    if( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
                     {
-                        if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                        if( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                         {
                             osExpression << "arguments." << pProperty->m_strName << ".value()";
                             osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                             osErrorMsg << pProperty->m_strName << " is not initialised";
                         }
-                        else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                        else if( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                         {
                             model::Object::Ptr pObject = pToRef->m_object;
                             osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
@@ -597,15 +596,15 @@ nlohmann::json writeCtorPart( model::Stage::Ptr pStage, model::ObjectPart::Ptr p
                             THROW_RTE( "Unsupported type for map from type" );
                         }
                     }
-                    else if ( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
+                    else if( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
                     {
-                        if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                        if( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                         {
                             osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
                             osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                             osErrorMsg << pProperty->m_strName << " is not initialised";
                         }
-                        else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                        else if( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                         {
                             osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
                             osValidation << "arguments." << pProperty->m_strName << ".has_value()";
@@ -639,7 +638,7 @@ nlohmann::json writeCtorPart( model::Stage::Ptr pStage, model::ObjectPart::Ptr p
 
 void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
 {
-    for ( model::Constructor::Ptr pConstructor : pStage->m_constructors )
+    for( model::Constructor::Ptr pConstructor : pStage->m_constructors )
     {
         std::ostringstream os;
         os << "construct_" << pConstructor->m_interface->delimitTypeName( pStage->m_strName, "_" );
@@ -665,7 +664,7 @@ void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
             std::vector< nlohmann::json > bases;
             {
                 model::Interface::Ptr pBase = pInterface;
-                while ( pBase )
+                while( pBase )
                 {
                     nlohmann::json base
                         = nlohmann::json::object( { { "typename", pBase->delimitTypeName( pStage->m_strName, "::" ) },
@@ -674,36 +673,36 @@ void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
                                                     { "is_primary_part_base", false } } );
 
                     base[ "primary_part" ] = writeCtorPart( pStage, pBase->getPrimaryObjectPart( pStage ), false );
-                    if ( pBase->m_base )
+                    if( pBase->m_base )
                     {
                         base[ "is_primary_part_base" ] = true;
                         base[ "primary_part_base" ]
                             = writeCtorPart( pStage, pBase->m_base->getPrimaryObjectPart( pStage ), false );
                     }
                     // VERIFY_RTE( pBase->m_readOnlyObjectParts.empty() );
-                    for ( model::ObjectPart::Ptr pPart : pBase->m_readWriteObjectParts )
+                    for( model::ObjectPart::Ptr pPart : pBase->m_readWriteObjectParts )
                     {
-                        if ( model::InheritedObjectPart::Ptr pSecondaryPart
-                             = std::dynamic_pointer_cast< model::InheritedObjectPart >( pPart ) )
+                        if( model::InheritedObjectPart::Ptr pSecondaryPart
+                            = std::dynamic_pointer_cast< model::InheritedObjectPart >( pPart ) )
                         {
                             base[ "parts" ].push_back( writeCtorPart( pStage, pPart, true ) );
                         }
-                        else if ( model::AggregatedObjectPart::Ptr pSecondaryPart
-                                  = std::dynamic_pointer_cast< model::AggregatedObjectPart >( pPart ) )
+                        else if( model::AggregatedObjectPart::Ptr pSecondaryPart
+                                 = std::dynamic_pointer_cast< model::AggregatedObjectPart >( pPart ) )
                         {
                             base[ "parts" ].push_back( writeCtorPart( pStage, pPart, false ) );
                         }
                     }
                     bases.push_back( base );
-                    if ( !pBase->ownsPrimaryObjectPart( pStage ) )
+                    if( !pBase->ownsPrimaryObjectPart( pStage ) )
                         break;
                     pBase = pBase->m_base;
                 }
             }
-            for ( const nlohmann::json& base : bases )
+            for( const nlohmann::json& base : bases )
                 ctor[ "bases" ].push_back( base );
             std::reverse( bases.begin(), bases.end() );
-            for ( const nlohmann::json& base : bases )
+            for( const nlohmann::json& base : bases )
                 ctor[ "bases_reverse" ].push_back( base );
 
             stage[ "constructors" ].push_back( ctor );
@@ -719,33 +718,33 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
 
     std::ostringstream osFunctionBody;
 
-    if ( std::dynamic_pointer_cast< model::FunctionGetter >( pFunction ) )
+    if( std::dynamic_pointer_cast< model::FunctionGetter >( pFunction ) )
     {
         const std::string strData = pType->m_bLate ? "data.value()" : "data";
         // only for getters want to test late variables have a value set
-        if ( pType->m_bLate )
+        if( pType->m_bLate )
         {
             function[ "lines" ].push_back( "VERIFY_RTE( data.has_value() );" );
         }
-        if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
+        if( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
         {
             osFunctionBody << "return " << strData << ";";
         }
-        else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
+        else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
         {
             model::Object::Ptr pObject = pRef->m_object;
             VERIFY_RTE_MSG( pStage->isInterface( pObject ), "Stage missing interface for object" );
             model::Interface::Ptr pInterface = pStage->getInterface( pObject );
             osFunctionBody << "return toView( m_factory, " << strData << " );";
         }
-        else if ( model::OptType::Ptr pOptional = std::dynamic_pointer_cast< model::OptType >( pType ) )
+        else if( model::OptType::Ptr pOptional = std::dynamic_pointer_cast< model::OptType >( pType ) )
         {
             model::Type::Ptr pUnderlyingType = pOptional->m_underlyingType;
-            if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+            if( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
             {
                 osFunctionBody << "return " << strData << ";";
             }
-            else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
+            else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
             {
                 osFunctionBody << "return " << strData << ".has_value() ? toView( m_factory, " << strData
                                << ".value() ) : " << pOptional->getViewType( pStage->m_strName, false ) << "();";
@@ -755,14 +754,14 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
                 THROW_RTE( "Unsupported type for getter" );
             }
         }
-        else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
+        else if( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
         {
             model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
-            if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+            if( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
             {
                 osFunctionBody << "return " << strData << ";";
             }
-            else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
+            else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
             {
                 osFunctionBody << "return toView( m_factory, " << strData << " );";
             }
@@ -771,17 +770,17 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
                 THROW_RTE( "Unsupported type for getter" );
             }
         }
-        else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
+        else if( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
         {
             model::Type::Ptr pFrom = pMap->m_fromType;
             model::Type::Ptr pTo   = pMap->m_toType;
-            if ( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
+            if( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
             {
-                if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                if( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                 {
                     osFunctionBody << "return " << strData << ";";
                 }
-                else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                else if( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                 {
                     osFunctionBody << "return toView( m_factory, " << strData << " );";
                 }
@@ -790,13 +789,13 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
                     THROW_RTE( "Unsupported type for map from type" );
                 }
             }
-            else if ( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
+            else if( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
             {
-                if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                if( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                 {
                     osFunctionBody << "return toView( m_factory, " << strData << " );";
                 }
-                else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                else if( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                 {
                     osFunctionBody << "return toView( m_factory, " << strData << " );";
                 }
@@ -815,25 +814,25 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
             THROW_RTE( "Unsupported type for getter" );
         }
     }
-    else if ( std::dynamic_pointer_cast< model::FunctionSetter >( pFunction ) )
+    else if( std::dynamic_pointer_cast< model::FunctionSetter >( pFunction ) )
     {
-        if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
+        if( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
         {
             osFunctionBody << "data = value;";
         }
-        else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
+        else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
         {
             model::Object::Ptr pObject = pRef->m_object;
             osFunctionBody << "data = toData( m_factory, value );\n";
         }
-        else if ( model::OptType::Ptr pOptional = std::dynamic_pointer_cast< model::OptType >( pType ) )
+        else if( model::OptType::Ptr pOptional = std::dynamic_pointer_cast< model::OptType >( pType ) )
         {
             model::Type::Ptr pUnderlyingType = pOptional->m_underlyingType;
-            if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+            if( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
             {
                 osFunctionBody << "data = value;";
             }
-            else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
+            else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
             {
                 model::Object::Ptr pObject = pRef->m_object;
                 osFunctionBody << "data = toData( m_factory, value );\n";
@@ -843,14 +842,14 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
                 THROW_RTE( "Unsupported type for setter" );
             }
         }
-        else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
+        else if( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
         {
             model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
-            if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+            if( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
             {
                 osFunctionBody << "data = value;";
             }
-            else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
+            else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
             {
                 model::Object::Ptr pObject = pRef->m_object;
                 osFunctionBody << "data = toData( m_factory, value );\n";
@@ -860,17 +859,17 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
                 THROW_RTE( "Unsupported type for setter" );
             }
         }
-        else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
+        else if( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
         {
             model::Type::Ptr pFrom = pMap->m_fromType;
             model::Type::Ptr pTo   = pMap->m_toType;
-            if ( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
+            if( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
             {
-                if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                if( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                 {
                     osFunctionBody << "data = value;";
                 }
-                else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                else if( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                 {
                     model::Object::Ptr pObject = pToRef->m_object;
                     osFunctionBody << "data = toData( m_factory, value );\n";
@@ -880,13 +879,13 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
                     THROW_RTE( "Unsupported type for map from type" );
                 }
             }
-            else if ( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
+            else if( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
             {
-                if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                if( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                 {
                     osFunctionBody << "data = toData( m_factory, value );";
                 }
-                else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                else if( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                 {
                     osFunctionBody << "data = toData( m_factory, value );";
                 }
@@ -905,20 +904,20 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
             THROW_RTE( "Unsupported type for setter" );
         }
     }
-    else if ( std::dynamic_pointer_cast< model::FunctionInserter >( pFunction ) )
+    else if( std::dynamic_pointer_cast< model::FunctionInserter >( pFunction ) )
     {
         const std::string strData = pType->m_bLate ? "data.value()" : "data";
-        if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
+        if( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
         {
-            if ( pType->m_bLate )
+            if( pType->m_bLate )
                 osFunctionBody << "if( !data.has_value() ) data = "
                                << pArray->getDatabaseType( model::Type::eNormal_NoLate ) << "()\n;";
             model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
-            if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+            if( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
             {
                 osFunctionBody << strData << ".push_back( value );";
             }
-            else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
+            else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
             {
                 model::Object::Ptr pObject = pRef->m_object;
                 osFunctionBody << strData << ".push_back( toData( m_factory, value ) );";
@@ -928,20 +927,20 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
                 THROW_RTE( "Unsupported type for inserter" );
             }
         }
-        else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
+        else if( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
         {
-            if ( pType->m_bLate )
+            if( pType->m_bLate )
                 osFunctionBody << "if( !data.has_value() ) data = "
                                << pMap->getDatabaseType( model::Type::eNormal_NoLate ) << "()\n;";
             model::Type::Ptr pFrom = pMap->m_fromType;
             model::Type::Ptr pTo   = pMap->m_toType;
-            if ( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
+            if( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
             {
-                if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                if( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                 {
                     osFunctionBody << strData << ".insert( std::make_pair( key, value ) );";
                 }
-                else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                else if( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                 {
                     model::Object::Ptr pObject = pToRef->m_object;
                     osFunctionBody << strData << ".insert( std::make_pair( key, toData( m_factory, value ) ) );";
@@ -951,14 +950,14 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
                     THROW_RTE( "Unsupported type for map from type" );
                 }
             }
-            else if ( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
+            else if( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
             {
                 model::Object::Ptr pObject = pFromRef->m_object;
-                if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                if( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                 {
                     osFunctionBody << strData << ".insert( std::make_pair( toData( m_factory, key ), value ) );";
                 }
-                else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                else if( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                 {
                     osFunctionBody << strData
                                    << ".insert( std::make_pair( toData( m_factory, key ), toData( m_factory, value ) ) "
@@ -989,9 +988,9 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
 {
     {
         std::set< model::Interface::Ptr, model::CountedObjectComparator< model::Interface::Ptr > > interfaces;
-        for ( model::SuperType::Ptr pSuperType : pStage->m_superTypes )
+        for( model::SuperType::Ptr pSuperType : pStage->m_superTypes )
         {
-            for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
+            for( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
             {
                 VERIFY_RTE( interfaces.count( pInterface ) == 0 );
 
@@ -1004,7 +1003,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
         }
     }
 
-    for ( model::SuperType::Ptr pSuperType : pStage->m_superTypes )
+    for( model::SuperType::Ptr pSuperType : pStage->m_superTypes )
     {
         const std::string strSuperTypeName = pSuperType->getTypeName();
 
@@ -1019,17 +1018,17 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
 
         {
             std::set< model::Object::Ptr, model::CountedObjectComparator< model::Object::Ptr > > objects;
-            for ( model::Object::WeakPtr pObject : *pSuperType->m_base_object->m_pInheritanceGroup )
+            for( model::Object::WeakPtr pObject : *pSuperType->m_base_object->m_pInheritanceGroup )
             {
                 objects.insert( pObject.lock() );
             }
             std::set< std::string > uniqueNames;
-            for ( model::Object::Ptr pObject : objects )
+            for( model::Object::Ptr pObject : objects )
             {
-                if ( model::Interface::Ptr pInterface = pStage->isInterface( pObject ) )
+                if( model::Interface::Ptr pInterface = pStage->isInterface( pObject ) )
                 {
                     // model::ObjectPart::Ptr pPrimaryObjectPart = pObject->getPrimaryObjectPart( pStage );
-                    for ( auto pPart : pInterface->getPrimaryObjectParts() )
+                    for( auto pPart : pInterface->getPrimaryObjectParts() )
                     {
                         const std::string strName = pObject->delimitTypeName( "::" );
                         const bool        bUnique = uniqueNames.count( strName ) == 0;
@@ -1041,20 +1040,20 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
                               { "part", pPart->getDataType( "::" ) },
                               { "casts", nlohmann::json::array() } } );
 
-                        for ( model::Object::Ptr pOtherObjects : objects )
+                        for( model::Object::Ptr pOtherObjects : objects )
                         {
                             bool               bCastOK = false;
                             model::Object::Ptr pIter   = pOtherObjects;
-                            while ( pIter )
+                            while( pIter )
                             {
-                                if ( pIter == pObject )
+                                if( pIter == pObject )
                                 {
                                     bCastOK = true;
                                     break;
                                 }
                                 pIter = pIter->m_base;
                             }
-                            if ( bCastOK )
+                            if( bCastOK )
                             {
                                 nlohmann::json cast = nlohmann::json::object(
                                     { { "type", pOtherObjects->getPrimaryObjectPart( pStage )->getDataType( ":"
@@ -1070,15 +1069,16 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
 
         // the functions on the super type are groups by their mangled function name
         // TODO: ignore return type and insead check returns types are the same
-        for ( model::SuperType::FunctionMultiMap::iterator iLower = pSuperType->m_functions.begin(),
-                                                           iEnd   = pSuperType->m_functions.end();
-              iLower != iEnd; )
+        for( model::SuperType::FunctionMultiMap::iterator iLower = pSuperType->m_functions.begin(),
+                                                          iEnd   = pSuperType->m_functions.end();
+             iLower != iEnd; )
         {
             // nlohmann::json function = writeFunction( pFunction );
             model::Function::Ptr pFunction = iLower->second;
 
             nlohmann::json function = nlohmann::json::object(
-                { { "name", pFunction->getName() },
+                { { "short_name", pFunction->getShortName() },
+                  { "long_name", pFunction->getLongName() },
                   { "returntype", pFunction->getReturnType( pStage->m_strName ) },
                   { "variant_type", pSuperType->m_base_object->inheritanceGroupVariant( pStage ) },
                   { "propertytype", pFunction->m_property->m_type->getDatabaseType( model::Type::eNormal ) },
@@ -1087,7 +1087,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
                   { "is_void", ( pFunction->getReturnType( pStage->m_strName ) == "void" ) ? true : false },
                   { "body", writeFunctionBody( pStage, pFunction ) } } );
 
-            for ( const auto& param : pFunction->getParams( pStage->m_strName ) )
+            for( const auto& param : pFunction->getParams( pStage->m_strName ) )
             {
                 const nlohmann::json paramData
                     = nlohmann::json::object( { { "name", param.name }, { "type", param.type } } );
@@ -1100,7 +1100,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
                                                    model::CountedObjectComparator< model::Object::Ptr > >;
             InterfaceFunctionMap implemented;
             {
-                for ( model::Object::WeakPtr pObject : *pSuperType->m_base_object->m_pInheritanceGroup )
+                for( model::Object::WeakPtr pObject : *pSuperType->m_base_object->m_pInheritanceGroup )
                 {
                     remaining.insert( pObject.lock() );
                 }
@@ -1108,10 +1108,10 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
 
             // functions in the group are where an inherited interface explicitly has the function
             // NOTE: this DOES NOT include how interfaces inherit others
-            for ( model::SuperType::FunctionMultiMap::iterator iUpper
-                  = pSuperType->m_functions.upper_bound( iLower->first );
-                  iLower != iUpper;
-                  ++iLower )
+            for( model::SuperType::FunctionMultiMap::iterator iUpper
+                 = pSuperType->m_functions.upper_bound( iLower->first );
+                 iLower != iUpper;
+                 ++iLower )
             {
                 model::Function::Ptr  pFunctionVariant = iLower->second;
                 model::Interface::Ptr pInterface       = pFunctionVariant->m_interface.lock();
@@ -1133,19 +1133,19 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
             }
             // so from the remaining interfaces in the super type either the
             // interface inherits the function or it doesnt
-            for ( model::Object::Ptr pObject : remaining )
+            for( model::Object::Ptr pObject : remaining )
             {
                 // model::Interface::Ptr pInterface = pStage->getInterface( pObject );
                 //  see if the interface inherited from one that implemented the function
                 model::Function::Ptr pFunctionVariant;
 
-                if ( pObject->m_base )
+                if( pObject->m_base )
                 {
                     model::Object::Ptr pBase = pObject->m_base;
-                    while ( pBase )
+                    while( pBase )
                     {
                         InterfaceFunctionMap::iterator iFind = implemented.find( pBase );
-                        if ( iFind != implemented.end() )
+                        if( iFind != implemented.end() )
                         {
                             pFunctionVariant = iFind->second;
                             break;
@@ -1154,7 +1154,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vect
                     }
                 }
 
-                if ( pFunctionVariant && pStage->isInterface( pObject ) )
+                if( pFunctionVariant && pStage->isInterface( pObject ) )
                 {
                     nlohmann::json variant = nlohmann::json::object(
                         { { "matched", true },
@@ -1187,7 +1187,7 @@ void writeViewData( const boost::filesystem::path& dataDir,
                     model::Schema::Ptr             pSchema,
                     std::vector< nlohmann::json >& functions )
 {
-    for ( model::Stage::Ptr pStage : pSchema->m_stages )
+    for( model::Stage::Ptr pStage : pSchema->m_stages )
     {
         nlohmann::json data;
         {
@@ -1212,23 +1212,23 @@ void writeViewData( const boost::filesystem::path& dataDir,
 
         writeConversions( stage, pSchema, pStage );
 
-        for ( model::Stage::Ptr pStageIter : pSchema->m_stages )
+        for( model::Stage::Ptr pStageIter : pSchema->m_stages )
         {
-            for ( model::File::Ptr pFile : pStageIter->m_files )
+            for( model::File::Ptr pFile : pStageIter->m_files )
             {
                 stage[ "datafiles" ].push_back( pFile->m_strName );
             }
-            if ( pStageIter == pStage )
+            if( pStageIter == pStage )
                 break;
         }
 
-        for ( model::File::Ptr pFile : pStage->m_files )
+        for( model::File::Ptr pFile : pStage->m_files )
         {
             nlohmann::json file = nlohmann::json::object( { { "name", pFile->m_strName } } );
             stage[ "readwrite_files" ].push_back( file );
         }
 
-        for ( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
+        for( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
         {
             stage[ "interfaces" ].push_back( writeInterface( pStage, pInterface ) );
         }
@@ -1260,19 +1260,19 @@ void writeDataData( const boost::filesystem::path& dataDir,
     std::vector< model::File::Ptr > files;
     model::Stage::Ptr               pFinalStage;
     {
-        for ( model::Stage::Ptr pStage : pSchema->m_stages )
+        for( model::Stage::Ptr pStage : pSchema->m_stages )
         {
             std::copy( pStage->m_files.begin(), pStage->m_files.end(), std::back_inserter( files ) );
             pFinalStage = pStage;
         }
     }
-    for ( model::File::Ptr pFile : files )
+    for( model::File::Ptr pFile : files )
     {
         model::Stage::Ptr pStage = pFile->m_stage.lock();
         nlohmann::json    file   = nlohmann::json::object(
             { { "name", pFile->m_strName }, { "stage", pStage->m_strName }, { "parts", nlohmann::json::array() } } );
 
-        for ( model::ObjectPart::Ptr pPart : pFile->m_parts )
+        for( model::ObjectPart::Ptr pPart : pFile->m_parts )
         {
             model::Object::Ptr pObject = pPart->m_object.lock();
 
@@ -1288,25 +1288,25 @@ void writeDataData( const boost::filesystem::path& dataDir,
                   { "properties", nlohmann::json::array() },
                   { "initialisations", nlohmann::json::array() } } );
 
-            if ( model::PrimaryObjectPart::Ptr pPrimaryObjectPart
-                 = std::dynamic_pointer_cast< model::PrimaryObjectPart >( pPart ) )
+            if( model::PrimaryObjectPart::Ptr pPrimaryObjectPart
+                = std::dynamic_pointer_cast< model::PrimaryObjectPart >( pPart ) )
             {
                 VERIFY_RTE( pObject->getPrimaryObjectPart( pStage ) == pPrimaryObjectPart );
 
                 part[ "has_inheritance" ] = true;
 
-                for ( model::ObjectPart::Ptr pSecondaryPart : pObject->m_secondaryParts )
+                for( model::ObjectPart::Ptr pSecondaryPart : pObject->m_secondaryParts )
                 {
-                    if ( model::InheritedObjectPart::Ptr pSecondaryObjectPart
-                         = std::dynamic_pointer_cast< model::InheritedObjectPart >( pSecondaryPart ) )
+                    if( model::InheritedObjectPart::Ptr pSecondaryObjectPart
+                        = std::dynamic_pointer_cast< model::InheritedObjectPart >( pSecondaryPart ) )
                     {
                         nlohmann::json pointer
                             = nlohmann::json::object( { { "longname", pSecondaryObjectPart->getPointerName() },
                                                         { "typename", pSecondaryObjectPart->getDataType( "::" ) } } );
                         part[ "raw_pointers" ].push_back( pointer );
                     }
-                    else if ( model::AggregatedObjectPart::Ptr pSecondaryObjectPart
-                              = std::dynamic_pointer_cast< model::AggregatedObjectPart >( pSecondaryPart ) )
+                    else if( model::AggregatedObjectPart::Ptr pSecondaryObjectPart
+                             = std::dynamic_pointer_cast< model::AggregatedObjectPart >( pSecondaryPart ) )
                     {
                         nlohmann::json pointer
                             = nlohmann::json::object( { { "longname", pSecondaryObjectPart->getPointerName() },
@@ -1320,7 +1320,7 @@ void writeDataData( const boost::filesystem::path& dataDir,
                     }
                 }
 
-                if ( pObject->m_base )
+                if( pObject->m_base )
                 {
                     model::PrimaryObjectPart::Ptr pBasePrimaryObjectPart
                         = pObject->m_base->getPrimaryObjectPart( pStage );
@@ -1340,8 +1340,8 @@ void writeDataData( const boost::filesystem::path& dataDir,
                     }
                 }
             }
-            else if ( model::InheritedObjectPart::Ptr pSecondaryObjectPart
-                      = std::dynamic_pointer_cast< model::InheritedObjectPart >( pPart ) )
+            else if( model::InheritedObjectPart::Ptr pSecondaryObjectPart
+                     = std::dynamic_pointer_cast< model::InheritedObjectPart >( pPart ) )
             {
                 model::PrimaryObjectPart::Ptr pBasePrimaryObjectPart = pObject->getPrimaryObjectPart( pStage );
                 nlohmann::json                pointer
@@ -1368,8 +1368,8 @@ void writeDataData( const boost::filesystem::path& dataDir,
                     part[ "initialisations" ].push_back( init );
                 }
             }
-            else if ( model::AggregatedObjectPart::Ptr pSecondaryObjectPart
-                      = std::dynamic_pointer_cast< model::AggregatedObjectPart >( pPart ) )
+            else if( model::AggregatedObjectPart::Ptr pSecondaryObjectPart
+                     = std::dynamic_pointer_cast< model::AggregatedObjectPart >( pPart ) )
             {
             }
             else
@@ -1377,12 +1377,12 @@ void writeDataData( const boost::filesystem::path& dataDir,
                 THROW_RTE( "Unknown object part type" );
             }
 
-            for ( model::Property::Ptr pProperty : pPart->m_properties )
+            for( model::Property::Ptr pProperty : pPart->m_properties )
             {
                 model::Type::Ptr pType = pProperty->m_type;
 
                 bool bIsPointer = false;
-                if ( std::dynamic_pointer_cast< model::RefType >( pType ) )
+                if( std::dynamic_pointer_cast< model::RefType >( pType ) )
                     bIsPointer = true;
 
                 nlohmann::json property
@@ -1392,7 +1392,7 @@ void writeDataData( const boost::filesystem::path& dataDir,
                                                 { "is_pointer", bIsPointer },
                                                 { "has_validation", false } } );
 
-                if ( pType->m_bLate )
+                if( pType->m_bLate )
                 {
                     std::ostringstream os;
                     os << "VERIFY_RTE_MSG( " << pProperty->m_strName << ".has_value(), \""
@@ -1421,10 +1421,10 @@ void writeDataData( const boost::filesystem::path& dataDir,
 
     // conversions
     {
-        for ( model::Schema::ConversionMap::const_iterator i    = pSchema->m_conversions.begin(),
-                                                           iEnd = pSchema->m_conversions.end();
-              i != iEnd;
-              ++i )
+        for( model::Schema::ConversionMap::const_iterator i    = pSchema->m_conversions.begin(),
+                                                          iEnd = pSchema->m_conversions.end();
+             i != iEnd;
+             ++i )
         {
             const model::Schema::ObjectPartPair&   parts    = i->first;
             const model::Schema::ObjectPartVector& sequence = i->second;
@@ -1436,12 +1436,12 @@ void writeDataData( const boost::filesystem::path& dataDir,
 
                 std::optional< model::File::Ptr > pLatestFileOpt;
                 int                               index = -1;
-                for ( model::ObjectPart::Ptr pPart : allParts )
+                for( model::ObjectPart::Ptr pPart : allParts )
                 {
                     model::File::Ptr pFile = pPart->m_file.lock();
                     auto             iFind = std::find( files.begin(), files.end(), pFile );
                     const int        iDist = std::distance( files.begin(), iFind );
-                    if ( iDist > index )
+                    if( iDist > index )
                     {
                         index          = iDist;
                         pLatestFileOpt = pFile;
@@ -1456,7 +1456,7 @@ void writeDataData( const boost::filesystem::path& dataDir,
                                                                   { "pointers", nlohmann::json::array() },
                                                                   { "file", strOwningFile } } );
 
-            for ( model::ObjectPart::Ptr pPart : sequence )
+            for( model::ObjectPart::Ptr pPart : sequence )
             {
                 conversion[ "pointers" ].push_back( pPart->getPointerName() );
             }
@@ -1467,10 +1467,10 @@ void writeDataData( const boost::filesystem::path& dataDir,
 
     // base_conversions
     {
-        for ( model::Schema::ConversionMap::const_iterator i    = pSchema->m_base_conversions.begin(),
-                                                           iEnd = pSchema->m_base_conversions.end();
-              i != iEnd;
-              ++i )
+        for( model::Schema::ConversionMap::const_iterator i    = pSchema->m_base_conversions.begin(),
+                                                          iEnd = pSchema->m_base_conversions.end();
+             i != iEnd;
+             ++i )
         {
             const model::Schema::ObjectPartPair&   parts    = i->first;
             const model::Schema::ObjectPartVector& sequence = i->second;
@@ -1482,12 +1482,12 @@ void writeDataData( const boost::filesystem::path& dataDir,
 
                 std::optional< model::File::Ptr > pLatestFileOpt;
                 int                               index = -1;
-                for ( model::ObjectPart::Ptr pPart : allParts )
+                for( model::ObjectPart::Ptr pPart : allParts )
                 {
                     model::File::Ptr pFile = pPart->m_file.lock();
                     auto             iFind = std::find( files.begin(), files.end(), pFile );
                     const int        iDist = std::distance( files.begin(), iFind );
-                    if ( iDist > index )
+                    if( iDist > index )
                     {
                         index          = iDist;
                         pLatestFileOpt = pFile;
@@ -1502,7 +1502,7 @@ void writeDataData( const boost::filesystem::path& dataDir,
                                                                   { "pointers", nlohmann::json::array() },
                                                                   { "file", strOwningFile } } );
 
-            for ( model::ObjectPart::Ptr pPart : sequence )
+            for( model::ObjectPart::Ptr pPart : sequence )
             {
                 conversion[ "pointers" ].push_back( pPart->getPointerName() );
             }
@@ -1516,26 +1516,27 @@ void writeDataData( const boost::filesystem::path& dataDir,
         std::sort( functions.begin(), functions.end(),
                    []( const nlohmann::json& left, const nlohmann::json& right )
                    {
-                       return ( left[ "name" ] != right[ "name" ] ) ? ( left[ "name" ] < right[ "name" ] )
+                       return ( left[ "long_name" ] != right[ "long_name" ] )
+                                  ? ( left[ "long_name" ] < right[ "long_name" ] )
                               : ( left[ "variant_type" ] != right[ "variant_type" ] )
                                   ? ( left[ "variant_type" ] < right[ "variant_type" ] )
                                   : false;
                    } );
 
         std::vector< nlohmann::json > mergedFunctions;
-        for ( const auto& function : functions )
+        for( const auto& function : functions )
         {
-            if ( mergedFunctions.empty() )
+            if( mergedFunctions.empty() )
             {
                 mergedFunctions.push_back( function );
             }
             else
             {
-                if ( mergedFunctions.back()[ "name" ] == function[ "name" ]
-                     && mergedFunctions.back()[ "variant_type" ] == function[ "variant_type" ] )
+                if( mergedFunctions.back()[ "long_name" ] == function[ "long_name" ]
+                    && mergedFunctions.back()[ "variant_type" ] == function[ "variant_type" ] )
                 {
                     auto& existingFunction = mergedFunctions.back();
-                    for ( const auto& variant : function[ "variants" ] )
+                    for( const auto& variant : function[ "variants" ] )
                     {
                         insertFunctionVariantIfUnique( existingFunction, variant );
                     }
@@ -1549,12 +1550,12 @@ void writeDataData( const boost::filesystem::path& dataDir,
 
         functions.erase( std::unique( functions.begin(), functions.end(),
                                       []( const nlohmann::json& left, const nlohmann::json& right ) {
-                                          return left[ "name" ] == right[ "name" ]
+                                          return left[ "long_name" ] == right[ "long_name" ]
                                                  && left[ "variant_type" ] == right[ "variant_type" ];
                                       } ),
                          functions.end() );
 
-        for ( nlohmann::json& function : mergedFunctions )
+        for( nlohmann::json& function : mergedFunctions )
         {
             data[ "functions" ].push_back( function );
         }

@@ -17,13 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef DATA_POINTER_7_APRIL_2022
 #define DATA_POINTER_7_APRIL_2022
 
 #include "database/common/api.hpp"
+
 #include "loader.hpp"
 #include "object_info.hpp"
 #include "object.hpp"
@@ -32,15 +30,17 @@
 
 #include "common/assert_verify.hpp"
 
-#include <variant>
 #include <type_traits>
 #include <memory>
 
 namespace data
 {
+
 template < typename T >
 class EGDB_EXPORT Ptr
 {
+    friend class Ptr< void >;
+
     using ObjectInfoPtr = std::shared_ptr< mega::io::ObjectInfo >;
 
 public:
@@ -107,12 +107,12 @@ public:
 
     Ptr& operator=( const Ptr& copy )
     {
-        if ( m_pLoader == nullptr )
+        if( m_pLoader == nullptr )
         {
             m_pLoader = copy.m_pLoader;
         }
         VERIFY_RTE( m_pLoader == copy.m_pLoader );
-        if ( this != &copy )
+        if( this != &copy )
         {
             m_pObjectInfo = copy.m_pObjectInfo;
             m_pObjectPart = copy.m_pObjectPart;
@@ -120,9 +120,13 @@ public:
         return *this;
     }
 
-    inline T& operator*() const { return *get(); }
     inline T* operator->() const { return get(); }
 
+    inline mega::io::ObjectInfo::Type getType() const
+    {
+        ASSERT( m_pObjectInfo );
+        return m_pObjectInfo->getType();
+    }
     const mega::io::ObjectInfo& getObjectInfo() const { return *m_pObjectInfo; }
 
     inline bool operator<( const Ptr& cmp ) const { return getObjectInfo() < cmp.getObjectInfo(); }
@@ -154,7 +158,7 @@ public:
 private:
     T* get() const
     {
-        if ( m_pObjectPart )
+        if( m_pObjectPart )
         {
             return m_pObjectPart;
         }
@@ -162,6 +166,7 @@ private:
         {
             // load the object
             VERIFY_RTE( m_pLoader && m_pObjectInfo );
+            VERIFY_RTE( m_pObjectInfo->getFileID() != mega::io::ObjectInfo::NO_FILE );
             mega::io::Object* pObject = m_pLoader->load( *m_pObjectInfo );
             // using c-cast here circumvents the need for undefined types
             m_pObjectPart = ( T* )pObject;
@@ -185,54 +190,11 @@ inline void to_json( nlohmann::json& j, const Ptr< T >& p )
 template < typename TTo, typename TFrom >
 inline Ptr< TTo > convert( const Ptr< TFrom >& from )
 {
-    if constexpr ( std::is_same< TTo, TFrom >::value )
+    if constexpr( std::is_same< TTo, TFrom >::value )
     {
         return from;
     }
     THROW_RTE( "Invalid conversion" );
-}
-
-template < typename TTo, typename... TFromTypes >
-inline Ptr< TTo > convert( const std::variant< TFromTypes... >& from )
-{
-    return std::visit( []( auto&& arg ) -> Ptr< TTo > { return convert< TTo >( arg ); }, from );
-}
-
-template < typename TVariantType, typename TTo, typename TFrom >
-struct EGDB_EXPORT UpCast
-{
-    inline TVariantType operator()( TFrom& from ) const { return from; }
-};
-
-template < typename TVariantTo, typename TVariantFrom >
-inline TVariantTo coerceVariant( const TVariantFrom& variantFrom )
-{
-    return std::visit( []( auto&& arg ) -> TVariantTo 
-    { 
-        if constexpr( std::is_convertible< TVariantFrom, TVariantTo >::value )
-        {
-            return TVariantTo{ arg }; 
-        }
-        if constexpr( !std::is_convertible< TVariantFrom, TVariantTo >::value )
-        {
-            THROW_RTE( "to_upper variant" );
-        }
-    }, variantFrom );
-}
-
-template < typename TVariant >
-inline TVariant to_upper( TVariant& from )
-{
-    TVariant up_most = from;
-    for ( ;; )
-    {
-        TVariant up_most_next = std::visit(
-            []( auto&& arg ) -> TVariant { return coerceVariant< TVariant >( arg->m_inheritance ); }, up_most );
-        if ( up_most_next == up_most )
-            break;
-        up_most = up_most_next;
-    }
-    return up_most;
 }
 
 class EGDB_EXPORT Factory

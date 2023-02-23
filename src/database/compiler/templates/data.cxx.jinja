@@ -166,29 +166,21 @@ namespace {{ file.name }}
 {% endfor %}{# files #}
 
 {% for function in functions %}
-{{ function.propertytype }}& {{ function.name }}({{ function.variant_type }}& m_data)
+{{ function.propertytype }}& {{ function.long_name }}({{ function.variant_type }}& m_data)
 {
-    struct Visitor
+    switch( m_data.getType() )
     {
 {% for variant in function.variants %}
 {% if variant.matched %}
-        {{ function.propertytype }}& operator()( data::Ptr< data::{{ variant.primaryobjectpart }} >& arg ) const
-        {
-            data::Ptr< data::{{ variant.dataobjectpart }} > part = 
-                data::convert< data::{{ variant.dataobjectpart }} >( arg );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: {{ function.name }}" );
-            return part->{{ function.property }};
-        }
-{% else %}
-        {{ function.propertytype }}& operator()( data::Ptr< data::{{ variant.primaryobjectpart }} >& arg ) const
+        case data::{{ variant.primaryobjectpart }}::Object_Part_Type_ID:
+            return data::convert< data::{{ variant.dataobjectpart }} >( m_data )->{{ function.property }};
+{% endif %}
+{% endfor %}{# function.bodies #}
+        default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
-{% endif %}
-{% endfor %}{# function.bodies #}
-    }visitor;
-    return std::visit( visitor, m_data );
+    }
 }
 {% endfor %}{# for function in functions #}
 

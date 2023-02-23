@@ -153,6 +153,7 @@ set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/archive.hpp
     ${MEGA_API_DIR}/database/common/component_info.hpp
     ${MEGA_API_DIR}/database/common/data_pointer.hpp
+    ${MEGA_API_DIR}/database/common/data_variant.hpp
     ${MEGA_API_DIR}/database/common/environment_archive.hpp
     ${MEGA_API_DIR}/database/common/environment_build.hpp
     ${MEGA_API_DIR}/database/common/environment_stash.hpp

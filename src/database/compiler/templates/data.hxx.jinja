@@ -27,6 +27,7 @@
 #include "database/common/loader.hpp"
 #include "database/common/storer.hpp"
 #include "database/common/data_pointer.hpp"
+#include "database/common/data_variant.hpp"
 #include "database/common/object_loader.hpp"
 
 #include "nlohmann/json.hpp"
@@ -114,9 +115,78 @@ inline Ptr< {{ conversion.to }} > to_base( const Ptr< {{ conversion.from }} >& f
 }
 {% endfor %}{# base_conversions #}
 
+template < typename TTo >
+inline Ptr< TTo > convert( const data::Variant& from )
+{
+    switch( from.getType() )
+    {
+{% for file in files %}
+{% for part in file.parts %}
+        case {{ file.name }}::{{ part.name }}::Object_Part_Type_ID: 
+            return convert< TTo >( *reinterpret_cast< const Ptr< {{ file.name }}::{{ part.name }} >* >( &from ) );
+{% endfor %}{#file.parts#}
+{% endfor %}{# files #}
+        default:
+        {
+            THROW_RTE( "Unknown variant type" );
+        }
+    }
+}
+
 {% for function in functions %}
-{{ function.propertytype }}& {{ function.name }}({{ function.variant_type }}& m_data);
+{{ function.propertytype }}& {{ function.long_name }}({{ function.variant_type }}& m_data);
 {% endfor %}{# for function in functions #}
+
+template< typename Visitor >
+auto& visit( const Visitor& visitor, Variant& var )
+{
+    switch( var.getType() )
+    {
+{% for file in files %}
+{% for part in file.parts %}
+        case {{ file.name }}::{{ part.name }}::Object_Part_Type_ID: return visitor( *reinterpret_cast< const Ptr< {{ file.name }}::{{ part.name }} >* >( &var ) );
+{% endfor %}{#file.parts#}
+{% endfor %}{# files #}
+        default:
+        {
+            THROW_RTE( "Unknown variant type" );
+        }
+    }
+}
+
+inline const Variant& get_inheritance( const Variant& var )
+{
+    switch( var.getType() )
+    {
+{% for file in files %}
+{% for part in file.parts %}
+        case {{ file.name }}::{{ part.name }}::Object_Part_Type_ID: 
+{% if part.has_inheritance %}
+            return ( *reinterpret_cast< const Ptr< {{ file.name }}::{{ part.name }} >* >( &var ) )->m_inheritance;
+{% else %}
+            return var;
+{% endif %}
+{% endfor %}{#file.parts#}
+{% endfor %}{# files #}
+        default:
+        {
+            THROW_RTE( "Unknown variant type" );
+        }
+    }
+}
+
+inline Variant to_upper( Variant& from )
+{
+    Variant up_most = from;
+    for ( ;; )
+    {
+        const Variant& up_most_next = get_inheritance( up_most );
+        if ( up_most_next == up_most )
+            break;
+        up_most = up_most_next;
+    }
+    return up_most;
+}
 
 }
 #endif //{{ guard }}

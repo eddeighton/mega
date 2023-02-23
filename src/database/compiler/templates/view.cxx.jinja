@@ -25,6 +25,7 @@
 #include "database/common/object_info.hpp"
 #include "database/common/file.hpp"
 #include "database/common/data_pointer.hpp"
+#include "database/common/data_variant.hpp"
 
 #include "database/model/file_info.hxx"
 #include "database/model/manifest.hxx"
@@ -32,21 +33,20 @@
 
 #include "common/hash.hpp"
 
-#include <variant>
 #include <memory>
 #include <unordered_map>
 #include <any>
 
 namespace {{ stage.name }}
 {
-    InterfaceBaseClass::~InterfaceBaseClass(){}
+    InterfaceBaseClass::~InterfaceBaseClass() = default;
 {% for interface in stage.interfaces %}
 {% for namespace in interface.namespaces %}
     namespace {{ namespace }}
     { 
 {% endfor %}{#interface.namespaces#}
-        {{ interface.name }}::{{ interface.name }}(){}
-        {{ interface.name }}::~{{ interface.name }}(){}
+        {{ interface.name }}::{{ interface.name }}() = default;
+        {{ interface.name }}::~{{ interface.name }}() = default;
 {% for namespace in interface.namespaces %}
     } //{{ namespace }}
 {% endfor %}{#interface.namespaces#}
@@ -58,7 +58,7 @@ namespace
 class SuperTypeBase
 {
 public:
-    virtual ~SuperTypeBase(){}
+    virtual ~SuperTypeBase() = default;
 };
 
 class SuperFactory;
@@ -85,7 +85,7 @@ public:
 {% endfor %}{# stype.interfaces #}
     virtual ~{{ stype.name }}();
 {% for function in stype.functions %}
-    {{ function.returntype }} {{ function.name }}({% for param in function.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %}) const;
+    {{ function.returntype }} {{ function.short_name }}({% for param in function.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %}) const;
 {% endfor %}{# stype.functions #}
     virtual bool isa( const char* pszTypeName ) const;
     virtual const mega::io::ObjectInfo& _get_object_info() const;
@@ -396,14 +396,12 @@ void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} 
     m_data = data;
 }
 {% endfor %}{# stype.interfaces #}
-{{ stype.name }}::~{{ stype.name }}()
-{
-}
+{{ stype.name }}::~{{ stype.name }}() = default;
 
 {% for function in stype.functions %}
-{{ function.returntype }} {{ stype.name }}::{{ function.name }}({% for param in function.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %}) const
+{{ function.returntype }} {{ stype.name }}::{{ function.short_name }}({% for param in function.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %}) const
 {
-    {{ function.propertytype }}& data = data::{{ function.name }}( m_data );
+    {{ function.propertytype }}& data = data::{{ function.long_name }}( m_data );
 {% for line in function.body.lines %}
     {{ line }}
 {% endfor %}{# body.impl #}
@@ -416,20 +414,12 @@ bool {{ stype.name }}::isa( const char* pszTypeName ) const
 {% for interface in stype.interfaces %}
     if( strcmp( pszTypeName, "{{ stage.name }}_{{ interface.fullname }}" ) == 0 )
     {
-        return std::visit( []( auto& arg ) -> bool
+        switch( m_data.getType() )
         {
-            using T = std::decay_t< decltype( arg ) >;
 {% for cast in interface.casts %}
-            {% if ( not loop.is_first ) %}else {% endif %} if constexpr( std::is_same_v< T, data::Ptr< data::{{ cast.type }} > >)
-            {
-                return true;
-            }
+            case data::{{ cast.type }}::Object_Part_Type_ID: return true;
 {% endfor %}
-            else
-            {
-                return false;
-            }
-        }, m_data );
+        }
     }
 {% endfor %}{# stype.interfaces #}
     return false;
@@ -437,7 +427,7 @@ bool {{ stype.name }}::isa( const char* pszTypeName ) const
 
 const mega::io::ObjectInfo& {{ stype.name }}::_get_object_info() const
 {
-    return std::visit( []( auto&& arg ) -> const mega::io::ObjectInfo& { return arg.getObjectInfo(); }, m_data );
+    return data::visit( []( auto&& arg ) -> const mega::io::ObjectInfo& { return arg.getObjectInfo(); }, m_data );
 }
 {% endfor %}{# stage.supertypes #}
 }

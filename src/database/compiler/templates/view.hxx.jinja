@@ -41,12 +41,12 @@
 #include <string>
 #include <optional>
 #include <memory>
-#include <variant>
 #include <vector>
 #include <utility>
 #include <map>
 #include <set>
 #include <unordered_map>
+#include <variant>
 
 namespace {{ stage.name }}
 {
@@ -108,7 +108,7 @@ namespace {{ stage.name }}
 {% endif %}
 
 {% for function in interface.functions %}
-            virtual {{ function.returntype }} {{ function.name }}({% for param in function.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %}) const = 0;
+            virtual {{ function.returntype }} {{ function.short_name }}({% for param in function.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %}) const = 0;
 {% endfor %}{#interface.functions#}
             virtual const mega::io::ObjectInfo& _get_object_info() const = 0;
         private:

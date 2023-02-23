@@ -277,15 +277,16 @@ public:
     };
     using ParamVector = std::vector< Param >;
 
-    virtual std::string getName() const                                             = 0;
+    virtual std::string getShortName() const                                        = 0;
+    virtual std::string getLongName() const                                         = 0;
     virtual std::string getReturnType( const std::string& strStageNamespace ) const = 0;
     virtual ParamVector getParams( const std::string& strStageNamespace ) const     = 0;
 
     inline std::string getMangledName( const std::string& strStageNamespace ) const
     {
         std::ostringstream os;
-        os << getReturnType( strStageNamespace ) << getName();
-        for ( const auto& param : getParams( strStageNamespace ) )
+        os << getReturnType( strStageNamespace ) << getShortName();
+        for( const auto& param : getParams( strStageNamespace ) )
             os << param.type << param.name;
         return os.str();
     }
@@ -298,12 +299,8 @@ public:
         : Function( szCounter )
     {
     }
-    virtual std::string getName() const
-    {
-        std::ostringstream os;
-        os << "get_" << m_property->m_strName;
-        return os.str();
-    }
+    virtual std::string getShortName() const;
+    virtual std::string getLongName() const;
     virtual std::string getReturnType( const std::string& strStageNamespace ) const
     {
         std::ostringstream os;
@@ -320,12 +317,8 @@ public:
         : Function( szCounter )
     {
     }
-    virtual std::string getName() const
-    {
-        std::ostringstream os;
-        os << "set_" << m_property->m_strName;
-        return os.str();
-    }
+    virtual std::string getShortName() const;
+    virtual std::string getLongName() const;
     virtual std::string getReturnType( const std::string& ) const { return "void"; }
     virtual ParamVector getParams( const std::string& strStageNamespace ) const
     {
@@ -341,7 +334,8 @@ public:
         : Function( szCounter )
     {
     }
-    virtual std::string getName() const;
+    virtual std::string getShortName() const;
+    virtual std::string getLongName() const;
     virtual std::string getReturnType( const std::string& ) const { return "void"; }
     virtual ParamVector getParams( const std::string& strStageNamespace ) const;
 };
@@ -475,22 +469,22 @@ public:
 
     void getDependencies( std::vector< Ptr >& dependencies )
     {
-        for ( WeakPtr p : m_dependencies )
+        for( WeakPtr p : m_dependencies )
         {
             p.lock()->getDependencies( dependencies );
         }
         Ptr pThis = shared_from_this();
-        if ( std::find( dependencies.begin(), dependencies.end(), pThis ) == dependencies.end() )
+        if( std::find( dependencies.begin(), dependencies.end(), pThis ) == dependencies.end() )
             dependencies.push_back( pThis );
     }
 
     bool isDependency( Stage::Ptr pStage ) const
     {
-        if ( shared_from_this() == pStage )
+        if( shared_from_this() == pStage )
             return true;
-        for ( WeakPtr p : m_dependencies )
+        for( WeakPtr p : m_dependencies )
         {
-            if ( p.lock()->isDependency( pStage ) )
+            if( p.lock()->isDependency( pStage ) )
                 return true;
         }
         return false;
@@ -498,16 +492,16 @@ public:
 
     Interface::Ptr isInterface( Object::Ptr pObject ) const
     {
-        for ( Interface::Ptr pInterface : m_interfaceTopological )
+        for( Interface::Ptr pInterface : m_interfaceTopological )
         {
-            if ( pInterface->m_object.lock() == pObject )
+            if( pInterface->m_object.lock() == pObject )
                 return pInterface;
         }
         return {};
     }
     Interface::Ptr getInterface( Object::Ptr pObject ) const
     {
-        if ( Interface::Ptr pInterface = isInterface( pObject ) )
+        if( Interface::Ptr pInterface = isInterface( pObject ) )
             return pInterface;
         THROW_RTE( "Failed to locate interface for object: " << pObject->delimitTypeName( "::" )
                                                              << " in stage: " << m_strName );
@@ -583,7 +577,7 @@ public:
     }
     virtual std::string getDatabaseType( DatabaseTypeFormat formatType ) const
     {
-        switch ( formatType )
+        switch( formatType )
         {
             case eNormal:
                 return m_bLate ? toOptional( m_cppType ) : m_cppType;
@@ -629,7 +623,7 @@ public:
         std::ostringstream os;
         os << "data::Ptr< data::" << pFile->m_strName << "::" << m_object->getDataTypeName() << " >";
 
-        switch ( formatType )
+        switch( formatType )
         {
             case eNormal:
                 return m_bLate ? toOptional( os.str() ) : os.str();
@@ -663,7 +657,7 @@ public:
         std::ostringstream os;
         os << "std::optional< " << m_underlyingType->getViewType( strStageNamespace, false ) << " >";
 
-        if ( std::dynamic_pointer_cast< RefType >( m_underlyingType ) )
+        if( std::dynamic_pointer_cast< RefType >( m_underlyingType ) )
         {
             return os.str();
         }
@@ -678,7 +672,7 @@ public:
         std::ostringstream os;
         os << "std::optional< " << m_underlyingType->getDatabaseType( eNormal ) << " >";
 
-        switch ( formatType )
+        switch( formatType )
         {
             case eNormal:
                 return m_bLate ? toOptional( os.str() ) : os.str();
@@ -712,7 +706,7 @@ public:
         std::ostringstream os;
         os << "std::vector< " << m_underlyingType->getViewType( strStageNamespace, false ) << " >";
 
-        if ( std::dynamic_pointer_cast< RefType >( m_underlyingType ) )
+        if( std::dynamic_pointer_cast< RefType >( m_underlyingType ) )
         {
             return os.str();
         }
@@ -727,7 +721,7 @@ public:
         std::ostringstream os;
         os << "std::vector< " << m_underlyingType->getDatabaseType( eNormal ) << " >";
 
-        switch ( formatType )
+        switch( formatType )
         {
             case eNormal:
                 return m_bLate ? toOptional( os.str() ) : os.str();
@@ -766,7 +760,7 @@ public:
         VERIFY_RTE( m_toType );
         std::ostringstream os;
 
-        if ( m_bIsMultiMap )
+        if( m_bIsMultiMap )
         {
             os << "std::multimap< " << m_fromType->getViewType( strStageNamespace, false ) << ", "
                << m_toType->getViewType( strStageNamespace, false ) << " >";
@@ -777,7 +771,7 @@ public:
                << m_toType->getViewType( strStageNamespace, false ) << " >";
         }
 
-        if ( std::dynamic_pointer_cast< RefType >( m_fromType ) || std::dynamic_pointer_cast< RefType >( m_toType ) )
+        if( std::dynamic_pointer_cast< RefType >( m_fromType ) || std::dynamic_pointer_cast< RefType >( m_toType ) )
         {
             return os.str();
         }
@@ -792,7 +786,7 @@ public:
         VERIFY_RTE( m_toType );
         std::ostringstream os;
 
-        if ( m_bIsMultiMap )
+        if( m_bIsMultiMap )
         {
             os << "std::multimap< " << m_fromType->getDatabaseType( eNormal ) << ", "
                << m_toType->getDatabaseType( eNormal ) << " >";
@@ -803,7 +797,7 @@ public:
                << " >";
         }
 
-        switch ( formatType )
+        switch( formatType )
         {
             case eNormal:
                 return m_bLate ? toOptional( os.str() ) : os.str();
