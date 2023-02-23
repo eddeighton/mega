@@ -61,13 +61,13 @@ public:
         using namespace FinalStage;
         Database database( m_environment, m_schematicFilePath );
 
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
 
         // m_environment.setBuildHashCode( mapFilePath, fileHashCode );
         // m_environment.stash( mapFilePath, determinant );
 
-        failed( taskProgress );
-        // succeeded( taskProgress );
+        // failed( taskProgress );
+        succeeded( taskProgress );
     }
 };
 

@@ -29,12 +29,12 @@
 namespace mega::compiler
 {
 
-class Task_Schematic_ValueSpace : public BaseTask
+class Task_SchematicValueSpace : public BaseTask
 {
     const mega::io::schFilePath& m_schematicFilePath;
 
 public:
-    Task_Schematic_ValueSpace( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
+    Task_SchematicValueSpace( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
         : BaseTask( taskArguments )
         , m_schematicFilePath( schematicFilePath )
     {
@@ -46,7 +46,7 @@ public:
             = m_environment.SchematicValueSpaceStage_SchematicValueSpace( m_schematicFilePath );
 
         start( taskProgress,
-               "Task_Schematic_ValueSpace",
+               "Task_SchematicValueSpace",
                m_schematicFilePath.path(),
                schematicValueSpaceCompilationFile.path() );
 
@@ -65,7 +65,7 @@ public:
         using namespace SchematicValueSpaceStage;
         Database database( m_environment, m_schematicFilePath );
 
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
 
         const task::FileHash fileHashCode = database.save_SchematicValueSpace_to_temp();
         m_environment.setBuildHashCode( schematicValueSpaceCompilationFile, fileHashCode );
@@ -76,10 +76,10 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Schematic_ValueSpace( const TaskArguments&         taskArguments,
+BaseTask::Ptr create_Task_SchematicValueSpace( const TaskArguments&         taskArguments,
                                                 const mega::io::schFilePath& schematicFilePath )
 {
-    return std::make_unique< Task_Schematic_ValueSpace >( taskArguments, schematicFilePath );
+    return std::make_unique< Task_SchematicValueSpace >( taskArguments, schematicFilePath );
 }
 
 } // namespace mega::compiler

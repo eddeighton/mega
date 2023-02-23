@@ -106,8 +106,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
             {
                 for ( const boost::filesystem::path& srcFile : inputSourceFiles )
                 {
-                    VERIFY_RTE_MSG( srcFile.extension() == mega::io::megaFilePath::extension(),
-                                    "Source file is NOT a mega source file: " << srcFile.string() );
+                    VERIFY_RTE_MSG( srcFile.extension() == mega::io::megaFilePath::extension() || 
+                                    srcFile.extension() == mega::io::schFilePath::extension(),
+                                    "Source file is NOT a mega source file or Schematic: " << srcFile.string() );
                 }
             }
             break;
@@ -115,8 +116,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
             {
                 for ( const boost::filesystem::path& srcFile : inputSourceFiles )
                 {
-                    VERIFY_RTE_MSG( srcFile.extension() == mega::io::cppFilePath::extension(),
-                                    "Source file is NOT a C++ source file: " << srcFile.string() );
+                    VERIFY_RTE_MSG( srcFile.extension() == mega::io::cppFilePath::extension() ||
+                                    srcFile.extension() == mega::io::schFilePath::extension(),
+                                    "Source file is NOT a C++ source file or Schematic: " << srcFile.string() );
                 }
             }
             break;

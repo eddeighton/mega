@@ -29,12 +29,12 @@
 namespace mega::compiler
 {
 
-class Task_Schematic_FloorPlan : public BaseTask
+class Task_SchematicFloorPlan : public BaseTask
 {
     const mega::io::schFilePath& m_schematicFilePath;
 
 public:
-    Task_Schematic_FloorPlan( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
+    Task_SchematicFloorPlan( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
         : BaseTask( taskArguments )
         , m_schematicFilePath( schematicFilePath )
     {
@@ -46,7 +46,7 @@ public:
             = m_environment.SchematicFloorPlanStage_SchematicFloorPlan( m_schematicFilePath );
 
         start( taskProgress,
-               "Task_Schematic_FloorPlan",
+               "Task_SchematicFloorPlan",
                m_schematicFilePath.path(),
                schematicFloorPlanCompilationFile.path() );
 
@@ -65,7 +65,7 @@ public:
         using namespace SchematicFloorPlanStage;
         Database database( m_environment, m_schematicFilePath );
 
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
 
         const task::FileHash fileHashCode = database.save_SchematicFloorPlan_to_temp();
         m_environment.setBuildHashCode( schematicFloorPlanCompilationFile, fileHashCode );
@@ -76,10 +76,10 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Schematic_FloorPlan( const TaskArguments&         taskArguments,
+BaseTask::Ptr create_Task_SchematicFloorPlan( const TaskArguments&         taskArguments,
                                                const mega::io::schFilePath& schematicFilePath )
 {
-    return std::make_unique< Task_Schematic_FloorPlan >( taskArguments, schematicFilePath );
+    return std::make_unique< Task_SchematicFloorPlan >( taskArguments, schematicFilePath );
 }
 
 } // namespace mega::compiler

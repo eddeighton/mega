@@ -29,12 +29,12 @@
 namespace mega::compiler
 {
 
-class Task_Schematic_WallSections : public BaseTask
+class Task_SchematicWallSections : public BaseTask
 {
     const mega::io::schFilePath& m_schematicFilePath;
 
 public:
-    Task_Schematic_WallSections( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
+    Task_SchematicWallSections( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
         : BaseTask( taskArguments )
         , m_schematicFilePath( schematicFilePath )
     {
@@ -46,7 +46,7 @@ public:
             = m_environment.SchematicWallSectionsStage_SchematicWallSections( m_schematicFilePath );
 
         start( taskProgress,
-               "Task_Schematic_WallSections",
+               "Task_SchematicWallSections",
                m_schematicFilePath.path(),
                schematicWallSectionsCompilationFile.path() );
 
@@ -65,7 +65,7 @@ public:
         using namespace SchematicWallSectionsStage;
         Database database( m_environment, m_schematicFilePath );
 
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
 
         const task::FileHash fileHashCode = database.save_SchematicWallSections_to_temp();
         m_environment.setBuildHashCode( schematicWallSectionsCompilationFile, fileHashCode );
@@ -76,10 +76,10 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Schematic_WallSections( const TaskArguments&         taskArguments,
+BaseTask::Ptr create_Task_SchematicWallSections( const TaskArguments&         taskArguments,
                                                   const mega::io::schFilePath& schematicFilePath )
 {
-    return std::make_unique< Task_Schematic_WallSections >( taskArguments, schematicFilePath );
+    return std::make_unique< Task_SchematicWallSections >( taskArguments, schematicFilePath );
 }
 
 } // namespace mega::compiler

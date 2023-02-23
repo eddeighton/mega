@@ -62,6 +62,7 @@ public:
     Path FilePath( const megaFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const cppFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const ComponentFilePath& filePath ) const { return toPath( filePath ); }
+    Path FilePath( const schFilePath& filePath ) const { return toPath( filePath ); }
 
     template < typename TFrom, typename TTo >
     void matchFileTime( const TFrom& from, const TTo& to ) const

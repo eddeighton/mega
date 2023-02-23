@@ -29,12 +29,12 @@
 namespace mega::compiler
 {
 
-class Task_Schematic_Visibility : public BaseTask
+class Task_SchematicVisibility : public BaseTask
 {
     const mega::io::schFilePath& m_schematicFilePath;
 
 public:
-    Task_Schematic_Visibility( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
+    Task_SchematicVisibility( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
         : BaseTask( taskArguments )
         , m_schematicFilePath( schematicFilePath )
     {
@@ -46,7 +46,7 @@ public:
             = m_environment.SchematicVisibilityStage_SchematicVisibility( m_schematicFilePath );
 
         start( taskProgress,
-               "Task_Schematic_Visibility",
+               "Task_SchematicVisibility",
                m_schematicFilePath.path(),
                schematicVisibilityCompilationFile.path() );
 
@@ -65,7 +65,7 @@ public:
         using namespace SchematicVisibilityStage;
         Database database( m_environment, m_schematicFilePath );
 
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
 
         const task::FileHash fileHashCode = database.save_SchematicVisibility_to_temp();
         m_environment.setBuildHashCode( schematicVisibilityCompilationFile, fileHashCode );
@@ -76,10 +76,10 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Schematic_Visibility( const TaskArguments&         taskArguments,
+BaseTask::Ptr create_Task_SchematicVisibility( const TaskArguments&         taskArguments,
                                                 const mega::io::schFilePath& schematicFilePath )
 {
-    return std::make_unique< Task_Schematic_Visibility >( taskArguments, schematicFilePath );
+    return std::make_unique< Task_SchematicVisibility >( taskArguments, schematicFilePath );
 }
 
 } // namespace mega::compiler

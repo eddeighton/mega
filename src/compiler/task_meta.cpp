@@ -42,7 +42,33 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        start( taskProgress, "Task_Meta", m_manifest.path(), m_manifest.path() );
+        const mega::io::CompilationFilePath megaAnalysisCompilationFile
+            = m_environment.MetaStage_MetaAnalysis( m_manifest );
+
+        start( taskProgress, "Task_Meta", m_manifest.path(), megaAnalysisCompilationFile.path() );
+
+        // const task::FileHash previousStageHash = m_environment.getBuildHashCode(
+        //    m_environment.OperationsStage_Operations() ( m_schematicFilePath ) );
+
+        const task::DeterminantHash determinant( { m_toolChain.toolChainHash } );
+
+        if( m_environment.restore( megaAnalysisCompilationFile, determinant ) )
+        {
+            m_environment.setBuildHashCode( megaAnalysisCompilationFile );
+            cached( taskProgress );
+            return;
+        }
+
+        using namespace MetaStage;
+        Database database( m_environment, m_manifest );
+
+        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+
+        const task::FileHash fileHashCode = database.save_MetaAnalysis_to_temp();
+        m_environment.setBuildHashCode( megaAnalysisCompilationFile, fileHashCode );
+        m_environment.temp_to_real( megaAnalysisCompilationFile );
+        m_environment.stash( megaAnalysisCompilationFile, determinant );
+
         succeeded( taskProgress );
     }
 };

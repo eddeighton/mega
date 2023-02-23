@@ -29,12 +29,12 @@
 namespace mega::compiler
 {
 
-class Task_Schematic_Extrusions : public BaseTask
+class Task_SchematicExtrusions : public BaseTask
 {
     const mega::io::schFilePath& m_schematicFilePath;
 
 public:
-    Task_Schematic_Extrusions( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
+    Task_SchematicExtrusions( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
         : BaseTask( taskArguments )
         , m_schematicFilePath( schematicFilePath )
     {
@@ -46,7 +46,7 @@ public:
             = m_environment.SchematicExtrusionsStage_SchematicExtrusions( m_schematicFilePath );
 
         start( taskProgress,
-               "Task_Schematic_Extrusions",
+               "Task_SchematicExtrusions",
                m_schematicFilePath.path(),
                schematicExtrusionsCompilationFile.path() );
 
@@ -65,7 +65,7 @@ public:
         using namespace SchematicExtrusionsStage;
         Database database( m_environment, m_schematicFilePath );
 
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
 
         const task::FileHash fileHashCode = database.save_SchematicExtrusions_to_temp();
         m_environment.setBuildHashCode( schematicExtrusionsCompilationFile, fileHashCode );
@@ -76,10 +76,10 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Schematic_Extrusions( const TaskArguments&         taskArguments,
+BaseTask::Ptr create_Task_SchematicExtrusions( const TaskArguments&         taskArguments,
                                                 const mega::io::schFilePath& schematicFilePath )
 {
-    return std::make_unique< Task_Schematic_Extrusions >( taskArguments, schematicFilePath );
+    return std::make_unique< Task_SchematicExtrusions >( taskArguments, schematicFilePath );
 }
 
 } // namespace mega::compiler

@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "clang.hpp"
 
 #include "common/assert_verify.hpp"
@@ -41,7 +40,7 @@ public:
     void HandleDiagnostic( clang::DiagnosticsEngine::Level DiagLevel, const clang::Diagnostic& Info ) override
     {
         llvm::SmallString< 100 > msg;
-        switch ( DiagLevel )
+        switch( DiagLevel )
         {
             case clang::DiagnosticsEngine::Ignored:
             case clang::DiagnosticsEngine::Note:
@@ -142,7 +141,7 @@ Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
     , pTargetOptions( getTargetOptions() )
     , pTargetInfo( clang::TargetInfo::CreateTargetInfo( *pDiagnosticsEngine, pTargetOptions ) )
 {
-    if ( auto f = pFileManager->getFile( llvm::StringRef( sourceFile.string() ), true, false ) )
+    if( auto f = pFileManager->getFile( llvm::StringRef( sourceFile.string() ), true, false ) )
     {
         pFileEntry           = f.get();
         clang::FileID fileID = pSourceManager->getOrCreateFileID( pFileEntry, clang::SrcMgr::C_User );
@@ -150,9 +149,9 @@ Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
         pPreprocessor->SetCommentRetentionState( true, true );
         pPreprocessor->Initialize( *pTargetInfo );
 
-        for ( const boost::filesystem::path& includeDir : includeDirectories )
+        for( const boost::filesystem::path& includeDir : includeDirectories )
         {
-            if ( auto f = pFileManager->getDirectoryRef( includeDir.string(), false ) )
+            if( auto f = pFileManager->getDirectoryRef( includeDir.string(), false ) )
             {
                 auto dirLookup = clang::DirectoryLookup( f.get(), clang::SrcMgr::C_System, false );
                 pHeaderSearch->AddSearchPath( dirLookup, false );
@@ -217,13 +216,19 @@ Parser::Parser( Stuff& stuff, llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine
     PP.EnterMainSourceFile();
 }
 
-const clang::Token& Parser::getCurToken() const { return Tok; }
+const clang::Token& Parser::getCurToken() const
+{
+    return Tok;
+}
 
-const clang::Token& Parser::NextToken() { return PP.LookAhead( 0 ); }
+const clang::Token& Parser::NextToken()
+{
+    return PP.LookAhead( 0 );
+}
 
 clang::SourceLocation Parser::ConsumeToken()
 {
-    assert( !isTokenSpecial() && "Should consume special tokens with Consume*Token" );
+    MEGA_PARSER_ASSERT( !isTokenSpecial(), "Should consume special tokens with Consume*Token" );
     PrevTokLocation = Tok.getLocation();
     PP.Lex( Tok );
     return PrevTokLocation;
@@ -231,9 +236,9 @@ clang::SourceLocation Parser::ConsumeToken()
 
 bool Parser::TryConsumeToken( clang::tok::TokenKind Expected )
 {
-    if ( Tok.isNot( Expected ) )
+    if( Tok.isNot( Expected ) )
         return false;
-    assert( !isTokenSpecial() && "Should consume special tokens with Consume*Token" );
+    MEGA_PARSER_ASSERT( !isTokenSpecial(), "Should consume special tokens with Consume*Token" );
     PrevTokLocation = Tok.getLocation();
     PP.Lex( Tok );
     return true;
@@ -241,29 +246,41 @@ bool Parser::TryConsumeToken( clang::tok::TokenKind Expected )
 
 clang::SourceLocation Parser::ConsumeAnyToken( bool ConsumeCodeCompletionTok /*= false*/ )
 {
-    if ( isTokenParen() )
+    if( isTokenParen() )
         return ConsumeParen();
-    if ( isTokenBracket() )
+    if( isTokenBracket() )
         return ConsumeBracket();
-    if ( isTokenBrace() )
+    if( isTokenBrace() )
         return ConsumeBrace();
-    if ( isTokenStringLiteral() )
+    if( isTokenStringLiteral() )
         return ConsumeStringToken();
     // if (Tok.is(clang::tok::code_completion))
     //   return ConsumeCodeCompletionTok ? ConsumeCodeCompletionToken()
     //                                   : handleUnexpectedCodeCompletionToken();
-    if ( Tok.isAnnotation() )
+    if( Tok.isAnnotation() )
         return ConsumeAnnotationToken();
     return ConsumeToken();
 }
 
-bool Parser::isTokenParen() const { return Tok.isOneOf( clang::tok::l_paren, clang::tok::r_paren ); }
+bool Parser::isTokenParen() const
+{
+    return Tok.isOneOf( clang::tok::l_paren, clang::tok::r_paren );
+}
 /// isTokenBracket - Return true if the cur token is '[' or ']'.
-bool Parser::isTokenBracket() const { return Tok.isOneOf( clang::tok::l_square, clang::tok::r_square ); }
+bool Parser::isTokenBracket() const
+{
+    return Tok.isOneOf( clang::tok::l_square, clang::tok::r_square );
+}
 /// isTokenBrace - Return true if the cur token is '{' or '}'.
-bool Parser::isTokenBrace() const { return Tok.isOneOf( clang::tok::l_brace, clang::tok::r_brace ); }
+bool Parser::isTokenBrace() const
+{
+    return Tok.isOneOf( clang::tok::l_brace, clang::tok::r_brace );
+}
 /// isTokenStringLiteral - True if this token is a string-literal.
-bool Parser::isTokenStringLiteral() const { return clang::tok::isStringLiteral( Tok.getKind() ); }
+bool Parser::isTokenStringLiteral() const
+{
+    return clang::tok::isStringLiteral( Tok.getKind() );
+}
 /// isTokenSpecial - True if this token requires special consumption methods.
 bool Parser::isTokenSpecial() const
 {
@@ -281,7 +298,7 @@ void Parser::UnconsumeToken( clang::Token& Consumed )
 
 clang::SourceLocation Parser::ConsumeAnnotationToken()
 {
-    assert( Tok.isAnnotation() && "wrong consume method" );
+    MEGA_PARSER_ASSERT( Tok.isAnnotation(), "wrong consume method" );
     clang::SourceLocation Loc = Tok.getLocation();
     PrevTokLocation           = Tok.getAnnotationEndLoc();
     PP.Lex( Tok );
@@ -292,10 +309,10 @@ clang::SourceLocation Parser::ConsumeAnnotationToken()
 ///
 clang::SourceLocation Parser::ConsumeParen()
 {
-    assert( isTokenParen() && "wrong consume method" );
-    if ( Tok.getKind() == clang::tok::l_paren )
+    MEGA_PARSER_ASSERT( isTokenParen(), "wrong consume method" );
+    if( Tok.getKind() == clang::tok::l_paren )
         ++ParenCount;
-    else if ( ParenCount )
+    else if( ParenCount )
     {
         AngleBrackets.clear( *this );
         --ParenCount; // Don't let unbalanced )'s drive the count negative.
@@ -307,10 +324,10 @@ clang::SourceLocation Parser::ConsumeParen()
 
 clang::SourceLocation Parser::ConsumeBracket()
 {
-    assert( isTokenBracket() && "wrong consume method" );
-    if ( Tok.getKind() == clang::tok::l_square )
+    MEGA_PARSER_ASSERT( isTokenBracket(), "wrong consume method" );
+    if( Tok.getKind() == clang::tok::l_square )
         ++BracketCount;
-    else if ( BracketCount )
+    else if( BracketCount )
     {
         AngleBrackets.clear( *this );
         --BracketCount; // Don't let unbalanced ]'s drive the count negative.
@@ -325,10 +342,10 @@ clang::SourceLocation Parser::ConsumeBracket()
 ///
 clang::SourceLocation Parser::ConsumeBrace()
 {
-    assert( isTokenBrace() && "wrong consume method" );
-    if ( Tok.getKind() == clang::tok::l_brace )
+    MEGA_PARSER_ASSERT( isTokenBrace(), "wrong consume method" );
+    if( Tok.getKind() == clang::tok::l_brace )
         ++BraceCount;
-    else if ( BraceCount )
+    else if( BraceCount )
     {
         AngleBrackets.clear( *this );
         --BraceCount; // Don't let unbalanced }'s drive the count negative.
@@ -341,7 +358,7 @@ clang::SourceLocation Parser::ConsumeBrace()
 
 clang::SourceLocation Parser::ConsumeStringToken()
 {
-    assert( isTokenStringLiteral() && "Should only consume string literals with this method" );
+    MEGA_PARSER_ASSERT( isTokenStringLiteral(), "Should only consume string literals with this method" );
     PrevTokLocation = Tok.getLocation();
     PP.Lex( Tok );
     return PrevTokLocation;
@@ -349,7 +366,7 @@ clang::SourceLocation Parser::ConsumeStringToken()
 
 clang::SourceLocation Parser::ConsumeCodeCompletionToken()
 {
-    assert( Tok.is( clang::tok::code_completion ) );
+    MEGA_PARSER_ASSERT( Tok.is( clang::tok::code_completion ), "ConsumeCodeCompletionToken" );
     PrevTokLocation = Tok.getLocation();
     PP.Lex( Tok );
     return PrevTokLocation;
@@ -420,7 +437,7 @@ Parser::BalancedDelimiterTracker::BalancedDelimiterTracker( Parser& p, clang::to
     , Kind( k )
     , FinalToken( FinalToken )
 {
-    switch ( Kind )
+    switch( Kind )
     {
         default:
             llvm_unreachable( "Unexpected balanced token" );
@@ -440,14 +457,26 @@ Parser::BalancedDelimiterTracker::BalancedDelimiterTracker( Parser& p, clang::to
     }
 }
 
-bool                  Parser::BalancedDelimiterTracker::diagnoseMissingClose() { THROW_RTE( "diagnoseMissingClose" ); }
-clang::SourceLocation Parser::BalancedDelimiterTracker::getOpenLocation() const { return LOpen; }
-clang::SourceLocation Parser::BalancedDelimiterTracker::getCloseLocation() const { return LClose; }
-clang::SourceRange    Parser::BalancedDelimiterTracker::getRange() const { return clang::SourceRange( LOpen, LClose ); }
+bool Parser::BalancedDelimiterTracker::diagnoseMissingClose()
+{
+    THROW_RTE( "diagnoseMissingClose" );
+}
+clang::SourceLocation Parser::BalancedDelimiterTracker::getOpenLocation() const
+{
+    return LOpen;
+}
+clang::SourceLocation Parser::BalancedDelimiterTracker::getCloseLocation() const
+{
+    return LClose;
+}
+clang::SourceRange Parser::BalancedDelimiterTracker::getRange() const
+{
+    return clang::SourceRange( LOpen, LClose );
+}
 
 bool Parser::BalancedDelimiterTracker::consumeOpen()
 {
-    if ( !P.Tok.is( Kind ) )
+    if( !P.Tok.is( Kind ) )
         return true;
 
     // if (getDepth() < P.getLangOpts().BracketDepth)
@@ -461,12 +490,12 @@ bool Parser::BalancedDelimiterTracker::consumeOpen()
 
 bool Parser::BalancedDelimiterTracker::consumeClose()
 {
-    if ( P.Tok.is( Close ) )
+    if( P.Tok.is( Close ) )
     {
         LClose = ( P.*Consumer )();
         return false;
     }
-    else if ( P.Tok.is( clang::tok::semi ) && P.NextToken().is( Close ) )
+    else if( P.Tok.is( clang::tok::semi ) && P.NextToken().is( Close ) )
     {
         clang::SourceLocation SemiLoc = P.ConsumeToken();
         P.Diag( SemiLoc, clang::diag::err_unexpected_semi )
@@ -506,14 +535,14 @@ bool Parser::SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks,
     // We always want this function to skip at least one token if the first token
     // isn't T and if not at EOF.
     bool isFirstTokenSkipped = true;
-    while ( 1 )
+    while( 1 )
     {
         // If we found one of the tokens, stop and return true.
-        for ( unsigned i = 0, NumToks = Toks.size(); i != NumToks; ++i )
+        for( unsigned i = 0, NumToks = Toks.size(); i != NumToks; ++i )
         {
-            if ( Tok.is( Toks[ i ] ) )
+            if( Tok.is( Toks[ i ] ) )
             {
-                if ( HasFlagsSet( Flags, StopBeforeMatch ) )
+                if( HasFlagsSet( Flags, StopBeforeMatch ) )
                 {
                     // Noop, don't consume the token.
                 }
@@ -528,15 +557,15 @@ bool Parser::SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks,
         // Important special case: The caller has given up and just wants us to
         // skip the rest of the file. Do this without recursing, since we can
         // get here precisely because the caller detected too much recursion.
-        if ( Toks.size() == 1 && Toks[ 0 ] == tok::eof && !HasFlagsSet( Flags, StopAtSemi )
-             && !HasFlagsSet( Flags, StopAtCodeCompletion ) )
+        if( Toks.size() == 1 && Toks[ 0 ] == tok::eof && !HasFlagsSet( Flags, StopAtSemi )
+            && !HasFlagsSet( Flags, StopAtCodeCompletion ) )
         {
-            while ( Tok.isNot( tok::eof ) )
+            while( Tok.isNot( tok::eof ) )
                 ConsumeAnyToken();
             return true;
         }
 
-        switch ( Tok.getKind() )
+        switch( Tok.getKind() )
         {
             case tok::eof:
                 // Ran out of tokens.
@@ -561,7 +590,7 @@ bool Parser::SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks,
             case tok::l_paren:
                 // Recursively skip properly-nested parens.
                 ConsumeParen();
-                if ( HasFlagsSet( Flags, StopAtCodeCompletion ) )
+                if( HasFlagsSet( Flags, StopAtCodeCompletion ) )
                     SkipUntil( tok::r_paren, StopAtCodeCompletion );
                 else
                     SkipUntil( tok::r_paren );
@@ -569,7 +598,7 @@ bool Parser::SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks,
             case tok::l_square:
                 // Recursively skip properly-nested square brackets.
                 ConsumeBracket();
-                if ( HasFlagsSet( Flags, StopAtCodeCompletion ) )
+                if( HasFlagsSet( Flags, StopAtCodeCompletion ) )
                     SkipUntil( tok::r_square, StopAtCodeCompletion );
                 else
                     SkipUntil( tok::r_square );
@@ -577,7 +606,7 @@ bool Parser::SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks,
             case tok::l_brace:
                 // Recursively skip properly-nested braces.
                 ConsumeBrace();
-                if ( HasFlagsSet( Flags, StopAtCodeCompletion ) )
+                if( HasFlagsSet( Flags, StopAtCodeCompletion ) )
                     SkipUntil( tok::r_brace, StopAtCodeCompletion );
                 else
                     SkipUntil( tok::r_brace );
@@ -589,23 +618,23 @@ bool Parser::SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks,
                 // higher level, we will assume that this matches the unbalanced token
                 // and return it.  Otherwise, this is a spurious RHS token, which we skip.
             case tok::r_paren:
-                if ( ParenCount && !isFirstTokenSkipped )
+                if( ParenCount && !isFirstTokenSkipped )
                     return false; // Matches something.
                 ConsumeParen();
                 break;
             case tok::r_square:
-                if ( BracketCount && !isFirstTokenSkipped )
+                if( BracketCount && !isFirstTokenSkipped )
                     return false; // Matches something.
                 ConsumeBracket();
                 break;
             case tok::r_brace:
-                if ( BraceCount && !isFirstTokenSkipped )
+                if( BraceCount && !isFirstTokenSkipped )
                     return false; // Matches something.
                 ConsumeBrace();
                 break;
 
             case tok::semi:
-                if ( HasFlagsSet( Flags, StopAtSemi ) )
+                if( HasFlagsSet( Flags, StopAtSemi ) )
                     return false;
                 LLVM_FALLTHROUGH;
             default:

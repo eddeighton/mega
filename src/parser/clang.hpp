@@ -37,7 +37,7 @@
 #include "clang/Basic/BitmaskEnum.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Basic/LangOptions.h"
-//#include "clang/Basic/MemoryBufferCache.h"
+// #include "clang/Basic/MemoryBufferCache.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Lex/Token.h"
 #include "clang/Lex/Lexer.h"
@@ -50,7 +50,6 @@
 #include "clang/Basic/FileSystemOptions.h"
 #include "clang/Basic/DiagnosticIDs.h"
 #include "clang/Basic/DiagnosticOptions.h"
-
 
 class ParserDiagnosticSystem
 {
@@ -68,17 +67,26 @@ private:
 
 std::shared_ptr< clang::FileManager > get_clang_fileManager( ParserDiagnosticSystem& diagnosticSystem );
 
-llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > get_llvm_diagnosticEngine( ParserDiagnosticSystem& diagnosticSystem );
+llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
+get_llvm_diagnosticEngine( ParserDiagnosticSystem& diagnosticSystem );
 
-#define MEGA_PARSER_ERROR( _msg )                                                                                          \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _os; _os << Tok.getLocation().printToString( sm ) << " " << _msg;  \
-                                     Diags->Report( Tok.getLocation(), clang::diag::err_mega_generic_error ) << _os.str(); \
-                                      )
-// THROW_RTE( "Parser error: " << _os.str() );
+#define MEGA_PARSER_ERROR( _msg )                                                            \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                         \
+        std::ostringstream _os; _os << Tok.getLocation().printToString( sm ) << " " << _msg; \
+        Diags->Report( Tok.getLocation(), clang::diag::err_mega_generic_error ) << _os.str(); )
 
-#define MEGA_PARSER_WARNING( _msg )                                                                                       \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _os; _os << Tok.getLocation().printToString( sm ) << " " << _msg; \
-                                     Diags->Report( Tok.getLocation(), clang::diag::warn_mega_generic_warning ) << _os.str(); )
+#define MEGA_PARSER_ASSERT( expr, _msg )                                                      \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( if( !( expr ) ) {                                        \
+        std::ostringstream _os;                                                               \
+        _os << Tok.getLocation().printToString( sm ) << " " << _msg;                          \
+        Diags->Report( Tok.getLocation(), clang::diag::err_mega_generic_error ) << _os.str(); \
+        THROW_RTE( "Parser error: " << _os.str() );                                           \
+    } )
+
+#define MEGA_PARSER_WARNING( _msg )                                                          \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                         \
+        std::ostringstream _os; _os << Tok.getLocation().printToString( sm ) << " " << _msg; \
+        Diags->Report( Tok.getLocation(), clang::diag::warn_mega_generic_warning ) << _os.str(); )
 
 struct Stuff
 {
@@ -96,16 +104,16 @@ struct Stuff
     inline std::shared_ptr< clang::TargetOptions > getTargetOptions();
 
 private:
-    std::unique_ptr< clang::SourceManager >              pSourceManager;
-    std::shared_ptr< clang::HeaderSearchOptions >        headerSearchOptions;
-    clang::LangOptions                                   languageOptions;
-    std::unique_ptr< clang::HeaderSearch >               pHeaderSearch;
-    std::unique_ptr< clang::TrivialModuleLoader >        pModuleLoader;
-    std::shared_ptr< clang::PreprocessorOptions >        pPreprocessorOptions;
-    std::shared_ptr< clang::Preprocessor >               pPreprocessor;
-    std::shared_ptr< clang::TargetOptions >              pTargetOptions;
-    std::shared_ptr< clang::TargetInfo >                 pTargetInfo;
-    const clang::FileEntry*                              pFileEntry = nullptr;
+    std::unique_ptr< clang::SourceManager >       pSourceManager;
+    std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions;
+    clang::LangOptions                            languageOptions;
+    std::unique_ptr< clang::HeaderSearch >        pHeaderSearch;
+    std::unique_ptr< clang::TrivialModuleLoader > pModuleLoader;
+    std::shared_ptr< clang::PreprocessorOptions > pPreprocessorOptions;
+    std::shared_ptr< clang::Preprocessor >        pPreprocessor;
+    std::shared_ptr< clang::TargetOptions >       pTargetOptions;
+    std::shared_ptr< clang::TargetInfo >          pTargetInfo;
+    const clang::FileEntry*                       pFileEntry = nullptr;
 };
 
 // cannibalised version of clang parser for parsing eg source code
@@ -120,7 +128,10 @@ protected:
     llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > Diags;
 
     clang::DiagnosticBuilder Diag( clang::SourceLocation Loc, unsigned DiagID ) { return Diags->Report( Loc, DiagID ); }
-    clang::DiagnosticBuilder Diag( const clang::Token& Tok, unsigned DiagID ) { return Diag( Tok.getLocation(), DiagID ); }
+    clang::DiagnosticBuilder Diag( const clang::Token& Tok, unsigned DiagID )
+    {
+        return Diag( Tok.getLocation(), DiagID );
+    }
     clang::DiagnosticBuilder Diag( unsigned DiagID ) { return Diag( Tok, DiagID ); }
 
     bool getSourceText( clang::SourceLocation startLoc, clang::SourceLocation endLoc, std::string& str );
@@ -146,7 +157,8 @@ protected:
 
     struct AngleBracketTracker
     {
-        /// Flags used to rank candidate template names when there is more than one
+        /// Flags used to rank candidate template names when there is more than
+        /// one
         /// '<' in a scope.
         enum Priority : unsigned short
         {
@@ -176,7 +188,8 @@ protected:
 
             bool isActiveOrNested( Parser& P ) const
             {
-                return isActive( P ) || P.ParenCount > ParenCount || P.BracketCount > BracketCount || P.BraceCount > BraceCount;
+                return isActive( P ) || P.ParenCount > ParenCount || P.BracketCount > BracketCount
+                       || P.BraceCount > BraceCount;
             }
         };
 
@@ -189,11 +202,11 @@ protected:
         /// for the case where we see a second suspicious '>' token.
         void add( Parser& P, clang::SourceLocation LessLoc, Priority Prio )
         {
-            if ( !Locs.empty() && Locs.back().isActive( P ) )
+            if( !Locs.empty() && Locs.back().isActive( P ) )
             {
-                if ( Locs.back().Priority <= Prio )
+                if( Locs.back().Priority <= Prio )
                 {
-                    Locs.back().LessLoc = LessLoc;
+                    Locs.back().LessLoc  = LessLoc;
                     Locs.back().Priority = Prio;
                 }
             }
@@ -208,15 +221,15 @@ protected:
         /// or leave a bracket scope).
         void clear( Parser& P )
         {
-            while ( !Locs.empty() && Locs.back().isActiveOrNested( P ) )
+            while( !Locs.empty() && Locs.back().isActiveOrNested( P ) )
                 Locs.pop_back();
         }
 
-        /// Get the current enclosing expression that might hve been intended to be
-        /// a template name.
+        /// Get the current enclosing expression that might hve been intended to
+        /// be a template name.
         Loc* getCurrent( Parser& P )
         {
-            if ( !Locs.empty() && Locs.back().isActive( P ) )
+            if( !Locs.empty() && Locs.back().isActive( P ) )
                 return &Locs.back();
             return nullptr;
         }
@@ -305,15 +318,16 @@ public:
     class BalancedDelimiterTracker : public GreaterThanIsOperatorScope
     {
     public:
-        BalancedDelimiterTracker( Parser& p, clang::tok::TokenKind k, clang::tok::TokenKind FinalToken = clang::tok::semi );
+        BalancedDelimiterTracker( Parser& p, clang::tok::TokenKind k,
+                                  clang::tok::TokenKind FinalToken = clang::tok::semi );
 
         bool diagnoseMissingClose();
 
         clang::SourceLocation getOpenLocation() const;
         clang::SourceLocation getCloseLocation() const;
         clang::SourceRange    getRange() const;
-        bool consumeOpen();
-        bool consumeClose();
+        bool                  consumeOpen();
+        bool                  consumeClose();
 
         // unsigned short &getDepth()
         //{
@@ -327,17 +341,18 @@ public:
         // }
 
         // bool diagnoseOverflow();
-        //void skipToEnd();
+        // void skipToEnd();
 
-        //bool expectAndConsume( unsigned              DiagID = clang::diag::err_expected,
-        //                        const char*           Msg = "",
-        //                        clang::tok::TokenKind SkipToTok = clang::tok::unknown );
+        // bool expectAndConsume( unsigned              DiagID =
+        // clang::diag::err_expected,
+        //                         const char*           Msg = "",
+        //                         clang::tok::TokenKind SkipToTok =
+        //                         clang::tok::unknown );
     private:
         Parser&               P;
         clang::tok::TokenKind Kind, Close, FinalToken;
         clang::SourceLocation ( Parser::*Consumer )();
         clang::SourceLocation LOpen, LClose;
-
     };
 
     /// Control flags for SkipUntil functions.
@@ -345,7 +360,7 @@ public:
     {
         StopAtSemi = 1 << 0, ///< Stop skipping at semicolon
         /// Stop skipping at specified token, but don't skip the token itself
-        StopBeforeMatch = 1 << 1,
+        StopBeforeMatch      = 1 << 1,
         StopAtCodeCompletion = 1 << 2 ///< Stop at code completion
     };
 
@@ -363,11 +378,13 @@ public:
     /// If SkipUntil finds the specified token, it returns true, otherwise it
     /// returns false.
     bool        SkipUntil( clang::tok::TokenKind T, SkipUntilFlags Flags = static_cast< SkipUntilFlags >( 0 ) );
-    bool        SkipUntil( clang::tok::TokenKind T1, clang::tok::TokenKind T2, SkipUntilFlags Flags = static_cast< SkipUntilFlags >( 0 ) );
+    bool        SkipUntil( clang::tok::TokenKind T1, clang::tok::TokenKind T2,
+                           SkipUntilFlags Flags = static_cast< SkipUntilFlags >( 0 ) );
     bool        SkipUntil( clang::tok::TokenKind T1, clang::tok::TokenKind T2, clang::tok::TokenKind T3,
                            SkipUntilFlags Flags = static_cast< SkipUntilFlags >( 0 ) );
     static bool HasFlagsSet( Parser::SkipUntilFlags L, Parser::SkipUntilFlags R );
-    bool        SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks, SkipUntilFlags Flags = static_cast< SkipUntilFlags >( 0 ) );
+    bool        SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks,
+                           SkipUntilFlags                          Flags = static_cast< SkipUntilFlags >( 0 ) );
 };
 
 #endif // CLANG_PARSER_13_APRIL_2022

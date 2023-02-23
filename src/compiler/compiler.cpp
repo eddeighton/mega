@@ -429,39 +429,42 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     TskDesc unity = encode( Task{ eTask_Unity, manifestFilePath } );
     dependencies.add( unity, TskDescVec{ meta } );
 
-    TskDescVec completionTasks = componentTasks;
-    completionTasks.push_back( unity );
-
-    TskDesc complete = encode( Task{ eTask_Complete, manifestFilePath } );
-    dependencies.add( complete, completionTasks );
-
     TskDescVec schematicMapTasks;
     for( const mega::io::schFilePath& schematicFilePath : manifest.getSchematicSourceFiles() )
     {
-        TskDesc schematicParseStage        = encode( Task{ eTask_SchematicParseStage, schematicFilePath } );
-        TskDesc schematicContoursStage     = encode( Task{ eTask_SchematicContoursStage, schematicFilePath } );
-        TskDesc schematicExtrusionsStage   = encode( Task{ eTask_SchematicExtrusionsStage, schematicFilePath } );
-        TskDesc schematicConnectionsStage  = encode( Task{ eTask_SchematicConnectionsStage, schematicFilePath } );
-        TskDesc schematicWallSectionsStage = encode( Task{ eTask_SchematicWallSectionsStage, schematicFilePath } );
-        TskDesc schematicFloorPlanStage    = encode( Task{ eTask_SchematicFloorPlanStage, schematicFilePath } );
-        TskDesc schematicVisibilityStage   = encode( Task{ eTask_SchematicVisibilityStage, schematicFilePath } );
-        TskDesc schematicValueSpaceStage   = encode( Task{ eTask_SchematicValueSpaceStage, schematicFilePath } );
-        TskDesc schematicSpawnPointsStage  = encode( Task{ eTask_SchematicSpawnPointsStage, schematicFilePath } );
-        TskDesc schematicMapFile           = encode( Task{ eTask_SchematicMapFile, schematicFilePath } );
+        TskDesc schematicParse        = encode( Task{ eTask_SchematicParse, schematicFilePath } );
+        TskDesc schematicContours     = encode( Task{ eTask_SchematicContours, schematicFilePath } );
+        TskDesc schematicExtrusions   = encode( Task{ eTask_SchematicExtrusions, schematicFilePath } );
+        TskDesc schematicConnections  = encode( Task{ eTask_SchematicConnections, schematicFilePath } );
+        TskDesc schematicWallSections = encode( Task{ eTask_SchematicWallSections, schematicFilePath } );
+        TskDesc schematicFloorPlan    = encode( Task{ eTask_SchematicFloorPlan, schematicFilePath } );
+        TskDesc schematicVisibility   = encode( Task{ eTask_SchematicVisibility, schematicFilePath } );
+        TskDesc schematicValueSpace   = encode( Task{ eTask_SchematicValueSpace, schematicFilePath } );
+        TskDesc schematicSpawnPoints  = encode( Task{ eTask_SchematicSpawnPoints, schematicFilePath } );
+        TskDesc schematicMapFile      = encode( Task{ eTask_SchematicMapFile, schematicFilePath } );
 
-        dependencies.add( schematicParseStage, TskDescVec{ unity } );
+        dependencies.add( schematicParse, TskDescVec{ unity } );
 
-        dependencies.add( schematicContoursStage, TskDescVec{ schematicParseStage } );
-        dependencies.add( schematicExtrusionsStage, TskDescVec{ schematicContoursStage } );
-        dependencies.add( schematicConnectionsStage, TskDescVec{ schematicExtrusionsStage } );
-        dependencies.add( schematicWallSectionsStage, TskDescVec{ schematicConnectionsStage } );
-        dependencies.add( schematicFloorPlanStage, TskDescVec{ schematicWallSectionsStage } );
-        dependencies.add( schematicVisibilityStage, TskDescVec{ schematicFloorPlanStage } );
-        dependencies.add( schematicValueSpaceStage, TskDescVec{ schematicVisibilityStage } );
-        dependencies.add( schematicSpawnPointsStage, TskDescVec{ schematicValueSpaceStage } );
-        dependencies.add( schematicMapFile, TskDescVec{ schematicSpawnPointsStage } );
+        dependencies.add( schematicContours, TskDescVec{ schematicParse } );
+        dependencies.add( schematicExtrusions, TskDescVec{ schematicContours } );
+        dependencies.add( schematicConnections, TskDescVec{ schematicExtrusions } );
+        dependencies.add( schematicWallSections, TskDescVec{ schematicConnections } );
+        dependencies.add( schematicFloorPlan, TskDescVec{ schematicWallSections } );
+        dependencies.add( schematicVisibility, TskDescVec{ schematicFloorPlan } );
+        dependencies.add( schematicValueSpace, TskDescVec{ schematicVisibility } );
+        dependencies.add( schematicSpawnPoints, TskDescVec{ schematicValueSpace } );
+        dependencies.add( schematicMapFile, TskDescVec{ schematicSpawnPoints } );
 
         schematicMapTasks.push_back( schematicMapFile );
+    }
+
+    {
+        TskDescVec completionTasks = componentTasks;
+        completionTasks.push_back( unity );
+        std::copy( schematicMapTasks.begin(), schematicMapTasks.end(), std::back_inserter( completionTasks ) );
+
+        TskDesc complete = encode( Task{ eTask_Complete, manifestFilePath } );
+        dependencies.add( complete, completionTasks );
     }
 
     return { dependencies };

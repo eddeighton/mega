@@ -42,12 +42,39 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        start( taskProgress, "Task_Unity", m_manifest.path(), m_manifest.path() );
+        const mega::io::CompilationFilePath unityAnalysisCompilationFile
+            = m_environment.UnityStage_UnityAnalysis( m_manifest );
+
+        start( taskProgress, "Task_Unity", m_manifest.path(), unityAnalysisCompilationFile.path() );
+
+        // const task::FileHash previousStageHash = m_environment.getBuildHashCode(
+        //    m_environment.OperationsStage_Operations() ( m_schematicFilePath ) );
+
+        const task::DeterminantHash determinant( { m_toolChain.toolChainHash } );
+
+        if( m_environment.restore( unityAnalysisCompilationFile, determinant ) )
+        {
+            m_environment.setBuildHashCode( unityAnalysisCompilationFile );
+            cached( taskProgress );
+            return;
+        }
+
+        using namespace UnityStage;
+        Database database( m_environment, m_manifest );
+
+        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+
+        const task::FileHash fileHashCode = database.save_UnityAnalysis_to_temp();
+        m_environment.setBuildHashCode( unityAnalysisCompilationFile, fileHashCode );
+        m_environment.temp_to_real( unityAnalysisCompilationFile );
+        m_environment.stash( unityAnalysisCompilationFile, determinant );
+
         succeeded( taskProgress );
     }
 };
 
-BaseTask::Ptr create_Task_Unity( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_Unity( const TaskArguments&              taskArguments,
+                                 const mega::io::manifestFilePath& manifestFilePath )
 {
     return std::make_unique< Task_Unity >( taskArguments, manifestFilePath );
 }

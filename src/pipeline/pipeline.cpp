@@ -134,27 +134,15 @@ std::optional< TaskDescriptor > Schedule::getTask( const std::string& strTaskNam
     return result;
 }
 
-Stash::~Stash()
-{
-}
+Stash::~Stash() = default;
 
-Progress::Progress()
-{
-}
-Progress::~Progress()
-{
-}
+Progress::Progress()  = default;
+Progress::~Progress() = default;
 
-Pipeline::Pipeline()
-{
-}
-Pipeline::~Pipeline()
-{
-}
+Pipeline::Pipeline()  = default;
+Pipeline::~Pipeline() = default;
 
-DependencyProvider::~DependencyProvider()
-{
-}
+DependencyProvider::~DependencyProvider() = default;
 
 Pipeline::Ptr Registry::getPipeline( const mega::utilities::ToolChain& toolChain, const Configuration& configuration,
                                      std::ostream& osLog )
@@ -200,7 +188,6 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
     VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
     task::Stash          stash( stashDir );
     task::BuildHashCodes buildHashCodes;
-
 
     // load previous builds hash codes
     if( !inputPipelineResultPath.empty() )

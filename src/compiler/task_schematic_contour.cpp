@@ -29,12 +29,12 @@
 namespace mega::compiler
 {
 
-class Task_Schematic_Contours : public BaseTask
+class Task_SchematicContours : public BaseTask
 {
     const mega::io::schFilePath& m_schematicFilePath;
 
 public:
-    Task_Schematic_Contours( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
+    Task_SchematicContours( const TaskArguments& taskArguments, const mega::io::schFilePath& schematicFilePath )
         : BaseTask( taskArguments )
         , m_schematicFilePath( schematicFilePath )
     {
@@ -46,7 +46,7 @@ public:
             = m_environment.SchematicContoursStage_SchematicContours( m_schematicFilePath );
 
         start( taskProgress,
-               "Task_Schematic_Contours",
+               "Task_SchematicContours",
                m_schematicFilePath.path(),
                schematicContoursCompilationFile.path() );
 
@@ -65,7 +65,7 @@ public:
         using namespace SchematicContoursStage;
         Database database( m_environment, m_schematicFilePath );
 
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
 
         const task::FileHash fileHashCode = database.save_SchematicContours_to_temp();
         m_environment.setBuildHashCode( schematicContoursCompilationFile, fileHashCode );
@@ -76,10 +76,10 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Schematic_Contours( const TaskArguments&         taskArguments,
+BaseTask::Ptr create_Task_SchematicContours( const TaskArguments&         taskArguments,
                                                 const mega::io::schFilePath& schematicFilePath )
 {
-    return std::make_unique< Task_Schematic_Contours >( taskArguments, schematicFilePath );
+    return std::make_unique< Task_SchematicContours >( taskArguments, schematicFilePath );
 }
 
 } // namespace mega::compiler
