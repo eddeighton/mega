@@ -75,26 +75,36 @@ set( JINJA_TEMPLATES
 	)
 
 set( COMPILER_TASKS
-    ${MEGA_SRC_DIR}/compiler/base_task.hpp  
-    ${MEGA_SRC_DIR}/compiler/interface.hpp  
     ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
     ${MEGA_SRC_DIR}/compiler/task_complete.cpp
-    ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete_id.cpp
+    ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
-    ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp 
+    ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp
     ${MEGA_SRC_DIR}/compiler/task_derivation.cpp
     ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
     ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
-    ${MEGA_SRC_DIR}/compiler/task_includes.cpp  
-    ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp  
-    ${MEGA_SRC_DIR}/compiler/task_interface.cpp  
+    ${MEGA_SRC_DIR}/compiler/task_includes.cpp
+    ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp
+    ${MEGA_SRC_DIR}/compiler/task_interface.cpp
     ${MEGA_SRC_DIR}/compiler/task_manifest.cpp
+    ${MEGA_SRC_DIR}/compiler/task_meta.cpp
     ${MEGA_SRC_DIR}/compiler/task_operations.cpp
-    ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp  
+    ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_connection.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_contour.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_extrusion.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_floor_plan.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_map_file.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_parse.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_spawn_points.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_value_space.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_visibility.cpp
+    ${MEGA_SRC_DIR}/compiler/task_schematic_wall_sections.cpp
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
-    ${MEGA_SRC_DIR}/compiler/task_utils.hpp  
+    ${MEGA_SRC_DIR}/compiler/task_unity.cpp
 )
+
 
 set( COMPILER_SOURCE
     ${COMPILER_TASKS}

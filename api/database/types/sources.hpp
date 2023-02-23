@@ -39,7 +39,7 @@ protected:
     }
 
 public:
-    FilePath() {}
+    FilePath() = default;
     const boost::filesystem::path& path() const { return m_filePath; }
 
     bool operator==( const FilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
@@ -66,7 +66,7 @@ protected:
     }
 
 public:
-    SourceFilePath() {}
+    SourceFilePath() = default;
     bool operator==( const SourceFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const SourceFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
 
@@ -87,7 +87,7 @@ class EGDB_EXPORT manifestFilePath : public SourceFilePath
     }
 
 public:
-    manifestFilePath() {}
+    manifestFilePath() = default;
     bool operator==( const manifestFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const manifestFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
 
@@ -109,7 +109,7 @@ class EGDB_EXPORT megaFilePath : public SourceFilePath
     }
 
 public:
-    megaFilePath() {}
+    megaFilePath() = default;
 
     bool operator==( const megaFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const megaFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
@@ -132,7 +132,7 @@ class EGDB_EXPORT cppFilePath : public SourceFilePath
     }
 
 public:
-    cppFilePath() {}
+    cppFilePath() = default;
 
     bool operator==( const cppFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const cppFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
@@ -143,6 +143,29 @@ public:
         archive& boost::serialization::make_nvp( "cpp_file_path", m_filePath );
     }
     static const boost::filesystem::path extension() { return ".cpp"; }
+};
+
+class EGDB_EXPORT schFilePath : public SourceFilePath
+{
+    friend class BuildEnvironment;
+
+    schFilePath( const boost::filesystem::path& filePath )
+        : SourceFilePath( filePath )
+    {
+    }
+
+public:
+    schFilePath() = default;
+
+    bool operator==( const schFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
+    bool operator<( const schFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& boost::serialization::make_nvp( "schematic_file_path", m_filePath );
+    }
+    static const boost::filesystem::path extension() { return ".sch"; }
 };
 
 class EGDB_EXPORT BuildFilePath : public FilePath
@@ -156,7 +179,7 @@ protected:
     }
 
 public:
-    BuildFilePath() {}
+    BuildFilePath() = default;
     bool operator==( const BuildFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const BuildFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
 
@@ -177,7 +200,7 @@ class EGDB_EXPORT ComponentListingFilePath : public BuildFilePath
     }
 
 public:
-    ComponentListingFilePath() {}
+    ComponentListingFilePath() = default;
 
     bool operator==( const ComponentListingFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const ComponentListingFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
@@ -199,7 +222,7 @@ class EGDB_EXPORT CompilationFilePath : public BuildFilePath
     }
 
 public:
-    CompilationFilePath() {}
+    CompilationFilePath() = default;
 
     bool operator==( const CompilationFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const CompilationFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
@@ -222,7 +245,7 @@ class EGDB_EXPORT GeneratedHPPSourceFilePath : public BuildFilePath
     }
 
 public:
-    GeneratedHPPSourceFilePath() {}
+    GeneratedHPPSourceFilePath() = default;
 
     bool operator==( const GeneratedHPPSourceFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const GeneratedHPPSourceFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
@@ -245,7 +268,7 @@ class EGDB_EXPORT GeneratedCPPSourceFilePath : public BuildFilePath
     }
 
 public:
-    GeneratedCPPSourceFilePath() {}
+    GeneratedCPPSourceFilePath() = default;
 
     bool operator==( const GeneratedCPPSourceFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const GeneratedCPPSourceFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
@@ -268,7 +291,7 @@ class EGDB_EXPORT PrecompiledHeaderFile : public BuildFilePath
     }
 
 public:
-    PrecompiledHeaderFile() {}
+    PrecompiledHeaderFile() = default;
 
     bool operator==( const PrecompiledHeaderFile& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const PrecompiledHeaderFile& cmp ) const { return m_filePath < cmp.m_filePath; }
@@ -291,7 +314,7 @@ class EGDB_EXPORT ObjectFilePath : public BuildFilePath
     }
 
 public:
-    ObjectFilePath() {}
+    ObjectFilePath() = default;
 
     bool operator==( const ObjectFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const ObjectFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
@@ -314,7 +337,7 @@ class EGDB_EXPORT ComponentFilePath : public BuildFilePath
     }
 
 public:
-    ComponentFilePath() {}
+    ComponentFilePath() = default;
 
     bool operator==( const ComponentFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
     bool operator<( const ComponentFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
@@ -326,6 +349,29 @@ public:
     }
 };
 
+class EGDB_EXPORT MapFilePath : public BuildFilePath
+{
+    friend class BuildEnvironment;
+
+    MapFilePath( const boost::filesystem::path& filePath )
+        : BuildFilePath( filePath )
+    {
+    }
+
+public:
+    MapFilePath() = default;
+
+    bool operator==( const MapFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
+    bool operator<( const MapFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& boost::serialization::make_nvp( "map_file", m_filePath );
+    }
+    static const boost::filesystem::path extension() { return ".map"; }
+};
+
 inline void to_json( nlohmann::json& j, const megaFilePath& p )
 {
     j = nlohmann::json{ { "megaFilePath", p.path().string() } };
@@ -333,6 +379,10 @@ inline void to_json( nlohmann::json& j, const megaFilePath& p )
 inline void to_json( nlohmann::json& j, const cppFilePath& p )
 {
     j = nlohmann::json{ { "cppFilePath", p.path().string() } };
+}
+inline void to_json( nlohmann::json& j, const schFilePath& p )
+{
+    j = nlohmann::json{ { "schFilePath", p.path().string() } };
 }
 inline void to_json( nlohmann::json& j, const ComponentFilePath& p )
 {

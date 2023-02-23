@@ -144,6 +144,7 @@ public:
 
             std::vector< mega::io::megaFilePath > megaSourceFiles;
             std::vector< mega::io::cppFilePath >  cppSourceFiles;
+            std::vector< mega::io::schFilePath >  schSourceFiles;
             for ( const boost::filesystem::path& filePath : componentInfo.getSourceFiles() )
             {
                 if ( filePath.extension() == mega::io::megaFilePath::extension() )
@@ -153,6 +154,10 @@ public:
                 else if ( filePath.extension() == mega::io::cppFilePath::extension() )
                 {
                     cppSourceFiles.push_back( m_environment.cppFilePath_fromPath( filePath ) );
+                }
+                else if ( filePath.extension() == mega::io::schFilePath::extension() )
+                {
+                    schSourceFiles.push_back( m_environment.schFilePath_fromPath( filePath ) );
                 }
                 else
                 {
@@ -179,7 +184,7 @@ public:
                     componentInfo.getComponentType(), componentInfo.getName(), componentFilePath,
                     componentInfo.getSrcDir(), componentInfo.getBuildDir(), componentInfo.getCPPFlags(),
                     componentInfo.getCPPDefines(), componentInfo.getIncludeDirectories(), dependencies, megaSourceFiles,
-                    cppSourceFiles ) );
+                    cppSourceFiles, schSourceFiles ) );
 
             VERIFY_RTE( pComponent->get_name() == componentInfo.getName() );
         }

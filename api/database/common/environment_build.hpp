@@ -98,11 +98,15 @@ public:
     GeneratedCPPSourceFilePath CPPImplementation( const cppFilePath& source ) const;
     ObjectFilePath             CPPObj( const cppFilePath& source ) const;
 
+    // schematic file paths
+    MapFilePath Map( const schFilePath& schematic ) const;
+
     // note lowercase file type function names are used in generated code based on file type
     ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const;
     manifestFilePath         manifestFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     megaFilePath             megaFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     cppFilePath              cppFilePath_fromPath( const boost::filesystem::path& filePath ) const;
+    schFilePath              schFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     ComponentFilePath        ComponentPath_fromPath( const boost::filesystem::path& filePath ) const;
 
     ////////////////////////////////////////////////////

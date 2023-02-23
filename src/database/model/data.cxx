@@ -67,7 +67,7 @@ namespace Components
     Components_Component::Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Components_Component >( loader, this ) )    {
     }
-    Components_Component::Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::ComponentType& type, const std::string& name, const mega::io::ComponentFilePath& file_path, const boost::filesystem::path& src_dir, const boost::filesystem::path& build_dir, const std::vector< std::string >& cpp_flags, const std::vector< std::string >& cpp_defines, const std::vector< boost::filesystem::path >& include_directories, const std::vector< mega::io::megaFilePath >& dependencies, const std::vector< mega::io::megaFilePath >& mega_source_files, const std::vector< mega::io::cppFilePath >& cpp_source_files)
+    Components_Component::Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::ComponentType& type, const std::string& name, const mega::io::ComponentFilePath& file_path, const boost::filesystem::path& src_dir, const boost::filesystem::path& build_dir, const std::vector< std::string >& cpp_flags, const std::vector< std::string >& cpp_defines, const std::vector< boost::filesystem::path >& include_directories, const std::vector< mega::io::megaFilePath >& dependencies, const std::vector< mega::io::megaFilePath >& mega_source_files, const std::vector< mega::io::cppFilePath >& cpp_source_files, const std::vector< mega::io::schFilePath >& sch_source_files)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Components_Component >( loader, this ) )          , type( type )
           , name( name )
           , file_path( file_path )
@@ -79,6 +79,7 @@ namespace Components
           , dependencies( dependencies )
           , mega_source_files( mega_source_files )
           , cpp_source_files( cpp_source_files )
+          , sch_source_files( sch_source_files )
     {
     }
     bool Components_Component::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -101,6 +102,7 @@ namespace Components
         loader.load( dependencies );
         loader.load( mega_source_files );
         loader.load( cpp_source_files );
+        loader.load( sch_source_files );
     }
     void Components_Component::store( mega::io::Storer& storer ) const
     {
@@ -115,6 +117,7 @@ namespace Components
         storer.store( dependencies );
         storer.store( mega_source_files );
         storer.store( cpp_source_files );
+        storer.store( sch_source_files );
     }
     void Components_Component::to_json( nlohmann::json& _part__ ) const
     {
@@ -180,6 +183,11 @@ namespace Components
         {
             nlohmann::json property = nlohmann::json::object({
                 { "cpp_source_files", cpp_source_files } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "sch_source_files", sch_source_files } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -8062,6 +8070,39 @@ namespace Operations
         }
     }
         
+}
+namespace MetaAnalysis
+{
+}
+namespace UnityAnalysis
+{
+}
+namespace SchematicParse
+{
+}
+namespace SchematicContours
+{
+}
+namespace SchematicExtrusions
+{
+}
+namespace SchematicConnections
+{
+}
+namespace SchematicWallSections
+{
+}
+namespace SchematicFloorPlan
+{
+}
+namespace SchematicVisibility
+{
+}
+namespace SchematicValueSpace
+{
+}
+namespace SchematicSpawnPoints
+{
 }
 
 std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& get_abstract_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
@@ -16905,6 +16946,21 @@ std::optional< std::string >& get_runtime_return_type_str(std::variant< data::Pt
     }visitor;
     return std::visit( visitor, m_data );
 }
+std::vector< mega::io::schFilePath >& get_sch_source_files(std::variant< data::Ptr< data::Components::Components_Component > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< mega::io::schFilePath >& operator()( data::Ptr< data::Components::Components_Component >& arg ) const
+        {
+            data::Ptr< data::Components::Components_Component > part = 
+                data::convert< data::Components::Components_Component >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: get_sch_source_files" );
+            return part->sch_source_files;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
 bool& get_simple(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
 {
     struct Visitor
@@ -20851,6 +20907,21 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > 
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: push_back_return_type_dimensions" );
             return part->return_type_dimensions;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< mega::io::schFilePath >& push_back_sch_source_files(std::variant< data::Ptr< data::Components::Components_Component > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< mega::io::schFilePath >& operator()( data::Ptr< data::Components::Components_Component >& arg ) const
+        {
+            data::Ptr< data::Components::Components_Component > part = 
+                data::convert< data::Components::Components_Component >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: push_back_sch_source_files" );
+            return part->sch_source_files;
         }
     }visitor;
     return std::visit( visitor, m_data );
@@ -29744,6 +29815,21 @@ std::optional< std::string >& set_runtime_return_type_str(std::variant< data::Pt
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: set_runtime_return_type_str" );
             return part->runtime_return_type_str;
+        }
+    }visitor;
+    return std::visit( visitor, m_data );
+}
+std::vector< mega::io::schFilePath >& set_sch_source_files(std::variant< data::Ptr< data::Components::Components_Component > >& m_data)
+{
+    struct Visitor
+    {
+        std::vector< mega::io::schFilePath >& operator()( data::Ptr< data::Components::Components_Component >& arg ) const
+        {
+            data::Ptr< data::Components::Components_Component > part = 
+                data::convert< data::Components::Components_Component >( arg );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: set_sch_source_files" );
+            return part->sch_source_files;
         }
     }visitor;
     return std::visit( visitor, m_data );

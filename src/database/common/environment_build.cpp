@@ -30,7 +30,9 @@ BuildEnvironment::BuildEnvironment( const compiler::Directories& directories )
 {
 }
 
-BuildEnvironment::~BuildEnvironment() {}
+BuildEnvironment::~BuildEnvironment()
+{
+}
 
 BuildEnvironment::Path BuildEnvironment::DatabaseArchive() const
 {
@@ -41,7 +43,7 @@ BuildEnvironment::Path BuildEnvironment::DatabaseArchive() const
 void BuildEnvironment::copyToTargetPath( const boost::filesystem::path& from, const boost::filesystem::path& to ) const
 {
     VERIFY_RTE( boost::filesystem::exists( from ) );
-    if ( boost::filesystem::exists( to ) )
+    if( boost::filesystem::exists( to ) )
     {
         boost::filesystem::remove( to );
     }
@@ -234,6 +236,15 @@ ObjectFilePath BuildEnvironment::CPPObj( const cppFilePath& source ) const
     return ObjectFilePath( dirPath / os.str() );
 }
 
+MapFilePath BuildEnvironment::Map( const schFilePath& schematic ) const
+{
+    std::ostringstream os;
+    os << schematic.path().filename().string() << MapFilePath::extension().string();
+    auto dirPath = schematic.path();
+    dirPath.remove_filename();
+    return MapFilePath( dirPath / os.str() );
+}
+
 ComponentListingFilePath BuildEnvironment::ComponentListingFilePath_fromPath( const Path& buildDirectory ) const
 {
     VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDirectory ),
@@ -252,6 +263,10 @@ megaFilePath BuildEnvironment::megaFilePath_fromPath( const boost::filesystem::p
 cppFilePath BuildEnvironment::cppFilePath_fromPath( const boost::filesystem::path& filePath ) const
 {
     return cppFilePath( boost::filesystem::relative( filePath, m_directories.srcDir ) );
+}
+schFilePath BuildEnvironment::schFilePath_fromPath( const boost::filesystem::path& filePath ) const
+{
+    return schFilePath( boost::filesystem::relative( filePath, m_directories.srcDir ) );
 }
 ComponentFilePath BuildEnvironment::ComponentPath_fromPath( const boost::filesystem::path& filePath ) const
 {

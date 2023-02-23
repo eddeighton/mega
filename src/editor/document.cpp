@@ -267,6 +267,10 @@ void SchematicDocument::calculateDerived()
         {
             m_pSchematic->task_extrusions();
         }
+        if( m_compilationConfig[ map::Schematic::eStage_Compilation ] )
+        {
+            m_pSchematic->task_compilation();
+        }
     }
 }
 

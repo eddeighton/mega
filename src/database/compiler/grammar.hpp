@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef DATABASE_GRAMMAR_4_APRIL_2022
 #define DATABASE_GRAMMAR_4_APRIL_2022
 
@@ -34,9 +31,7 @@
 #include <ostream>
 #include <sstream>
 
-namespace db
-{
-namespace schema
+namespace db::schema
 {
 using UnderlyingIterType = std::string::const_iterator;
 using IteratorType       = boost::spirit::line_pos_iterator< UnderlyingIterType >;
@@ -169,8 +164,7 @@ inline T parse( const std::string& strInput )
                     "Failed to parse string: " << strInput << " : " << osError.str() );
     return resultType;
 }
-} // namespace schema
-} // namespace db
+} // namespace db::schema
 
 std::ostream& operator<<( std::ostream& os, const db::schema::Identifier& identifier );
 std::ostream& operator<<( std::ostream& os, const db::schema::IdentifierList& idlist );

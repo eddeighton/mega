@@ -104,148 +104,25 @@ void Schematic::task_extrusions()
         }
     }
 }
-/*
-task::Schedule::Ptr Schematic::createSchedule( const CompilationConfig& config )
-{
-    Schematic::Ptr pSchematic = boost::dynamic_pointer_cast< Schematic >( getPtr() );
-
-    task::Task::PtrVector tasks;
-
-    if( config[ eStage_Compilation ] )
-    {
-        SiteContourTask::Ptr   pContourTask( new SiteContourTask( pSchematic, {} ) );
-        SiteExtrusionTask::Ptr pExtrusionTask( new SiteExtrusionTask( pSchematic, { pContourTask.get() } ) );
-        CompilationTask::Ptr   pCompilationTask( new CompilationTask( pSchematic, { pExtrusionTask.get() } ) );
-
-        tasks.push_back( pContourTask );
-        tasks.push_back( pExtrusionTask );
-        tasks.push_back( pCompilationTask );
-    }
-    else if( config[ eStage_Extrusion ] )
-    {
-        SiteContourTask::Ptr   pContourTask( new SiteContourTask( pSchematic, {} ) );
-        SiteExtrusionTask::Ptr pExtrusionTask( new SiteExtrusionTask( pSchematic, { pContourTask.get() } ) );
-
-        tasks.push_back( pContourTask );
-        tasks.push_back( pExtrusionTask );
-    }
-    else // if( config[ eStage_SiteContour ] )
-    {
-        SiteContourTask::Ptr pContourTask( new SiteContourTask( pSchematic, {} ) );
-
-        tasks.push_back( pContourTask );
-    }
-
-    return task::Schedule::Ptr( new task::Schedule( tasks ) );
-}
-
 void Schematic::task_compilation()
 {
-    Schematic::Ptr pThis = boost::dynamic_pointer_cast< Schematic >( getPtr() );
-
-    m_pCompilation.reset();
-    m_pCompilation.reset( new Compilation( pThis ) );
-
     std::vector< Segment > edges;
-    m_pCompilation->getEdges( edges );
+    try
+    {
+        Schematic::Ptr pThis = boost::dynamic_pointer_cast< Schematic >( getPtr() );
+
+        m_pCompilation.reset();
+        m_pCompilation.reset( new Compilation( pThis ) );
+
+        m_pCompilation->getEdges( edges );
+    }
+    catch( std::exception& )
+    {
+        m_pCompilation.reset();
+        edges.clear();
+    }
 
     m_pCompilationMarkup->set( edges );
 }
-*/
-/*
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-SiteContourTask::SiteContourTask( Schematic::Ptr pSchematic, const task::Task::RawPtrSet& dependencies )
-    : task::Task( dependencies )
-    , m_pSchematic( pSchematic )
-{
-}
 
-void SiteContourTask::run( task::Progress& taskProgress )
-{
-    taskProgress.start( "SiteContourTask", std::string{}, std::string{} );
-
-    Schematic::Ptr pSchematic = m_pSchematic.lock();
-    if( !pSchematic )
-    {
-        taskProgress.failed();
-        return;
-    }
-
-    {
-        for( Site::Ptr pSite : pSchematic->getSites() )
-        {
-            pSite->task_contour();
-        }
-    }
-
-    taskProgress.succeeded();
-}
-
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-SiteExtrusionTask::SiteExtrusionTask( Schematic::Ptr pSchematic, const task::Task::RawPtrSet& dependencies )
-    : task::Task( dependencies )
-    , m_pSchematic( pSchematic )
-{
-}
-
-void SiteExtrusionTask::run( task::Progress& taskProgress )
-{
-    taskProgress.start( "SiteExtrusionTask", std::string{}, std::string{} );
-
-    Schematic::Ptr pSchematic = m_pSchematic.lock();
-    if( !pSchematic )
-    {
-        taskProgress.failed();
-        return;
-    }
-
-    {
-        for( Site::Ptr pSite : pSchematic->getSites() )
-        {
-            if( Space::Ptr pSpace = boost::dynamic_pointer_cast< Space >( pSite ) )
-            {
-                pSpace->task_extrusions();
-            }
-        }
-    }
-
-    taskProgress.succeeded();
-}
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-
-CompilationTask::CompilationTask( Schematic::Ptr pSchematic, const task::Task::RawPtrSet& dependencies )
-    : task::Task( dependencies )
-    , m_pSchematic( pSchematic )
-{
-}
-
-void CompilationTask::run( task::Progress& taskProgress )
-{
-    taskProgress.start( "CompilationTask", std::string{}, std::string{} );
-
-    Schematic::Ptr pSchematic = m_pSchematic.lock();
-    if( !pSchematic )
-    {
-        taskProgress.failed();
-        return;
-    }
-
-    {
-        try
-        {
-            pSchematic->task_compilation();
-        }
-        catch( std::exception& ex )
-        {
-            taskProgress.failed();
-            return;
-        }
-    }
-
-    taskProgress.succeeded();
-}
-*/
 } // namespace map

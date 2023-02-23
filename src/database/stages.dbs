@@ -291,10 +291,104 @@ stage OperationsStage
     global accessor ref< Derivation::Mapping >;
 }
 
+stage MetaStage
+{
+    source .manifest;
+    dependency OperationsStage;
+
+    file MetaAnalysis;
+
+    persource accessor ref< Concrete::Context >;
+
+}
+
+stage UnityStage
+{
+    source .manifest;
+    dependency MetaStage;
+
+    file UnityAnalysis;
+
+    persource accessor ref< Concrete::Context >;
+}
+
+stage SchematicParseStage
+{
+    source .sch;
+    dependency UnityStage;
+
+    file SchematicParse;
+}
+
+stage SchematicContoursStage
+{
+    source .sch;
+    dependency SchematicParseStage;
+
+    file SchematicContours;
+}
+
+stage SchematicExtrusionsStage
+{
+    source .sch;
+    dependency SchematicContoursStage;
+
+    file SchematicExtrusions;
+}
+
+stage SchematicConnectionsStage
+{
+    source .sch;
+    dependency SchematicExtrusionsStage;
+
+    file SchematicConnections;
+}
+
+stage SchematicWallSectionsStage
+{
+    source .sch;
+    dependency SchematicConnectionsStage;
+
+    file SchematicWallSections;
+}
+
+stage SchematicFloorPlanStage
+{
+    source .sch;
+    dependency SchematicWallSectionsStage;
+
+    file SchematicFloorPlan;
+}
+
+stage SchematicVisibilityStage
+{
+    source .sch;
+    dependency SchematicFloorPlanStage;
+
+    file SchematicVisibility;
+}
+
+stage SchematicValueSpaceStage
+{
+    source .sch;
+    dependency SchematicVisibilityStage;
+
+    file SchematicValueSpace;
+}
+
+stage SchematicSpawnPointsStage
+{
+    source .sch;
+    dependency SchematicValueSpaceStage;
+
+    file SchematicSpawnPoints;
+}
+
+
 stage FinalStage
 {
     source .mega;
-    dependency OperationsStage;
+    dependency UnityStage;
 
     global accessor array< ref< Components::Component > >;
     global accessor ref< Symbols::SymbolTable >;

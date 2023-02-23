@@ -55,8 +55,8 @@ struct Task
 {
     std::string strTaskName; // not serialised
 
-    using FilePathVar
-        = std::variant< mega::io::megaFilePath, mega::io::cppFilePath, mega::io::manifestFilePath, std::string >;
+    using FilePathVar = std::variant< mega::io::megaFilePath, mega::io::cppFilePath, mega::io::schFilePath,
+                                      mega::io::manifestFilePath, std::string >;
     FilePathVar sourceFilePath;
 
     static std::string toString( const FilePathVar& filePathVar )
@@ -65,6 +65,7 @@ struct Task
         {
             std::string operator()( const mega::io::megaFilePath& filePath ) const { return filePath.path().string(); }
             std::string operator()( const mega::io::cppFilePath& filePath ) const { return filePath.path().string(); }
+            std::string operator()( const mega::io::schFilePath& filePath ) const { return filePath.path().string(); }
             std::string operator()( const mega::io::manifestFilePath& filePath ) const
             {
                 return filePath.path().string();
@@ -98,6 +99,7 @@ struct Task
             }
             void operator()( const mega::io::megaFilePath& filePath ) const { ar& filePath; }
             void operator()( const mega::io::cppFilePath& filePath ) const { ar& filePath; }
+            void operator()( const mega::io::schFilePath& filePath ) const { ar& filePath; }
             void operator()( const mega::io::manifestFilePath& filePath ) const { ar& filePath; }
             void operator()( const std::string& componentName ) const { ar& componentName; }
         } visitor( ar );
@@ -109,7 +111,7 @@ struct Task
     {
         int index = 0;
         ar& index;
-        switch ( index )
+        switch( index )
         {
             case 0:
             {
@@ -127,12 +129,19 @@ struct Task
             break;
             case 2:
             {
+                mega::io::schFilePath filePath;
+                ar&                   filePath;
+                sourceFilePath = filePath;
+            }
+            break;
+            case 3:
+            {
                 mega::io::manifestFilePath filePath;
                 ar&                        filePath;
                 sourceFilePath = filePath;
             }
             break;
-            case 3:
+            case 4:
             {
                 std::string strComponentName;
                 ar&         strComponentName;
@@ -231,7 +240,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         = database.template many< Components::Component >( environment.project_manifest() );
 
     {
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc parseAst      = encode( Task{ eTask_ParseAST, sourceFilePath } );
             const TskDesc interfaceTree = encode( Task{ eTask_InterfaceTree, sourceFilePath } );
@@ -251,7 +260,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     TskDescVec symbolRolloutTasks;
     {
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc symbolRollout = encode( Task{ eTask_SymbolRollout, sourceFilePath } );
             symbolRolloutTasks.push_back( symbolRollout );
@@ -262,7 +271,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     TskDescVec interfaceAnalysisTasks;
     {
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc includes                  = encode( Task{ eTask_Include, sourceFilePath } );
             const TskDesc includePCH                = encode( Task{ eTask_IncludePCH, sourceFilePath } );
@@ -280,7 +289,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     TskDescVec concreteTreeTasks;
     {
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc concreteTree = encode( Task{ eTask_ConcreteTree, sourceFilePath } );
             dependencies.add( concreteTree, interfaceAnalysisTasks );
@@ -294,7 +303,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     TskDescVec derivationRolloutTasks;
     {
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc derivationRollout = encode( Task{ eTask_DerivationRollout, sourceFilePath } );
             dependencies.add( derivationRollout, TskDescVec{ derivation } );
@@ -307,7 +316,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     TskDescVec memoryTasks;
     {
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc hyperGraphRollout = encode( Task{ eTask_HyperGraphRollout, sourceFilePath } );
             const TskDesc allocators        = encode( Task{ eTask_Allocators, sourceFilePath } );
@@ -323,7 +332,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     TskDescVec concreteTypeIDRolloutTasks;
     {
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc concreteTypeRollout = encode( Task{ eTask_ConcreteTypeRollout, sourceFilePath } );
             dependencies.add( concreteTypeRollout, TskDescVec{ concreteTypeAnalysis } );
@@ -331,17 +340,18 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
+    TskDescVec operationsTasks;
     TskDescVec componentTasks;
     {
-        for ( ComponentListingView::Components::Component* pComponent : components )
+        for( ComponentListingView::Components::Component* pComponent : components )
         {
-            switch ( pComponent->get_type().get() )
+            switch( pComponent->get_type().get() )
             {
                 case mega::ComponentType::eInterface:
                 {
                     TskDescVec binaryTasks;
                     {
-                        for ( const mega::io::megaFilePath& sourceFilePath : pComponent->get_mega_source_files() )
+                        for( const mega::io::megaFilePath& sourceFilePath : pComponent->get_mega_source_files() )
                         {
                             const TskDesc operations        = encode( Task{ eTask_Operations, sourceFilePath } );
                             const TskDesc operationsPCH     = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
@@ -353,6 +363,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                             dependencies.add( implementation, TskDescVec{ operationsPCH } );
                             dependencies.add( implementationObj, TskDescVec{ implementation } );
 
+                            operationsTasks.push_back( operationsPCH );
                             binaryTasks.push_back( implementationObj );
                         }
                     }
@@ -385,7 +396,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                         TskDescVec tasks = concreteTypeIDRolloutTasks;
                         tasks.push_back( objectInterfaceAnalysis );
 
-                        for ( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
+                        for( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
                         {
                             const TskDesc cppPCH               = encode( Task{ eTask_CPPPCH, sourceFile } );
                             const TskDesc cppCPPImplementation = encode( Task{ eTask_CPPImplementation, sourceFile } );
@@ -394,6 +405,8 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                             dependencies.add( cppPCH, tasks );
                             dependencies.add( cppCPPImplementation, TskDescVec{ cppPCH } );
                             dependencies.add( cppObj, TskDescVec{ cppCPPImplementation } );
+
+                            operationsTasks.push_back( cppPCH );
                             binaryTasks.push_back( cppObj );
                         }
                     }
@@ -410,8 +423,46 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
+    TskDesc meta = encode( Task{ eTask_Meta, manifestFilePath } );
+    dependencies.add( meta, operationsTasks );
+
+    TskDesc unity = encode( Task{ eTask_Unity, manifestFilePath } );
+    dependencies.add( unity, TskDescVec{ meta } );
+
+    TskDescVec completionTasks = componentTasks;
+    completionTasks.push_back( unity );
+
     TskDesc complete = encode( Task{ eTask_Complete, manifestFilePath } );
-    dependencies.add( complete, componentTasks );
+    dependencies.add( complete, completionTasks );
+
+    TskDescVec schematicMapTasks;
+    for( const mega::io::schFilePath& schematicFilePath : manifest.getSchematicSourceFiles() )
+    {
+        TskDesc schematicParseStage        = encode( Task{ eTask_SchematicParseStage, schematicFilePath } );
+        TskDesc schematicContoursStage     = encode( Task{ eTask_SchematicContoursStage, schematicFilePath } );
+        TskDesc schematicExtrusionsStage   = encode( Task{ eTask_SchematicExtrusionsStage, schematicFilePath } );
+        TskDesc schematicConnectionsStage  = encode( Task{ eTask_SchematicConnectionsStage, schematicFilePath } );
+        TskDesc schematicWallSectionsStage = encode( Task{ eTask_SchematicWallSectionsStage, schematicFilePath } );
+        TskDesc schematicFloorPlanStage    = encode( Task{ eTask_SchematicFloorPlanStage, schematicFilePath } );
+        TskDesc schematicVisibilityStage   = encode( Task{ eTask_SchematicVisibilityStage, schematicFilePath } );
+        TskDesc schematicValueSpaceStage   = encode( Task{ eTask_SchematicValueSpaceStage, schematicFilePath } );
+        TskDesc schematicSpawnPointsStage  = encode( Task{ eTask_SchematicSpawnPointsStage, schematicFilePath } );
+        TskDesc schematicMapFile           = encode( Task{ eTask_SchematicMapFile, schematicFilePath } );
+
+        dependencies.add( schematicParseStage, TskDescVec{ unity } );
+
+        dependencies.add( schematicContoursStage, TskDescVec{ schematicParseStage } );
+        dependencies.add( schematicExtrusionsStage, TskDescVec{ schematicContoursStage } );
+        dependencies.add( schematicConnectionsStage, TskDescVec{ schematicExtrusionsStage } );
+        dependencies.add( schematicWallSectionsStage, TskDescVec{ schematicConnectionsStage } );
+        dependencies.add( schematicFloorPlanStage, TskDescVec{ schematicWallSectionsStage } );
+        dependencies.add( schematicVisibilityStage, TskDescVec{ schematicFloorPlanStage } );
+        dependencies.add( schematicValueSpaceStage, TskDescVec{ schematicVisibilityStage } );
+        dependencies.add( schematicSpawnPointsStage, TskDescVec{ schematicValueSpaceStage } );
+        dependencies.add( schematicMapFile, TskDescVec{ schematicSpawnPointsStage } );
+
+        schematicMapTasks.push_back( schematicMapFile );
+    }
 
     return { dependencies };
 }
@@ -433,7 +484,7 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
     mega::compiler::BaseTask::Ptr pTask;
 
 #define TASK( taskName, sourceFileType, argumentType )                                   \
-    if ( task.strTaskName == "Task_" #taskName )                                         \
+    if( task.strTaskName == "Task_" #taskName )                                          \
     {                                                                                    \
         VERIFY_RTE( !pTask );                                                            \
         pTask = mega::compiler::create_Task_##taskName( taskArguments, sourceFileType ); \
@@ -446,7 +497,7 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
     try
     {
         pTask->run( progress );
-        if ( !pTask->isCompleted() )
+        if( !pTask->isCompleted() )
         {
             std::ostringstream os;
             os << "FAILED : " << pTask->getTaskName() << " Task did NOT complete";
@@ -454,7 +505,7 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
             pTask->failed( progress );
         }
     }
-    catch ( std::exception& ex )
+    catch( std::exception& ex )
     {
         std::ostringstream os;
         os << "FAILED : " << pTask->getTaskName();

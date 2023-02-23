@@ -132,6 +132,14 @@ public:
                     break;
                 }
             }
+            for ( const mega::io::schFilePath& schSourceFile : pIter->get_sch_source_files() )
+            {
+                if ( sourceFilePath == schSourceFile )
+                {
+                    pComponent = pIter;
+                    break;
+                }
+            }
         }
         VERIFY_RTE_MSG( pComponent, "Failed to locate component for source file: " << sourceFilePath.path().string() );
         return pComponent;

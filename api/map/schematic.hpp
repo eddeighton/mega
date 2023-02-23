@@ -58,22 +58,12 @@ public:
         eStage_Site,
         eStage_SiteContour,
         eStage_Extrusion,
-        eStage_Compilation //,
-        /*eStage_FloorPlan,
-        eStage_CellComplex,
-        eStage_Clearance,
-        eStage_DStar,
-        eStage_AStar*/
+        eStage_Compilation
     };
-
-    // virtual task::Schedule::Ptr createSchedule( const CompilationConfig& config );
-
-    // schematic tasks
-    // void task_compilation();
-
 
     void task_contours();
     void task_extrusions();
+    void task_compilation();
 
     // GlyphSpecProducer
     virtual void getMarkupPolygonGroups( MarkupPolygonGroup::List& polyGroups )

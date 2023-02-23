@@ -36,6 +36,7 @@ namespace Components
         array< value< mega::io::megaFilePath > > dependencies;
         array< value< mega::io::megaFilePath > > mega_source_files;
         array< value< mega::io::cppFilePath > > cpp_source_files;
+        array< value< mega::io::schFilePath > > sch_source_files;
     }
 }
 

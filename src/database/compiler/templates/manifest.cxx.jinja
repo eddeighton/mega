@@ -101,6 +101,9 @@ namespace mega::io
 {% if source.type == "cpp" %}
                     m_cppSourceFiles.push_back( sourceFilePath );
 {% endif %}
+{% if source.type == "sch" %}
+                    m_schematicSourceFiles.push_back( sourceFilePath );
+{% endif %}
 {% for file in source.files %}
                     {
                         FileInfo compilationFileInfo( FileInfo::{{ file.stage }}_{{ file.name }}, 

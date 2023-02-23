@@ -31,27 +31,29 @@ namespace mega::io
 {
 struct EGDB_EXPORT ManifestData
 {
-    using MegaSourceFileVector = std::vector< megaFilePath >;
-    using CppSourceFileVector  = std::vector< cppFilePath >;
-    using FileInfoVector       = std::vector< FileInfo >;
+    using MegaSourceFileVector      = std::vector< megaFilePath >;
+    using CppSourceFileVector       = std::vector< cppFilePath >;
+    using SchematicSourceFileVector = std::vector< schFilePath >;
+    using FileInfoVector            = std::vector< FileInfo >;
 
-    const manifestFilePath&     getManifestFilePath() const { return m_manifestFilePath; }
-    const MegaSourceFileVector& getMegaSourceFiles() const { return m_megaSourceFiles; }
-    const CppSourceFileVector&  getCppSourceFiles() const { return m_cppSourceFiles; }
-    const FileInfoVector&       getCompilationFileInfos() const { return m_compilationFileInfos; }
+    const manifestFilePath&          getManifestFilePath() const { return m_manifestFilePath; }
+    const MegaSourceFileVector&      getMegaSourceFiles() const { return m_megaSourceFiles; }
+    const CppSourceFileVector&       getCppSourceFiles() const { return m_cppSourceFiles; }
+    const SchematicSourceFileVector& getSchematicSourceFiles() const { return m_schematicSourceFiles; }
+    const FileInfoVector&            getCompilationFileInfos() const { return m_compilationFileInfos; }
 
     ManifestData filterToObjects( const std::set< const mega::io::ObjectInfo* >& objectInfos ) const
     {
         ManifestData manifest{ m_manifestFilePath, {}, {} };
         {
             std::set< ObjectInfo::FileID > fileIDs;
-            for ( const mega::io::ObjectInfo* pObjectInfo : objectInfos )
+            for( const mega::io::ObjectInfo* pObjectInfo : objectInfos )
             {
                 fileIDs.insert( pObjectInfo->getFileID() );
             }
-            for ( const FileInfo& fileInfo : m_compilationFileInfos )
+            for( const FileInfo& fileInfo : m_compilationFileInfos )
             {
-                if ( fileIDs.count( fileInfo.getFileID() ) )
+                if( fileIDs.count( fileInfo.getFileID() ) )
                 {
                     manifest.m_compilationFileInfos.push_back( fileInfo );
                 }
@@ -66,13 +68,15 @@ struct EGDB_EXPORT ManifestData
         archive& boost::serialization::make_nvp( "manifestFilePath", m_manifestFilePath );
         archive& boost::serialization::make_nvp( "megaSourceFiles", m_megaSourceFiles );
         archive& boost::serialization::make_nvp( "cppSourceFiles", m_cppSourceFiles );
+        archive& boost::serialization::make_nvp( "schematicSourceFiles", m_schematicSourceFiles );
         archive& boost::serialization::make_nvp( "compilationFileInfos", m_compilationFileInfos );
     }
 
-    manifestFilePath     m_manifestFilePath;
-    MegaSourceFileVector m_megaSourceFiles;
-    CppSourceFileVector  m_cppSourceFiles;
-    FileInfoVector       m_compilationFileInfos;
+    manifestFilePath          m_manifestFilePath;
+    MegaSourceFileVector      m_megaSourceFiles;
+    CppSourceFileVector       m_cppSourceFiles;
+    SchematicSourceFileVector m_schematicSourceFiles;
+    FileInfoVector            m_compilationFileInfos;
 };
 
 } // namespace mega::io
