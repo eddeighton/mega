@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef COMPILER_CONFIGURATION_27_MAY_2022
 #define COMPILER_CONFIGURATION_27_MAY_2022
 
@@ -53,6 +50,8 @@ struct Configuration
     std::string                            projectName;
     std::vector< boost::filesystem::path > componentInfoPaths;
     Directories                            directories;
+    boost::filesystem::path                unityProjectDir;
+    boost::filesystem::path                unityEditor;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -62,12 +61,14 @@ struct Configuration
         archive& boost::serialization::make_nvp( "projectName", projectName );
         archive& boost::serialization::make_nvp( "componentInfoPaths", componentInfoPaths );
         archive& boost::serialization::make_nvp( "directories", directories );
+        archive& boost::serialization::make_nvp( "unityProjectDir", unityProjectDir );
+        archive& boost::serialization::make_nvp( "unityEditor", unityEditor );
     }
 };
 
 pipeline::Configuration makePipelineConfiguration( const Configuration& config );
 Configuration           fromPipelineConfiguration( const pipeline::Configuration& pipelineConfig );
 
-} // namespace mega
+} // namespace mega::compiler
 
 #endif // COMPILER_CONFIGURATION_27_MAY_2022

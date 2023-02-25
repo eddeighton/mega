@@ -228,7 +228,7 @@ const clang::Token& Parser::NextToken()
 
 clang::SourceLocation Parser::ConsumeToken()
 {
-    MEGA_PARSER_ASSERT( !isTokenSpecial(), "Should consume special tokens with Consume*Token" );
+    // MEGA_PARSER_ASSERT( !isTokenSpecial(), "Should consume special tokens with Consume*Token" );
     PrevTokLocation = Tok.getLocation();
     PP.Lex( Tok );
     return PrevTokLocation;

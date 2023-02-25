@@ -62,12 +62,26 @@ public:
         using namespace UnityStage;
         Database database( m_environment, m_manifest );
 
-        // ./Unity 
-        // -projectPath /workspace/root/src/mcgs/MCGS/ 
-        // -logFile /workspace/root/src/mcgs/log.txt 
-        // -noUpm -batchmode  -quit -nographics -disable-gpu-skinning -disable-assembly-updater -disableManagedDebugger 
-        // -executeMethod UnityProtocol.Run
+        VERIFY_RTE_MSG( boost::filesystem::exists( m_unityProjectDir ),
+                        "Could not locate unity project directory at: " << m_unityProjectDir.string() );
 
+        VERIFY_RTE_MSG( boost::filesystem::exists( m_unityEditor ),
+                        "Could not locate unity editor at: " << m_unityEditor.string() );
+
+        const boost::filesystem::path unityLog = m_environment.buildDir() / "unity_log.txt";
+
+        {
+            std::ostringstream osCmd;
+
+            osCmd << m_unityEditor.string() << " ";
+            osCmd << "-projectPath " << m_unityProjectDir.string() << " ";
+            osCmd << "-logFile " << unityLog.string() << " ";
+            osCmd << "-noUpm -batchmode  -quit -nographics -disable-gpu-skinning -disable-assembly-updater "
+                     "-disableManagedDebugger ";
+            osCmd << "-executeMethod UnityProtocol.Run";
+
+            this->run_cmd( taskProgress, osCmd.str() );
+        }
 
         const task::FileHash fileHashCode = database.save_UnityAnalysis_to_temp();
         m_environment.setBuildHashCode( unityAnalysisCompilationFile, fileHashCode );

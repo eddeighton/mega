@@ -482,7 +482,8 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
 
     mega::io::StashEnvironment environment( stash, config.directories );
 
-    mega::compiler::TaskArguments taskArguments( environment, m_toolChain.value(), dependencies.getParser() );
+    mega::compiler::TaskArguments taskArguments(
+        environment, m_toolChain.value(), config.unityProjectDir, config.unityEditor, dependencies.getParser() );
 
     mega::compiler::BaseTask::Ptr pTask;
 

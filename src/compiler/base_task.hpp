@@ -63,7 +63,7 @@
 #include <memory>
 
 #define VERIFY_PARSER( expression, msg, scoped_id )                                                             \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( if ( !( expression ) ) {                                                   \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( if( !( expression ) ) {                                                    \
         std::ostringstream _os2;                                                                                \
         _os2 << common::COLOUR_RED_BEGIN << msg << ". Source Location: " << scoped_id->get_source_file() << ":" \
              << scoped_id->get_line_number() << common::COLOUR_END;                                             \
@@ -76,14 +76,19 @@ namespace mega::compiler
 struct TaskArguments
 {
     TaskArguments( const mega::io::StashEnvironment& environment, const mega::utilities::ToolChain& toolChain,
+                   const boost::filesystem::path& unityProjectDir, const boost::filesystem::path& unityEditor,
                    EG_PARSER_INTERFACE* parser )
         : environment( environment )
         , toolChain( toolChain )
+        , unityProjectDir( unityProjectDir )
+        , unityEditor( unityEditor )
         , parser( parser )
     {
     }
     const mega::io::StashEnvironment& environment;
     const mega::utilities::ToolChain& toolChain;
+    const boost::filesystem::path&    unityProjectDir;
+    const boost::filesystem::path&    unityEditor;
     EG_PARSER_INTERFACE*              parser;
 };
 
@@ -93,6 +98,8 @@ protected:
     std::string                       m_strTaskName;
     const mega::io::StashEnvironment& m_environment;
     const mega::utilities::ToolChain& m_toolChain;
+    const boost::filesystem::path&    m_unityProjectDir;
+    const boost::filesystem::path&    m_unityEditor;
     EG_PARSER_INTERFACE*              m_parser;
     bool                              m_bCompleted = false;
 
@@ -102,10 +109,12 @@ public:
     BaseTask( const TaskArguments& taskArguments )
         : m_environment( taskArguments.environment )
         , m_toolChain( taskArguments.toolChain )
+        , m_unityProjectDir( taskArguments.unityProjectDir )
+        , m_unityEditor( taskArguments.unityEditor )
         , m_parser( taskArguments.parser )
     {
     }
-    virtual ~BaseTask() {}
+    virtual ~BaseTask() = default;
 
     const std::string& getTaskName() const { return m_strTaskName; }
     bool               isCompleted() const { return m_bCompleted; }
@@ -114,27 +123,27 @@ public:
     TComponentType* getComponent( TDatabase& database, const mega::io::SourceFilePath& sourceFilePath ) const
     {
         TComponentType* pComponent = nullptr;
-        for ( TComponentType* pIter : database.template many< TComponentType >( m_environment.project_manifest() ) )
+        for( TComponentType* pIter : database.template many< TComponentType >( m_environment.project_manifest() ) )
         {
-            for ( const mega::io::megaFilePath& megaSourceFile : pIter->get_mega_source_files() )
+            for( const mega::io::megaFilePath& megaSourceFile : pIter->get_mega_source_files() )
             {
-                if ( sourceFilePath == megaSourceFile )
+                if( sourceFilePath == megaSourceFile )
                 {
                     pComponent = pIter;
                     break;
                 }
             }
-            for ( const mega::io::cppFilePath& cppSourceFile : pIter->get_cpp_source_files() )
+            for( const mega::io::cppFilePath& cppSourceFile : pIter->get_cpp_source_files() )
             {
-                if ( sourceFilePath == cppSourceFile )
+                if( sourceFilePath == cppSourceFile )
                 {
                     pComponent = pIter;
                     break;
                 }
             }
-            for ( const mega::io::schFilePath& schSourceFile : pIter->get_sch_source_files() )
+            for( const mega::io::schFilePath& schSourceFile : pIter->get_sch_source_files() )
             {
-                if ( sourceFilePath == schSourceFile )
+                if( sourceFilePath == schSourceFile )
                 {
                     pComponent = pIter;
                     break;
@@ -149,39 +158,38 @@ public:
 
     int run_cmd( mega::pipeline::Progress& taskProgress, const std::string& strCmd, bool bTreatFailureAsError = true )
     {
-
         std::string strOutput, strError;
-        const int iExitCode = common::runProcess( strCmd, strOutput, strError );
-        
+        const int   iExitCode = common::runProcess( strCmd, strOutput, strError );
+
         {
             std::ostringstream os;
             os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nCMD    : " << strCmd;
             {
                 std::istringstream isOut( strOutput );
-                std::string str;
-                while ( isOut && std::getline( isOut, str ) )
+                std::string        str;
+                while( isOut && std::getline( isOut, str ) )
                 {
-                    if ( !str.empty() )
+                    if( !str.empty() )
                     {
                         os << "\nOUT    : " << str;
                     }
                 }
             }
-            
+
             os << common::COLOUR_END;
             taskProgress.onProgress( os.str() );
         }
-        
-        if ( iExitCode && bTreatFailureAsError )
+
+        if( iExitCode && bTreatFailureAsError )
         {
             std::istringstream isErr( strError );
-        
+
             std::ostringstream osError;
             osError << common::COLOUR_RED_BEGIN << "FAILED : " << m_strTaskName;
             std::string str;
-            while ( isErr && std::getline( isErr, str ) )
+            while( isErr && std::getline( isErr, str ) )
             {
-                if ( !str.empty() )
+                if( !str.empty() )
                 {
                     osError << "\nERROR  : " << str;
                 }
@@ -189,7 +197,7 @@ public:
             osError << common::COLOUR_END;
             taskProgress.onProgress( osError.str() );
         }
-        
+
         return iExitCode;
     }
 
