@@ -6,9 +6,9 @@
 
 #ifndef Q_MOC_RUN
 
-#include "map/base.hpp"
-#include "map/ship.hpp"
-#include "map/factory.hpp"
+#include "schematic/base.hpp"
+#include "schematic/ship.hpp"
+#include "schematic/factory.hpp"
 
 #include "common/file.hpp"
 
@@ -110,7 +110,7 @@ boost::filesystem::path Document::UndoHistory::getUndoFileName() const
 
 void Document::UndoHistory::onNewVersion()
 {
-    map::File::Ptr pFile = m_document.getFile();
+    schematic::File::Ptr pFile = m_document.getFile();
     VERIFY_RTE( pFile );
 
     if( m_current.has_value() )
@@ -123,14 +123,14 @@ void Document::UndoHistory::onNewVersion()
 
     boost::filesystem::ensureFoldersExist( m_tempFolder / m_current.value() );
 
-    map::save( pFile, m_tempFolder / m_current.value() );
+    schematic::save( pFile, m_tempFolder / m_current.value() );
 
     m_lastRecord.update();
 }
 
-map::File::Ptr Document::UndoHistory::onUndo()
+schematic::File::Ptr Document::UndoHistory::onUndo()
 {
-    map::File::Ptr pOldFile = m_document.getFile();
+    schematic::File::Ptr pOldFile = m_document.getFile();
     VERIFY_RTE( pOldFile );
 
     if( !m_history.empty() )
@@ -145,7 +145,7 @@ map::File::Ptr Document::UndoHistory::onUndo()
 
         m_lastRecord.update();
 
-        return map::load( m_tempFolder / m_current.value() );
+        return schematic::load( m_tempFolder / m_current.value() );
     }
     else
     {
@@ -153,9 +153,9 @@ map::File::Ptr Document::UndoHistory::onUndo()
     }
 }
 
-map::File::Ptr Document::UndoHistory::onRedo()
+schematic::File::Ptr Document::UndoHistory::onRedo()
 {
-    map::File::Ptr pOldFile = m_document.getFile();
+    schematic::File::Ptr pOldFile = m_document.getFile();
     VERIFY_RTE( pOldFile );
 
     if( !m_future.empty() )
@@ -170,7 +170,7 @@ map::File::Ptr Document::UndoHistory::onRedo()
 
         m_lastRecord.update();
 
-        return map::load( m_tempFolder / m_current.value() );
+        return schematic::load( m_tempFolder / m_current.value() );
     }
     else
     {
@@ -197,7 +197,7 @@ Document::Document( DocumentChangeObserver& observer, const boost::filesystem::p
 
 bool Document::isModified() const
 {
-    if( map::File::Ptr pFile = getFile() )
+    if( schematic::File::Ptr pFile = getFile() )
     {
         if( pFile->getLastModifiedTickForTree() > m_lastModifiedTick )
         {
@@ -207,7 +207,7 @@ bool Document::isModified() const
     return false;
 }
 
-void Document::setCompilationConfig( const map::File::CompilationConfig& config )
+void Document::setCompilationConfig( const schematic::File::CompilationConfig& config )
 {
     if( config != m_compilationConfig )
     {
@@ -218,7 +218,7 @@ void Document::setCompilationConfig( const map::File::CompilationConfig& config 
 
 void Document::onEditted( bool bCommandCompleted )
 {
-    if( map::File::Ptr pFile = getFile() )
+    if( schematic::File::Ptr pFile = getFile() )
     {
         if( bCommandCompleted )
         {
@@ -240,14 +240,14 @@ void Document::saved( const boost::filesystem::path& filePath )
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, map::Schematic::Ptr pSchematic )
+SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic )
     : Document( observer )
     , m_pSchematic( pSchematic )
 {
     m_undoHistory.onNewVersion();
 }
 
-SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, map::Schematic::Ptr pSchematic,
+SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic,
                                       const boost::filesystem::path& path )
     : Document( observer, path )
     , m_pSchematic( pSchematic )
@@ -259,15 +259,15 @@ void SchematicDocument::calculateDerived()
 {
     if( m_pSchematic )
     {
-        if( m_compilationConfig[ map::Schematic::eStage_SiteContour ] )
+        if( m_compilationConfig[ schematic::Schematic::eStage_SiteContour ] )
         {
             m_pSchematic->task_contours();
         }
-        if( m_compilationConfig[ map::Schematic::eStage_Extrusion ] )
+        if( m_compilationConfig[ schematic::Schematic::eStage_Extrusion ] )
         {
             m_pSchematic->task_extrusions();
         }
-        if( m_compilationConfig[ map::Schematic::eStage_Compilation ] )
+        if( m_compilationConfig[ schematic::Schematic::eStage_Compilation ] )
         {
             m_pSchematic->task_compilation();
         }
@@ -289,15 +289,15 @@ void SchematicDocument::saveAs( const std::string& strFilePath )
 {
     boost::filesystem::path filePath = strFilePath;
 
-    map::save( m_pSchematic, filePath );
+    schematic::save( m_pSchematic, filePath );
 
     saved( filePath );
 }
 
 void SchematicDocument::undo()
 {
-    map::File::Ptr      pUndoFile      = m_undoHistory.onUndo();
-    map::Schematic::Ptr pUndoSchematic = boost::dynamic_pointer_cast< map::Schematic >( pUndoFile );
+    schematic::File::Ptr      pUndoFile      = m_undoHistory.onUndo();
+    schematic::Schematic::Ptr pUndoSchematic = boost::dynamic_pointer_cast< schematic::Schematic >( pUndoFile );
     VERIFY_RTE( pUndoSchematic );
 
     if( pUndoSchematic != m_pSchematic )
@@ -310,8 +310,8 @@ void SchematicDocument::undo()
 
 void SchematicDocument::redo()
 {
-    map::File::Ptr      pUndoFile      = m_undoHistory.onRedo();
-    map::Schematic::Ptr pUndoSchematic = boost::dynamic_pointer_cast< map::Schematic >( pUndoFile );
+    schematic::File::Ptr      pUndoFile      = m_undoHistory.onRedo();
+    schematic::Schematic::Ptr pUndoSchematic = boost::dynamic_pointer_cast< schematic::Schematic >( pUndoFile );
     VERIFY_RTE( pUndoSchematic );
 
     if( pUndoSchematic != m_pSchematic )

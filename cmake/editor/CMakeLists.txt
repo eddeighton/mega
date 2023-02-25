@@ -101,7 +101,7 @@ target_link_libraries( editor Qt6::Core)
 target_link_libraries( editor Qt6::Gui) 
 target_link_libraries( editor Qt6::Widgets) 
 target_link_libraries( editor mega_interface )
-target_link_libraries( editor map )
+target_link_libraries( editor schematic )
 
 link_cgal( editor )
 link_qtdock2( editor )

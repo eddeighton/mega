@@ -12,7 +12,7 @@ void Selectable::setSelected( bool bSelected )
     m_bSelected = bSelected;
 }
 
-void cleanUpItem( QGraphicsItem* pItem, GlyphMap& map, const map::GlyphSpec* pSpec, QGraphicsScene*  )
+void cleanUpItem( QGraphicsItem* pItem, GlyphMap& map, const schematic::GlyphSpec* pSpec, QGraphicsScene*  )
 {
     if( pItem )
     {
@@ -24,11 +24,11 @@ void cleanUpItem( QGraphicsItem* pItem, GlyphMap& map, const map::GlyphSpec* pSp
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-GlyphControlPoint::GlyphControlPoint( map::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                                      GlyphMap map, map::ControlPoint* pControlPoint, 
+GlyphControlPoint::GlyphControlPoint( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
+                                      GlyphMap map, schematic::ControlPoint* pControlPoint, 
                                       float fZoom,
                                       Toolbox::Ptr pToolboxPtr )
-    :   map::GlyphControlPoint( pControlPoint, pParent ),
+    :   schematic::GlyphControlPoint( pControlPoint, pParent ),
         Selectable( calculateDepth( pControlPoint ) ),
         
         m_fSizeScaling( 12.0f ),
@@ -80,7 +80,7 @@ void GlyphControlPoint::setSelected( bool bSelected )
 
 void GlyphControlPoint::update()
 {
-    const map::ControlPoint* pControlPoint = getControlPoint();
+    const schematic::ControlPoint* pControlPoint = getControlPoint();
     VERIFY_RTE( pControlPoint );
     if( pControlPoint )
     {
@@ -113,11 +113,11 @@ static float g_pathWidth( 4.0f );
 static QColor g_polygonColor( 155,155,155,200 );
 static float g_polygonWidth( 4.0f );
 
-GlyphPolygonGroup::GlyphPolygonGroup( map::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                      GlyphMap map, map::MarkupPolygonGroup* pPolygonGroup, 
+GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
+                      GlyphMap map, schematic::MarkupPolygonGroup* pPolygonGroup, 
                       float fZoom, 
                       Toolbox::Ptr pToolBoxPtr )
-    :   map::GlyphPolygonGroup( pPolygonGroup, pParent ),
+    :   schematic::GlyphPolygonGroup( pPolygonGroup, pParent ),
         m_pScene( pScene ),
         m_map( map ),
         m_pItem( 0u ),
@@ -193,11 +193,11 @@ static QColor g_originSelected( 0, 255, 0, 25 );
 static QColor g_originIdle( 0, 0, 255 , 25 );
 static QColor g_originInvisible( 0, 0, 0, 0 );
 
-GlyphOrigin::GlyphOrigin( map::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                        GlyphMap map, map::Origin* pOrigin, 
-                        map::IEditContext*& pActiveContext,
+GlyphOrigin::GlyphOrigin( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
+                        GlyphMap map, schematic::Origin* pOrigin, 
+                        schematic::IEditContext*& pActiveContext,
                         Toolbox::Ptr pToolBoxPtr )
-    :   map::GlyphOrigin( pOrigin, pParent ),
+    :   schematic::GlyphOrigin( pOrigin, pParent ),
         Selectable( calculateDepth( pOrigin ) ),
         m_pScene( pScene ),
         m_map( map ),
@@ -223,7 +223,7 @@ GlyphOrigin::GlyphOrigin( map::IGlyph::Ptr pParent, QGraphicsScene* pScene,
     
     QGraphicsItem* pParentItem = m_map.findItem( getOrigin()->getParent() );
     {
-        if( const map::MarkupPolygonGroup* pMarkupContour = 
+        if( const schematic::MarkupPolygonGroup* pMarkupContour = 
             getOrigin()->getMarkupContour() )
         {
             pMarkupContour->paint( m_pathPainter );
@@ -327,7 +327,7 @@ void GlyphOrigin::updateColours()
         m_pItemY->setVisible( false );
     }
     
-    const map::Transform& originMatrix = getOrigin()->getTransform();
+    const schematic::Transform& originMatrix = getOrigin()->getTransform();
     const QTransform transform( 
         CGAL::to_double( originMatrix.m( 0, 0 ) ), 
         CGAL::to_double( originMatrix.m( 1, 0 ) ),
@@ -377,11 +377,11 @@ QVector< QRgb > GlyphImage::m_coloursNormal;
 QVector< QRgb > GlyphImage::m_coloursSelected;
 QVector< QRgb > GlyphImage::m_coloursActiveContext;
 
-GlyphImage::GlyphImage( map::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                        GlyphMap map, map::ImageSpec* pImage, 
-                        map::IEditContext*& pActiveContext, 
+GlyphImage::GlyphImage( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
+                        GlyphMap map, schematic::ImageSpec* pImage, 
+                        schematic::IEditContext*& pActiveContext, 
                         Toolbox::Ptr pToolBoxPtr )
-    :   map::GlyphImage( pImage, pParent ),
+    :   schematic::GlyphImage( pImage, pParent ),
         Selectable( calculateDepth( pImage ) ),
         m_pScene( pScene ),
         m_map( map ),
@@ -407,7 +407,7 @@ GlyphImage::GlyphImage( map::IGlyph::Ptr pParent, QGraphicsScene* pScene,
         m_coloursActiveContext.push_back( 0x30FF6F00 );
     }
 
-    if( map::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
+    if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
     {
         QImage m_image( pBuffer->get(),pBuffer->getWidth(),pBuffer->getHeight(),pBuffer->getStride(),QImage::Format_Indexed8 );
         m_image.setColorTable( m_coloursNormal );
@@ -437,7 +437,7 @@ void GlyphImage::setSelected( bool bSelected )
         m_bActiveContext = isActiveContext();
         if( m_bActiveContext )
         {
-            if( map::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
+            if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
             {
                 QImage m_image( pBuffer->get(),pBuffer->getWidth(),pBuffer->getHeight(),pBuffer->getStride(),QImage::Format_Indexed8 );
                 m_image.setColorTable( m_coloursActiveContext );
@@ -447,7 +447,7 @@ void GlyphImage::setSelected( bool bSelected )
         }
         else if( isSelected() )
         {
-            if( map::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
+            if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
             {
                 QImage m_image( pBuffer->get(),pBuffer->getWidth(),pBuffer->getHeight(),pBuffer->getStride(),QImage::Format_Indexed8 );
                 m_image.setColorTable( m_coloursSelected );
@@ -457,7 +457,7 @@ void GlyphImage::setSelected( bool bSelected )
         }
         else
         {
-            if( map::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
+            if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
             {
                 QImage m_image( pBuffer->get(),pBuffer->getWidth(),pBuffer->getHeight(),pBuffer->getStride(),QImage::Format_Indexed8 );
                 m_image.setColorTable( m_coloursNormal );
@@ -486,7 +486,7 @@ void GlyphImage::setOrCreateImageItem()
 
 void GlyphImage::update()
 {
-    if( map::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
+    if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
     {
         if( ( m_lastUpdateTick < pBuffer->getLastUpdateTick() ) || !m_pItem || 
             ( isActiveContext() != m_bActiveContext ) )
@@ -524,10 +524,10 @@ void GlyphImage::setShouldRender( bool bShouldRender )
 //////////////////////////////////////////////////////////////////////
 static QColor g_textColour( 0, 0, 0 );
 
-GlyphText::GlyphText( map::IGlyph::Ptr pParent, QGraphicsScene* pScene, 
-                     GlyphMap map, map::MarkupText* pText,
+GlyphText::GlyphText( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, 
+                     GlyphMap map, schematic::MarkupText* pText,
                      Toolbox::Ptr pToolBoxPtr )
-    :   map::GlyphText( pText, pParent ),
+    :   schematic::GlyphText( pText, pParent ),
         m_pScene( pScene ),
         m_map( map ),
         m_pItem( nullptr ),

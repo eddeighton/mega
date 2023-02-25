@@ -15,9 +15,9 @@
 
 #include "toolbox.hpp"
 
-#include "map/node.hpp"
-#include "map/schematic.hpp"
-#include "map/editSchematic.hpp"
+#include "schematic/node.hpp"
+#include "schematic/schematic.hpp"
+#include "schematic/editSchematic.hpp"
 
 #include <boost/shared_ptr.hpp>
 
@@ -32,22 +32,22 @@ namespace editor
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
-class ClipScene : public QGraphicsScene, public map::GlyphFactory
+class ClipScene : public QGraphicsScene, public schematic::GlyphFactory
 {
     Q_OBJECT
 
 public:
     explicit ClipScene(QWidget *parent = 0);
 
-    void setClip( map::Schematic::Ptr pSchematic, Toolbox::Ptr pToolBox );
+    void setClip( schematic::Schematic::Ptr pSchematic, Toolbox::Ptr pToolBox );
     void calculateSceneRect();
 
     //glyph factory interface
-    virtual map::IGlyph::Ptr createControlPoint( map::ControlPoint* pControlPoint, map::IGlyph::Ptr pParent );
-    virtual map::IGlyph::Ptr createOrigin( map::Origin* pOrigin, map::IGlyph::Ptr pParent );
-    //virtual map::IGlyph::Ptr createMarkupPath( map::MarkupPath* pMarkupPath, map::IGlyph::Ptr pParent );
-    virtual map::IGlyph::Ptr createMarkupPolygonGroup( map::MarkupPolygonGroup* pMarkupPolygonGroup, map::IGlyph::Ptr pParent );
-    virtual map::IGlyph::Ptr createMarkupText( map::MarkupText* pMarkupText, map::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createControlPoint( schematic::ControlPoint* pControlPoint, schematic::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createOrigin( schematic::Origin* pOrigin, schematic::IGlyph::Ptr pParent );
+    //virtual schematic::IGlyph::Ptr createMarkupPath( schematic::MarkupPath* pMarkupPath, schematic::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup, schematic::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createMarkupText( schematic::MarkupText* pMarkupText, schematic::IGlyph::Ptr pParent );
     virtual void onEditted( bool bCommandCompleted );
 
 signals:
@@ -60,9 +60,9 @@ protected:
 private:
     ItemMap m_itemMap;
     SpecMap m_specMap;
-    map::EditSchematic::Ptr m_pEdit;
-    map::Schematic::Ptr m_pSchematic;
-    map::IEditContext* m_pNullContext;
+    schematic::EditSchematic::Ptr m_pEdit;
+    schematic::Schematic::Ptr m_pSchematic;
+    schematic::IEditContext* m_pNullContext;
     Toolbox::Ptr m_pToolBox;
     
     float m_fDeviceWidth;
@@ -80,7 +80,7 @@ class FlowView : public QGraphicsView
     public:
         typedef boost::shared_ptr< FlowItem > Ptr;
         typedef std::vector< Ptr > PtrVector;
-        FlowItem( FlowView& view, map::Schematic::Ptr pSchematic, Toolbox::Palette::Ptr pPalette );
+        FlowItem( FlowView& view, schematic::Schematic::Ptr pSchematic, Toolbox::Palette::Ptr pPalette );
         ~FlowItem()
         {
             if( m_view.scene() )
@@ -89,17 +89,17 @@ class FlowView : public QGraphicsView
                 delete m_pImageItem;
             }
         }
-        map::Schematic::Ptr getClip() const { return m_pSchematic; }
+        schematic::Schematic::Ptr getClip() const { return m_pSchematic; }
         QRectF getRect() const { return m_pImageItem->sceneBoundingRect(); }
         bool onHit( QGraphicsItem* pItem );
         void updatePosition( int x, int y, float fWidth, float fHeight, float fSpacing );
     private:
         FlowView& m_view;
-        map::Schematic::Ptr m_pSchematic;
+        schematic::Schematic::Ptr m_pSchematic;
         QGraphicsItem* m_pImageItem;
         Toolbox::Palette::Ptr m_pPalette;
     };
-    typedef std::map< map::Schematic::Ptr, FlowItem::Ptr > ItemMap;
+    typedef std::map< schematic::Schematic::Ptr, FlowItem::Ptr > ItemMap;
 
 public:
     explicit FlowView( MissionToolbox& toolbox, Toolbox::Palette::Ptr pPalette );
@@ -124,8 +124,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
     virtual void resizeEvent(QResizeEvent * event);
 private:
-    int findIndex( map::Schematic::Ptr pSchematic );
-    map::Schematic::Ptr getClickedSchematic( QMouseEvent* event );
+    int findIndex( schematic::Schematic::Ptr pSchematic );
+    schematic::Schematic::Ptr getClickedSchematic( QMouseEvent* event );
 private:
     MissionToolbox& m_toolBox;
     Toolbox::Palette::Ptr m_pPalette;

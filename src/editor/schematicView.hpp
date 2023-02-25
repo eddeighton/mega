@@ -8,7 +8,7 @@
 
 #include "document.hpp"
 
-#include "map/editSchematic.hpp"
+#include "schematic/editSchematic.hpp"
 
 #endif
 
@@ -55,14 +55,14 @@ public slots:
     void CmdViewVisibility  ();
     
 private:
-    void configureCompilationStage( map::Schematic::CompilationStage stage, bool bEnable );
+    void configureCompilationStage( schematic::Schematic::CompilationStage stage, bool bEnable );
 
 private:
     SchematicDocument::Ptr m_pSchematicDocument;
 
-    map::EditSchematic::Ptr m_pEdit;
+    schematic::EditSchematic::Ptr m_pEdit;
     
-    map::File::CompilationConfig m_compilationConfig;
+    schematic::File::CompilationConfig m_compilationConfig;
 };
 
 }

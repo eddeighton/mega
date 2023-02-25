@@ -62,7 +62,12 @@ public:
         using namespace UnityStage;
         Database database( m_environment, m_manifest );
 
-        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+        // ./Unity 
+        // -projectPath /workspace/root/src/mcgs/MCGS/ 
+        // -logFile /workspace/root/src/mcgs/log.txt 
+        // -noUpm -batchmode  -quit -nographics -disable-gpu-skinning -disable-assembly-updater -disableManagedDebugger 
+        // -executeMethod UnityProtocol.Run
+
 
         const task::FileHash fileHashCode = database.save_UnityAnalysis_to_temp();
         m_environment.setBuildHashCode( unityAnalysisCompilationFile, fileHashCode );

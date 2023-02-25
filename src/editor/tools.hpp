@@ -11,8 +11,8 @@
 #include "glyphs.hpp"
 //#include "voronoi.hpp"
 
-#include "map/glyph.hpp"
-#include "map/editRoot.hpp"
+#include "schematic/glyph.hpp"
+#include "schematic/editRoot.hpp"
 
 #include <set>
 #include <memory>
@@ -24,7 +24,7 @@ namespace editor
 
 class GlyphView;
 
-typedef std::set< map::IGlyph* > SelectionSet;
+typedef std::set< schematic::IGlyph* > SelectionSet;
 
 class Selection
 {
@@ -37,8 +37,8 @@ public:
         eXOR
     };
 
-    static const Selectable* glyphToSelectable( const map::IGlyph* pGlyph );
-    static Selectable* glyphToSelectable( map::IGlyph* pGlyph );
+    static const Selectable* glyphToSelectable( const schematic::IGlyph* pGlyph );
+    static Selectable* glyphToSelectable( schematic::IGlyph* pGlyph );
     static Mode getSelectionMode( QMouseEvent *event );
 
 public:
@@ -103,14 +103,14 @@ public:
     virtual void keyPressEvent( QKeyEvent *event )=0;
     virtual void reset()=0;
     virtual void onUpdate()=0;
-    virtual map::IEditContext::ToolType getToolType() const = 0;
-    virtual map::IEditContext::ToolMode getToolMode() const = 0;
+    virtual schematic::IEditContext::ToolType getToolType() const = 0;
+    virtual schematic::IEditContext::ToolMode getToolMode() const = 0;
 
-    virtual map::Node::Ptr GetInteractionNode() const;
+    virtual schematic::Node::Ptr GetInteractionNode() const;
 protected:
     GlyphView& m_view;
     std::shared_ptr< Selection_Interaction > m_pSelection;
-    map::IInteraction::Ptr m_pInteraction;
+    schematic::IInteraction::Ptr m_pInteraction;
 };
 
 class SelectTool : public Tool
@@ -132,8 +132,8 @@ public:
     virtual void reset();
     virtual void onUpdate();
     
-    virtual map::IEditContext::ToolType getToolType() const { return map::IEditContext::eSelect; }
-    virtual map::IEditContext::ToolMode getToolMode() const { return map::IEditContext::eArea; }
+    virtual schematic::IEditContext::ToolType getToolType() const { return schematic::IEditContext::eSelect; }
+    virtual schematic::IEditContext::ToolMode getToolMode() const { return schematic::IEditContext::eArea; }
 private:
     ToolMode m_toolMode;
 };
@@ -157,8 +157,8 @@ public:
     virtual void reset();
     virtual void onUpdate();
     
-    virtual map::IEditContext::ToolType getToolType() const { return map::IEditContext::eSelect; }
-    virtual map::IEditContext::ToolMode getToolMode() const { return map::IEditContext::eContour; }
+    virtual schematic::IEditContext::ToolType getToolType() const { return schematic::IEditContext::eSelect; }
+    virtual schematic::IEditContext::ToolMode getToolMode() const { return schematic::IEditContext::eContour; }
 
 private:
     ToolMode m_toolMode;
@@ -185,8 +185,8 @@ public:
     virtual void reset();
     virtual void onUpdate();
     
-    virtual map::IEditContext::ToolType getToolType() const { return map::IEditContext::eDraw; }
-    virtual map::IEditContext::ToolMode getToolMode() const { return map::IEditContext::eArea; }
+    virtual schematic::IEditContext::ToolType getToolType() const { return schematic::IEditContext::eDraw; }
+    virtual schematic::IEditContext::ToolMode getToolMode() const { return schematic::IEditContext::eArea; }
     
 protected:
     ToolMode m_toolMode;
@@ -220,8 +220,8 @@ public:
     virtual void reset();
     virtual void onUpdate();
     
-    virtual map::IEditContext::ToolType getToolType() const { return map::IEditContext::eDraw; }
-    virtual map::IEditContext::ToolMode getToolMode() const { return map::IEditContext::eContour; }
+    virtual schematic::IEditContext::ToolType getToolType() const { return schematic::IEditContext::eDraw; }
+    virtual schematic::IEditContext::ToolMode getToolMode() const { return schematic::IEditContext::eContour; }
     
 protected:
     ToolMode m_toolMode;

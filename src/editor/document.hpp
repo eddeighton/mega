@@ -4,8 +4,8 @@
 
 #ifndef Q_MOC_RUN
 
-#include "map/file.hpp"
-#include "map/schematic.hpp"
+#include "schematic/file.hpp"
+#include "schematic/schematic.hpp"
 
 #include "common/tick.hpp"
 #include "common/scheduler.hpp"
@@ -40,8 +40,8 @@ class Document
         ~UndoHistory();
 
         void           onNewVersion();
-        map::File::Ptr onUndo();
-        map::File::Ptr onRedo();
+        schematic::File::Ptr onUndo();
+        schematic::File::Ptr onRedo();
 
         const Timing::UpdateTick& getLastRecordTick() const { return m_lastRecord; }
 
@@ -66,9 +66,9 @@ public:
     const std::string&                       getUniqueObjectName() const { return m_uniqueObjectName; }
     std::optional< boost::filesystem::path > getFilePath() const { return m_optPath; }
 
-    virtual map::File::Ptr getFile() const = 0;
+    virtual schematic::File::Ptr getFile() const = 0;
 
-    void setCompilationConfig( const map::File::CompilationConfig& config );
+    void setCompilationConfig( const schematic::File::CompilationConfig& config );
 
     virtual void onEditted( bool bCommandCompleted );
 
@@ -85,7 +85,7 @@ protected:
     const std::string                        m_uniqueObjectName;
     Timing::UpdateTick                       m_lastModifiedTick;
     std::optional< boost::filesystem::path > m_optPath;
-    map::File::CompilationConfig             m_compilationConfig;
+    schematic::File::CompilationConfig             m_compilationConfig;
     UndoHistory                              m_undoHistory;
 };
 
@@ -94,14 +94,14 @@ class SchematicDocument : public Document
 public:
     using Ptr = std::shared_ptr< SchematicDocument >;
 
-    SchematicDocument( DocumentChangeObserver& observer, map::Schematic::Ptr pSchematic );
-    SchematicDocument( DocumentChangeObserver& observer, map::Schematic::Ptr pSchematic,
+    SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic );
+    SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic,
                        const boost::filesystem::path& path );
 
     virtual void onEditted( bool bCommandCompleted );
 
-    virtual map::File::Ptr getFile() const { return m_pSchematic; }
-    map::Schematic::Ptr    getSchematic() const { return m_pSchematic; }
+    virtual schematic::File::Ptr getFile() const { return m_pSchematic; }
+    schematic::Schematic::Ptr    getSchematic() const { return m_pSchematic; }
 
     virtual void save();
     virtual void saveAs( const std::string& strFilePath );
@@ -112,7 +112,7 @@ protected:
     void calculateDerived();
 
 private:
-    map::Schematic::Ptr m_pSchematic;
+    schematic::Schematic::Ptr m_pSchematic;
 };
 
 } // namespace editor

@@ -10,11 +10,11 @@
 
 #include "qtUtils.hpp"
 
-#include "map/readerWriter.hpp"
-#include "map/connection.hpp"
-#include "map/space.hpp"
-#include "map/wall.hpp"
-#include "map/object.hpp"
+#include "schematic/readerWriter.hpp"
+#include "schematic/connection.hpp"
+#include "schematic/space.hpp"
+#include "schematic/wall.hpp"
+#include "schematic/object.hpp"
 
 #endif
 
@@ -130,32 +130,32 @@ void GlyphView::onZoomed()
 }
 
 // glyph factory interface
-map::IGlyph::Ptr GlyphView::createControlPoint( map::ControlPoint* pControlPoint, map::IGlyph::Ptr pParent )
+schematic::IGlyph::Ptr GlyphView::createControlPoint( schematic::ControlPoint* pControlPoint, schematic::IGlyph::Ptr pParent )
 {
-    map::IGlyph::Ptr pNewGlyph( new GlyphControlPoint(
+    schematic::IGlyph::Ptr pNewGlyph( new GlyphControlPoint(
         pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pControlPoint, getZoomLevel().y(), getToolbox() ) );
     CalculateOversizedSceneRect();
     return pNewGlyph;
 }
 
-map::IGlyph::Ptr GlyphView::createOrigin( map::Origin* pOrigin, map::IGlyph::Ptr pParent )
+schematic::IGlyph::Ptr GlyphView::createOrigin( schematic::Origin* pOrigin, schematic::IGlyph::Ptr pParent )
 {
-    map::IGlyph::Ptr pNewGlyph( new GlyphOrigin(
+    schematic::IGlyph::Ptr pNewGlyph( new GlyphOrigin(
         pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pOrigin, m_pActiveContext, getToolbox() ) );
     return pNewGlyph;
 }
 
-map::IGlyph::Ptr GlyphView::createMarkupPolygonGroup( map::MarkupPolygonGroup* pMarkupPolygonGroup,
-                                                      map::IGlyph::Ptr         pParent )
+schematic::IGlyph::Ptr GlyphView::createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup,
+                                                      schematic::IGlyph::Ptr         pParent )
 {
-    map::IGlyph::Ptr pNewGlyph( new GlyphPolygonGroup(
+    schematic::IGlyph::Ptr pNewGlyph( new GlyphPolygonGroup(
         pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pMarkupPolygonGroup, getZoomLevel().y(), getToolbox() ) );
     return pNewGlyph;
 }
 
-map::IGlyph::Ptr GlyphView::createMarkupText( map::MarkupText* pMarkupText, map::IGlyph::Ptr pParent )
+schematic::IGlyph::Ptr GlyphView::createMarkupText( schematic::MarkupText* pMarkupText, schematic::IGlyph::Ptr pParent )
 {
-    map::IGlyph::Ptr pNewGlyph(
+    schematic::IGlyph::Ptr pNewGlyph(
         new GlyphText( pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pMarkupText, getToolbox() ) );
     return pNewGlyph;
 }
@@ -171,7 +171,7 @@ void GlyphView::onDocumentUpdate()
 }
 
 void GlyphView::updateVisibility( const GlyphVisibilityConfig&        glyphVisibilityConfig,
-                                  const map::File::CompilationConfig& config )
+                                  const schematic::File::CompilationConfig& config )
 {
     const bool bShowText        = glyphVisibilityConfig[ eGlyphVis_Text ];
     const bool bShowPoints      = glyphVisibilityConfig[ eGlyphVis_Points ];
@@ -180,23 +180,23 @@ void GlyphView::updateVisibility( const GlyphVisibilityConfig&        glyphVisib
 
     auto testGlyphOrigin = [ bShowSites, bShowConnections ]( const GlyphOrigin* pOrigin ) -> bool
     {
-        const map::Origin* pOriginSpec = pOrigin->getOrigin();
-        if( dynamic_cast< const map::Connection* >( pOriginSpec ) )
+        const schematic::Origin* pOriginSpec = pOrigin->getOrigin();
+        if( dynamic_cast< const schematic::Connection* >( pOriginSpec ) )
         {
             if( !bShowConnections )
                 return false;
         }
-        else if( dynamic_cast< const map::Space* >( pOriginSpec ) )
+        else if( dynamic_cast< const schematic::Space* >( pOriginSpec ) )
         {
             if( !bShowSites )
                 return false;
         }
-        else if( dynamic_cast< const map::Wall* >( pOriginSpec ) )
+        else if( dynamic_cast< const schematic::Wall* >( pOriginSpec ) )
         {
             if( !bShowSites )
                 return false;
         }
-        else if( dynamic_cast< const map::Object* >( pOriginSpec ) )
+        else if( dynamic_cast< const schematic::Object* >( pOriginSpec ) )
         {
             if( !bShowSites )
                 return false;
@@ -210,7 +210,7 @@ void GlyphView::updateVisibility( const GlyphVisibilityConfig&        glyphVisib
 
     for( auto i : m_itemMap )
     {
-        map::IGlyph* pGlyph = i.second;
+        schematic::IGlyph* pGlyph = i.second;
 
         if( Renderable* pRenderable = dynamic_cast< Renderable* >( pGlyph ) )
         {
@@ -275,11 +275,11 @@ void GlyphView::updateVisibility( const GlyphVisibilityConfig&        glyphVisib
 }
 
 // context handling
-void GlyphView::selectContext( map::IEditContext* pNewContext )
+void GlyphView::selectContext( schematic::IEditContext* pNewContext )
 {
     setSelected( SelectionSet() );
 
-    map::IEditContext* pOldContext = m_pActiveContext;
+    schematic::IEditContext* pOldContext = m_pActiveContext;
     m_pActiveContext               = pNewContext;
 
     if( pOldContext )
@@ -310,7 +310,7 @@ void GlyphView::selectContext( map::IEditContext* pNewContext )
 }
 
 // selection handling
-map::Schematic::Ptr GlyphView::getCurrentClip() const
+schematic::Schematic::Ptr GlyphView::getCurrentClip() const
 {
     return m_pMainWindow->getToolbox()->getCurrentItem();
 }
@@ -341,7 +341,7 @@ SelectionSet GlyphView::getSelectedByRect( const QRectF& rect ) const
     QList< QGraphicsItem* > stack = items( mapFromScene( rect ) );
     for( QList< QGraphicsItem* >::iterator i = stack.begin(), iEnd = stack.end(); i != iEnd; ++i )
     {
-        if( map::IGlyph* pTest = findGlyph( *i ) )
+        if( schematic::IGlyph* pTest = findGlyph( *i ) )
         {
             if( m_pActiveContext->canEdit( pTest,
                                            m_pActiveTool->getToolType(),
@@ -352,8 +352,8 @@ SelectionSet GlyphView::getSelectedByRect( const QRectF& rect ) const
             {
                 if( Selectable* pSelectable = Selection::glyphToSelectable( pTest ) )
                 {
-                    // const bool bIsCustomTool = m_pActiveTool->getToolType() != map::IEditContext::eSelect &&
-                    //     m_pActiveTool->getToolType() != map::IEditContext::eDraw;
+                    // const bool bIsCustomTool = m_pActiveTool->getToolType() != schematic::IEditContext::eSelect &&
+                    //     m_pActiveTool->getToolType() != schematic::IEditContext::eDraw;
                     // if( ( !bIsCustomTool && pSelectable->isImage() ) ||
                     //     ( bIsCustomTool && !pSelectable->isImage() ) )
                     selection.insert( pTest );
@@ -371,7 +371,7 @@ SelectionSet GlyphView::getSelectedByPath( const QPainterPath& path ) const
     QList< QGraphicsItem* > stack = items( mapFromScene( path ) );
     for( QList< QGraphicsItem* >::iterator i = stack.begin(), iEnd = stack.end(); i != iEnd; ++i )
     {
-        if( map::IGlyph* pTest = findGlyph( *i ) )
+        if( schematic::IGlyph* pTest = findGlyph( *i ) )
         {
             if( m_pActiveContext->canEdit( pTest,
                                            m_pActiveTool->getToolType(),
@@ -414,9 +414,9 @@ void GlyphView::setSelected( const SelectionSet& selection )
     for( SelectionSet::const_iterator i = selection.begin(),
          iEnd = selection.end(); i!=iEnd; ++i )
     {
-        map::IGlyph* pGlyph = *i;
-        if( const map::Site* pSite =
-                dynamic_cast< const map::Site* >( pGlyph->getGlyphSpec() ) )
+        schematic::IGlyph* pGlyph = *i;
+        if( const schematic::Site* pSite =
+                dynamic_cast< const schematic::Site* >( pGlyph->getGlyphSpec() ) )
         {
             itemSelection.push_back( QItemSelectionRange( m_pModel->getNodeIndex( pSite->getPtr() ) ) );
         }
@@ -427,24 +427,24 @@ void GlyphView::setSelected( const SelectionSet& selection )
     */
 }
 
-map::IGlyph* GlyphView::findGlyph( QGraphicsItem* pItem ) const
+schematic::IGlyph* GlyphView::findGlyph( QGraphicsItem* pItem ) const
 {
-    map::IGlyph*            pGlyph = 0u;
+    schematic::IGlyph*            pGlyph = 0u;
     ItemMap::const_iterator iFind  = m_itemMap.find( pItem );
     if( iFind != m_itemMap.end() )
         pGlyph = iFind->second;
     return pGlyph;
 }
 
-map::IGlyph* GlyphView::findSelectableTopmostGlyph( const QPointF& pos ) const
+schematic::IGlyph* GlyphView::findSelectableTopmostGlyph( const QPointF& pos ) const
 {
-    map::IGlyph* pGlyph = nullptr;
+    schematic::IGlyph* pGlyph = nullptr;
     if( m_pActiveContext && m_pActiveTool )
     {
         QList< QGraphicsItem* > stack = items( pos.x(), pos.y() );
         for( QList< QGraphicsItem* >::iterator i = stack.begin(), iEnd = stack.end(); i != iEnd; ++i )
         {
-            if( map::IGlyph* pTest = findGlyph( *i ) )
+            if( schematic::IGlyph* pTest = findGlyph( *i ) )
             {
                 if( m_pActiveContext->canEdit( pTest,
                                                m_pActiveTool->getToolType(),
@@ -471,13 +471,13 @@ void GlyphView::mouseDoubleClickEvent( QMouseEvent* event )
     if( event->button() == Qt::LeftButton )
     {
         QList< QGraphicsItem* >     stack = items( event->pos() );
-        std::vector< map::IGlyph* > glyphStack;
+        std::vector< schematic::IGlyph* > glyphStack;
         for( QList< QGraphicsItem* >::iterator i = stack.begin(), iEnd = stack.end(); i != iEnd; ++i )
         {
-            if( map::IGlyph* pTest = findGlyph( *i ) )
+            if( schematic::IGlyph* pTest = findGlyph( *i ) )
                 glyphStack.push_back( pTest );
         }
-        if( map::IEditContext* pNewContext = m_pActiveContext->getNestedContext( glyphStack ) )
+        if( schematic::IEditContext* pNewContext = m_pActiveContext->getNestedContext( glyphStack ) )
         {
             selectContext( pNewContext );
         }
@@ -498,11 +498,11 @@ void GlyphView::mousePressEvent( QMouseEvent* pEvent )
     {
         m_pActiveTool->mousePressEvent( pEvent );
 
-        if( map::Node::Ptr pInteractionNode = m_pActiveTool->GetInteractionNode() )
+        if( schematic::Node::Ptr pInteractionNode = m_pActiveTool->GetInteractionNode() )
         {
             if( !m_pActiveContext->isNodeContext( pInteractionNode ) )
             {
-                if( map::IEditContext* pNewContext = m_pActiveContext->getNodeContext( pInteractionNode ) )
+                if( schematic::IEditContext* pNewContext = m_pActiveContext->getNodeContext( pInteractionNode ) )
                 {
                     selectContext( pNewContext );
                 }
@@ -572,8 +572,8 @@ void GlyphView::CmdCut()
     ASSERT( m_pActiveContext );
     ASSERT( m_pMainWindow );
 
-    if( map::Schematic::Ptr pCut
-        = boost::dynamic_pointer_cast< map::Schematic >( m_pActiveContext->cmd_cut( getSelection() ) ) )
+    if( schematic::Schematic::Ptr pCut
+        = boost::dynamic_pointer_cast< schematic::Schematic >( m_pActiveContext->cmd_cut( getSelection() ) ) )
     {
         m_pMainWindow->getToolbox()->add( "clipboard", pCut, true );
         OnClipboardAction();
@@ -585,8 +585,8 @@ void GlyphView::CmdCopy()
     ASSERT( m_pActiveContext );
     ASSERT( m_pMainWindow );
 
-    if( map::Schematic::Ptr pCopy
-        = boost::dynamic_pointer_cast< map::Schematic >( m_pActiveContext->cmd_copy( getSelection() ) ) )
+    if( schematic::Schematic::Ptr pCopy
+        = boost::dynamic_pointer_cast< schematic::Schematic >( m_pActiveContext->cmd_copy( getSelection() ) ) )
     {
         m_pMainWindow->getToolbox()->add( "clipboard", pCopy, true );
         OnClipboardAction();
@@ -600,11 +600,11 @@ void GlyphView::CmdPaste()
 
     if( Toolbox::Palette::Ptr pPalette = m_pMainWindow->getToolbox()->getPalette( "clipboard" ) )
     {
-        if( map::Schematic::Ptr pClip = pPalette->getSelection() )
+        if( schematic::Schematic::Ptr pClip = pPalette->getSelection() )
         {
             const QPointF   pos( 0.0f, 0.0f );
             const QVector2D q = getQuantisationLevel();
-            if( map::IInteraction::Ptr pInteraction
+            if( schematic::IInteraction::Ptr pInteraction
                 = m_pActiveContext->cmd_paste( pClip, pos.x(), pos.y(), q.x(), q.y() ) )
             {
                 SelectionSet currentSelection;

@@ -4,9 +4,9 @@
 
 #ifndef Q_MOC_RUN
 
-#include "map/wall.hpp"
-#include "map/object.hpp"
-#include "map/space.hpp"
+#include "schematic/wall.hpp"
+#include "schematic/object.hpp"
+#include "schematic/space.hpp"
 
 #endif
 
@@ -48,12 +48,12 @@ unsigned int findLowestDepth( const SelectionSet& selection )
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 //selection handling
-const Selectable* Selection::glyphToSelectable( const map::IGlyph* pGlyph )
+const Selectable* Selection::glyphToSelectable( const schematic::IGlyph* pGlyph )
 {
     return dynamic_cast< const Selectable* >( pGlyph );
 }
 
-Selectable* Selection::glyphToSelectable( map::IGlyph* pGlyph )
+Selectable* Selection::glyphToSelectable( schematic::IGlyph* pGlyph )
 {
     return dynamic_cast< Selectable* >( pGlyph );
 }
@@ -210,9 +210,9 @@ Tool::~Tool()
 
 }
 
-map::Node::Ptr Tool::GetInteractionNode() const
+schematic::Node::Ptr Tool::GetInteractionNode() const
 {
-    return m_pInteraction ? m_pInteraction->GetInteractionNode() : map::Node::Ptr();
+    return m_pInteraction ? m_pInteraction->GetInteractionNode() : schematic::Node::Ptr();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -241,7 +241,7 @@ void SelectTool::mousePressEvent(QMouseEvent *event)
     else */
     if( event->button() == Qt::LeftButton )
     {
-        if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
+        if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
         {
             SelectionSet currentSelection = m_view.getSelection();
             if( currentSelection.find( pGlyph ) == currentSelection.end() )
@@ -301,7 +301,7 @@ void SelectTool::mouseMoveEvent(QMouseEvent *event)
                 }
                 else
                 {
-                    if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
+                    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
                     {
                         m_view.setCursor( Qt::SizeAllCursor );
                     }
@@ -334,7 +334,7 @@ void SelectTool::mouseReleaseEvent( QMouseEvent* pEvent )
 {
     reset();
     
-    if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
     {
         m_view.setCursor( Qt::SizeAllCursor );
     }
@@ -375,7 +375,7 @@ void LassoTool::mousePressEvent(QMouseEvent *event)
     const QVector2D q = m_view.getQuantisationLevel();
     if( event->button() == Qt::LeftButton )
     {
-        if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
+        if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
         {
             SelectionSet currentSelection = m_view.getSelection();
             if( currentSelection.find( pGlyph ) == currentSelection.end() )
@@ -434,7 +434,7 @@ void LassoTool::mouseMoveEvent(QMouseEvent *event)
                 }
                 else
                 {
-                    if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
+                    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
                     {
                         m_view.setCursor( Qt::SizeAllCursor );
                     }
@@ -467,7 +467,7 @@ void LassoTool::mouseReleaseEvent( QMouseEvent* pEvent )
 {
     reset();
     
-    if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
     {
         m_view.setCursor( Qt::SizeAllCursor );
     }
@@ -509,7 +509,7 @@ void PenTool::mousePressEvent( QMouseEvent* event )
     if( event->button() == Qt::LeftButton )
     {
         const QPointF pos = m_view.mapToScene( event->pos() );
-        if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
+        if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( event->pos() ) )
         {
             SelectionSet selection;
             if( event->modifiers() & Qt::ControlModifier )
@@ -536,7 +536,7 @@ void PenTool::mousePressEvent( QMouseEvent* event )
                 m_view.setSelected( currentSelection );
             }
         }
-        else if( map::Schematic::Ptr pClip = m_view.getCurrentClip() )
+        else if( schematic::Schematic::Ptr pClip = m_view.getCurrentClip() )
         {
             //draw new space
             m_toolMode = eDraw;
@@ -572,7 +572,7 @@ void PenTool::mouseMoveEvent( QMouseEvent* pEvent )
             }
             else
             {
-                if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+                if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
                 {
                     m_view.setCursor( Qt::SizeAllCursor );
                 }
@@ -627,7 +627,7 @@ void PenTool::mouseReleaseEvent( QMouseEvent* pEvent )
 {
     reset();
     
-    if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
     {
         m_view.setCursor( Qt::SizeAllCursor );
     }
@@ -697,7 +697,7 @@ void EditTool::mousePressEvent( QMouseEvent* pEvent )
     if( pEvent->button() == Qt::LeftButton )
     {
         const QPointF pos = m_view.mapToScene( pEvent->pos() );
-        map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() );
+        schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() );
         const bool bCtrl = pEvent->modifiers() & Qt::ControlModifier;
         if( !bCtrl && pGlyph )
         {
@@ -718,32 +718,32 @@ void EditTool::mousePressEvent( QMouseEvent* pEvent )
             m_toolMode = eDraw;
             m_view.setCursor( Qt::SizeAllCursor );
             
-            map::IGlyph* pHit1 = nullptr;
-            map::IGlyph* pHit2 = nullptr;
+            schematic::IGlyph* pHit1 = nullptr;
+            schematic::IGlyph* pHit2 = nullptr;
             if( !bCtrl )
             {
                 m_view.getActiveContext()->interaction_hover( pos.x(), pos.y(), pHit1, pHit2 );
             }
             
-            map::IEditContext::SiteType siteType = map::IEditContext::eSpace;
-            if( map::Schematic::Ptr pSchematic = m_view.getCurrentClip() )
+            schematic::IEditContext::SiteType siteType = schematic::IEditContext::eSpace;
+            if( schematic::Schematic::Ptr pSchematic = m_view.getCurrentClip() )
             {
-                const map::Site::PtrVector& sites = pSchematic->getSites();
-                for( map::Site::Ptr pSite : sites )
+                const schematic::Site::PtrVector& sites = pSchematic->getSites();
+                for( schematic::Site::Ptr pSite : sites )
                 {
-                    if( map::Space::Ptr pSpace = boost::dynamic_pointer_cast< map::Space >( pSite ) )
+                    if( schematic::Space::Ptr pSpace = boost::dynamic_pointer_cast< schematic::Space >( pSite ) )
                     {
-                        siteType = map::IEditContext::eSpace;
+                        siteType = schematic::IEditContext::eSpace;
                         break;
                     }
-                    else if( map::Wall::Ptr pWall = boost::dynamic_pointer_cast< map::Wall >( pSite ) )
+                    else if( schematic::Wall::Ptr pWall = boost::dynamic_pointer_cast< schematic::Wall >( pSite ) )
                     {
-                        siteType = map::IEditContext::eWall;
+                        siteType = schematic::IEditContext::eWall;
                         break;
                     }
-                    else if( map::Object::Ptr pObject = boost::dynamic_pointer_cast< map::Object >( pSite ) )
+                    else if( schematic::Object::Ptr pObject = boost::dynamic_pointer_cast< schematic::Object >( pSite ) )
                     {
-                        siteType = map::IEditContext::eObject;
+                        siteType = schematic::IEditContext::eObject;
                         break;
                     }
                 }
@@ -783,21 +783,21 @@ void EditTool::mouseMoveEvent( QMouseEvent* pEvent )
                 }
                 else
                 {
-                    map::IGlyph* pHit1 = nullptr;
-                    map::IGlyph* pHit2 = nullptr;
+                    schematic::IGlyph* pHit1 = nullptr;
+                    schematic::IGlyph* pHit2 = nullptr;
                     if( m_view.getActiveContext()->interaction_hover( pos.x(), pos.y(), pHit1, pHit2 ) )
                     {
-                        const map::ControlPoint* pCtrl1 = dynamic_cast< const map::ControlPoint* >( pHit1->getGlyphSpec() );
-                        const map::ControlPoint* pCtrl2 = dynamic_cast< const map::ControlPoint* >( pHit2->getGlyphSpec() );
+                        const schematic::ControlPoint* pCtrl1 = dynamic_cast< const schematic::ControlPoint* >( pHit1->getGlyphSpec() );
+                        const schematic::ControlPoint* pCtrl2 = dynamic_cast< const schematic::ControlPoint* >( pHit2->getGlyphSpec() );
                         
-                        map::Transform absTransform =
+                        schematic::Transform absTransform =
                             m_view.getActiveContext()->getOrigin()->getAbsoluteTransform() * 
                                 m_view.getActiveContext()->getOrigin()->getTransform();
                         
                         VERIFY_RTE( pCtrl1 && pCtrl2 );
                         
-                        const map::Point pt1 = absTransform( pCtrl1->getPoint() );
-                        const map::Point pt2 = absTransform( pCtrl2->getPoint() );
+                        const schematic::Point pt1 = absTransform( pCtrl1->getPoint() );
+                        const schematic::Point pt2 = absTransform( pCtrl2->getPoint() );
 
                         m_painter.reset();
                         m_painter.moveTo( pt1 );
@@ -812,7 +812,7 @@ void EditTool::mouseMoveEvent( QMouseEvent* pEvent )
                         m_pClosestEdge->setVisible( false );
                     }
                     
-                    if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+                    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
                     {
                         m_view.setCursor( Qt::SizeAllCursor );
                     }
@@ -874,7 +874,7 @@ void EditTool::mouseReleaseEvent( QMouseEvent* pEvent )
     }*/
     reset();
     
-    if( map::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
+    if( schematic::IGlyph* pGlyph = m_view.findSelectableTopmostGlyph( pEvent->pos() ) )
     {
         m_view.setCursor( Qt::SizeAllCursor );
     }

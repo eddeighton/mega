@@ -18,8 +18,8 @@
 #include "toolbox.hpp"
 #include "document.hpp"
 
-#include "map/editInteractions.hpp"
-#include "map/clip.hpp"
+#include "schematic/editInteractions.hpp"
+#include "schematic/clip.hpp"
 
 #include <memory>
 #include <vector>
@@ -29,7 +29,7 @@
 namespace editor
 {
 
-class GlyphView : public GridView, public map::GlyphFactory
+class GlyphView : public GridView, public schematic::GlyphFactory
 {
     Q_OBJECT
 
@@ -45,10 +45,10 @@ public:
     
 public:
     //glyph factory interface
-    virtual map::IGlyph::Ptr createControlPoint( map::ControlPoint* pControlPoint, map::IGlyph::Ptr pParent );
-    virtual map::IGlyph::Ptr createOrigin( map::Origin* pOrigin, map::IGlyph::Ptr pParent );
-    virtual map::IGlyph::Ptr createMarkupPolygonGroup( map::MarkupPolygonGroup* pMarkupPolygonGroup, map::IGlyph::Ptr pParent );
-    virtual map::IGlyph::Ptr createMarkupText( map::MarkupText* pMarkupText, map::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createControlPoint( schematic::ControlPoint* pControlPoint, schematic::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createOrigin( schematic::Origin* pOrigin, schematic::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup, schematic::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createMarkupText( schematic::MarkupText* pMarkupText, schematic::IGlyph::Ptr pParent );
     virtual void onEditted( bool bCommandCompleted );
     
 public:
@@ -68,15 +68,15 @@ public:
     
     void updateVisibility( 
         const GlyphVisibilityConfig& glyphVisibilityConfig,
-        const map::File::CompilationConfig& config );
+        const schematic::File::CompilationConfig& config );
     
 public:
     //context handling
-    void selectContext( map::IEditContext* pNewContext );
+    void selectContext( schematic::IEditContext* pNewContext );
 
     //selection handling
-    map::IEditContext* getActiveContext() const { return m_pActiveContext; }
-    map::Schematic::Ptr getCurrentClip() const;
+    schematic::IEditContext* getActiveContext() const { return m_pActiveContext; }
+    schematic::Schematic::Ptr getCurrentClip() const;
     Toolbox::Ptr getToolbox() const;
     
     SelectionSet getSelection() const;
@@ -84,8 +84,8 @@ public:
     SelectionSet getSelectedByPath( const QPainterPath& path ) const;
     void setSelected( const SelectionSet& selection );
 
-    map::IGlyph* findGlyph( QGraphicsItem* pItem ) const;
-    map::IGlyph* findSelectableTopmostGlyph( const QPointF& pos ) const;
+    schematic::IGlyph* findGlyph( QGraphicsItem* pItem ) const;
+    schematic::IGlyph* findSelectableTopmostGlyph( const QPointF& pos ) const;
 
 protected:
     //QT virtual functions
@@ -125,7 +125,7 @@ private slots:
 
 protected:
     Document::Ptr m_pDocument;
-    map::IEditContext* m_pActiveContext = nullptr;
+    schematic::IEditContext* m_pActiveContext = nullptr;
     
     SelectTool  m_selectTool;
     LassoTool   m_lassoTool;

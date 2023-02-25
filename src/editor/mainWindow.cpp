@@ -14,11 +14,11 @@
 
 #ifndef Q_MOC_RUN
 
-#include "map/space.hpp"
-#include "map/base.hpp"
-#include "map/ship.hpp"
-#include "map/factory.hpp"
-#include "map/mission.hpp"
+#include "schematic/space.hpp"
+#include "schematic/base.hpp"
+#include "schematic/ship.hpp"
+#include "schematic/factory.hpp"
+#include "schematic/mission.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -482,7 +482,7 @@ void MainWindow::OnNewSchematic( SchematicDocument::Ptr pNewSchematic )
 
 void MainWindow::OnNewBase()
 {
-    map::Base::Ptr pNewBase( new map::Base( "Untitled Base" ) );
+    schematic::Base::Ptr pNewBase( new schematic::Base( "Untitled Base" ) );
     {
         pNewBase->init();
     }
@@ -493,7 +493,7 @@ void MainWindow::OnNewBase()
 
 void MainWindow::OnNewShip()
 {
-    map::Ship::Ptr pNewShip( new map::Ship( "Untitled Ship" ) );
+    schematic::Ship::Ptr pNewShip( new schematic::Ship( "Untitled Ship" ) );
     {
         pNewShip->init();
     }
@@ -537,14 +537,14 @@ void MainWindow::OnLoad()
         {
             const boost::filesystem::path filePath = strFilePath;
 
-            map::File::Ptr pFile = map::load( filePath );
+            schematic::File::Ptr pFile = schematic::load( filePath );
 
-            if( map::Schematic::Ptr pSchematic = boost::dynamic_pointer_cast< map::Schematic >( pFile ) )
+            if( schematic::Schematic::Ptr pSchematic = boost::dynamic_pointer_cast< schematic::Schematic >( pFile ) )
             {
                 SchematicDocument::Ptr pNewSchematic( new SchematicDocument( *this, pSchematic, filePath ) );
                 OnNewSchematic( pNewSchematic );
             }
-            else if( map::Mission::Ptr pMission = boost::dynamic_pointer_cast< map::Mission >( pFile ) )
+            else if( schematic::Mission::Ptr pMission = boost::dynamic_pointer_cast< schematic::Mission >( pFile ) )
             {
                 THROW_RTE( "TODO" );
             }

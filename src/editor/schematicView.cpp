@@ -26,8 +26,8 @@ SchematicView::SchematicView( QWidget* pParent, MainWindow* pMainWindow )
     m_visibilityConfig.set( eGlyphVis_Sites );
     m_visibilityConfig.set( eGlyphVis_Connections );
     
-    m_compilationConfig.set( map::Schematic::eStage_Site );
-    m_compilationConfig.set( map::Schematic::eStage_SiteContour );
+    m_compilationConfig.set( schematic::Schematic::eStage_Site );
+    m_compilationConfig.set( schematic::Schematic::eStage_SiteContour );
 }
 
 SchematicView::~SchematicView()
@@ -42,7 +42,7 @@ void SchematicView::postCreate( SchematicDocument::Ptr pDocument )
 
     GlyphView* pGlyphView = this;
 
-    m_pEdit.reset( new map::EditSchematic( *pGlyphView, m_pSchematicDocument->getSchematic() ) );
+    m_pEdit.reset( new schematic::EditSchematic( *pGlyphView, m_pSchematicDocument->getSchematic() ) );
 
     m_pActiveContext = m_pEdit.get();
 
@@ -71,11 +71,11 @@ void SchematicView::onViewFocussed()
     
     m_pMainWindow->getUI()->actionView_Text         ->setChecked( m_visibilityConfig[ eGlyphVis_Text ]          );
     m_pMainWindow->getUI()->actionView_Points       ->setChecked( m_visibilityConfig[ eGlyphVis_Points ]        );
-    m_pMainWindow->getUI()->actionView_Connections  ->setChecked( m_visibilityConfig[ eGlyphVis_Connections ]   && m_compilationConfig[ map::Schematic::eStage_Site ] );
-    m_pMainWindow->getUI()->actionView_Site         ->setChecked( m_visibilityConfig[ eGlyphVis_Sites ]         && m_compilationConfig[ map::Schematic::eStage_Site ] );
-    m_pMainWindow->getUI()->actionView_SiteContour  ->setChecked( m_compilationConfig[ map::Schematic::eStage_SiteContour ] );
-    m_pMainWindow->getUI()->actionView_Walls        ->setChecked( m_compilationConfig[ map::Schematic::eStage_Extrusion ] );
-    m_pMainWindow->getUI()->actionView_Compilation  ->setChecked( m_compilationConfig[ map::Schematic::eStage_Compilation ] );
+    m_pMainWindow->getUI()->actionView_Connections  ->setChecked( m_visibilityConfig[ eGlyphVis_Connections ]   && m_compilationConfig[ schematic::Schematic::eStage_Site ] );
+    m_pMainWindow->getUI()->actionView_Site         ->setChecked( m_visibilityConfig[ eGlyphVis_Sites ]         && m_compilationConfig[ schematic::Schematic::eStage_Site ] );
+    m_pMainWindow->getUI()->actionView_SiteContour  ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_SiteContour ] );
+    m_pMainWindow->getUI()->actionView_Walls        ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Extrusion ] );
+    m_pMainWindow->getUI()->actionView_Compilation  ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Compilation ] );
     m_pMainWindow->getUI()->actionView_Floor        ->setChecked( false );
     m_pMainWindow->getUI()->actionView_Sections     ->setChecked( false );
     m_pMainWindow->getUI()->actionView_Visibility   ->setChecked( false );
@@ -232,7 +232,7 @@ void SchematicView::CmdUndo()
     
     GlyphView* pGlyphView = this;
 
-    m_pEdit.reset( new map::EditSchematic( *pGlyphView, m_pSchematicDocument->getSchematic() ) );
+    m_pEdit.reset( new schematic::EditSchematic( *pGlyphView, m_pSchematicDocument->getSchematic() ) );
 
     selectContext( m_pEdit.get() );
 
@@ -248,7 +248,7 @@ void SchematicView::CmdRedo()
     
     GlyphView* pGlyphView = this;
 
-    m_pEdit.reset( new map::EditSchematic( *pGlyphView, m_pSchematicDocument->getSchematic() ) );
+    m_pEdit.reset( new schematic::EditSchematic( *pGlyphView, m_pSchematicDocument->getSchematic() ) );
 
     selectContext( m_pEdit.get() );
 
@@ -256,7 +256,7 @@ void SchematicView::CmdRedo()
 }
     
     
-void SchematicView::configureCompilationStage( map::Schematic::CompilationStage stage, bool bEnable )
+void SchematicView::configureCompilationStage( schematic::Schematic::CompilationStage stage, bool bEnable )
 {
     if( bEnable )
     {
@@ -326,7 +326,7 @@ void SchematicView::CmdViewConnections ()
         m_visibilityConfig.reset( eGlyphVis_Connections );
     }
     
-    configureCompilationStage( map::Schematic::eStage_Site,
+    configureCompilationStage( schematic::Schematic::eStage_Site,
         m_pMainWindow->getUI()->actionView_Connections->isChecked() ||
         m_pMainWindow->getUI()->actionView_Site->isChecked() );
 }
@@ -342,26 +342,26 @@ void SchematicView::CmdViewSite        ()
         m_visibilityConfig.reset( eGlyphVis_Sites );
     }
     
-    configureCompilationStage( map::Schematic::eStage_Site,
+    configureCompilationStage( schematic::Schematic::eStage_Site,
         m_pMainWindow->getUI()->actionView_Connections->isChecked() ||
         m_pMainWindow->getUI()->actionView_Site->isChecked() );
 }
 
 void SchematicView::CmdViewSiteContour ()
 {
-    configureCompilationStage( map::Schematic::eStage_SiteContour,
+    configureCompilationStage( schematic::Schematic::eStage_SiteContour,
         m_pMainWindow->getUI()->actionView_SiteContour->isChecked() );
 }
 
 void SchematicView::CmdViewWalls       ()
 {
-    configureCompilationStage( map::Schematic::eStage_Extrusion,
+    configureCompilationStage( schematic::Schematic::eStage_Extrusion,
         m_pMainWindow->getUI()->actionView_Walls->isChecked() );
 }
 
 void SchematicView::CmdViewCompilation ()
 {
-    configureCompilationStage( map::Schematic::eStage_Compilation,
+    configureCompilationStage( schematic::Schematic::eStage_Compilation,
         m_pMainWindow->getUI()->actionView_Compilation->isChecked() );
 }
 

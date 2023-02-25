@@ -32,7 +32,7 @@ ClipScene::ClipScene( QWidget *parent ) :
 {
 }
 
-void ClipScene::setClip( map::Schematic::Ptr pSchematic, Toolbox::Ptr pToolBox )
+void ClipScene::setClip( schematic::Schematic::Ptr pSchematic, Toolbox::Ptr pToolBox )
 {
     m_pToolBox = pToolBox;
     
@@ -53,7 +53,7 @@ void ClipScene::setClip( map::Schematic::Ptr pSchematic, Toolbox::Ptr pToolBox )
 
         m_pSchematic = pSchematic;
         m_pSchematic->init();
-        m_pEdit.reset( new map::EditSchematic( *this, m_pSchematic ) );
+        m_pEdit.reset( new schematic::EditSchematic( *this, m_pSchematic ) );
         m_pEdit->updateGlyphs();
     }
 }
@@ -71,32 +71,32 @@ void ClipScene::calculateSceneRect()
 }
     
 //glyph factory interface
-map::IGlyph::Ptr ClipScene::createControlPoint( map::ControlPoint* pControlPoint, map::IGlyph::Ptr pParent )
+schematic::IGlyph::Ptr ClipScene::createControlPoint( schematic::ControlPoint* pControlPoint, schematic::IGlyph::Ptr pParent )
 {
-    map::IGlyph::Ptr pNewGlyph( new GlyphControlPoint( pParent, this, 
+    schematic::IGlyph::Ptr pNewGlyph( new GlyphControlPoint( pParent, this, 
         GlyphMap( m_itemMap, m_specMap ), pControlPoint, m_fDeviceWidth / this->sceneRect().height(), m_pToolBox ) );
     if( Renderable* pRenderable = dynamic_cast< Renderable* >( pNewGlyph.get() ) )
         pRenderable->setShouldRender( false );
     return pNewGlyph;
 }
 
-map::IGlyph::Ptr ClipScene::createOrigin( map::Origin* pOrigin, map::IGlyph::Ptr pParent )
+schematic::IGlyph::Ptr ClipScene::createOrigin( schematic::Origin* pOrigin, schematic::IGlyph::Ptr pParent )
 {
-    map::IGlyph::Ptr pNewGlyph( new GlyphOrigin( pParent, this, 
+    schematic::IGlyph::Ptr pNewGlyph( new GlyphOrigin( pParent, this, 
         GlyphMap( m_itemMap, m_specMap ), pOrigin, m_pNullContext, m_pToolBox ) );
     return pNewGlyph;
 }
 
-map::IGlyph::Ptr ClipScene::createMarkupPolygonGroup( map::MarkupPolygonGroup* pMarkupPolygonGroup, map::IGlyph::Ptr pParent )
+schematic::IGlyph::Ptr ClipScene::createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup, schematic::IGlyph::Ptr pParent )
 {
-    map::IGlyph::Ptr pNewGlyph( new GlyphPolygonGroup( pParent, this, 
+    schematic::IGlyph::Ptr pNewGlyph( new GlyphPolygonGroup( pParent, this, 
         GlyphMap( m_itemMap, m_specMap ), pMarkupPolygonGroup, m_fDeviceWidth / this->sceneRect().height(), m_pToolBox ) );
     return pNewGlyph;
 }
 
-map::IGlyph::Ptr ClipScene::createMarkupText( map::MarkupText* pMarkupText, map::IGlyph::Ptr pParent )
+schematic::IGlyph::Ptr ClipScene::createMarkupText( schematic::MarkupText* pMarkupText, schematic::IGlyph::Ptr pParent )
 {
-    map::IGlyph::Ptr pNewGlyph( new GlyphText( pParent, this, 
+    schematic::IGlyph::Ptr pNewGlyph( new GlyphText( pParent, this, 
         GlyphMap( m_itemMap, m_specMap ), pMarkupText, m_pToolBox ) );
     if( Renderable* pRenderable = dynamic_cast< Renderable* >( pNewGlyph.get() ) )
         pRenderable->setShouldRender( false );
@@ -113,7 +113,7 @@ void ClipScene::drawBackground(QPainter* , const QRectF& )
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
-FlowView::FlowItem::FlowItem( FlowView& view, map::Schematic::Ptr pSchematic, Toolbox::Palette::Ptr pPalette )
+FlowView::FlowItem::FlowItem( FlowView& view, schematic::Schematic::Ptr pSchematic, Toolbox::Palette::Ptr pPalette )
     :   m_view( view ),
         m_pSchematic( pSchematic ),
         m_pPalette( pPalette )
@@ -165,7 +165,7 @@ FlowView::FlowItem::FlowItem( FlowView& view, map::Schematic::Ptr pSchematic, To
                 static QFont newFont( strFont.c_str(), fontSize, QFont::Bold, false );
                 painter.setFont( newFont );
                 
-                std::string strName = pSchematic->map::Node::getName();
+                std::string strName = pSchematic->schematic::Node::getName();
                 for( auto& c : strName )
                 {
                     if( c == '_' )
@@ -255,18 +255,18 @@ Toolbox::Ptr FlowView::getToolbox() const
 
 void FlowView::updateClips()
 {
-    map::Schematic::PtrSet clips( 
+    schematic::Schematic::PtrSet clips( 
         m_pPalette->get().begin(), 
         m_pPalette->get().end() );
 
     ItemMap removals;
-    map::Schematic::PtrSet additions;
+    schematic::Schematic::PtrSet additions;
     generics::match( m_items.begin(), m_items.end(),
         clips.begin(), clips.end(),
         generics::lessthan( generics::first< ItemMap::const_iterator >(), 
-                            generics::deref< map::Schematic::PtrSet::const_iterator >() ),
+                            generics::deref< schematic::Schematic::PtrSet::const_iterator >() ),
         generics::collect( removals, generics::deref< ItemMap::const_iterator >() ),
-        generics::collect( additions, generics::deref< map::Schematic::PtrSet::const_iterator >() ) );
+        generics::collect( additions, generics::deref< schematic::Schematic::PtrSet::const_iterator >() ) );
 
     for( ItemMap::iterator i = removals.begin(),
         iEnd = removals.end(); i!=iEnd; ++i )
@@ -274,11 +274,11 @@ void FlowView::updateClips()
         
     removals.clear();
     
-    for( map::Schematic::PtrSet::iterator 
+    for( schematic::Schematic::PtrSet::iterator 
         i = additions.begin(),
         iEnd = additions.end(); i!=iEnd; ++i )
     {
-        map::Schematic::Ptr pSchematic = *i;
+        schematic::Schematic::Ptr pSchematic = *i;
         m_items.insert( 
             std::make_pair( pSchematic, 
                 FlowItem::Ptr( new FlowItem( *this, pSchematic, m_pPalette ) ) ) );
@@ -292,9 +292,9 @@ void FlowView::clear()
     m_items.clear();
 }
 
-int FlowView::findIndex( map::Schematic::Ptr pSite )
+int FlowView::findIndex( schematic::Schematic::Ptr pSite )
 {
-    map::Schematic::PtrList::const_iterator iFind = 
+    schematic::Schematic::PtrList::const_iterator iFind = 
        std::find( m_pPalette->get().begin(), m_pPalette->get().end(), pSite );
     if( iFind != m_pPalette->get().end() )
         return std::distance( m_pPalette->get().begin(), iFind );
@@ -352,9 +352,9 @@ void FlowView::resizeEvent( QResizeEvent* pEvent )
     calculateLayout();
 }
 
-map::Schematic::Ptr FlowView::getClickedSchematic( QMouseEvent* pEvent )
+schematic::Schematic::Ptr FlowView::getClickedSchematic( QMouseEvent* pEvent )
 {
-    map::Schematic::Ptr pSchematic;
+    schematic::Schematic::Ptr pSchematic;
     {
         QGraphicsPixmapItem* pImageItem = nullptr;
         
@@ -387,7 +387,7 @@ void FlowView::mouseDoubleClickEvent( QMouseEvent* pEvent )
 {
     QGraphicsView::mouseDoubleClickEvent( pEvent );
     
-    if( map::Schematic::Ptr pSchematic = getClickedSchematic( pEvent ) )
+    if( schematic::Schematic::Ptr pSchematic = getClickedSchematic( pEvent ) )
     {
         const boost::filesystem::path filePath = pSchematic->getName();
         if( boost::filesystem::exists( filePath ) )
@@ -405,7 +405,7 @@ void FlowView::mousePressEvent( QMouseEvent* pEvent )
 {
     QGraphicsView::mousePressEvent( pEvent );
 
-    if( map::Schematic::Ptr pSchematic = getClickedSchematic( pEvent ) )
+    if( schematic::Schematic::Ptr pSchematic = getClickedSchematic( pEvent ) )
     {
         if( pEvent->button() == Qt::RightButton )
         {

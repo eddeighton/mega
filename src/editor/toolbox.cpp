@@ -2,13 +2,13 @@
 
 #ifndef Q_MOC_RUN
 
-#include "map/factory.hpp"
+#include "schematic/factory.hpp"
 
-#include "map/clip.hpp"
-#include "map/space.hpp"
-#include "map/wall.hpp"
-#include "map/connection.hpp"
-#include "map/object.hpp"
+#include "schematic/clip.hpp"
+#include "schematic/space.hpp"
+#include "schematic/wall.hpp"
+#include "schematic/connection.hpp"
+#include "schematic/object.hpp"
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
@@ -89,7 +89,7 @@ void Toolbox::Palette::clear()
     m_updateTick.update();
 }
 
-map::Schematic::Ptr Toolbox::Palette::getSelection() const
+schematic::Schematic::Ptr Toolbox::Palette::getSelection() const
 {
     NodeType::Ptr pSelected;
     if( m_iterSelection != m_clips.end() )
@@ -138,9 +138,9 @@ Toolbox::Toolbox( const std::string& strDirectoryPath )
     reload();
 }
     
-map::Schematic::Ptr Toolbox::getCurrentItem() const
+schematic::Schematic::Ptr Toolbox::getCurrentItem() const
 {
-    map::Schematic::Ptr pItem;
+    schematic::Schematic::Ptr pItem;
     if( m_pCurrentPalette )
         pItem = m_pCurrentPalette->getSelection();
     return pItem;
@@ -176,35 +176,35 @@ void Toolbox::reload()
     
     //generate defaults...
     {
-        map::Clip::Ptr pDefaultClip( new map::Clip( "wall" ) );
-        map::Wall::Ptr pDefaultSpace( new map::Wall( pDefaultClip, "wall" ) );
+        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "wall" ) );
+        schematic::Wall::Ptr pDefaultSpace( new schematic::Wall( pDefaultClip, "wall" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        map::Clip::Ptr pDefaultClip( new map::Clip( "object" ) );
-        map::Object::Ptr pDefaultSpace( new map::Object( pDefaultClip, "object" ) );
+        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "object" ) );
+        schematic::Object::Ptr pDefaultSpace( new schematic::Object( pDefaultClip, "object" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        map::Clip::Ptr pDefaultClip( new map::Clip( "connection" ) );
-        map::Connection::Ptr pDefaultSpace( new map::Connection( pDefaultClip, "connection" ) );
+        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "connection" ) );
+        schematic::Connection::Ptr pDefaultSpace( new schematic::Connection( pDefaultClip, "connection" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        map::Clip::Ptr pDefaultClip( new map::Clip( "connection" ) );
-        map::Connection::Ptr pDefaultSpace( new map::Connection( pDefaultClip, "connection" ) );
+        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "connection" ) );
+        schematic::Connection::Ptr pDefaultSpace( new schematic::Connection( pDefaultClip, "connection" ) );
         pDefaultSpace->init();
-        for( auto i = 0; i != map::QuarterTurn; ++i )
+        for( auto i = 0; i != schematic::QuarterTurn; ++i )
             pDefaultSpace->cmd_rotateLeft( pDefaultSpace->getAABB() );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        map::Clip::Ptr pDefaultClip( new map::Clip( "space" ) );
-        map::Space::Ptr pDefaultSpace( new map::Space( pDefaultClip, "space" ) );
+        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "space" ) );
+        schematic::Space::Ptr pDefaultSpace( new schematic::Space( pDefaultClip, "space" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, true ); //ensure space is the default one
     }
@@ -238,10 +238,10 @@ void Toolbox::recursiveLoad( const boost::filesystem::path& pathIter,
         {
             try
             {
-                if( map::File::Ptr pFile = map::load( pth ) )
+                if( schematic::File::Ptr pFile = schematic::load( pth ) )
                 {
-					if( map::Schematic::Ptr pSchematic = 
-						boost::dynamic_pointer_cast< map::Schematic >( pFile ) )
+					if( schematic::Schematic::Ptr pSchematic = 
+						boost::dynamic_pointer_cast< schematic::Schematic >( pFile ) )
                     {
                     	add( os.str(), pSchematic, false );
                     }
@@ -268,7 +268,7 @@ void Toolbox::recursiveLoad( const boost::filesystem::path& pathIter,
     }
 }
 
-void Toolbox::add( const std::string& strName, map::Schematic::Ptr pNode, bool bSelect )
+void Toolbox::add( const std::string& strName, schematic::Schematic::Ptr pNode, bool bSelect )
 {
     Palette::Ptr pPalette = getPalette( strName );
     if( !pPalette )

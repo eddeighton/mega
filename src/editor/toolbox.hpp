@@ -3,7 +3,7 @@
 
 #ifndef Q_MOC_RUN
 
-#include "map/schematic.hpp"
+#include "schematic/schematic.hpp"
 
 #include "common/tick.hpp"
 
@@ -26,7 +26,7 @@ public:
         typedef boost::shared_ptr< Palette > Ptr;
         typedef std::map< std::string, Ptr > PtrMap;
 
-        using NodeType = map::Schematic;
+        using NodeType = schematic::Schematic;
 
         Palette( const std::string& strName, int iMaximumSize = -1 );
 
@@ -57,12 +57,12 @@ public:
 
     void reload();
 
-    map::Schematic::Ptr    getCurrentItem() const;
+    schematic::Schematic::Ptr    getCurrentItem() const;
     const Palette::PtrMap& get() const { return m_palettes; }
     Palette::Ptr           getPalette( const std::string& strName ) const;
     void                   selectPalette( Palette::Ptr pPalette );
 
-    void add( const std::string& strName, map::Schematic::Ptr pNode, bool bSelect = false );
+    void add( const std::string& strName, schematic::Schematic::Ptr pNode, bool bSelect = false );
 
     void remove( Palette::Ptr pPalette );
 
