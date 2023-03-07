@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,29 +18,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/executor/executor.hpp"
 
-#include "service/executor/request.hpp"
-
-#include "simulation.hpp"
-
-#include "service/network/log.hpp"
-
-namespace mega::service
+msg SteamDestroy
 {
-
-// network::project::Impl
-void ExecutorRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
-{
-    std::vector< Simulation::Ptr > simulations;
-    m_executor.getSimulations( simulations );
-
-    // shutdown ALL simulations
-    for( Simulation::Ptr pSim : simulations )
-    {
-        network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-        rq.SimDestroy();
-    }
+    request();
+    response();
 }
-
-} // namespace mega::service

@@ -44,7 +44,7 @@ class ConversationManager;
 class ConversationBase : public std::enable_shared_from_this< ConversationBase >, public Sender
 {
 public:
-    virtual ~ConversationBase() {}
+    virtual ~ConversationBase() = default;
 
     using Ptr = std::shared_ptr< ConversationBase >;
     using ID  = ConversationID;

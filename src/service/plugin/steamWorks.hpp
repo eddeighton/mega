@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,29 +18,45 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/executor/executor.hpp"
+#ifndef GUARD_2023_March_07_steamWorks
+#define GUARD_2023_March_07_steamWorks
 
 #include "service/executor/request.hpp"
 
-#include "simulation.hpp"
+#include "service/protocol/common/conversation_id.hpp"
 
-#include "service/network/log.hpp"
+#include "service/protocol/model/steam.hxx"
 
 namespace mega::service
 {
 
-// network::project::Impl
-void ExecutorRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
-{
-    std::vector< Simulation::Ptr > simulations;
-    m_executor.getSimulations( simulations );
+class Executor;
 
-    // shutdown ALL simulations
-    for( Simulation::Ptr pSim : simulations )
-    {
-        network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-        rq.SimDestroy();
-    }
-}
+class SteamWorks : public ExecutorRequestConversation, public network::steam::Impl
+{
+public:
+    using Ptr = std::shared_ptr< SteamWorks >;
+
+    SteamWorks( Executor& executor, const network::ConversationID& conversationID );
+
+    virtual network::Message dispatchRequest( const network::Message&     msg,
+                                              boost::asio::yield_context& yield_ctx ) override;
+
+    virtual void run( boost::asio::yield_context& yield_ctx ) override;
+
+    //void sendSteamDestroyToSelf();
+
+    // network::steam::Impl
+    virtual void SteamDestroy( boost::asio::yield_context& yield_ctx ) override;
+
+private:
+    boost::asio::yield_context* m_pYieldContext = nullptr;
+    network::Sender::Ptr        m_pRequestChannelSender;
+
+    std::vector< network::ReceivedMsg > m_messageQueue;
+    bool                                m_bRunning = true;
+};
 
 } // namespace mega::service
+
+#endif // GUARD_2023_March_07_steamWorks

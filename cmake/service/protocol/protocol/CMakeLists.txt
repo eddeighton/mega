@@ -52,14 +52,15 @@ set( ROUTING_SCHEMAS
 
 set( INTERFACE_SCHEMAS
     "project"
-    sim
-    job
     enrole
-    pipeline
-    status
-    stash
-    memory
     jit
+    job
+    memory
+    pipeline
+    sim
+    stash
+    status
+    steam
 )
 
 set( PROTOCOL_HEADER_DIR ${MEGA_API_DIR}/service/protocol/model )

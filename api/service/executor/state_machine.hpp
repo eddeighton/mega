@@ -24,11 +24,10 @@
 
 #include "service/network/sender_factory.hpp"
 #include "service/network/log.hpp"
+#include "service/network/conversation.hpp"
 
 #include "service/protocol/common/conversation_id.hpp"
 #include "service/protocol/model/exe_sim.hxx"
-
-#include "network/conversation.hpp"
 
 #include <set>
 #include <vector>
@@ -84,7 +83,7 @@ public:
     static network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
     static const mega::MPO&   getSimID( const Msg& msg )
     {
-        switch ( getMsgID( msg ) )
+        switch( getMsgID( msg ) )
         {
             case Read::ID:
                 return Read::get( msg.msg ).requestingMPO;
@@ -107,9 +106,9 @@ public:
         m_state           = WAIT;
         MsgVector reads;
         MsgVector other;
-        for ( const Msg& msg : m_msgQueue )
+        for( const Msg& msg : m_msgQueue )
         {
-            switch ( getMsgID( msg ) )
+            switch( getMsgID( msg ) )
             {
                 case Read::ID:
                     reads.push_back( msg );
@@ -120,9 +119,9 @@ public:
             }
         }
 
-        if ( !reads.empty() )
+        if( !reads.empty() )
         {
-            for ( const auto& msg : reads )
+            for( const auto& msg : reads )
             {
                 const ID& id = getSimID( msg );
                 m_acks.push_back( msg );
@@ -131,19 +130,19 @@ public:
             m_msgQueue = std::move( other );
             m_state    = READ;
         }
-        else if ( !other.empty() )
+        else if( !other.empty() )
         {
             m_msgQueue.clear();
-            for ( const auto& msg : other )
+            for( const auto& msg : other )
             {
-                switch ( getMsgID( msg ) )
+                switch( getMsgID( msg ) )
                 {
                     case Read::ID:
                         THROW_RTE( "Unreachable" );
                         break;
                     case Write::ID:
                     {
-                        if ( m_state == WAIT && m_state != TERM )
+                        if( m_state == WAIT && m_state != TERM )
                         {
                             const ID& id = getSimID( msg );
                             m_acks.push_back( msg );
@@ -164,12 +163,12 @@ public:
                     break;
                     case Clock::ID:
                     {
-                        if ( m_state == WAIT )
+                        if( m_state == WAIT )
                         {
                             m_state      = SIM;
                             bClockTicked = true;
                         }
-                        else if ( m_state != SIM )
+                        else if( m_state != SIM )
                         {
                             m_msgQueue.push_back( msg );
                         }
@@ -203,9 +202,9 @@ public:
         MsgVector other;
         {
             // add new reads and process release
-            for ( const Msg& msg : m_msgQueue )
+            for( const Msg& msg : m_msgQueue )
             {
-                switch ( getMsgID( msg ) )
+                switch( getMsgID( msg ) )
                 {
                     case Read::ID:
                     {
@@ -218,7 +217,7 @@ public:
                     {
                         const ID& id    = getSimID( msg );
                         auto      iFind = m_activeReads.find( id );
-                        if ( iFind != m_activeReads.end() )
+                        if( iFind != m_activeReads.end() )
                         {
                             m_activeReads.erase( iFind );
                             m_acks.push_back( msg );
@@ -238,22 +237,22 @@ public:
         }
 
         // see if can promote read to write
-        if ( m_activeReads.size() == 1U )
+        if( m_activeReads.size() == 1U )
         {
             MsgVector other2;
             std::swap( other2, other );
-            for ( const Msg& msg : other2 )
+            for( const Msg& msg : other2 )
             {
-                switch ( getMsgID( msg ) )
+                switch( getMsgID( msg ) )
                 {
                     case Write::ID:
                     {
                         bool bPromoted = false;
-                        if ( m_state == READ )
+                        if( m_state == READ )
                         {
                             const ID& idRead = *m_activeReads.begin();
                             const ID& id     = getSimID( msg );
-                            if ( idRead == id )
+                            if( idRead == id )
                             {
                                 m_state = WRITE;
                                 m_activeReads.clear();
@@ -262,7 +261,7 @@ public:
                                 bPromoted = true;
                             }
                         }
-                        if ( !bPromoted )
+                        if( !bPromoted )
                         {
                             other.push_back( msg );
                         }
@@ -274,14 +273,14 @@ public:
                 }
             }
         }
-        else if ( m_activeReads.empty() )
+        else if( m_activeReads.empty() )
         {
             // direct transition to write?
         }
 
-        for ( const Msg& msg : other )
+        for( const Msg& msg : other )
         {
-            switch ( getMsgID( msg ) )
+            switch( getMsgID( msg ) )
             {
                 case Read::ID:
                     THROW_RTE( "Unreachable" );
@@ -293,7 +292,7 @@ public:
                     THROW_RTE( "Unreachable" );
                     break;
                 case Clock::ID:
-                    if ( m_activeReads.empty() && m_state == READ )
+                    if( m_activeReads.empty() && m_state == READ )
                     {
                         m_state      = SIM;
                         bClockTicked = true;
@@ -323,14 +322,14 @@ public:
         MsgVector other;
         {
             // add new reads and process release
-            for ( const Msg& msg : m_msgQueue )
+            for( const Msg& msg : m_msgQueue )
             {
-                switch ( getMsgID( msg ) )
+                switch( getMsgID( msg ) )
                 {
                     case Write::ID:
                     {
                         const ID& id = getSimID( msg );
-                        if ( m_activeWrite.value() == id )
+                        if( m_activeWrite.value() == id )
                         {
                             m_acks.push_back( msg );
                         }
@@ -354,14 +353,14 @@ public:
             // add new reads and process release
             MsgVector other2;
             std::swap( other, other2 );
-            for ( const Msg& msg : other2 )
+            for( const Msg& msg : other2 )
             {
-                switch ( getMsgID( msg ) )
+                switch( getMsgID( msg ) )
                 {
                     case Release::ID:
                     {
                         const ID& id = getSimID( msg );
-                        if ( m_activeWrite.value() == id )
+                        if( m_activeWrite.value() == id )
                         {
                             m_activeWrite.reset();
                             m_acks.push_back( msg );
@@ -380,16 +379,16 @@ public:
         }
 
         // stay in the WRITE state until clock tick
-        for ( const Msg& msg : other )
+        for( const Msg& msg : other )
         {
-            switch ( getMsgID( msg ) )
+            switch( getMsgID( msg ) )
             {
                 case Read::ID:
                 {
-                    if ( m_activeWrite.has_value() )
+                    if( m_activeWrite.has_value() )
                     {
                         const ID& id = getSimID( msg );
-                        if ( !( m_activeWrite.value() == id ) )
+                        if( !( m_activeWrite.value() == id ) )
                         {
                             m_msgQueue.push_back( msg );
                         }
@@ -406,7 +405,7 @@ public:
                 }
                 break;
                 case Write::ID:
-                    if ( m_state == WRITE && !m_activeWrite.has_value() )
+                    if( m_state == WRITE && !m_activeWrite.has_value() )
                     {
                         const ID& id = getSimID( msg );
                         m_acks.push_back( msg );
@@ -421,7 +420,7 @@ public:
                     THROW_RTE( "Unreachable" );
                     break;
                 case Clock::ID:
-                    if ( !m_activeWrite.has_value() )
+                    if( !m_activeWrite.has_value() )
                     {
                         m_state      = SIM;
                         bClockTicked = true;
@@ -448,9 +447,9 @@ public:
         bool bClockTicked = false;
 
         // stay in the WRITE state until clock tick
-        for ( const Msg& msg : m_msgQueue )
+        for( const Msg& msg : m_msgQueue )
         {
-            switch ( getMsgID( msg ) )
+            switch( getMsgID( msg ) )
             {
                 case Read::ID:
                 {
@@ -468,12 +467,12 @@ public:
                 {
                     const ID& id    = getSimID( msg );
                     auto      iFind = m_activeReads.find( id );
-                    if ( iFind != m_activeReads.end() )
+                    if( iFind != m_activeReads.end() )
                     {
                         m_activeReads.erase( iFind );
                         m_acks.push_back( msg );
                     }
-                    else if ( m_activeWrite.has_value() && ( m_activeWrite.value() == id ) )
+                    else if( m_activeWrite.has_value() && ( m_activeWrite.value() == id ) )
                     {
                         m_activeWrite.reset();
                         m_acks.push_back( msg );
@@ -508,9 +507,9 @@ public:
     {
         using namespace mega::network;
 
-        for ( const Msg& msg : msgs )
+        for( const Msg& msg : msgs )
         {
-            switch ( getMsgID( msg ) )
+            switch( getMsgID( msg ) )
             {
                 case Destroy::ID:
                     m_state = TERM;
@@ -521,7 +520,7 @@ public:
         resetAcks();
         std::copy( msgs.begin(), msgs.end(), std::back_inserter( m_msgQueue ) );
 
-        switch ( m_state )
+        switch( m_state )
         {
             case SIM:
             case WAIT:

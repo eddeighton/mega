@@ -22,7 +22,7 @@
 #include "jit/jit_exception.hpp"
 #include "jit/program_functions.hxx"
 
-#include "service/executor.hpp"
+#include "service/executor/executor.hpp"
 
 #include "service/network/conversation.hpp"
 

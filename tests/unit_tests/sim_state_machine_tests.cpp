@@ -21,7 +21,7 @@
 //
 #include <gtest/gtest.h>
 
-#include "service/state_machine.hpp"
+#include "service/executor/state_machine.hpp"
 
 using namespace std::literals;
 static const mega::MPO id1( 1, 2, 3 );

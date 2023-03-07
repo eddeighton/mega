@@ -40,18 +40,19 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+set( EXECUTOR_API_DIR ${MEGA_API_DIR}/service/executor )
 set( EXECUTOR_SRC_DIR ${MEGA_SRC_DIR}/service/executor )
 
 ####################################################################
 ####################################################################
 
 set( EXECUTOR_LIB_API 
-    ${MEGA_API_DIR}/service/executor.hpp 
-    ${MEGA_API_DIR}/service/state_machine.hpp 
+    ${EXECUTOR_API_DIR}/executor.hpp
+    ${EXECUTOR_API_DIR}/request.hpp 
+    ${EXECUTOR_API_DIR}/state_machine.hpp 
     )
 
 set( EXECUTOR_LIB_SRC 
-    ${EXECUTOR_SRC_DIR}/request.hpp
     ${EXECUTOR_SRC_DIR}/request.cpp
     ${EXECUTOR_SRC_DIR}/job.hpp
     ${EXECUTOR_SRC_DIR}/job.cpp

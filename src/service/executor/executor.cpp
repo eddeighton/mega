@@ -17,9 +17,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/executor.hpp"
+#include "service/executor/executor.hpp"
 
-#include "request.hpp"
+#include "service/executor/request.hpp"
+
 #include "job.hpp"
 #include "simulation.hpp"
 

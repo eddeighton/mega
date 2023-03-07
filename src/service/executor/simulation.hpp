@@ -20,11 +20,12 @@
 #ifndef SIMULATION_22_JUNE_2022
 #define SIMULATION_22_JUNE_2022
 
-#include "request.hpp"
+#include "service/executor/request.hpp"
+
 #include "clock.hpp"
 #include "scheduler.hpp"
 
-#include "service/state_machine.hpp"
+#include "service/executor/state_machine.hpp"
 #include "service/network/sender_factory.hpp"
 #include "service/protocol/common/conversation_id.hpp"
 

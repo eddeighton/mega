@@ -17,10 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "request.hpp"
+#include "service/executor/request.hpp"
+
 #include "simulation.hpp"
 
-#include "service/executor.hpp"
+#include "service/executor/executor.hpp"
 
 namespace mega::service
 {

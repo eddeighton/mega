@@ -46,6 +46,7 @@ public:
 
     std::vector< ConversationID > reportConversations() const;
     ConversationID                createConversationID( const ConnectionID& connectionID ) const;
+    void                          externalConversationInitiated( ConversationBase::Ptr pConversation );
     void                          conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender );
     void                          conversationJoined( ConversationBase::Ptr pConversation );
     virtual void                  conversationCompleted( ConversationBase::Ptr pConversation );

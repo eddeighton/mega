@@ -17,17 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/executor/executor.hpp"
+#include "service/plugin/plugin.hpp"
 
 #include "service/network/network.hpp"
-#include "service/network/log.hpp"
-
-#include "pipeline/pipeline.hpp"
 
 #include "common/assert_verify.hpp"
 
 #include <boost/program_options.hpp>
-#include <boost/asio/io_context.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/config.hpp>
 
@@ -82,26 +78,33 @@ int main( int argc, const char* argv[] )
         uiNumThreads = std::min( std::max( 1U, uiNumThreads ), std::thread::hardware_concurrency() );
     }
 
-    std::cout << "Connecting to: " << strIP << std::endl;
+    // std::cout << "Connecting to: " << strIP << std::endl;
 
     try
     {
-        mega::network::configureLog( logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
-                                           mega::network::fromStr( strLogFileLevel ) );
+        std::cout << "Initialising plugin" << std::endl;
+        mp_initialise( strConsoleLogLevel.c_str(), strLogFileLevel.c_str() );
 
-        boost::asio::io_context ioContext;
+        int networkID = 0;
+        std::cout << "Connecting to: " << mp_network_name( networkID ) << " network" << std::endl;
 
-        mega::service::Executor executor( ioContext, uiNumThreads, daemonPortNumber );
+        mp_update();
 
-        std::vector< std::thread > threads;
-        for( int i = 0; i < uiNumThreads; ++i )
-        {
-            threads.emplace_back( std::move( std::thread( [ &ioContext ]() { ioContext.run(); } ) ) );
-        }
-        for( std::thread& thread : threads )
-        {
-            thread.join();
-        }
+        mp_network_connect( networkID );
+
+        mp_update();
+
+        mp_network_disconnect();
+
+        mp_update();
+
+        std::cout << "waiting for input..." << std::endl;
+        char c;
+        std::cin >> c;
+
+        mp_shutdown();
+
+        std::cout << "Shutdown complete" << std::endl;
     }
     catch( std::exception& ex )
     {

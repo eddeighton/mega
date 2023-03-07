@@ -19,7 +19,7 @@
 
 #include "job.hpp"
 
-#include "service/executor.hpp"
+#include "service/executor/executor.hpp"
 
 #include "service/protocol/model/stash.hxx"
 

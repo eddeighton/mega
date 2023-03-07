@@ -35,9 +35,8 @@ ConversationManager::ConversationManager( const std::string& strProcessName, boo
     , m_ioContext( ioContext )
 {
 }
-ConversationManager::~ConversationManager()
-{
-}
+
+ConversationManager::~ConversationManager() = default;
 
 boost::asio::io_context& ConversationManager::getIOContext() const
 {
@@ -69,13 +68,13 @@ std::vector< ConversationID > ConversationManager::reportConversations() const
 ConversationID ConversationManager::createConversationID( const ConnectionID& connectionID ) const
 {
     WriteLock lock( m_mutex );
-    return ConversationID( ++m_nextConversationID, connectionID );
+    return { ++m_nextConversationID, connectionID };
 }
 
-// static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x0FFFFF; // 1M bytes
-// static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0xAFFFFF; // 11,534,335
-static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x400000;
-// static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x200000; // 2,097,152
+// static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x0FFFFF;      // 1M bytes
+// static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x200000;      // 2,097,152
+static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0x400000; // 4,194,304
+// static const mega::U64 NON_SEGMENTED_STACK_SIZE = 0xAFFFFF;      // 11,534,335
 
 void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pConversation, Sender& parentSender )
 {
@@ -97,12 +96,15 @@ void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pCon
     // SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
 }
 
+void ConversationManager::externalConversationInitiated( ConversationBase::Ptr pConversation )
+{
+    WriteLock lock( m_mutex );
+    m_conversations.insert( std::make_pair( pConversation->getID(), pConversation ) );
+}
+
 void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender )
 {
-    {
-        WriteLock lock( m_mutex );
-        m_conversations.insert( std::make_pair( pConversation->getID(), pConversation ) );
-    }
+    externalConversationInitiated( pConversation );
     spawnInitiatedConversation( pConversation, parentSender );
 }
 

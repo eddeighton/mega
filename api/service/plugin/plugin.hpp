@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,29 +18,21 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/executor/executor.hpp"
+#ifndef GUARD_2023_March_07_plugin
+#define GUARD_2023_March_07_plugin
 
-#include "service/executor/request.hpp"
-
-#include "simulation.hpp"
-
-#include "service/network/log.hpp"
-
-namespace mega::service
+extern "C"
 {
+    // lifetime
+    void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
+    void mp_update();
+    void mp_shutdown();
 
-// network::project::Impl
-void ExecutorRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
-{
-    std::vector< Simulation::Ptr > simulations;
-    m_executor.getSimulations( simulations );
-
-    // shutdown ALL simulations
-    for( Simulation::Ptr pSim : simulations )
-    {
-        network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-        rq.SimDestroy();
-    }
+    // network connection
+    int mp_network_count();
+    const char* mp_network_name( int networkID );
+    void mp_network_connect( int networkID );
+    void mp_network_disconnect();
 }
 
-} // namespace mega::service
+#endif //GUARD_2023_March_07_plugin
