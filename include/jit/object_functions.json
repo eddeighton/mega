@@ -1,0 +1,122 @@
+{
+    "functions": [
+        {
+            "name": "ObjectCtor",
+            "arguments": [
+                {
+                    "name": "Data",
+                    "type": "void*"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
+        },
+        {
+            "name": "ObjectDtor",
+            "arguments": [
+                {
+                    "name": "Buffer",
+                    "type": "void*"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
+        },
+        {
+            "name": "ObjectLoadBin",
+            "arguments": [
+                {
+                    "name": "Buffer",
+                    "type": "void*"
+                },
+                {
+                    "name": "Serialiser",
+                    "type": "void*"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
+        },
+        {
+            "name": "ObjectSaveBin",
+            "arguments": [
+                {
+                    "name": "Buffer",
+                    "type": "void*"
+                },
+                {
+                    "name": "Serialiser",
+                    "type": "void*"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
+        },
+        {
+            "name": "CallGetter",
+            "arguments": [],
+            "return_type": "mega::runtime::TypeErasedFunction",
+            "return": "function"
+        },
+        {
+            "name": "ObjectSaveXMLStructure",
+            "arguments": [
+                {
+                    "name": "ref",
+                    "type": "mega::reference"
+                },
+                {
+                    "name": "Serialiser",
+                    "type": "void*"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
+        },
+        {
+            "name": "ObjectLoadXMLStructure",
+            "arguments": [
+                {
+                    "name": "ref",
+                    "type": "mega::reference"
+                },
+                {
+                    "name": "Serialiser",
+                    "type": "void*"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
+        },
+        {
+            "name": "ObjectLoadXML",
+            "arguments": [
+                {
+                    "name": "ref",
+                    "type": "mega::reference"
+                },
+                {
+                    "name": "Serialiser",
+                    "type": "void*"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
+        },
+        {
+            "name": "ObjectSaveXML",
+            "arguments": [
+                {
+                    "name": "ref",
+                    "type": "mega::reference"
+                },
+                {
+                    "name": "Serialiser",
+                    "type": "void*"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
+        }
+    ]
+}

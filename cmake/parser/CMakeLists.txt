@@ -67,8 +67,8 @@ link_common( parser )
 
 IF( ${WIN32} )
 
-target_compile_options(database PRIVATE /bigobj)
-set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+target_compile_options( parser PRIVATE /bigobj)
+set_property(TARGET parser PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 
 # NOTE: DOES NOT link the database
 # except on windows!
@@ -80,6 +80,8 @@ ELSE( ${WIN32} )
 set_property(TARGET parser PROPERTY C_VISIBILITY_PRESET hidden)
 set_property(TARGET parser PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 set_property(TARGET parser PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+add_dependencies( parser database )
 
 ENDIF( ${WIN32} )
 

@@ -1,0 +1,139 @@
+{
+    "records": [
+        {
+            "type": "Log",
+            "padding": 0,
+            "align": 1,
+            "has_enum": true,
+            "has_buffer": true,
+            "enums": [
+                {
+                    "name": "Type",
+                    "values": [
+                        "Trace",
+                        "Debug",
+                        "Info",
+                        "Warn",
+                        "Error",
+                        "Fatal"
+                    ]
+                }
+            ],
+            "fields": [],
+            "buffers": [
+                {
+                    "name": "Message"
+                }
+            ]
+        },
+        {
+            "type": "Structure",
+            "padding": 12,
+            "align": 16,
+            "has_enum": true,
+            "has_buffer": false,
+            "enums": [
+                {
+                    "name": "Type",
+                    "values": [
+                        "Make",
+                        "Break"
+                    ]
+                }
+            ],
+            "fields": [
+                {
+                    "type": "mega::reference",
+                    "name": "Source"
+                },
+                {
+                    "type": "mega::reference",
+                    "name": "Target"
+                }
+            ],
+            "buffers": []
+        },
+        {
+            "type": "Scheduling",
+            "padding": 12,
+            "align": 16,
+            "has_enum": true,
+            "has_buffer": false,
+            "enums": [
+                {
+                    "name": "Type",
+                    "values": [
+                        "Start",
+                        "Stop"
+                    ]
+                }
+            ],
+            "fields": [
+                {
+                    "type": "mega::reference",
+                    "name": "Ref"
+                }
+            ],
+            "buffers": []
+        },
+        {
+            "type": "Memory",
+            "padding": 0,
+            "align": 1,
+            "has_enum": false,
+            "has_buffer": true,
+            "enums": [],
+            "fields": [
+                {
+                    "type": "mega::reference",
+                    "name": "Ref"
+                }
+            ],
+            "buffers": [
+                {
+                    "name": "Data"
+                }
+            ]
+        },
+        {
+            "type": "Automation",
+            "padding": 0,
+            "align": 1,
+            "has_enum": false,
+            "has_buffer": false,
+            "enums": [],
+            "fields": [],
+            "buffers": []
+        },
+        {
+            "type": "Comms",
+            "padding": 0,
+            "align": 1,
+            "has_enum": false,
+            "has_buffer": false,
+            "enums": [],
+            "fields": [],
+            "buffers": []
+        },
+        {
+            "type": "Power",
+            "padding": 0,
+            "align": 1,
+            "has_enum": false,
+            "has_buffer": false,
+            "enums": [],
+            "fields": [],
+            "buffers": []
+        },
+        {
+            "type": "Volume",
+            "padding": 0,
+            "align": 1,
+            "has_enum": false,
+            "has_buffer": false,
+            "enums": [],
+            "fields": [],
+            "buffers": []
+        }
+    ]
+}

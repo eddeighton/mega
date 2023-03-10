@@ -22,8 +22,6 @@
 #include "database/model/MemoryStage.hxx"
 #include "database/types/sources.hpp"
 
-#include "jit/object_header.hpp"
-
 #include "mega/operation_id.hpp"
 #include "mega/allocator.hpp"
 #include "mega/types/traits.hpp"
@@ -647,8 +645,15 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
         std::vector< MemoryLayout::Buffer* > objectBuffers;
         if ( !parts.parts.empty() )
         {
-            U64 szOffset    = sizeof( mega::runtime::ObjectHeader );
-            U64 szAlignment = alignof( mega::runtime::ObjectHeader );
+            // time for some genius - cannot include mega::runtime::ObjectHeader due to dependencies
+            // so redefine
+            struct FakeObjectHeader : public mega::ObjectHeaderBase
+            {
+                std::shared_ptr< void > m_pAllocator;
+            };
+
+            U64 szOffset    = sizeof( FakeObjectHeader );
+            U64 szAlignment = alignof( FakeObjectHeader );
             for ( auto p : parts.parts )
             {
                 szOffset = padToAlignment( p->get_alignment(), szOffset );

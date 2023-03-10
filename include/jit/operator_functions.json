@@ -1,0 +1,38 @@
+{
+    "functions" :
+    [
+        {
+            "name" : "Cast",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
+            "name" : "Active",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "bool",
+            "return" : "value"
+        },
+        {
+            "name" : "Stopped",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "bool",
+            "return" : "value"
+        }
+    ]
+}

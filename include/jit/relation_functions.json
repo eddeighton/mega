@@ -1,0 +1,65 @@
+{
+    "functions" :
+    [
+        {
+            "name" : "LinkMake",
+            "arguments" : [
+                {
+                    "name" : "source",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "target",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
+            "name" : "LinkBreak",
+            "arguments" : [
+                {
+                    "name" : "source",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "target",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
+            "name" : "LinkReset",
+            "arguments" : [
+                {
+                    "name" : "source",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "target",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
+            "name" : "LinkOverwrite",
+            "arguments" : [
+                {
+                    "name" : "source",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "target",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        }
+    ]
+}

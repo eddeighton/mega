@@ -1,0 +1,165 @@
+{
+    "functions" :
+    [
+        {
+            "name" : "Read",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void*",
+            "return" : "value"
+        },
+        {
+            "name" : "Write",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "pData",
+                    "type" : "const void*"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
+            "name" : "Allocate",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
+            "name" : "Call",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "mega::runtime::CallResult",
+            "return" : "value"
+        },
+        {
+            "name" : "ReadLink",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void*",
+            "return" : "value"
+        },
+        {
+            "name" : "WriteLink",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "overload",
+                    "type" : "WriteOperation"
+                },
+                {
+                    "name" : "target",
+                    "type" : "const mega::reference&"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
+            "name" : "WriteLinkRange",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "overload",
+                    "type" : "WriteOperation"
+                },
+                {
+                    "name" : "target",
+                    "type" : "const void*"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
+            "name" : "Get",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
+            "name" : "Save",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "pSerialiser",
+                    "type" : "void*"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
+            "name" : "Load",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "pSerialiser",
+                    "type" : "void*"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
+            "name" : "Start",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
+            "name" : "Stop",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        }
+    ]
+}

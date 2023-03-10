@@ -37,7 +37,6 @@
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/sim.hxx"
 #include "service/protocol/model/memory.hxx"
-#include "service/protocol/model/runtime.hxx"
 #include "service/protocol/model/jit.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/stash.hxx"

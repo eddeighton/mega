@@ -27,7 +27,7 @@
 #include "service/network/conversation.hpp"
 
 #include "service/protocol/common/conversation_id.hpp"
-#include "service/protocol/model/exe_sim.hxx"
+#include "service/protocol/model/sim.hxx"
 
 #include <set>
 #include <vector>

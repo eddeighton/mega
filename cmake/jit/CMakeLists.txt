@@ -145,7 +145,6 @@ add_library( jit SHARED
 
 set_target_properties( jit PROPERTIES FOLDER service )
 
-
 include_directories( jit ${MEGA_API_DIR}/jit )
 
 target_link_libraries( jit database )

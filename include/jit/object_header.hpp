@@ -30,6 +30,8 @@
 namespace mega::runtime
 {
 
+// NOTE : dependent definition at:
+// /workspace/root/src/mega/src/src/compiler/task_allocators.cpp:652
 struct ObjectHeader : public mega::ObjectHeaderBase
 {
     Allocator::Ptr m_pAllocator;

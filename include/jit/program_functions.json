@@ -1,0 +1,92 @@
+{
+    "functions" :
+    [
+        {
+            "name" : "ObjectLoadBin",
+            "arguments" : [
+                {
+                    "name" : "typeID",
+                    "type" : "mega::TypeID"
+                },
+                {
+                    "name" : "Buffer",
+                    "type" : "void*"
+                },
+                {
+                    "name" : "Serialiser",
+                    "type" : "void*"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
+            "name" : "ObjectSaveBin",
+            "arguments" : [
+                {
+                    "name" : "typeID",
+                    "type" : "mega::TypeID"
+                },
+                {
+                    "name" : "Buffer",
+                    "type" : "void*"
+                },
+                {
+                    "name" : "Serialiser",
+                    "type" : "void*"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
+            "name" : "RecordLoadBin",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "Data",
+                    "type" : "void*"
+                },
+                {
+                    "name" : "Size",
+                    "type" : "mega::U64"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
+            "name" : "RecordMake",
+            "arguments" : [
+                {
+                    "name" : "source",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "target",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
+            "name" : "RecordBreak",
+            "arguments" : [
+                {
+                    "name" : "source",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "target",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        }
+    ]
+}
