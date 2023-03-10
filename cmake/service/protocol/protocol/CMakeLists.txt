@@ -43,9 +43,11 @@ set( ROUTING_SCHEMAS
     leaf_daemon
     leaf_term
     leaf_tool
+    leaf_python
     leaf_exe
     term_leaf
     tool_leaf
+    python_leaf
     exe_leaf
     mpo 
 )
@@ -57,10 +59,11 @@ set( INTERFACE_SCHEMAS
     job
     memory
     pipeline
+    planet
+    platform
     sim
     stash
     status
-    steam
 )
 
 set( PROTOCOL_HEADER_DIR ${MEGA_API_DIR}/service/protocol/model )
@@ -114,11 +117,8 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/context.hpp  
     ${MEGA_API_DIR}/service/protocol/common/conversation_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/conversation_id.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/environment.hpp  
     ${MEGA_API_DIR}/service/protocol/common/jit_base.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/megastructure_installation.hpp
     ${MEGA_API_DIR}/service/protocol/common/node.hpp
-    ${MEGA_API_DIR}/service/protocol/common/project.hpp
     ${MEGA_API_DIR}/service/protocol/common/root_config.hpp
     ${MEGA_API_DIR}/service/protocol/common/sender.hpp  
     ${MEGA_API_DIR}/service/protocol/common/status.hpp
@@ -131,9 +131,7 @@ set( MEGA_PROTOCOL_COMMON_SOURCE
     ${MEGA_SRC_DIR}/service/protocol/common/context.cpp  
     ${MEGA_SRC_DIR}/service/protocol/common/conversation_base.cpp  
     ${MEGA_SRC_DIR}/service/protocol/common/conversation_id.cpp
-    ${MEGA_SRC_DIR}/service/protocol/common/megastructure_installation.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/node.cpp
-    ${MEGA_SRC_DIR}/service/protocol/common/project.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/root_config.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/status.cpp
     )

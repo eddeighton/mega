@@ -40,9 +40,7 @@ Conversation::Conversation( ConversationManager& conversationManager, const Conv
 {
 }
 
-Conversation::~Conversation()
-{
-}
+Conversation::~Conversation() = default;
 
 void Conversation::requestStarted( const ConnectionID& connectionID )
 {
@@ -174,6 +172,23 @@ void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yie
     }
 }
 
+void Conversation::dispatchRemaining( boost::asio::yield_context& yield_ctx )
+{
+    // close out existing messages
+    while( true )
+    {
+        std::optional< network::ReceivedMsg > pendingMsgOpt = try_receive( yield_ctx );
+        if( pendingMsgOpt.has_value() )
+        {
+            dispatchRequestImpl( pendingMsgOpt.value(), yield_ctx );
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 InThreadConversation::InThreadConversation( ConversationManager&  conversationManager,
@@ -188,6 +203,27 @@ InThreadConversation::InThreadConversation( ConversationManager&  conversationMa
 ReceivedMsg InThreadConversation::receive( boost::asio::yield_context& yield_ctx )
 {
     return m_channel.async_receive( yield_ctx );
+}
+
+std::optional< ReceivedMsg > InThreadConversation::try_receive( boost::asio::yield_context& yield_ctx )
+{
+    std::optional< ReceivedMsg > result;
+
+    while( m_channel.try_receive(
+        [ &optMsg = result ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+        {
+            if( !ec )
+            {
+                optMsg = msg;
+            }
+            else
+            {
+                THROW_TODO;
+            }
+        } ) )
+        ;
+
+    return result;
 }
 
 void InThreadConversation::send( const ReceivedMsg& msg )
@@ -217,6 +253,27 @@ ConcurrentConversation::ConcurrentConversation( ConversationManager&  conversati
 ReceivedMsg ConcurrentConversation::receive( boost::asio::yield_context& yield_ctx )
 {
     return m_channel.async_receive( yield_ctx );
+}
+
+std::optional< ReceivedMsg > ConcurrentConversation::try_receive( boost::asio::yield_context& yield_ctx )
+{
+    std::optional< ReceivedMsg > result;
+
+    while( m_channel.try_receive(
+        [ &optMsg = result ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+        {
+            if( !ec )
+            {
+                optMsg = msg;
+            }
+            else
+            {
+                THROW_TODO;
+            }
+        } ) )
+        ;
+
+    return result;
 }
 
 void ConcurrentConversation::send( const ReceivedMsg& msg )

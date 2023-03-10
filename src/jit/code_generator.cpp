@@ -41,8 +41,8 @@
 namespace mega::runtime
 {
 
-CodeGenerator::CodeGenerator( const mega::network::MegastructureInstallation& megastructureInstallation,
-                              const mega::network::Project&                   project )
+CodeGenerator::CodeGenerator( const mega::MegastructureInstallation& megastructureInstallation,
+                              const mega::Project&                   project )
     : m_pInja( std::make_unique< Inja >( megastructureInstallation, project ) )
 {
 }

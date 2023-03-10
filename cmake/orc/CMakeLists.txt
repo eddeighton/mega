@@ -40,6 +40,9 @@ add_library( orc SHARED
     ${RUNTIME_SOURCE}
 )
 
+target_link_libraries( orc mega_interface )
+target_link_libraries( orc utilities )
+
 set_target_properties( orc PROPERTIES FOLDER service )
 add_definitions(-DMEGA_ORC_API_SHARED_MODULE)
 

@@ -20,17 +20,17 @@
 msg GetProject
 {
     request();
-    response( mega::network::Project project );
+    response( mega::Project project );
 }
 
 msg SetProject
 {
-    request( mega::network::Project project );
+    request( mega::Project project );
     response();
 }
 
 msg GetMegastructureInstallation
 {
     request();
-    response( mega::network::MegastructureInstallation install );
+    response( mega::MegastructureInstallation install );
 }

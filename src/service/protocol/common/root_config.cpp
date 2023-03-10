@@ -22,6 +22,6 @@
 namespace mega::network
 {
 
-RootConfig::RootConfig() {}
+RootConfig::RootConfig() = default;
 
 } // namespace mega::network

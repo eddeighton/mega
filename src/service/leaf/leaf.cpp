@@ -76,7 +76,7 @@ public:
             network::project::Request_Encoder projectRequest(
                 [ &daemonSender ]( const network::Message& msg ) { return daemonSender.LeafRoot( msg ); }, getID() );
 
-            const network::Project currentProject = projectRequest.GetProject();
+            const Project currentProject = projectRequest.GetProject();
             m_leaf.m_megastructureInstallationOpt = projectRequest.GetMegastructureInstallation();
             m_leaf.setActiveProject( currentProject );
         }
@@ -124,7 +124,7 @@ Leaf::~Leaf()
     m_io_thread.join();
 }
 
-void Leaf::setActiveProject( const network::Project& currentProject )
+void Leaf::setActiveProject( const Project& currentProject )
 {
     m_pJIT.reset();
 
@@ -134,6 +134,7 @@ void Leaf::setActiveProject( const network::Project& currentProject )
         case network::Node::Terminal:
             break;
         case network::Node::Tool:
+        case network::Node::Python:
         case network::Node::Executor:
             if( !currentProject.isEmpty() && m_megastructureInstallationOpt.has_value() )
             {
@@ -195,6 +196,7 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
         case network::Node::Leaf:
         case network::Node::Terminal:
         case network::Node::Tool:
+        case network::Node::Python:
         case network::Node::Executor:
             return network::ConversationBase::Ptr(
                 new LeafRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );

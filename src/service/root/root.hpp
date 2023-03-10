@@ -25,7 +25,7 @@
 #include "service/network/server.hpp"
 #include "service/network/conversation_manager.hpp"
 
-#include "service/protocol/common/megastructure_installation.hpp"
+#include "utilities/megastructure_installation.hpp"
 #include "service/protocol/common/root_config.hpp"
 
 #include "common/stash.hpp"
@@ -49,9 +49,9 @@ public:
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
                                                              const network::Message&      msg );
 
-    network::MegastructureInstallation getMegastructureInstallation();
-    const network::Project&            getProject() const { return m_config.getProject(); }
-    void                               setProject( const network::Project& project ) { m_config.setProject( project ); }
+    MegastructureInstallation getMegastructureInstallation();
+    const Project&            getProject() const { return m_config.getProject(); }
+    void                               setProject( const Project& project ) { m_config.setProject( project ); }
 
 private:
     void loadConfig();
@@ -64,7 +64,7 @@ private:
     task::BuildHashCodes                                m_buildHashCodes;
     task::Stash                                         m_stash;
     mega::network::RootConfig                           m_config;
-    std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;
+    std::optional< MegastructureInstallation > m_megastructureInstallationOpt;
     MPOManager                                          m_mpoManager;
 };
 

@@ -25,7 +25,7 @@ namespace mega::service
 
 // network::project::Impl
 
-void ToolRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
+void ToolRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
 {
     
 }

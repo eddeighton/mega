@@ -20,20 +20,17 @@
 
 #include "service/plugin/plugin.hpp"
 
-#include "steamWorks.hpp"
+#include "platform.hpp"
 
 #include "service/executor/executor.hpp"
 
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/model/steam.hxx"
-
-#include "pipeline/pipeline.hpp"
+#include "service/protocol/model/platform.hxx"
 
 #include "common/assert_verify.hpp"
 
-#include <boost/program_options.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/config.hpp>
@@ -187,7 +184,8 @@ public:
 
     static void releasePlugin( Ptr& pPlugin )
     {
-        pPlugin->shutdownSteam();
+        // work around shared_from_this in constructor issues
+        pPlugin->shutdown();
         pPlugin->m_executor.conversationCompleted( pPlugin );
         pPlugin.reset();
     }
@@ -216,16 +214,14 @@ public:
         }
 
         {
-            m_pSteamWorks = std::make_shared< SteamWorks >(
+            m_pPlatform = std::make_shared< Platform >(
                 m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ) );
-            m_executor.conversationInitiated( m_pSteamWorks, m_executor.getLeafSender() );
+            m_executor.conversationInitiated( m_pPlatform, m_executor.getLeafSender() );
         }
     }
 
     ~Plugin()
     {
-        SPDLOG_TRACE( "~Plugin" );
-
         m_executor.shutdown();
         for( std::thread& thread : m_threads )
         {
@@ -238,14 +234,16 @@ public:
     Plugin& operator=( const Plugin& ) = delete;
     Plugin& operator=( Plugin&& )      = delete;
 
-    void shutdownSteam()
+    void shutdown()
     {
-        SPDLOG_TRACE( "Plugin::shutdownSteam" );
-        using namespace network::steam;
+        SPDLOG_TRACE( "Plugin::shutdown" );
+        
+        using namespace network::platform;
         Activity::Ptr pActivity = std::make_shared< Activity >(
-            *this, *m_pSteamWorks, MSG_SteamDestroy_Request::make( getID(), getID(), MSG_SteamDestroy_Request{} ) );
+            *this, *m_pPlatform, MSG_PlatformDestroy_Request::make( getID(), getID(), MSG_PlatformDestroy_Request{} ) );
 
         m_activities.push_back( pActivity );
+
         while( !pActivity->isReceived() )
             update();
 
@@ -273,6 +271,8 @@ public:
         {
             pActivity->update( msgOpt );
         }
+
+        VERIFY_RTE_MSG( !msgOpt.has_value(), "Failed to dispatch message: " << msgOpt.value().msg.getName() );
     }
 
 private:
@@ -287,7 +287,7 @@ private:
 
     Activity::PtrVector m_activities;
 
-    SteamWorks::Ptr m_pSteamWorks;
+    Platform::Ptr m_pPlatform;
 };
 
 static Plugin::Ptr g_pPlugin;

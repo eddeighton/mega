@@ -109,6 +109,10 @@ network::leaf_tool::Request_Sender LeafRequestConversation::getToolSender( boost
 {
     return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
+network::leaf_python::Request_Sender LeafRequestConversation::getPythonSender( boost::asio::yield_context& yield_ctx )
+{
+    return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
+}
 network::leaf_term::Request_Sender LeafRequestConversation::getTermSender( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
@@ -168,8 +172,8 @@ network::Message LeafRequestConversation::MPDown( const network::Message& reques
     switch( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
-            return getMPODownSender( yield_ctx ).MPDown( request, mp );
         case network::Node::Tool:
+        case network::Node::Python:
             return getMPODownSender( yield_ctx ).MPDown( request, mp );
         case network::Node::Terminal:
         case network::Node::Daemon:
@@ -203,6 +207,7 @@ network::Message LeafRequestConversation::MPODown( const network::Message& reque
     {
         case network::Node::Executor:
         case network::Node::Tool:
+        case network::Node::Python:
             return getMPODownSender( yield_ctx ).MPODown( request, mpo );
         case network::Node::Terminal:
         case network::Node::Daemon:
@@ -251,6 +256,11 @@ network::Message LeafRequestConversation::RootAllBroadcast( const network::Messa
                 responses.push_back( getToolSender( yield_ctx ).RootAllBroadcast( request ) );
             }
             break;
+            case network::Node::Python:
+            {
+                responses.push_back( getPythonSender( yield_ctx ).RootAllBroadcast( request ) );
+            }
+            break;
             case network::Node::Daemon:
             case network::Node::Root:
             case network::Node::Leaf:
@@ -277,6 +287,7 @@ network::Message LeafRequestConversation::RootExeBroadcast( const network::Messa
             return getExeSender( yield_ctx ).RootExeBroadcast( request );
         case network::Node::Terminal:
         case network::Node::Tool:
+        case network::Node::Python:
         case network::Node::Daemon:
         case network::Node::Root:
         case network::Node::Leaf:
@@ -295,6 +306,7 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
             return getExeSender( yield_ctx ).RootExe( request );
         case network::Node::Terminal:
         case network::Node::Tool:
+        case network::Node::Python:
         case network::Node::Daemon:
         case network::Node::Root:
         case network::Node::Leaf:
@@ -320,6 +332,11 @@ void LeafRequestConversation::RootSimRun( const MPO& mpo, boost::asio::yield_con
         {
             MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
             return getToolSender( yield_ctx ).RootSimRun( mpo );
+        }
+        case network::Node::Python:
+        {
+            MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
+            return getPythonSender( yield_ctx ).RootSimRun( mpo );
         }
         case network::Node::Terminal:
         case network::Node::Daemon:

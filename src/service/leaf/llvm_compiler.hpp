@@ -39,8 +39,8 @@ class LLVMCompilerImpl : public runtime::CodeGenerator::LLVMCompiler
 {
 public:
     LLVMCompilerImpl( network::ConversationBase& conversation, network::Sender& sender,
-                      const mega::network::MegastructureInstallation& megaInstall,
-                      const mega::network::Project& project, boost::asio::yield_context& yield_ctx )
+                      const mega::MegastructureInstallation& megaInstall,
+                      const mega::Project& project, boost::asio::yield_context& yield_ctx )
         : m_conversation( conversation )
         , m_sender( sender )
         , m_megaInstall( megaInstall )
@@ -57,7 +57,7 @@ public:
     virtual void compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
                                   std::optional< const FinalStage::Components::Component* > pComponent ) const override;
 
-    const mega::network::MegastructureInstallation& getMegaInstall() const { return m_megaInstall; }
+    const mega::MegastructureInstallation& getMegaInstall() const { return m_megaInstall; }
     const boost::filesystem::path&                  getTempDir() const { return m_tempDir; }
     const boost::filesystem::path&                  getClangPath() const { return m_clangPath; }
 
@@ -67,7 +67,7 @@ public:
 private:
     network::ConversationBase&               m_conversation;
     network::Sender&                         m_sender;
-    mega::network::MegastructureInstallation m_megaInstall;
+    mega::MegastructureInstallation m_megaInstall;
     boost::filesystem::path                  m_clangPath;
     boost::filesystem::path                  m_tempDir;
     boost::asio::yield_context&              m_yield_ctx;

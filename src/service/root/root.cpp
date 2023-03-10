@@ -29,7 +29,7 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/conversation_id.hpp"
-#include "service/protocol/common/megastructure_installation.hpp"
+#include "utilities/megastructure_installation.hpp"
 
 #include "pipeline/pipeline_result.hpp"
 
@@ -108,7 +108,7 @@ void Root::shutdown()
     // SPDLOG_TRACE( "Root shutdown" );
 }
 
-network::MegastructureInstallation Root::getMegastructureInstallation()
+MegastructureInstallation Root::getMegastructureInstallation()
 {
     if ( !m_megastructureInstallationOpt.has_value() )
     {
@@ -120,7 +120,7 @@ network::MegastructureInstallation Root::getMegastructureInstallation()
 
         const boost::filesystem::path installationPath = binPath.parent_path();
 
-        m_megastructureInstallationOpt = network::MegastructureInstallation{ installationPath };
+        m_megastructureInstallationOpt = MegastructureInstallation{ installationPath };
     }
     return m_megastructureInstallationOpt.value();
 }

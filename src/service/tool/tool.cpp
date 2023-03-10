@@ -28,6 +28,7 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/conversation_id.hpp"
+
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"
@@ -47,6 +48,8 @@
 namespace mega::service
 {
 
+namespace
+{
 template < typename TConversationFunctor >
 class GenericConversation : public ToolRequestConversation, public mega::MPOContext
 {
@@ -203,6 +206,7 @@ public:
     virtual F32       ct() override { return F32{}; }
     virtual F32       dt() override { return F32{}; }
 };
+} // namespace
 
 Tool::Tool( short daemonPortNumber )
     : network::ConversationManager( network::makeProcessName( network::Node::Tool ), m_io_context )

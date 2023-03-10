@@ -51,40 +51,40 @@ void command( bool bHelp, const std::vector< std::string >& args )
     po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
     po::notify( vm );
 
-    if ( bHelp )
+    if( bHelp )
     {
         std::cout << commandOptions << "\n";
     }
     else
     {
-        if ( !projectPath.empty() )
+        if( !projectPath.empty() )
         {
             mega::service::Terminal      terminal;
-            const mega::network::Project project( projectPath );
+            const mega::Project project( projectPath );
             terminal.SetProject( project );
         }
-        else if ( bGetProject )
+        else if( bGetProject )
         {
             mega::service::Terminal      terminal;
-            const mega::network::Project project = terminal.GetProject();
+            const mega::Project project = terminal.GetProject();
             std::cout << project.getProjectInstallPath().string() << std::endl;
         }
         else if( bResetProject )
         {
             mega::service::Terminal      terminal;
-            const mega::network::Project project;
+            const mega::Project project;
             terminal.SetProject( project );
         }
         else // if ( bGetInstallInfo )
         {
             mega::service::Terminal          terminal;
-            const mega::network::Project     project   = terminal.GetProject();
+            const mega::Project     project   = terminal.GetProject();
             const auto                       result    = terminal.GetMegastructureInstallation();
-            const mega::utilities::ToolChain toolChain = result.getToolchainXML();
+            const mega::utilities::ToolChain toolChain = result.getToolchain();
 
             std::ostringstream osProject;
             {
-                if ( project.isEmpty() )
+                if( project.isEmpty() )
                 {
                     osProject << "NO PROJECT";
                 }
@@ -102,13 +102,17 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
                         << "Clang Version:      " << toolChain.strClangCompilerVersion << "\n"
 
-                        << "parserDllPath:      " << toolChain.parserDllPath.string() << "\n"
+                        << "parserPath:         " << toolChain.parserPath.string() << "\n"
                         << "megaCompilerPath:   " << toolChain.megaCompilerPath.string() << "\n"
                         << "clangCompilerPath:  " << toolChain.clangCompilerPath.string() << "\n"
                         << "clangPluginPath:    " << toolChain.clangPluginPath.string() << "\n"
                         << "databasePath:       " << toolChain.databasePath.string() << "\n"
 
-                        << "parserDllHash:      " << toolChain.parserDllHash.toHexString() << "\n"
+                        << "jitPath:            " << toolChain.jitPath.string() << "\n"
+                        << "megaManglePath:     " << toolChain.megaManglePath.string() << "\n"
+                        << "leafPath:           " << toolChain.leafPath.string() << "\n"
+
+                        << "parserDllHash:      " << toolChain.parserHash.toHexString() << "\n"
                         << "megaCompilerHash:   " << toolChain.megaCompilerHash.toHexString() << "\n"
                         << "clangPluginHash:    " << toolChain.clangPluginHash.toHexString() << "\n"
                         << "databaseVersion:    " << toolChain.databaseVersion.toHexString() << "\n"

@@ -268,7 +268,7 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
             try
             {
                 m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
-                    toolChain.parserDllPath, "g_parserSymbol", boost::dll::load_mode::append_decorations );
+                    toolChain.parserPath, "g_parserSymbol", boost::dll::load_mode::append_decorations );
                 VERIFY_RTE_MSG( m_pParser, "Failed to load parser" );
             }
             catch( std::exception& ex )

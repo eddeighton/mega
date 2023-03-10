@@ -63,8 +63,8 @@ set_property(GLOBAL PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 #setup some common directories from the root of the project
 set( CMAKE_PARENT_PATH ${CMAKE_CURRENT_LIST_DIR}/.. )
-find_path( MEGA_ROOT_DIR NAMES api PATHS ${CMAKE_PARENT_PATH} )
-set( MEGA_API_DIR ${MEGA_ROOT_DIR}/api )
+find_path( MEGA_ROOT_DIR NAMES include PATHS ${CMAKE_PARENT_PATH} )
+set( MEGA_API_DIR ${MEGA_ROOT_DIR}/include )
 set( MEGA_SRC_DIR ${MEGA_ROOT_DIR}/src )
 
 #enable folders within generated IDE build systems

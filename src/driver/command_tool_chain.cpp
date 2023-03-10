@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "utilities/tool_chain_hash.hpp"
 
 #include "common/assert_verify.hpp"
@@ -41,7 +39,7 @@ namespace tool_chain
 {
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path clangPlugin, parserDll, megaCompiler, clangCompiler, databaseDll;
+    boost::filesystem::path clangPlugin, parser, megaCompiler, clangCompiler, database, jit, megaMangle, leaf;
     boost::filesystem::path outputFilePath;
 
     {
@@ -50,11 +48,15 @@ void command( bool bHelp, const std::vector< std::string >& args )
         po::options_description commandOptions( " Generate database json file" );
         {
             commandOptions.add_options()
-                ( "clang_compiler", po::value< boost::filesystem::path >( &clangCompiler ),  "Clang Compiler path" )
-                ( "parser_dll",     po::value< boost::filesystem::path >( &parserDll ),      "Parser DLL Path" )
-                ( "mega_compiler",  po::value< boost::filesystem::path >( &megaCompiler ),   "Megastructure compiler pipeline path" )
-                ( "clang_plugin",   po::value< boost::filesystem::path >( &clangPlugin ),    "Clang Plugin path" )
-                ( "database_dll",   po::value< boost::filesystem::path >( &databaseDll ),    "Database DLL Path" )
+                ( "clang_compiler", po::value< boost::filesystem::path >( &clangCompiler ), "Clang Compiler path" )
+                ( "parser",         po::value< boost::filesystem::path >( &parser ),        "Parser Path" )
+                ( "mega_compiler",  po::value< boost::filesystem::path >( &megaCompiler ),  "Megastructure compiler pipeline path" )
+                ( "clang_plugin",   po::value< boost::filesystem::path >( &clangPlugin ),   "Clang Plugin path" )
+                ( "database",       po::value< boost::filesystem::path >( &database ),      "Database Path" )
+
+                ( "jit",            po::value< boost::filesystem::path >( &jit ),           "Jit Path" )
+                ( "mega_mangle",    po::value< boost::filesystem::path >( &megaMangle ),    "Mega Mangle Path" )
+                ( "leaf",           po::value< boost::filesystem::path >( &leaf ),          "Leaf Path" )
 
                 ( "output_xml",     po::value< boost::filesystem::path >( &outputFilePath ),  "Output XML File" )
                 ;
@@ -63,29 +65,32 @@ void command( bool bHelp, const std::vector< std::string >& args )
         po::variables_map vm;
         po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
         po::notify( vm );
-        if ( bHelp )
+        if( bHelp )
         {
             std::cout << commandOptions << "\n";
             return;
         }
     }
-        
+
     // clang-format off
     VERIFY_RTE_MSG( boost::filesystem::exists( clangCompiler ), "File not found clangCompiler at : " << clangCompiler.string() );
-    VERIFY_RTE_MSG( boost::filesystem::exists( parserDll ), "File not found parserDll at : " << parserDll.string() );
+    VERIFY_RTE_MSG( boost::filesystem::exists( parser ), "File not found parser at : " << parser.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( megaCompiler ), "File not found megaCompiler at : " << megaCompiler.string() );
     VERIFY_RTE_MSG( boost::filesystem::exists( clangPlugin ), "File not found clangPlugin at : " << clangPlugin.string() );
-    VERIFY_RTE_MSG( boost::filesystem::exists( databaseDll ), "File not found databaseDll at : " << databaseDll.string() );
+    VERIFY_RTE_MSG( boost::filesystem::exists( database ), "File not found database at : " << database.string() );
+    VERIFY_RTE_MSG( boost::filesystem::exists( jit ), "File not found jit at : " << jit.string() );
+    VERIFY_RTE_MSG( boost::filesystem::exists( megaMangle ), "File not found megaMangle at : " << megaMangle.string() );
+    VERIFY_RTE_MSG( boost::filesystem::exists( leaf ), "File not found leaf at : " << leaf.string() );
     // clang-format on
 
     {
         std::ostringstream os;
         {
             const std::string strClangVersion   = mega::utilities::ToolChain::getClangVersion( clangCompiler );
-            const mega::U64   szDatabaseVersion = mega::utilities::ToolChain::getDatabaseVersion( databaseDll );
+            const mega::U64   szDatabaseVersion = mega::utilities::ToolChain::getDatabaseVersion( database );
 
-            const mega::utilities::ToolChain toolChain(
-                strClangVersion, szDatabaseVersion, parserDll, megaCompiler, clangCompiler, clangPlugin, databaseDll );
+            const mega::utilities::ToolChain toolChain( strClangVersion, szDatabaseVersion, parser, megaCompiler,
+                                                        clangCompiler, clangPlugin, database, jit, megaMangle, leaf );
 
             boost::archive::xml_oarchive oa( os );
             oa&                          boost::serialization::make_nvp( "toolchain", toolChain );

@@ -19,10 +19,14 @@ execute_process(
 	COMMAND mega --tool_chain
 	
 		--clang_compiler "${SCRIPT_CLANG_COMPILER}"
-		--parser_dll "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:parser>"
+		--parser "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:parser>"
 		--mega_compiler "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:compiler>"
 		--clang_plugin "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:clang_plugin>"
-		--database_dll "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:database>"
+		--database "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:database>"
+
+		--jit "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:jit>"
+		--mega_mangle "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:mega_mangle>"
+		--leaf "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:leaf>"
 	
 		--output_xml "${CMAKE_INSTALL_PREFIX}/etc/toolchain.xml"
 

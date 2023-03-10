@@ -71,7 +71,7 @@ void runCompilation( const std::string& strCmd )
 void compile( const boost::filesystem::path& clangPath, const boost::filesystem::path& inputCPPFilePath,
               const boost::filesystem::path&                            outputIRFilePath,
               std::optional< const FinalStage::Components::Component* > pComponent,
-              const mega::network::MegastructureInstallation&           megastructureInstallation )
+              const mega::MegastructureInstallation&           megastructureInstallation )
 {
     auto startTime = std::chrono::steady_clock::now();
     {

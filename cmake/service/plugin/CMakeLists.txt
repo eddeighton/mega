@@ -51,8 +51,10 @@ set( PLUGIN_API
 
 set( PLUGIN_SOURCE 
     ${MEGA_SRC_DIR}/service/plugin/plugin.cpp 
-    ${MEGA_SRC_DIR}/service/plugin/steamWorks.hpp 
-    ${MEGA_SRC_DIR}/service/plugin/steamWorks.cpp 
+    ${MEGA_SRC_DIR}/service/plugin/platform.hpp 
+    ${MEGA_SRC_DIR}/service/plugin/platform.cpp 
+    ${MEGA_SRC_DIR}/service/plugin/planet.hpp 
+    ${MEGA_SRC_DIR}/service/plugin/planet.cpp 
     )
 
 add_library( plugin SHARED ${PLUGIN_API} ${PLUGIN_SOURCE} )

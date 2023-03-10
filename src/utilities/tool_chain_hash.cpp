@@ -32,19 +32,26 @@ ToolChain::ToolChain() = default;
 ToolChain::ToolChain( const std::string& strClangCompilerVersion,
                       mega::U64          szDatabaseVersion,
 
-                      const boost::filesystem::path& path_parserDll,
+                      const boost::filesystem::path& parser,
                       const boost::filesystem::path& path_megaCompiler,
                       const boost::filesystem::path& path_clangCompiler,
                       const boost::filesystem::path& path_clangPlugin,
-                      const boost::filesystem::path& path_databaseDll )
+                      const boost::filesystem::path& database,
+                      const boost::filesystem::path& jit,
+                      const boost::filesystem::path& megaMangle,
+                      const boost::filesystem::path& leaf )
 
-    : parserDllPath( path_parserDll )
+    : parserPath( parser )
     , megaCompilerPath( path_megaCompiler )
     , clangCompilerPath( path_clangCompiler )
     , clangPluginPath( path_clangPlugin )
-    , databasePath( path_databaseDll )
+    , databasePath( database )
 
-    , parserDllHash( path_parserDll )
+    , jitPath( jit )
+    , megaManglePath( megaMangle )
+    , leafPath( leaf )
+
+    , parserHash( parser )
     , megaCompilerHash( path_megaCompiler )
     , clangPluginHash( path_clangPlugin )
 
@@ -53,7 +60,7 @@ ToolChain::ToolChain( const std::string& strClangCompilerVersion,
     , databaseVersion( szDatabaseVersion )
     , clangCompilerHash( strClangCompilerVersion )
 
-    , toolChainHash( parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseVersion )
+    , toolChainHash( parserHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseVersion )
 {
 }
 
@@ -65,7 +72,7 @@ std::string runCmd( const std::string& strCmd )
     common::runProcess( strCmd, strOutput, strError );
     return strOutput;
 }
-}
+} // namespace
 
 std::string ToolChain::getClangVersion( const boost::filesystem::path& path_clangCompiler )
 {
@@ -80,6 +87,5 @@ mega::U64 ToolChain::getDatabaseVersion( const boost::filesystem::path& path_dat
         = boost::dll::import_alias< const mega::U64 >( path_database, "MEGA_DATABASE_VERSION" );
     return *pSymbolDirect;
 }
-
 
 } // namespace mega::utilities

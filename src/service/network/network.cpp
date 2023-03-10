@@ -19,8 +19,6 @@
 
 #include "service/network/network.hpp"
 
-#include "service/protocol/common/environment.hpp"
-
 #include <cstdlib>
 #include <string>
 #include <sstream>
@@ -30,7 +28,8 @@ namespace mega::network
 
 short MegaDaemonPort()
 {
-    if ( const char* pEnvValue = std::getenv( mega::environment::CFG_DAEMON_PORT ); pEnvValue )
+    static const char* CFG_DAEMON_PORT = "CFG_DAEMON_PORT";
+    if( const char* pEnvValue = std::getenv( CFG_DAEMON_PORT ); pEnvValue )
     {
         std::string        str( pEnvValue );
         std::istringstream is( str );
@@ -46,7 +45,8 @@ short MegaDaemonPort()
 
 short MegaRootPort()
 {
-    if ( const char* pEnvValue = std::getenv( mega::environment::CFG_ROOT_PORT ); pEnvValue )
+    static const char* CFG_ROOT_PORT = "CFG_ROOT_PORT";
+    if( const char* pEnvValue = std::getenv( CFG_ROOT_PORT ); pEnvValue )
     {
         std::string        str( pEnvValue );
         std::istringstream is( str );

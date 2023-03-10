@@ -49,7 +49,8 @@ void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
     auto pConnection = m_daemon.m_server.getConnection( stackCon.value() );
     VERIFY_RTE( pConnection );
     VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor
-                || pConnection->getTypeOpt().value() == network::Node::Tool );
+                || pConnection->getTypeOpt().value() == network::Node::Tool
+                || pConnection->getTypeOpt().value() == network::Node::Python );
 
     {
         // network::Server::ConnectionLabelRAII connectionLabel( m_daemon.m_server, mpo, pConnection );

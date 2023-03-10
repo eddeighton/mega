@@ -166,17 +166,17 @@ Terminal::RouterFactory Terminal::makeTermRoot()
     };
 }
 
-network::MegastructureInstallation Terminal::GetMegastructureInstallation()
+MegastructureInstallation Terminal::GetMegastructureInstallation()
 {
     //
     return getRequest< network::project::Request_Encoder >().GetMegastructureInstallation();
 }
-network::Project Terminal::GetProject()
+Project Terminal::GetProject()
 {
     //
     return getRequest< network::project::Request_Encoder >().GetProject();
 }
-void Terminal::SetProject( const network::Project& project )
+void Terminal::SetProject( const Project& project )
 {
     //
     getRequest< network::project::Request_Encoder >().SetProject( project );

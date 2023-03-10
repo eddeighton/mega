@@ -31,11 +31,11 @@
 
 namespace mega::runtime
 {
-JIT::JIT( const mega::network::MegastructureInstallation& megastructureInstallation,
-          const mega::network::Project&                   project )
+JIT::JIT( const mega::MegastructureInstallation& megastructureInstallation,
+          const mega::Project&                   project )
     : m_megastructureInstallation( megastructureInstallation )
     , m_project( project )
-    , m_jitCompiler()
+    , m_jitCompiler( megastructureInstallation )
     , m_database( m_project.getProjectDatabase() )
     , m_codeGenerator( m_megastructureInstallation, m_project )
     , m_componentManager( m_project, m_database )

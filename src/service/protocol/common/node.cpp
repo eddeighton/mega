@@ -37,6 +37,7 @@ static const NodeStringArray g_nodeTypeStrings =
     std::string{ "Leaf" }, 
     std::string{ "Terminal" }, 
     std::string{ "Tool" }, 
+    std::string{ "Python" }, 
     std::string{ "Executor" }, 
     std::string{ "Daemon" },
     std::string{ "Root" } 

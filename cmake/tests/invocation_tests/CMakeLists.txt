@@ -98,10 +98,10 @@ include( ${MEGA_ROOT_DIR}/../mega_flags.cmake )
 # add_custom_command( TARGET invocation_tests POST_BUILD COMMAND ctest --output-on-failure -C $<CONFIG> )
 add_custom_command( TARGET invocation_tests POST_BUILD COMMAND $<TARGET_FILE_NAME:invocation_tests> 
 	--clang_compiler ${SCRIPT_CLANG_COMPILER}
-	--parser_dll $<TARGET_FILE:parser> 
+	--parser $<TARGET_FILE:parser> 
 	--mega_compiler $<TARGET_FILE:compiler>
 	--clang_plugin $<TARGET_FILE:clang_plugin>
-	--database_dll $<TARGET_FILE:database>
+	--database $<TARGET_FILE:database>
 
 	--cpp_flags \"${CLANG_CXX_FLAGS_STR}\"
 	--cpp_defines \"${CLANG_CXX_DEFINES_STR}\"

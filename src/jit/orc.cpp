@@ -160,9 +160,26 @@ private:
 class JITCompiler::Pimpl
 {
 public:
-    Pimpl()
-        : m_pLLJit( ExitOnErr( llvm::orc::LLJITBuilder().create() ) )
+    Pimpl( const mega::MegastructureInstallation& megastructureInstallation )
+        : m_megastructureInstallation( megastructureInstallation )
+        , m_pLLJit( ExitOnErr( llvm::orc::LLJITBuilder().create() ) )
     {
+        // ensure symbols available for megastructure libs
+        {
+            m_pLLJit->getMainJITDylib().addGenerator( ExitOnErr( llvm::orc::DynamicLibrarySearchGenerator::Load(
+                m_megastructureInstallation.getToolchain().jitPath.string().c_str(),
+                m_pLLJit->getDataLayout().getGlobalPrefix() ) ) );
+
+            m_pLLJit->getMainJITDylib().addGenerator( ExitOnErr( llvm::orc::DynamicLibrarySearchGenerator::Load(
+                m_megastructureInstallation.getToolchain().megaManglePath.string().c_str(),
+                m_pLLJit->getDataLayout().getGlobalPrefix() ) ) );
+
+            // leaf may be statically OR dynamically linked?
+            m_pLLJit->getMainJITDylib().addGenerator( ExitOnErr( llvm::orc::DynamicLibrarySearchGenerator::Load(
+                m_megastructureInstallation.getToolchain().leafPath.string().c_str(),
+                m_pLLJit->getDataLayout().getGlobalPrefix() ) ) );
+        }
+
         m_pLLJit->getMainJITDylib().addGenerator(
             ExitOnErr( llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
                 m_pLLJit->getDataLayout().getGlobalPrefix() ) ) );
@@ -185,12 +202,13 @@ public:
         delete pModule;
     }
 
+    mega::MegastructureInstallation     m_megastructureInstallation;
     std::unique_ptr< llvm::orc::LLJIT > m_pLLJit;
     std::set< Module* >                 m_modules;
 };
 
-JITCompiler::JITCompiler()
-    : m_pPimpl( std::make_shared< Pimpl >() )
+JITCompiler::JITCompiler( const mega::MegastructureInstallation& megastructureInstallation )
+    : m_pPimpl( std::make_shared< Pimpl >( megastructureInstallation ) )
 {
 }
 

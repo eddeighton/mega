@@ -53,7 +53,7 @@ mega::pipeline::PipelineResult RootPipelineConversation::PipelineRun( const mega
         m_root.m_megastructureInstallationOpt = m_root.getMegastructureInstallation();
     VERIFY_RTE_MSG(
         m_root.m_megastructureInstallationOpt.has_value(), "Megastructure Installation Toolchain unspecified" );
-    const auto toolChain = m_root.m_megastructureInstallationOpt.value().getToolchainXML();
+    const auto toolChain = m_root.m_megastructureInstallationOpt.value().getToolchain();
 
     spdlog::stopwatch             sw;
     mega::pipeline::Pipeline::Ptr pPipeline;

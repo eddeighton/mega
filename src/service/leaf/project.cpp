@@ -23,7 +23,7 @@ namespace mega::service
 {
 
 // network::project::Impl
-void LeafRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
+void LeafRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
 {
     network::project::Request_Sender rq( *this, m_leaf.getNodeChannelSender(), yield_ctx );
     rq.SetProject( project );

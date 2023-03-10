@@ -124,6 +124,7 @@ target_compile_options( mega_mangle PRIVATE /bigobj)
 # set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
 set_property(TARGET mega_mangle PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 ELSE( ${WIN32} )
+target_link_options( mega_mangle PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
 target_include_directories( mega_mangle PUBLIC ${MEGA_API_DIR} )

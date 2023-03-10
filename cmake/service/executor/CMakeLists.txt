@@ -81,10 +81,6 @@ ELSE( ${WIN32} )
 target_compile_options( executorLib PUBLIC "-fcoroutines" )
 ENDIF( ${WIN32} )
 
-target_link_libraries( executorLib protocol )
-target_link_libraries( executorLib network )
-target_link_libraries( executorLib leaf )
-
 target_include_directories( executorLib PUBLIC ${MEGA_API_DIR} )
 target_include_directories( executorLib PUBLIC ${MEGA_SRC_DIR} )
 

@@ -92,7 +92,7 @@ Daemon::~Daemon()
     // SPDLOG_TRACE( "Daemon shutdown" );
 }
 
-void Daemon::setActiveProject( const network::Project& project )
+void Daemon::setActiveProject( const Project& project )
 {
     m_activeProject = project;
     m_pDatabase.reset();

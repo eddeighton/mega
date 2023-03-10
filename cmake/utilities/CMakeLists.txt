@@ -42,12 +42,16 @@ set( UTILITIES_HEADERS
     ${MEGA_API_DIR}/utilities/cmake.hpp
     ${MEGA_API_DIR}/utilities/tool_chain_hash.hpp
     ${MEGA_API_DIR}/utilities/serialization_helpers.hpp
+    ${MEGA_API_DIR}/utilities/project.hpp
+    ${MEGA_API_DIR}/utilities/megastructure_installation.hpp
 )
 
 set( UTILITIES_SOURCE
     ${MEGA_SRC_DIR}/utilities/glob.cpp
     ${MEGA_SRC_DIR}/utilities/clang_format.cpp
     ${MEGA_SRC_DIR}/utilities/tool_chain_hash.cpp
+    ${MEGA_SRC_DIR}/utilities/project.cpp
+    ${MEGA_SRC_DIR}/utilities/megastructure_installation.cpp
 )
 
 

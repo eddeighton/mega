@@ -28,12 +28,14 @@
 #include "service/protocol/model/leaf_term.hxx"
 #include "service/protocol/model/exe_leaf.hxx"
 #include "service/protocol/model/tool_leaf.hxx"
+#include "service/protocol/model/python_leaf.hxx"
 #include "service/protocol/model/daemon_leaf.hxx"
 #include "service/protocol/model/mpo.hxx"
 
 #include "service/protocol/model/leaf_daemon.hxx"
 #include "service/protocol/model/leaf_exe.hxx"
 #include "service/protocol/model/leaf_tool.hxx"
+#include "service/protocol/model/leaf_python.hxx"
 #include "service/protocol/model/leaf_term.hxx"
 
 #include "service/protocol/model/status.hxx"
@@ -51,6 +53,7 @@ class LeafRequestConversation : public network::InThreadConversation,
                                 public network::term_leaf::Impl,
                                 public network::exe_leaf::Impl,
                                 public network::tool_leaf::Impl,
+                                public network::python_leaf::Impl,
                                 public network::daemon_leaf::Impl,
                                 public network::mpo::Impl,
                                 public network::status::Impl,
@@ -77,6 +80,7 @@ public:
     network::leaf_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx );
     network::leaf_exe::Request_Sender    getExeSender( boost::asio::yield_context& yield_ctx );
     network::leaf_tool::Request_Sender   getToolSender( boost::asio::yield_context& yield_ctx );
+    network::leaf_python::Request_Sender getPythonSender( boost::asio::yield_context& yield_ctx );
     network::leaf_term::Request_Sender   getTermSender( boost::asio::yield_context& yield_ctx );
     network::mpo::Request_Sender         getMPOUpSender( boost::asio::yield_context& yield_ctx );
     network::mpo::Request_Sender         getMPODownSender( boost::asio::yield_context& yield_ctx );
@@ -160,7 +164,7 @@ public:
     void         ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
-    virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;
+    virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

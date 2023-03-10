@@ -26,7 +26,7 @@ namespace mega::service
 
 // network::project::Impl
 
-void DaemonRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
+void DaemonRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
 {
     for ( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
     {

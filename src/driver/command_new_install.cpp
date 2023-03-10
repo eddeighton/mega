@@ -73,7 +73,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         try
         {
-            const mega::network::Project project( projectInstallDir );
+            const mega::Project project( projectInstallDir );
             THROW_RTE( "TODO" );
             // mega::service::Terminal      terminal;
             // if ( !terminal.NewInstallation( project ) )
