@@ -55,7 +55,7 @@ set( MEGA_LEAF_SRC
     ${MEGA_SRC_DIR}/service/leaf/status.cpp
 )
 
-add_library( leaf
+add_library( leaf SHARED
                     ${MEGA_LEAF_API}
 					${MEGA_LEAF_SRC}
 				)
