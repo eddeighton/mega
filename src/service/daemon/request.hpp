@@ -25,6 +25,7 @@
 #include "service/protocol/model/leaf_daemon.hxx"
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
+
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
@@ -84,10 +85,15 @@ public:
     virtual network::Message ExeRoot( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message ToolRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message ToolDaemon( const network::Message&     request,
+    virtual network::Message PythonRoot( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message LeafRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
+
+    virtual network::Message ToolDaemon( const network::Message&     request,
+                                         boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message PythonDaemon( const network::Message&     request,
+                                           boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message LeafDaemon( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message ExeDaemon( const network::Message&     request,

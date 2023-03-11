@@ -138,6 +138,54 @@ Request_Sender::Request_Sender( ConversationBase& _conversation_,
 {% endfor %}
 
 
+External_Request_Sender::External_Request_Sender( ConversationBase& sender, 
+                                    ExternalConversation& receiver )
+    : m_sender( sender )
+    , m_receiver( receiver )
+{
+}
+
+{% for request in requests %}
+{{ request.return_type }} External_Request_Sender::{{ request.name }}
+( 
+{%for p in request.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%} 
+)
+{
+    ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
+        m_sender.shared_from_this(), m_sender.getConnectionID() );
+
+    {
+        const Message _msg_ = MSG_{{ request.name }}_Request::make
+        (
+            m_sender.getID(), m_receiver.getID(),
+            MSG_{{ request.name }}_Request
+            {
+{%for p in request.params%}
+                {{p.name}}{% if not loop.is_last %},{%endif%}
+{%endfor%} 
+            }
+        );
+
+        const network::ReceivedMsg rMsg{ m_receiver.getConnectionID(), _msg_ };
+        m_sender.send( rMsg );
+    }
+
+    const network::ReceivedMsg result = m_receiver.receive();
+
+    const Message _msg_ = result.msg;
+    VERIFY_RTE_MSG( _msg_.getID() == {{ filename }}::MSG_{{ request.name }}_Response::ID,
+        "Unexpected reponse of type: " << _msg_ << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+{%if request.return_type != "void" %}
+    return {{ filename }}::MSG_{{ request.name }}_Response::get( _msg_ ).{{ request.return_msg_member }};
+{% endif %}
+}
+{% endfor %}
+
+
 Message Impl::dispatchRequest( const Message& _message_, boost::asio::yield_context& _yield_ctx_ )
 {
     switch( _message_.getID() )

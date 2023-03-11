@@ -166,6 +166,24 @@ Terminal::RouterFactory Terminal::makeTermRoot()
     };
 }
 
+Terminal::RouterFactory Terminal::makeMP( mega::MP mp )
+{
+    return [ mp ]( network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+    {
+        return [ mp, &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
+        { return network::mpo::Request_Sender( con, sender, yield_ctx ).MPUp( msg, mp ); };
+    };
+}
+
+Terminal::RouterFactory Terminal::makeMPO( mega::MPO mpo )
+{
+    return [ mpo ]( network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+    {
+        return [ mpo, &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
+        { return network::mpo::Request_Sender( con, sender, yield_ctx ).MPOUp( msg, mpo ); };
+    };
+}
+
 MegastructureInstallation Terminal::GetMegastructureInstallation()
 {
     //
@@ -195,24 +213,6 @@ network::Status Terminal::GetNetworkStatus()
 pipeline::PipelineResult Terminal::PipelineRun( const pipeline::Configuration& pipelineConfig )
 {
     return getRequest< network::pipeline::Request_Encoder >().PipelineRun( pipelineConfig );
-}
-
-Terminal::RouterFactory Terminal::makeMP( mega::MP mp )
-{
-    return [ mp ]( network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-    {
-        return [ mp, &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
-        { return network::mpo::Request_Sender( con, sender, yield_ctx ).MPUp( msg, mp ); };
-    };
-}
-
-Terminal::RouterFactory Terminal::makeMPO( mega::MPO mpo )
-{
-    return [ mpo ]( network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-    {
-        return [ mpo, &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
-        { return network::mpo::Request_Sender( con, sender, yield_ctx ).MPOUp( msg, mpo ); };
-    };
 }
 
 mega::MPO Terminal::SimCreate( const mega::MP& mp )

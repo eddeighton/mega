@@ -60,18 +60,18 @@ public:
 
     MegastructureInstallation GetMegastructureInstallation();
     Project                   GetProject();
-    void                               SetProject( const Project& project );
-    void                               ClearStash();
-    network::Status                    GetNetworkStatus();
-    pipeline::PipelineResult            PipelineRun( const pipeline::Configuration& pipelineConfig );
-    mega::MPO                          SimCreate( const mega::MP& mp );
-    void                               SimDestroy( const mega::MPO& mpo );
-    TimeStamp                          SimRead( const mega::MPO& from, const mega::MPO& to );
-    TimeStamp                          SimWrite( const mega::MPO& from, const mega::MPO& to );
-    void                               SimRelease( const mega::MPO& from, const mega::MPO& to );
-    std::string                        PingMP( const mega::MP& mp, const std::string& strMsg );
-    std::string                        PingMPO( const mega::MPO& mpo, const std::string& strMsg );
-    void                               SimErrorCheck( const mega::MPO& mpo );
+    void                      SetProject( const Project& project );
+    void                      ClearStash();
+    network::Status           GetNetworkStatus();
+    pipeline::PipelineResult  PipelineRun( const pipeline::Configuration& pipelineConfig );
+    mega::MPO                 SimCreate( const mega::MP& mp );
+    void                      SimDestroy( const mega::MPO& mpo );
+    TimeStamp                 SimRead( const mega::MPO& from, const mega::MPO& to );
+    TimeStamp                 SimWrite( const mega::MPO& from, const mega::MPO& to );
+    void                      SimRelease( const mega::MPO& from, const mega::MPO& to );
+    std::string               PingMP( const mega::MP& mp, const std::string& strMsg );
+    std::string               PingMPO( const mega::MPO& mpo, const std::string& strMsg );
+    void                      SimErrorCheck( const mega::MPO& mpo );
 
     network::Sender& getLeafSender() { return m_leaf; }
 

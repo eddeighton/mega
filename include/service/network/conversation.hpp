@@ -88,7 +88,7 @@ public:
         send( rMsg );
         return boost::system::error_code{};
     }
-    virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
+    virtual void sendErrorResponse( const ReceivedMsg& msg, const std::string& strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
         const ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.getReceiverID(), strErrorMsg ) };
@@ -110,11 +110,10 @@ protected:
     // this is called by ConversationManager but can be overridden in initiating activities
     virtual void    run( boost::asio::yield_context& yield_ctx );
     virtual Message dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
-    virtual void    dispatchResponse( const network::ConnectionID& connectionID, const Message& msg,
+    virtual void    dispatchResponse( const ConnectionID& connectionID, const Message& msg,
                                       boost::asio::yield_context& yield_ctx )
         = 0;
-    virtual void error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                        boost::asio::yield_context& yield_ctx )
+    virtual void error( const ReceivedMsg& msg, const std::string& strErrorMsg, boost::asio::yield_context& yield_ctx )
         = 0;
 
 public:
@@ -173,6 +172,69 @@ protected:
 
 protected:
     MessageChannel m_channel;
+};
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+class ExternalConversation : public ConversationBase
+{
+    using MessageChannel = boost::asio::experimental::channel< void( boost::system::error_code, ReceivedMsg ) >;
+
+public:
+    using Ptr = std::shared_ptr< ExternalConversation >;
+
+    ExternalConversation( ConversationManager& conversationManager, const ConversationID& conversationID,
+                          boost::asio::io_context& ioContext );
+
+    ReceivedMsg receive();
+
+    // Sender
+    virtual ConnectionID getConnectionID() const
+    {
+        if( m_selfConnectionID.has_value() )
+            return m_selfConnectionID.value();
+        // synthesize a connectionID value
+        std::ostringstream os;
+        os << "self_" << getID();
+        m_selfConnectionID = os.str();
+        return m_selfConnectionID.value();
+    }
+    virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
+    {
+        const ReceivedMsg rMsg{ getConnectionID(), msg };
+        send( rMsg );
+        return boost::system::error_code{};
+    }
+    void sendErrorResponse( const ReceivedMsg& msg, const std::string& strErrorMsg )
+    {
+        const ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.getReceiverID(), strErrorMsg ) };
+        send( rMsg );
+    }
+    virtual void sendErrorResponse( const ReceivedMsg& msg, const std::string& strErrorMsg,
+                                    boost::asio::yield_context& yield_ctx )
+    {
+        sendErrorResponse( msg, strErrorMsg );
+    }
+
+    // ConversationBase
+    virtual const ID& getID() const { return m_conversationID; }
+    virtual void      send( const ReceivedMsg& msg );
+
+    // NOT IMPLEMENTED - no stack or coroutine for external conversation
+    virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
+    virtual void               run( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
+    virtual const std::string& getProcessName() const { THROW_TODO; }
+    virtual U64                getStackSize() const { THROW_TODO; }
+    virtual void               onDisconnect( const ConnectionID& connectionID ) { THROW_TODO; }
+    virtual void               requestStarted( const ConnectionID& connectionID ) { ; }
+    virtual void               requestCompleted() { ; }
+
+protected:
+    ConversationManager&                  m_conversationManager;
+    ConversationID                        m_conversationID;
+    boost::asio::io_context&              m_ioContext;
+    MessageChannel                        m_channel;
+    mutable std::optional< ConnectionID > m_selfConnectionID;
 };
 
 } // namespace mega::network

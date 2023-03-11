@@ -38,23 +38,23 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
                                                              boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if ( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::leaf_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::leaf_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::root_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::root_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::memory::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::memory::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "DaemonRequestConversation::dispatchRequest failed: " << msg.getName() );
 }
@@ -63,11 +63,11 @@ void DaemonRequestConversation::dispatchResponse( const network::ConnectionID& c
                                                   const network::Message&      msg,
                                                   boost::asio::yield_context&  yield_ctx )
 {
-    if ( m_daemon.m_rootClient.getConnectionID() == connectionID )
+    if( m_daemon.m_rootClient.getConnectionID() == connectionID )
     {
         m_daemon.m_rootClient.send( msg, yield_ctx );
     }
-    else if ( network::Server::Connection::Ptr pLeafConnection = m_daemon.m_server.getConnection( connectionID ) )
+    else if( network::Server::Connection::Ptr pLeafConnection = m_daemon.m_server.getConnection( connectionID ) )
     {
         pLeafConnection->send( msg, yield_ctx );
     }
@@ -81,11 +81,11 @@ void DaemonRequestConversation::error( const network::ReceivedMsg& msg,
                                        const std::string&          strErrorMsg,
                                        boost::asio::yield_context& yield_ctx )
 {
-    if ( m_daemon.m_rootClient.getConnectionID() == msg.connectionID )
+    if( m_daemon.m_rootClient.getConnectionID() == msg.connectionID )
     {
         m_daemon.m_rootClient.sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
-    else if ( network::Server::Connection::Ptr pLeafConnection = m_daemon.m_server.getConnection( msg.connectionID ) )
+    else if( network::Server::Connection::Ptr pLeafConnection = m_daemon.m_server.getConnection( msg.connectionID ) )
     {
         pLeafConnection->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
@@ -119,6 +119,18 @@ network::Message DaemonRequestConversation::ToolDaemon( const network::Message& 
 {
     return dispatchRequest( request, yield_ctx );
 }
+
+network::Message DaemonRequestConversation::PythonRoot( const network::Message&     request,
+                                                        boost::asio::yield_context& yield_ctx )
+{
+    return getRootSender( yield_ctx ).PythonRoot( request );
+}
+
+network::Message DaemonRequestConversation::PythonDaemon( const network::Message&     request,
+                                                          boost::asio::yield_context& yield_ctx )
+{
+    return dispatchRequest( request, yield_ctx );
+}
 network::Message DaemonRequestConversation::LeafRoot( const network::Message&     request,
                                                       boost::asio::yield_context& yield_ctx )
 {
@@ -145,7 +157,7 @@ network::Message DaemonRequestConversation::RootAllBroadcast( const network::Mes
     // dispatch to children
     std::vector< network::Message > responses;
     {
-        for ( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
+        for( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
         {
             network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
             const network::Message               response = sender.RootAllBroadcast( request );
@@ -167,9 +179,9 @@ network::Message DaemonRequestConversation::RootExeBroadcast( const network::Mes
     // dispatch to children
     std::vector< network::Message > responses;
     {
-        for ( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
+        for( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
         {
-            if ( pConnection->getTypeOpt().value() == network::Node::Executor )
+            if( pConnection->getTypeOpt().value() == network::Node::Executor )
             {
                 network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
                 const network::Message               response = sender.RootExeBroadcast( request );
@@ -219,7 +231,7 @@ network::Message DaemonRequestConversation::MPDown( const network::Message&     
 network::Message DaemonRequestConversation::MPUp( const network::Message& request, const MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp ) )
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp ) )
     {
         network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
         return sender.MPDown( request, mp );
@@ -235,7 +247,7 @@ network::Message DaemonRequestConversation::MPODown( const network::Message&    
                                                      const MPO&                  mpo,
                                                      boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( mpo ) ) )
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( mpo ) ) )
     {
         network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
         return sender.MPODown( request, mpo );
@@ -250,7 +262,7 @@ network::Message DaemonRequestConversation::MPOUp( const network::Message&     r
                                                    const MPO&                  mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( mpo ) ) )
+    if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( mpo ) ) )
     {
         network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
         return sender.MPODown( request, mpo );

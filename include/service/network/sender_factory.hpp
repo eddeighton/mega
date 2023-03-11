@@ -36,7 +36,7 @@ namespace mega::network
 {
 
 Sender::Ptr make_socket_sender( Traits::Socket& socket, const ConnectionID& connectionID );
-Sender::Ptr make_current_channel_sender( ConcurrentChannel& channel, const ConnectionID& connectionID );
+Sender::Ptr make_concurrent_channel_sender( ConcurrentChannel& channel, const ConnectionID& connectionID );
 Sender::Ptr make_channel_sender( Channel& channel, const ConnectionID& connectionID );
 
 } // namespace mega::network

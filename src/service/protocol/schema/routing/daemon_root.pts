@@ -38,6 +38,12 @@ msg ToolRoot
     response(network::Message response);
 }
 
+msg PythonRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+
 msg LeafRoot
 {
     request(network::Message request);

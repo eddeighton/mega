@@ -48,6 +48,17 @@ msg ToolDaemon
     response(network::Message response);
 }
 
+msg PythonRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+msg PythonDaemon
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+
 msg LeafDaemon
 {
     request(network::Message request);

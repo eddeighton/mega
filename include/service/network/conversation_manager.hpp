@@ -46,12 +46,13 @@ public:
 
     std::vector< ConversationID > reportConversations() const;
     ConversationID                createConversationID( const ConnectionID& connectionID ) const;
-    void                          externalConversationInitiated( ConversationBase::Ptr pConversation );
+    void                          externalConversationInitiated( ExternalConversation::Ptr pConversation );
     void                          conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender );
     void                          conversationJoined( ConversationBase::Ptr pConversation );
     virtual void                  conversationCompleted( ConversationBase::Ptr pConversation );
 
     ConversationBase::Ptr findExistingConversation( const network::ConversationID& conversationID ) const;
+    ExternalConversation::Ptr getExternalConversation() const;
 
     virtual ConversationBase::Ptr joinConversation( const ConnectionID& originatingConnectionID, const Message& msg )
         = 0;
@@ -64,6 +65,7 @@ protected:
     boost::asio::io_context&  m_ioContext;
     std::string               m_strProcessName;
     ConversationPtrMap        m_conversations;
+    ExternalConversation::Ptr m_pExternalConversation;
     mutable std::shared_mutex m_mutex;
     using WriteLock = std::unique_lock< std::shared_mutex >;
     using ReadLock  = std::shared_lock< std::shared_mutex >;

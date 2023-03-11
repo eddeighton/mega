@@ -26,6 +26,7 @@
 
 #include "service/protocol/model/leaf_python.hxx"
 #include "service/protocol/model/python_leaf.hxx"
+#include "service/protocol/model/python_leaf.hxx"
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/project.hxx"
@@ -35,6 +36,7 @@ namespace mega::service
 
 class PythonRequestConversation : public network::InThreadConversation,
                                   public network::leaf_python::Impl,
+                                  public network::python_leaf::Impl,
                                   public network::mpo::Impl,
                                   public network::status::Impl,
                                   public network::project::Impl
@@ -76,6 +78,12 @@ public:
     // network::leaf_python::Impl
     virtual network::Message RootAllBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
+
+    // network::python_leaf::Impl
+    virtual network::Message PythonRoot( const network::Message&     request,
+                                         boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message PythonDaemon( const network::Message&     request,
+                                           boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
     virtual network::Message MPDown( const network::Message& request, const mega::MP& mp,

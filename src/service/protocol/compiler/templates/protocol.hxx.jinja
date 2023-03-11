@@ -44,6 +44,7 @@ namespace mega::network
 {
 
 class ConversationBase;
+class ExternalConversation;
 class Sender;
 
 namespace {{ filename }}
@@ -98,6 +99,28 @@ private:
     ConversationID                m_receiver;
     Sender&                       m_sender;
     boost::asio::yield_context&   m_yield_ctx;
+};
+
+class External_Request_Sender
+{
+public:
+    External_Request_Sender( ConversationBase& sender, 
+                    ExternalConversation& receiver );
+
+{% for request in requests %}
+    {{ request.return_type }} {{ request.name }}
+    (
+{%for p in request.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%}
+    );
+{% endfor %}
+
+private:
+    ConversationBase& m_sender;
+    ExternalConversation& m_receiver;
 };
 
 class Impl

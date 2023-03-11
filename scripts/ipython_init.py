@@ -33,6 +33,8 @@ MEGA_BIN =  BUILD_PATH + '/' + CFG_TUPLE + "/mega/install/bin"
 
 sys.path.append( MEGA_BIN )
 
+os.chdir( "/home/foobar/test_{}".format( CFG_TYPE ) )
+
 import megastructure
 import asyncio
 

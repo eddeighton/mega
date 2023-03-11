@@ -49,6 +49,8 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
         return result;
     if( result = network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if( result = network::python_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
@@ -156,6 +158,19 @@ network::Message LeafRequestConversation::ToolDaemon( const network::Message&   
                                                       boost::asio::yield_context& yield_ctx )
 {
     return getDaemonSender( yield_ctx ).ToolDaemon( request );
+}
+
+// network::python_leaf::Impl
+network::Message LeafRequestConversation::PythonRoot( const network::Message&     request,
+                                                    boost::asio::yield_context& yield_ctx )
+{
+    return getDaemonSender( yield_ctx ).PythonRoot( request );
+}
+
+network::Message LeafRequestConversation::PythonDaemon( const network::Message&     request,
+                                                      boost::asio::yield_context& yield_ctx )
+{
+    return getDaemonSender( yield_ctx ).PythonDaemon( request );
 }
 
 // network::mpo::Impl

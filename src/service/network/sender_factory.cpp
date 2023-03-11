@@ -49,8 +49,8 @@ class SocketSender : public Sender
 {
     using SendBuffer = std::vector< char >;
 
-    Traits::Socket&                                    m_socket;
-    ConnectionID                                       m_connectionID;
+    Traits::Socket& m_socket;
+    ConnectionID    m_connectionID;
 
 public:
     SocketSender( Traits::Socket& socket, ConnectionID connectionID )
@@ -164,7 +164,7 @@ public:
     }
 };
 
-Sender::Ptr make_current_channel_sender( ConcurrentChannel& channel, const ConnectionID& connectionID )
+Sender::Ptr make_concurrent_channel_sender( ConcurrentChannel& channel, const ConnectionID& connectionID )
 {
     return std::make_unique< ConcurrentChannelSender >( channel, connectionID );
 }

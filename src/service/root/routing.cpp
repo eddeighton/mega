@@ -164,6 +164,13 @@ network::Message RootRequestConversation::ToolRoot( const network::Message&     
     return dispatchRequest( request, yield_ctx );
 }
 
+network::Message RootRequestConversation::PythonRoot( const network::Message&     request,
+                                                    boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "RootRequestConversation::PythonRoot" );
+    return dispatchRequest( request, yield_ctx );
+}
+
 network::Message RootRequestConversation::LeafRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
 {

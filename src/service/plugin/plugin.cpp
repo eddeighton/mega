@@ -178,7 +178,7 @@ public:
     {
         auto pPlugin = std::make_shared< mega::service::Plugin >( pszConsoleLogLevel, pszFileLogLevel );
         // work around shared_from_this in constructor issues
-        pPlugin->m_executor.externalConversationInitiated( pPlugin );
+        //pPlugin->m_executor.externalConversationInitiated( pPlugin );
         return pPlugin;
     }
 
@@ -186,7 +186,7 @@ public:
     {
         // work around shared_from_this in constructor issues
         pPlugin->shutdown();
-        pPlugin->m_executor.conversationCompleted( pPlugin );
+        //pPlugin->m_executor.conversationCompleted( pPlugin );
         pPlugin.reset();
     }
 

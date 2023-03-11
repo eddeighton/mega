@@ -106,6 +106,12 @@ public:
     virtual network::Message ToolDaemon( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
 
+    // network::python_leaf::Impl
+    virtual network::Message PythonRoot( const network::Message&     request,
+                                       boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message PythonDaemon( const network::Message&     request,
+                                         boost::asio::yield_context& yield_ctx ) override;
+
     // network::mpo::Impl
     virtual network::Message MPRoot( const network::Message& request, const MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;

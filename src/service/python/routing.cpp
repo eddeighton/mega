@@ -38,6 +38,8 @@ network::Message PythonRequestConversation::dispatchRequest( const network::Mess
     network::Message result;
     if( result = network::leaf_python::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if( result = network::python_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
@@ -58,9 +60,14 @@ void PythonRequestConversation::dispatchResponse( const network::ConnectionID& c
     {
         m_python.getLeafSender().send( msg, yield_ctx );
     }
+    else if( m_python.getExternalConversation()->getID() == msg.getSenderID() )
+    {
+        m_python.getExternalConversation()->send( network::ReceivedMsg{ connectionID, msg } );
+    }
     else
     {
-        SPDLOG_ERROR( "Terminal cannot resolve connection: {} on error: {}", connectionID, msg );
+        SPDLOG_ERROR( "PythonRequestConversation::dispatchResponse cannot resolve connection: {} on error: {}",
+                      connectionID, msg );
     }
 }
 
@@ -75,10 +82,15 @@ void PythonRequestConversation::error( const network::ReceivedMsg& msg, const st
     {
         m_python.m_receiverChannel.getSender()->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
+    else if( m_python.getExternalConversation()->getID() == msg.msg.getSenderID() )
+    {
+        m_python.getExternalConversation()->sendErrorResponse( msg, strErrorMsg );
+    }
     else
     {
         // This can happen when initiating request has received exception - in which case
-        SPDLOG_ERROR( "Python cannot resolve connection: {} on error: {}", msg.connectionID, strErrorMsg );
+        SPDLOG_ERROR( "PythonRequestConversation::error cannot resolve connection: {} on error: {}", msg.connectionID,
+                      strErrorMsg );
     }
 }
 
@@ -92,6 +104,17 @@ network::Message PythonRequestConversation::RootAllBroadcast( const network::Mes
                                                               boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
+}
+
+network::Message PythonRequestConversation::PythonRoot( const network::Message&     request,
+                                                        boost::asio::yield_context& yield_ctx )
+{
+    return getPythonRequest( yield_ctx ).PythonRoot( request );
+}
+network::Message PythonRequestConversation::PythonDaemon( const network::Message&     request,
+                                                          boost::asio::yield_context& yield_ctx )
+{
+    return getPythonRequest( yield_ctx ).PythonDaemon( request );
 }
 
 network::Message PythonRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,

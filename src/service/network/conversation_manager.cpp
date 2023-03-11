@@ -96,15 +96,18 @@ void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pCon
     // SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
 }
 
-void ConversationManager::externalConversationInitiated( ConversationBase::Ptr pConversation )
+void ConversationManager::externalConversationInitiated( ExternalConversation::Ptr pConversation )
 {
     WriteLock lock( m_mutex );
+    VERIFY_RTE_MSG( !m_pExternalConversation, "Existing external conversation" );
     m_conversations.insert( std::make_pair( pConversation->getID(), pConversation ) );
+    m_pExternalConversation = pConversation;
 }
 
 void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender )
 {
-    externalConversationInitiated( pConversation );
+    WriteLock lock( m_mutex );
+    m_conversations.insert( std::make_pair( pConversation->getID(), pConversation ) );
     spawnInitiatedConversation( pConversation, parentSender );
 }
 
@@ -158,6 +161,12 @@ ConversationBase::Ptr ConversationManager::findExistingConversation( const Conve
     {
         return ConversationBase::Ptr();
     }
+}
+
+ExternalConversation::Ptr ConversationManager::getExternalConversation() const
+{
+    ReadLock lock( m_mutex );
+    return m_pExternalConversation;
 }
 
 void ConversationManager::dispatch( const ReceivedMsg& msg )

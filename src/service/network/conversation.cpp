@@ -289,4 +289,53 @@ void ConcurrentConversation::send( const ReceivedMsg& msg )
                           } );
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+ExternalConversation::ExternalConversation( ConversationManager&  conversationManager,
+                                            const ConversationID& conversationID, boost::asio::io_context& ioContext )
+    : m_conversationManager( conversationManager )
+    , m_conversationID( conversationID )
+    , m_ioContext( ioContext )
+    , m_channel( m_ioContext )
+{
+}
+
+ReceivedMsg ExternalConversation::receive()
+{
+    ReceivedMsg result;
+    bool        bReceived = false;
+    m_channel.async_receive(
+        [ &bReceived, &result ]( boost::system::error_code ec, const ReceivedMsg& msg )
+        {
+            if( ec )
+            {
+                SPDLOG_ERROR( "Failed to receive msg with error: {}", ec.what() );
+                THROW_RTE( "Failed to receive msg on channel: " << ec.what() );
+            }
+            else
+            {
+                result    = msg;
+                bReceived = true;
+            }
+        } );
+    while( !bReceived )
+    {
+        m_ioContext.run_one();
+    }
+    return result;
+}
+
+void ExternalConversation::send( const ReceivedMsg& msg )
+{
+    m_channel.async_send( boost::system::error_code(), msg,
+                          [ &msg ]( boost::system::error_code ec )
+                          {
+                              if( ec )
+                              {
+                                  SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
+                                  THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
+                              }
+                          } );
+}
 } // namespace mega::network

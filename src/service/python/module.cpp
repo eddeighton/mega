@@ -27,6 +27,10 @@
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
 
+#include "service/protocol/model/status.hxx"
+#include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/python_leaf.hxx"
+
 #include "service/protocol/common/conversation_base.hpp"
 
 #include "common/assert_verify.hpp"
@@ -45,18 +49,15 @@ namespace mega::service
 namespace
 {
 
-class PythonModule : public network::ConversationBase
+class PythonModule
 {
-    using MessageChannel
-        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, network::ReceivedMsg ) >;
-
     struct LogConfig
     {
         LogConfig( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
         {
             boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
-            std::string             strConsoleLogLevel = "warn";
-            std::string             strLogFileLevel    = "warn";
+            std::string             strConsoleLogLevel = "info";
+            std::string             strLogFileLevel    = "info";
             if( pszConsoleLogLevel )
                 strConsoleLogLevel = pszConsoleLogLevel;
             if( pszFileLogLevel )
@@ -69,51 +70,11 @@ class PythonModule : public network::ConversationBase
 public:
     using Ptr = std::shared_ptr< PythonModule >;
 
-    // Sender
-    virtual network::ConnectionID     getConnectionID() const { THROW_TODO; }
-    virtual boost::system::error_code send( const network::Message& msg, boost::asio::yield_context& yield_ctx )
-    {
-        THROW_TODO;
-    }
-    virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx )
-    {
-        THROW_TODO;
-    }
-
-    // network::ConversationBase
-    virtual const ID& getID() const
-    {
-        static network::ConversationID pluginID{ 0, "PLUGIN" };
-        return pluginID;
-    }
-    virtual void send( const network::ReceivedMsg& msg )
-    {
-        m_channel.async_send(
-            boost::system::error_code(), msg,
-            [ &msg ]( boost::system::error_code ec )
-            {
-                if( ec )
-                {
-                    SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
-                    THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
-                }
-            } );
-    }
-    virtual network::Message   dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
-    virtual void               run( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
-    virtual const std::string& getProcessName() const { THROW_TODO; }
-    virtual U64                getStackSize() const { THROW_TODO; }
-    virtual void               onDisconnect( const network::ConnectionID& connectionID ) { THROW_TODO; }
-    virtual void               requestStarted( const network::ConnectionID& connectionID ) { ; }
-    virtual void               requestCompleted() { ; }
-
     static Ptr makePlugin( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel )
     {
         auto pPlugin
             = std::make_shared< mega::service::PythonModule >( daemonPort, pszConsoleLogLevel, pszFileLogLevel );
         // work around shared_from_this in constructor issues
-        pPlugin->m_python.externalConversationInitiated( pPlugin );
         return pPlugin;
     }
 
@@ -121,17 +82,19 @@ public:
     {
         // work around shared_from_this in constructor issues
         pPlugin->shutdown();
-        pPlugin->m_python.conversationCompleted( pPlugin );
         pPlugin.reset();
     }
 
     // PythonModule
     PythonModule( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel )
         : m_logConfig( pszConsoleLogLevel, pszFileLogLevel )
-        , m_ioContext()
         , m_python( m_ioContext, daemonPort )
-        , m_channel( m_ioContext )
     {
+        {
+            m_pExternalConversation = std::make_shared< network::ExternalConversation >(
+                m_python, m_python.createConversationID( m_python.getLeafSender().getConnectionID() ), m_ioContext );
+            m_python.externalConversationInitiated( m_pExternalConversation );
+        }
         {
             m_mpoConversation = std::make_shared< MPOConversation >(
                 m_python, m_python.createConversationID( m_python.getLeafSender().getConnectionID() ) );
@@ -141,16 +104,20 @@ public:
         SPDLOG_TRACE( "PythonModule::ctor" );
     }
 
-    ~PythonModule() { SPDLOG_TRACE( "PythonModule::dtor" ); }
+    ~PythonModule()
+    {
+        SPDLOG_TRACE( "PythonModule::dtor" );
+        m_python.conversationCompleted( m_pExternalConversation );
+    }
 
     PythonModule( const PythonModule& )            = delete;
     PythonModule( PythonModule&& )                 = delete;
     PythonModule& operator=( const PythonModule& ) = delete;
     PythonModule& operator=( PythonModule&& )      = delete;
 
-    void shutdown() 
-    { 
-        SPDLOG_TRACE( "PythonModule::shutdown" ); 
+    void shutdown()
+    {
+        SPDLOG_TRACE( "PythonModule::shutdown" );
 
         // send shutdown to MPOConversation
     }
@@ -161,12 +128,72 @@ public:
             ;
     }
 
+    template < typename Request >
+    Request request()
+    {
+        return Request(
+            [ mpoCon = m_mpoConversation,
+              extCon = m_pExternalConversation ]( const network::Message& msg ) mutable -> network::Message
+            {
+                network::python_leaf::External_Request_Sender sender( *mpoCon, *extCon );
+                return sender.PythonRoot( msg );
+            },
+            m_pExternalConversation->getID() );
+    }
+
+    void getStatus()
+    {
+        auto               result = request< network::status::Request_Encoder >().GetNetworkStatus();
+        std::ostringstream os;
+        os << result;
+        SPDLOG_INFO( os.str() );
+    }
+
+    void getDaemons()
+    {
+        auto result = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
+        for( mega::MachineID machineID : result )
+        {
+            SPDLOG_INFO( "daemon: {}", machineID );
+        }
+    }
+
+    void getMPs()
+    {
+        auto daemons = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
+        for( mega::MachineID machineID : daemons )
+        {
+            auto result = request< network::enrole::Request_Encoder >().EnroleGetProcesses( machineID );
+            for( mega::MP machineProcess : result )
+            {
+                SPDLOG_INFO( "mp: {}", machineProcess );
+            }
+        }
+    }
+
+    void getMPOs()
+    {
+        auto daemons = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
+        for( mega::MachineID machineID : daemons )
+        {
+            auto mps = request< network::enrole::Request_Encoder >().EnroleGetProcesses( machineID );
+            for( mega::MP machineProcess : mps )
+            {
+                auto result = request< network::enrole::Request_Encoder >().EnroleGetMPO( machineProcess );
+                for( mega::MPO mpo : result )
+                {
+                    SPDLOG_INFO( "mpo: {}", mpo );
+                }
+            }
+        }
+    }
+
 private:
-    LogConfig                      m_logConfig;
-    boost::asio::io_context        m_ioContext;
-    Python                         m_python;
-    MessageChannel                 m_channel;
-    network::ConversationBase::Ptr m_mpoConversation;
+    LogConfig                          m_logConfig;
+    boost::asio::io_context            m_ioContext;
+    Python                             m_python;
+    network::ExternalConversation::Ptr m_pExternalConversation;
+    network::ConversationBase::Ptr     m_mpoConversation;
 };
 
 PythonModule::Ptr getModule()
@@ -174,22 +201,12 @@ PythonModule::Ptr getModule()
     static PythonModule::Ptr g_pPythonModule;
     if( !g_pPythonModule )
     {
-        g_pPythonModule = mega::service::PythonModule::makePlugin( mega::network::MegaDaemonPort(), "trace", "trace" );
+        g_pPythonModule = mega::service::PythonModule::makePlugin( mega::network::MegaDaemonPort(), "info", "trace" );
     }
     return g_pPythonModule;
 }
 
 } // namespace
-
-bool testFunction()
-{
-    return true;
-}
-
-void run_one()
-{
-    getModule()->run_one();
-}
 
 } // namespace mega::service
 
@@ -197,6 +214,15 @@ PYBIND11_MODULE( megastructure, pythonModule )
 {
     pythonModule.doc() = "Python Module for Megastructure";
 
-    pythonModule.def( "testFunction", &mega::service::testFunction, "Test Function" );
-    pythonModule.def( "run_one", &mega::service::run_one, "Run the Megastructure Message Queue for one message" );
+    pythonModule.def(
+        "getStatus", [] { mega::service::getModule()->getStatus(); }, "Get Megastructure Status" );
+    pythonModule.def(
+        "getDaemons", [] { mega::service::getModule()->getDaemons(); }, "List Daemons" );
+    pythonModule.def(
+        "getMPs", [] { mega::service::getModule()->getMPs(); }, "List Machine Processes" );
+    pythonModule.def(
+        "getMPOs", [] { mega::service::getModule()->getMPOs(); }, "List Machine Process Owners" );
+    pythonModule.def(
+        "run_one", [] { mega::service::getModule()->run_one(); },
+        "Run the Megastructure Message Queue for one message" );
 }

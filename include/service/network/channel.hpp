@@ -55,7 +55,7 @@ public:
     Sender::Ptr getSender()
     {
         VERIFY_RTE( m_connectionIDOpt.has_value() );
-        return make_current_channel_sender( m_channel, m_connectionIDOpt.value() );
+        return make_concurrent_channel_sender( m_channel, m_connectionIDOpt.value() );
     }
 
 private:
