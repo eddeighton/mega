@@ -31,7 +31,7 @@
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/project.hxx"
 
-namespace mega::service
+namespace mega::service::python
 {
 
 class PythonRequestConversation : public network::InThreadConversation,
@@ -100,6 +100,6 @@ public:
     virtual void SetProject( const mega::Project& project, boost::asio::yield_context& yield_ctx ) override;
 };
 
-} // namespace mega::service
+} // namespace mega::service::python
 
 #endif // REQUEST_PYTHON_9_MAR_2023

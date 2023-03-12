@@ -76,7 +76,7 @@ reference MPOContext::getRoot( MPO mpo )
     }
     else
     {
-        return reference{ TypeInstance{ 0U, ROOT_TYPE_ID }, mpo, ROOT_OBJECT_ID };
+        return reference::Root( mpo );
     }
 }
 

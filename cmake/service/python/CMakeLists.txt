@@ -55,7 +55,18 @@ set( MEGA_PYTHON_SOURCE
     ${MEGA_PYTHON_SRC_DIR}/routing.cpp
     ${MEGA_PYTHON_SRC_DIR}/status.cpp
     ${MEGA_PYTHON_SRC_DIR}/project.cpp
+    ${MEGA_PYTHON_SRC_DIR}/module.hpp 
     ${MEGA_PYTHON_SRC_DIR}/module.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_root.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_root.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_machine.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_machine.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_process.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_process.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_mpo.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_mpo.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_reference.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_reference.cpp 
     )
 
 add_library( megastructure SHARED ${MEGA_PYTHON_SOURCE} )
@@ -81,13 +92,6 @@ target_compile_options( megastructure PUBLIC "-fcoroutines" )
 target_link_options( megastructure PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )
 
-# target_link_libraries( megastructure mega_interface )
-# target_link_libraries( megastructure protocol )
-# target_link_libraries( megastructure network )
-# target_link_libraries( megastructure leaf )
-# target_link_libraries( megastructure database )
-# target_link_libraries( megastructure orc )
-# target_link_libraries( megastructure log )
 target_link_libraries( megastructure executorLib )
 target_link_libraries( megastructure mega_mangle )
 

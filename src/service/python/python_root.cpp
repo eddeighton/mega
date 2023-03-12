@@ -18,9 +18,33 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mpo_conversation.hpp"
+#include "python_root.hpp"
+
+#include "module.hpp"
+
+#include "service/protocol/model/enrole.hxx"
 
 namespace mega::service::python
 {
 
+PythonRoot::PythonRoot( PythonModule& module )
+    : m_module( module )
+{
 }
+
+std::vector< PythonMachine > PythonRoot::getMachines() const
+{
+    SPDLOG_TRACE( "PythonRoot::getMachines" );
+
+    std::vector< PythonMachine > result;
+    {
+        auto machineIDs = m_module.request< network::enrole::Request_Encoder >().EnroleGetDaemons();
+        for( mega::MachineID machineID : machineIDs )
+        {
+            result.emplace_back( PythonMachine( m_module, machineID ) );
+        }
+    }
+    return result;
+}
+
+} // namespace mega::service::python

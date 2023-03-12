@@ -48,3 +48,9 @@ async def run_megastructure():
 
 
 asyncio.create_task( run_megastructure() )
+
+def getAllMPOs():
+    for machine in megastructure.getRoot().getMachines():
+        for process in machine.getProcesses():
+            for mpo in process.getMPOs():
+                yield mpo

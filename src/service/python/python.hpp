@@ -35,7 +35,7 @@
 #include <thread>
 #include <functional>
 
-namespace mega::service
+namespace mega::service::python
 {
 
 class Python : public network::ConversationManager
@@ -67,6 +67,6 @@ private:
     Leaf                       m_leaf;
     std::optional< mega::MPO > m_mpo;
 };
-} // namespace mega::service
+} // namespace mega::service::python
 
 #endif // GUARD_2023_March_09_python

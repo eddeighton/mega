@@ -22,7 +22,7 @@
 
 #include "service/network/log.hpp"
 
-namespace mega::service
+namespace mega::service::python
 {
 
 PythonRequestConversation::PythonRequestConversation( Python& python, const network::ConversationID& conversationID,
@@ -120,15 +120,15 @@ network::Message PythonRequestConversation::PythonDaemon( const network::Message
 network::Message PythonRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( MP( m_python.getMPO() ) == mp );
+    VERIFY_RTE( mega::MP( m_python.getMPO() ) == mp );
     return dispatchRequest( request, yield_ctx );
 }
 
 network::Message PythonRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                      boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE( MPO( m_python.getMPO() ) == mpo );
+    VERIFY_RTE( mega::MPO( m_python.getMPO() ) == mpo );
     return dispatchRequest( request, yield_ctx );
 }
 
-} // namespace mega::service
+} // namespace mega::service::python

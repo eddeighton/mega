@@ -18,9 +18,22 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mpo_conversation.hpp"
+#include "python_mpo.hpp"
+
+#include "module.hpp"
 
 namespace mega::service::python
 {
 
+PythonMPO::PythonMPO( PythonModule& module, mega::MPO mpo )
+    : m_module( module )
+    , m_mpo( mpo )
+{
 }
+
+mega::reference PythonMPO::getRoot() const
+{
+    return reference::Root( m_mpo );
+}
+
+} // namespace mega::service::python

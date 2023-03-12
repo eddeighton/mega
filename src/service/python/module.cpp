@@ -18,211 +18,232 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include <pybind11/pybind11.h>
-#include <pybind11/operators.h>
+#include "module.hpp"
 
-#include "python.hpp"
-#include "mpo_conversation.hpp"
+#include "python_reference.hpp"
 
-#include "service/network/network.hpp"
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/enrole.hxx"
-#include "service/protocol/model/python_leaf.hxx"
 
-#include "service/protocol/common/conversation_base.hpp"
+#include <pybind11/stl.h>
 
-#include "common/assert_verify.hpp"
-
-#include <boost/asio/io_context.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/config.hpp>
-
-#include <iostream>
-#include <sstream>
-#include <chrono>
-#include <thread>
-
-namespace mega::service
-{
 namespace
 {
-
-class PythonModule
+mega::service::python::PythonModule::Ptr getModule()
 {
-    struct LogConfig
-    {
-        LogConfig( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
-        {
-            boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
-            std::string             strConsoleLogLevel = "info";
-            std::string             strLogFileLevel    = "info";
-            if( pszConsoleLogLevel )
-                strConsoleLogLevel = pszConsoleLogLevel;
-            if( pszFileLogLevel )
-                strLogFileLevel = pszFileLogLevel;
-            mega::network::configureLog( logFolder, "python", mega::network::fromStr( strConsoleLogLevel ),
-                                         mega::network::fromStr( strLogFileLevel ) );
-        }
-    };
-
-public:
-    using Ptr = std::shared_ptr< PythonModule >;
-
-    static Ptr makePlugin( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel )
-    {
-        auto pPlugin
-            = std::make_shared< mega::service::PythonModule >( daemonPort, pszConsoleLogLevel, pszFileLogLevel );
-        // work around shared_from_this in constructor issues
-        return pPlugin;
-    }
-
-    static void releasePlugin( Ptr& pPlugin )
-    {
-        // work around shared_from_this in constructor issues
-        pPlugin->shutdown();
-        pPlugin.reset();
-    }
-
-    // PythonModule
-    PythonModule( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel )
-        : m_logConfig( pszConsoleLogLevel, pszFileLogLevel )
-        , m_python( m_ioContext, daemonPort )
-    {
-        {
-            m_pExternalConversation = std::make_shared< network::ExternalConversation >(
-                m_python, m_python.createConversationID( m_python.getLeafSender().getConnectionID() ), m_ioContext );
-            m_python.externalConversationInitiated( m_pExternalConversation );
-        }
-        {
-            m_mpoConversation = std::make_shared< MPOConversation >(
-                m_python, m_python.createConversationID( m_python.getLeafSender().getConnectionID() ) );
-            m_python.conversationInitiated( m_mpoConversation, m_python.getLeafSender() );
-        }
-
-        SPDLOG_TRACE( "PythonModule::ctor" );
-    }
-
-    ~PythonModule()
-    {
-        SPDLOG_TRACE( "PythonModule::dtor" );
-        m_python.conversationCompleted( m_pExternalConversation );
-    }
-
-    PythonModule( const PythonModule& )            = delete;
-    PythonModule( PythonModule&& )                 = delete;
-    PythonModule& operator=( const PythonModule& ) = delete;
-    PythonModule& operator=( PythonModule&& )      = delete;
-
-    void shutdown()
-    {
-        SPDLOG_TRACE( "PythonModule::shutdown" );
-
-        // send shutdown to MPOConversation
-    }
-
-    void run_one()
-    {
-        while( m_ioContext.poll_one() )
-            ;
-    }
-
-    template < typename Request >
-    Request request()
-    {
-        return Request(
-            [ mpoCon = m_mpoConversation,
-              extCon = m_pExternalConversation ]( const network::Message& msg ) mutable -> network::Message
-            {
-                network::python_leaf::External_Request_Sender sender( *mpoCon, *extCon );
-                return sender.PythonRoot( msg );
-            },
-            m_pExternalConversation->getID() );
-    }
-
-    void getStatus()
-    {
-        auto               result = request< network::status::Request_Encoder >().GetNetworkStatus();
-        std::ostringstream os;
-        os << result;
-        SPDLOG_INFO( os.str() );
-    }
-
-    void getDaemons()
-    {
-        auto result = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
-        for( mega::MachineID machineID : result )
-        {
-            SPDLOG_INFO( "daemon: {}", machineID );
-        }
-    }
-
-    void getMPs()
-    {
-        auto daemons = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
-        for( mega::MachineID machineID : daemons )
-        {
-            auto result = request< network::enrole::Request_Encoder >().EnroleGetProcesses( machineID );
-            for( mega::MP machineProcess : result )
-            {
-                SPDLOG_INFO( "mp: {}", machineProcess );
-            }
-        }
-    }
-
-    void getMPOs()
-    {
-        auto daemons = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
-        for( mega::MachineID machineID : daemons )
-        {
-            auto mps = request< network::enrole::Request_Encoder >().EnroleGetProcesses( machineID );
-            for( mega::MP machineProcess : mps )
-            {
-                auto result = request< network::enrole::Request_Encoder >().EnroleGetMPO( machineProcess );
-                for( mega::MPO mpo : result )
-                {
-                    SPDLOG_INFO( "mpo: {}", mpo );
-                }
-            }
-        }
-    }
-
-private:
-    LogConfig                          m_logConfig;
-    boost::asio::io_context            m_ioContext;
-    Python                             m_python;
-    network::ExternalConversation::Ptr m_pExternalConversation;
-    network::ConversationBase::Ptr     m_mpoConversation;
-};
-
-PythonModule::Ptr getModule()
-{
-    static PythonModule::Ptr g_pPythonModule;
+    static mega::service::python::PythonModule::Ptr g_pPythonModule;
     if( !g_pPythonModule )
     {
-        g_pPythonModule = mega::service::PythonModule::makePlugin( mega::network::MegaDaemonPort(), "info", "trace" );
+        g_pPythonModule
+            = mega::service::python::PythonModule::makePlugin( mega::network::MegaDaemonPort(), "info", "trace" );
     }
     return g_pPythonModule;
 }
-
 } // namespace
 
-} // namespace mega::service
+namespace PYBIND11_NAMESPACE
+{
+namespace detail
+{
+template <>
+struct type_caster< mega::reference >
+{
+public:
+    /**
+     * This macro establishes the name 'inty' in
+     * function signatures and declares a local variable
+     * 'value' of type inty
+     */
+    PYBIND11_TYPE_CASTER( mega::reference, const_name( "reference" ) );
+
+    /**
+     * Conversion part 1 (Python->C++): convert a PyObject into a inty
+     * instance or return false upon failure. The second argument
+     * indicates whether implicit conversions should be applied.
+     */
+    bool load( handle src, bool )
+    {
+        /* Extract PyObject from handle */
+        PyObject* source = src.ptr();
+        if( !source )
+            return false;
+
+        /* Now try to convert into a C++ int */
+        value = mega::service::python::PythonReference::cast( source );
+        
+        /* Ensure return code was OK (to avoid out-of-range errors etc) */
+        return !( value != mega::reference{} && !PyErr_Occurred() );
+    }
+
+    /**
+     * Conversion part 2 (C++ -> Python): convert an inty instance into
+     * a Python object. The second and third arguments are used to
+     * indicate the return value policy and parent object (for
+     * ``return_value_policy::reference_internal``) and are generally
+     * ignored by implicit casters.
+     */
+    static handle cast( mega::reference src, return_value_policy /* policy */, handle /* parent */ )
+    {
+        return mega::service::python::PythonReference::cast( *getModule(), src );
+    }
+};
+} // namespace detail
+} // namespace PYBIND11_NAMESPACE
 
 PYBIND11_MODULE( megastructure, pythonModule )
 {
+    using namespace mega::service::python;
+
     pythonModule.doc() = "Python Module for Megastructure";
 
+    pybind11::class_< PythonRoot >( pythonModule, "Root" )
+        .def( "getMachines", &PythonRoot::getMachines, "Get all machines connected to the Root" );
+
+    pybind11::class_< PythonMachine >( pythonModule, "Machine" )
+        .def( "getProcesses", &PythonMachine::getProcesses, "Get all processes for this machine" );
+
+    pybind11::class_< PythonProcess >( pythonModule, "Process" )
+        .def( "getMPOs", &PythonProcess::getMPOs, "Get all MPOs for this process" );
+
+    pybind11::class_< PythonMPO >( pythonModule, "MPO" )
+        .def( "getRoot", &PythonMPO::getRoot, "Get the MPO Root object" );
+
     pythonModule.def(
-        "getStatus", [] { mega::service::getModule()->getStatus(); }, "Get Megastructure Status" );
+        "getRoot", [] { return getModule()->getRoot(); }, "Get the Megastructure Root" );
     pythonModule.def(
-        "getDaemons", [] { mega::service::getModule()->getDaemons(); }, "List Daemons" );
-    pythonModule.def(
-        "getMPs", [] { mega::service::getModule()->getMPs(); }, "List Machine Processes" );
-    pythonModule.def(
-        "getMPOs", [] { mega::service::getModule()->getMPOs(); }, "List Machine Process Owners" );
-    pythonModule.def(
-        "run_one", [] { mega::service::getModule()->run_one(); },
-        "Run the Megastructure Message Queue for one message" );
+        "run_one", [] { return getModule()->run_one(); }, "Run the Megastructure Message Queue for one message" );
 }
+
+namespace mega::service::python
+{
+PythonModule::LogConfig::LogConfig( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
+{
+    boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
+    std::string             strConsoleLogLevel = "info";
+    std::string             strLogFileLevel    = "info";
+    if( pszConsoleLogLevel )
+        strConsoleLogLevel = pszConsoleLogLevel;
+    if( pszFileLogLevel )
+        strLogFileLevel = pszFileLogLevel;
+    mega::network::configureLog(
+        logFolder, "python", mega::network::fromStr( strConsoleLogLevel ), mega::network::fromStr( strLogFileLevel ) );
+}
+
+PythonModule::Ptr PythonModule::makePlugin( short daemonPort, const char* pszConsoleLogLevel,
+                                            const char* pszFileLogLevel )
+{
+    auto pPlugin = std::make_shared< PythonModule >( daemonPort, pszConsoleLogLevel, pszFileLogLevel );
+    // work around shared_from_this in constructor issues
+    return pPlugin;
+}
+
+void PythonModule::releasePlugin( Ptr& pPlugin )
+{
+    // work around shared_from_this in constructor issues
+    pPlugin->shutdown();
+    pPlugin.reset();
+}
+
+PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel )
+    : m_logConfig( pszConsoleLogLevel, pszFileLogLevel )
+    , m_python( m_ioContext, daemonPort )
+{
+    {
+        m_pExternalConversation = std::make_shared< network::ExternalConversation >(
+            m_python, m_python.createConversationID( m_python.getLeafSender().getConnectionID() ), m_ioContext );
+        m_python.externalConversationInitiated( m_pExternalConversation );
+    }
+    {
+        m_mpoConversation = std::make_shared< MPOConversation >(
+            m_python, m_python.createConversationID( m_python.getLeafSender().getConnectionID() ) );
+        m_python.conversationInitiated( m_mpoConversation, m_python.getLeafSender() );
+    }
+
+    SPDLOG_TRACE( "PythonModule::ctor" );
+}
+
+PythonModule::~PythonModule()
+{
+    SPDLOG_TRACE( "PythonModule::dtor" );
+    m_python.conversationCompleted( m_pExternalConversation );
+}
+
+mega::TypeID PythonModule::getTypeID( const char* pszIdentifier )
+{
+    SPDLOG_TRACE( "PythonModule::getTypeID" );
+    return {};
+}
+
+void PythonModule::invoke( const mega::reference& ref, const PythonReference::TypePath& typePath )
+{
+    SPDLOG_TRACE( "PythonModule::invoke" );
+}
+
+void PythonModule::shutdown()
+{
+    SPDLOG_TRACE( "PythonModule::shutdown" );
+
+    // send shutdown to MPOConversation
+}
+
+void PythonModule::run_one()
+{
+    while( m_ioContext.poll_one() )
+        ;
+}
+
+PythonRoot PythonModule::getRoot()
+{
+    return { *this };
+}
+/*
+void PythonModule::getStatus()
+{
+    auto               result = request< network::status::Request_Encoder >().GetNetworkStatus();
+    std::ostringstream os;
+    os << result;
+    SPDLOG_INFO( os.str() );
+}
+
+void PythonModule::getDaemons()
+{
+    auto result = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
+    for( mega::MachineID machineID : result )
+    {
+        SPDLOG_INFO( "daemon: {}", machineID );
+    }
+}
+
+void PythonModule::getMPs()
+{
+    auto daemons = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
+    for( mega::MachineID machineID : daemons )
+    {
+        auto result = request< network::enrole::Request_Encoder >().EnroleGetProcesses( machineID );
+        for( mega::MP machineProcess : result )
+        {
+            SPDLOG_INFO( "mp: {}", machineProcess );
+        }
+    }
+}
+
+void PythonModule::getMPOs()
+{
+    auto daemons = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
+    for( mega::MachineID machineID : daemons )
+    {
+        auto mps = request< network::enrole::Request_Encoder >().EnroleGetProcesses( machineID );
+        for( mega::MP machineProcess : mps )
+        {
+            auto result = request< network::enrole::Request_Encoder >().EnroleGetMPO( machineProcess );
+            for( mega::MPO mpo : result )
+            {
+                SPDLOG_INFO( "mpo: {}", mpo );
+            }
+        }
+    }
+}*/
+
+} // namespace mega::service::python

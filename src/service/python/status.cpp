@@ -22,7 +22,7 @@
 
 #include "service/network/log.hpp"
 
-namespace mega::service
+namespace mega::service::python
 {
 
 // network::project::Impl
@@ -60,4 +60,4 @@ std::string PythonRequestConversation::Ping( const std::string& strMsg, boost::a
     return os.str();
 }
 
-} // namespace mega::service
+} // namespace mega::service::python

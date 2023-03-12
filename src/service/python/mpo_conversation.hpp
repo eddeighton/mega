@@ -25,13 +25,14 @@
 
 #include "service/mpo_context.hpp"
 
-namespace mega::service
+namespace mega::service::python
 {
 
 class MPOConversation : public PythonRequestConversation, public mega::MPOContext
 {
-    bool m_bRunning = true;
+    bool    m_bRunning = true;
     Python& m_python;
+
 public:
     MPOConversation( Python& python, const network::ConversationID& conversationID )
         : PythonRequestConversation( python, conversationID )
@@ -75,7 +76,7 @@ public:
                  { return leafRequest.PythonDaemon( msg ); },
                  getID() };
     }
-    virtual network::sim::Request_Encoder getMPOSimRequest( MPO mpo ) override
+    virtual network::sim::Request_Encoder getMPOSimRequest( mega::MPO mpo ) override
     {
         VERIFY_RTE( m_pYieldContext );
         return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
@@ -107,11 +108,11 @@ public:
             { return rootRequest.MPRoot( msg, mega::MP{} ); },
             getID() );
         request.SimStart();
-        
+
         dispatchRemaining( yield_ctx );
     }
 
-    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override
+    virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
         m_python.setMPO( mpo );
 
@@ -155,8 +156,8 @@ public:
             status.setMPO( m_python.getMPO() );
             status.setDescription( m_python.getProcessName() );
 
-            using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
-            using MPOVec          = std::vector< MPO >;
+            using MPOTimeStampVec = std::vector< std::pair< mega::MPO, TimeStamp > >;
+            using MPOVec          = std::vector< mega::MPO >;
             if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
                 status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
             if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
@@ -182,6 +183,6 @@ public:
     virtual F32       ct() override { return F32{}; }
     virtual F32       dt() override { return F32{}; }
 };
-} // namespace mega::service
+} // namespace mega::service::python
 
 #endif // GUARD_2023_March_09_mpo_conversation

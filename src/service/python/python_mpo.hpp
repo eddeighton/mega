@@ -18,56 +18,28 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_March_12_python_reference
-#define GUARD_2023_March_12_python_reference
+#ifndef GUARD_2023_March_12_MPO
+#define GUARD_2023_March_12_MPO
 
+#include "mega/mpo.hpp"
 #include "mega/reference.hpp"
-
-#include <pybind11/pybind11.h>
-
-#include <vector>
 
 namespace mega::service::python
 {
 
 class PythonModule;
 
-class PythonReference
+class PythonMPO
 {
 public:
-    using TypePath = std::vector< mega::TypeID >;
+    PythonMPO( PythonModule& module, mega::MPO mpo );
 
-    class Registration
-    {
-    public:
-        Registration();
-        ~Registration();
-
-        static PyTypeObject* getTypeObject() { return m_pTypeObject; }
-
-    private:
-        static std::vector< PyGetSetDef > m_pythonAttributesData;
-        static PyTypeObject*              m_pTypeObject;
-    };
-
-    PythonReference( PythonModule& module, const mega::reference& ref );
-
-    PyObject* get( void* pClosure );
-    int       set( void* pClosure, PyObject* pValue );
-    PyObject* str() const;
-    PyObject* call( PyObject* args, PyObject* kwargs );
-
-    const mega::reference getReference() const { return m_reference; }
-
-    static PyObject*       cast( PythonModule& module, const mega::reference& ref );
-    static mega::reference cast( PyObject* pObject );
+    mega::reference getRoot() const;
 
 private:
-    PythonModule&   m_module;
-    mega::reference m_reference;
-    TypePath        m_type_path;
+    PythonModule& m_module;
+    mega::MPO     m_mpo;
 };
-
 } // namespace mega::service::python
 
-#endif // GUARD_2023_March_12_python_reference
+#endif // GUARD_2023_March_12_MPO

@@ -47,7 +47,7 @@
 
 #include <thread>
 
-namespace mega::service
+namespace mega::service::python
 {
 
 Python::Python( boost::asio::io_context& io_context, short daemonPortNumber )
@@ -75,10 +75,10 @@ void Python::shutdown()
 }
 
 network::ConversationBase::Ptr Python::joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                       const network::Message&      msg )
+                                                         const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
         new PythonRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
-}
+} // namespace mega::service::python

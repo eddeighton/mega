@@ -18,9 +18,33 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mpo_conversation.hpp"
+#include "python_process.hpp"
+
+#include "module.hpp"
+
+#include "service/protocol/model/enrole.hxx"
 
 namespace mega::service::python
 {
 
+PythonProcess::PythonProcess( PythonModule& module, mega::MP mp )
+    : m_module( module )
+    , m_mp( mp )
+{
 }
+
+std::vector< PythonMPO > PythonProcess::getMPOs() const
+{
+    SPDLOG_TRACE( "PythonProcess::getMPOs" );
+
+    std::vector< PythonMPO > result;
+    {
+        auto mpos = m_module.request< network::enrole::Request_Encoder >().EnroleGetMPO( m_mp );
+        for( mega::MPO mpo : mpos )
+        {
+            result.emplace_back( PythonMPO( m_module, mpo ) );
+        }
+    }
+    return result;
+}
+} // namespace mega::service::python

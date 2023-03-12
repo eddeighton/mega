@@ -20,7 +20,7 @@
 
 #include "request.hpp"
 
-namespace mega::service
+namespace mega::service::python
 {
 
 // network::project::Impl
