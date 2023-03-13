@@ -52,6 +52,8 @@ class JIT_EXPORT JIT : public JITBase
 public:
     JIT( const MegastructureInstallation& megastructureInstallation, const Project& project );
 
+    std::vector< std::string > getIdentities() const;
+
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
     Relation::Ptr  getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
     Program::Ptr   getProgram( const CodeGenerator::LLVMCompiler& compiler );

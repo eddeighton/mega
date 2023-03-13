@@ -30,6 +30,7 @@
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/project.hxx"
+#include "service/protocol/model/python.hxx"
 
 namespace mega::service::python
 {

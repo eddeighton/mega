@@ -57,6 +57,7 @@ public:
     const FinalStage::Components::Component*     getOperationComponent( TypeID objectType ) const;
     U64                                          getLocalDomainSize( TypeID concreteID ) const;
     std::vector< FinalStage::Concrete::Object* > getObjects() const;
+    std::vector< std::string >                   getIdentities() const;
 
     std::vector< FinalStage::Concrete::Dimensions::User* >          getUserDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::LinkReference* > getLinkDimensions() const;

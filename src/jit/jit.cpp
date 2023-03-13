@@ -43,6 +43,11 @@ JIT::JIT( const mega::MegastructureInstallation& megastructureInstallation,
     VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
 }
 
+std::vector< std::string > JIT::getIdentities() const
+{
+    return m_database.getIdentities();
+}
+
 JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
 {
     // auto startTime = std::chrono::steady_clock::now();

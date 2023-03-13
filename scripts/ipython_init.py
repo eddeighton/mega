@@ -38,6 +38,8 @@ os.chdir( "/home/foobar/test_{}".format( CFG_TYPE ) )
 import megastructure
 import asyncio
 
+mega = megastructure
+
 _continue = True
 
 async def run_megastructure():

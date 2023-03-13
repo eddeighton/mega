@@ -42,9 +42,9 @@ network::Message PythonRequestConversation::dispatchRequest( const network::Mess
         return result;
     if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
     if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "PythonRequestConversation::dispatchRequest failed: " << msg );
 }

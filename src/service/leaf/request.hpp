@@ -108,9 +108,9 @@ public:
 
     // network::python_leaf::Impl
     virtual network::Message PythonRoot( const network::Message&     request,
-                                       boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message PythonDaemon( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message PythonDaemon( const network::Message&     request,
+                                           boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
     virtual network::Message MPRoot( const network::Message& request, const MP& mp,
@@ -167,7 +167,8 @@ public:
     virtual void GetAllocator( const TypeID&               objectTypeID,
                                const mega::U64&            jitAllocatorPtr,
                                boost::asio::yield_context& yield_ctx ) override;
-    void         ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
+    virtual void ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
+    virtual std::vector< std::string > GetIdentities( boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;

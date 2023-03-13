@@ -61,6 +61,7 @@ set( INTERFACE_SCHEMAS
     pipeline
     planet
     platform
+    python
     sim
     stash
     status

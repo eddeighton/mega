@@ -39,7 +39,7 @@ std::vector< PythonProcess > PythonMachine::getProcesses() const
 
     std::vector< PythonProcess > result;
     {
-        auto processes = m_module.request< network::enrole::Request_Encoder >().EnroleGetProcesses( m_machineID );
+        auto processes = m_module.rootRequest< network::enrole::Request_Encoder >().EnroleGetProcesses( m_machineID );
         for( mega::MP mp : processes )
         {
             result.emplace_back( PythonProcess( m_module, mp ) );

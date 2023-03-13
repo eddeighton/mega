@@ -28,3 +28,9 @@ msg ExecuteJIT
     request( mega::runtime::JITFunctor func );
     response();
 }
+
+msg GetIdentities
+{
+    request();
+    response(std::vector<std::string> identities);
+}

@@ -122,16 +122,16 @@ static PyMethodDef type_methods[] = {
 };
 } // namespace
 
+std::vector< std::string > PythonReference::Registration::m_identities;
 std::vector< PyGetSetDef > PythonReference::Registration::m_pythonAttributesData;
 PyTypeObject*              PythonReference::Registration::m_pTypeObject = nullptr;
 
-PythonReference::Registration::Registration()
+PythonReference::Registration::Registration( const std::vector< std::string >& identities )
 {
-    std::vector< const char* > identities;
-
-    for( const char* pszIdentity : identities )
+    m_identities = identities;
+    for( const auto& id : m_identities )
     {
-        char*       pszNonConst = const_cast< char* >( pszIdentity );
+        char*       pszNonConst = const_cast< char* >( id.c_str() );
         PyGetSetDef data = { pszNonConst, ( getter )type_get, ( setter )type_set, pszNonConst, ( void* )pszNonConst };
         m_pythonAttributesData.push_back( data );
     }
@@ -246,6 +246,11 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
     if( m_reference.is_valid() )
     {
         m_module.invoke( m_reference, m_type_path );
+
+        THROW_TODO;
+
+        Py_INCREF( Py_None );
+        return Py_None;
     }
     else
     {

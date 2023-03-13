@@ -26,6 +26,7 @@
 
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/python.hxx"
 
 #include <pybind11/stl.h>
 
@@ -72,7 +73,7 @@ public:
 
         /* Now try to convert into a C++ int */
         value = mega::service::python::PythonReference::cast( source );
-        
+
         /* Ensure return code was OK (to avoid out-of-range errors etc) */
         return !( value != mega::reference{} && !PyErr_Occurred() );
     }
@@ -161,6 +162,12 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
         m_python.conversationInitiated( m_mpoConversation, m_python.getLeafSender() );
     }
 
+    {
+        SPDLOG_TRACE( "PythonModule::ctor getting identities" );
+        std::vector< std::string > identities = pythonRequest().PythonGetIdentities();
+        m_pRegistration                       = std::make_unique< PythonReference::Registration >( identities );
+    }
+
     SPDLOG_TRACE( "PythonModule::ctor" );
 }
 
@@ -198,52 +205,5 @@ PythonRoot PythonModule::getRoot()
 {
     return { *this };
 }
-/*
-void PythonModule::getStatus()
-{
-    auto               result = request< network::status::Request_Encoder >().GetNetworkStatus();
-    std::ostringstream os;
-    os << result;
-    SPDLOG_INFO( os.str() );
-}
-
-void PythonModule::getDaemons()
-{
-    auto result = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
-    for( mega::MachineID machineID : result )
-    {
-        SPDLOG_INFO( "daemon: {}", machineID );
-    }
-}
-
-void PythonModule::getMPs()
-{
-    auto daemons = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
-    for( mega::MachineID machineID : daemons )
-    {
-        auto result = request< network::enrole::Request_Encoder >().EnroleGetProcesses( machineID );
-        for( mega::MP machineProcess : result )
-        {
-            SPDLOG_INFO( "mp: {}", machineProcess );
-        }
-    }
-}
-
-void PythonModule::getMPOs()
-{
-    auto daemons = request< network::enrole::Request_Encoder >().EnroleGetDaemons();
-    for( mega::MachineID machineID : daemons )
-    {
-        auto mps = request< network::enrole::Request_Encoder >().EnroleGetProcesses( machineID );
-        for( mega::MP machineProcess : mps )
-        {
-            auto result = request< network::enrole::Request_Encoder >().EnroleGetMPO( machineProcess );
-            for( mega::MPO mpo : result )
-            {
-                SPDLOG_INFO( "mpo: {}", mpo );
-            }
-        }
-    }
-}*/
 
 } // namespace mega::service::python

@@ -80,12 +80,12 @@ public:
     void         invoke( const mega::reference& ref, const PythonReference::TypePath& typePath );
 
     // Megastructure Execution
-    void shutdown();
-    void run_one();
+    void       shutdown();
+    void       run_one();
     PythonRoot getRoot();
 
     template < typename Request >
-    Request request()
+    Request rootRequest()
     {
         return Request(
             [ mpoCon = m_mpoConversation,
@@ -97,14 +97,19 @@ public:
             m_pExternalConversation->getID() );
     }
 
+    network::python::External_Request_Sender pythonRequest()
+    {
+        return { *m_mpoConversation, *m_pExternalConversation };
+    }
+
 private:
-    LogConfig                          m_logConfig;
-    boost::asio::io_context            m_ioContext;
-    Python                             m_python;
-    network::ExternalConversation::Ptr m_pExternalConversation;
-    network::ConversationBase::Ptr     m_mpoConversation;
-    PythonReference::Registration      m_pythonReferenceRegistration;
+    LogConfig                                        m_logConfig;
+    boost::asio::io_context                          m_ioContext;
+    Python                                           m_python;
+    network::ExternalConversation::Ptr               m_pExternalConversation;
+    network::ConversationBase::Ptr                   m_mpoConversation;
+    std::unique_ptr< PythonReference::Registration > m_pRegistration;
 };
-} // namespace mega::service
+} // namespace mega::service::python
 
 #endif // GUARD_2023_March_12_module

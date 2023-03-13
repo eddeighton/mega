@@ -18,33 +18,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "python_process.hpp"
 
-#include "module.hpp"
-
-#include "service/protocol/model/enrole.hxx"
-
-namespace mega::service::python
+msg PythonGetIdentities
 {
-
-PythonProcess::PythonProcess( PythonModule& module, mega::MP mp )
-    : m_module( module )
-    , m_mp( mp )
-{
+    request();
+    response(std::vector<std::string> identities);
 }
 
-std::vector< PythonMPO > PythonProcess::getMPOs() const
+msg PythonExecuteJIT
 {
-    SPDLOG_TRACE( "PythonProcess::getMPOs" );
-
-    std::vector< PythonMPO > result;
-    {
-        auto mpos = m_module.rootRequest< network::enrole::Request_Encoder >().EnroleGetMPO( m_mp );
-        for( mega::MPO mpo : mpos )
-        {
-            result.emplace_back( PythonMPO( m_module, mpo ) );
-        }
-    }
-    return result;
+    request( mega::runtime::JITFunctor func );
+    response();
 }
-} // namespace mega::service::python

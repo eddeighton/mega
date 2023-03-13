@@ -378,6 +378,16 @@ std::vector< FinalStage::Concrete::Object* > DatabaseInstance::getObjects() cons
     return getPerCompilationFileType< FinalStage::Concrete::Object >( m_manifest, m_database );
 }
 
+std::vector< std::string > DatabaseInstance::getIdentities() const
+{
+    std::vector< std::string > identities;
+    for( const auto& [ name, _ ] : m_pSymbolTable->get_symbol_names() )
+    {
+        identities.push_back( name );
+    }
+    return identities;
+}
+
 std::vector< FinalStage::Concrete::Dimensions::User* > DatabaseInstance::getUserDimensions() const
 {
     return getPerCompilationFileType< FinalStage::Concrete::Dimensions::User >( m_manifest, m_database );

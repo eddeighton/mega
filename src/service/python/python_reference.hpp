@@ -26,6 +26,7 @@
 #include <pybind11/pybind11.h>
 
 #include <vector>
+#include <string>
 
 namespace mega::service::python
 {
@@ -40,12 +41,13 @@ public:
     class Registration
     {
     public:
-        Registration();
+        Registration( const std::vector< std::string >& identities );
         ~Registration();
 
         static PyTypeObject* getTypeObject() { return m_pTypeObject; }
 
     private:
+        static std::vector< std::string > m_identities;
         static std::vector< PyGetSetDef > m_pythonAttributesData;
         static PyTypeObject*              m_pTypeObject;
     };

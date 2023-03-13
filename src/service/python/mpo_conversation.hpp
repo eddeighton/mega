@@ -28,160 +28,47 @@
 namespace mega::service::python
 {
 
-class MPOConversation : public PythonRequestConversation, public mega::MPOContext
+class MPOConversation : public PythonRequestConversation, public network::python::Impl, public mega::MPOContext
 {
-    bool    m_bRunning = true;
-    Python& m_python;
-
 public:
-    MPOConversation( Python& python, const network::ConversationID& conversationID )
-        : PythonRequestConversation( python, conversationID )
-        , mega::MPOContext( conversationID )
-        , m_python( python )
-    {
-    }
+    MPOConversation( Python& python, const network::ConversationID& conversationID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override
-    {
-        return PythonRequestConversation::dispatchRequest( msg, yield_ctx );
-    }
+                                              boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
 
-    network::python_leaf::Request_Sender getPythonRequest( boost::asio::yield_context& yield_ctx )
-    {
-        return network::python_leaf::Request_Sender( *this, m_python.getLeafSender(), yield_ctx );
-    }
-    network::mpo::Request_Sender getMPRequest( boost::asio::yield_context& yield_ctx )
-    {
-        return network::mpo::Request_Sender( *this, m_python.getLeafSender(), yield_ctx );
-    }
-    virtual network::enrole::Request_Encoder getRootEnroleRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { [ leafRequest = getPythonRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
-                 { return leafRequest.PythonRoot( msg ); },
-                 getID() };
-    }
-    virtual network::stash::Request_Encoder getRootStashRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { [ leafRequest = getPythonRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
-                 { return leafRequest.PythonRoot( msg ); },
-                 getID() };
-    }
-    virtual network::memory::Request_Encoder getDaemonMemoryRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { [ leafRequest = getPythonRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
-                 { return leafRequest.PythonDaemon( msg ); },
-                 getID() };
-    }
-    virtual network::sim::Request_Encoder getMPOSimRequest( mega::MPO mpo ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
-                 { return leafRequest.MPOUp( msg, mpo ); },
-                 getID() };
-    }
-    virtual network::memory::Request_Sender getLeafMemoryRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { *this, m_python.getLeafSender(), *m_pYieldContext };
-    }
-    virtual network::jit::Request_Sender getLeafJITRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return { *this, m_python.getLeafSender(), *m_pYieldContext };
-    }
+    network::python_leaf::Request_Sender     getPythonRequest( boost::asio::yield_context& yield_ctx );
+    network::mpo::Request_Sender             getMPRequest( boost::asio::yield_context& yield_ctx );
+    virtual network::enrole::Request_Encoder getRootEnroleRequest() override;
+    virtual network::stash::Request_Encoder  getRootStashRequest() override;
+    virtual network::memory::Request_Encoder getDaemonMemoryRequest() override;
+    virtual network::sim::Request_Encoder    getMPOSimRequest( mega::MPO mpo ) override;
+    virtual network::memory::Request_Sender  getLeafMemoryRequest() override;
+    virtual network::jit::Request_Sender     getLeafJITRequest() override;
+    virtual network::mpo::Request_Sender     getMPRequest() override;
 
-    virtual network::mpo::Request_Sender getMPRequest() override
-    {
-        VERIFY_RTE( m_pYieldContext );
-        return getMPRequest( *m_pYieldContext );
-    }
-
-    void run( boost::asio::yield_context& yield_ctx ) override
-    {
-        SPDLOG_TRACE( "PYTHON MPO: run" );
-        network::sim::Request_Encoder request(
-            [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-            { return rootRequest.MPRoot( msg, mega::MP{} ); },
-            getID() );
-        request.SimStart();
-
-        dispatchRemaining( yield_ctx );
-    }
-
-    virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
-    {
-        m_python.setMPO( mpo );
-
-        setMPOContext( this );
-        m_pYieldContext = &yield_ctx;
-
-        // note the runtime will query getThisMPO while creating the root
-        SPDLOG_TRACE( "PYTHON RootSimRun: Acquired mpo context: {}", mpo );
-        {
-            createRoot( mpo );
-
-            while( m_bRunning )
-            {
-                run_one( yield_ctx );
-            }
-        }
-        SPDLOG_TRACE( "PYTHON RootSimRun: Releasing mpo context: {}", mpo );
-
-        m_pYieldContext = nullptr;
-        resetMPOContext();
-    }
-
+    // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                       boost::asio::yield_context&           yield_ctx ) override
-    {
-        SPDLOG_TRACE( "PythonRequestConversation::GetStatus" );
+                                       boost::asio::yield_context&           yield_ctx ) override;
 
-        network::Status status{ childNodeStatus };
-        {
-            std::vector< network::ConversationID > conversations;
-            {
-                for( const auto& id : m_python.reportConversations() )
-                {
-                    if( id != getID() )
-                    {
-                        conversations.push_back( id );
-                    }
-                }
-            }
-            status.setConversationID( conversations );
-            status.setMPO( m_python.getMPO() );
-            status.setDescription( m_python.getProcessName() );
+    // network::python::Impl
+    virtual std::vector< std::string > PythonGetIdentities( boost::asio::yield_context& yield_ctx ) override;
+    virtual void                       PythonExecuteJIT( const mega::runtime::JITFunctor& func,
+                                                         boost::asio::yield_context&      yield_ctx ) override;
 
-            using MPOTimeStampVec = std::vector< std::pair< mega::MPO, TimeStamp > >;
-            using MPOVec          = std::vector< mega::MPO >;
-            if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
-                status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
-            if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
-                status.setWrites( MPOTimeStampVec{ writes.begin(), writes.end() } );
-
-            {
-                std::ostringstream os;
-                os << "Python: " << m_log.getTimeStamp();
-            }
-
-            status.setLogIterator( m_log.getIterator() );
-
-            status.setAllocationID( m_pMemoryManager->getAllocationID() );
-            status.setAllocationCount( m_pMemoryManager->getAllocationCount() );
-        }
-
-        return status;
-    }
+    void         run( boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // mega::MPOContext
     // clock
     virtual TimeStamp cycle() override { return TimeStamp{}; }
     virtual F32       ct() override { return F32{}; }
     virtual F32       dt() override { return F32{}; }
+
+private:
+    bool                                m_bRunning = true;
+    Python&                             m_python;
+    std::vector< network::ReceivedMsg > m_messageQueue;
 };
 } // namespace mega::service::python
 

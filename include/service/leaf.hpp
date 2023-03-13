@@ -101,14 +101,14 @@ private:
     network::ReceiverChannel m_receiverChannel;
     network::Client          m_client;
     using ExecutorType = decltype( m_io_context.get_executor() );
-    boost::asio::executor_work_guard< ExecutorType >    m_work_guard;
-    std::thread                                         m_io_thread;
-    mega::MP                                            m_mp;
-    std::set< mega::MPO >                               m_mpos;
-    std::unique_ptr< runtime::JIT >                     m_pJIT;
-    std::optional< MegastructureInstallation > m_megastructureInstallationOpt;
-    std::optional< Project >                   m_activeProject;
-    std::unique_ptr< runtime::RemoteMemoryManager >     m_pRemoteMemoryManager;
+    boost::asio::executor_work_guard< ExecutorType > m_work_guard;
+    std::thread                                      m_io_thread;
+    mega::MP                                         m_mp;
+    std::set< mega::MPO >                            m_mpos;
+    std::unique_ptr< runtime::JIT >                  m_pJIT;
+    std::optional< MegastructureInstallation >       m_megastructureInstallationOpt;
+    std::optional< Project >                         m_activeProject;
+    std::unique_ptr< runtime::RemoteMemoryManager >  m_pRemoteMemoryManager;
 };
 
 } // namespace mega::service

@@ -20,7 +20,7 @@
 
 #include "python.hpp"
 
-#include "request.hpp"
+#include "mpo_conversation.hpp"
 
 #include "service/mpo_context.hpp"
 
@@ -30,14 +30,8 @@
 
 #include "service/protocol/common/conversation_id.hpp"
 
-/*
-#include "service/protocol/model/tool_leaf.hxx"
-#include "service/protocol/model/memory.hxx"
-#include "service/protocol/model/sim.hxx"
-#include "service/protocol/model/stash.hxx"
-#include "service/protocol/model/enrole.hxx"
-#include "service/protocol/model/project.hxx"
-*/
+#include "python.hpp"
+#include "request.hpp"
 
 #include "log/log.hpp"
 
@@ -82,3 +76,4 @@ network::ConversationBase::Ptr Python::joinConversation( const network::Connecti
 }
 
 } // namespace mega::service::python
+

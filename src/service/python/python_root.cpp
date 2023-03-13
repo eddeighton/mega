@@ -38,7 +38,7 @@ std::vector< PythonMachine > PythonRoot::getMachines() const
 
     std::vector< PythonMachine > result;
     {
-        auto machineIDs = m_module.request< network::enrole::Request_Encoder >().EnroleGetDaemons();
+        auto machineIDs = m_module.rootRequest< network::enrole::Request_Encoder >().EnroleGetDaemons();
         for( mega::MachineID machineID : machineIDs )
         {
             result.emplace_back( PythonMachine( m_module, machineID ) );

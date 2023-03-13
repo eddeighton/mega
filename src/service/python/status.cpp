@@ -19,6 +19,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "request.hpp"
+#include "mpo_conversation.hpp"
 
 #include "service/network/log.hpp"
 
@@ -27,8 +28,50 @@ namespace mega::service::python
 
 // network::project::Impl
 
+network::Status MPOConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+                                            boost::asio::yield_context&           yield_ctx )
+{
+    SPDLOG_TRACE( "PythonRequestConversation::GetStatus" );
+
+    network::Status status{ childNodeStatus };
+    {
+        std::vector< network::ConversationID > conversations;
+        {
+            for( const auto& id : m_python.reportConversations() )
+            {
+                if( id != getID() )
+                {
+                    conversations.push_back( id );
+                }
+            }
+        }
+        status.setConversationID( conversations );
+        status.setMPO( m_python.getMPO() );
+        status.setDescription( m_python.getProcessName() );
+
+        using MPOTimeStampVec = std::vector< std::pair< mega::MPO, TimeStamp > >;
+        using MPOVec          = std::vector< mega::MPO >;
+        if( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
+            status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
+        if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
+            status.setWrites( MPOTimeStampVec{ writes.begin(), writes.end() } );
+
+        {
+            std::ostringstream os;
+            os << "Python: " << m_log.getTimeStamp();
+        }
+
+        status.setLogIterator( m_log.getIterator() );
+
+        status.setAllocationID( m_pMemoryManager->getAllocationID() );
+        status.setAllocationCount( m_pMemoryManager->getAllocationCount() );
+    }
+
+    return status;
+}
+
 network::Status PythonRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                      boost::asio::yield_context&           yield_ctx )
+                                            boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "PythonRequestConversation::GetStatus" );
 

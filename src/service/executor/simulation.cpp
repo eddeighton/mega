@@ -318,10 +318,10 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     try
     {
         // send request to root to start - will get request back to run
-        network::sim::Request_Encoder request(
-            [ rootRequest = ExecutorRequestConversation::getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-            { return rootRequest.MPRoot( msg, MP{} ); },
-            getID() );
+        network::sim::Request_Encoder request( [ rootRequest = ExecutorRequestConversation::getMPRequest( yield_ctx ) ](
+                                                   const network::Message& msg ) mutable
+                                               { return rootRequest.MPRoot( msg, MP{} ); },
+                                               getID() );
         request.SimStart();
     }
     catch( std::exception& ex )
@@ -348,7 +348,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     }
 }
 
-void Simulation::SimErrorCheck(boost::asio::yield_context& yield_ctx )
+void Simulation::SimErrorCheck( boost::asio::yield_context& yield_ctx )
 {
     THROW_RTE( "Simulation::SimErrorCheck" );
 }
@@ -483,7 +483,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
 
 std::string Simulation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
-    using ::operator<<;
+    using ::           operator<<;
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " simulation: " << m_root << " got: " << strMsg.size()
        << " bytes";
