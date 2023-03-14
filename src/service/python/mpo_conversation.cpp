@@ -196,7 +196,7 @@ void MPOConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_conte
     resetMPOContext();
 }
 
-std::vector< std::string > MPOConversation::PythonGetIdentities( boost::asio::yield_context& )
+std::unordered_map< std::string, mega::TypeID > MPOConversation::PythonGetIdentities( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "MPOConversation::PythonGetIdentities" );
     return getLeafJITRequest().GetIdentities();

@@ -21,6 +21,7 @@
 #define {{ guard }}
 
 #include "database/common/api.hpp"
+#include "database/common/file_store.hpp"
 
 #include "database/model/environment.hxx"
 
@@ -127,6 +128,7 @@ namespace {{ stage.name }}
         struct Pimpl;
         Database( const mega::io::Environment& environment );
         Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile );
+        Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile, mega::io::FileStore::Ptr pFileStore );
         
         template< typename T >
         inline std::vector< T* > many( const mega::io::SourceFilePath& sourceFile ) const;

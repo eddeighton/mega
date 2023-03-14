@@ -437,22 +437,35 @@ const mega::io::ObjectInfo& {{ stype.name }}::_get_object_info() const
 // Database implementation
 namespace {{ stage.name }}
 {
-struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
+struct Database::Pimpl : public SuperFactory
 {
     Pimpl( const mega::io::Environment& environment )
         :   m_environment( environment ),
-            m_manifest( m_environment, m_environment.project_manifest() )
+            m_manifest( m_environment, m_environment.project_manifest() ),
+            m_pFileStore( new mega::io::FileStore( m_environment, m_manifest, mega::io::FileInfo::{{ stage.name }} ) )
     {
-        m_manifest.loadAll( m_environment, *this, m_readonlyFiles, mega::io::FileInfo::{{ stage.name }} );
+        m_manifest.loadAll( m_environment, *m_pFileStore, mega::io::FileInfo::{{ stage.name }} );
     }
     Pimpl( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile )
         :   m_environment( environment ),
             m_sourceFile( sourceFile ),
-            m_manifest( m_environment, m_environment.project_manifest() )
+            m_manifest( m_environment, m_environment.project_manifest() ),
+            m_pFileStore( new mega::io::FileStore( m_environment, m_manifest, mega::io::FileInfo::{{ stage.name }} ) )
     {
 {% for file in stage.readwrite_files %}
-        m_pFile_{{ file.name }} = m_manifest.createFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-            m_readwriteFiles, m_sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
+        m_pFile_{{ file.name }} = m_manifest.createFile( m_environment, *m_pFileStore, 
+            m_sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
+{% endfor %}{# stage.readwrite_files #}
+    }
+    Pimpl( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile, mega::io::FileStore::Ptr pFileStore )
+        :   m_environment( environment ),
+            m_sourceFile( sourceFile ),
+            m_manifest( m_environment, m_environment.project_manifest() ),
+            m_pFileStore( pFileStore )
+    {
+{% for file in stage.readwrite_files %}
+        m_pFile_{{ file.name }} = m_manifest.createFile( m_environment, *m_pFileStore, 
+            m_sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
 {% endfor %}{# stage.readwrite_files #}
     }
 
@@ -467,18 +480,18 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
             if( sourceFile == m_sourceFile )
                 pFile = m_pFile_{{ file_accessor.file }};
             else
-                pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                    m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ file_accessor.stage }}_{{ file_accessor.file }} ) ;
+                pFile = m_manifest.loadFile( m_environment, *m_pFileStore, 
+                    sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ file_accessor.stage }}_{{ file_accessor.file }} ) ;
 {% else %}
-            pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ file_accessor.stage }}_{{ file_accessor.file }} ) ;
+            pFile = m_manifest.loadFile( m_environment, *m_pFileStore, 
+                sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ file_accessor.stage }}_{{ file_accessor.file }} ) ;
 {% endif %}
             for( mega::io::Object* pObject : pFile->range() )
             {
                 if( data::{{ file_accessor.file }}::{{ file_accessor.object }}* pFound = 
                     dynamic_cast< data::{{ file_accessor.file }}::{{ file_accessor.object }}* >( pObject ) )
                 {
-                    data::Ptr< data::{{ file_accessor.file }}::{{ file_accessor.object }} > pData( const_cast<Database::Pimpl&>(*this), pFound );
+                    data::Ptr< data::{{ file_accessor.file }}::{{ file_accessor.object }} > pData( *m_pFileStore, pFound );
                     result.push_back( toView( const_cast< Database::Pimpl&>(*this), pData ) );
                 }
             }
@@ -532,7 +545,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                         pSuper = dynamic_cast< SuperType* >( pExisting );
                         VERIFY_RTE( pSuper );
                         auto ptr = data::convert< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >( pSuper->m_data );
-                        VERIFY_RTE_MSG( ptr->test_inheritance_pointer( database ), "Object already derived from: {{ base.typename }} while constructing type: {{ constructor.return_type }}" );
+                        VERIFY_RTE_MSG( ptr->test_inheritance_pointer( *database.m_pFileStore ), "Object already derived from: {{ base.typename }} while constructing type: {{ constructor.return_type }}" );
                         return ptr;
                     }
         {% endif %}
@@ -614,7 +627,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
         {
 {% for data_to_view in stage.conversions_data_to_view %}
             case {{ data_to_view.index }}: return toView( const_cast< Database::Pimpl&>(*this),
-                data::Ptr< data::{{ data_to_view.file }}::{{ data_to_view.object }} >( const_cast< Database::Pimpl&>(*this), objectInfo ) );
+                data::Ptr< data::{{ data_to_view.file }}::{{ data_to_view.object }} >( *m_pFileStore, objectInfo ) );
 {% endfor %}
             default: THROW_RTE( "Unknown object type" );
         }
@@ -629,54 +642,13 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
 
     void to_json( nlohmann::json& data ) const
     {
-        for ( mega::io::Manifest::FileMapCst::const_iterator 
-                i = m_readonlyFiles.begin(), 
-                iEnd = m_readonlyFiles.end();
-              i != iEnd; ++i )
-        {
-            i->second->to_json( m_manifest, data );
-        }
-        for ( mega::io::Manifest::FileMap::const_iterator 
-                i = m_readwriteFiles.begin(), 
-                iEnd = m_readwriteFiles.end();
-              i != iEnd; ++i )
-        {
-            i->second->to_json( m_manifest, data );
-        }
-    }
-
-    virtual mega::io::Object* load( const mega::io::ObjectInfo& objectInfo )
-    {
-        mega::io::File::PtrCst pFile;
-        {
-            mega::io::Manifest::FileMap::const_iterator iFind = m_readwriteFiles.find( objectInfo.getFileID() );
-            if( iFind != m_readwriteFiles.end() )
-            {
-                pFile = iFind->second;
-            }
-            else
-            {
-                mega::io::Manifest::FileMapCst::const_iterator iFind = m_readonlyFiles.find( objectInfo.getFileID() );
-                if( iFind != m_readonlyFiles.end() )
-                {
-                    pFile = iFind->second;
-                }
-                else
-                {
-                    pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                        m_readonlyFiles, mega::io::FileInfo::{{ stage.name }}, objectInfo.getFileID() );
-                }
-            }
-        }
-        return pFile->getObject( objectInfo.getIndex() );
+        m_pFileStore->to_json( data );
     }
 
     const mega::io::Environment& m_environment;
-    mega::io::SourceFilePath m_sourceFile;
-    const mega::io::Manifest m_manifest;
-
-    mega::io::Manifest::FileMap m_readwriteFiles;
-    mutable mega::io::Manifest::FileMapCst m_readonlyFiles;
+    mega::io::SourceFilePath     m_sourceFile;
+    const mega::io::Manifest     m_manifest;
+    mega::io::FileStore::Ptr     m_pFileStore;
 
 {% for file in stage.readwrite_files %}
     std::shared_ptr< mega::io::File > m_pFile_{{ file.name }};
@@ -690,6 +662,11 @@ Database::Database( const mega::io::Environment& environment )
 
 Database::Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile )
 :   m_pimpl( new Pimpl( environment, sourceFile ) )
+{
+}
+
+Database::Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile, mega::io::FileStore::Ptr pFileStore )
+:   m_pimpl( new Pimpl( environment, sourceFile, pFileStore ) )
 {
 }
 

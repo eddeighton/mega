@@ -61,6 +61,7 @@ public:
     Path FilePath( const ObjectFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const megaFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const cppFilePath& filePath ) const { return toPath( filePath ); }
+    Path FilePath( const pyFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const ComponentFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const schFilePath& filePath ) const { return toPath( filePath ); }
 
@@ -107,6 +108,7 @@ public:
     manifestFilePath         manifestFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     megaFilePath             megaFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     cppFilePath              cppFilePath_fromPath( const boost::filesystem::path& filePath ) const;
+    pyFilePath               pyFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     schFilePath              schFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     ComponentFilePath        ComponentPath_fromPath( const boost::filesystem::path& filePath ) const;
 

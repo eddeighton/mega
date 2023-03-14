@@ -27,6 +27,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 namespace mega::service::python
 {
@@ -41,15 +42,18 @@ public:
     class Registration
     {
     public:
-        Registration( const std::vector< std::string >& identities );
+        using SymbolTable = std::unordered_map< std::string, mega::TypeID >;
+
+        Registration( const SymbolTable& symbols );
         ~Registration();
 
-        static PyTypeObject* getTypeObject() { return m_pTypeObject; }
+        PyTypeObject* getTypeObject() const { return m_pTypeObject; }
+        mega::TypeID getTypeID( const char* pszIdentity ) const;
 
     private:
-        static std::vector< std::string > m_identities;
-        static std::vector< PyGetSetDef > m_pythonAttributesData;
-        static PyTypeObject*              m_pTypeObject;
+        SymbolTable                m_symbols;
+        std::vector< PyGetSetDef > m_pythonAttributesData;
+        PyTypeObject*              m_pTypeObject;
     };
 
     PythonReference( PythonModule& module, const mega::reference& ref );

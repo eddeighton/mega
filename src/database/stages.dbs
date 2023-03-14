@@ -280,6 +280,7 @@ stage ConcreteTypeRollout
 
 stage OperationsStage
 {
+    source .manifest;
     source .mega;
     source .cpp;
     dependency ConcreteTypeRollout;

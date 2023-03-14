@@ -42,7 +42,7 @@ void LeafRequestConversation::ExecuteJIT( const runtime::JITFunctor& func, boost
     func( m_leaf.getJIT(), (void*)&llvmCompiler );
 }
 
-std::vector< std::string > LeafRequestConversation::GetIdentities( boost::asio::yield_context& yield_ctx )
+std::unordered_map< std::string, mega::TypeID > LeafRequestConversation::GetIdentities( boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
     return m_leaf.m_pJIT->getIdentities();

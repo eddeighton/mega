@@ -53,9 +53,9 @@ namespace clang
 
 class OperationsSession : public AnalysisSession
 {
-    OperationsStage::Database m_database;
-    // using SymbolTypeIDMap    = std::map< mega::TypeID, OperationsStage::Symbols::SymbolTypeID* >;
-    // using InterfaceTypeIDMap = std::map< mega::TypeID, OperationsStage::Symbols::InterfaceTypeID* >;
+    OperationsStage::Database              m_database;
+    OperationsStage::Symbols::SymbolTable* m_pSymbolTable;
+    
     using InvocationsMap = std::map< mega::InvocationID, ::OperationsStage::Operations::Invocation* >;
     InvocationsMap m_invocationsMap;
 
@@ -71,13 +71,12 @@ public:
                        const char* strSourceFile )
         : AnalysisSession( pASTContext, pSema, strSrcDir, strBuildDir, strSourceFile )
         , m_database( m_environment, m_sourceFile )
+        , m_pSymbolTable( m_database.one< OperationsStage::Symbols::SymbolTable >( m_environment.project_manifest() ) )
     {
         using namespace OperationsStage;
         using namespace OperationsStage::Interface;
 
-        Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-
-        m_symbols = pSymbolTable->get_symbol_names();
+        m_symbols = m_pSymbolTable->get_symbol_names();
     }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
@@ -426,8 +425,8 @@ public:
                                     clang::QualType typePath      = pTemplateType->getArg( 1U ).getAsType();
                                     clang::QualType operationType = pTemplateType->getArg( 2U ).getAsType();
 
-                                    //std::cout << "getInvocationResultType type path: "
-                                    //          << typePath.getCanonicalType().getAsString() << std::endl;
+                                    // std::cout << "getInvocationResultType type path: "
+                                    //           << typePath.getCanonicalType().getAsString() << std::endl;
 
                                     mega::InvocationID::SymbolIDVector contextSymbolIDs;
                                     if( !clang::getContextSymbolIDs( pASTContext, context, contextSymbolIDs ) )
@@ -468,8 +467,9 @@ public:
                                         operationTypeID = static_cast< mega::OperationID >(
                                             operationTypeIDOpt.value().getSymbolID() );
                                         VERIFY_RTE_MSG(
-                                            ( static_cast< int >( operationTypeID ) >= mega::TypeID::LOWEST_SYMBOL_ID ) && 
-                                            ( static_cast< int >( operationTypeID ) < mega::HIGHEST_OPERATION_TYPE ),
+                                            ( static_cast< int >( operationTypeID ) >= mega::TypeID::LOWEST_SYMBOL_ID )
+                                                && ( static_cast< int >( operationTypeID )
+                                                     < mega::HIGHEST_OPERATION_TYPE ),
                                             "Invalid operation ID" );
                                     }
 
@@ -486,8 +486,7 @@ public:
                                         }
                                         else
                                         {
-                                            pInvocation = mega::invocation::construct(
-                                                m_environment, id, m_database, m_sourceFile );
+                                            pInvocation = mega::invocation::construct( m_database, m_pSymbolTable, id );
                                             m_invocationsMap.insert( std::make_pair( id, pInvocation ) );
                                         }
                                     }

@@ -25,6 +25,7 @@
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/common/environment_build.hpp"
+#include "database/common/file_store.hpp"
 
 #include "database/model/environment.hxx"
 #include "database/model/file_info.hxx"
@@ -101,6 +102,9 @@ namespace mega::io
 {% if source.type == "cpp" %}
                     m_cppSourceFiles.push_back( sourceFilePath );
 {% endif %}
+{% if source.type == "py" %}
+                    m_pySourceFiles.push_back( sourceFilePath );
+{% endif %}
 {% if source.type == "sch" %}
                     m_schematicSourceFiles.push_back( sourceFilePath );
 {% endif %}
@@ -167,7 +171,7 @@ namespace mega::io
 
     }
 
-    File::PtrCst Manifest::loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
+    File::PtrCst Manifest::loadFile( const Environment& environment, mega::io::FileStore& fileStore, 
         const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const
     {
         switch( fileType )
@@ -180,7 +184,7 @@ namespace mega::io
                         std::make_pair( FileInfo::{{ stage.name }}_{{ file.name }}, sourceFile ) );
                     VERIFY_RTE_MSG( iFind != m_fileTypeMap.end(), 
                         "Failed to locate compilation file of type: FileInfo::{{ stage.name }}_{{ file.name }} for source file: " << sourceFile.path().string() );
-                    return loadFile( environment, loader, readOnlyFiles, stage, iFind->second->getFileID() );
+                    return loadFile( environment, fileStore, stage, iFind->second->getFileID() );
                 }
                 break;
 {% endfor %}
@@ -191,27 +195,29 @@ namespace mega::io
         }
     }
 
-    File::PtrCst Manifest::loadFileImpl( const Environment& environment, data::ObjectPartLoader& loader, 
-            FileMapCst& readOnlyFiles, FileInfo::Stage stage, 
+    File::PtrCst Manifest::loadFileImpl( const Environment& environment, mega::io::FileStore& fileStore, FileInfo::Stage stage, 
             ObjectInfo::FileID fileID, std::vector< File::Ptr >& loadedFiles ) const
     {
         VERIFY_RTE_MSG( fileID != ObjectInfo::NO_FILE, "Invalid file ID passed to manifest" );
 
-        FileMapCst::const_iterator iFind = readOnlyFiles.find( fileID );
-        if( iFind != readOnlyFiles.end() )
-            return iFind->second;
+        {
+            File::PtrCst pLoadedFile = fileStore.getLoadedReadOnly( fileID );
+            if( pLoadedFile ) return pLoadedFile;
+        }
 
         const FileInfo& fileInfo = m_compilationFileInfos[ fileID ];
-        File::Ptr pLoadedFile = std::make_shared< File >( environment, fileInfo, stage, loader );
+        File::Ptr pLoadedFile = std::make_shared< File >( environment, fileInfo, stage, fileStore );
         pLoadedFile->load( *this );
-        readOnlyFiles.insert( std::make_pair( fileInfo.getFileID(), pLoadedFile ) );
+
+        fileStore.loadedReadOnly( fileInfo.getFileID(), pLoadedFile );
+
         loadedFiles.push_back( pLoadedFile );
 
         for( ObjectInfo::FileID dependencyFileID : m_dependencies[ fileID ] )
         {
             if( m_compilationFileInfos[ dependencyFileID ].getStage() < stage )
             {
-                loadFileImpl( environment, loader, readOnlyFiles, stage, dependencyFileID, loadedFiles );
+                loadFileImpl( environment, fileStore, stage, dependencyFileID, loadedFiles );
             }
         }
 
@@ -219,13 +225,13 @@ namespace mega::io
     }
 
 
-    File::PtrCst Manifest::loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
+    File::PtrCst Manifest::loadFile( const Environment& environment, mega::io::FileStore& fileStore, 
         FileInfo::Stage stage, ObjectInfo::FileID fileID ) const
     {
         VERIFY_RTE_MSG( fileID != ObjectInfo::NO_FILE, "Invalid file ID passed to manifest" );
         
         std::vector< File::Ptr > loadedFiles;
-        File::PtrCst pResult = loadFileImpl( environment, loader, readOnlyFiles, stage, fileID, loadedFiles );
+        File::PtrCst pResult = loadFileImpl( environment, fileStore, stage, fileID, loadedFiles );
         for( File::Ptr pFile : loadedFiles )
         {
             pFile->load_post( *this );
@@ -233,20 +239,19 @@ namespace mega::io
         return pResult;
     }
 
-    void Manifest::loadAll( const Environment& environment, data::ObjectPartLoader& loader, 
-            FileMapCst& readOnlyFiles, FileInfo::Stage stage ) const
+    void Manifest::loadAll( const Environment& environment, mega::io::FileStore& fileStore, FileInfo::Stage stage ) const
     {
         for( FileInfoVector::const_iterator i = m_compilationFileInfos.begin(),
             iEnd = m_compilationFileInfos.end(); i!=iEnd; ++i )
         {
             if( i->getStage() <= stage )
             {
-                loadFile( environment, loader, readOnlyFiles, stage, i->getFileID() );
+                loadFile( environment, fileStore, stage, i->getFileID() );
             }
         }
     }
 
-    File::Ptr Manifest::createFile( const Environment& environment, data::ObjectPartLoader& loader, FileMap& readWriteFiles,
+    File::Ptr Manifest::createFile( const Environment& environment, mega::io::FileStore& fileStore,
         const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const
     {
         FileTypeMap::const_iterator iFind = m_fileTypeMap.find( 
@@ -254,8 +259,8 @@ namespace mega::io
         VERIFY_RTE_MSG( iFind != m_fileTypeMap.end(), 
             "Failed to locate compilation file of type: " << fileType << " for source file: " << sourceFile.path().string() );
         const FileInfo& fileInfo = *iFind->second;
-        File::Ptr pFile = std::make_shared< File >( environment, fileInfo, stage, loader );
-        readWriteFiles.insert( std::make_pair( fileInfo.getFileID(), pFile ) );
+        File::Ptr pFile = std::make_shared< File >( environment, fileInfo, stage, fileStore );
+        fileStore.createdReadWrite( fileInfo.getFileID(), pFile );
         return pFile;
     }
 

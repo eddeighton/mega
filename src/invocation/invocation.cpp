@@ -865,13 +865,10 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
     pInvocation->set_singular( bSingular );
 }
 
-OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::InvocationID& id,
-                                                    Database& database, const mega::io::megaFilePath& sourceFile )
+OperationsStage::Operations::Invocation* construct( Database& database, Symbols::SymbolTable* pSymbolTable,
+                                                    const mega::InvocationID& id )
 {
     std::cout << "Found invocation: " << id << std::endl;
-
-    const mega::io::manifestFilePath manifestFile = environment.project_manifest();
-    Symbols::SymbolTable*            pSymbolTable = database.one< Symbols::SymbolTable >( manifestFile );
 
     SymbolMaps symbolMaps( *pSymbolTable );
 

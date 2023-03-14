@@ -23,6 +23,7 @@
 #include "mega/memory.hpp"
 #include "mega/type_id.hpp"
 #include "mega/relation_id.hpp"
+#include "mega/invocation_io.hpp"
 
 #include "database/common/api.hpp"
 #include "database/common/environment_archive.hpp"
@@ -39,25 +40,35 @@ namespace mega::runtime
 
 class EGDB_EXPORT DatabaseInstance
 {
-    using InterfaceTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::InterfaceTypeID* >;
-    using ConcreteTypeIDMap  = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
+    using InterfaceTypeIDMap    = std::map< mega::TypeID, ::FinalStage::Symbols::InterfaceTypeID* >;
+    using ConcreteTypeIDMap     = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
+    using DynamicInvocationsMap = std::map< InvocationID, const ::FinalStage::Operations::Invocation* >;
+
+    const FinalStage::Operations::Invocation* getExistingInvocation( const InvocationID& invocation ) const;
 
 public:
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
+    const io::ArchiveEnvironment& getEnvironment() const { return m_environment; }
+    const io::Manifest&           getManifest() const { return m_manifest; }
+
     FinalStage::HyperGraph::Relation* getRelation( const RelationID& relationID ) const;
 
-    SizeAlignment                                getObjectSize( TypeID objectType ) const;
-    const FinalStage::Operations::Invocation*    getInvocation( const InvocationID& invocation ) const;
-    TypeID                                       getInterfaceTypeID( TypeID concreteTypeID ) const;
-    std::vector< TypeID >                        getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
-    FinalStage::Concrete::Object*                getObject( TypeID objectType ) const;
-    FinalStage::Concrete::Action*                getAction( TypeID actionType ) const;
-    const FinalStage::Components::Component*     getComponent( TypeID objectType ) const;
-    const FinalStage::Components::Component*     getOperationComponent( TypeID objectType ) const;
-    U64                                          getLocalDomainSize( TypeID concreteID ) const;
-    std::vector< FinalStage::Concrete::Object* > getObjects() const;
-    std::vector< std::string >                   getIdentities() const;
+    SizeAlignment getObjectSize( TypeID objectType ) const;
+
+    const FinalStage::Operations::Invocation* getInvocation( const InvocationID& invocation ) const;
+    const FinalStage::Operations::Invocation* tryGetInvocation( const InvocationID& invocation ) const;
+    void addDynamicInvocation( const InvocationID& invocation, const FinalStage::Operations::Invocation* pInvocation );
+
+    TypeID                                          getInterfaceTypeID( TypeID concreteTypeID ) const;
+    std::vector< TypeID >                           getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
+    FinalStage::Concrete::Object*                   getObject( TypeID objectType ) const;
+    FinalStage::Concrete::Action*                   getAction( TypeID actionType ) const;
+    const FinalStage::Components::Component*        getComponent( TypeID objectType ) const;
+    const FinalStage::Components::Component*        getOperationComponent( TypeID objectType ) const;
+    U64                                             getLocalDomainSize( TypeID concreteID ) const;
+    std::vector< FinalStage::Concrete::Object* >    getObjects() const;
+    std::unordered_map< std::string, mega::TypeID > getIdentities() const;
 
     std::vector< FinalStage::Concrete::Dimensions::User* >          getUserDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::LinkReference* > getLinkDimensions() const;
@@ -75,6 +86,7 @@ private:
     ConcreteTypeIDMap                                 m_concreteTypeIDs;
     InterfaceTypeIDMap                                m_interfaceTypeIDs;
     FinalStage::Concrete::Object*                     m_pConcreteRoot;
+    DynamicInvocationsMap                             m_dynamicInvocations;
 
     using RelationMap = std::unordered_map< RelationID, FinalStage::HyperGraph::Relation*, RelationID::Hash >;
     RelationMap m_relations;

@@ -264,6 +264,10 @@ cppFilePath BuildEnvironment::cppFilePath_fromPath( const boost::filesystem::pat
 {
     return cppFilePath( boost::filesystem::relative( filePath, m_directories.srcDir ) );
 }
+pyFilePath BuildEnvironment::pyFilePath_fromPath( const boost::filesystem::path& filePath ) const
+{
+    return pyFilePath( boost::filesystem::relative( filePath, m_directories.srcDir ) );
+}
 schFilePath BuildEnvironment::schFilePath_fromPath( const boost::filesystem::path& filePath ) const
 {
     return schFilePath( boost::filesystem::relative( filePath, m_directories.srcDir ) );

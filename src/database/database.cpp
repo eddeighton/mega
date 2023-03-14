@@ -19,10 +19,6 @@
 
 #include "database/database.hpp"
 
-#include "database/model/FinalStage.hxx"
-
-#include "mega/invocation_io.hpp"
-
 namespace mega::runtime
 {
 
@@ -141,11 +137,19 @@ mega::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType ) c
     return sizeAlignment;
 }
 
-const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const mega::InvocationID& invocation ) const
+const FinalStage::Operations::Invocation*
+DatabaseInstance::getExistingInvocation( const mega::InvocationID& invocation ) const
 {
     using namespace FinalStage;
     using InvocationMap = std::map< mega::InvocationID, Operations::Invocation* >;
 
+    {
+        auto iFind = m_dynamicInvocations.find( invocation );
+        if( iFind != m_dynamicInvocations.end() )
+        {
+            return iFind->second;
+        }
+    }
     {
         for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
@@ -172,7 +176,25 @@ const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const
             }
         }
     }
-    THROW_RTE( "Failed to resolve invocation: " << invocation );
+    return nullptr;
+}
+
+const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const mega::InvocationID& invocation ) const
+{
+    const FinalStage::Operations::Invocation* pInvocation = getExistingInvocation( invocation );
+    VERIFY_RTE_MSG( pInvocation, "Failed to locate invocation: " << invocation );
+    return pInvocation;
+}
+
+const FinalStage::Operations::Invocation* DatabaseInstance::tryGetInvocation( const InvocationID& invocation ) const
+{
+    return getExistingInvocation( invocation );
+}
+
+void DatabaseInstance::addDynamicInvocation( const InvocationID&                       invocationID,
+                                             const FinalStage::Operations::Invocation* pInvocation )
+{
+    m_dynamicInvocations.insert( { invocationID, pInvocation } );
 }
 
 mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID ) const
@@ -378,12 +400,12 @@ std::vector< FinalStage::Concrete::Object* > DatabaseInstance::getObjects() cons
     return getPerCompilationFileType< FinalStage::Concrete::Object >( m_manifest, m_database );
 }
 
-std::vector< std::string > DatabaseInstance::getIdentities() const
+std::unordered_map< std::string, mega::TypeID > DatabaseInstance::getIdentities() const
 {
-    std::vector< std::string > identities;
-    for( const auto& [ name, _ ] : m_pSymbolTable->get_symbol_names() )
+    std::unordered_map< std::string, mega::TypeID > identities;
+    for( const auto& [ name, pSymbol ] : m_pSymbolTable->get_symbol_names() )
     {
-        identities.push_back( name );
+        identities.insert( { name, pSymbol->get_id() } );
     }
     return identities;
 }

@@ -23,6 +23,7 @@ TASK(GenerateComponents,config.componentInfoPaths,const std::vector< boost::file
 TASK(ParseAST,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(InterfaceTree,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
+TASK(PythonOperations,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
 TASK(DependencyAnalysis,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
 TASK(SymbolAnalysis,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
 

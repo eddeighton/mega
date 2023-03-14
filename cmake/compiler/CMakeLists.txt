@@ -91,6 +91,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_meta.cpp
     ${MEGA_SRC_DIR}/compiler/task_operations.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
+    ${MEGA_SRC_DIR}/compiler/task_python.cpp
     ${MEGA_SRC_DIR}/compiler/task_schematic_connection.cpp
     ${MEGA_SRC_DIR}/compiler/task_schematic_contour.cpp
     ${MEGA_SRC_DIR}/compiler/task_schematic_extrusion.cpp

@@ -252,11 +252,13 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
+    const TskDesc pythonOperations = encode( Task{ eTask_PythonOperations, manifestFilePath } );
     const TskDesc dependencyAnalysis = encode( Task{ eTask_DependencyAnalysis, manifestFilePath } );
     const TskDesc symbolAnalysis     = encode( Task{ eTask_SymbolAnalysis, manifestFilePath } );
 
+    dependencies.add( pythonOperations, interfaceTreeTasks );
     dependencies.add( dependencyAnalysis, interfaceTreeTasks );
-    dependencies.add( symbolAnalysis, TskDescVec{ dependencyAnalysis } );
+    dependencies.add( symbolAnalysis, TskDescVec{ pythonOperations, dependencyAnalysis } );
 
     TskDescVec symbolRolloutTasks;
     {

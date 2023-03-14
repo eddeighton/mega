@@ -47,6 +47,7 @@ namespace mega::io
 {
     class Component;
     class BuildEnvironment;
+    class FileStore;
 
     class Manifest : public ManifestData
     {
@@ -55,8 +56,6 @@ namespace mega::io
         using FileTypeMap           = std::map< std::pair< FileInfo::Type, SourceFilePath >, FileInfoVector::const_iterator >;
         using FileIDVector          = std::vector< ObjectInfo::FileID >;
         using FileDependencies      = std::vector< FileIDVector >;
-        using FileMap               = std::map< ObjectInfo::FileID, File::Ptr >;
-        using FileMapCst            = std::map< ObjectInfo::FileID, File::PtrCst >;
         using FileIDSet             = std::set< ObjectInfo::FileID >;
 
         Manifest();
@@ -68,25 +67,22 @@ namespace mega::io
         // recursively analysing existing source listing files.
         Manifest( const BuildEnvironment& environment, const std::vector< boost::filesystem::path >& sourceListings );
 
-        File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
+        File::PtrCst loadFile( const Environment& environment, mega::io::FileStore& fileStore, 
             const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const;
 
-        File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, FileInfo::Stage stage,
+        File::PtrCst loadFile( const Environment& environment, mega::io::FileStore& fileStore, FileInfo::Stage stage,
             ObjectInfo::FileID fileID ) const;
 
-        void loadAll( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, FileInfo::Stage stage ) const;
+        void loadAll( const Environment& environment, mega::io::FileStore& fileStore, FileInfo::Stage stage ) const;
         
-        File::Ptr createFile( const Environment& environment, data::ObjectPartLoader& loader, FileMap& readWriteFiles,
+        File::Ptr createFile( const Environment& environment, mega::io::FileStore& fileStore,
             const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const;
 
         task::FileHash save_temp( const Environment& environment, const manifestFilePath& filepath ) const;
 
     private: 
-        File::PtrCst loadFileImpl( const Environment& environment, 
-            data::ObjectPartLoader& loader, 
-            FileMapCst& readOnlyFiles,
-            FileInfo::Stage stage, ObjectInfo::FileID fileID,
-            std::vector< File::Ptr >& loadedFiles ) const;
+        File::PtrCst loadFileImpl( const Environment& environment, mega::io::FileStore& fileStore, 
+            FileInfo::Stage stage, ObjectInfo::FileID fileID, std::vector< File::Ptr >& loadedFiles ) const;
         void initialiseLookupTables();
         
         FileTypeMap             m_fileTypeMap;

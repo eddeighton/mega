@@ -29,6 +29,7 @@
 #include "relation.hpp"
 
 #include "database/database.hpp"
+#include "database/model/OperationsStage.hxx"
 
 #include "utilities/project.hpp"
 #include "service/protocol/common/jit_base.hpp"
@@ -52,14 +53,15 @@ class JIT_EXPORT JIT : public JITBase
 public:
     JIT( const MegastructureInstallation& megastructureInstallation, const Project& project );
 
-    std::vector< std::string > getIdentities() const;
+    std::unordered_map< std::string, mega::TypeID > getIdentities() const;
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
     Relation::Ptr  getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
     Program::Ptr   getProgram( const CodeGenerator::LLVMCompiler& compiler );
 
     virtual void getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
-
+    virtual void compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
+                                            const mega::InvocationID& invocationID, void** ppFunction ) override;
     virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                         const mega::InvocationID& invocationID, int functionType,
                                         void** ppFunction ) override;
@@ -77,10 +79,14 @@ private:
     const MegastructureInstallation m_megastructureInstallation;
     const Project                   m_project;
 
-    JITCompiler      m_jitCompiler;
-    DatabaseInstance m_database;
-    CodeGenerator    m_codeGenerator;
-    ComponentManager m_componentManager;
+    JITCompiler                            m_jitCompiler;
+    DatabaseInstance                       m_database;
+    mega::io::FileStore::Ptr               m_pythonFileStore;
+    OperationsStage::Database              m_pythonDatabase;
+    FinalStage::Database                   m_pythonDatabaseFinal;
+    OperationsStage::Symbols::SymbolTable* m_pPythonSymbolTable;
+    CodeGenerator                          m_codeGenerator;
+    ComponentManager                       m_componentManager;
 
     using AllocatorMap = std::map< TypeID, Allocator::Ptr >;
     AllocatorMap m_allocators;

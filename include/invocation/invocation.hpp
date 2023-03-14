@@ -56,9 +56,9 @@ inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
 
     std::vector< T > result;
     std::set< T >    uniq;
-    for ( const T& value : ids )
+    for( const T& value : ids )
     {
-        if ( uniq.count( value ) == 0 )
+        if( uniq.count( value ) == 0 )
         {
             result.push_back( value );
             uniq.insert( value );
@@ -78,9 +78,9 @@ std::vector< OperationsStage::Operations::ElementVector* >
 toElementVector( OperationsStage::Database&          database,
                  const InterfaceVariantVectorVector& interfaceVariantVectorVector );
 
-OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::InvocationID& id,
-                                                    OperationsStage::Database&    database,
-                                                    const mega::io::megaFilePath& sourceFile );
+OperationsStage::Operations::Invocation* construct( OperationsStage::Database&             database,
+                                                    OperationsStage::Symbols::SymbolTable* pSymbolTable,
+                                                    const mega::InvocationID&              id );
 
 } // namespace mega::invocation
 

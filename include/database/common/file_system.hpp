@@ -35,7 +35,7 @@ namespace mega::io
 class EGDB_EXPORT FileSystem
 {
 public:
-    virtual ~FileSystem() {}
+    virtual ~FileSystem() = default;
 
     // file io
     virtual std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const = 0;

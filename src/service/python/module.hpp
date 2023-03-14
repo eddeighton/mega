@@ -28,6 +28,10 @@
 #include "python_process.hpp"
 #include "python_mpo.hpp"
 
+#include "mega/invocation_id.hpp"
+
+#include "jit/functions.hpp"
+
 #include "mpo_conversation.hpp"
 
 #include "service/network/network.hpp"
@@ -49,6 +53,7 @@
 #include <sstream>
 #include <chrono>
 #include <thread>
+#include <map>
 
 namespace mega::service::python
 {
@@ -59,6 +64,8 @@ class PythonModule
     {
         LogConfig( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
     };
+
+    using FunctionTable = std::map< mega::InvocationID, void* >;
 
 public:
     using Ptr = std::shared_ptr< PythonModule >;
@@ -75,9 +82,8 @@ public:
     PythonModule& operator=( const PythonModule& ) = delete;
     PythonModule& operator=( PythonModule&& )      = delete;
 
-    // Type System
-    mega::TypeID getTypeID( const char* pszIdentifier );
-    void         invoke( const mega::reference& ref, const PythonReference::TypePath& typePath );
+    // Python Dynamic Invocations
+    mega::runtime::TypeErasedFunction invoke( const mega::InvocationID& invocationID );
 
     // Megastructure Execution
     void       shutdown();
@@ -102,6 +108,8 @@ public:
         return { *m_mpoConversation, *m_pExternalConversation };
     }
 
+    const PythonReference::Registration& getPythonRegistration() const { return *m_pRegistration; }
+
 private:
     LogConfig                                        m_logConfig;
     boost::asio::io_context                          m_ioContext;
@@ -109,6 +117,7 @@ private:
     network::ExternalConversation::Ptr               m_pExternalConversation;
     network::ConversationBase::Ptr                   m_mpoConversation;
     std::unique_ptr< PythonReference::Registration > m_pRegistration;
+    FunctionTable                                    m_functionTable;
 };
 } // namespace mega::service::python
 

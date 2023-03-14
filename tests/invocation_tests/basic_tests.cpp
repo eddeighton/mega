@@ -79,10 +79,8 @@ TEST_P( BasicFixtureType, BasicParameterizedTest )
     mega::OperationID        operationTypeID = mega::id_Imp_NoParams;
     const mega::InvocationID id{ contextSymbolIDs, typePathSymbolIDs, operationTypeID };
 
-    Operations::Invocation* pInvocation
-        = mega::invocation::construct( m_pImpl->m_environment, id, database, m_pImpl->m_megaSrcPath );
+    Operations::Invocation* pInvocation = mega::invocation::construct( database, pSymbolTable, id );
     ASSERT_TRUE( pInvocation );
-
 }
 
 using namespace std::string_literals;

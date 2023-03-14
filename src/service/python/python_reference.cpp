@@ -23,6 +23,7 @@
 #include "module.hpp"
 
 #include "mega/reference_io.hpp"
+#include "mega/invocation_id.hpp"
 
 #include "service/network/log.hpp"
 
@@ -42,15 +43,15 @@ typedef struct
 
 static PythonReference* fromPyObject( PyObject* pPyObject )
 {
-    if( pPyObject->ob_type == PythonReference::Registration::getTypeObject() )
+    // if( pPyObject->ob_type == PythonReference::Registration::getTypeObject() )
     {
         PythonReferenceData* pLogicalObject = ( PythonReferenceData* )pPyObject;
         return pLogicalObject->pReference;
     }
-    else
+    /*else
     {
         return nullptr;
-    }
+    }*/
 }
 
 static void type_dealloc( PyObject* pPyObject )
@@ -122,14 +123,10 @@ static PyMethodDef type_methods[] = {
 };
 } // namespace
 
-std::vector< std::string > PythonReference::Registration::m_identities;
-std::vector< PyGetSetDef > PythonReference::Registration::m_pythonAttributesData;
-PyTypeObject*              PythonReference::Registration::m_pTypeObject = nullptr;
-
-PythonReference::Registration::Registration( const std::vector< std::string >& identities )
+PythonReference::Registration::Registration( const SymbolTable& symbols )
 {
-    m_identities = identities;
-    for( const auto& id : m_identities )
+    m_symbols = symbols;
+    for( const auto& [ id, _ ] : m_symbols )
     {
         char*       pszNonConst = const_cast< char* >( id.c_str() );
         PyGetSetDef data = { pszNonConst, ( getter )type_get, ( setter )type_set, pszNonConst, ( void* )pszNonConst };
@@ -183,6 +180,19 @@ PythonReference::Registration::~Registration()
     }
 }
 
+mega::TypeID PythonReference::Registration::getTypeID( const char* pszIdentity ) const
+{
+    auto iFind = m_symbols.find( pszIdentity );
+    if( iFind != m_symbols.end() )
+    {
+        return iFind->second;
+    }
+    else
+    {
+        return {};
+    }
+}
+
 PythonReference::PythonReference( PythonModule& module, const mega::reference& ref )
     : m_module( module )
     , m_reference( ref )
@@ -191,10 +201,14 @@ PythonReference::PythonReference( PythonModule& module, const mega::reference& r
 
 PyObject* PythonReference::get( void* pClosure )
 {
-    const char*        pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
-    const mega::TypeID typeID               = m_module.getTypeID( pszAttributeIdentity );
-    if( typeID == 0 )
+    const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
+
+    const mega::TypeID typeID = m_module.getPythonRegistration().getTypeID( pszAttributeIdentity );
+
+    if( typeID == mega::TypeID{} )
     {
+        SPDLOG_TRACE( "PythonReference::get invalid symbol: {}", pszAttributeIdentity );
+
         std::ostringstream os;
         os << "Invalid identity" << pszAttributeIdentity;
         // ERR( os.str() );
@@ -241,19 +255,40 @@ PyObject* PythonReference::str() const
     m_reference.instance ) ); else os << " state: null";*/
     return Py_BuildValue( "s", os.str().c_str() );
 }
+
 PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 {
+    SPDLOG_TRACE( "PythonReference::call" );
     if( m_reference.is_valid() )
     {
-        m_module.invoke( m_reference, m_type_path );
+        pybind11::args pyArgs = pybind11::reinterpret_borrow< pybind11::args >( args );
 
-        THROW_TODO;
+        mega::OperationID operationID = pyArgs.size() ? mega::id_Imp_Params : mega::id_Imp_NoParams;
+        {
+            if( !m_type_path.empty() )
+            {
+                mega::TypeID last = m_type_path.back();
+                if( mega::isOperationType( last ) )
+                {
+                    operationID = static_cast< mega::OperationID >( static_cast< TypeID::ValueType >( last ) );
+                }
+            }
+        }
+
+        const mega::InvocationID invocationID{ { m_reference.getType() }, m_type_path, operationID };
+
+        SPDLOG_TRACE( "PythonReference::call: {}", invocationID );
+
+        mega::runtime::TypeErasedFunction pFunction = m_module.invoke( invocationID );
+
+        SPDLOG_TRACE( "PythonReference::call got function" );
 
         Py_INCREF( Py_None );
         return Py_None;
     }
     else
     {
+        SPDLOG_TRACE( "PythonReference::call reference invalid" );
         std::ostringstream os;
         os << "Invocation on null reference";
         // ERR( os.str() );
@@ -265,13 +300,14 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 
 PyObject* PythonReference::cast( PythonModule& module, const mega::reference& ref )
 {
-    PythonReferenceData* pRootObject
-        = PyObject_New( PythonReferenceData, PythonReference::Registration::getTypeObject() );
-    PyObject* pPythonObject = PyObject_Init( ( PyObject* )pRootObject, PythonReference::Registration::getTypeObject() );
-    pRootObject->pReference = new PythonReference( module, ref );
+    auto                 pTypeObject   = module.getPythonRegistration().getTypeObject();
+    PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, pTypeObject );
+    PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, pTypeObject );
+    pRootObject->pReference            = new PythonReference( module, ref );
     Py_INCREF( pPythonObject );
     return pPythonObject;
 }
+
 mega::reference PythonReference::cast( PyObject* pObject )
 {
     if( PythonReference* pRef = fromPyObject( pObject ) )

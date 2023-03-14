@@ -149,6 +149,7 @@ include_directories( jit ${MEGA_API_DIR}/jit )
 
 target_link_libraries( jit database )
 target_link_libraries( jit orc )
+target_link_libraries( jit invocation )
 target_link_libraries( jit protocol )
 
 IF( ${WIN32} )

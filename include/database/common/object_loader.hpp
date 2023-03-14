@@ -32,7 +32,7 @@ namespace data
     class EGDB_EXPORT ObjectPartLoader
     {
     public:
-        virtual ~ObjectPartLoader() {}
+        virtual ~ObjectPartLoader() = default;
         virtual mega::io::Object* load( const mega::io::ObjectInfo& objectInfo ) = 0;
     };
 

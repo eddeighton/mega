@@ -25,25 +25,35 @@
 #include "relation_functions.hxx"
 #include "operator_functions.hxx"
 
+#include "database/model/FinalStage.hxx"
+
+#include "invocation/invocation.hpp"
+
 #include "service/network/log.hpp"
 
 #include <utility>
 
 namespace mega::runtime
 {
-JIT::JIT( const mega::MegastructureInstallation& megastructureInstallation,
-          const mega::Project&                   project )
+JIT::JIT( const mega::MegastructureInstallation& megastructureInstallation, const mega::Project& project )
     : m_megastructureInstallation( megastructureInstallation )
     , m_project( project )
     , m_jitCompiler( megastructureInstallation )
     , m_database( m_project.getProjectDatabase() )
     , m_codeGenerator( m_megastructureInstallation, m_project )
     , m_componentManager( m_project, m_database )
+    , m_pythonFileStore( new mega::io::FileStore(
+          m_database.getEnvironment(), m_database.getManifest(), mega::io::FileInfo::FinalStage ) )
+    , m_pythonDatabase( m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
+    , m_pythonDatabaseFinal(
+          m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
+    , m_pPythonSymbolTable( m_pythonDatabase.one< OperationsStage::Symbols::SymbolTable >(
+          m_database.getEnvironment().project_manifest() ) )
 {
     VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
 }
 
-std::vector< std::string > JIT::getIdentities() const
+std::unordered_map< std::string, mega::TypeID > JIT::getIdentities() const
 {
     return m_database.getIdentities();
 }
@@ -51,7 +61,7 @@ std::vector< std::string > JIT::getIdentities() const
 JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
 {
     // auto startTime = std::chrono::steady_clock::now();
-    JITCompiler::Module::Ptr pModule   = m_jitCompiler.compile( strCode );
+    JITCompiler::Module::Ptr pModule = m_jitCompiler.compile( strCode );
     // SPDLOG_TRACE( "JIT: JIT Compilation time: {}", std::chrono::steady_clock::now() - startTime );
     return pModule;
 }
@@ -155,6 +165,57 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
         }
         break;
     }
+}
+
+void JIT::compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
+                                     const mega::InvocationID& invocationID, void** ppFunction )
+{
+    SPDLOG_TRACE( "JIT: compileInvocationFunction: {} {}", pszUnitName, invocationID );
+
+    const FinalStage::Operations::Invocation* pInvocationFinal = m_database.tryGetInvocation( invocationID );
+    if( pInvocationFinal == nullptr )
+    {
+        // compile the invocation using the OperationsStage
+        const OperationsStage::Operations::Invocation* pInvocation
+            = mega::invocation::construct( m_pythonDatabase, m_pPythonSymbolTable, invocationID );
+        // now convert to the FinalStage database
+        pInvocationFinal = m_pythonDatabaseFinal.convert< FinalStage::Operations::Invocation >( pInvocation );
+        // and store in the database wrapper so will be found as dynamic invocation
+        m_database.addDynamicInvocation( invocationID, pInvocationFinal );
+    }
+
+    mega::runtime::invocation::FunctionType functionType = mega::runtime::invocation::TOTAL_FUNCTION_TYPES;
+    switch( pInvocationFinal->get_explicit_operation() )
+    {
+        // clang-format off
+        case mega::id_exp_Read:            functionType = mega::runtime::invocation::eRead; break; 
+        case mega::id_exp_Write:           functionType = mega::runtime::invocation::eWrite; break;     
+        case mega::id_exp_Read_Link:       functionType = mega::runtime::invocation::eReadLink; break;         
+        case mega::id_exp_Write_Link:      
+        {
+            functionType = mega::runtime::invocation::eWriteLink;
+            //functionType = mega::runtime::invocation::eWriteLinkRange;
+        }
+        break;  
+
+        case mega::id_exp_Allocate:        functionType = mega::runtime::invocation::eAllocate; break;     
+        case mega::id_exp_Call:            functionType = mega::runtime::invocation::eCall; break; 
+        case mega::id_exp_Start:           functionType = mega::runtime::invocation::eStart; break;     
+        case mega::id_exp_Stop:            functionType = mega::runtime::invocation::eStop; break; 
+        case mega::id_exp_Save:            functionType = mega::runtime::invocation::eSave; break; 
+        case mega::id_exp_Load:            functionType = mega::runtime::invocation::eLoad; break; 
+        case mega::id_exp_GetAction:       functionType = mega::runtime::invocation::eGet; break;         
+        case mega::id_exp_GetDimension:    functionType = mega::runtime::invocation::eGet; break;  
+        case mega::id_exp_Files:                  
+        case mega::id_exp_Done:            
+        case mega::id_exp_Range:           
+        case mega::id_exp_Raw:             
+        case mega::HIGHEST_EXPLICIT_OPERATION_TYPE:
+            THROW_RTE( "Unknown explicit operation type" );
+            break;
+            // clang-format on
+    }
+    return getInvocationFunction( pLLVMCompiler, pszUnitName, invocationID, functionType, ppFunction );
 }
 
 void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::InvocationID& invocationID,
@@ -413,15 +474,13 @@ void JIT::getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo&
     *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
 
     const FinalStage::Concrete::Action* pAction = m_database.getAction( typeID );
-    actionInfo.type = ActionInfo::eAction;
-
+    actionInfo.type                             = ActionInfo::eAction;
 }
 
-void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target,
-                                    int fType, void** ppFunction )
+void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int fType,
+                               void** ppFunction )
 {
-    SPDLOG_TRACE(
-        "JIT::getOperatorFunction : {} {} {}", pszUnitName, target, fType );
+    SPDLOG_TRACE( "JIT::getOperatorFunction : {} {} {}", pszUnitName, target, fType );
     const CodeGenerator::LLVMCompiler& compiler
         = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
 

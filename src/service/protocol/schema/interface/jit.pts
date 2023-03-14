@@ -32,5 +32,5 @@ msg ExecuteJIT
 msg GetIdentities
 {
     request();
-    response(std::vector<std::string> identities);
+    response(std::unordered_map< std::string, mega::TypeID > identities);
 }

@@ -24,6 +24,8 @@
 
 #include "service/network/log.hpp"
 
+#include "service/protocol/common/jit_base.hpp"
+
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/python.hxx"
@@ -164,8 +166,8 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
 
     {
         SPDLOG_TRACE( "PythonModule::ctor getting identities" );
-        std::vector< std::string > identities = pythonRequest().PythonGetIdentities();
-        m_pRegistration                       = std::make_unique< PythonReference::Registration >( identities );
+        PythonReference::Registration::SymbolTable symbols = pythonRequest().PythonGetIdentities();
+        m_pRegistration = std::make_unique< PythonReference::Registration >( symbols );
     }
 
     SPDLOG_TRACE( "PythonModule::ctor" );
@@ -177,15 +179,29 @@ PythonModule::~PythonModule()
     m_python.conversationCompleted( m_pExternalConversation );
 }
 
-mega::TypeID PythonModule::getTypeID( const char* pszIdentifier )
+mega::runtime::TypeErasedFunction PythonModule::invoke( const mega::InvocationID& invocationID )
 {
-    SPDLOG_TRACE( "PythonModule::getTypeID" );
-    return {};
-}
+    SPDLOG_TRACE( "PythonModule::invoke: {}", invocationID );
 
-void PythonModule::invoke( const mega::reference& ref, const PythonReference::TypePath& typePath )
-{
-    SPDLOG_TRACE( "PythonModule::invoke" );
+    auto iFind = m_functionTable.find( invocationID );
+    if( iFind != m_functionTable.end() )
+    {
+        if( iFind->second != nullptr )
+            return iFind->second;
+    }
+    else
+    {
+        iFind = m_functionTable.insert( std::make_pair( invocationID, nullptr ) ).first;
+    }
+
+    void**                    ppFunctionPtr = &iFind->second;
+    mega::runtime::JITFunctor functor(
+        [ &invocationID, &ppFunctionPtr ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
+        { jit.compileInvocationFunction( pLLVMCompiler, "python", invocationID, ppFunctionPtr ); } );
+
+    pythonRequest().PythonExecuteJIT( functor );
+
+    return *ppFunctionPtr;
 }
 
 void PythonModule::shutdown()

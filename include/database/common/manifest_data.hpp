@@ -33,12 +33,14 @@ struct EGDB_EXPORT ManifestData
 {
     using MegaSourceFileVector      = std::vector< megaFilePath >;
     using CppSourceFileVector       = std::vector< cppFilePath >;
+    using PySourceFileVector        = std::vector< pyFilePath >;
     using SchematicSourceFileVector = std::vector< schFilePath >;
     using FileInfoVector            = std::vector< FileInfo >;
 
     const manifestFilePath&          getManifestFilePath() const { return m_manifestFilePath; }
     const MegaSourceFileVector&      getMegaSourceFiles() const { return m_megaSourceFiles; }
     const CppSourceFileVector&       getCppSourceFiles() const { return m_cppSourceFiles; }
+    const PySourceFileVector&        getPySourceFiles() const { return m_pySourceFiles; }
     const SchematicSourceFileVector& getSchematicSourceFiles() const { return m_schematicSourceFiles; }
     const FileInfoVector&            getCompilationFileInfos() const { return m_compilationFileInfos; }
 
@@ -68,6 +70,7 @@ struct EGDB_EXPORT ManifestData
         archive& boost::serialization::make_nvp( "manifestFilePath", m_manifestFilePath );
         archive& boost::serialization::make_nvp( "megaSourceFiles", m_megaSourceFiles );
         archive& boost::serialization::make_nvp( "cppSourceFiles", m_cppSourceFiles );
+        archive& boost::serialization::make_nvp( "pySourceFiles", m_pySourceFiles );
         archive& boost::serialization::make_nvp( "schematicSourceFiles", m_schematicSourceFiles );
         archive& boost::serialization::make_nvp( "compilationFileInfos", m_compilationFileInfos );
     }
@@ -75,6 +78,7 @@ struct EGDB_EXPORT ManifestData
     manifestFilePath          m_manifestFilePath;
     MegaSourceFileVector      m_megaSourceFiles;
     CppSourceFileVector       m_cppSourceFiles;
+    PySourceFileVector        m_pySourceFiles;
     SchematicSourceFileVector m_schematicSourceFiles;
     FileInfoVector            m_compilationFileInfos;
 };

@@ -52,9 +52,10 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
 
     // network::python::Impl
-    virtual std::vector< std::string > PythonGetIdentities( boost::asio::yield_context& yield_ctx ) override;
-    virtual void                       PythonExecuteJIT( const mega::runtime::JITFunctor& func,
-                                                         boost::asio::yield_context&      yield_ctx ) override;
+    virtual std::unordered_map< std::string, mega::TypeID >
+                 PythonGetIdentities( boost::asio::yield_context& yield_ctx ) override;
+    virtual void PythonExecuteJIT( const mega::runtime::JITFunctor& func,
+                                   boost::asio::yield_context&      yield_ctx ) override;
 
     void         run( boost::asio::yield_context& yield_ctx ) override;
     virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;

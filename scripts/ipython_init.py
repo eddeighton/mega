@@ -56,3 +56,9 @@ def getAllMPOs():
         for process in machine.getProcesses():
             for mpo in process.getMPOs():
                 yield mpo
+
+def getAllMPOsList():
+    return [mpo for mpo in getAllMPOs()]
+
+def getFirstMPO():
+    return getAllMPOsList()[0]
