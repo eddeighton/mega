@@ -94,6 +94,7 @@ public:
     // Megastructure Execution
     void       shutdown();
     void       run_one();
+    TimeStamp  cycle();
     PythonRoot getRoot();
 
     template < typename Request >
@@ -115,7 +116,7 @@ public:
     }
 
     const PythonReference::Registration& getPythonRegistration() const { return *m_pRegistration; }
-    const mega::mangle::PythonMangle& getPythonMangle() const { return m_pythonMangle; }
+    const mega::mangle::PythonMangle&    getPythonMangle() const { return m_pythonMangle; }
 
 private:
     LogConfig                                        m_logConfig;

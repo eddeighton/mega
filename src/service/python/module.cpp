@@ -115,8 +115,13 @@ PYBIND11_MODULE( megastructure, pythonModule )
 
     pythonModule.def(
         "getRoot", [] { return getModule()->getRoot(); }, "Get the Megastructure Root" );
+
     pythonModule.def(
         "run_one", [] { return getModule()->run_one(); }, "Run the Megastructure Message Queue for one message" );
+
+    pythonModule.def(
+        "cycle", [] { return getModule()->cycle(); },
+        "Complete current cycle ( will commit all transactions to remote MPOs )" );
 }
 
 namespace mega::service::python
@@ -218,6 +223,11 @@ void PythonModule::run_one()
 {
     while( m_ioContext.poll_one() )
         ;
+}
+
+TimeStamp PythonModule::cycle()
+{
+    return pythonRequest().PythonCycle();
 }
 
 PythonRoot PythonModule::getRoot()

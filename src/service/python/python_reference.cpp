@@ -290,33 +290,23 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
             SPDLOG_TRACE( "PythonReference::call: {}", invocationID );
 
             const PythonModule::FunctionInfo& functionInfo = m_module.invoke( invocationID );
-            SPDLOG_TRACE( "PythonReference::call mangle: {}", functionInfo.typeInfo.mangledType );
             switch( functionInfo.typeInfo.operationType )
             {
                 case id_exp_Read:
                 {
                     auto pReadFunction
                         = reinterpret_cast< mega::runtime::invocation::Read::FunctionPtr >( functionInfo.pFunctionPtr );
-
-                    SPDLOG_TRACE(
-                        "PythonReference::call read calling function: {}", functionInfo.typeInfo.mangledType );
                     void* pResult = pReadFunction( m_reference );
-                    SPDLOG_TRACE(
-                        "PythonReference::call read converting result: {}", functionInfo.typeInfo.mangledType );
                     return m_module.getPythonMangle().cppToPython( functionInfo.typeInfo.mangledType, pResult );
                 }
                 case id_exp_Write:
                 {
                     auto pWriteFunction = reinterpret_cast< mega::runtime::invocation::Write::FunctionPtr >(
                         functionInfo.pFunctionPtr );
-
                     pybind11::object firstArg = pyArgs[ 0 ];
-
                     void* pArg
                         = m_module.getPythonMangle().pythonToCpp( functionInfo.typeInfo.mangledType, firstArg.ptr() );
-
                     const mega::reference result = pWriteFunction( m_reference, pArg );
-
                     return cast( m_module, result );
                 }
                 case id_exp_Read_Link:

@@ -176,7 +176,7 @@ void MPOConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_conte
         {
             if( msg.msg.getID() == network::python::MSG_PythonGetIdentities_Request::ID )
             {
-                SPDLOG_TRACE( "PYTHON MPOConversation: run got network::python::MSG_PythonGetIdentities_Request::ID" );
+                SPDLOG_TRACE( "PYTHON RootSimRun: run got network::python::MSG_PythonGetIdentities_Request::ID" );
                 dispatchRequestImpl( msg, yield_ctx );
             }
             else
@@ -206,6 +206,13 @@ void MPOConversation::PythonExecuteJIT( const mega::runtime::JITFunctor& func, b
 {
     SPDLOG_TRACE( "MPOConversation::PythonExecuteJIT" );
     getLeafJITRequest().ExecuteJIT( func );
+}
+
+TimeStamp MPOConversation::PythonCycle( boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "MPOConversation::PythonCycle" );
+    cycleComplete();
+    return m_log.getTimeStamp();
 }
 
 } // namespace mega::service::python

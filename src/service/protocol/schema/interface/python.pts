@@ -30,3 +30,9 @@ msg PythonExecuteJIT
     request( mega::runtime::JITFunctor func );
     response();
 }
+
+msg PythonCycle
+{
+    request();
+    response( TimeStamp lockCycle );
+}
