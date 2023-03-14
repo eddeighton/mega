@@ -69,7 +69,14 @@ set( MEGA_PYTHON_SOURCE
     ${MEGA_PYTHON_SRC_DIR}/python_reference.cpp 
     )
 
-add_library( megastructure SHARED ${MEGA_PYTHON_SOURCE} )
+set( MEGA_PYTHON_MANGLE
+
+    ${MEGA_API_DIR}/mega/types/python_mangle.hpp
+    ${MEGA_API_DIR}/mega/types/python_mangle_types.cxx
+    ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
+)
+
+add_library( megastructure SHARED ${MEGA_PYTHON_SOURCE} ${MEGA_PYTHON_MANGLE} )
 
 ##############################################################
 # NOT DOING THIS: pybind11_add_module( megastructure SHARED ${MEGA_PYTHON_SOURCE} )

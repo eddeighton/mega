@@ -62,3 +62,6 @@ def getAllMPOsList():
 
 def getFirstMPO():
     return getAllMPOsList()[0]
+
+def getFirstRoot():
+    return getFirstMPO().getRoot()

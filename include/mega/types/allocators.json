@@ -1,4 +1,5 @@
 {
+    "name" : "allocators",
     "types": [
         {
             "canon": "mega::Bitmask32Allocator< 2 >",

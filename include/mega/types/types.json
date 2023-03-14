@@ -1,4 +1,5 @@
 {
+    "name" : "types",
     "types": [
         {
             "canon": "unsigned char",

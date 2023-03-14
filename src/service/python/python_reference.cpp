@@ -22,8 +22,13 @@
 
 #include "module.hpp"
 
+#include "jit/invocation_functions.hxx"
+#include "jit/jit_exception.hpp"
+
 #include "mega/reference_io.hpp"
 #include "mega/invocation_id.hpp"
+
+#include "mega/types/python_mangle.hpp"
 
 #include "service/network/log.hpp"
 
@@ -202,6 +207,7 @@ PythonReference::PythonReference( PythonModule& module, const mega::reference& r
 PyObject* PythonReference::get( void* pClosure )
 {
     const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
+    SPDLOG_TRACE( "PythonReference::get: {}", pszAttributeIdentity );
 
     const mega::TypeID typeID = m_module.getPythonRegistration().getTypeID( pszAttributeIdentity );
 
@@ -237,6 +243,8 @@ int PythonReference::set( void* pClosure, PyObject* pValue )
 }
 PyObject* PythonReference::str() const
 {
+    SPDLOG_TRACE( "PythonReference::str: {}", m_reference );
+
     std::ostringstream os;
     // m_module.print( m_reference, os );
     using ::operator<<;
@@ -261,27 +269,89 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
     SPDLOG_TRACE( "PythonReference::call" );
     if( m_reference.is_valid() )
     {
-        pybind11::args pyArgs = pybind11::reinterpret_borrow< pybind11::args >( args );
-
-        mega::OperationID operationID = pyArgs.size() ? mega::id_Imp_Params : mega::id_Imp_NoParams;
+        try
         {
-            if( !m_type_path.empty() )
+            pybind11::args pyArgs = pybind11::reinterpret_borrow< pybind11::args >( args );
+
+            mega::OperationID operationID = pyArgs.size() ? mega::id_Imp_Params : mega::id_Imp_NoParams;
             {
-                mega::TypeID last = m_type_path.back();
-                if( mega::isOperationType( last ) )
+                if( !m_type_path.empty() )
                 {
-                    operationID = static_cast< mega::OperationID >( static_cast< TypeID::ValueType >( last ) );
+                    mega::TypeID last = m_type_path.back();
+                    if( mega::isOperationType( last ) )
+                    {
+                        operationID = static_cast< mega::OperationID >( static_cast< TypeID::ValueType >( last ) );
+                    }
                 }
             }
+
+            const mega::InvocationID invocationID{ { m_reference.getType() }, m_type_path, operationID };
+
+            SPDLOG_TRACE( "PythonReference::call: {}", invocationID );
+
+            const PythonModule::FunctionInfo& functionInfo = m_module.invoke( invocationID );
+            SPDLOG_TRACE( "PythonReference::call mangle: {}", functionInfo.typeInfo.mangledType );
+            switch( functionInfo.typeInfo.operationType )
+            {
+                case id_exp_Read:
+                {
+                    auto pReadFunction
+                        = reinterpret_cast< mega::runtime::invocation::Read::FunctionPtr >( functionInfo.pFunctionPtr );
+
+                    SPDLOG_TRACE(
+                        "PythonReference::call read calling function: {}", functionInfo.typeInfo.mangledType );
+                    void* pResult = pReadFunction( m_reference );
+                    SPDLOG_TRACE(
+                        "PythonReference::call read converting result: {}", functionInfo.typeInfo.mangledType );
+                    return m_module.getPythonMangle().cppToPython( functionInfo.typeInfo.mangledType, pResult );
+                }
+                case id_exp_Write:
+                {
+                    auto pWriteFunction = reinterpret_cast< mega::runtime::invocation::Write::FunctionPtr >(
+                        functionInfo.pFunctionPtr );
+
+                    pybind11::object firstArg = pyArgs[ 0 ];
+
+                    void* pArg
+                        = m_module.getPythonMangle().pythonToCpp( functionInfo.typeInfo.mangledType, firstArg.ptr() );
+
+                    const mega::reference result = pWriteFunction( m_reference, pArg );
+
+                    return cast( m_module, result );
+                }
+                case id_exp_Read_Link:
+                case id_exp_Write_Link:
+                case id_exp_Allocate:
+                case id_exp_Call:
+                case id_exp_Start:
+                case id_exp_Stop:
+                case id_exp_Save:
+                case id_exp_Load:
+                case id_exp_Files:
+                case id_exp_GetAction:
+                case id_exp_GetDimension:
+                case id_exp_Done:
+                case id_exp_Range:
+                case id_exp_Raw:
+                case HIGHEST_EXPLICIT_OPERATION_TYPE:
+                    THROW_RTE( "Unsupported operation type: " << functionInfo.typeInfo.operationType );
+                    break;
+            }
+        }
+        catch( mega::runtime::JITException& ex )
+        {
+            SPDLOG_ERROR( "JIT Exception: {}", ex.what() );
+        }
+        catch( mega::io::DatabaseVersionException& ex )
+        {
+            SPDLOG_ERROR( "Database version exception: {}", ex.what() );
+        }
+        catch( std::exception& ex )
+        {
+            SPDLOG_ERROR( "Exception: {}", ex.what() );
         }
 
-        const mega::InvocationID invocationID{ { m_reference.getType() }, m_type_path, operationID };
-
-        SPDLOG_TRACE( "PythonReference::call: {}", invocationID );
-
-        mega::runtime::TypeErasedFunction pFunction = m_module.invoke( invocationID );
-
-        SPDLOG_TRACE( "PythonReference::call got function" );
+        SPDLOG_TRACE( "PythonReference::call returning Py_None" );
 
         Py_INCREF( Py_None );
         return Py_None;

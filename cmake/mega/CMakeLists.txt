@@ -29,6 +29,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
+#get pybind11
+#include( ${WORKSPACE_ROOT_PATH}/thirdparty/pybind11/pybind11_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -45,6 +48,7 @@ add_custom_target( generate_mangle_types
     SOURCES ${MEGA_API_DIR}/mega/types/types.json
 )
 add_dependencies( generate_mangle_types inja )
+
 add_custom_target( generate_mangle_allocators
     COMMAND inja
         --data ${MEGA_API_DIR}/mega/types/allocators.json
@@ -57,8 +61,35 @@ add_custom_target( generate_mangle_allocators
 )
 add_dependencies( generate_mangle_allocators inja )
 
+add_custom_target( generate_python_mangle_types
+    COMMAND inja
+        --data ${MEGA_API_DIR}/mega/types/types.json
+        --template ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja
+        --output ${MEGA_API_DIR}/mega/types/python_mangle_types.cxx
+    DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja inja
+    BYPRODUCTS  ${MEGA_API_DIR}/mega/types/python_mangle_types.cxx
+    COMMENT "Generating Python Type Mangle for Types" 
+    SOURCES ${MEGA_API_DIR}/mega/types/types.json
+)
+add_dependencies( generate_python_mangle_types inja )
+
+add_custom_target( generate_python_mangle_allocators
+    COMMAND inja
+        --data ${MEGA_API_DIR}/mega/types/allocators.json
+        --template ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja
+        --output ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
+    DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja inja
+    BYPRODUCTS  ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
+    COMMENT "Generating Python Type Mangle for Allocators" 
+    SOURCES ${MEGA_API_DIR}/mega/types/allocators.json
+)
+add_dependencies( generate_python_mangle_allocators inja )
+
 set_target_properties( generate_mangle_types PROPERTIES FOLDER service )
 set_target_properties( generate_mangle_allocators PROPERTIES FOLDER service )
+set_target_properties( generate_python_mangle_types PROPERTIES FOLDER service )
+set_target_properties( generate_python_mangle_allocators PROPERTIES FOLDER service )
+
 
 set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/address_table.hpp
@@ -105,12 +136,17 @@ add_library( mega_interface INTERFACE ${MEGA_LIBRARY} ${MEGA_TYPES} )
 set_target_properties( mega_interface PROPERTIES FOLDER service )
 add_dependencies( mega_interface generate_mangle_types )
 add_dependencies( mega_interface generate_mangle_allocators )
+add_dependencies( mega_interface generate_python_mangle_types )
+add_dependencies( mega_interface generate_python_mangle_allocators )
 
 set( MEGA_TYPES
     ${MEGA_API_DIR}/mega/types/traits.hpp
     ${MEGA_API_DIR}/mega/types/traits.cpp
     ${MEGA_API_DIR}/mega/types/mangle_types.cxx
     ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
+    #${MEGA_API_DIR}/mega/types/python_mangle.hpp
+    #${MEGA_API_DIR}/mega/types/python_mangle_types.cxx
+    #${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
 )
 
 add_library( mega_mangle SHARED ${MEGA_TYPES} )
@@ -137,6 +173,7 @@ link_boost( mega_mangle filesystem )
 link_boost( mega_mangle serialization )
 link_json( mega_mangle )
 link_common( mega_mangle )
+#link_pybind11( mega_mangle )
 
 install( TARGETS mega_interface EXPORT mega_interface DESTINATION bin)
 install( EXPORT mega_interface NAMESPACE MEGA:: FILE mega_interface-config.cmake DESTINATION share )

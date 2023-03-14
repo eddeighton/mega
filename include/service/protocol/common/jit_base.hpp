@@ -34,11 +34,16 @@ namespace mega::runtime
 class JITBase
 {
 public:
+    struct InvocationTypeInfo
+    {
+        mega::ExplicitOperationID operationType;
+        std::string               mangledType = std::string{};
+    };
+    virtual InvocationTypeInfo compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
+                                                          const mega::InvocationID& invocationID, void** ppFunction )
+        = 0;
 
     virtual void getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) = 0;
-    virtual void compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
-                                            const mega::InvocationID& invocationID, void** ppFunction )
-        = 0;
     virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                         const mega::InvocationID& invocationID, int functionType, void** ppFunction )
         = 0;

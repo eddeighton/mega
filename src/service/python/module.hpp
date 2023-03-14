@@ -29,6 +29,7 @@
 #include "python_mpo.hpp"
 
 #include "mega/invocation_id.hpp"
+#include "mega/types/python_mangle.hpp"
 
 #include "jit/functions.hpp"
 
@@ -65,9 +66,14 @@ class PythonModule
         LogConfig( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
     };
 
-    using FunctionTable = std::map< mega::InvocationID, void* >;
-
 public:
+    struct FunctionInfo
+    {
+        void*                                      pFunctionPtr = nullptr;
+        mega::runtime::JITBase::InvocationTypeInfo typeInfo;
+    };
+    using FunctionTable = std::map< mega::InvocationID, FunctionInfo >;
+
     using Ptr = std::shared_ptr< PythonModule >;
 
     static Ptr  makePlugin( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel );
@@ -83,7 +89,7 @@ public:
     PythonModule& operator=( PythonModule&& )      = delete;
 
     // Python Dynamic Invocations
-    mega::runtime::TypeErasedFunction invoke( const mega::InvocationID& invocationID );
+    const FunctionInfo& invoke( const mega::InvocationID& invocationID );
 
     // Megastructure Execution
     void       shutdown();
@@ -109,6 +115,7 @@ public:
     }
 
     const PythonReference::Registration& getPythonRegistration() const { return *m_pRegistration; }
+    const mega::mangle::PythonMangle& getPythonMangle() const { return m_pythonMangle; }
 
 private:
     LogConfig                                        m_logConfig;
@@ -118,6 +125,7 @@ private:
     network::ConversationBase::Ptr                   m_mpoConversation;
     std::unique_ptr< PythonReference::Registration > m_pRegistration;
     FunctionTable                                    m_functionTable;
+    mega::mangle::PythonMangle                       m_pythonMangle;
 };
 } // namespace mega::service::python
 

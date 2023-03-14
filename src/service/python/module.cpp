@@ -179,29 +179,32 @@ PythonModule::~PythonModule()
     m_python.conversationCompleted( m_pExternalConversation );
 }
 
-mega::runtime::TypeErasedFunction PythonModule::invoke( const mega::InvocationID& invocationID )
+const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID& invocationID )
 {
     SPDLOG_TRACE( "PythonModule::invoke: {}", invocationID );
 
     auto iFind = m_functionTable.find( invocationID );
     if( iFind != m_functionTable.end() )
     {
-        if( iFind->second != nullptr )
+        if( iFind->second.pFunctionPtr != nullptr )
             return iFind->second;
     }
     else
     {
-        iFind = m_functionTable.insert( std::make_pair( invocationID, nullptr ) ).first;
+        iFind = m_functionTable.insert( std::make_pair( invocationID, PythonModule::FunctionInfo{} ) ).first;
     }
 
-    void**                    ppFunctionPtr = &iFind->second;
-    mega::runtime::JITFunctor functor(
-        [ &invocationID, &ppFunctionPtr ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
-        { jit.compileInvocationFunction( pLLVMCompiler, "python", invocationID, ppFunctionPtr ); } );
+    PythonModule::FunctionInfo& functionInfo = iFind->second;
+    mega::runtime::JITFunctor   functor(
+        [ &invocationID, &functionInfo ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
+        {
+            functionInfo.typeInfo
+                = jit.compileInvocationFunction( pLLVMCompiler, "python", invocationID, &functionInfo.pFunctionPtr );
+        } );
 
     pythonRequest().PythonExecuteJIT( functor );
 
-    return *ppFunctionPtr;
+    return functionInfo;
 }
 
 void PythonModule::shutdown()

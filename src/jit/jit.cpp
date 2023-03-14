@@ -167,8 +167,8 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
     }
 }
 
-void JIT::compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
-                                     const mega::InvocationID& invocationID, void** ppFunction )
+JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
+                                                            const mega::InvocationID& invocationID, void** ppFunction )
 {
     SPDLOG_TRACE( "JIT: compileInvocationFunction: {} {}", pszUnitName, invocationID );
 
@@ -184,13 +184,58 @@ void JIT::compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitNam
         m_database.addDynamicInvocation( invocationID, pInvocationFinal );
     }
 
+    JITBase::InvocationTypeInfo result{ pInvocationFinal->get_explicit_operation() };
+
     mega::runtime::invocation::FunctionType functionType = mega::runtime::invocation::TOTAL_FUNCTION_TYPES;
     switch( pInvocationFinal->get_explicit_operation() )
     {
         // clang-format off
-        case mega::id_exp_Read:            functionType = mega::runtime::invocation::eRead; break; 
-        case mega::id_exp_Write:           functionType = mega::runtime::invocation::eWrite; break;     
-        case mega::id_exp_Read_Link:       functionType = mega::runtime::invocation::eReadLink; break;         
+        case mega::id_exp_Read:   
+        case mega::id_exp_Write:          
+        {
+            if( pInvocationFinal->get_explicit_operation()  == mega::id_exp_Read )
+            {
+                functionType = mega::runtime::invocation::eRead; 
+            }
+            else
+            {
+                functionType = mega::runtime::invocation::eWrite; 
+            }
+
+            const auto returnDim = pInvocationFinal->get_return_type_dimensions();
+            const auto returnRef = pInvocationFinal->get_return_type_contexts();
+
+            if( returnDim.size() )
+            {
+                for( const auto& pDim : returnDim )
+                {
+                    if( result.mangledType.empty() )
+                    {
+                        result.mangledType = megaMangle( pDim->get_erased_type() );
+                    }
+                    else
+                    {
+                        const std::string strMangle = megaMangle( pDim->get_erased_type() );
+                        VERIFY_RTE_MSG( strMangle == result.mangledType, "Inconsistent dimension return types" );
+                    }
+                }
+            }
+            else if( returnRef.size() )
+            {
+                result.mangledType = megaMangle( "mega::reference" );
+            }
+            else
+            {
+                THROW_RTE( "Unknown invocation return type" );
+            }
+
+            break; 
+        }
+        case mega::id_exp_Read_Link:       
+        {
+            functionType = mega::runtime::invocation::eReadLink; 
+            break; 
+        }        
         case mega::id_exp_Write_Link:      
         {
             functionType = mega::runtime::invocation::eWriteLink;
@@ -215,7 +260,10 @@ void JIT::compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitNam
             break;
             // clang-format on
     }
-    return getInvocationFunction( pLLVMCompiler, pszUnitName, invocationID, functionType, ppFunction );
+
+    getInvocationFunction( pLLVMCompiler, pszUnitName, invocationID, functionType, ppFunction );
+
+    return result;
 }
 
 void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::InvocationID& invocationID,

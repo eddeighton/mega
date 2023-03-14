@@ -59,12 +59,13 @@ public:
     Relation::Ptr  getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
     Program::Ptr   getProgram( const CodeGenerator::LLVMCompiler& compiler );
 
-    virtual void getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
-    virtual void compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
-                                            const mega::InvocationID& invocationID, void** ppFunction ) override;
-    virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
-                                        const mega::InvocationID& invocationID, int functionType,
-                                        void** ppFunction ) override;
+    virtual InvocationTypeInfo compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
+                                                          const mega::InvocationID& invocationID,
+                                                          void**                    ppFunction ) override;
+    virtual void               getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
+    virtual void               getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
+                                                      const mega::InvocationID& invocationID, int functionType,
+                                                      void** ppFunction ) override;
     virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega::TypeID typeID, int functionType,
                                     void** ppFunction ) override;
     virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, const RelationID& relationID,
