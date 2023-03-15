@@ -525,13 +525,10 @@ void JIT::getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo&
     actionInfo.type                             = ActionInfo::eAction;
 }
 
-void JIT::getPythonFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo )
+void JIT::getPythonFunction( mega::TypeID typeID, void** ppFunction )
 {
     SPDLOG_TRACE( "JIT::getPythonFunction : {}", typeID );
-    *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
-
-    const FinalStage::Concrete::Action* pAction = m_database.getAction( typeID );
-    actionInfo.type                             = ActionInfo::eAction;
+    *ppFunction = ( void* )m_componentManager.getPythonFunctionPtr( typeID );
 }
 
 void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int fType,

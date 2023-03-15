@@ -76,7 +76,6 @@ public:
     struct WrapperInfo
     {
         PythonReference::PythonWrapperFunction pFunctionPtr = nullptr;
-        mega::runtime::JITBase::ActionInfo     actionInfo;
     };
 
     using Ptr = std::shared_ptr< PythonModule >;
@@ -96,6 +95,12 @@ public:
     // Python Dynamic Invocations
     const FunctionInfo&                    invoke( const mega::InvocationID& invocationID );
     PythonReference::PythonWrapperFunction getPythonWrapper( TypeID interfaceTypeID );
+
+    template < typename Functor >
+    void invoke( Functor&& functor )
+    {
+        pythonRequest().PythonFunctor( runtime::Functor{ std::move( functor ) } );
+    }
 
     // Megastructure Execution
     void       shutdown();

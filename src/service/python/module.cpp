@@ -24,6 +24,7 @@
 
 #include "service/network/log.hpp"
 
+#include "service/protocol/common/type_erase.hpp"
 #include "service/protocol/common/jit_base.hpp"
 
 #include "service/protocol/model/status.hxx"
@@ -232,7 +233,7 @@ PythonReference::PythonWrapperFunction PythonModule::getPythonWrapper( TypeID in
         [ &interfaceTypeID, &wrapperInfo ]( mega::runtime::JITBase& jit, void* )
         {
             void** ppFunction = reinterpret_cast< void** >( &wrapperInfo.pFunctionPtr );
-            jit.getPythonFunction( interfaceTypeID, ppFunction, wrapperInfo.actionInfo );
+            jit.getPythonFunction( interfaceTypeID, ppFunction );
         } );
 
     pythonRequest().PythonExecuteJIT( functor );

@@ -28,7 +28,7 @@ namespace
     void resolve( const char* pszUnitName, const mega::InvocationID& invocationID, bool& resolving, 
         mega::runtime::invocation::FunctionType functionType, void** pFunction )
     {
-        SPDLOG_TRACE( "RUNTIME: invocation_functions::resolve : {} {}", pszUnitName, functionType );
+        SPDLOG_TRACE( "RUNTIME: mega::runtime::invocation::resolve : {} {}", pszUnitName, functionType );
         // WARNING: the following code is precarious!
         // This code is designed to be thread safe where the class
         // is thread_local and expected to run on multiple coroutines and threads

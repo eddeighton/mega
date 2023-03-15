@@ -116,6 +116,7 @@ public:
     pyFilePath               pyFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     schFilePath              schFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     ComponentFilePath        ComponentPath_fromPath( const boost::filesystem::path& filePath ) const;
+    ComponentFilePath        PythonComponentPath_fromPath( const boost::filesystem::path& filePath ) const;
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////

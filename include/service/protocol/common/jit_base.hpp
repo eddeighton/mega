@@ -65,8 +65,8 @@ public:
         Type type;
     };
     virtual void getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo ) = 0;
-    virtual void getPythonFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo ) = 0;
-    
+    virtual void getPythonFunction( mega::TypeID typeID, void** ppFunction )                         = 0;
+
     virtual void getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int functionType,
                                       void** ppFunction )
         = 0;
@@ -85,6 +85,30 @@ public:
     }
 
     inline void operator()( JITBase& jit, void* pLLVMCompiler ) const { m_functor( jit, pLLVMCompiler ); }
+
+    template < class Archive >
+    inline void serialize( Archive&, const unsigned int )
+    {
+        UNREACHABLE;
+    }
+
+private:
+    ExecutionFPtr m_functor;
+};
+
+class Functor
+{
+public:
+    using ExecutionFPtr = std::function< void() >;
+
+    Functor() { UNREACHABLE; }
+
+    Functor( ExecutionFPtr&& functor )
+        : m_functor( std::move( functor ) )
+    {
+    }
+
+    inline void operator()() const { m_functor(); }
 
     template < class Archive >
     inline void serialize( Archive&, const unsigned int )

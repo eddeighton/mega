@@ -304,7 +304,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     auto pWriteFunction = reinterpret_cast< mega::runtime::invocation::Write::FunctionPtr >(
                         functionInfo.pFunctionPtr );
                     pybind11::object firstArg = pyArgs[ 0 ];
-                    void* pArg
+                    void*            pArg
                         = m_module.getPythonMangle().pythonToCpp( functionInfo.typeInfo.mangledType, firstArg.ptr() );
                     const mega::reference result = pWriteFunction( m_reference, pArg );
                     return cast( m_module, result );
@@ -312,17 +312,32 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 case id_exp_Read_Link:
                 case id_exp_Write_Link:
                 case id_exp_Allocate:
-                break;
+                    break;
                 case id_exp_Call:
                 {
-                    auto pCallFunction = reinterpret_cast< mega::runtime::invocation::Call::FunctionPtr >(
-                        functionInfo.pFunctionPtr );
-                    mega::runtime::CallResult callResult = pCallFunction( m_reference );
+                    runtime::CallResult result;
 
-                    auto pPythonWrapperFunction = 
-                        m_module.getPythonWrapper( callResult.interfaceTypeID );
+                    // obtain the CallResult from the invocation function - executing in the MPO context
+                    m_module.invoke(
+                        [ &functionInfo, &m_reference = m_reference, &m_module = m_module, &result ]()
+                        {
+                            auto pCall = reinterpret_cast< runtime::invocation::Call::FunctionPtr >(
+                                functionInfo.pFunctionPtr );
+                            result = pCall( m_reference );
+                        } );
 
-                    return pPythonWrapperFunction( callResult, pyArgs );
+                    // given the result can now obtain the corresponding python wrapper function
+                    auto pPythonWrapperFunction = m_module.getPythonWrapper( result.interfaceTypeID );
+
+                    // execute the wrapper function in the MPO context passing in the CallResult and args
+                    PyObject* pPyObject = nullptr;
+                    m_module.invoke( [ &pPythonWrapperFunction, &result, &pyArgs, &pPyObject ]()
+                                     { pPyObject = pPythonWrapperFunction( result, pyArgs ); } );
+
+                    if( pPyObject )
+                    {
+                        return pPyObject;
+                    }
                 }
                 break;
                 case id_exp_Start:

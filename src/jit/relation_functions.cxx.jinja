@@ -28,7 +28,7 @@ namespace
 void resolve( const char* pszUnitName, const mega::RelationID& relationID, bool& resolving,
         mega::runtime::relation::FunctionType functionType, void** pFunction )
 {
-    SPDLOG_TRACE( "RUNTIME: object_functions::resolve : {} {}", pszUnitName, functionType );
+    SPDLOG_TRACE( "RUNTIME: mega::runtime::relation::resolve : {} {}", pszUnitName, functionType );
     // WARNING: the following code is precarious!
     // This code is designed to be thread safe where the class
     // is thread_local and expected to run on multiple coroutines and threads

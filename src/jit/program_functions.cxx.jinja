@@ -27,7 +27,7 @@ namespace
 {
 void resolve( bool& resolving, mega::runtime::program::FunctionType functionType, void** pFunction )
 {
-    SPDLOG_TRACE( "RUNTIME: program_functions::resolve : {}", functionType );
+    SPDLOG_TRACE( "RUNTIME: mega::runtime::program::resolve : {}", functionType );
     // WARNING: the following code is precarious!
     // This code is designed to be thread safe where the class
     // is thread_local and expected to run on multiple coroutines and threads

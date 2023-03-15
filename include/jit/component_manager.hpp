@@ -70,6 +70,7 @@ public:
     ComponentManager( const mega::Project& project, DatabaseInstance& database );
 
     TypeErasedFunction getOperationFunctionPtr( mega::TypeID concreteTypeID );
+    TypeErasedFunction getPythonFunctionPtr( mega::TypeID concreteTypeID );
 
 private:
     void loadComponent() {}
@@ -78,6 +79,8 @@ private:
     DatabaseInstance&             m_database;
     InterfaceComponentMap         m_interfaceComponents;
     FunctionPtrMap                m_functions;
+    InterfaceComponentMap         m_pythonComponents;
+    FunctionPtrMap                m_pythonFunctions;
 };
 
 } // namespace mega::runtime

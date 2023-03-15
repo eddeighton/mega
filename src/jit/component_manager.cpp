@@ -95,7 +95,7 @@ ComponentManager::ComponentManager( const mega::Project& project, DatabaseInstan
 
 TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concreteTypeID )
 {
-    SPDLOG_TRACE( "RUNTIME: ComponentManager getOperation : {}", concreteTypeID );
+    SPDLOG_TRACE( "RUNTIME: ComponentManager getOperationFunctionPtr : {}", concreteTypeID );
 
     const mega::TypeID interfaceTypeID = m_database.getInterfaceTypeID( concreteTypeID );
 
@@ -123,6 +123,48 @@ TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concr
     {
         auto iFind = m_functions.find( interfaceTypeID );
         if( iFind != m_functions.end() )
+        {
+            return iFind->second.get();
+        }
+    }
+
+    SPDLOG_ERROR( "ComponentManager failed to locate symbol : {}", concreteTypeID );
+    THROW_RTE( "Failed to locate symbol: " << concreteTypeID );
+}
+
+TypeErasedFunction ComponentManager::getPythonFunctionPtr( mega::TypeID concreteTypeID )
+{
+    SPDLOG_TRACE( "RUNTIME: ComponentManager getPythonFunctionPtr : {}", concreteTypeID );
+
+    const mega::TypeID interfaceTypeID = m_database.getInterfaceTypeID( concreteTypeID );
+
+    {
+        auto iFind = m_pythonFunctions.find( interfaceTypeID );
+        if( iFind != m_pythonFunctions.end() )
+        {
+            return iFind->second.get();
+        }
+    }
+
+    {
+        const FinalStage::Components::Component* pDBComponent = m_database.getOperationComponent( concreteTypeID );
+        const mega::io::ComponentFilePath&       componentBuildPath = pDBComponent->get_python_file_path();
+        const boost::filesystem::path componentPath = m_project.getProjectBin() / componentBuildPath.path().filename();
+
+        SPDLOG_TRACE( "Attempting to load python component: {}", componentPath.string() );
+
+        auto iFind = m_pythonComponents.find( componentPath );
+        if( iFind == m_pythonComponents.end() )
+        {
+            InterfaceComponent::Ptr pComponent
+                = std::make_shared< InterfaceComponent >( componentPath, m_pythonFunctions );
+            m_pythonComponents.insert( { componentPath, pComponent } );
+        }
+    }
+
+    {
+        auto iFind = m_pythonFunctions.find( interfaceTypeID );
+        if( iFind != m_pythonFunctions.end() )
         {
             return iFind->second.get();
         }

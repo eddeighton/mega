@@ -36,3 +36,9 @@ msg PythonCycle
     request();
     response( TimeStamp lockCycle );
 }
+
+msg PythonFunctor
+{
+    request( mega::runtime::Functor functor );
+    response();
+}

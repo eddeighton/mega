@@ -22,6 +22,8 @@
 
 #include "service/protocol/model/jit.hxx"
 
+#include "service/protocol/common/type_erase.hpp"
+
 namespace mega::service::python
 {
 
@@ -215,4 +217,9 @@ TimeStamp MPOConversation::PythonCycle( boost::asio::yield_context& )
     return m_log.getTimeStamp();
 }
 
+void MPOConversation::PythonFunctor( const mega::runtime::Functor& functor, boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "MPOConversation::PythonFunctor" );
+    functor();
+}
 } // namespace mega::service::python

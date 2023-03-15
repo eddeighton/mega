@@ -302,6 +302,21 @@ ComponentFilePath BuildEnvironment::ComponentPath_fromPath( const boost::filesys
 {
     return ComponentFilePath( boost::filesystem::relative( filePath, m_directories.buildDir ) );
 }
+ComponentFilePath BuildEnvironment::PythonComponentPath_fromPath( const boost::filesystem::path& filePath ) const
+{
+    boost::filesystem::path pythonFileName;
+    {
+        auto filename = filePath.filename();
+        filename.replace_extension( "" );
+        VERIFY_RTE( !filename.empty() );
+
+        std::ostringstream osFileName;
+        osFileName << filename.string() << "_python" << filePath.extension().string();
+
+        pythonFileName = filePath.parent_path() / osFileName.str();
+    }
+    return ComponentFilePath( boost::filesystem::relative( pythonFileName, m_directories.buildDir ) );
+}
 
 std::unique_ptr< std::istream > BuildEnvironment::read( const BuildFilePath& filePath ) const
 {

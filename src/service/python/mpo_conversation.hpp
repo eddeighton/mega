@@ -57,6 +57,7 @@ public:
     virtual void      PythonExecuteJIT( const mega::runtime::JITFunctor& func,
                                         boost::asio::yield_context&      yield_ctx ) override;
     virtual TimeStamp PythonCycle( boost::asio::yield_context& yield_ctx ) override;
+    virtual void PythonFunctor( const mega::runtime::Functor& functor, boost::asio::yield_context& yield_ctx ) override;
 
     void         run( boost::asio::yield_context& yield_ctx ) override;
     virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;

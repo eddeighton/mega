@@ -119,7 +119,7 @@ public:
         using namespace ComponentListing;
         Database database( m_environment, projectManifestPath );
 
-        for ( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
+        for( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
         {
             io::ComponentInfo componentInfo;
             {
@@ -127,7 +127,7 @@ public:
                                 "Failed to locate file: " << componentInfoPath.string() );
                 std::ifstream inputFileStream(
                     componentInfoPath.string().c_str(), std::ios::in | std::ios_base::binary );
-                if ( !inputFileStream.good() )
+                if( !inputFileStream.good() )
                 {
                     THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
                 }
@@ -141,21 +141,23 @@ public:
 
             const mega::io::ComponentFilePath componentFilePath
                 = m_environment.ComponentPath_fromPath( componentInfo.getFilePath() );
+            const mega::io::ComponentFilePath pythonFilePath
+                = m_environment.PythonComponentPath_fromPath( componentInfo.getFilePath() );
 
             std::vector< mega::io::megaFilePath > megaSourceFiles;
             std::vector< mega::io::cppFilePath >  cppSourceFiles;
             std::vector< mega::io::schFilePath >  schSourceFiles;
-            for ( const boost::filesystem::path& filePath : componentInfo.getSourceFiles() )
+            for( const boost::filesystem::path& filePath : componentInfo.getSourceFiles() )
             {
-                if ( filePath.extension() == mega::io::megaFilePath::extension() )
+                if( filePath.extension() == mega::io::megaFilePath::extension() )
                 {
                     megaSourceFiles.push_back( m_environment.megaFilePath_fromPath( filePath ) );
                 }
-                else if ( filePath.extension() == mega::io::cppFilePath::extension() )
+                else if( filePath.extension() == mega::io::cppFilePath::extension() )
                 {
                     cppSourceFiles.push_back( m_environment.cppFilePath_fromPath( filePath ) );
                 }
-                else if ( filePath.extension() == mega::io::schFilePath::extension() )
+                else if( filePath.extension() == mega::io::schFilePath::extension() )
                 {
                     schSourceFiles.push_back( m_environment.schFilePath_fromPath( filePath ) );
                 }
@@ -167,12 +169,12 @@ public:
 
             std::vector< mega::io::megaFilePath > dependencies;
             {
-                for ( const boost::filesystem::path& dependency : componentInfo.getDependencyFiles() )
+                for( const boost::filesystem::path& dependency : componentInfo.getDependencyFiles() )
                 {
                     mega::utilities::Glob           glob{ dependency.parent_path(), dependency.filename().string() };
                     mega::utilities::FilePathVector matchedFilePaths;
                     mega::utilities::resolveGlob( glob, m_environment.srcDir(), matchedFilePaths );
-                    for ( const boost::filesystem::path& matchedFilePath : matchedFilePaths )
+                    for( const boost::filesystem::path& matchedFilePath : matchedFilePaths )
                     {
                         dependencies.push_back( m_environment.megaFilePath_fromPath( matchedFilePath ) );
                     }
@@ -181,7 +183,7 @@ public:
 
             Components::Component* pComponent
                 = database.construct< Components::Component >( Components::Component::Args(
-                    componentInfo.getComponentType(), componentInfo.getName(), componentFilePath,
+                    componentInfo.getComponentType(), componentInfo.getName(), componentFilePath, pythonFilePath,
                     componentInfo.getSrcDir(), componentInfo.getBuildDir(), componentInfo.getCPPFlags(),
                     componentInfo.getCPPDefines(), componentInfo.getIncludeDirectories(), dependencies, megaSourceFiles,
                     cppSourceFiles, schSourceFiles ) );
