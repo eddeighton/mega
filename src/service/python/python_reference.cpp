@@ -294,19 +294,33 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
             {
                 case id_exp_Read:
                 {
-                    auto pReadFunction
-                        = reinterpret_cast< mega::runtime::invocation::Read::FunctionPtr >( functionInfo.pFunctionPtr );
-                    void* pResult = pReadFunction( m_reference );
-                    return m_module.getPythonMangle().cppToPython( functionInfo.typeInfo.mangledType, pResult );
+                    void* pResult = nullptr;
+                    m_module.invoke(
+                        [ &functionInfo, &m_reference = m_reference, &pResult ]()
+                        {
+                            auto pReadFunction = reinterpret_cast< mega::runtime::invocation::Read::FunctionPtr >(
+                                functionInfo.pFunctionPtr );
+                            pResult = pReadFunction( m_reference );
+                        } );
+                    if( pResult )
+                    {
+                        return m_module.getPythonMangle().cppToPython( functionInfo.typeInfo.mangledType, pResult );
+                    }
                 }
                 case id_exp_Write:
                 {
-                    auto pWriteFunction = reinterpret_cast< mega::runtime::invocation::Write::FunctionPtr >(
-                        functionInfo.pFunctionPtr );
                     pybind11::object firstArg = pyArgs[ 0 ];
                     void*            pArg
                         = m_module.getPythonMangle().pythonToCpp( functionInfo.typeInfo.mangledType, firstArg.ptr() );
-                    const mega::reference result = pWriteFunction( m_reference, pArg );
+
+                    mega::reference result;
+                    m_module.invoke(
+                        [ &functionInfo, &m_reference = m_reference, &pArg, &result ]()
+                        {
+                            auto pWriteFunction = reinterpret_cast< mega::runtime::invocation::Write::FunctionPtr >(
+                                functionInfo.pFunctionPtr );
+                            result = pWriteFunction( m_reference, pArg );
+                        } );
                     return cast( m_module, result );
                 }
                 case id_exp_Read_Link:
