@@ -74,6 +74,7 @@ public:
     Path ContextTemplate() const;
     Path InterfaceTemplate() const;
     Path OperationsTemplate() const;
+    Path PythonWrapperTemplate() const;
     Path ImplementationTemplate() const;
 
     // interface file paths
@@ -85,6 +86,10 @@ public:
     PrecompiledHeaderFile      OperationsPCH( const megaFilePath& source ) const;
     GeneratedCPPSourceFilePath Implementation( const megaFilePath& source ) const;
     ObjectFilePath             ImplementationObj( const megaFilePath& source ) const;
+
+    // python wrapper file paths
+    GeneratedCPPSourceFilePath PythonWrapper( const megaFilePath& source ) const;
+    ObjectFilePath             PythonObj( const megaFilePath& source ) const;
 
     // library cpp file paths
     GeneratedHPPSourceFilePath Include( const boost::filesystem::path& componentBuildDir,

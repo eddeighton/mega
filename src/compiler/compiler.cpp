@@ -252,7 +252,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    const TskDesc pythonOperations = encode( Task{ eTask_PythonOperations, manifestFilePath } );
+    const TskDesc pythonOperations   = encode( Task{ eTask_PythonOperations, manifestFilePath } );
     const TskDesc dependencyAnalysis = encode( Task{ eTask_DependencyAnalysis, manifestFilePath } );
     const TskDesc symbolAnalysis     = encode( Task{ eTask_SymbolAnalysis, manifestFilePath } );
 
@@ -356,17 +356,22 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                         for( const mega::io::megaFilePath& sourceFilePath : pComponent->get_mega_source_files() )
                         {
                             const TskDesc operations        = encode( Task{ eTask_Operations, sourceFilePath } );
+                            const TskDesc pythonWrapper     = encode( Task{ eTask_PythonWrapper, sourceFilePath } );
                             const TskDesc operationsPCH     = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
                             const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
                             const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
+                            const TskDesc pythonObj         = encode( Task{ eTask_PythonObject, sourceFilePath } );
 
                             dependencies.add( operations, concreteTypeIDRolloutTasks );
+                            dependencies.add( pythonWrapper, concreteTypeIDRolloutTasks );
                             dependencies.add( operationsPCH, TskDescVec{ operations } );
                             dependencies.add( implementation, TskDescVec{ operationsPCH } );
                             dependencies.add( implementationObj, TskDescVec{ implementation } );
+                            dependencies.add( pythonObj, TskDescVec{ pythonWrapper } );
 
                             operationsTasks.push_back( operationsPCH );
                             binaryTasks.push_back( implementationObj );
+                            binaryTasks.push_back( pythonObj );
                         }
                     }
                     const TskDesc interfaceComponent

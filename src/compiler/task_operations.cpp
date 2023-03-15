@@ -27,13 +27,13 @@
 #include "utilities/clang_format.hpp"
 
 #include "common/file.hpp"
+#include <common/stash.hpp>
 
 #include "nlohmann/json.hpp"
 
 #include "inja/inja.hpp"
 #include "inja/environment.hpp"
 #include "inja/template.hpp"
-#include <common/stash.hpp>
 
 #include <vector>
 #include <string>

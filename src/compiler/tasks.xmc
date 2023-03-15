@@ -50,6 +50,9 @@ TASK(OperationsPCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),con
 TASK(Implementation,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(ImplementationObj,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
+TASK(PythonWrapper,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(PythonObject,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
 TASK(Meta,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
 TASK(Unity,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
 

@@ -317,7 +317,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 {
                     auto pCallFunction = reinterpret_cast< mega::runtime::invocation::Call::FunctionPtr >(
                         functionInfo.pFunctionPtr );
-                    const mega::runtime::CallResult callResult = pCallFunction( m_reference );
+                    mega::runtime::CallResult callResult = pCallFunction( m_reference );
 
                     auto pPythonWrapperFunction = 
                         m_module.getPythonWrapper( callResult.interfaceTypeID );

@@ -17,10 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef BUILDSYSTEM_TOOLS_15_SEPT_2020
 #define BUILDSYSTEM_TOOLS_15_SEPT_2020
 
@@ -182,11 +178,10 @@ public:
         return compilation;
     }
 
-
     template < typename TComponentType >
     static inline Compilation make_cpp_includePCH_compilation( const io::BuildEnvironment& environment,
-                                                           const utilities::ToolChain& toolChain,
-                                                           TComponentType*             pComponent )
+                                                               const utilities::ToolChain& toolChain,
+                                                               TComponentType*             pComponent )
     {
         Compilation compilation;
 
@@ -302,6 +297,37 @@ public:
 
         compilation.inputFile    = environment.FilePath( environment.CPPImplementation( sourceFile ) );
         compilation.outputObject = environment.FilePath( environment.CPPObj( sourceFile ) );
+
+        return compilation;
+    }
+
+    template < typename TComponentType >
+    static inline Compilation make_python_obj_compilation( const io::BuildEnvironment& environment,
+                                                                  const utilities::ToolChain& toolChain,
+                                                                  TComponentType*             pComponent,
+                                                                  const io::megaFilePath&     sourceFile
+
+    )
+    {
+        Compilation compilation;
+
+        compilation.compilationMode = CompilationMode::eNormal;
+
+        compilation.compiler        = toolChain.clangCompilerPath;
+        compilation.compiler_plugin = toolChain.clangPluginPath;
+
+        compilation.srcDir     = environment.srcDir();
+        compilation.buildDir   = environment.buildDir();
+        compilation.sourceFile = environment.FilePath( sourceFile );
+
+        compilation.flags       = pComponent->get_cpp_flags();
+        compilation.defines     = pComponent->get_cpp_defines();
+        compilation.includeDirs = pComponent->get_include_directories();
+
+        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ) };
+
+        compilation.inputFile    = environment.FilePath( environment.PythonWrapper( sourceFile ) );
+        compilation.outputObject = environment.FilePath( environment.PythonObj( sourceFile ) );
 
         return compilation;
     }

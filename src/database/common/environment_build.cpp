@@ -89,6 +89,14 @@ BuildEnvironment::Path BuildEnvironment::OperationsTemplate() const
     return result;
 }
 
+BuildEnvironment::Path BuildEnvironment::PythonWrapperTemplate() const
+{
+    VERIFY_RTE( !m_directories.templatesDir.empty() );
+    Path result = m_directories.templatesDir / "python_wrapper.jinja";
+    VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+    return result;
+}
+
 BuildEnvironment::Path BuildEnvironment::ImplementationTemplate() const
 {
     VERIFY_RTE( !m_directories.templatesDir.empty() );
@@ -164,6 +172,24 @@ ObjectFilePath BuildEnvironment::ImplementationObj( const megaFilePath& source )
 {
     std::ostringstream os;
     os << source.path().filename().string() << ".impl" << ObjectFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return ObjectFilePath( dirPath / os.str() );
+}
+
+GeneratedCPPSourceFilePath BuildEnvironment::PythonWrapper( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".python" << GeneratedCPPSourceFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return GeneratedCPPSourceFilePath( dirPath / os.str() );
+}
+
+ObjectFilePath BuildEnvironment::PythonObj( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".python" << ObjectFilePath::extension().string();
     auto dirPath = source.path();
     dirPath.remove_filename();
     return ObjectFilePath( dirPath / os.str() );

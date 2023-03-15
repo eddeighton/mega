@@ -72,6 +72,7 @@ set( JINJA_TEMPLATES
 	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/impl.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/python_wrapper.jinja 
 	)
 
 set( COMPILER_TASKS

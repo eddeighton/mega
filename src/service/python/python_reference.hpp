@@ -40,7 +40,7 @@ class PythonReference
 {
 public:
     using TypePath              = std::vector< mega::TypeID >;
-    using PythonWrapperFunction = PyObject* ( * )( const mega::runtime::CallResult&, const pybind11::args& );
+    using PythonWrapperFunction = PyObject* ( * )( mega::runtime::CallResult&, const pybind11::args& );
 
     class Registration
     {
