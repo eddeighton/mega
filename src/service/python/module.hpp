@@ -72,7 +72,12 @@ public:
         void*                                      pFunctionPtr = nullptr;
         mega::runtime::JITBase::InvocationTypeInfo typeInfo;
     };
-    using FunctionTable = std::map< mega::InvocationID, FunctionInfo >;
+
+    struct WrapperInfo
+    {
+        PythonReference::PythonWrapperFunction pFunctionPtr = nullptr;
+        mega::runtime::JITBase::ActionInfo     actionInfo;
+    };
 
     using Ptr = std::shared_ptr< PythonModule >;
 
@@ -89,7 +94,8 @@ public:
     PythonModule& operator=( PythonModule&& )      = delete;
 
     // Python Dynamic Invocations
-    const FunctionInfo& invoke( const mega::InvocationID& invocationID );
+    const FunctionInfo&                    invoke( const mega::InvocationID& invocationID );
+    PythonReference::PythonWrapperFunction getPythonWrapper( TypeID interfaceTypeID );
 
     // Megastructure Execution
     void       shutdown();
@@ -119,6 +125,9 @@ public:
     const mega::mangle::PythonMangle&    getPythonMangle() const { return m_pythonMangle; }
 
 private:
+    using FunctionTable = std::map< mega::InvocationID, FunctionInfo >;
+    using WrapperTable  = std::map< TypeID, WrapperInfo >;
+
     LogConfig                                        m_logConfig;
     boost::asio::io_context                          m_ioContext;
     Python                                           m_python;
@@ -126,6 +135,7 @@ private:
     network::ConversationBase::Ptr                   m_mpoConversation;
     std::unique_ptr< PythonReference::Registration > m_pRegistration;
     FunctionTable                                    m_functionTable;
+    WrapperTable                                     m_wrapperTable;
     mega::mangle::PythonMangle                       m_pythonMangle;
 };
 } // namespace mega::service::python

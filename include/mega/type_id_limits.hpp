@@ -28,12 +28,13 @@
 namespace mega
 {
 
-static constexpr auto max_object_id     = std::numeric_limits< U8 >::max();
-static constexpr auto max_sub_object_id = static_cast< U8 >( std::numeric_limits< U8 >::max() >> 1 );
+static constexpr auto max_object_id     = static_cast< U8 >( std::numeric_limits< U8 >::max() >> 1 );
+static constexpr auto max_sub_object_id = std::numeric_limits< U8 >::max();
 static constexpr auto min_object_id     = std::numeric_limits< U8 >::min();
 static constexpr auto min_sub_object_id = std::numeric_limits< U8 >::min();
 
-static_assert( max_sub_object_id == 127, "Maths is wrong" );
+static_assert( max_object_id == 127, "Maths is wrong" );
+static_assert( max_sub_object_id == 255, "Maths is wrong" );
 
 static constexpr auto max_typeID_context = TypeID::make_context( max_object_id, max_sub_object_id );
 static constexpr auto min_typeID_context = TypeID::make_context( min_object_id, min_sub_object_id );

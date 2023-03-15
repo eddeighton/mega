@@ -34,7 +34,7 @@ public:
 private:
     struct ContextID
     {
-        U16 object : 8, subObject : 7, flag : 1;
+        U16 subObject : 8, object : 7, flag : 1;
     };
 
     union
@@ -93,11 +93,11 @@ public:
 
     constexpr static inline TypeID make_context( U8 objectID, U8 subObjectID = 0 )
     {
-        return TypeID{ ContextID{ objectID, subObjectID, eType } };
+        return TypeID{ ContextID{ subObjectID, objectID, eType } };
     }
     constexpr static inline TypeID make_object_type( TypeID typeID )
     {
-        return TypeID{ ContextID{ typeID.getObjectID(), 0U, eType } };
+        return TypeID{ ContextID{ 0U, typeID.getObjectID(), eType } };
     }
 };
 static_assert( sizeof( TypeID ) == 2U, "Invalid TypeID Size" );

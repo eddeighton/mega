@@ -28,9 +28,17 @@
 
 #include <ostream>
 #include <sstream>
+#include <iomanip>
 
 namespace mega::runtime
 {
+
+static inline std::string printTypeID( const TypeID& typeID )
+{
+    std::ostringstream os;
+    os << "0x" << std::hex << std::setfill( '0' ) << std::setw( 4 ) << typeID.getSymbolID();
+    return os.str();
+}
 
 static inline void symbolPrefix( const char* prefix, std::ostream& os )
 {
@@ -42,46 +50,47 @@ static inline void symbolPrefix( const char* prefix, std::ostream& os )
 static inline void symbolPrefix( const char* prefix, RelationID relationID, std::ostream& os )
 {
     std::ostringstream osTypeID;
-    osTypeID << prefix << relationID.getLower().getSymbolID() << '_' << relationID.getUpper().getSymbolID();
+    osTypeID << prefix << printTypeID( relationID.getLower() ) << '_' << printTypeID( relationID.getUpper() );
     os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 
 static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, std::ostream& os )
 {
-    using ::operator<<;
+    using ::           operator<<;
     std::ostringstream osTypeID;
-    osTypeID << prefix << objectTypeID.getSymbolID();
+    osTypeID << prefix << printTypeID( objectTypeID );
     os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 
 static inline void symbolPrefix( const mega::InvocationID& invocationID, std::ostream& os )
 {
-    using ::operator<<;
+    using ::           operator<<;
     std::ostringstream osTypeID;
     osTypeID << invocationID;
     os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 
-static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, mega::TypeID objectTypeID2, std::ostream& os )
+static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, mega::TypeID objectTypeID2,
+                                 std::ostream& os )
 {
-    using ::operator<<;
+    using ::           operator<<;
     std::ostringstream osTypeID;
-    osTypeID << prefix << objectTypeID.getSymbolID() << '_' << objectTypeID2.getSymbolID();
+    osTypeID << prefix << printTypeID( objectTypeID ) << '_' << printTypeID( objectTypeID2 );
     os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 
 static std::string megaMangle( const std::string& strCanonicalTypeName )
 {
     std::ostringstream os;
-    for ( auto c : strCanonicalTypeName )
+    for( auto c : strCanonicalTypeName )
     {
-        if ( std::isspace( c ) )
+        if( std::isspace( c ) )
             continue;
-        else if ( std::isalnum( c ) )
+        else if( std::isalnum( c ) )
             os << c;
         else
         {
-            switch ( c )
+            switch( c )
             {
                 case ':':
                     os << '0';

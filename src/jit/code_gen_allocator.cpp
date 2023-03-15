@@ -107,7 +107,7 @@ void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::
                                   nlohmann::json& data )
 {
     std::string    strInstance;
-    nlohmann::json element( { { "concrete_id", pUserDim->get_concrete_id().getSymbolID() },
+    nlohmann::json element( { { "concrete_id", printTypeID( pUserDim->get_concrete_id() ) },
                               { "is_object", false },
                               { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
                               { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
@@ -191,7 +191,7 @@ std::optional< nlohmann::json > allocatorLink( const DatabaseInstance& database,
         }
 
         std::string    strInstance;
-        nlohmann::json element( { { "concrete_id", pLink->get_concrete_id().getSymbolID() },
+        nlohmann::json element( { { "concrete_id", printTypeID( pLink->get_concrete_id() ) },
                                   { "is_object", false },
                                   { "name", pLink->get_link()->get_identifier() },
                                   { "type", strCanonicalType },
@@ -218,8 +218,8 @@ std::optional< nlohmann::json > allocatorLink( const DatabaseInstance& database,
                     auto pObjectOpt = pConcreteLink->get_concrete_object();
                     VERIFY_RTE( pObjectOpt.has_value() );
                     nlohmann::json type(
-                        { { "link_type_id", pConcreteLink->get_concrete_id().getSymbolID() },
-                          { "object_type_id", pObjectOpt.value()->get_concrete_id().getSymbolID() },
+                        { { "link_type_id", printTypeID( pConcreteLink->get_concrete_id() ) },
+                          { "object_type_id", printTypeID( pObjectOpt.value()->get_concrete_id() ) },
                           { "full_name", fullInterfaceTypeName( pObjectOpt.value()->get_interface_object() ) }
 
                         } );
@@ -236,8 +236,8 @@ std::optional< nlohmann::json > allocatorLink( const DatabaseInstance& database,
                     auto pObjectOpt = pConcreteLink->get_concrete_object();
                     VERIFY_RTE( pObjectOpt.has_value() );
                     nlohmann::json type(
-                        { { "link_type_id", pConcreteLink->get_concrete_id().getSymbolID() },
-                          { "object_type_id", pObjectOpt.value()->get_concrete_id().getSymbolID() },
+                        { { "link_type_id", printTypeID( pConcreteLink->get_concrete_id() ) },
+                          { "object_type_id", printTypeID( pObjectOpt.value()->get_concrete_id() ) },
                           { "full_name", fullInterfaceTypeName( pObjectOpt.value()->get_interface_object() ) }
 
                         } );
@@ -277,7 +277,7 @@ void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Con
     }
 
     {
-        nlohmann::json element( { { "concrete_id", pContext->get_concrete_id().getSymbolID() },
+        nlohmann::json element( { { "concrete_id", printTypeID( pContext->get_concrete_id() ) },
                                   { "is_object", !!db_cast< Concrete::Object >( pContext ) },
                                   { "name", pContext->get_interface()->get_identifier() },
                                   { "iter", makeIterName( pContext ) },
@@ -339,12 +339,12 @@ void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Con
     }
 
     {
-        nlohmann::json element( { { "concrete_id", pContext->get_concrete_id().getSymbolID() },
-                                    { "is_object", !!db_cast< Concrete::Object >( pContext ) },
-                                    { "name", pContext->get_interface()->get_identifier() },
-                                    { "is_part_begin", false },
-                                    { "is_part_end", true },
-                                    { "owning", false }
+        nlohmann::json element( { { "concrete_id", printTypeID( pContext->get_concrete_id() ) },
+                                  { "is_object", !!db_cast< Concrete::Object >( pContext ) },
+                                  { "name", pContext->get_interface()->get_identifier() },
+                                  { "is_part_begin", false },
+                                  { "is_part_end", true },
+                                  { "owning", false }
 
         } );
         data[ "elements" ].push_back( element );
@@ -362,7 +362,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
     const std::string strFullTypeName = fullInterfaceTypeName( pObject->get_interface_object() );
 
     std::ostringstream osObjectTypeID;
-    osObjectTypeID << objectTypeID.getSymbolID();
+    osObjectTypeID << printTypeID( objectTypeID );
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
                            { "objectName", strFullTypeName },
                            { "parts", nlohmann::json::array() },
@@ -400,13 +400,12 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
 
                 for( auto pUserDim : pPart->get_user_dimensions() )
                 {
-                    const std::string strMangle
-                        = megaMangle( pUserDim->get_interface_dimension()->get_erased_type() );
-                    nlohmann::json member( { { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
-                                             { "type_id", pUserDim->get_concrete_id().getSymbolID() },
-                                             { "mangle", strMangle },
-                                             { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
-                                             { "offset", pUserDim->get_offset() } } );
+                    const std::string strMangle = megaMangle( pUserDim->get_interface_dimension()->get_erased_type() );
+                    nlohmann::json    member( { { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
+                                                { "type_id", printTypeID( pUserDim->get_concrete_id() ) },
+                                                { "mangle", strMangle },
+                                                { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
+                                                { "offset", pUserDim->get_offset() } } );
                     part[ "members" ].push_back( member );
                     mangledDataTypes.insert( strMangle );
                 }
@@ -447,7 +446,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
 
                     std::string    strMangle;
                     nlohmann::json link( { { "type", mega::psz_mega_reference_vector },
-                                           { "type_id", pLinkDim->get_concrete_id().getSymbolID() },
+                                           { "type_id", printTypeID( pLinkDim->get_concrete_id() ) },
                                            { "mangle", "" },
                                            { "name", pLinkDim->get_link()->get_link()->get_identifier() },
                                            { "offset", pLinkDim->get_offset() },
@@ -480,10 +479,11 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
                             {
                                 auto pObjectOpt = pConcreteLink->get_concrete_object();
                                 VERIFY_RTE( pObjectOpt.has_value() );
-                                nlohmann::json type( { { "link_type_id", pConcreteLink->get_concrete_id().getSymbolID() },
-                                                       { "object_type_id", pObjectOpt.value()->get_concrete_id().getSymbolID() }
+                                nlohmann::json type(
+                                    { { "link_type_id", printTypeID( pConcreteLink->get_concrete_id() ) },
+                                      { "object_type_id", printTypeID( pObjectOpt.value()->get_concrete_id() ) }
 
-                                } );
+                                    } );
                                 link[ "types" ].push_back( type );
                             }
                         }
@@ -496,10 +496,11 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
                             {
                                 auto pObjectOpt = pConcreteLink->get_concrete_object();
                                 VERIFY_RTE( pObjectOpt.has_value() );
-                                nlohmann::json type( { { "link_type_id", pConcreteLink->get_concrete_id().getSymbolID() },
-                                                       { "object_type_id", pObjectOpt.value()->get_concrete_id().getSymbolID() }
+                                nlohmann::json type(
+                                    { { "link_type_id", printTypeID( pConcreteLink->get_concrete_id() ) },
+                                      { "object_type_id", printTypeID( pObjectOpt.value()->get_concrete_id() ) }
 
-                                } );
+                                    } );
                                 link[ "types" ].push_back( type );
                             }
                         }
@@ -518,12 +519,13 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const Dat
 
                         std::ostringstream osAllocName;
                         osAllocName << "alloc_"
-                                    << pAllocator->get_allocator()->get_allocated_context()->get_concrete_id().getSymbolID();
+                                    << printTypeID(
+                                           pAllocator->get_allocator()->get_allocated_context()->get_concrete_id() );
 
                         mangledDataTypes.insert( strMangle );
 
                         nlohmann::json member( { { "type", strAllocatorTypeName },
-                                                 { "type_id", pAllocDim->get_concrete_id().getSymbolID() },
+                                                 { "type_id", printTypeID( pAllocDim->get_concrete_id() ) },
                                                  { "mangle", strMangle },
                                                  { "name", osAllocName.str() },
                                                  { "offset", pAllocator->get_offset() } } );

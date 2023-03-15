@@ -54,7 +54,7 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
         VERIFY_RTE_MSG( concrete.size() > 0U, "Failed to locate Root symbol" );
         VERIFY_RTE_MSG( concrete.size() == 1U, "Multiple Root symbols defined" );
         m_pConcreteRoot = FinalStage::db_cast< FinalStage::Concrete::Object >( concrete.front() );
-        VERIFY_RTE_MSG( m_pConcreteRoot->get_concrete_id() == 1, "Concrete Root Type ID is NOT one!" );
+        VERIFY_RTE_MSG( m_pConcreteRoot->get_concrete_id() == ROOT_TYPE_ID, "Concrete Root Type ID is NOT one!" );
     }
 
     {

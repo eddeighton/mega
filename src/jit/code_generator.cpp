@@ -218,7 +218,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const Datab
             auto                pLinkReference = pLink->get_link_reference();
             MemoryLayout::Part* pPart          = pLinkReference->get_part();
 
-            nlohmann::json source( { { "type", pLink->get_concrete_id().getSymbolID() },
+            nlohmann::json source( { { "type", printTypeID( pLink->get_concrete_id() ) },
                                      { "part_offset", pPart->get_offset() },
                                      { "part_size", pPart->get_size() },
                                      { "dimension_offset", pLinkReference->get_offset() }
@@ -236,7 +236,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const Datab
             auto                pLinkReference = pLink->get_link_reference();
             MemoryLayout::Part* pPart          = pLinkReference->get_part();
 
-            nlohmann::json target( { { "type", pLink->get_concrete_id().getSymbolID() },
+            nlohmann::json target( { { "type", printTypeID( pLink->get_concrete_id() ) },
                                      { "part_offset", pPart->get_offset() },
                                      { "part_size", pPart->get_size() },
                                      { "dimension_offset", pLinkReference->get_offset() }
@@ -280,7 +280,7 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
 
     for( const auto pObject : database.getObjects() )
     {
-        data[ "object_types" ].push_back( pObject->get_concrete_id().getSymbolID() );
+        data[ "object_types" ].push_back( printTypeID( pObject->get_concrete_id() ) );
     }
     std::set< std::string > events;
     for( auto pUserDimension : database.getUserDimensions() )
@@ -293,7 +293,7 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
             // const bool          bSimple    = pUserDimension->get_interface_dimension()->get_simple();
             const std::string strMangled = megaMangle( pUserDimension->get_interface_dimension()->get_erased_type() );
 
-            nlohmann::json typeInfo( { { "type_id", pUserDimension->get_concrete_id().getSymbolID() },
+            nlohmann::json typeInfo( { { "type_id", printTypeID( pUserDimension->get_concrete_id() ) },
                                        { "part_offset", pPart->get_offset() },
                                        { "part_size", pPart->get_size() },
                                        { "dimension_offset", pUserDimension->get_offset() },
@@ -323,7 +323,7 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
 
         /*
             MemoryLayout::Part* pPart = pLinkDimension->get_part();
-            nlohmann::json typeInfo( { { "type_id", pLinkDimension->get_concrete_id().getSymbolID() },
+            nlohmann::json typeInfo( { { "type_id", printTypeID( pLinkDimension->get_concrete_id()) },
                                         { "part_offset", pPart->get_offset() },
                                         { "part_size", pPart->get_size() },
                                         { "dimension_offset", pLinkDimension->get_offset() },

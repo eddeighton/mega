@@ -196,7 +196,7 @@ const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID
     }
     else
     {
-        iFind = m_functionTable.insert( std::make_pair( invocationID, PythonModule::FunctionInfo{} ) ).first;
+        iFind = m_functionTable.insert( { invocationID, PythonModule::FunctionInfo{} } ).first;
     }
 
     PythonModule::FunctionInfo& functionInfo = iFind->second;
@@ -210,6 +210,34 @@ const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID
     pythonRequest().PythonExecuteJIT( functor );
 
     return functionInfo;
+}
+
+PythonReference::PythonWrapperFunction PythonModule::getPythonWrapper( TypeID interfaceTypeID )
+{
+    SPDLOG_TRACE( "PythonModule::getPythonWrapper: {}", interfaceTypeID );
+
+    auto iFind = m_wrapperTable.find( interfaceTypeID );
+    if( iFind != m_wrapperTable.end() )
+    {
+        if( iFind->second.pFunctionPtr != nullptr )
+            return iFind->second.pFunctionPtr;
+    }
+    else
+    {
+        iFind = m_wrapperTable.insert( { interfaceTypeID, PythonModule::WrapperInfo{} } ).first;
+    }
+
+    PythonModule::WrapperInfo& wrapperInfo = iFind->second;
+    mega::runtime::JITFunctor  functor(
+        [ &interfaceTypeID, &wrapperInfo ]( mega::runtime::JITBase& jit, void* )
+        {
+            void** ppFunction = reinterpret_cast< void** >( &wrapperInfo.pFunctionPtr );
+            jit.getPythonFunction( interfaceTypeID, ppFunction, wrapperInfo.actionInfo );
+        } );
+
+    pythonRequest().PythonExecuteJIT( functor );
+
+    return wrapperInfo.pFunctionPtr;
 }
 
 void PythonModule::shutdown()

@@ -32,6 +32,7 @@ struct JIT_EXPORT CallResult
 {
     TypeErasedFunction pFunction;
     reference          context;
+    TypeID             interfaceTypeID;
 };
 
 } // namespace mega::runtime

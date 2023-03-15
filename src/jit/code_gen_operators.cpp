@@ -55,11 +55,11 @@ mega::reference mega_cast_{{ target }}( const mega::reference& source )
     std::ostringstream osCPPCode;
     try
     {
-        nlohmann::json templateData( { { "target", target.getSymbolID() }, { "types", nlohmann::json::array() } } );
+        nlohmann::json templateData( { { "target", printTypeID( target ) }, { "types", nlohmann::json::array() } } );
 
         for( TypeID type : database.getCompatibleConcreteTypes( target ) )
         {
-            templateData[ "types" ].push_back( type.getSymbolID() );
+            templateData[ "types" ].push_back( printTypeID( type ) );
         }
 
         osCPPCode << inja.render( szTemplate, templateData );
@@ -70,7 +70,7 @@ mega::reference mega_cast_{{ target }}( const mega::reference& source )
         THROW_RTE( "inja::InjaError in CodeGenerator::gen_cast: " << ex.what() );
     }
     std::ostringstream osModule;
-    osModule << "mega_cast_" << target.getSymbolID();
+    osModule << "mega_cast_" << printTypeID( target );
     compiler.compileToLLVMIR( osModule.str(), osCPPCode.str(), os, std::nullopt );
 }
 

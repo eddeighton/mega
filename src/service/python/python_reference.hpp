@@ -23,6 +23,8 @@
 
 #include "mega/reference.hpp"
 
+#include "jit/functions.hpp"
+
 #include <pybind11/pybind11.h>
 
 #include <vector>
@@ -37,7 +39,8 @@ class PythonModule;
 class PythonReference
 {
 public:
-    using TypePath = std::vector< mega::TypeID >;
+    using TypePath              = std::vector< mega::TypeID >;
+    using PythonWrapperFunction = PyObject* ( * )( const mega::runtime::CallResult&, const pybind11::args& );
 
     class Registration
     {
@@ -48,7 +51,7 @@ public:
         ~Registration();
 
         PyTypeObject* getTypeObject() const { return m_pTypeObject; }
-        mega::TypeID getTypeID( const char* pszIdentity ) const;
+        mega::TypeID  getTypeID( const char* pszIdentity ) const;
 
     private:
         SymbolTable                m_symbols;

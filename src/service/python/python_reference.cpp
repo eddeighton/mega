@@ -312,7 +312,19 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 case id_exp_Read_Link:
                 case id_exp_Write_Link:
                 case id_exp_Allocate:
+                break;
                 case id_exp_Call:
+                {
+                    auto pCallFunction = reinterpret_cast< mega::runtime::invocation::Call::FunctionPtr >(
+                        functionInfo.pFunctionPtr );
+                    const mega::runtime::CallResult callResult = pCallFunction( m_reference );
+
+                    auto pPythonWrapperFunction = 
+                        m_module.getPythonWrapper( callResult.interfaceTypeID );
+
+                    return pPythonWrapperFunction( callResult, pyArgs );
+                }
+                break;
                 case id_exp_Start:
                 case id_exp_Stop:
                 case id_exp_Save:
