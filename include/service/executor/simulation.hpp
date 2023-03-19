@@ -22,8 +22,8 @@
 
 #include "service/executor/request.hpp"
 
-#include "clock.hpp"
-#include "scheduler.hpp"
+#include "service/executor/clock.hpp"
+#include "service/executor/scheduler.hpp"
 
 #include "service/executor/state_machine.hpp"
 #include "service/network/sender_factory.hpp"
@@ -48,11 +48,12 @@ public:
 
     Simulation( Executor& executor, const network::ConversationID& conversationID );
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
-
-    virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
-    virtual void             run( boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message     dispatchRequest( const network::Message&     msg,
+                                                  boost::asio::yield_context& yield_ctx ) override;
+    virtual network::ReceivedMsg receive( boost::asio::yield_context& yield_ctx ) override;
+    virtual void                 unqueue() override;
+    virtual bool                 queue( const network::ReceivedMsg& msg ) override;
+    virtual void                 run( boost::asio::yield_context& yield_ctx ) override;
 
     // MPOContext
     virtual network::mpo::Request_Sender     getMPRequest() override;
@@ -64,10 +65,10 @@ public:
     virtual network::jit::Request_Sender     getLeafJITRequest() override;
 
     // network::sim::Impl
-    virtual void SimErrorCheck(boost::asio::yield_context& yield_ctx) override;
-    virtual Snapshot SimObjectSnapshot( const reference& object, boost::asio::yield_context& ) override;
+    virtual void      SimErrorCheck( boost::asio::yield_context& yield_ctx ) override;
+    virtual Snapshot  SimObjectSnapshot( const reference& object, boost::asio::yield_context& ) override;
     virtual reference SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& ) override;
-    virtual Snapshot SimSnapshot( const MPO&, boost::asio::yield_context& ) override;
+    virtual Snapshot  SimSnapshot( const MPO&, boost::asio::yield_context& ) override;
     virtual TimeStamp SimLockRead( const MPO&, const MPO&, boost::asio::yield_context& ) override;
     virtual TimeStamp SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& ) override;
     virtual void
@@ -106,6 +107,7 @@ private:
     StateMachine::MsgVector                              m_messageQueue;
     Clock                                                m_clock;
     std::string                                          m_strSimCreateError;
+    std::optional< network::ReceivedMsg >                m_simCreateMsgOpt;
 };
 
 } // namespace mega::service

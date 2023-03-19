@@ -53,8 +53,8 @@ set( PLUGIN_SOURCE
     ${MEGA_SRC_DIR}/service/plugin/plugin.cpp 
     ${MEGA_SRC_DIR}/service/plugin/platform.hpp 
     ${MEGA_SRC_DIR}/service/plugin/platform.cpp 
-    ${MEGA_SRC_DIR}/service/plugin/planet.hpp 
-    ${MEGA_SRC_DIR}/service/plugin/planet.cpp 
+    ${MEGA_SRC_DIR}/service/plugin/player_network.hpp 
+    ${MEGA_SRC_DIR}/service/plugin/player_network.cpp 
     )
 
 add_library( plugin SHARED ${PLUGIN_API} ${PLUGIN_SOURCE} )

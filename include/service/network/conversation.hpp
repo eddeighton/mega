@@ -64,7 +64,11 @@ public:
             return {};
     }
 
+    ReceivedMsg receiveDeferred( boost::asio::yield_context& yield_ctx );
+
 protected:
+    virtual void                         unqueue();
+    virtual bool                         queue( const ReceivedMsg& msg );
     virtual ReceivedMsg                  receive( boost::asio::yield_context& yield_ctx )     = 0;
     virtual std::optional< ReceivedMsg > try_receive( boost::asio::yield_context& yield_ctx ) = 0;
 
@@ -131,6 +135,9 @@ protected:
     std::vector< ConnectionID >           m_stack;
     std::set< ConnectionID >              m_disconnections;
     mutable std::optional< ConnectionID > m_selfConnectionID;
+    std::optional< ConversationID >       m_activeInterConID;
+    std::vector< network::ReceivedMsg >   m_deferedMessages;
+    std::vector< network::ReceivedMsg >   m_unqueuedMessages;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -199,17 +206,20 @@ public:
         m_selfConnectionID = os.str();
         return m_selfConnectionID.value();
     }
+
     virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
         const ReceivedMsg rMsg{ getConnectionID(), msg };
         send( rMsg );
         return boost::system::error_code{};
     }
+
     void sendErrorResponse( const ReceivedMsg& msg, const std::string& strErrorMsg )
     {
         const ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.getReceiverID(), strErrorMsg ) };
         send( rMsg );
     }
+
     virtual void sendErrorResponse( const ReceivedMsg& msg, const std::string& strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {

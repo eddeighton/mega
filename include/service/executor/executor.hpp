@@ -46,6 +46,8 @@ class Executor : public network::ConversationManager
     friend class ExecutorRequestConversation;
     friend class JobConversation;
     friend class Simulation;
+    friend class Platform;
+    friend class PlayerNetwork;
 
 public:
     using SimulationMap = std::unordered_map< mega::MPO, std::shared_ptr< Simulation >, mega::MPO::Hash >;

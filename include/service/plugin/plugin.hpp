@@ -21,6 +21,12 @@
 #ifndef GUARD_2023_March_07_plugin
 #define GUARD_2023_March_07_plugin
 
+#ifdef _WIN64
+using MEGA_U64 = unsigned long long;
+#else
+using MEGA_U64 = unsigned long int;
+#endif
+
 extern "C"
 {
     // lifetime
@@ -29,10 +35,14 @@ extern "C"
     void mp_shutdown();
 
     // network connection
-    int mp_network_count();
-    const char* mp_network_name( int networkID );
-    void mp_network_connect( int networkID );
+    MEGA_U64 mp_network_count();
+    const char* mp_network_name( MEGA_U64 networkID );
+    void mp_network_connect( MEGA_U64 networkID );
     void mp_network_disconnect();
+
+    // planet
+    void mp_planet_create();
+    void mp_planet_destroy();
 }
 
 #endif //GUARD_2023_March_07_plugin

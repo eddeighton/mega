@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "simulation.hpp"
+#include "service/executor/simulation.hpp"
 
 #include "jit/jit_exception.hpp"
 #include "jit/program_functions.hxx"
@@ -175,60 +175,32 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
             // process a message
             {
-                SUSPEND_MPO_CONTEXT();
-
+                unqueue();
+                const network::ReceivedMsg msg = receiveDeferred( yield_ctx );
+                switch( StateMachine::getMsgID( msg ) )
                 {
-                    const network::ReceivedMsg msg = receive( yield_ctx );
-                    m_messageQueue.push_back( msg );
-                }
-                while( m_channel.try_receive(
-                    [ &msgs = m_messageQueue ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+                    case StateMachine::Read::ID:
+                    case StateMachine::Write::ID:
+                    case StateMachine::Release::ID:
+                    case StateMachine::Destroy::ID:
+                    case StateMachine::Clock::ID:
                     {
-                        if( !ec )
+                        if( m_stateMachine.onMsg( { msg } ) )
                         {
-                            msgs.push_back( msg );
+                            if( !m_stateMachine.isTerminated() )
+                            {
+                                issueClock();
+                            }
                         }
-                        else
-                        {
-                            THROW_TODO;
-                        }
-                    } ) )
-                    ;
-
-                RESUME_MPO_CONTEXT();
-            }
-
-            // process non-state messages
-            {
-                tempMessages.clear();
-                for( const auto& msg : m_messageQueue )
-                {
-                    switch( StateMachine::getMsgID( msg ) )
-                    {
-                        case StateMachine::Read::ID:
-                        case StateMachine::Write::ID:
-                        case StateMachine::Release::ID:
-                        case StateMachine::Destroy::ID:
-                        case StateMachine::Clock::ID:
-                            tempMessages.push_back( msg );
-                            break;
-                        default:
-                            dispatchRequestImpl( msg, yield_ctx );
-                            break;
                     }
-                }
-                m_messageQueue.clear();
-            }
-
-            // returns whether there was clock tick
-            if( m_stateMachine.onMsg( tempMessages ) )
-            {
-                if( !m_stateMachine.isTerminated() )
-                {
-                    issueClock();
+                    break;
+                    default:
+                    {
+                        dispatchRequestImpl( msg, yield_ctx );
+                    }
+                    break;
                 }
             }
-            tempMessages.clear();
         }
     }
     catch( std::exception& ex )
@@ -243,74 +215,94 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
     }
 }
 
-network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+network::ReceivedMsg Simulation::receive( boost::asio::yield_context& yield_ctx )
 {
     network::ReceivedMsg msg;
-    while( true )
+    SUSPEND_MPO_CONTEXT();
+    msg = ExecutorRequestConversation::receive( yield_ctx );
+    RESUME_MPO_CONTEXT();
+    return msg;
+}
+
+void Simulation::unqueue()
+{
+    // at startup will queue the SimCreate request which should be
+    // acknowledged once simulation has completed startup
+    if( m_simCreateMsgOpt.has_value() )
     {
-        msg = receive( yield_ctx );
-
-        // simulation is running so process as normal
-        if( isRequest( msg.msg ) )
+        // can test if RootSimRun has run by checking the m_mpo is set
+        if( m_mpo.has_value() )
         {
-            if( m_mpo.has_value() || ( msg.msg.getID() == network::leaf_exe::MSG_RootSimRun_Request::ID ) )
-            {
-                switch( StateMachine::getMsgID( msg ) )
-                {
-                    case StateMachine::Read::ID:
-                    case StateMachine::Write::ID:
-                    case StateMachine::Release::ID:
-                    case StateMachine::Destroy::ID:
-                    {
-                        SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse queued: {}", msg.msg );
-                        m_messageQueue.push_back( msg );
-                    }
-                    break;
-                    case StateMachine::Clock::ID:
-                    {
-                        SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse re-issued clock: {}", msg.msg );
-                        issueClock();
-                    }
-                    break;
-                    default:
-                    {
-                        SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse got request: {}", msg.msg );
-                        dispatchRequestImpl( msg, yield_ctx );
-                    }
-                    break;
-                }
-
-                // check if connection has disconnected
-                if( !m_disconnections.empty() )
-                {
-                    ASSERT( !m_stack.empty() );
-                    if( m_disconnections.count( m_stack.back() ) )
-                    {
-                        SPDLOG_ERROR(
-                            "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
-                        const network::ReceivedMsg rMsg{
-                            m_stack.back(), network::make_error_msg( msg.msg.getReceiverID(), "Disconnection" ) };
-                        send( rMsg );
-                    }
-                }
-            }
-            else
-            {
-                // queue the messages
-                SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse queued: {}", msg.msg );
-                m_messageQueue.push_back( msg );
-            }
+            SPDLOG_TRACE( "SIM::unqueue: {}", m_simCreateMsgOpt.value().msg );
+            m_unqueuedMessages.push_back( m_simCreateMsgOpt.value() );
+            m_simCreateMsgOpt.reset();
+            m_activeInterConID.reset();
         }
         else
         {
-            break;
+            // otherwise do NOT queue any simulation messages yet
+            ExecutorRequestConversation::unqueue();
         }
     }
-    if( msg.msg.getID() == network::MSG_Error_Response::ID )
+    else if( !m_messageQueue.empty() )
     {
-        throw std::runtime_error( network::MSG_Error_Response::get( msg.msg ).what );
+        // unqueue the simulation messages 
+        // NOTE that m_activeInterConID must have NO value
+        m_activeInterConID.reset();
+        VERIFY_RTE_MSG( m_unqueuedMessages.empty(), "Unqueued messages not empty in Conversation::unqueue" );
+        for( const auto& msg : m_messageQueue )
+        {
+            m_unqueuedMessages.push_back( msg );
+        }
+        std::reverse( m_unqueuedMessages.begin(), m_unqueuedMessages.end() );
+        m_messageQueue.clear();
     }
-    return msg.msg;
+    else
+    {
+        // allow ordinary request processing
+        ExecutorRequestConversation::unqueue();
+    }
+}
+
+bool Simulation::queue( const network::ReceivedMsg& msg )
+{
+    switch( StateMachine::getMsgID( msg ) )
+    {
+        case StateMachine::Read::ID:
+        case StateMachine::Write::ID:
+        case StateMachine::Release::ID:
+        case StateMachine::Destroy::ID:
+        case StateMachine::Clock::ID:
+        {
+            // if there is an active inter conversation message
+            // then queue the simulation requests
+            // NOTE how simulation requests ARE not treated as inter conversation
+            // messages i.e. the DO NOT set the m_activeInterConID
+            if( m_activeInterConID.has_value() )
+            {
+                m_messageQueue.push_back( msg );
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        break;
+        case network::sim::MSG_SimCreate_Request::ID:
+        {
+            // queue SimCreate if RootSimRun has not run yet
+            if( !m_mpo.has_value() )
+            {
+                SPDLOG_TRACE( "SIM::queue: {}", msg.msg );
+                VERIFY_RTE( !m_simCreateMsgOpt.has_value() );
+                m_simCreateMsgOpt = msg;
+                return true;
+            }
+        }
+        break;
+    }
+    return ExecutorRequestConversation::queue( msg );
 }
 
 void Simulation::run( boost::asio::yield_context& yield_ctx )
@@ -333,19 +325,9 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
         m_strSimCreateError = ex.what();
     }
 
-    for( const auto& msg : m_messageQueue )
-    {
-        switch( StateMachine::getMsgID( msg ) )
-        {
-            case network::sim::MSG_SimCreate_Request::ID:
-                SPDLOG_TRACE( "Simulation::run pending pending MSG_SimCreate_Request" );
-                dispatchRequestImpl( msg, yield_ctx );
-                break;
-            default:
-                THROW_RTE( "Pending message while processing SimStart" );
-                break;
-        }
-    }
+    // TODO - flush queued messages
+
+    dispatchRemaining( yield_ctx );
 }
 
 void Simulation::SimErrorCheck( boost::asio::yield_context& yield_ctx )

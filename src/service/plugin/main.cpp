@@ -94,13 +94,29 @@ int main( int argc, const char* argv[] )
 
         mp_update();
 
-        mp_network_disconnect();
+        mp_planet_create();
 
-        mp_update();
+        {
+            for( int i = 0; i != 10; ++i )
+                mp_update();
+        }
 
         std::cout << "waiting for input..." << std::endl;
         char c;
         std::cin >> c;
+
+        mp_planet_destroy();
+        {
+            for( int i = 0; i != 10; ++i )
+                mp_update();
+        }
+
+        mp_network_disconnect();
+
+        {
+            for( int i = 0; i != 10; ++i )
+                mp_update();
+        }
 
         mp_shutdown();
 

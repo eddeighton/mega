@@ -18,45 +18,42 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef GUARD_2023_March_17_platform_state
+#define GUARD_2023_March_17_platform_state
 
-#include "planet.hpp"
+#include "common/assert_verify.hpp"
 
-#include "service/network/log.hpp"
+#include <string>
+#include <vector>
 
-namespace mega::service
+namespace mega::network
 {
-
-Planet::Planet( Executor& executor, const network::ConversationID& conversationID )
-    : ExecutorRequestConversation( executor, conversationID, std::nullopt )
+class PlatformState
 {
-}
-
-network::Message Planet::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
-{
-    network::Message result;
-    if( result = network::planet::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
-    return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
-}
-
-void Planet::run( boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "Planet::run" );
-
-    m_pYieldContext = &yield_ctx;
-
-    while( m_bRunning )
+public:
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
     {
-        run_one( yield_ctx );
+        THROW_RTE( "PlatformState serialization attempted" );
     }
 
-    dispatchRemaining( yield_ctx );
-}
+    
+    std::vector< std::string > m_availableNetworks;
+};
 
-void Planet::PlanetDestroy( boost::asio::yield_context& yield_ctx ) 
+class PlayerNetworkState
 {
-    SPDLOG_TRACE( "Planet::PlanetDestroy" );
-    m_bRunning = false;
+public:
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        THROW_RTE( "PlatformState serialization attempted" );
+    }
+
+    std::string m_currentNetwork;
+    
+};
+
 }
 
-} // namespace mega::service
+#endif //GUARD_2023_March_17_platform_state

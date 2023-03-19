@@ -18,10 +18,8 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "service/executor/request.hpp"
-
-#include "simulation.hpp"
-
 #include "service/executor/executor.hpp"
+#include "service/executor/simulation.hpp"
 
 #include "service/protocol/common/conversation_id.hpp"
 

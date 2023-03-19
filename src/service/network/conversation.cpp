@@ -81,6 +81,100 @@ void Conversation::onDisconnect( const ConnectionID& connectionID )
     }
 }
 
+ReceivedMsg Conversation::receiveDeferred( boost::asio::yield_context& yield_ctx )
+{
+    ReceivedMsg msg;
+    while( true )
+    {
+        if( !m_unqueuedMessages.empty() )
+        {
+            msg = m_unqueuedMessages.back();
+            m_unqueuedMessages.pop_back();
+        }
+        else
+        {
+            msg = receive( yield_ctx );
+        }
+        if( !queue( msg ) )
+        {
+            return msg;
+        }
+    }
+}
+
+bool isMsgFromConID( const network::Message& msg, const ConversationID& id )
+{
+    return ( network::isRequest( msg ) && ( id == msg.getSenderID() ) )
+           || ( !network::isRequest( msg ) && ( id == msg.getReceiverID() ) );
+}
+
+bool Conversation::queue( const ReceivedMsg& msg )
+{
+    if( m_activeInterConID.has_value() )
+    {
+        // test if message matches current inter conversation ID
+        if( isMsgFromConID( msg.msg, m_activeInterConID.value() ) )
+        {
+            return false;
+        }
+        else
+        {
+            // if not then queue message to handle later
+            SPDLOG_TRACE( "Conversation::queue: {}", msg.msg.getName() );
+            m_deferedMessages.push_back( msg );
+            return true;
+        }
+    }
+    else
+    {
+        // if message is a request then ALWAYS record the ID
+        // if message is response then
+        ASSERT( network::isRequest( msg.msg ) || ( msg.msg.getSenderID() == getID() )
+                || ( m_activeInterConID.has_value() && msg.msg.getSenderID() == m_activeInterConID.value() ) );
+        if( network::isRequest( msg.msg ) )//|| ( msg.msg.getSenderID() != getID() ) )
+        {
+            // record the active inter conversation message ID
+            m_activeInterConID = msg.msg.getSenderID();
+        }
+        return false;
+    }
+}
+
+void Conversation::unqueue()
+{
+    m_activeInterConID.reset();
+    if( !m_deferedMessages.empty() )
+    {
+        VERIFY_RTE_MSG( m_unqueuedMessages.empty(), "Unqueued messages not empty in Conversation::unqueue" );
+
+        std::vector< network::ReceivedMsg > temp;
+        m_deferedMessages.swap( temp );
+
+        // filter out all defered messages that match the first inter conversation ID
+        for( const auto& msg : temp )
+        {
+            if( m_activeInterConID.has_value() )
+            {
+                if( isMsgFromConID( msg.msg, m_activeInterConID.value() ) )
+                {
+                    m_unqueuedMessages.push_back( msg );
+                }
+                else
+                {
+                    m_deferedMessages.push_back( msg );
+                }
+            }
+            else
+            {
+                ASSERT( network::isRequest( msg.msg ) );
+                m_activeInterConID = msg.msg.getSenderID();
+                m_unqueuedMessages.push_back( msg );
+            }
+        }
+    }
+    std::reverse( m_unqueuedMessages.begin(), m_unqueuedMessages.end() );
+}
+
 void Conversation::run( boost::asio::yield_context& yield_ctx )
 {
     try
@@ -104,7 +198,8 @@ void Conversation::run( boost::asio::yield_context& yield_ctx )
 
 void Conversation::run_one( boost::asio::yield_context& yield_ctx )
 {
-    const ReceivedMsg msg = receive( yield_ctx );
+    unqueue();
+    const ReceivedMsg msg = receiveDeferred( yield_ctx );
     dispatchRequestImpl( msg, yield_ctx );
 }
 
@@ -113,7 +208,8 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
     ReceivedMsg msg;
     while( true )
     {
-        msg = receive( yield_ctx );
+        msg = receiveDeferred( yield_ctx );
+
         if( isRequest( msg.msg ) )
         {
             dispatchRequestImpl( msg, yield_ctx );
@@ -180,7 +276,14 @@ void Conversation::dispatchRemaining( boost::asio::yield_context& yield_ctx )
         std::optional< network::ReceivedMsg > pendingMsgOpt = try_receive( yield_ctx );
         if( pendingMsgOpt.has_value() )
         {
-            dispatchRequestImpl( pendingMsgOpt.value(), yield_ctx );
+            if( isRequest( pendingMsgOpt.value().msg ) )
+            {
+                dispatchRequestImpl( pendingMsgOpt.value(), yield_ctx );
+            }
+            else
+            {
+                SPDLOG_TRACE( "Conversation::dispatchRemaining got response: {}", pendingMsgOpt.value().msg.getName() );
+            }
         }
         else
         {

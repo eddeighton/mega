@@ -59,8 +59,8 @@ set( INTERFACE_SCHEMAS
     job
     memory
     pipeline
-    planet
     platform
+    player_network
     python
     sim
     stash
@@ -119,13 +119,14 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/conversation_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/conversation_id.hpp  
     ${MEGA_API_DIR}/service/protocol/common/jit_base.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/mpo_context_interface.hpp  
     ${MEGA_API_DIR}/service/protocol/common/node.hpp
+    ${MEGA_API_DIR}/service/protocol/common/platform_state.hpp
     ${MEGA_API_DIR}/service/protocol/common/root_config.hpp
     ${MEGA_API_DIR}/service/protocol/common/sender.hpp  
     ${MEGA_API_DIR}/service/protocol/common/status.hpp
     ${MEGA_API_DIR}/service/protocol/common/transaction.hpp
     ${MEGA_API_DIR}/service/protocol/common/type_erase.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/mpo_context_interface.hpp  
 	)
 
 set( MEGA_PROTOCOL_COMMON_SOURCE

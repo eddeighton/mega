@@ -19,7 +19,43 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-msg PlanetDestroy
+msg PlayerNetworkDestroy
+{
+    request();
+    response();
+}
+
+msg PlayerNetworkClock
+{
+    request();
+    response();
+}
+
+msg PlayerNetworkStatus
+{
+    request( mega::network::PlayerNetworkState state );
+    response();
+}
+
+msg PlayerNetworkConnect
+{
+    request( mega::U64 networkID );
+    response( bool bSuccess );
+}
+
+msg PlayerNetworkDisconnect
+{
+    request();
+    response();
+}
+
+msg PlayerNetworkCreatePlanet
+{
+    request();
+    response();
+}
+
+msg PlayerNetworkDestroyPlanet
 {
     request();
     response();

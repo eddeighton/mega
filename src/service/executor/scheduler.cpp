@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "scheduler.hpp"
+#include "service/executor/scheduler.hpp"
 
 #include "mega/reference_io.hpp"
 
