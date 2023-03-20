@@ -203,6 +203,39 @@ public:
     std::optional< float > m_lastNetworkStatus;
     bool                   m_bNetworkRequest  = false;
     bool                   m_bPlatformRequest = false;
+    bool                   m_bPlanetActive    = false;
+    mega::U64              m_cycle            = 0U;
+
+    void cycle_update( float dt )
+    {
+        mega::U64 existingCycle = m_cycle;
+        update( dt );
+
+        if( m_bPlanetActive )
+        {
+            while( existingCycle == m_cycle )
+            {
+                std::promise< network::ReceivedMsg > pro;
+                std::future< network::ReceivedMsg >  fut = pro.get_future();
+                m_channel.async_receive(
+                    [ &pro ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+                    {
+                        if( ec )
+                        {
+                            SPDLOG_ERROR( "Failed to receive msg with error: {}", ec.what() );
+                            THROW_RTE( "Failed to receive msg on channel: " << ec.what() );
+                            pro.set_exception( std::make_exception_ptr( std::runtime_error( ec.what() ) ) );
+                        }
+                        else
+                        {
+                            pro.set_value( msg );
+                        }
+                    } );
+
+                dispatch( fut.get().msg );
+            }
+        }
+    }
 
     void update( float dt )
     {
@@ -250,89 +283,7 @@ public:
 
             if( msgOpt.has_value() )
             {
-                const network::Message& msg = msgOpt.value().msg;
-                // SPDLOG_TRACE( "plugin::update: {}", msg.getName() );
-
-                using namespace network::platform;
-                using namespace network::player_network;
-                using namespace network::sim;
-
-                switch( msg.getID() )
-                {
-                    // platform
-                    case MSG_PlatformStatus_Request::ID:
-                    {
-                        m_platformStateOpt   = MSG_PlatformStatus_Request::get( msg ).state;
-                        m_lastPlatformStatus = m_ct;
-                    }
-                    break;
-                    case MSG_PlatformDestroy_Response::ID:
-                    {
-                        m_bPlatformRequest = false;
-                    }
-                    break;
-
-                    // network
-                    case MSG_PlayerNetworkStatus_Request::ID:
-                    {
-                        SPDLOG_TRACE( "plugin::update: {}", msg.getName() );
-                        m_networkStateOpt   = MSG_PlayerNetworkStatus_Request::get( msg ).state;
-                        m_lastNetworkStatus = m_ct;
-                    }
-                    break;
-                    case MSG_PlayerNetworkDestroy_Response::ID:
-                    {
-                        m_bNetworkRequest = false;
-                    }
-                    break;
-
-                    case MSG_PlayerNetworkConnect_Response::ID:
-                    {
-                        m_bNetworkRequest = false;
-                    }
-                    break;
-                    case MSG_PlayerNetworkDisconnect_Response::ID:
-                    {
-                        m_bNetworkRequest = false;
-                    }
-                    break;
-
-                    case MSG_PlayerNetworkCreatePlanet_Response::ID:
-                    {
-                        m_bNetworkRequest = false;
-                    }
-                    break;
-                    case MSG_PlayerNetworkDestroyPlanet_Response::ID:
-                    {
-                        m_bNetworkRequest = false;
-                    }
-                    break;
-
-                    // simulation clock
-                    case MSG_SimClock_Request::ID:
-                    {
-                        if( ConversationBase::Ptr pSim = m_executor.findExistingConversation( msg.getSenderID() ) )
-                        {
-                            send( *pSim, MSG_SimClock_Response{} );
-                        }
-                        else
-                        {
-                            THROW_RTE( "Failed to resolve simulation" );
-                        }
-                    }
-                    break;
-
-                    // errors
-                    case network::MSG_Error_Response::ID:
-                    {
-                        SPDLOG_ERROR( "{} {}", msg, network::MSG_Error_Response::get( msg ).what );
-                        THROW_RTE( network::MSG_Error_Response::get( msg ).what );
-                    }
-                    break;
-                    default:
-                        THROW_RTE( "Unsupported msg type: " << msg.getName() );
-                        break;
-                }
+                dispatch( msgOpt.value().msg );
             }
             else
             {
@@ -341,6 +292,92 @@ public:
         }
     }
 
+    void dispatch( const network::Message& msg )
+    {
+        using namespace network::platform;
+        using namespace network::player_network;
+        using namespace network::sim;
+
+        switch( msg.getID() )
+        {
+            // platform
+            case MSG_PlatformStatus_Request::ID:
+            {
+                m_platformStateOpt   = MSG_PlatformStatus_Request::get( msg ).state;
+                m_lastPlatformStatus = m_ct;
+            }
+            break;
+            case MSG_PlatformDestroy_Response::ID:
+            {
+                m_bPlatformRequest = false;
+            }
+            break;
+
+            // network
+            case MSG_PlayerNetworkStatus_Request::ID:
+            {
+                SPDLOG_TRACE( "plugin::update: {}", msg.getName() );
+                m_networkStateOpt   = MSG_PlayerNetworkStatus_Request::get( msg ).state;
+                m_lastNetworkStatus = m_ct;
+            }
+            break;
+            case MSG_PlayerNetworkDestroy_Response::ID:
+            {
+                m_bNetworkRequest = false;
+            }
+            break;
+
+            case MSG_PlayerNetworkConnect_Response::ID:
+            {
+                m_bNetworkRequest = false;
+            }
+            break;
+            case MSG_PlayerNetworkDisconnect_Response::ID:
+            {
+                m_bNetworkRequest = false;
+            }
+            break;
+
+            case MSG_PlayerNetworkCreatePlanet_Response::ID:
+            {
+                m_bNetworkRequest = false;
+                m_bPlanetActive   = true;
+            }
+            break;
+            case MSG_PlayerNetworkDestroyPlanet_Response::ID:
+            {
+                m_bNetworkRequest = false;
+                m_bPlanetActive   = false;
+            }
+            break;
+
+            // simulation clock
+            case MSG_SimClock_Request::ID:
+            {
+                if( ConversationBase::Ptr pSim = m_executor.findExistingConversation( msg.getSenderID() ) )
+                {
+                    send( *pSim, MSG_SimClock_Response{} );
+                    ++m_cycle;
+                }
+                else
+                {
+                    THROW_RTE( "Failed to resolve simulation" );
+                }
+            }
+            break;
+
+            // errors
+            case network::MSG_Error_Response::ID:
+            {
+                SPDLOG_ERROR( "{} {}", msg, network::MSG_Error_Response::get( msg ).what );
+                THROW_RTE( network::MSG_Error_Response::get( msg ).what );
+            }
+            break;
+            default:
+                THROW_RTE( "Unsupported msg type: " << msg.getName() );
+                break;
+        }
+    }
     I64 network_count()
     {
         if( m_platformStateOpt.has_value() )
@@ -517,7 +554,7 @@ void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel 
 
 void mp_update( float dt )
 {
-    mega::service::g_pPluginWrapper->m_pPlugin->update( dt );
+    mega::service::g_pPluginWrapper->m_pPlugin->cycle_update( dt );
 }
 
 void mp_shutdown()

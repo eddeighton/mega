@@ -21,6 +21,8 @@
 
 #include "service/network/network.hpp"
 
+#include "mega/native_types.hpp"
+
 #include "common/assert_verify.hpp"
 
 #include <boost/program_options.hpp>
@@ -31,13 +33,25 @@
 #include <sstream>
 #include <chrono>
 #include <thread>
+#include <iomanip>
 
 auto elapsed( std::chrono::steady_clock::time_point& last )
 {
     const auto timeNow = std::chrono::steady_clock::now();
-    const auto delta = std::chrono::duration_cast< std::chrono::steady_clock::duration >( timeNow - last );
-    last = timeNow;
+    const auto delta   = std::chrono::duration_cast< std::chrono::steady_clock::duration >( timeNow - last );
+    last               = timeNow;
     return delta;
+}
+template < typename T >
+void print( const T& dur, std::ostream& os )
+{
+    using DurationType = std::chrono::duration< mega::I64, std::ratio< 1, 1'000'000'000 > >;
+    auto c             = std::chrono::duration_cast< DurationType >( dur ).count();
+    auto sec           = ( c % 1'000'000'000'000 ) / 1'000'000'000;
+    auto ms            = ( c % 1'000'000'000 ) / 1'000'000;
+    auto us            = ( c % 1'000'000 ) / 1'000;
+    os << sec << "." << std::setw( 3 ) << std::setfill( '0' ) << ms << "ms." << std::setw( 3 ) << std::setfill( '0' )
+       << us << "us";
 }
 
 void printCurrentNetworkConnection()
@@ -108,7 +122,7 @@ int main( int argc, const char* argv[] )
     }
 
     // std::cout << "Connecting to: " << strIP << std::endl;
-    //auto  start       = std::chrono::steady_clock::now();
+    // auto  start       = std::chrono::steady_clock::now();
     float fUpdateRate = 0.1f;
 
     try
@@ -149,9 +163,27 @@ int main( int argc, const char* argv[] )
         }
         std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
 
-        std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
-        char c;
-        std::cin >> c;
+        {
+            std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
+            char c;
+            std::cin >> c;
+        }
+
+        {
+            auto timeNOw = std::chrono::steady_clock::now();
+            for( int i = 0; i != 1000; ++i )
+            {
+                mp_update( fUpdateRate );
+            }
+            std::cout << "1000 cycles took: ";
+            print( elapsed( timeNOw ), std::cout );
+            std::cout << std::endl;
+        }
+        {
+            std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
+            char c;
+            std::cin >> c;
+        }
 
         mp_planet_destroy();
         {
@@ -163,8 +195,11 @@ int main( int argc, const char* argv[] )
         std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
         printCurrentNetworkConnection();
 
-        std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
-        std::cin >> c;
+        {
+            std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
+            char c;
+            std::cin >> c;
+        }
 
         mp_network_disconnect();
         {
