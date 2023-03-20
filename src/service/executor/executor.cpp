@@ -59,7 +59,7 @@ public:
     void run( boost::asio::yield_context& yield_ctx ) { m_functor( *this, m_executor.getLeafSender(), yield_ctx ); }
 };
 
-Executor::Executor( boost::asio::io_context& io_context, int numThreads, short daemonPortNumber )
+Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short daemonPortNumber )
     : network::ConversationManager( network::makeProcessName( network::Node::Executor ), io_context )
     , m_io_context( io_context )
     , m_numThreads( numThreads )
@@ -90,6 +90,7 @@ void Executor::shutdown()
 network::ConversationBase::Ptr Executor::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                            const network::Message&      msg )
 {
+    SPDLOG_TRACE( "Executor::joinConversation {}", msg.getReceiverID() );
     return network::ConversationBase::Ptr(
         new ExecutorRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
@@ -125,12 +126,12 @@ mega::MPO Executor::createSimulation( network::ConversationBase&  callingConvers
         pSimulation = std::make_shared< Simulation >( *this, id );
         m_conversations.insert( std::make_pair( pSimulation->getID(), pSimulation ) );
         spawnInitiatedConversation( pSimulation, getLeafSender() );
-        SPDLOG_TRACE( "Executor::createSimulation {}", pSimulation->getID() );
+        SPDLOG_TRACE( "Executor::createSimulation {} {}", m_strProcessName, id );
     }
 
     network::sim::Request_Sender rq( callingConversation, pSimulation->getID(), *pSimulation, yield_ctx );
     const mega::MPO              simMPO = rq.SimCreate();
-    SPDLOG_TRACE( "Executor::createSimulation sinCreate returned {}", simMPO );
+    SPDLOG_TRACE( "Executor::createSimulation SimCreate returned {}", simMPO );
 
     {
         WriteLock lock( m_mutex );

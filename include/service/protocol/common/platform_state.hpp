@@ -21,13 +21,19 @@
 #ifndef GUARD_2023_March_17_platform_state
 #define GUARD_2023_March_17_platform_state
 
+#include "mega/mpo.hpp"
+
 #include "common/assert_verify.hpp"
 
 #include <string>
 #include <vector>
+#include <optional>
 
 namespace mega::network
 {
+
+using PlayerNetworkID = std::string;
+
 class PlatformState
 {
 public:
@@ -37,8 +43,7 @@ public:
         THROW_RTE( "PlatformState serialization attempted" );
     }
 
-    
-    std::vector< std::string > m_availableNetworks;
+    std::vector< PlayerNetworkID > m_availableNetworks;
 };
 
 class PlayerNetworkState
@@ -50,10 +55,10 @@ public:
         THROW_RTE( "PlatformState serialization attempted" );
     }
 
-    std::string m_currentNetwork;
-    
+    PlayerNetworkID      m_currentNetwork;
+    std::optional< MPO > m_currentPlanet;
 };
 
-}
+} // namespace mega::network
 
-#endif //GUARD_2023_March_17_platform_state
+#endif // GUARD_2023_March_17_platform_state

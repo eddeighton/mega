@@ -25,12 +25,6 @@ msg PlayerNetworkDestroy
     response();
 }
 
-msg PlayerNetworkClock
-{
-    request();
-    response();
-}
-
 msg PlayerNetworkStatus
 {
     request( mega::network::PlayerNetworkState state );
@@ -39,7 +33,7 @@ msg PlayerNetworkStatus
 
 msg PlayerNetworkConnect
 {
-    request( mega::U64 networkID );
+    request( mega::I64 networkID );
     response( bool bSuccess );
 }
 

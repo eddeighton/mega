@@ -51,15 +51,11 @@ public:
 
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
-    void statusUpdate();
-
     // network::platform::Impl
     virtual void PlatformDestroy( boost::asio::yield_context& yield_ctx ) override;
-    virtual void PlatformClock( boost::asio::yield_context& yield_ctx ) override;
 
 private:
     network::ConversationBase&   m_plugin;
-    boost::asio::steady_timer    m_timer;
     boost::asio::yield_context*  m_pYieldContext = nullptr;
     network::Sender::Ptr         m_pRequestChannelSender;
     bool                         m_bRunning = true;

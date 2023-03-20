@@ -31,8 +31,8 @@ Platform::Platform( Executor& executor, const network::ConversationID& conversat
                     network::ConversationBase& plugin )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
     , m_plugin( plugin )
-    , m_timer( executor.m_io_context )
 {
+    m_bEnableQueueing = false;
 }
 
 network::Message Platform::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
@@ -67,25 +67,7 @@ void Platform::error( const network::ReceivedMsg& msg, const std::string& strErr
     }
     else
     {
-        error( msg, strErrorMsg, yield_ctx );
-    }
-}
-
-void Platform::statusUpdate()
-{
-    SPDLOG_TRACE( "Platform::statusUpdate" );
-
-    auto pThis = this;
-    using namespace std::chrono_literals;
-
-    if( m_bRunning )
-    {
-        using namespace network::platform;
-        send( network::ReceivedMsg{
-            getConnectionID(), MSG_PlatformClock_Request::make( getID(), MSG_PlatformClock_Request{} ) } );
-
-        m_timer.expires_from_now( 1s );
-        m_timer.async_wait( [ pThis ]( boost::system::error_code ec ) { pThis->statusUpdate(); } );
+        ExecutorRequestConversation::error( msg, strErrorMsg, yield_ctx );
     }
 }
 
@@ -95,14 +77,27 @@ void Platform::run( boost::asio::yield_context& yield_ctx )
 
     m_pYieldContext = &yield_ctx;
 
-    statusUpdate();
+    network::platform::Request_Sender rq( *this, m_plugin.getID(), m_plugin, yield_ctx );
 
-    while( m_bRunning )
+    try
     {
-        run_one( yield_ctx );
+        while( m_bRunning )
+        {
+            // update available networks
+            m_state.m_availableNetworks = { "Single Player" };
+
+            // send status update to plugin
+            rq.PlatformStatus( m_state );
+        }
+    }
+    catch( std::exception& ex )
+    {
+        SPDLOG_ERROR( ex.what() );
     }
 
     dispatchRemaining( yield_ctx );
+    
+    SPDLOG_TRACE( "Platform::run complete" );
 }
 
 void Platform::PlatformDestroy( boost::asio::yield_context& yield_ctx )
@@ -111,10 +106,5 @@ void Platform::PlatformDestroy( boost::asio::yield_context& yield_ctx )
     m_bRunning = false;
 }
 
-void Platform::PlatformClock( boost::asio::yield_context& yield_ctx )
-{
-    // send status update to plugin
-    network::platform::Request_Sender rq( *this, m_plugin, yield_ctx );
-    rq.PlatformStatus( m_state );
-}
+
 } // namespace mega::service

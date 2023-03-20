@@ -25,12 +25,6 @@ msg PlatformDestroy
     response();
 }
 
-msg PlatformClock
-{
-    request();
-    response();
-}
-
 msg PlatformStatus
 {
     request( mega::network::PlatformState state );

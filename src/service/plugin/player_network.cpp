@@ -33,8 +33,8 @@ PlayerNetwork::PlayerNetwork( Executor& executor, const network::ConversationID&
                               network::ConversationBase& plugin )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
     , m_plugin( plugin )
-    , m_timer( executor.m_io_context )
 {
+    m_bEnableQueueing = false;
 }
 
 network::Message PlayerNetwork::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
@@ -69,25 +69,7 @@ void PlayerNetwork::error( const network::ReceivedMsg& msg, const std::string& s
     }
     else
     {
-        error( msg, strErrorMsg, yield_ctx );
-    }
-}
-
-void PlayerNetwork::statusUpdate()
-{
-    SPDLOG_TRACE( "PlayerNetwork::statusUpdate" );
-
-    auto pThis = this;
-    using namespace std::chrono_literals;
-
-    if( m_bRunning )
-    {
-        using namespace network::player_network;
-        send( network::ReceivedMsg{
-            getConnectionID(), MSG_PlayerNetworkClock_Request::make( getID(), MSG_PlayerNetworkClock_Request{} ) } );
-
-        m_timer.expires_from_now( 1s );
-        m_timer.async_wait( [ pThis ]( boost::system::error_code ec ) { pThis->statusUpdate(); } );
+        ExecutorRequestConversation::error( msg, strErrorMsg, yield_ctx );
     }
 }
 
@@ -97,14 +79,23 @@ void PlayerNetwork::run( boost::asio::yield_context& yield_ctx )
 
     m_pYieldContext = &yield_ctx;
 
-    statusUpdate();
+    network::player_network::Request_Sender rq( *this, m_plugin.getID(), m_plugin, yield_ctx );
 
-    while( m_bRunning )
+    try
     {
-        run_one( yield_ctx );
+        while( m_bRunning )
+        {
+            rq.PlayerNetworkStatus( m_state );
+        }
+    }
+    catch( std::exception& ex )
+    {
+        SPDLOG_ERROR( ex.what() );
     }
 
     dispatchRemaining( yield_ctx );
+    
+    SPDLOG_TRACE( "PlayerNetwork::run complete" );
 }
 
 void PlayerNetwork::PlayerNetworkDestroy( boost::asio::yield_context& yield_ctx )
@@ -113,15 +104,7 @@ void PlayerNetwork::PlayerNetworkDestroy( boost::asio::yield_context& yield_ctx 
     m_bRunning = false;
 }
 
-void PlayerNetwork::PlayerNetworkClock( boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "PlayerNetwork::PlayerNetworkClock" );
-    // send status update to plugin
-    network::player_network::Request_Sender rq( *this, m_plugin, yield_ctx );
-    rq.PlayerNetworkStatus( m_state );
-}
-
-bool PlayerNetwork::PlayerNetworkConnect( const mega::U64& networkID, boost::asio::yield_context& yield_ctx )
+bool PlayerNetwork::PlayerNetworkConnect( const mega::I64& networkID, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "PlayerNetwork::PlayerNetworkConnect" );
     m_state.m_currentNetwork = "Single Player";
@@ -137,8 +120,8 @@ void PlayerNetwork::PlayerNetworkDisconnect( boost::asio::yield_context& yield_c
 void PlayerNetwork::PlayerNetworkCreatePlanet( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "PlayerNetwork::PlayerNetworkCreatePlanet" );
-    auto mpo  = m_executor.createSimulation( *this, yield_ctx );
-    m_pPlanet = m_executor.getSimulation( mpo );
+    m_state.m_currentPlanet = m_executor.createSimulation( *this, yield_ctx );
+    m_pPlanet               = m_executor.getSimulation( m_state.m_currentPlanet.value() );
 }
 
 void PlayerNetwork::PlayerNetworkDestroyPlanet( boost::asio::yield_context& yield_ctx )
@@ -147,6 +130,7 @@ void PlayerNetwork::PlayerNetworkDestroyPlanet( boost::asio::yield_context& yiel
     network::sim::Request_Sender rq( *this, *m_pPlanet, yield_ctx );
     rq.SimDestroy();
     m_pPlanet.reset();
+    m_state.m_currentPlanet.reset();
 }
 
 } // namespace mega::service

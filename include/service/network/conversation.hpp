@@ -138,6 +138,7 @@ protected:
     std::optional< ConversationID >       m_activeInterConID;
     std::vector< network::ReceivedMsg >   m_deferedMessages;
     std::vector< network::ReceivedMsg >   m_unqueuedMessages;
+    bool                                  m_bEnableQueueing = true;
 };
 
 ////////////////////////////////////////////////////////////////////////

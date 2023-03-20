@@ -128,6 +128,13 @@ public:
     virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
         boost::system::error_code ec;
+
+        if( msg.getID() == network::MSG_Error_Response::ID && !m_channel.is_open() )
+        {
+            SPDLOG_ERROR( "Failed to send error response: {} due to channel closed", msg );
+            return ec;
+        }
+
         VERIFY_RTE_MSG( m_channel.is_open(), "Channel NOT open sending:" << msg );
         m_channel.async_send( ec, msg, yield_ctx );
 

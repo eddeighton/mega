@@ -246,7 +246,7 @@ void Simulation::unqueue()
     }
     else if( !m_messageQueue.empty() )
     {
-        // unqueue the simulation messages 
+        // unqueue the simulation messages
         // NOTE that m_activeInterConID must have NO value
         m_activeInterConID.reset();
         VERIFY_RTE_MSG( m_unqueuedMessages.empty(), "Unqueued messages not empty in Conversation::unqueue" );
@@ -309,12 +309,14 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
     try
     {
+        SPDLOG_TRACE( "SIM::run started" );
         // send request to root to start - will get request back to run
         network::sim::Request_Encoder request( [ rootRequest = ExecutorRequestConversation::getMPRequest( yield_ctx ) ](
                                                    const network::Message& msg ) mutable
                                                { return rootRequest.MPRoot( msg, MP{} ); },
                                                getID() );
         request.SimStart();
+        SPDLOG_TRACE( "SIM::run complete" );
     }
     catch( std::exception& ex )
     {
@@ -324,8 +326,6 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     {
         m_strSimCreateError = ex.what();
     }
-
-    // TODO - flush queued messages
 
     dispatchRemaining( yield_ctx );
 }
@@ -422,9 +422,15 @@ void Simulation::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_c
     runSimulation( yield_ctx );
 
     resetMPOContext();
+
+    SPDLOG_TRACE( "SIM::RootSimRun complete: {}", mpo );
 }
 void Simulation::SimDestroy( boost::asio::yield_context& )
 {
+    if( m_mpo.has_value() )
+    {
+        SPDLOG_TRACE( "SIM::SimDestroy: {}", m_mpo.value() );
+    }
     // do nothing
 }
 

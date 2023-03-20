@@ -113,6 +113,7 @@ void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversa
 
 void ConversationManager::conversationJoined( ConversationBase::Ptr pConversation )
 {
+    SPDLOG_TRACE( "ConversationManager::conversationJoined: {} {}", m_strProcessName, pConversation->getID() );
     {
         WriteLock lock( m_mutex );
         m_conversations.insert( std::make_pair( pConversation->getID(), pConversation ) );
@@ -136,30 +137,25 @@ void ConversationManager::conversationJoined( ConversationBase::Ptr pConversatio
 
 void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversation )
 {
+    WriteLock lock( m_mutex );
+    auto      iFind = m_conversations.find( pConversation->getID() );
+    if( iFind != m_conversations.end() )
     {
-        WriteLock                          lock( m_mutex );
-        ConversationPtrMap::const_iterator iFind = m_conversations.find( pConversation->getID() );
-        if( iFind != m_conversations.end() )
-            ;
-        {
-            // SPDLOG_TRACE( "conversationCompleted {}", pConversation->getID() );
-            m_conversations.erase( iFind );
-        }
+        m_conversations.erase( iFind );
     }
-    // SPDLOG_DEBUG( "ConversationBase Completed id: {}", pConversation->getID() );
 }
 
 ConversationBase::Ptr ConversationManager::findExistingConversation( const ConversationID& conversationID ) const
 {
-    ReadLock                           lock( m_mutex );
-    ConversationPtrMap::const_iterator iFind = m_conversations.find( conversationID );
+    ReadLock lock( m_mutex );
+    auto     iFind = m_conversations.find( conversationID );
     if( iFind != m_conversations.end() )
     {
         return iFind->second;
     }
     else
     {
-        return ConversationBase::Ptr();
+        return {};
     }
 }
 
@@ -171,6 +167,7 @@ ExternalConversation::Ptr ConversationManager::getExternalConversation() const
 
 void ConversationManager::dispatch( const ReceivedMsg& msg )
 {
+    SPDLOG_TRACE( "ConversationManager::dispatch: {} {}", m_strProcessName, msg.msg.getReceiverID() );
     ConversationBase::Ptr pConversation = findExistingConversation( msg.msg.getReceiverID() );
     if( !pConversation )
     {

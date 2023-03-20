@@ -22,27 +22,29 @@
 #define GUARD_2023_March_07_plugin
 
 #ifdef _WIN64
-using MEGA_U64 = unsigned long long;
+using MEGA_64 = long long;
 #else
-using MEGA_U64 = unsigned long int;
+using MEGA_64 = long int;
 #endif
 
 extern "C"
 {
     // lifetime
     void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
-    void mp_update();
+    void mp_update( float dt );
     void mp_shutdown();
 
     // network connection
-    MEGA_U64 mp_network_count();
-    const char* mp_network_name( MEGA_U64 networkID );
-    void mp_network_connect( MEGA_U64 networkID );
+    MEGA_64 mp_network_count();
+    const char* mp_network_name( MEGA_64 networkID );
+    void mp_network_connect( MEGA_64 networkID );
     void mp_network_disconnect();
+    MEGA_64 mp_network_current();
 
     // planet
     void mp_planet_create();
     void mp_planet_destroy();
+    bool mp_planet_current();
 }
 
 #endif //GUARD_2023_March_07_plugin

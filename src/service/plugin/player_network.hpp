@@ -52,19 +52,15 @@ public:
 
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
-    void statusUpdate();
-
     // network::planet::Impl
     virtual void PlayerNetworkDestroy( boost::asio::yield_context& yield_ctx ) override;
-    virtual void PlayerNetworkClock( boost::asio::yield_context& yield_ctx ) override;
-    virtual bool PlayerNetworkConnect( const mega::U64& networkID, boost::asio::yield_context& yield_ctx ) override;
+    virtual bool PlayerNetworkConnect( const mega::I64& networkID, boost::asio::yield_context& yield_ctx ) override;
     virtual void PlayerNetworkDisconnect( boost::asio::yield_context& yield_ctx ) override;
     virtual void PlayerNetworkCreatePlanet( boost::asio::yield_context& yield_ctx ) override;
     virtual void PlayerNetworkDestroyPlanet( boost::asio::yield_context& yield_ctx ) override;
 
 private:
     network::ConversationBase&        m_plugin;
-    boost::asio::steady_timer         m_timer;
     boost::asio::yield_context*       m_pYieldContext = nullptr;
     network::Sender::Ptr              m_pRequestChannelSender;
     bool                              m_bRunning = true;

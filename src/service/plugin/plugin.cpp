@@ -131,28 +131,10 @@ public:
     }
 
     // Plugin
-    Plugin( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
-        : m_ioContext()
-        , m_executor( m_ioContext, m_uiNumThreads, m_daemonPortNumber )
-        , m_channel( m_ioContext )
+    Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
+        : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort() )
+        , m_channel( ioContext )
     {
-        {
-            boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
-            std::string             strConsoleLogLevel = "warn";
-            std::string             strLogFileLevel    = "warn";
-            if( pszConsoleLogLevel )
-                strConsoleLogLevel = pszConsoleLogLevel;
-            if( pszFileLogLevel )
-                strLogFileLevel = pszFileLogLevel;
-            mega::network::configureLog( logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
-                                         mega::network::fromStr( strLogFileLevel ) );
-        }
-
-        for( int i = 0; i < m_uiNumThreads; ++i )
-        {
-            m_threads.emplace_back( std::move( std::thread( [ &ioContext = m_ioContext ]() { ioContext.run(); } ) ) );
-        }
-
         {
             m_pPlatform = std::make_shared< Platform >(
                 m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), *this );
@@ -169,27 +151,43 @@ public:
     {
         SPDLOG_TRACE( "Plugin::~Plugin()" );
 
+        if( m_pPlayerNetwork )
         {
             using namespace network::player_network;
-            send( *m_pPlayerNetwork, MSG_PlayerNetworkDestroy_Request{} );
-            while( m_pPlayerNetwork )
+            while( m_bNetworkRequest )
             {
-                update();
+                update( 1.0f );
+            }
+            m_bNetworkRequest = true;
+            send( *m_pPlayerNetwork, MSG_PlayerNetworkDestroy_Request{} );
+            while( m_bNetworkRequest )
+            {
+                update( 1.0f );
+            }
+            if( m_pPlayerNetwork )
+            {
+                m_executor.conversationCompleted( m_pPlayerNetwork );
+                m_pPlayerNetwork.reset();
             }
         }
+        if( m_pPlatform )
         {
             using namespace network::platform;
-            send( *m_pPlatform, MSG_PlatformDestroy_Request{} );
-            while( m_pPlatform )
+            while( m_bPlatformRequest )
             {
-                update();
+                update( 1.0f );
             }
-        }
-
-        m_executor.shutdown();
-        for( std::thread& thread : m_threads )
-        {
-            thread.join();
+            m_bPlatformRequest = true;
+            send( *m_pPlatform, MSG_PlatformDestroy_Request{} );
+            while( m_bPlatformRequest )
+            {
+                update( 1.0f );
+            }
+            if( m_pPlatform )
+            {
+                m_executor.conversationCompleted( m_pPlatform );
+                m_pPlatform.reset();
+            }
         }
     }
 
@@ -198,8 +196,40 @@ public:
     Plugin& operator=( const Plugin& ) = delete;
     Plugin& operator=( Plugin&& )      = delete;
 
-    void update()
+    float                  m_ct         = 0.0f;
+    float                  m_statusRate = 1.0f;
+    std::optional< float > m_lastPlatformStatus;
+    std::optional< float > m_lastNetworkStatus;
+    bool                   m_bNetworkRequest  = false;
+    bool                   m_bPlatformRequest = false;
+
+    void update( float dt )
     {
+        float last_ct = m_ct;
+        m_ct += dt;
+
+        if( m_pPlatform )
+        {
+            if( m_lastPlatformStatus.has_value() && !m_bPlatformRequest
+                && ( ( m_ct - m_lastPlatformStatus.value() ) > m_statusRate ) )
+            {
+                using namespace network::platform;
+                send( *m_pPlatform, MSG_PlatformStatus_Response{} );
+                m_lastPlatformStatus.reset();
+            }
+        }
+
+        if( m_pPlayerNetwork )
+        {
+            if( m_lastNetworkStatus.has_value() && !m_bNetworkRequest
+                && ( ( m_ct - m_lastNetworkStatus.value() ) > m_statusRate ) )
+            {
+                using namespace network::player_network;
+                send( *m_pPlayerNetwork, MSG_PlayerNetworkStatus_Response{} );
+                m_lastNetworkStatus.reset();
+            }
+        }
+
         std::optional< network::ReceivedMsg > msgOpt;
         while( true )
         {
@@ -227,50 +257,59 @@ public:
 
                 switch( msg.getID() )
                 {
+                    // platform
                     case MSG_PlatformStatus_Request::ID:
                     {
-                        m_platformStateOpt = MSG_PlatformStatus_Request::get( msg ).state;
-                        if( m_pPlatform )
-                        {
-                            send( *m_pPlatform, MSG_PlatformStatus_Response{} );
-                        }
+                        m_platformStateOpt   = MSG_PlatformStatus_Request::get( msg ).state;
+                        m_lastPlatformStatus = m_ct;
                     }
                     break;
                     case MSG_PlatformDestroy_Response::ID:
                     {
-                        m_pPlatform.reset();
+                        m_bPlatformRequest = false;
                     }
                     break;
 
+                    // network
                     case MSG_PlayerNetworkStatus_Request::ID:
                     {
-                        m_networkStateOpt = MSG_PlayerNetworkStatus_Request::get( msg ).state;
-                        if( m_pPlatform )
-                        {
-                            send( *m_pPlatform, MSG_PlayerNetworkStatus_Response{} );
-                        }
-                    }
-                    break;
-                    case MSG_PlayerNetworkConnect_Response::ID:
-                    {
-                    }
-                    break;
-                    case MSG_PlayerNetworkDisconnect_Response::ID:
-                    {
+                        SPDLOG_TRACE( "plugin::update: {}", msg.getName() );
+                        m_networkStateOpt   = MSG_PlayerNetworkStatus_Request::get( msg ).state;
+                        m_lastNetworkStatus = m_ct;
                     }
                     break;
                     case MSG_PlayerNetworkDestroy_Response::ID:
                     {
-                        m_pPlayerNetwork.reset();
+                        m_bNetworkRequest = false;
+                    }
+                    break;
+
+                    case MSG_PlayerNetworkConnect_Response::ID:
+                    {
+                        m_bNetworkRequest = false;
+                    }
+                    break;
+                    case MSG_PlayerNetworkDisconnect_Response::ID:
+                    {
+                        m_bNetworkRequest = false;
                     }
                     break;
 
                     case MSG_PlayerNetworkCreatePlanet_Response::ID:
                     {
+                        m_bNetworkRequest = false;
                     }
                     break;
                     case MSG_PlayerNetworkDestroyPlanet_Response::ID:
                     {
+                        m_bNetworkRequest = false;
+                    }
+                    break;
+
+                    case network::MSG_Error_Response::ID:
+                    {
+                        SPDLOG_ERROR( "{} {}", msg, network::MSG_Error_Response::get( msg ).what );
+                        THROW_RTE( network::MSG_Error_Response::get( msg ).what );
                     }
                     break;
                     default:
@@ -285,7 +324,7 @@ public:
         }
     }
 
-    mega::U64 network_count()
+    I64 network_count()
     {
         if( m_platformStateOpt.has_value() )
         {
@@ -301,22 +340,26 @@ public:
     {
         if( m_platformStateOpt.has_value() )
         {
-            const auto& networks = m_platformStateOpt.value().m_availableNetworks;
+            const network::PlatformState& platform = m_platformStateOpt.value();
+            const auto&                   networks = platform.m_availableNetworks;
             if( networkID >= 0 && networkID < networks.size() )
             {
-                return networks[ networkID ].c_str();
+                static std::string hmm;
+                hmm = networks[ networkID ];
+                return hmm.c_str();
             }
         }
         return nullptr;
     }
 
-    void network_connect( mega::U64 networkID )
+    void network_connect( I64 networkID )
     {
         SPDLOG_TRACE( "Plugin::network_connect: {}", networkID );
 
         using namespace network::player_network;
         if( m_pPlayerNetwork )
         {
+            m_bNetworkRequest = true;
             send( *m_pPlayerNetwork, MSG_PlayerNetworkConnect_Request{ networkID } );
         }
     }
@@ -328,8 +371,29 @@ public:
         using namespace network::player_network;
         if( m_pPlayerNetwork )
         {
+            m_bNetworkRequest = true;
             send( *m_pPlayerNetwork, MSG_PlayerNetworkDisconnect_Request{} );
         }
+    }
+
+    I64 network_current()
+    {
+        if( m_networkStateOpt.has_value() && m_platformStateOpt.has_value() )
+        {
+            const network::PlatformState&      platform = m_platformStateOpt.value();
+            const network::PlayerNetworkState& network  = m_networkStateOpt.value();
+
+            auto iFind = std::find(
+                platform.m_availableNetworks.begin(), platform.m_availableNetworks.end(), network.m_currentNetwork );
+            if( iFind != platform.m_availableNetworks.end() )
+            {
+                const I64 result = std::distance( platform.m_availableNetworks.begin(), iFind );
+                // SPDLOG_TRACE( "Plugin::network_current: {}", result );
+                return result;
+            }
+        }
+        // SPDLOG_TRACE( "Plugin::network_current: {}", -1 );
+        return -1;
     }
 
     void planet_create()
@@ -339,6 +403,7 @@ public:
         using namespace network::player_network;
         if( m_pPlayerNetwork )
         {
+            m_bNetworkRequest = true;
             send( *m_pPlayerNetwork, MSG_PlayerNetworkCreatePlanet_Request{} );
         }
     }
@@ -350,26 +415,77 @@ public:
         using namespace network::player_network;
         if( m_pPlayerNetwork )
         {
+            m_bNetworkRequest = true;
             send( *m_pPlayerNetwork, MSG_PlayerNetworkDestroyPlanet_Request{} );
+        }
+    }
+    bool planet_current()
+    {
+        // SPDLOG_TRACE( "Plugin::planet_current" );
+        if( m_networkStateOpt.has_value() )
+        {
+            return m_networkStateOpt.value().m_currentPlanet.has_value();
+        }
+        else
+        {
+            return false;
         }
     }
 
 private:
-    decltype( std::thread::hardware_concurrency() ) m_uiNumThreads     = std::thread::hardware_concurrency();
-    short                                           m_daemonPortNumber = mega::network::MegaDaemonPort();
-
-    boost::asio::io_context    m_ioContext;
-    mega::service::Executor    m_executor;
-    MessageChannel             m_channel;
-    std::vector< std::thread > m_threads;
-    Platform::Ptr              m_pPlatform;
-    PlayerNetwork::Ptr         m_pPlayerNetwork;
-
+    mega::service::Executor                            m_executor;
+    MessageChannel                                     m_channel;
+    Platform::Ptr                                      m_pPlatform;
+    PlayerNetwork::Ptr                                 m_pPlayerNetwork;
     std::optional< mega::network::PlatformState >      m_platformStateOpt;
     std::optional< mega::network::PlayerNetworkState > m_networkStateOpt;
 };
 
-static Plugin::Ptr g_pPlugin;
+class PluginWrapper
+{
+public:
+    using Ptr = std::unique_ptr< PluginWrapper >;
+
+    PluginWrapper( const char* pszConsoleLogLevel, const char* pszFileLogLevel,
+                   U64 uiNumThreads = std::thread::hardware_concurrency() )
+    {
+        {
+            boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
+            std::string             strConsoleLogLevel = "warn";
+            std::string             strLogFileLevel    = "warn";
+            if( pszConsoleLogLevel )
+                strConsoleLogLevel = pszConsoleLogLevel;
+            if( pszFileLogLevel )
+                strLogFileLevel = pszFileLogLevel;
+            mega::network::configureLog( logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
+                                         mega::network::fromStr( strLogFileLevel ) );
+        }
+
+        m_pPlugin = std::make_shared< mega::service::Plugin >( m_ioContext, uiNumThreads );
+
+        for( int i = 0; i < uiNumThreads; ++i )
+        {
+            m_threads.emplace_back( std::move( std::thread( [ &ioContext = m_ioContext ]() { ioContext.run(); } ) ) );
+        }
+    }
+    ~PluginWrapper()
+    {
+        m_pPlugin.reset();
+
+        m_ioContext.stop();
+
+        for( std::thread& thread : m_threads )
+        {
+            thread.join();
+        }
+    }
+
+    boost::asio::io_context    m_ioContext;
+    std::vector< std::thread > m_threads;
+    Plugin::Ptr                m_pPlugin;
+};
+
+static PluginWrapper::Ptr g_pPluginWrapper;
 
 } // namespace
 
@@ -377,46 +493,57 @@ static Plugin::Ptr g_pPlugin;
 
 void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
 {
-    mega::service::g_pPlugin.reset();
-    mega::service::g_pPlugin = std::make_shared< mega::service::Plugin >( pszConsoleLogLevel, pszFileLogLevel );
+    mega::service::g_pPluginWrapper.reset();
+    mega::service::g_pPluginWrapper
+        = std::make_unique< mega::service::PluginWrapper >( pszConsoleLogLevel, pszFileLogLevel );
 }
 
-void mp_update()
+void mp_update( float dt )
 {
-    mega::service::g_pPlugin->update();
+    mega::service::g_pPluginWrapper->m_pPlugin->update( dt );
 }
 
 void mp_shutdown()
 {
-    mega::service::g_pPlugin.reset();
+    mega::service::g_pPluginWrapper.reset();
 }
 
-mega::U64 mp_network_count()
+mega::I64 mp_network_count()
 {
-    return mega::service::g_pPlugin->network_count();
+    return mega::service::g_pPluginWrapper->m_pPlugin->network_count();
 }
 
-const char* mp_network_name( mega::U64 networkID )
+const char* mp_network_name( mega::I64 networkID )
 {
-    return mega::service::g_pPlugin->network_name( networkID );
+    return mega::service::g_pPluginWrapper->m_pPlugin->network_name( networkID );
 }
 
-void mp_network_connect( mega::U64 networkID )
+void mp_network_connect( mega::I64 networkID )
 {
-    mega::service::g_pPlugin->network_connect( networkID );
+    mega::service::g_pPluginWrapper->m_pPlugin->network_connect( networkID );
 }
 
 void mp_network_disconnect()
 {
-    mega::service::g_pPlugin->network_disconnect();
+    mega::service::g_pPluginWrapper->m_pPlugin->network_disconnect();
+}
+
+mega::I64 mp_network_current()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->network_current();
 }
 
 void mp_planet_create()
 {
-    mega::service::g_pPlugin->planet_create();
+    mega::service::g_pPluginWrapper->m_pPlugin->planet_create();
 }
 
 void mp_planet_destroy()
 {
-    mega::service::g_pPlugin->planet_destroy();
+    mega::service::g_pPluginWrapper->m_pPlugin->planet_destroy();
+}
+
+bool mp_planet_current()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->planet_current();
 }

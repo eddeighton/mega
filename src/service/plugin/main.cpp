@@ -32,6 +32,35 @@
 #include <chrono>
 #include <thread>
 
+auto elapsed( std::chrono::steady_clock::time_point& last )
+{
+    const auto timeNow = std::chrono::steady_clock::now();
+    const auto delta = std::chrono::duration_cast< std::chrono::steady_clock::duration >( timeNow - last );
+    last = timeNow;
+    return delta;
+}
+
+void printCurrentNetworkConnection()
+{
+    auto netID = mp_network_current();
+    if( netID != -1 )
+    {
+        const char* pszNet = mp_network_name( netID );
+        if( pszNet )
+        {
+            std::cout << "PLUGIN_TEST: Current network: '" << pszNet << "'" << std::endl;
+        }
+        else
+        {
+            std::cout << "PLUGIN_TEST: Current network: 'unknown'" << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << "PLUGIN_TEST: Current network: 'disconnected'" << std::endl;
+    }
+}
+
 int main( int argc, const char* argv[] )
 {
     using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
@@ -79,52 +108,81 @@ int main( int argc, const char* argv[] )
     }
 
     // std::cout << "Connecting to: " << strIP << std::endl;
+    //auto  start       = std::chrono::steady_clock::now();
+    float fUpdateRate = 0.1f;
 
     try
     {
-        std::cout << "Initialising plugin" << std::endl;
+        std::cout << "PLUGIN_TEST: Initialising plugin" << std::endl;
         mp_initialise( strConsoleLogLevel.c_str(), strLogFileLevel.c_str() );
 
-        int networkID = 0;
-        std::cout << "Connecting to: " << mp_network_name( networkID ) << " network" << std::endl;
-
-        mp_update();
-
-        mp_network_connect( networkID );
-
-        mp_update();
-
-        mp_planet_create();
-
         {
-            for( int i = 0; i != 10; ++i )
-                mp_update();
+            while( mp_network_count() == 0 )
+            {
+                mp_update( fUpdateRate );
+            }
         }
 
-        std::cout << "waiting for input..." << std::endl;
+        printCurrentNetworkConnection();
+        std::cout << "PLUGIN_TEST: Total networks: " << mp_network_count() << std::endl;
+
+        MEGA_64 networkID = 0;
+        std::cout << "PLUGIN_TEST: Connecting to: '" << mp_network_name( networkID ) << "' network" << std::endl;
+
+        mp_network_connect( networkID );
+        {
+            while( -1 == mp_network_current() )
+            {
+                mp_update( fUpdateRate );
+            }
+        }
+
+        printCurrentNetworkConnection();
+        std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
+
+        mp_planet_create();
+        {
+            while( mp_planet_current() == false )
+            {
+                mp_update( fUpdateRate );
+            }
+        }
+        std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
+
+        std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
         char c;
         std::cin >> c;
 
         mp_planet_destroy();
         {
-            for( int i = 0; i != 10; ++i )
-                mp_update();
+            while( mp_planet_current() == true )
+            {
+                mp_update( fUpdateRate );
+            }
         }
+        std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
+        printCurrentNetworkConnection();
+
+        std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
+        std::cin >> c;
 
         mp_network_disconnect();
-
         {
-            for( int i = 0; i != 10; ++i )
-                mp_update();
+            while( -1 != mp_network_current() )
+            {
+                mp_update( fUpdateRate );
+            }
         }
+        printCurrentNetworkConnection();
+        std::cout << "PLUGIN_TEST: Shutting down" << std::endl;
 
         mp_shutdown();
 
-        std::cout << "Shutdown complete" << std::endl;
+        std::cout << "PLUGIN_TEST: Shutdown complete" << std::endl;
     }
     catch( std::exception& ex )
     {
-        std::cerr << "Exception: " << ex.what() << std::endl;
+        std::cerr << "PLUGIN_TEST: Exception: " << ex.what() << std::endl;
         return -1;
     }
 

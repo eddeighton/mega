@@ -52,11 +52,11 @@ class Executor : public network::ConversationManager
 public:
     using SimulationMap = std::unordered_map< mega::MPO, std::shared_ptr< Simulation >, mega::MPO::Hash >;
 
-    Executor( boost::asio::io_context& io_context, int numThreads, short daemonPortNumber );
+    Executor( boost::asio::io_context& io_context, U64 numThreads, short daemonPortNumber );
     ~Executor() override;
     void shutdown();
 
-    int getNumThreads() const { return m_numThreads; }
+    U64 getNumThreads() const { return m_numThreads; }
 
     // network::ConversationManager
     network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
@@ -72,7 +72,7 @@ public:
 
 private:
     boost::asio::io_context&                 m_io_context;
-    int                                      m_numThreads;
+    U64                                      m_numThreads;
     boost::shared_ptr< EG_PARSER_INTERFACE > m_pParser;
     network::ReceiverChannel                 m_receiverChannel;
     Leaf                                     m_leaf;
