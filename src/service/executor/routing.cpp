@@ -67,6 +67,10 @@ void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID&
     else if ( network::ConversationBase::Ptr pConversation
               = m_executor.findExistingConversation( msg.getReceiverID() ) )
     {
+        if( network::sim::MSG_SimClock_Response::ID == msg.getID() )
+        {
+            THROW_RTE( "SimClock response being routed back into simulation" );
+        }
         pConversation->send( network::ReceivedMsg{ connectionID, msg } );
     }
     else

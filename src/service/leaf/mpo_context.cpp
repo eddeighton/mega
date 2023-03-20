@@ -242,11 +242,6 @@ void MPOContext::cycleComplete()
 {
     m_log.cycle();
 
-    if( m_log.getTimeStamp() % 60 == 0 )
-    {
-        SPDLOG_TRACE( "MPOContext: cycleComplete {} {}", m_mpo.value(), m_log.getTimeStamp() );
-    }
-
     network::TransactionProducer::MPOTransactions transactions;
     m_transactionProducer.generate( transactions );
 

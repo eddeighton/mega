@@ -34,7 +34,6 @@ PlayerNetwork::PlayerNetwork( Executor& executor, const network::ConversationID&
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
     , m_plugin( plugin )
 {
-    m_bEnableQueueing = false;
 }
 
 network::Message PlayerNetwork::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )

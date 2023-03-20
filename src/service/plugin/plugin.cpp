@@ -30,6 +30,7 @@
 
 #include "service/protocol/model/platform.hxx"
 #include "service/protocol/model/player_network.hxx"
+#include "service/protocol/model/sim.hxx"
 
 #include "service/protocol/common/platform_state.hpp"
 
@@ -132,7 +133,7 @@ public:
 
     // Plugin
     Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
-        : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort() )
+        : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), this )
         , m_channel( ioContext )
     {
         {
@@ -254,6 +255,7 @@ public:
 
                 using namespace network::platform;
                 using namespace network::player_network;
+                using namespace network::sim;
 
                 switch( msg.getID() )
                 {
@@ -306,6 +308,21 @@ public:
                     }
                     break;
 
+                    // simulation clock
+                    case MSG_SimClock_Request::ID:
+                    {
+                        if( ConversationBase::Ptr pSim = m_executor.findExistingConversation( msg.getSenderID() ) )
+                        {
+                            send( *pSim, MSG_SimClock_Response{} );
+                        }
+                        else
+                        {
+                            THROW_RTE( "Failed to resolve simulation" );
+                        }
+                    }
+                    break;
+
+                    // errors
                     case network::MSG_Error_Response::ID:
                     {
                         SPDLOG_ERROR( "{} {}", msg, network::MSG_Error_Response::get( msg ).what );

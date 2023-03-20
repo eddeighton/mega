@@ -46,31 +46,37 @@ msg SimLockRead
     request( MPO requestingMPO, MPO targetMPO );
     response( TimeStamp lockCycle );
 }
+
 msg SimLockWrite
 {
     request( MPO requestingMPO, MPO targetMPO );
     response( TimeStamp lockCycle );
 }
+
 msg SimLockRelease
 {
     request( MPO requestingMPO, MPO targetMPO, network::Transaction transaction );
     response();
 }
+
 msg SimClock
 {
     request();
     response();
 }
+
 msg SimCreate
 {
     request();
     response( MPO mpo );
 }
+
 msg SimStart
 {
     request();
     response();
 }
+
 msg SimDestroy
 {
     request();

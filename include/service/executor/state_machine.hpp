@@ -78,7 +78,7 @@ public:
     using Write   = network::sim::MSG_SimLockWrite_Request;
     using Release = network::sim::MSG_SimLockRelease_Request;
     using Destroy = network::sim::MSG_SimDestroy_Request;
-    using Clock   = network::sim::MSG_SimClock_Request;
+    using Clock   = network::sim::MSG_SimClock_Response;
 
     static network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
     static const mega::MPO&   getSimID( const Msg& msg )

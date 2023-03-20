@@ -341,18 +341,21 @@ void LeafRequestConversation::RootSimRun( const MPO& mpo, boost::asio::yield_con
         case network::Node::Executor:
         {
             MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
-            return getExeSender( yield_ctx ).RootSimRun( mpo );
+            getExeSender( yield_ctx ).RootSimRun( mpo );
         }
+        break;
         case network::Node::Tool:
         {
             MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
-            return getToolSender( yield_ctx ).RootSimRun( mpo );
+            getToolSender( yield_ctx ).RootSimRun( mpo );
         }
+        break;
         case network::Node::Python:
         {
             MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );
-            return getPythonSender( yield_ctx ).RootSimRun( mpo );
+            getPythonSender( yield_ctx ).RootSimRun( mpo );
         }
+        break;
         case network::Node::Terminal:
         case network::Node::Daemon:
         case network::Node::Root:
@@ -362,6 +365,7 @@ void LeafRequestConversation::RootSimRun( const MPO& mpo, boost::asio::yield_con
         default:
             THROW_RTE( "Unknown node type" );
     }
+    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun complete {}", mpo );
 }
 
 network::Message LeafRequestConversation::DaemonLeafBroadcast( const network::Message&     request,

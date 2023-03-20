@@ -110,84 +110,28 @@ ReceivedMsg Conversation::receiveDeferred( boost::asio::yield_context& yield_ctx
     }
 }
 
-bool isMsgFromConID( const network::Message& msg, const ConversationID& id )
-{
-    return ( network::isRequest( msg ) && ( id == msg.getSenderID() ) )
-           || ( !network::isRequest( msg ) && ( id == msg.getReceiverID() ) );
-}
-
 bool Conversation::queue( const ReceivedMsg& msg )
 {
-    if( m_activeInterConID.has_value() )
+    if( m_bQueueing )
     {
-        // test if message matches current inter conversation ID
-        if( isMsgFromConID( msg.msg, m_activeInterConID.value() ) )
-        {
-            return false;
-        }
-        else
-        {
-            // if not then queue message to handle later
-            SPDLOG_TRACE( "Conversation::queue: {} {} {} {} {}", getID(), m_activeInterConID.value(), msg.msg.getName(),
-                          msg.msg.getSenderID(), msg.msg.getReceiverID() );
-            m_deferedMessages.push_back( msg );
-            return true;
-        }
+        m_deferedMessages.push_back( msg );
+        return true;
     }
     else
     {
-        // if message is a request then ALWAYS record the ID
-        // if message is response then
-        // ASSERT( network::isRequest( msg.msg ) || ( msg.msg.getSenderID() == getID() )
-        //        || ( m_activeInterConID.has_value() && msg.msg.getSenderID() == m_activeInterConID.value() ) );
-        if( network::isRequest( msg.msg ) ) //|| ( msg.msg.getSenderID() != getID() ) )
-        {
-            // record the active inter conversation message ID
-            m_activeInterConID = msg.msg.getSenderID();
-            SPDLOG_TRACE( "Conversation::queue {} set conID: {} msg: {} {} {}", getID(), m_activeInterConID.value(),
-                          msg.msg, msg.msg.getSenderID(), msg.msg.getReceiverID() );
-        }
         return false;
     }
 }
 
 void Conversation::unqueue()
 {
-    if( m_activeInterConID.has_value() )
+    if( m_bEnableQueueing )
     {
-        SPDLOG_TRACE( "Conversation::unqueue {} {}", getID(), m_activeInterConID.value() );
+        m_bQueueing = false;
+        VERIFY_RTE( m_unqueuedMessages.empty() );
+        m_deferedMessages.swap( m_unqueuedMessages );
+        std::reverse( m_unqueuedMessages.begin(), m_unqueuedMessages.end() );
     }
-    m_activeInterConID.reset();
-    if( !m_deferedMessages.empty() )
-    {
-        VERIFY_RTE_MSG( m_unqueuedMessages.empty(), "Unqueued messages not empty in Conversation::unqueue" );
-
-        std::vector< network::ReceivedMsg > temp;
-        m_deferedMessages.swap( temp );
-
-        // filter out all defered messages that match the first inter conversation ID
-        for( const auto& msg : temp )
-        {
-            if( m_activeInterConID.has_value() )
-            {
-                if( isMsgFromConID( msg.msg, m_activeInterConID.value() ) )
-                {
-                    m_unqueuedMessages.push_back( msg );
-                }
-                else
-                {
-                    m_deferedMessages.push_back( msg );
-                }
-            }
-            else
-            {
-                ASSERT( network::isRequest( msg.msg ) );
-                m_activeInterConID = msg.msg.getSenderID();
-                m_unqueuedMessages.push_back( msg );
-            }
-        }
-    }
-    std::reverse( m_unqueuedMessages.begin(), m_unqueuedMessages.end() );
 }
 
 void Conversation::run( boost::asio::yield_context& yield_ctx )
@@ -221,9 +165,6 @@ void Conversation::run_one( boost::asio::yield_context& yield_ctx )
 
 Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
-    const bool bIsInterCon = m_activeInterConID.has_value();
-    // SPDLOG_TRACE( "Conversation::dispatchRequestsUntilResponse {} {}", getID(), bIsInterCon );
-
     ReceivedMsg msg;
     while( true )
     {
@@ -232,13 +173,6 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
         if( isRequest( msg.msg ) )
         {
             dispatchRequestImpl( msg, yield_ctx );
-
-            if( !bIsInterCon && m_activeInterConID.has_value() )
-            {
-                SPDLOG_TRACE( "Conversation::dispatchRequestsUntilResponse {} set intercon: {}", getID(),
-                              m_activeInterConID.value() );
-                unqueue();
-            }
 
             // check if connection has disconnected
             if( m_disconnections.empty() )
@@ -305,11 +239,11 @@ void Conversation::dispatchRemaining( boost::asio::yield_context& yield_ctx )
     {
         bRemaining = false;
 
-        while( !m_deferedMessages.empty() || !m_unqueuedMessages.empty() )
+       /* while( !m_deferedMessages.empty() || !m_unqueuedMessages.empty() )
         {
             run_one( yield_ctx );
             bRemaining = true;
-        }
+        }*/
 
         // close out existing messages
         std::optional< network::ReceivedMsg > pendingMsgOpt = try_receive( yield_ctx );
@@ -318,11 +252,14 @@ void Conversation::dispatchRemaining( boost::asio::yield_context& yield_ctx )
             bRemaining = true;
             if( isRequest( pendingMsgOpt.value().msg ) )
             {
+                SPDLOG_TRACE( "Conversation::dispatchRemaining {} got request: {}", getID(),
+                              pendingMsgOpt.value().msg.getName() );
                 dispatchRequestImpl( pendingMsgOpt.value(), yield_ctx );
             }
             else
             {
-                SPDLOG_TRACE( "Conversation::dispatchRemaining got response: {}", pendingMsgOpt.value().msg.getName() );
+                SPDLOG_TRACE( "Conversation::dispatchRemaining {} got response: {}", getID(),
+                              pendingMsgOpt.value().msg.getName() );
             }
         }
     }

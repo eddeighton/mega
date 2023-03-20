@@ -46,7 +46,9 @@ class Simulation : public ExecutorRequestConversation, public MPOContext
 public:
     using Ptr = std::shared_ptr< Simulation >;
 
-    Simulation( Executor& executor, const network::ConversationID& conversationID );
+    Simulation( Executor&                      executor,
+                const network::ConversationID& conversationID,
+                network::ConversationBase*     pClock = nullptr );
 
     virtual network::Message     dispatchRequest( const network::Message&     msg,
                                                   boost::asio::yield_context& yield_ctx ) override;
@@ -73,7 +75,6 @@ public:
     virtual TimeStamp SimLockWrite( const MPO&, const MPO&, boost::asio::yield_context& ) override;
     virtual void
     SimLockRelease( const MPO&, const MPO&, const network::Transaction&, boost::asio::yield_context& ) override;
-    virtual void SimClock( boost::asio::yield_context& ) override;
     virtual MPO  SimCreate( boost::asio::yield_context& ) override;
     virtual void SimDestroy( boost::asio::yield_context& ) override;
 
@@ -99,6 +100,7 @@ private:
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
 private:
+    network::ConversationBase*                           m_pClock;
     network::Sender::Ptr                                 m_pRequestChannelSender;
     Scheduler                                            m_scheduler;
     StateMachine                                         m_stateMachine;
@@ -108,6 +110,7 @@ private:
     Clock                                                m_clock;
     std::string                                          m_strSimCreateError;
     std::optional< network::ReceivedMsg >                m_simCreateMsgOpt;
+    bool                                                 m_bShuttingDown = false;
 };
 
 } // namespace mega::service

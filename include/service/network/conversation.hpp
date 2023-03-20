@@ -135,10 +135,10 @@ protected:
     std::vector< ConnectionID >           m_stack;
     std::set< ConnectionID >              m_disconnections;
     mutable std::optional< ConnectionID > m_selfConnectionID;
-    std::optional< ConversationID >       m_activeInterConID;
+    bool                                  m_bQueueing = false;
     std::vector< network::ReceivedMsg >   m_deferedMessages;
     std::vector< network::ReceivedMsg >   m_unqueuedMessages;
-    bool                                  m_bEnableQueueing = true;
+    bool                                  m_bEnableQueueing = false;
 };
 
 ////////////////////////////////////////////////////////////////////////
