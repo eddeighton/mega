@@ -340,23 +340,26 @@ public:
 
 private:
     template < typename RecordType >
-    TrackRange getTrackRange( const IndexRecord* pFrom, const IndexRecord* pTo ) const
+    inline TrackRange getTrackRange( const IndexRecord* pFrom, const IndexRecord* pTo ) const
     {
+        const Offset offsetStart = pFrom->get( RecordType::Track );
+        const Offset offsetEnd   = pTo->get( RecordType::Track );
+
         const auto& track = getTrack( RecordType::Track );
 
-        Iterator< typename RecordType::Read > iterStart( track, pFrom->get( RecordType::Track ) );
-        Iterator< typename RecordType::Read > iterEnd( track, pTo->get( RecordType::Track ) );
+        const impl::File* pFileStart = track.getFile( offsetStart );
+        const impl::File* pFileEnd   = track.getFile( offsetEnd );
 
-        const void* pStart = iterStart.get();
-        const void* pEnd   = iterEnd.get();
+        const void* pStart = pFileStart->read( offsetStart );
+        const void* pEnd   = pFileEnd->read( offsetEnd );
 
-        if( iterStart.getFile() == iterEnd.getFile() )
+        if( pFileStart == pFileEnd )
         {
             return { pStart, pEnd, nullptr, nullptr };
         }
         else
         {
-            return { pStart, iterStart.getFile()->getEnd(), iterEnd.getFile()->getStart(), pEnd };
+            return { pStart, pFileStart->getEnd(), pFileEnd->getStart(), pEnd };
         }
     }
 
