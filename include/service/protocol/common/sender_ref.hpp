@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,80 +18,31 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg SimErrorCheck
-{
-    request();
-    response();
-}
+#ifndef GUARD_2023_March_21_sender_ref
+#define GUARD_2023_March_21_sender_ref
 
-msg SimObjectSnapshot
-{
-    request( reference object );
-    response( Snapshot snapshot );
-}
+#include "mega/mpo.hpp"
 
-msg SimAllocate
-{
-    request( TypeID objectTypeID );
-    response( reference result );
-}
+#include "common/assert_verify.hpp"
 
-msg SimSnapshot
+namespace mega::network
 {
-    request( MPO mpo );
-    response( Snapshot snapshot );
-}
 
-msg SimLockRead
-{
-    request( MPO requestingMPO, MPO targetMPO );
-    response( TimeStamp lockCycle );
-}
+class ConversationBase;
 
-msg SimLockWrite
+class SenderRef
 {
-    request( MPO requestingMPO, MPO targetMPO );
-    response( TimeStamp lockCycle );
-}
+public:
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        THROW_RTE( "Attempted to serialize SenderRef" );
+    }
 
-msg SimLockRelease
-{
-    request( MPO requestingMPO, MPO targetMPO, network::Transaction transaction );
-    response();
-}
+    MPO               m_mpo;
+    ConversationBase* m_pSender;
+};
 
-msg SimRegister
-{
-    request( network::SenderRef senderRef );
-    response();
-}
+} // namespace mega::network
 
-msg SimUnregister
-{
-    request( MPO mpo );
-    response();
-}
-
-msg SimClock
-{
-    request( MPO mpo, log::Range range );
-    response();
-}
-
-msg SimCreate
-{
-    request();
-    response( MPO mpo );
-}
-
-msg SimStart
-{
-    request();
-    response();
-}
-
-msg SimDestroy
-{
-    request();
-    response();
-}
+#endif // GUARD_2023_March_21_sender_ref

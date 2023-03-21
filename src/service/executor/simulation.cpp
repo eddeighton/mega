@@ -122,12 +122,21 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         VERIFY_RTE( m_mpo.has_value() );
         SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
-        // network::sim::Request_Sender rqClock( *this, m_pClock->getID(), *m_pClock, yield_ctx );
-
         // issue first clock tick
-        clock();
-        bool bRegistedAsTerminating = false;
+        if( m_pClock )
+        {
+            m_pClock->send( network::ReceivedMsg{
+                getConnectionID(),
+                network::sim::MSG_SimRegister_Request::make(
+                    getID(), m_pClock->getID(),
+                    network::sim::MSG_SimRegister_Request{ network::SenderRef{ m_mpo.value(), this } } ) } );
+        }
+        else
+        {
+            clock();
+        }
 
+        bool bRegistedAsTerminating = false;
         StateMachine::MsgVector tempMessages;
         while( !m_stateMachine.isTerminated() )
         {
@@ -148,18 +157,20 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case StateMachine::SIM:
                 {
+                    const auto timeStamp = m_log.getTimeStamp();
                     // std::ostringstream osLog;
                     // osLog << "SIM: " << getID() << " " << m_mpo.value();
                     // m_log.log( log::LogMsg( log::LogMsg::eInfo, osLog.str() ) );
                     // << " " << getElapsedTime();
                     // SPDLOG_TRACE( "SIM: SIM {} {} {}", getID(), m_mpo.value(), getElapsedTime() );
+
                     m_clock.nextCycle();
 
                     m_scheduler.cycle();
 
                     cycleComplete();
 
-                    // if( m_log.getTimeStamp() % 60 == 0 )
+                    if( m_log.getTimeStamp() % 60 == 0 )
                     {
                         SPDLOG_TRACE( "SIM: cycleComplete {} {}", m_mpo.value(), m_log.getTimeStamp() );
                     }
@@ -169,7 +180,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         m_pClock->send( network::ReceivedMsg{
                             getConnectionID(),
                             network::sim::MSG_SimClock_Request::make(
-                                getID(), m_pClock->getID(), network::sim::MSG_SimClock_Request{} ) } );
+                                getID(), m_pClock->getID(),
+                                network::sim::MSG_SimClock_Request{ m_mpo.value(), m_log.getRange( timeStamp ) } ) } );
                     }
                 }
                 break;
@@ -186,6 +198,15 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 case StateMachine::TERM:
                 {
                     SPDLOG_TRACE( "SIM: TERM {} {}", getID(), m_mpo.value() );
+
+                    if( m_pClock )
+                    {
+                        m_pClock->send( network::ReceivedMsg{
+                            getConnectionID(),
+                            network::sim::MSG_SimUnregister_Request::make(
+                                getID(), m_pClock->getID(),
+                                network::sim::MSG_SimUnregister_Request{ m_mpo.value() } ) } );
+                    }
                 }
                 break;
                 case StateMachine::WAIT:

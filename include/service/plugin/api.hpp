@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,80 +18,35 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg SimErrorCheck
+#ifndef GUARD_2023_March_21_api
+#define GUARD_2023_March_21_api
+
+#ifdef _WIN64
+using MEGA_64 = long long;
+#else
+using MEGA_64 = long int;
+#endif
+
+extern "C"
 {
-    request();
-    response();
+    // lifetime
+    void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
+    void mp_shutdown();
+
+    void* mp_downstream();
+    void mp_upstream( float delta, void* pRange );
+
+    // network connection
+    MEGA_64 mp_network_count();
+    const char* mp_network_name( MEGA_64 networkID );
+    void mp_network_connect( MEGA_64 networkID );
+    void mp_network_disconnect();
+    MEGA_64 mp_network_current();
+
+    // planet
+    void mp_planet_create();
+    void mp_planet_destroy();
+    bool mp_planet_current();
 }
 
-msg SimObjectSnapshot
-{
-    request( reference object );
-    response( Snapshot snapshot );
-}
-
-msg SimAllocate
-{
-    request( TypeID objectTypeID );
-    response( reference result );
-}
-
-msg SimSnapshot
-{
-    request( MPO mpo );
-    response( Snapshot snapshot );
-}
-
-msg SimLockRead
-{
-    request( MPO requestingMPO, MPO targetMPO );
-    response( TimeStamp lockCycle );
-}
-
-msg SimLockWrite
-{
-    request( MPO requestingMPO, MPO targetMPO );
-    response( TimeStamp lockCycle );
-}
-
-msg SimLockRelease
-{
-    request( MPO requestingMPO, MPO targetMPO, network::Transaction transaction );
-    response();
-}
-
-msg SimRegister
-{
-    request( network::SenderRef senderRef );
-    response();
-}
-
-msg SimUnregister
-{
-    request( MPO mpo );
-    response();
-}
-
-msg SimClock
-{
-    request( MPO mpo, log::Range range );
-    response();
-}
-
-msg SimCreate
-{
-    request();
-    response( MPO mpo );
-}
-
-msg SimStart
-{
-    request();
-    response();
-}
-
-msg SimDestroy
-{
-    request();
-    response();
-}
+#endif //GUARD_2023_March_21_api

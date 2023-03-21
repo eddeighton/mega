@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "player_network.hpp"
+#include "service/plugin/player_network.hpp"
 
 #include "service/executor/executor.hpp"
 

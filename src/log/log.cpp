@@ -186,9 +186,30 @@ Storage::Storage( const boost::filesystem::path& folderPath, bool bLoad )
     }
 }
 
-Storage::~Storage()
+Storage::~Storage() = default;
+
+const IndexRecord* Storage::getIndexRecord( TimeStamp timestamp ) const
 {
-    //
+    const File* pFile = m_index.getFile( m_index.toFileIndex( timestamp ) );
+    const void* pData = pFile->read( ( timestamp % Index::RecordsPerFile ) * Index::RecordSize );
+    return reinterpret_cast< const IndexRecord* >( pData );
+}
+
+Range Storage::getRange( TimeStamp timestamp ) const
+{
+    if( timestamp <= m_timestamp )
+    {
+        const IndexRecord* pStart = getIndexRecord( timestamp );
+        const IndexRecord* pEnd   = getIndexRecord( m_timestamp );
+
+        return Range{ getTrackRange< Structure::Read >( pStart, pEnd ),
+                      getTrackRange< Scheduling::Read >( pStart, pEnd ),
+                      getTrackRange< Memory::Read >( pStart, pEnd ) };
+    }
+    else
+    {
+        return {};
+    }
 }
 
 void Storage::cycle()
@@ -214,10 +235,7 @@ Offset Storage::get( TrackType track, TimeStamp timestamp ) const
 {
     if( timestamp <= m_timestamp )
     {
-        const File* pFile   = m_index.getFile( m_index.toFileIndex( timestamp ) );
-        const void* pData   = pFile->read( ( timestamp % Index::RecordsPerFile ) * Index::RecordSize );
-        auto        pRecord = reinterpret_cast< const IndexRecord* >( pData );
-        return pRecord->get( track );
+        return getIndexRecord( timestamp )->get( track );
     }
     else
     {

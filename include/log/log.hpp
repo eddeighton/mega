@@ -24,6 +24,8 @@
 #include "offset.hpp"
 #include "filename.hpp"
 #include "index.hpp"
+#include "range.hpp"
+
 #include "records.hxx"
 
 #include "mega/native_types.hpp"
@@ -57,6 +59,9 @@ public:
     {
         return reinterpret_cast< char* >( m_region.get_address() ) + offset.get();
     }
+
+    inline const void* getStart() const noexcept { return read( 0 ); }
+    inline const void* getEnd() const noexcept { return read( LogFileSize ); }
 
     inline bool fit( U64 size ) const noexcept { return m_writePosition.get() + size <= LogFileSize; }
 
@@ -173,7 +178,7 @@ class Iterator
         const void* pData = m_pFile->read( m_position );
 
         bool bIsTerminated = false;
-        if constexpr ( RecordType::Variable )
+        if constexpr( RecordType::Variable )
         {
             bIsTerminated = m_pFile->isTerminated< RecordType >( m_position );
         }
@@ -226,6 +231,12 @@ public:
     }
 
     inline const Offset& position() const noexcept { return m_position; }
+
+    const impl::File* getFile() const
+    {
+        ASSERT( m_pFile );
+        return m_pFile;
+    }
 
 private:
     const impl::Track&        m_track;
@@ -287,6 +298,7 @@ public:
 
 public:
     // READ interface
+    Range getRange( TimeStamp timestamp ) const;
 
     // general access
     Offset get( TrackType track ) const;
@@ -321,7 +333,34 @@ public:
 
     // get the current offset of a given track
     template < typename RecordType >
-    inline const Offset& getTrackEnd() const { return m_iterator.get< RecordType::Track >(); }
+    inline const Offset& getTrackEnd() const
+    {
+        return m_iterator.get< RecordType::Track >();
+    }
+
+private:
+    template < typename RecordType >
+    TrackRange getTrackRange( const IndexRecord* pFrom, const IndexRecord* pTo ) const
+    {
+        const auto& track = getTrack( RecordType::Track );
+
+        Iterator< typename RecordType::Read > iterStart( track, pFrom->get( RecordType::Track ) );
+        Iterator< typename RecordType::Read > iterEnd( track, pTo->get( RecordType::Track ) );
+
+        const void* pStart = iterStart.get();
+        const void* pEnd   = iterEnd.get();
+
+        if( iterStart.getFile() == iterEnd.getFile() )
+        {
+            return { pStart, pEnd, nullptr, nullptr };
+        }
+        else
+        {
+            return { pStart, iterStart.getFile()->getEnd(), iterEnd.getFile()->getStart(), pEnd };
+        }
+    }
+
+    const IndexRecord* getIndexRecord( TimeStamp timestamp ) const;
 
 private:
     const boost::filesystem::path m_folderPath;

@@ -123,6 +123,7 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/node.hpp
     ${MEGA_API_DIR}/service/protocol/common/platform_state.hpp
     ${MEGA_API_DIR}/service/protocol/common/root_config.hpp
+    ${MEGA_API_DIR}/service/protocol/common/sender_ref.hpp
     ${MEGA_API_DIR}/service/protocol/common/sender.hpp  
     ${MEGA_API_DIR}/service/protocol/common/status.hpp
     ${MEGA_API_DIR}/service/protocol/common/transaction.hpp

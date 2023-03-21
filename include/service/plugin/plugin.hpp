@@ -21,30 +21,193 @@
 #ifndef GUARD_2023_March_07_plugin
 #define GUARD_2023_March_07_plugin
 
-#ifdef _WIN64
-using MEGA_64 = long long;
-#else
-using MEGA_64 = long int;
-#endif
+#include "service/plugin/platform.hpp"
+#include "service/plugin/player_network.hpp"
+#include "service/plugin/plugin_state_machine.hpp"
 
-extern "C"
+#include "service/executor/executor.hpp"
+
+#include "service/protocol/common/platform_state.hpp"
+
+#include "common/assert_verify.hpp"
+
+#include <boost/asio/io_context.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/config.hpp>
+
+#include <iostream>
+#include <sstream>
+#include <chrono>
+#include <thread>
+
+namespace mega::service
 {
-    // lifetime
-    void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
-    void mp_update( float dt );
-    void mp_shutdown();
 
-    // network connection
-    MEGA_64 mp_network_count();
-    const char* mp_network_name( MEGA_64 networkID );
-    void mp_network_connect( MEGA_64 networkID );
-    void mp_network_disconnect();
-    MEGA_64 mp_network_current();
+class Plugin : public network::ConversationBase
+{
+    using MessageChannel
+        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, network::ReceivedMsg ) >;
 
-    // planet
-    void mp_planet_create();
-    void mp_planet_destroy();
-    bool mp_planet_current();
-}
+    mutable std::optional< network::ConnectionID > m_selfConnectionID;
 
-#endif //GUARD_2023_March_07_plugin
+public:
+    using Ptr = std::shared_ptr< Plugin >;
+
+    // Plugin
+    Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads );
+    ~Plugin();
+
+    Plugin( const Plugin& )            = delete;
+    Plugin( Plugin&& )                 = delete;
+    Plugin& operator=( const Plugin& ) = delete;
+    Plugin& operator=( Plugin&& )      = delete;
+
+    // Sender
+    virtual network::ConnectionID     getConnectionID() const;
+    virtual boost::system::error_code send( const network::Message& msg, boost::asio::yield_context& yield_ctx );
+    void         sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg );
+    virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
+                                    boost::asio::yield_context& yield_ctx );
+
+    // network::ConversationBase
+    virtual const network::ConversationID& getID() const;
+    virtual void                           send( const network::ReceivedMsg& msg );
+
+    virtual network::Message   dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
+    virtual void               run( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
+    virtual const std::string& getProcessName() const { THROW_TODO; }
+    virtual U64                getStackSize() const { THROW_TODO; }
+    virtual void               onDisconnect( const network::ConnectionID& connectionID ) { THROW_TODO; }
+    virtual void               requestStarted( const network::ConnectionID& connectionID ) { ; }
+    virtual void               requestCompleted() { ; }
+
+    void send( ConversationBase& sender, network::Message&& requestMsg )
+    {
+        // SPDLOG_TRACE( "plugin::send: {}", requestMsg.getName() );
+        const network::ReceivedMsg rMsg{ sender.getConnectionID(), requestMsg };
+        sender.send( rMsg );
+    }
+    template < typename MsgType >
+    void send( ConversationBase& sender, MsgType&& msg )
+    {
+        send( sender, MsgType::make( getID(), sender.getID(), std::move( msg ) ) );
+    }
+
+    void runOne()
+    {
+        std::promise< network::ReceivedMsg > pro;
+        std::future< network::ReceivedMsg >  fut = pro.get_future();
+        m_channel.async_receive(
+            [ &pro ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+            {
+                if( ec )
+                {
+                    SPDLOG_ERROR( "Failed to receive msg with error: {}", ec.what() );
+                    THROW_RTE( "Failed to receive msg on channel: " << ec.what() );
+                    pro.set_exception( std::make_exception_ptr( std::runtime_error( ec.what() ) ) );
+                }
+                else
+                {
+                    pro.set_value( msg );
+                }
+            } );
+
+        dispatch( fut.get().msg );
+    }
+
+    log::Range* downstream()
+    {
+        tryRun();
+        return m_stateMachine.getDownstream();
+    }
+
+    void upstream( float delta, void* pRange )
+    {
+        m_ct += delta;
+
+        m_stateMachine.sendUpstream();
+    }
+
+    void tryRun()
+    {
+        if( m_pPlatform )
+        {
+            if( m_lastPlatformStatus.has_value() && !m_bPlatformRequest
+                && ( ( m_ct - m_lastPlatformStatus.value() ) > m_statusRate ) )
+            {
+                using namespace network::platform;
+                send( *m_pPlatform, MSG_PlatformStatus_Response{} );
+                m_lastPlatformStatus.reset();
+            }
+        }
+
+        if( m_pPlayerNetwork )
+        {
+            if( m_lastNetworkStatus.has_value() && !m_bNetworkRequest
+                && ( ( m_ct - m_lastNetworkStatus.value() ) > m_statusRate ) )
+            {
+                using namespace network::player_network;
+                send( *m_pPlayerNetwork, MSG_PlayerNetworkStatus_Response{} );
+                m_lastNetworkStatus.reset();
+            }
+        }
+
+        std::optional< network::ReceivedMsg > msgOpt;
+        while( true )
+        {
+            msgOpt.reset();
+            m_channel.try_receive(
+                [ &msgOpt ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+                {
+                    if( !ec )
+                    {
+                        msgOpt = msg;
+                    }
+                    else
+                    {
+                        THROW_TODO;
+                    }
+                } );
+
+            if( msgOpt.has_value() )
+            {
+                dispatch( msgOpt.value().msg );
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    void dispatch( const network::Message& msg );
+
+    I64         network_count();
+    const char* network_name( int networkID );
+    void        network_connect( I64 networkID );
+    void        network_disconnect();
+    I64         network_current();
+
+    void planet_create();
+    void planet_destroy();
+    bool planet_current();
+
+private:
+    mega::service::Executor                            m_executor;
+    MessageChannel                                     m_channel;
+    Platform::Ptr                                      m_pPlatform;
+    PlayerNetwork::Ptr                                 m_pPlayerNetwork;
+    std::optional< mega::network::PlatformState >      m_platformStateOpt;
+    std::optional< mega::network::PlayerNetworkState > m_networkStateOpt;
+
+    float                        m_ct               = 0.0f;
+    float                        m_statusRate       = 1.0f;
+    bool                         m_bNetworkRequest  = false;
+    bool                         m_bPlatformRequest = false;
+    std::optional< float >       m_lastPlatformStatus;
+    std::optional< float >       m_lastNetworkStatus;
+    PluginStateMachine< Plugin > m_stateMachine;
+};
+} // namespace mega::service
+
+#endif // GUARD_2023_March_07_plugin

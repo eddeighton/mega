@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/plugin/plugin.hpp"
+#include "service/plugin/api.hpp"
 
 #include "service/network/network.hpp"
 
@@ -42,6 +42,7 @@ auto elapsed( std::chrono::steady_clock::time_point& last )
     last               = timeNow;
     return delta;
 }
+
 template < typename T >
 void print( const T& dur, std::ostream& os )
 {
@@ -73,6 +74,12 @@ void printCurrentNetworkConnection()
     {
         std::cout << "PLUGIN_TEST: Current network: 'disconnected'" << std::endl;
     }
+}
+
+void update()
+{
+    while( mp_downstream() != nullptr );
+    mp_upstream( 0.1f, nullptr);
 }
 
 int main( int argc, const char* argv[] )
@@ -123,7 +130,6 @@ int main( int argc, const char* argv[] )
 
     // std::cout << "Connecting to: " << strIP << std::endl;
     // auto  start       = std::chrono::steady_clock::now();
-    float fUpdateRate = 0.1f;
 
     try
     {
@@ -133,7 +139,7 @@ int main( int argc, const char* argv[] )
         {
             while( mp_network_count() == 0 )
             {
-                mp_update( fUpdateRate );
+                update();
             }
         }
 
@@ -147,7 +153,7 @@ int main( int argc, const char* argv[] )
         {
             while( -1 == mp_network_current() )
             {
-                mp_update( fUpdateRate );
+                update();
             }
         }
 
@@ -158,7 +164,7 @@ int main( int argc, const char* argv[] )
         {
             while( mp_planet_current() == false )
             {
-                mp_update( fUpdateRate );
+                update();
             }
         }
         std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
@@ -173,7 +179,7 @@ int main( int argc, const char* argv[] )
             auto timeNOw = std::chrono::steady_clock::now();
             for( int i = 0; i != 1000; ++i )
             {
-                mp_update( fUpdateRate );
+                update();
             }
             std::cout << "1000 cycles took: ";
             print( elapsed( timeNOw ), std::cout );
@@ -189,7 +195,7 @@ int main( int argc, const char* argv[] )
         {
             while( mp_planet_current() == true )
             {
-                mp_update( fUpdateRate );
+                update();
             }
         }
         std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
@@ -205,7 +211,7 @@ int main( int argc, const char* argv[] )
         {
             while( -1 != mp_network_current() )
             {
-                mp_update( fUpdateRate );
+                update();
             }
         }
         printCurrentNetworkConnection();

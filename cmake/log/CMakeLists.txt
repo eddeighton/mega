@@ -43,10 +43,11 @@ add_custom_target( generate_log_records
 
 set( LOG_HEADERS
     ${MEGA_API_DIR}/log/records.hxx
-    ${MEGA_API_DIR}/log/offset.hpp
     ${MEGA_API_DIR}/log/filename.hpp
-    ${MEGA_API_DIR}/log/log.hpp
     ${MEGA_API_DIR}/log/index.hpp
+    ${MEGA_API_DIR}/log/log.hpp
+    ${MEGA_API_DIR}/log/offset.hpp
+    ${MEGA_API_DIR}/log/range.hpp
 )
 
 set( LOG_SOURCE
