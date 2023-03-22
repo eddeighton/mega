@@ -136,7 +136,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             clock();
         }
 
-        bool bRegistedAsTerminating = false;
+        bool                    bRegistedAsTerminating = false;
         StateMachine::MsgVector tempMessages;
         while( !m_stateMachine.isTerminated() )
         {
@@ -147,11 +147,14 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 bRegistedAsTerminating = true;
             }
 
-            for( const auto& msg : m_stateMachine.acks() )
+            //acknowledge simulation requests
             {
-                dispatchRequestImpl( msg, yield_ctx );
+                for( const auto& msg : m_stateMachine.acks() )
+                {
+                    dispatchRequestImpl( msg, yield_ctx );
+                }
+                m_stateMachine.resetAcks();
             }
-            m_stateMachine.resetAcks();
 
             switch( m_stateMachine.getState() )
             {
@@ -170,10 +173,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     cycleComplete();
 
-                    if( m_log.getTimeStamp() % 60 == 0 )
+                    /*if( m_log.getTimeStamp() % 60 == 0 )
                     {
                         SPDLOG_TRACE( "SIM: cycleComplete {} {}", m_mpo.value(), m_log.getTimeStamp() );
-                    }
+                    }*/
 
                     if( m_pClock )
                     {
@@ -202,10 +205,9 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     if( m_pClock )
                     {
                         m_pClock->send( network::ReceivedMsg{
-                            getConnectionID(),
-                            network::sim::MSG_SimUnregister_Request::make(
-                                getID(), m_pClock->getID(),
-                                network::sim::MSG_SimUnregister_Request{ m_mpo.value() } ) } );
+                            getConnectionID(), network::sim::MSG_SimUnregister_Request::make(
+                                                   getID(), m_pClock->getID(),
+                                                   network::sim::MSG_SimUnregister_Request{ m_mpo.value() } ) } );
                     }
                 }
                 break;
@@ -239,7 +241,9 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     break;
                     default:
                     {
+                        m_dispatchingOrdinaryRequests = true;
                         dispatchRequestImpl( msg, yield_ctx );
+                        m_dispatchingOrdinaryRequests = false;
                     }
                     break;
                 }
@@ -281,6 +285,13 @@ void Simulation::unqueue()
             m_simCreateMsgOpt.reset();
         }
     }
+    else if( !m_messageQueue.empty() )
+    {
+        SPDLOG_TRACE( "SIM::unqueue" );
+        VERIFY_RTE( m_unqueuedMessages.empty() );
+        m_unqueuedMessages.swap( m_messageQueue );
+        std::reverse( m_unqueuedMessages.begin(), m_unqueuedMessages.end() );
+    }
     else
     {
         // allow ordinary request processing
@@ -307,6 +318,25 @@ bool Simulation::queue( const network::ReceivedMsg& msg )
     {
         switch( StateMachine::getMsgID( msg ) )
         {
+            case StateMachine::Read::ID:
+            case StateMachine::Write::ID:
+            case StateMachine::Release::ID:
+            case StateMachine::Destroy::ID:
+            case StateMachine::Clock::ID:
+            {
+                // if processing a request then postpone state machine messages
+                if( m_dispatchingOrdinaryRequests )
+                {
+                    SPDLOG_TRACE( "SIM::queue {}", msg.msg );
+                    m_messageQueue.push_back( msg );
+                    return true;
+                }
+                else
+                {
+                    return ExecutorRequestConversation::queue( msg );
+                }
+            }
+            break;
             case network::sim::MSG_SimCreate_Request::ID:
             {
                 // queue SimCreate if RootSimRun has not run yet

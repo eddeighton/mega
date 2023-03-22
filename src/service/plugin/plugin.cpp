@@ -163,7 +163,7 @@ void Plugin::dispatch( const network::Message& msg )
         // network
         case MSG_PlayerNetworkStatus_Request::ID:
         {
-            SPDLOG_TRACE( "plugin::dispatch: {}", msg.getName() );
+            // SPDLOG_TRACE( "plugin::dispatch: {}", msg.getName() );
             m_networkStateOpt   = MSG_PlayerNetworkStatus_Request::get( msg ).state;
             m_lastNetworkStatus = m_ct;
         }
