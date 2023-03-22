@@ -38,6 +38,8 @@ public:
     PythonProcess( PythonModule& module, mega::MP mp );
 
     std::vector< PythonMPO > getMPOs() const;
+
+    PythonMPO createMPO() const;
 private:
     PythonModule& m_module;
     mega::MP      m_mp;

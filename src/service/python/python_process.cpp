@@ -23,6 +23,7 @@
 #include "module.hpp"
 
 #include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/sim.hxx"
 
 namespace mega::service::python
 {
@@ -47,4 +48,11 @@ std::vector< PythonMPO > PythonProcess::getMPOs() const
     }
     return result;
 }
+
+PythonMPO PythonProcess::createMPO() const
+{
+    MPO newMPO = m_module.mpRequest< network::sim::Request_Encoder >( m_mp ).SimCreate();
+    return PythonMPO{ m_module, newMPO };
+}
+
 } // namespace mega::service::python

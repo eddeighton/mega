@@ -38,6 +38,7 @@
 #include "service/network/network.hpp"
 
 #include "service/protocol/model/python_leaf.hxx"
+#include "service/protocol/model/sim.hxx"
 
 #include "service/protocol/common/conversation_base.hpp"
 
@@ -103,10 +104,13 @@ public:
     }
 
     // Megastructure Execution
-    void       shutdown();
-    void       run_one();
-    TimeStamp  cycle();
-    PythonRoot getRoot();
+    void          shutdown();
+    void          run_one();
+    TimeStamp     cycle();
+    PythonRoot    getRoot();
+    PythonMachine getMachine( std::string strID = "" );
+    PythonProcess getProcess( std::string strID = "" );
+    PythonMPO     getMPO( std::string strID = "" );
 
     template < typename Request >
     Request rootRequest()
@@ -117,6 +121,19 @@ public:
             {
                 network::python_leaf::External_Request_Sender sender( *mpoCon, *extCon );
                 return sender.PythonRoot( msg );
+            },
+            m_pExternalConversation->getID() );
+    }
+
+    template < typename Request >
+    Request mpRequest( MP mp )
+    {
+        return Request(
+            [ mpoCon = m_mpoConversation, extCon = m_pExternalConversation, mp ](
+                const network::Message& msg ) mutable -> network::Message
+            {
+                network::mpo::External_Request_Sender sender( *mpoCon, *extCon );
+                return sender.MPUp( msg, mp );
             },
             m_pExternalConversation->getID() );
     }

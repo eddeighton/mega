@@ -117,6 +117,20 @@ network::Message PythonRequestConversation::PythonDaemon( const network::Message
     return getPythonRequest( yield_ctx ).PythonDaemon( request );
 }
 
+network::Message PythonRequestConversation::MPRoot( const network::Message& request, const mega::MP& mp,
+                                                    boost::asio::yield_context& yield_ctx )
+{
+    network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
+    return rq.MPRoot( request, mp );
+}
+
+network::Message PythonRequestConversation::MPUp( const network::Message& request, const mega::MP& mp,
+                                                    boost::asio::yield_context& yield_ctx )
+{
+    network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
+    return rq.MPUp( request, mp );
+}
+
 network::Message PythonRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {

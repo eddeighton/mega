@@ -84,7 +84,7 @@ MPO MPOContext::constructMPO( MP machineProcess )
 {
     network::sim::Request_Encoder request(
         [ mpoRequest = getMPRequest(), machineProcess ]( const network::Message& msg ) mutable
-        { return mpoRequest.MPRoot( msg, machineProcess ); },
+        { return mpoRequest.MPUp( msg, machineProcess ); },
         m_conversationIDRef );
     return request.SimCreate();
 }

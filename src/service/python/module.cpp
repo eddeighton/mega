@@ -31,7 +31,11 @@
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/python.hxx"
 
+#include "mega/reference_io.hpp"
+
 #include <pybind11/stl.h>
+
+#include <sstream>
 
 namespace
 {
@@ -109,13 +113,24 @@ PYBIND11_MODULE( megastructure, pythonModule )
         .def( "getProcesses", &PythonMachine::getProcesses, "Get all processes for this machine" );
 
     pybind11::class_< PythonProcess >( pythonModule, "Process" )
-        .def( "getMPOs", &PythonProcess::getMPOs, "Get all MPOs for this process" );
+        .def( "getMPOs", &PythonProcess::getMPOs, "Get all MPOs for this process" )
+        .def( "createMPO", &PythonProcess::createMPO, "Create new MPO on this process" );
 
     pybind11::class_< PythonMPO >( pythonModule, "MPO" )
         .def( "getRoot", &PythonMPO::getRoot, "Get the MPO Root object" );
 
-    pythonModule.def(
-        "getRoot", [] { return getModule()->getRoot(); }, "Get the Megastructure Root" );
+    pythonModule
+        .def(
+            "getRoot", [] { return getModule()->getRoot(); }, "Get the Megastructure Root" )
+        .def(
+            "getMachine", []( std::string strID ) { return getModule()->getMachine( strID ); },
+            "Get Megastructure Machine", pybind11::arg( "strID" ) = "" )
+        .def(
+            "getProcess", []( std::string strID ) { return getModule()->getProcess( strID ); },
+            "Get Megastructure Process", pybind11::arg( "strID" ) = "" )
+        .def(
+            "getMPO", []( std::string strID ) { return getModule()->getMPO( strID ); }, "Get Megastructure MPO",
+            pybind11::arg( "strID" ) = "" );
 
     pythonModule.def(
         "run_one", [] { return getModule()->run_one(); }, "Run the Megastructure Message Queue for one message" );
@@ -262,6 +277,54 @@ TimeStamp PythonModule::cycle()
 PythonRoot PythonModule::getRoot()
 {
     return { *this };
+}
+
+PythonMachine PythonModule::getMachine( std::string strID /*= ""*/ )
+{
+    auto mpo = m_python.getMPO();
+    if( strID.empty() )
+    {
+        return PythonMachine( *this, mpo.getMachineID() );
+    }
+    else
+    {
+        std::istringstream is( strID );
+        MachineID          id;
+        is >> id;
+        return PythonMachine( *this, id );
+    }
+}
+
+PythonProcess PythonModule::getProcess( std::string strID /*= ""*/ )
+{
+    auto mpo = m_python.getMPO();
+    if( strID.empty() )
+    {
+        return PythonProcess( *this, mpo );
+    }
+    else
+    {
+        std::istringstream is( strID );
+        MP                 id;
+        is >> id;
+        return PythonProcess( *this, id );
+    }
+}
+
+PythonMPO PythonModule::getMPO( std::string strID /*= ""*/ )
+{
+    auto mpo = m_python.getMPO();
+    if( strID.empty() )
+    {
+        return PythonMPO( *this, mpo );
+    }
+    else
+    {
+        std::istringstream is( strID );
+        MPO                id;
+        is >> id;
+        return PythonMPO( *this, id );
+    }
 }
 
 } // namespace mega::service::python

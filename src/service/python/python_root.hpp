@@ -22,10 +22,12 @@
 #define GUARD_2023_March_12_root
 
 #include "python_machine.hpp"
+#include "python_mpo.hpp"
 
 #include "mega/mpo.hpp"
 
 #include <vector>
+#include <string>
 
 namespace mega::service::python
 {
