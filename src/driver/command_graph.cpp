@@ -208,7 +208,7 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     }
     else if( auto pAbstract = db_cast< Abstract >( pContext ) )
     {
-        os << "Abstract: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        os << "Interface: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addInheritance( pAbstract->get_inheritance_trait(), node );
     }

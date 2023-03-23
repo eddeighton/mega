@@ -62,6 +62,9 @@ public:
         using namespace MetaStage;
         Database database( m_environment, m_manifest );
 
+
+        
+
         // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
 
         const task::FileHash fileHashCode = database.save_MetaAnalysis_to_temp();

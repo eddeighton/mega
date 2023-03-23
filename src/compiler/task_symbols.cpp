@@ -309,7 +309,8 @@ public:
 
                             auto jFind = newInterfaceTypeIDSequences.find( idSeq );
                             VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                            "Duplicate Interface Type ID Sequnce found: " << idSeq );
+                                            "Duplicate Interface Type ID Sequnce found: "
+                                                << idSeq << " : " << pContext->get_identifier() );
 
                             auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                                 New::Symbols::InterfaceTypeID::Args{
@@ -324,7 +325,8 @@ public:
                         {
                             auto jFind = newInterfaceTypeIDSequences.find( idSeq );
                             VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                            "Duplicate Interface Type ID Sequnce found: " << idSeq );
+                                            "Duplicate Interface Type ID Sequnce found: "
+                                                << idSeq << " : " << pContext->get_identifier() );
 
                             auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                                 New::Symbols::InterfaceTypeID::Args{ idSeq, TypeID{}, pContext, std::nullopt } );
@@ -344,7 +346,8 @@ public:
 
                         auto jFind = newInterfaceTypeIDSequences.find( idSeq );
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                        "Duplicate Interface Type ID Sequnce found: " << idSeq );
+                                        "Duplicate Interface Type ID Sequnce found: "
+                                            << idSeq << " : " << pDimension->get_id()->get_str() );
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{
@@ -358,7 +361,8 @@ public:
                     {
                         auto jFind = newInterfaceTypeIDSequences.find( idSeq );
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                        "Duplicate Interface Type ID Sequnce found: " << idSeq );
+                                        "Duplicate Interface Type ID Sequnce found: "
+                                            << idSeq << " : " << pDimension->get_id()->get_str() );
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{ idSeq, TypeID{}, std::nullopt, pDimension } );
@@ -367,7 +371,7 @@ public:
                 }
             }
 
-            // generate symbol ids - avoiding existing
+            // generate interface type IDs - avoiding existing
 
             std::map< New::Interface::Object*, New::Symbols::InterfaceTypeID* > objectInterfaceTypeIDs;
             {
@@ -410,7 +414,11 @@ public:
             std::multimap< U8, U8 > usedSubObjectIDs;
             for( const auto typeID : usedTypeIDs )
             {
-                usedSubObjectIDs.insert( { typeID.getObjectID(), typeID.getSubObjectID() } );
+                // only add non-zero sub object IDs
+                if( typeID.getSubObjectID() != 0 )
+                {
+                    usedSubObjectIDs.insert( { typeID.getObjectID(), typeID.getSubObjectID() } );
+                }
             }
 
             // set everything else
@@ -453,25 +461,20 @@ public:
                     {
                         auto i           = usedSubObjectIDs.lower_bound( objectID );
                         auto iEnd        = usedSubObjectIDs.upper_bound( objectID );
-                        U8   subObjectID = 0U;
+                        U8   subObjectID = 1U;
                         while( ( i != iEnd ) && ( subObjectID == i->second ) )
                         {
                             ++i;
                             ++subObjectID;
                             VERIFY_RTE_MSG( subObjectID != 0, "SubObjectID overflow" );
                         }
-                        // there may not be an object in which case subObjectID 0 will not be used
-                        if( subObjectID == 0U )
-                        {
-                            usedSubObjectIDs.insert( { objectID, subObjectID } );
-                            ++subObjectID;
-                        }
                         usedSubObjectIDs.insert( { objectID, subObjectID } );
                         newTypeID = TypeID::make_context( objectID, subObjectID );
                     }
 
                     pInterfaceTypeID->set_id( newTypeID );
-                    VERIFY_RTE( newInterfaceTypeIDs.insert( { newTypeID, pInterfaceTypeID } ).second );
+                    VERIFY_RTE_MSG( newInterfaceTypeIDs.insert( { newTypeID, pInterfaceTypeID } ).second,
+                        "Failed to generate unique typeID: " << newTypeID );
                 }
             }
         }
