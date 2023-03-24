@@ -26,7 +26,7 @@ namespace mega::service::python
 // network::project::Impl
 void PythonRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
 {
-    THROW_TODO;
+    
 }
 
 } // namespace mega::service::python

@@ -76,14 +76,14 @@ public:
             network::project::Request_Encoder projectRequest(
                 [ &daemonSender ]( const network::Message& msg ) { return daemonSender.LeafRoot( msg ); }, getID() );
 
-            const Project currentProject = projectRequest.GetProject();
+            const Project currentProject          = projectRequest.GetProject();
             m_leaf.m_megastructureInstallationOpt = projectRequest.GetMegastructureInstallation();
             m_leaf.setActiveProject( currentProject );
         }
 
         // set process description
         {
-            using ::operator<<;
+            using ::           operator<<;
             std::ostringstream os;
             os << network::Node::toStr( m_leaf.m_nodeType ) << " " << m_leaf.m_mp;
             common::ProcessID::setDescription( os.str().c_str() );
@@ -126,8 +126,6 @@ Leaf::~Leaf()
 
 void Leaf::setActiveProject( const Project& currentProject )
 {
-    m_pJIT.reset();
-
     switch( m_nodeType )
     {
         case network::Node::Leaf:
@@ -142,10 +140,31 @@ void Leaf::setActiveProject( const Project& currentProject )
                 {
                     try
                     {
-                        SPDLOG_TRACE( "Leaf: {} enrole creating runtime for project: {}", m_mp,
-                                      currentProject.getProjectInstallPath().string() );
-                        m_pJIT = std::make_unique< runtime::JIT >(
-                            m_megastructureInstallationOpt.value(), currentProject );
+                        if( m_pJIT && m_activeProject.has_value() )
+                        {
+                            m_pJIT = std::make_unique< runtime::JIT >(
+                                m_megastructureInstallationOpt.value(), currentProject, *m_pJIT );
+
+                            if( m_activeProject.value().getProjectInstallPath()
+                                == currentProject.getProjectInstallPath() )
+                            {
+                                SPDLOG_INFO( "Leaf: {} setActiveProject reloading project {}", m_mp,
+                                              currentProject.getProjectInstallPath().string() );
+                            }
+                            else
+                            {
+                                SPDLOG_INFO( "Leaf: {} setActiveProject changing project from {} to: {}", m_mp,
+                                              m_activeProject.value().getProjectInstallPath().string(),
+                                              currentProject.getProjectInstallPath().string() );
+                            }
+                        }
+                        else
+                        {
+                            SPDLOG_INFO( "Leaf: {} setActiveProject creating runtime for project: {}", m_mp,
+                                          currentProject.getProjectInstallPath().string() );
+                            m_pJIT = std::make_unique< runtime::JIT >(
+                                m_megastructureInstallationOpt.value(), currentProject );
+                        }
                         m_activeProject = currentProject;
                     }
                     catch( mega::io::DatabaseVersionException& ex )
@@ -162,13 +181,15 @@ void Leaf::setActiveProject( const Project& currentProject )
                 }
                 else
                 {
-                    SPDLOG_WARN( "JIT not initialised.  Active project: {} has no database",
+                    m_pJIT.reset();
+                    SPDLOG_WARN( "JIT uninitialised.  Active project: {} has no database",
                                  currentProject.getProjectInstallPath().string() );
                 }
             }
             else
             {
-                SPDLOG_WARN( "JIT not initialised.  No active project" );
+                m_pJIT.reset();
+                SPDLOG_WARN( "JIT uninitialised.  No active project" );
             }
             break;
         case network::Node::Daemon:
@@ -180,13 +201,6 @@ void Leaf::setActiveProject( const Project& currentProject )
     }
 }
 
-/*
-void Leaf::shutdown()
-{
-    m_client.stop();
-    m_receiverChannel.stop();
-}
-*/
 // network::ConversationManager
 network::ConversationBase::Ptr Leaf::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                        const network::Message&      msg )

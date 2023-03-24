@@ -34,14 +34,32 @@ namespace mega
 {
 inline void to_json( nlohmann::json& j, const mega::RelationID& relationID )
 {
-    j = nlohmann::json{ { "lower", relationID.getLower() },
-                        { "upper", relationID.getUpper() } };
+    j = nlohmann::json{ { "lower", relationID.getLower() }, { "upper", relationID.getUpper() } };
 }
 } // namespace mega
 
 inline std::ostream& operator<<( std::ostream& os, const mega::RelationID& relationID )
 {
-    return os << relationID.getLower() << '_' << relationID.getUpper();
+    // this must work within a filename - used for relation code gen
+    return os <<
+
+           std::hex <<
+
+           std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( relationID.getLower().getObjectID() )
+
+              << '_' <<
+
+           std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( relationID.getLower().getSubObjectID() )
+
+              << '_' <<
+
+           std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( relationID.getUpper().getObjectID() )
+
+              << '_' <<
+
+           std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( relationID.getUpper().getSubObjectID() )
+
+              << std::dec;
 }
 
-#endif //GUARD_2023_January_20_relation_io
+#endif // GUARD_2023_January_20_relation_io

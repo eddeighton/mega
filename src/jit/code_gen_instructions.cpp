@@ -158,7 +158,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Allocate* pAllocate )
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    mega::reference allocatedRef = mega::runtime::allocate( {{ instance }}, {{ concrete_type_id }} );
+{{ indent }}    mega::reference allocatedRef = mega::runtime::allocate( {{ instance }}, mega::TypeID{ {{ concrete_type_id }} } );
 {% if has_owning_link %}
 {{ indent }}    static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
 {{ indent }}    function( {{ link_source }}, {{ link_target }} );
@@ -507,9 +507,10 @@ R"TEMPLATE(
         std::ostringstream osIndent;
         osIndent << args.indent;
 
-        nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "instance", args.get( pInstance ) },
-                                       { "concrete_type_id", ( pGet->get_concrete_target()->get_concrete_id() ) } } );
+        nlohmann::json templateData(
+            { { "indent", osIndent.str() },
+              { "instance", args.get( pInstance ) },
+              { "concrete_type_id", printTypeID( pGet->get_concrete_target()->get_concrete_id() ) } } );
 
         os << args.inja.render( szTemplate, templateData );
     }

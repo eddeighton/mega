@@ -52,12 +52,12 @@ class JIT_EXPORT JIT : public JITBase
 
 public:
     JIT( const MegastructureInstallation& megastructureInstallation, const Project& project );
+    JIT( const MegastructureInstallation& megastructureInstallation, const Project& project, JIT& oldJIT );
+    ~JIT();
 
     std::unordered_map< std::string, mega::TypeID > getIdentities() const;
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
-    Relation::Ptr  getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
-    Program::Ptr   getProgram( const CodeGenerator::LLVMCompiler& compiler );
 
     virtual InvocationTypeInfo compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                                           const mega::InvocationID& invocationID,
@@ -76,6 +76,9 @@ public:
                                       void** ppFunction ) override;
 
 private:
+    Relation::Ptr getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
+    Program::Ptr  getProgram( const CodeGenerator::LLVMCompiler& compiler );
+
     JITCompiler::Module::Ptr compile( const std::string& strCode );
 
     const MegastructureInstallation m_megastructureInstallation;
@@ -90,6 +93,9 @@ private:
     CodeGenerator                          m_codeGenerator;
     ComponentManager                       m_componentManager;
 
+    using FunctionPtrSet = std::set< void** >;
+    FunctionPtrSet m_functionPointers;
+
     using AllocatorMap = std::map< TypeID, Allocator::Ptr >;
     AllocatorMap m_allocators;
 
@@ -99,12 +105,7 @@ private:
     using InvocationMap = std::map< InvocationID, JITCompiler::Module::Ptr >;
     InvocationMap m_invocations;
 
-    using FunctionPtrMap = std::multimap< const char*, void* >;
-    FunctionPtrMap m_functionPointers;
-
     Program::Ptr m_pProgram;
-    using FunctionPtrSet = std::set< void* >;
-    FunctionPtrSet m_programFunctionPointers;
 
     using OperatorID   = std::pair< TypeID, int >;
     using OperatorsMap = std::map< OperatorID, JITCompiler::Module::Ptr >;

@@ -53,6 +53,34 @@ JIT::JIT( const mega::MegastructureInstallation& megastructureInstallation, cons
     VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
 }
 
+JIT::JIT( const MegastructureInstallation& megastructureInstallation, const Project& project, JIT& oldJIT )
+: m_megastructureInstallation( megastructureInstallation )
+, m_project( project )
+, m_jitCompiler( std::move( oldJIT.m_jitCompiler ) ) // steal the pre-existing JIT
+, m_database( m_project.getProjectDatabase() )
+, m_codeGenerator( m_megastructureInstallation, m_project )
+, m_componentManager( m_project, m_database )
+, m_pythonFileStore( new mega::io::FileStore(
+        m_database.getEnvironment(), m_database.getManifest(), mega::io::FileInfo::FinalStage ) )
+, m_pythonDatabase( m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
+, m_pythonDatabaseFinal(
+        m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
+, m_pPythonSymbolTable( m_pythonDatabase.one< OperationsStage::Symbols::SymbolTable >(
+        m_database.getEnvironment().project_manifest() ) )
+{
+    VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
+}
+
+JIT::~JIT()
+{
+    // reset ALL function pointers
+    for( auto& pFunctionPtr : m_functionPointers )
+    {
+        *pFunctionPtr = nullptr;
+    }
+
+}
+
 std::unordered_map< std::string, mega::TypeID > JIT::getIdentities() const
 {
     return m_database.getIdentities();
@@ -124,10 +152,10 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
 {
     SPDLOG_TRACE( "JIT: getProgramFunction: {}", fType );
 
+    m_functionPointers.insert( ppFunction );
+
     const CodeGenerator::LLVMCompiler& compiler
         = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
-
-    m_programFunctionPointers.insert( ppFunction );
 
     getProgram( compiler );
 
@@ -271,10 +299,10 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
 {
     SPDLOG_TRACE( "JIT: getInvocationFunction: {} {} {}", pszUnitName, invocationID, fType );
 
+    m_functionPointers.insert( ppFunction );
+
     const CodeGenerator::LLVMCompiler& compiler
         = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
-
-    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
     JITCompiler::Module::Ptr pModule;
     {
@@ -405,6 +433,9 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
                              void** ppFunction )
 {
     SPDLOG_TRACE( "JIT::getObjectFunction : {} {} {}", pszUnitName, typeID, fType );
+
+    m_functionPointers.insert( ppFunction );
+
     const CodeGenerator::LLVMCompiler& compiler
         = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
 
@@ -437,7 +468,6 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
         break;
         case object::eCallGetter:
         {
-            m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
             *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
         }
         break;
@@ -478,6 +508,9 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
 {
     SPDLOG_TRACE(
         "JIT::getRelationFunction : {} {}.{} {}", pszUnitName, relationID.getLower(), relationID.getUpper(), fType );
+
+    m_functionPointers.insert( ppFunction );
+
     const CodeGenerator::LLVMCompiler& compiler
         = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
 
@@ -519,6 +552,9 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
 void JIT::getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo )
 {
     SPDLOG_TRACE( "JIT::getActionFunction : {}", typeID );
+
+    m_functionPointers.insert( ppFunction );
+
     *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
 
     const FinalStage::Concrete::Action* pAction = m_database.getAction( typeID );
@@ -528,6 +564,9 @@ void JIT::getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo&
 void JIT::getPythonFunction( mega::TypeID typeID, void** ppFunction )
 {
     SPDLOG_TRACE( "JIT::getPythonFunction : {}", typeID );
+
+    m_functionPointers.insert( ppFunction );
+
     *ppFunction = ( void* )m_componentManager.getPythonFunctionPtr( typeID );
 }
 
@@ -535,10 +574,11 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
                                void** ppFunction )
 {
     SPDLOG_TRACE( "JIT::getOperatorFunction : {} {} {}", pszUnitName, target, fType );
+
+    m_functionPointers.insert( ppFunction );
+
     const CodeGenerator::LLVMCompiler& compiler
         = *reinterpret_cast< const CodeGenerator::LLVMCompiler* >( pLLVMCompiler );
-
-    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
     const OperatorID operatorID = { target, fType };
 

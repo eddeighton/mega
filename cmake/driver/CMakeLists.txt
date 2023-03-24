@@ -61,7 +61,6 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp
 		${DRIVER_SOURCE_DIR}/command_execute_pipeline.cpp
 		${DRIVER_SOURCE_DIR}/command_tool_chain.cpp
-		${DRIVER_SOURCE_DIR}/command_new_install.cpp
 		${DRIVER_SOURCE_DIR}/command_project.cpp
 		${DRIVER_SOURCE_DIR}/command_sim.cpp
 		${DRIVER_SOURCE_DIR}/command_status.cpp

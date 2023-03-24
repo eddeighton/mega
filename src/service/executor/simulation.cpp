@@ -147,7 +147,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 bRegistedAsTerminating = true;
             }
 
-            //acknowledge simulation requests
+            // acknowledge simulation requests
             {
                 for( const auto& msg : m_stateMachine.acks() )
                 {
@@ -169,7 +169,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     m_clock.nextCycle();
 
-                    m_scheduler.cycle();
+                    {
+                        QueueStateMachine queueMsgs( m_queueStateMachineMsgs );
+                        m_scheduler.cycle();
+                    }
 
                     cycleComplete();
 
@@ -241,9 +244,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     break;
                     default:
                     {
-                        m_dispatchingOrdinaryRequests = true;
+                        QueueStateMachine queueMsgs( m_queueStateMachineMsgs );
                         dispatchRequestImpl( msg, yield_ctx );
-                        m_dispatchingOrdinaryRequests = false;
                     }
                     break;
                 }
@@ -325,7 +327,7 @@ bool Simulation::queue( const network::ReceivedMsg& msg )
             case StateMachine::Clock::ID:
             {
                 // if processing a request then postpone state machine messages
-                if( m_dispatchingOrdinaryRequests )
+                if( m_queueStateMachineMsgs )
                 {
                     SPDLOG_TRACE( "SIM::queue {}", msg.msg );
                     m_messageQueue.push_back( msg );

@@ -185,7 +185,8 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const Datab
 {
     SPDLOG_TRACE( "RUNTIME: generate_relation" );
 
-    auto       pRelation = database.getRelation( relationID );
+    auto pRelation = database.getRelation( relationID );
+
     const bool bSourceSingular
         = !pRelation->get_source_interface()->get_link_trait()->get_cardinality().maximum().isMany();
     const bool bTargetSingular

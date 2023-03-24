@@ -21,6 +21,7 @@
 #define SYMBOL_UTILS_SEPT_19_2022
 
 #include "mega/relation_id.hpp"
+#include "mega/relation_io.hpp"
 #include "mega/reference.hpp"
 #include "mega/invocation_io.hpp"
 
@@ -49,8 +50,9 @@ static inline void symbolPrefix( const char* prefix, std::ostream& os )
 
 static inline void symbolPrefix( const char* prefix, RelationID relationID, std::ostream& os )
 {
+    using ::operator<<;
     std::ostringstream osTypeID;
-    osTypeID << prefix << printTypeID( relationID.getLower() ) << '_' << printTypeID( relationID.getUpper() );
+    osTypeID << prefix << relationID;
     os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 

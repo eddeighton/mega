@@ -12,5 +12,4 @@ COMMAND(graph,"graph","Generate graph json data files")
 COMMAND(make_pipeline,"make_pipeline","Generate Megastructure Pipeline XML")
 COMMAND(component_listing,"component_listing","List mega source code")
 COMMAND(tool_chain,"tool_chain","Generate Megastructure Toolchain xml file")
-COMMAND(new_install,"new_install","Notify Megastructure of a new project installation")
 

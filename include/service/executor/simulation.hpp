@@ -107,7 +107,13 @@ private:
     boost::asio::steady_timer                            m_timer;
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     StateMachine::MsgVector                              m_messageQueue;
-    bool                                                 m_dispatchingOrdinaryRequests = true;
+    bool                                                 m_queueStateMachineMsgs = true;
+    struct QueueStateMachine
+    {
+        bool& b;
+        QueueStateMachine( bool& b ) : b( b ) { b = true; }
+        ~QueueStateMachine() { b = false; }
+    };
     Clock                                                m_clock;
     std::string                                          m_strSimCreateError;
     std::optional< network::ReceivedMsg >                m_simCreateMsgOpt;

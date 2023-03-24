@@ -32,17 +32,20 @@ namespace driver::project
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path projectPath;
-    bool                    bGetProject   = false;
-    bool                    bResetProject = false;
+    bool                    bGetProject    = false;
+    bool                    bResetProject  = false;
+    bool                    bUpdateProject = false;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Project Commands" );
     {
         // clang-format off
         commandOptions.add_options()
-        ( "set",    po::value< boost::filesystem::path >( &projectPath ), "Set project" )
-        ( "get",    po::bool_switch( &bGetProject ),                      "Get current project" )
-        ( "reset",  po::bool_switch( &bResetProject ),                    "Unload any active project" )
+        ( "set",    po::value< boost::filesystem::path >( &projectPath ),       "Set project" )
+        ( "get",    po::bool_switch( &bGetProject ),                            "Get current project" )
+        ( "reset",  po::bool_switch( &bResetProject ),                          "Unload any active project" )
+        ( "update",  po::bool_switch( &bUpdateProject ),                        "Indicate a project update ( new build ) has occured" )
+        ( "new_build",  po::value< boost::filesystem::path >( &projectPath ),   "Indicate a new build has completed" )
         ;
         // clang-format on
     }
@@ -59,26 +62,39 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         if( !projectPath.empty() )
         {
-            mega::service::Terminal      terminal;
-            const mega::Project project( projectPath );
+            mega::service::Terminal terminal;
+            const mega::Project     project( projectPath );
             terminal.SetProject( project );
+        }
+        else if( bUpdateProject )
+        {
+            mega::service::Terminal terminal;
+            const mega::Project     project = terminal.GetProject();
+            if( project.isEmpty() )
+            {
+                std::cout << "No active project found" << std::endl;
+            }
+            else
+            {
+                terminal.SetProject( project );
+            }
         }
         else if( bGetProject )
         {
-            mega::service::Terminal      terminal;
-            const mega::Project project = terminal.GetProject();
+            mega::service::Terminal terminal;
+            const mega::Project     project = terminal.GetProject();
             std::cout << project.getProjectInstallPath().string() << std::endl;
         }
         else if( bResetProject )
         {
-            mega::service::Terminal      terminal;
-            const mega::Project project;
+            mega::service::Terminal terminal;
+            const mega::Project     project;
             terminal.SetProject( project );
         }
         else // if ( bGetInstallInfo )
         {
             mega::service::Terminal          terminal;
-            const mega::Project     project   = terminal.GetProject();
+            const mega::Project              project   = terminal.GetProject();
             const auto                       result    = terminal.GetMegastructureInstallation();
             const mega::utilities::ToolChain toolChain = result.getToolchain();
 

@@ -34,11 +34,11 @@ void ExecutorRequestConversation::SetProject( const Project& project, boost::asi
     m_executor.getSimulations( simulations );
 
     // shutdown ALL simulations
-    for( Simulation::Ptr pSim : simulations )
+    /*for( Simulation::Ptr pSim : simulations )
     {
         network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
         rq.SimDestroy();
-    }
+    }*/
 }
 
 } // namespace mega::service
