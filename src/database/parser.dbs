@@ -75,6 +75,13 @@ namespace Parser
         value< std::string > str;
     }
 
+    object Initialiser -> ParserStage::AST
+    {
+        value< std::string > initialiser;
+        value< mega::U64 > source_loc_start;
+        value< mega::U64 > source_loc_end;
+    }
+
     object LinkInterface -> ParserStage::AST
     {
         value< mega::CardinalityRange >     cardinality;
@@ -87,6 +94,7 @@ namespace Parser
         value< bool > isConst;
         ref< Identifier > id;
         value< std::string > type;
+        opt< ref< Initialiser > > initialiser;
     }
 
     object Include -> ParserStage::AST
