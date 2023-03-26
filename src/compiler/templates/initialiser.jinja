@@ -1,0 +1,29 @@
+
+// Ed was here!
+
+#include "mega/type_id.hpp"
+#include "mega/defaults.hpp"
+
+#include <boost/config.hpp> // for BOOST_SYMBOL_EXPORT
+
+namespace
+{
+
+class DefaultsProviderImpl : mega::DefaultsProvider
+{
+    virtual void getDefaults( mega::Defaults& defaults ) override
+    {
+    {% for init in initialisers %}
+        defaults.set< {{ init.type }} >
+        ( 
+            mega::TypeID::make_context( {{ init.objectID }}, {{ init.subObjectID }} ), 
+            { {{ init.expression }} }
+        );
+    {% endfor %}
+    }
+};
+
+extern "C" BOOST_SYMBOL_EXPORT DefaultsProviderImpl {{ name }};
+DefaultsProviderImpl                                {{ name }};
+
+}

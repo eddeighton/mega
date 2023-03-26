@@ -357,21 +357,26 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                         {
                             const TskDesc operations        = encode( Task{ eTask_Operations, sourceFilePath } );
                             const TskDesc pythonWrapper     = encode( Task{ eTask_PythonWrapper, sourceFilePath } );
+                            const TskDesc initialiser       = encode( Task{ eTask_Initialiser, sourceFilePath } );
                             const TskDesc operationsPCH     = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
                             const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
                             const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
+                            const TskDesc initialiserObj    = encode( Task{ eTask_InitialiserObject, sourceFilePath } );
                             const TskDesc pythonObj         = encode( Task{ eTask_PythonObject, sourceFilePath } );
 
                             dependencies.add( operations, concreteTypeIDRolloutTasks );
                             dependencies.add( pythonWrapper, concreteTypeIDRolloutTasks );
+                            dependencies.add( initialiser, concreteTypeIDRolloutTasks );
                             dependencies.add( operationsPCH, TskDescVec{ operations } );
                             dependencies.add( implementation, TskDescVec{ operationsPCH } );
                             dependencies.add( implementationObj, TskDescVec{ implementation } );
                             dependencies.add( pythonObj, TskDescVec{ pythonWrapper } );
+                            dependencies.add( initialiserObj, TskDescVec{ initialiser } );
 
                             operationsTasks.push_back( operationsPCH );
                             binaryTasks.push_back( implementationObj );
                             binaryTasks.push_back( pythonObj );
+                            binaryTasks.push_back( initialiserObj );
                         }
                     }
                     const TskDesc interfaceComponent

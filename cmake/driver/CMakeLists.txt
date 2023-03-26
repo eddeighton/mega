@@ -55,17 +55,18 @@ set( JINJA_TEMPLATES
 
 set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_archive.cpp
+		${DRIVER_SOURCE_DIR}/command_component_listing.cpp
+		${DRIVER_SOURCE_DIR}/command_defaults.cpp
+		${DRIVER_SOURCE_DIR}/command_execute_pipeline.cpp
 		${DRIVER_SOURCE_DIR}/command_graph.cpp
 		${DRIVER_SOURCE_DIR}/command_json.cpp
-		${DRIVER_SOURCE_DIR}/command_component_listing.cpp
+		${DRIVER_SOURCE_DIR}/command_log.cpp
 		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp
-		${DRIVER_SOURCE_DIR}/command_execute_pipeline.cpp
-		${DRIVER_SOURCE_DIR}/command_tool_chain.cpp
 		${DRIVER_SOURCE_DIR}/command_project.cpp
 		${DRIVER_SOURCE_DIR}/command_sim.cpp
-		${DRIVER_SOURCE_DIR}/command_status.cpp
 		${DRIVER_SOURCE_DIR}/command_stash.cpp
-		${DRIVER_SOURCE_DIR}/command_log.cpp
+		${DRIVER_SOURCE_DIR}/command_status.cpp
+		${DRIVER_SOURCE_DIR}/command_tool_chain.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 
@@ -84,25 +85,25 @@ add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 
 target_link_libraries( mega compiler_config )
 target_link_libraries( mega database )
-target_link_libraries( mega utilities )
-target_link_libraries( mega protocol )
-target_link_libraries( mega network )
-target_link_libraries( mega terminal )
 target_link_libraries( mega log )
+target_link_libraries( mega network )
+target_link_libraries( mega protocol )
+target_link_libraries( mega terminal )
+target_link_libraries( mega utilities )
 
 set_target_properties( mega PROPERTIES FOLDER service )
 
 link_boost( mega atomic )
-link_boost( mega program_options )
-link_boost( mega timer )
 link_boost( mega filesystem )
 link_boost( mega iostreams )
+link_boost( mega program_options )
 link_boost( mega serialization )
-link_fmt( mega )
-link_spdlog( mega )
-link_json( mega )
-link_inja( mega )
+link_boost( mega timer )
 link_common( mega )
+link_fmt( mega )
+link_inja( mega )
+link_json( mega )
+link_spdlog( mega )
 
 install( TARGETS mega DESTINATION bin)
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )

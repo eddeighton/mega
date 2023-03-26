@@ -75,6 +75,7 @@ public:
     Path InterfaceTemplate() const;
     Path OperationsTemplate() const;
     Path PythonWrapperTemplate() const;
+    Path InitialiserTemplate() const;
     Path ImplementationTemplate() const;
 
     // interface file paths
@@ -90,6 +91,10 @@ public:
     // python wrapper file paths
     GeneratedCPPSourceFilePath PythonWrapper( const megaFilePath& source ) const;
     ObjectFilePath             PythonObj( const megaFilePath& source ) const;
+
+    // initialiser file paths
+    GeneratedCPPSourceFilePath Initialiser( const megaFilePath& source ) const;
+    ObjectFilePath             InitialiserObj( const megaFilePath& source ) const;
 
     // library cpp file paths
     GeneratedHPPSourceFilePath Include( const boost::filesystem::path& componentBuildDir,
@@ -117,6 +122,7 @@ public:
     schFilePath              schFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     ComponentFilePath        ComponentPath_fromPath( const boost::filesystem::path& filePath ) const;
     ComponentFilePath        PythonComponentPath_fromPath( const boost::filesystem::path& filePath ) const;
+    ComponentFilePath        InitComponentPath_fromPath( const boost::filesystem::path& filePath ) const;
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////

@@ -266,6 +266,7 @@ class Task_PythonOperations : public BaseTask
 {
     const mega::io::manifestFilePath& m_manifest;
 
+    // This just creates the database stage used for dynamic python invocations
 public:
     Task_PythonOperations( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
         : BaseTask( taskArguments )

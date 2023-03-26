@@ -67,11 +67,12 @@ namespace Components
     Components_Component::Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Components_Component >( loader, this ) )    {
     }
-    Components_Component::Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::ComponentType& type, const std::string& name, const mega::io::ComponentFilePath& file_path, const mega::io::ComponentFilePath& python_file_path, const boost::filesystem::path& src_dir, const boost::filesystem::path& build_dir, const std::vector< std::string >& cpp_flags, const std::vector< std::string >& cpp_defines, const std::vector< boost::filesystem::path >& include_directories, const std::vector< mega::io::megaFilePath >& dependencies, const std::vector< mega::io::megaFilePath >& mega_source_files, const std::vector< mega::io::cppFilePath >& cpp_source_files, const std::vector< mega::io::schFilePath >& sch_source_files)
+    Components_Component::Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::ComponentType& type, const std::string& name, const mega::io::ComponentFilePath& file_path, const mega::io::ComponentFilePath& python_file_path, const mega::io::ComponentFilePath& init_file_path, const boost::filesystem::path& src_dir, const boost::filesystem::path& build_dir, const std::vector< std::string >& cpp_flags, const std::vector< std::string >& cpp_defines, const std::vector< boost::filesystem::path >& include_directories, const std::vector< mega::io::megaFilePath >& dependencies, const std::vector< mega::io::megaFilePath >& mega_source_files, const std::vector< mega::io::cppFilePath >& cpp_source_files, const std::vector< mega::io::schFilePath >& sch_source_files)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Components_Component >( loader, this ) )          , type( type )
           , name( name )
           , file_path( file_path )
           , python_file_path( python_file_path )
+          , init_file_path( init_file_path )
           , src_dir( src_dir )
           , build_dir( build_dir )
           , cpp_flags( cpp_flags )
@@ -96,6 +97,7 @@ namespace Components
         loader.load( name );
         loader.load( file_path );
         loader.load( python_file_path );
+        loader.load( init_file_path );
         loader.load( src_dir );
         loader.load( build_dir );
         loader.load( cpp_flags );
@@ -112,6 +114,7 @@ namespace Components
         storer.store( name );
         storer.store( file_path );
         storer.store( python_file_path );
+        storer.store( init_file_path );
         storer.store( src_dir );
         storer.store( build_dir );
         storer.store( cpp_flags );
@@ -151,6 +154,11 @@ namespace Components
         {
             nlohmann::json property = nlohmann::json::object({
                 { "python_file_path", python_file_path } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "init_file_path", init_file_path } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -9490,6 +9498,18 @@ std::vector< boost::filesystem::path >& get_Components_Component_include_directo
         }
     }
 }
+mega::io::ComponentFilePath& get_Components_Component_init_file_path(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Components::Components_Component::Object_Part_Type_ID:
+            return data::convert< data::Components::Components_Component >( m_data )->init_file_path;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< mega::io::megaFilePath >& get_Components_Component_mega_source_files(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -13186,6 +13206,18 @@ std::vector< boost::filesystem::path >& set_Components_Component_include_directo
     {
         case data::Components::Components_Component::Object_Part_Type_ID:
             return data::convert< data::Components::Components_Component >( m_data )->include_directories;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::io::ComponentFilePath& set_Components_Component_init_file_path(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Components::Components_Component::Object_Part_Type_ID:
+            return data::convert< data::Components::Components_Component >( m_data )->init_file_path;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );

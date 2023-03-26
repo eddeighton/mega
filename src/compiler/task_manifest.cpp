@@ -143,6 +143,8 @@ public:
                 = m_environment.ComponentPath_fromPath( componentInfo.getFilePath() );
             const mega::io::ComponentFilePath pythonFilePath
                 = m_environment.PythonComponentPath_fromPath( componentInfo.getFilePath() );
+            const mega::io::ComponentFilePath initFilePath
+                = m_environment.InitComponentPath_fromPath( componentInfo.getFilePath() );
 
             std::vector< mega::io::megaFilePath > megaSourceFiles;
             std::vector< mega::io::cppFilePath >  cppSourceFiles;
@@ -184,7 +186,7 @@ public:
             Components::Component* pComponent
                 = database.construct< Components::Component >( Components::Component::Args(
                     componentInfo.getComponentType(), componentInfo.getName(), componentFilePath, pythonFilePath,
-                    componentInfo.getSrcDir(), componentInfo.getBuildDir(), componentInfo.getCPPFlags(),
+                    initFilePath, componentInfo.getSrcDir(), componentInfo.getBuildDir(), componentInfo.getCPPFlags(),
                     componentInfo.getCPPDefines(), componentInfo.getIncludeDirectories(), dependencies, megaSourceFiles,
                     cppSourceFiles, schSourceFiles ) );
 

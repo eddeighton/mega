@@ -155,6 +155,7 @@ stage ConcreteStage
     global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::Root >;
     persource accessor array< ref< Interface::DimensionTrait > >;
+    persource accessor array< ref< Parser::Dimension > >;
 }
 
 stage DerivationAnalysis

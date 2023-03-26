@@ -97,6 +97,14 @@ BuildEnvironment::Path BuildEnvironment::PythonWrapperTemplate() const
     return result;
 }
 
+BuildEnvironment::Path BuildEnvironment::InitialiserTemplate() const
+{
+    VERIFY_RTE( !m_directories.templatesDir.empty() );
+    Path result = m_directories.templatesDir / "initialiser.jinja";
+    VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+    return result;
+}
+
 BuildEnvironment::Path BuildEnvironment::ImplementationTemplate() const
 {
     VERIFY_RTE( !m_directories.templatesDir.empty() );
@@ -190,6 +198,24 @@ ObjectFilePath BuildEnvironment::PythonObj( const megaFilePath& source ) const
 {
     std::ostringstream os;
     os << source.path().filename().string() << ".python" << ObjectFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return ObjectFilePath( dirPath / os.str() );
+}
+
+GeneratedCPPSourceFilePath BuildEnvironment::Initialiser( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".init" << GeneratedCPPSourceFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return GeneratedCPPSourceFilePath( dirPath / os.str() );
+}
+
+ObjectFilePath BuildEnvironment::InitialiserObj( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".init" << ObjectFilePath::extension().string();
     auto dirPath = source.path();
     dirPath.remove_filename();
     return ObjectFilePath( dirPath / os.str() );
@@ -312,6 +338,21 @@ ComponentFilePath BuildEnvironment::PythonComponentPath_fromPath( const boost::f
 
         std::ostringstream osFileName;
         osFileName << filename.string() << "_python" << filePath.extension().string();
+
+        pythonFileName = filePath.parent_path() / osFileName.str();
+    }
+    return ComponentFilePath( boost::filesystem::relative( pythonFileName, m_directories.buildDir ) );
+}
+ComponentFilePath BuildEnvironment::InitComponentPath_fromPath( const boost::filesystem::path& filePath ) const
+{
+    boost::filesystem::path pythonFileName;
+    {
+        auto filename = filePath.filename();
+        filename.replace_extension( "" );
+        VERIFY_RTE( !filename.empty() );
+
+        std::ostringstream osFileName;
+        osFileName << filename.string() << "_init" << filePath.extension().string();
 
         pythonFileName = filePath.parent_path() / osFileName.str();
     }

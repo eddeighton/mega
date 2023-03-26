@@ -73,6 +73,7 @@ set( JINJA_TEMPLATES
 	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/impl.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/python_wrapper.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/initialiser.jinja 
 	)
 
 set( COMPILER_TASKS
@@ -88,6 +89,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_includes.cpp
     ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp
     ${MEGA_SRC_DIR}/compiler/task_interface.cpp
+    ${MEGA_SRC_DIR}/compiler/task_initialiser.cpp
     ${MEGA_SRC_DIR}/compiler/task_manifest.cpp
     ${MEGA_SRC_DIR}/compiler/task_meta.cpp
     ${MEGA_SRC_DIR}/compiler/task_operations.cpp

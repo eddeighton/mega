@@ -29,6 +29,7 @@ namespace Components
         value< std::string > name;
         value< mega::io::ComponentFilePath > file_path;
         value< mega::io::ComponentFilePath > python_file_path;
+        value< mega::io::ComponentFilePath > init_file_path;
         value< boost::filesystem::path > src_dir;
         value< boost::filesystem::path > build_dir;
         array< value< std::string > > cpp_flags;
