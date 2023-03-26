@@ -77,7 +77,6 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        const mega::io::CompilationFilePath concreteFile = m_environment.ConcreteStage_Concrete( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath includeFilePath    = m_environment.Include( m_sourceFilePath );
         const mega::io::GeneratedCPPSourceFilePath initialiserCPPFile = m_environment.Initialiser( m_sourceFilePath );
         start( taskProgress, "Task_Initialiser", m_sourceFilePath.path(), initialiserCPPFile.path() );
@@ -85,10 +84,9 @@ public:
         task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.InitialiserTemplate(),
               m_environment.getBuildHashCode( includeFilePath ),
-              m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
               m_environment.getBuildHashCode(
-                  m_environment.ConcreteTypeRollout_PerSourceConcreteTable( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( concreteFile ) } );
+                  m_environment.ConcreteTypeRollout_PerSourceConcreteTable( m_sourceFilePath ) ) } );
 
         if( m_environment.restore( initialiserCPPFile, determinant ) )
         {
