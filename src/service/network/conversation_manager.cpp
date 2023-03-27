@@ -143,6 +143,10 @@ void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversa
     {
         m_conversations.erase( iFind );
     }
+    if( m_pExternalConversation == pConversation )
+    {
+        m_pExternalConversation.reset();
+    }
 }
 
 ConversationBase::Ptr ConversationManager::findExistingConversation( const ConversationID& conversationID ) const

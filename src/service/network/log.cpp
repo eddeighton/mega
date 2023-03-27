@@ -44,7 +44,7 @@ struct StaticInit
         spdlog::init_thread_pool( 8192, 1 ); // 1 backing thread.
     }
 };
-}
+} // namespace
 
 LoggingLevel fromStr( const std::string& str )
 {
@@ -53,16 +53,18 @@ LoggingLevel fromStr( const std::string& str )
     return static_cast< LoggingLevel >( std::distance( logLevels.begin(), iter ) );
 }
 
-void configureLog( const boost::filesystem::path& logFolderPath,
-                                                              const std::string&             strLogName,
-                                                              LoggingLevel                   consoleLoggingLevel,
-                                                              LoggingLevel                   fileLoggingLevel )
+std::shared_ptr< spdlog::logger > configureLog( const boost::filesystem::path& logFolderPath,
+                                                const std::string&             strLogName,
+                                                LoggingLevel                   consoleLoggingLevel,
+                                                LoggingLevel                   fileLoggingLevel )
 {
     // hacks!!
     static StaticInit init;
 
+    std::shared_ptr< spdlog::logger > pResult;
+
     auto consoleLevel = spdlog::level::warn;
-    switch ( consoleLoggingLevel )
+    switch( consoleLoggingLevel )
     {
         case eDebug:
             consoleLevel = spdlog::level::debug;
@@ -84,7 +86,7 @@ void configureLog( const boost::filesystem::path& logFolderPath,
             break;
     }
     auto fileLevel = spdlog::level::warn;
-    switch ( fileLoggingLevel )
+    switch( fileLoggingLevel )
     {
         case eDebug:
             fileLevel = spdlog::level::debug;
@@ -114,9 +116,8 @@ void configureLog( const boost::filesystem::path& logFolderPath,
         console_sink->set_level( consoleLevel );
         console_sink->set_pattern( "%v" );
     }
-    
 
-    if ( fileLevel == spdlog::level::off )
+    if( fileLevel == spdlog::level::off )
     {
         auto logger = std::shared_ptr< spdlog::async_logger >( new spdlog::async_logger(
             strLogName, { console_sink }, spdlog::thread_pool(), spdlog::async_overflow_policy::block ) );
@@ -125,7 +126,8 @@ void configureLog( const boost::filesystem::path& logFolderPath,
         }
 
         spdlog::flush_every( std::chrono::seconds( 1 ) );
-        spdlog::set_default_logger( logger );
+
+        pResult = logger;
     }
     else
     {
@@ -147,8 +149,13 @@ void configureLog( const boost::filesystem::path& logFolderPath,
         }
 
         spdlog::flush_every( std::chrono::seconds( 1 ) );
-        spdlog::set_default_logger( logger );
+
+        pResult = logger;
     }
+
+    spdlog::set_default_logger( pResult );
+
+    return pResult;
 }
 
 } // namespace mega::network

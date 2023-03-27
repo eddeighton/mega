@@ -20,6 +20,8 @@
 
 #include "service/plugin/plugin.hpp"
 
+#include <memory>
+
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
 
@@ -44,6 +46,8 @@ Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
             m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), *this );
         m_executor.conversationInitiated( m_pPlayerNetwork, m_executor.getLeafSender() );
     }
+
+    m_pDatabase = std::make_unique< Database >( Database{ 0 } );
 }
 
 Plugin::~Plugin()

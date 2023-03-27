@@ -21,6 +21,8 @@
 #ifndef GUARD_2023_March_07_plugin
 #define GUARD_2023_March_07_plugin
 
+#include "database.hpp"
+
 #include "service/plugin/platform.hpp"
 #include "service/plugin/player_network.hpp"
 #include "service/plugin/plugin_state_machine.hpp"
@@ -115,6 +117,11 @@ public:
         dispatch( fut.get().msg );
     }
 
+    Database* database()
+    {
+        return m_pDatabase.get();
+    }
+
     log::Range* downstream()
     {
         tryRun();
@@ -199,6 +206,8 @@ private:
     PlayerNetwork::Ptr                                 m_pPlayerNetwork;
     std::optional< mega::network::PlatformState >      m_platformStateOpt;
     std::optional< mega::network::PlayerNetworkState > m_networkStateOpt;
+
+    std::unique_ptr< Database > m_pDatabase;
 
     float                        m_ct               = 0.0f;
     float                        m_statusRate       = 1.0f;

@@ -20,6 +20,8 @@
 
 #include "module.hpp"
 
+#include "mpo_conversation.hpp"
+
 #include "python_reference.hpp"
 
 #include "service/network/log.hpp"
@@ -27,11 +29,9 @@
 #include "service/protocol/common/type_erase.hpp"
 #include "service/protocol/common/jit_base.hpp"
 
-#include "service/protocol/model/status.hxx"
-#include "service/protocol/model/enrole.hxx"
-#include "service/protocol/model/python.hxx"
-
 #include "mega/reference_io.hpp"
+
+#include <spdlog/async.h>
 
 #include <pybind11/stl.h>
 
@@ -44,8 +44,8 @@ mega::service::python::PythonModule::Ptr getModule()
     static mega::service::python::PythonModule::Ptr g_pPythonModule;
     if( !g_pPythonModule )
     {
-        g_pPythonModule
-            = mega::service::python::PythonModule::makePlugin( mega::network::MegaDaemonPort(), "info", "trace" );
+        g_pPythonModule = std::make_shared< mega::service::python::PythonModule >(
+            mega::network::MegaDaemonPort(), "info", "trace" );
     }
     return g_pPythonModule;
 }
@@ -151,23 +151,10 @@ PythonModule::LogConfig::LogConfig( const char* pszConsoleLogLevel, const char* 
         strConsoleLogLevel = pszConsoleLogLevel;
     if( pszFileLogLevel )
         strLogFileLevel = pszFileLogLevel;
-    mega::network::configureLog(
+    m_pLogger = mega::network::configureLog(
         logFolder, "python", mega::network::fromStr( strConsoleLogLevel ), mega::network::fromStr( strLogFileLevel ) );
-}
 
-PythonModule::Ptr PythonModule::makePlugin( short daemonPort, const char* pszConsoleLogLevel,
-                                            const char* pszFileLogLevel )
-{
-    auto pPlugin = std::make_shared< PythonModule >( daemonPort, pszConsoleLogLevel, pszFileLogLevel );
-    // work around shared_from_this in constructor issues
-    return pPlugin;
-}
-
-void PythonModule::releasePlugin( Ptr& pPlugin )
-{
-    // work around shared_from_this in constructor issues
-    pPlugin->shutdown();
-    pPlugin.reset();
+    m_pThreadPool = spdlog::thread_pool();
 }
 
 PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel )
@@ -196,8 +183,7 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
 
 PythonModule::~PythonModule()
 {
-    SPDLOG_TRACE( "PythonModule::dtor" );
-    m_python.conversationCompleted( m_pExternalConversation );
+    shutdown();
 }
 
 const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID& invocationID )
@@ -259,8 +245,21 @@ PythonReference::PythonWrapperFunction PythonModule::getPythonWrapper( TypeID in
 void PythonModule::shutdown()
 {
     SPDLOG_TRACE( "PythonModule::shutdown" );
-
-    // send shutdown to MPOConversation
+    if( m_pExternalConversation )
+    {
+        pythonRequest().PythonShutdown();
+        m_python.conversationCompleted( m_pExternalConversation );
+        m_pExternalConversation.reset();
+    }
+    if( std::shared_ptr< MPOConversation > pMPOCon
+        = std::dynamic_pointer_cast< MPOConversation >( m_mpoConversation ) )
+    {
+        while( !pMPOCon->isRunComplete() )
+        {
+            run_one();
+        }
+    }
+    m_mpoConversation.reset();
 }
 
 void PythonModule::run_one()

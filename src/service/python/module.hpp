@@ -31,18 +31,11 @@
 #include "mega/invocation_id.hpp"
 #include "mega/types/python_mangle.hpp"
 
-#include "jit/functions.hpp"
-
-#include "mpo_conversation.hpp"
-
-#include "service/network/network.hpp"
-
+#include "service/protocol/model/mpo.hxx"
+#include "service/protocol/model/python.hxx"
 #include "service/protocol/model/python_leaf.hxx"
-#include "service/protocol/model/sim.hxx"
 
 #include "service/protocol/common/conversation_base.hpp"
-
-#include "common/assert_verify.hpp"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -65,6 +58,10 @@ class PythonModule
     struct LogConfig
     {
         LogConfig( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
+
+    private:
+        std::shared_ptr< spdlog::logger >               m_pLogger;
+        std::shared_ptr< spdlog::details::thread_pool > m_pThreadPool;
     };
 
 public:
@@ -80,9 +77,6 @@ public:
     };
 
     using Ptr = std::shared_ptr< PythonModule >;
-
-    static Ptr  makePlugin( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel );
-    static void releasePlugin( Ptr& pPlugin );
 
     // PythonModule
     PythonModule( short daemonPort, const char* pszConsoleLogLevel, const char* pszFileLogLevel );

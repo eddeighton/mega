@@ -18,33 +18,19 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef GUARD_2023_March_27_database
+#define GUARD_2023_March_27_database
 
-msg PythonGetIdentities
-{
-    request();
-    response(std::unordered_map< std::string, mega::TypeID > identities);
-}
+#include "mega/native_types.hpp"
 
-msg PythonExecuteJIT
+namespace mega::service
 {
-    request( mega::runtime::JITFunctor func );
-    response();
-}
 
-msg PythonCycle
+struct Database
 {
-    request();
-    response( TimeStamp lockCycle );
-}
+    U64 m_hashcode;
+};
 
-msg PythonFunctor
-{
-    request( mega::runtime::Functor functor );
-    response();
-}
+} // namespace mega::service
 
-msg PythonShutdown
-{
-    request();
-    response();
-}
+#endif // GUARD_2023_March_27_database

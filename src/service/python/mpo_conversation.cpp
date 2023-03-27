@@ -159,6 +159,8 @@ void MPOConversation::run( boost::asio::yield_context& yield_ctx )
     request.SimStart();
 
     dispatchRemaining( yield_ctx );
+
+    m_bRunComplete = true;
 }
 
 void MPOConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
@@ -222,4 +224,11 @@ void MPOConversation::PythonFunctor( const mega::runtime::Functor& functor, boos
     SPDLOG_TRACE( "MPOConversation::PythonFunctor" );
     functor();
 }
+
+void MPOConversation::PythonShutdown( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "MPOConversation::PythonShutdown" );
+    m_bRunning = false;
+}
+
 } // namespace mega::service::python

@@ -50,10 +50,10 @@ enum LoggingLevel
 };
 LoggingLevel fromStr( const std::string& str );
 
-void configureLog( const boost::filesystem::path& logFolder,
-                   const std::string&             strLogName,
-                   LoggingLevel                   consoleLoggingLevel,
-                   LoggingLevel                   fileLoggingLevel );
+std::shared_ptr< spdlog::logger > configureLog( const boost::filesystem::path& logFolder,
+                                                const std::string&             strLogName,
+                                                LoggingLevel                   consoleLoggingLevel,
+                                                LoggingLevel                   fileLoggingLevel );
 
 inline void logLinesInfo( const std::string strMsg )
 {
@@ -157,7 +157,8 @@ struct formatter< mega::network::ConversationID >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    inline auto format( const mega::network::ConversationID& conversationID, FormatContext& ctx ) -> decltype( ctx.out() )
+    inline auto format( const mega::network::ConversationID& conversationID, FormatContext& ctx )
+        -> decltype( ctx.out() )
     {
         std::ostringstream os;
         os << conversationID;

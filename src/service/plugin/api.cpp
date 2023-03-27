@@ -90,6 +90,11 @@ void* mp_downstream()
     return mega::service::g_pPluginWrapper->m_pPlugin->downstream();
 }
 
+void* mp_database()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->database();
+}
+
 void mp_upstream( float delta, void* pRange )
 {
     mega::service::g_pPluginWrapper->m_pPlugin->upstream( delta, pRange );

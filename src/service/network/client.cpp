@@ -74,7 +74,10 @@ void Client::stop()
     m_socket.shutdown(m_socket.shutdown_both, ec);
 }
 
-void Client::disconnected() { SPDLOG_TRACE( "Client disconnected from: {}", m_connectionID ); }
+void Client::disconnected() 
+{ 
+    SPDLOG_TRACE( "Client disconnected from: {}", m_connectionID ); 
+}
 
 Client::~Client() = default;
 

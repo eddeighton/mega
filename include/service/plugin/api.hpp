@@ -33,6 +33,7 @@ extern "C"
     void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
     void mp_shutdown();
 
+    void* mp_database();
     void* mp_downstream();
     void mp_upstream( float delta, void* pRange );
 
