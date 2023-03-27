@@ -265,6 +265,15 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     pInstruction->push_back_children( pFiles );
                 }
                 break;
+                case id_Get:
+                {
+                    using OperationsStage::Invocations::Operations::GetAction;
+                    GetAction* pGetAction = m_database.construct< GetAction >( GetAction::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pGetAction );
+                }
+                break;
                 default:
                     THROW_INVOCATION_EXCEPTION( "Invalid invocation on object" );
             }

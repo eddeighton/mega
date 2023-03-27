@@ -155,7 +155,7 @@ PythonReference::Registration::Registration( const SymbolTable& symbols )
 
     slots.push_back( PyType_Slot{ 0 } );
 
-    static std::string strTypeName = "megastructure.reference";
+    static std::string strTypeName = "reference";
 
     PyType_Spec spec = {
         strTypeName.c_str(), sizeof( PythonReferenceData ), 0, Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, slots.data() };
@@ -243,24 +243,9 @@ int PythonReference::set( void* pClosure, PyObject* pValue )
 }
 PyObject* PythonReference::str() const
 {
-    SPDLOG_TRACE( "PythonReference::str: {}", m_reference );
-
     std::ostringstream os;
-    // m_module.print( m_reference, os );
     using ::operator<<;
     os << m_reference;
-    /*for( std::vector< mega::TypeID >::const_iterator
-        i = m_type_path.begin(), iEnd = m_type_path.end(); i!=iEnd; ++i )
-    {
-        if( i == m_type_path.begin() )
-        {
-            os << " type path: ";
-        }
-        os << *i << " ";
-    }*/
-    /*if( m_reference.type > 0 )
-        os << " state: " << mega::getActionState( m_pythonReferenceFactory.getState( m_reference.type,
-    m_reference.instance ) ); else os << " state: null";*/
     return Py_BuildValue( "s", os.str().c_str() );
 }
 
@@ -309,6 +294,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 }
                 case id_exp_Write:
                 {
+                    VERIFY_RTE_MSG( pyArgs.size() > 0, "Write Link requires atleast one argument" );
                     pybind11::object firstArg = pyArgs[ 0 ];
                     void*            pArg
                         = m_module.getPythonMangle().pythonToCpp( functionInfo.typeInfo.mangledType, firstArg.ptr() );
@@ -324,9 +310,59 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     return cast( m_module, result );
                 }
                 case id_exp_Read_Link:
+                {
+                    void* pResult = nullptr;
+                    m_module.invoke(
+                        [ &functionInfo, &m_reference = m_reference, &pResult ]()
+                        {
+                            auto pReadFunction = reinterpret_cast< mega::runtime::invocation::ReadLink::FunctionPtr >(
+                                functionInfo.pFunctionPtr );
+                            pResult = pReadFunction( m_reference );
+                        } );
+                    if( pResult )
+                    {
+                        return m_module.getPythonMangle().cppToPython( functionInfo.typeInfo.mangledType, pResult );
+                    }
+                }
+                break;
                 case id_exp_Write_Link:
+                {
+                    VERIFY_RTE_MSG( pyArgs.size() > 0, "Write Link requires atleast one argument" );
+                    pybind11::object firstArg = pyArgs[ 0 ];
+                    mega::reference  arg      = cast( firstArg.ptr() );
+
+                    WriteOperation writeOperation = WriteOperation::DEFAULT;
+                    if( pyArgs.size() == 2 )
+                    {
+                        writeOperation = pybind11::cast< WriteOperation >( firstArg );
+                    }
+
+                    mega::reference result;
+                    m_module.invoke(
+                        [ &functionInfo, &m_reference = m_reference, writeOperation, &arg, &result ]()
+                        {
+                            auto pWriteLinkFunction
+                                = reinterpret_cast< mega::runtime::invocation::WriteLink::FunctionPtr >(
+                                    functionInfo.pFunctionPtr );
+                            result = pWriteLinkFunction( m_reference, writeOperation, arg );
+                        } );
+                    return cast( m_module, result );
+                }
+                break;
                 case id_exp_Allocate:
-                    break;
+                {
+                    mega::reference result;
+                    m_module.invoke(
+                        [ &functionInfo, &m_reference = m_reference, &m_module = m_module, &result ]()
+                        {
+                            auto pAllocateFunction
+                                = reinterpret_cast< mega::runtime::invocation::Allocate::FunctionPtr >(
+                                    functionInfo.pFunctionPtr );
+                            result = pAllocateFunction( m_reference );
+                        } );
+                    return cast( m_module, result );
+                }
+                break;
                 case id_exp_Call:
                 {
                     runtime::CallResult result;
@@ -380,11 +416,23 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     return Py_None;
                 }
                 break;
+                case id_exp_GetAction:
+                case id_exp_GetDimension:
+                {
+                    mega::reference result;
+                    m_module.invoke(
+                        [ &functionInfo, &m_reference = m_reference, &result ]()
+                        {
+                            auto pGetFunction = reinterpret_cast< mega::runtime::invocation::Get::FunctionPtr >(
+                                functionInfo.pFunctionPtr );
+                            result = pGetFunction( m_reference );
+                        } );
+                    return cast( m_module, result );
+                }
+                break;
                 case id_exp_Save:
                 case id_exp_Load:
                 case id_exp_Files:
-                case id_exp_GetAction:
-                case id_exp_GetDimension:
                 case id_exp_Done:
                 case id_exp_Range:
                 case id_exp_Raw:

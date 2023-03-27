@@ -67,3 +67,19 @@ def getFirstRoot():
     return getFirstMPO().getRoot()
 
 mega = megastructure
+
+def example():
+    p = mega.getProcess( "0.0")
+    mpo = p.createMPO()
+    r = mpo.getRoot()
+    w1 = r.SocketSurface.WallSocket()
+    r2 = w1.SocketInstall()
+
+    print( "Got root back from created WallSocket: {} {}".format( w1, r2 ) )
+        
+    ws = r.SocketSurface()
+    w2 = ws[0]
+    r3 = w2.SocketInstall()
+    r4 = r2.Root.Get()
+
+    print( "Got root back: {} {}".format( r3, r4 ) )

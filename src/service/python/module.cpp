@@ -37,8 +37,6 @@
 
 #include <sstream>
 
-namespace
-{
 mega::service::python::PythonModule::Ptr getModule()
 {
     static mega::service::python::PythonModule::Ptr g_pPythonModule;
@@ -49,6 +47,8 @@ mega::service::python::PythonModule::Ptr getModule()
     }
     return g_pPythonModule;
 }
+namespace
+{
 } // namespace
 
 namespace PYBIND11_NAMESPACE
@@ -105,6 +105,13 @@ PYBIND11_MODULE( megastructure, pythonModule )
     using namespace mega::service::python;
 
     pythonModule.doc() = "Python Module for Megastructure";
+
+    pybind11::enum_< WriteOperation >( pythonModule, "WriteOperation" )
+        .value( "DEFAULT", WriteOperation::DEFAULT )
+        .value( "INSERT", WriteOperation::INSERT )
+        .value( "REMOVE", WriteOperation::REMOVE )
+        .value( "OVERWRITE", WriteOperation::OVERWRITE )
+        .value( "RESET", WriteOperation::RESET );
 
     pybind11::class_< PythonRoot >( pythonModule, "Root" )
         .def( "getMachines", &PythonRoot::getMachines, "Get all machines connected to the Root" );
@@ -251,8 +258,7 @@ void PythonModule::shutdown()
         m_python.conversationCompleted( m_pExternalConversation );
         m_pExternalConversation.reset();
     }
-    if( std::shared_ptr< MPOConversation > pMPOCon
-        = std::dynamic_pointer_cast< MPOConversation >( m_mpoConversation ) )
+    if( std::shared_ptr< MPOConversation > pMPOCon = std::dynamic_pointer_cast< MPOConversation >( m_mpoConversation ) )
     {
         while( !pMPOCon->isRunComplete() )
         {

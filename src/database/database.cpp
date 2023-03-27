@@ -407,6 +407,13 @@ std::unordered_map< std::string, mega::TypeID > DatabaseInstance::getIdentities(
     {
         identities.insert( { name, pSymbol->get_id() } );
     }
+
+    // add the operations
+    for( mega::TypeID::ValueType id = mega::id_Imp_NoParams; id != mega::HIGHEST_OPERATION_TYPE; ++id )
+    {
+        identities.insert( { mega::getOperationString( mega::OperationID{ id } ), mega::TypeID{ id } } );
+    }
+
     return identities;
 }
 

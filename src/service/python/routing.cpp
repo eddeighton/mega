@@ -86,6 +86,10 @@ void PythonRequestConversation::error( const network::ReceivedMsg& msg, const st
     {
         m_python.getExternalConversation()->sendErrorResponse( msg, strErrorMsg );
     }
+    else if( m_python.getExternalConversation()->getID() == msg.msg.getReceiverID() )
+    {
+        m_python.getExternalConversation()->sendErrorResponse( msg, strErrorMsg );
+    }
     else
     {
         // This can happen when initiating request has received exception - in which case

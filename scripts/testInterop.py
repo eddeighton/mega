@@ -36,8 +36,7 @@ sys.path.append( MEGA_BIN )
 import megastructure
 mega = megastructure
 
-plugin = mega.getProcess( "0.0" )
-mpo = plugin.createMPO()
+mpo = mega.getMPO( "0.0.0" )
 root = mpo.getRoot()
 
 print( "Created root: {}".format( root ) )
@@ -45,6 +44,10 @@ print( "Created root: {}".format( root ) )
 print( "root.m_str: {}".format( root.m_str() ) )
 root.m_str( "Testing" )
 print( "root.m_str: {}".format( root.m_str() ) )
+
+wallSocket = root.SocketSurface.WallSocket()
+print( "created wallSocket: {}".format( wallSocket ) )
+
 
 mega.cycle()
 

@@ -25,6 +25,8 @@
 #include "relation_functions.hxx"
 #include "operator_functions.hxx"
 
+#include "mega/types/traits.hpp"
+
 #include "database/model/FinalStage.hxx"
 
 #include "invocation/invocation.hpp"
@@ -54,19 +56,19 @@ JIT::JIT( const mega::MegastructureInstallation& megastructureInstallation, cons
 }
 
 JIT::JIT( const MegastructureInstallation& megastructureInstallation, const Project& project, JIT& oldJIT )
-: m_megastructureInstallation( megastructureInstallation )
-, m_project( project )
-, m_jitCompiler( std::move( oldJIT.m_jitCompiler ) ) // steal the pre-existing JIT
-, m_database( m_project.getProjectDatabase() )
-, m_codeGenerator( m_megastructureInstallation, m_project )
-, m_componentManager( m_project, m_database )
-, m_pythonFileStore( new mega::io::FileStore(
-        m_database.getEnvironment(), m_database.getManifest(), mega::io::FileInfo::FinalStage ) )
-, m_pythonDatabase( m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
-, m_pythonDatabaseFinal(
-        m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
-, m_pPythonSymbolTable( m_pythonDatabase.one< OperationsStage::Symbols::SymbolTable >(
-        m_database.getEnvironment().project_manifest() ) )
+    : m_megastructureInstallation( megastructureInstallation )
+    , m_project( project )
+    , m_jitCompiler( std::move( oldJIT.m_jitCompiler ) ) // steal the pre-existing JIT
+    , m_database( m_project.getProjectDatabase() )
+    , m_codeGenerator( m_megastructureInstallation, m_project )
+    , m_componentManager( m_project, m_database )
+    , m_pythonFileStore( new mega::io::FileStore(
+          m_database.getEnvironment(), m_database.getManifest(), mega::io::FileInfo::FinalStage ) )
+    , m_pythonDatabase( m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
+    , m_pythonDatabaseFinal(
+          m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
+    , m_pPythonSymbolTable( m_pythonDatabase.one< OperationsStage::Symbols::SymbolTable >(
+          m_database.getEnvironment().project_manifest() ) )
 {
     VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
 }
@@ -78,7 +80,6 @@ JIT::~JIT()
     {
         *pFunctionPtr = nullptr;
     }
-
 }
 
 std::unordered_map< std::string, mega::TypeID > JIT::getIdentities() const
@@ -250,26 +251,33 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             }
             else if( returnRef.size() )
             {
-                result.mangledType = megaMangle( "mega::reference" );
+                result.mangledType = megaMangle( mega::psz_mega_reference );
             }
             else
             {
                 THROW_RTE( "Unknown invocation return type" );
             }
-
             break; 
         }
-        case mega::id_exp_Read_Link:       
+        case mega::id_exp_Read_Link:
         {
             functionType = mega::runtime::invocation::eReadLink; 
+            if( pInvocationFinal->get_singular() )
+            {
+                result.mangledType = megaMangle( mega::psz_mega_reference );
+            }
+            else
+            {
+                result.mangledType = megaMangle( mega::psz_mega_reference_vector );
+            }
             break; 
         }        
-        case mega::id_exp_Write_Link:      
+        case mega::id_exp_Write_Link:
         {
             functionType = mega::runtime::invocation::eWriteLink;
-            //functionType = mega::runtime::invocation::eWriteLinkRange;
+            result.mangledType = megaMangle( mega::psz_mega_reference );
         }
-        break;  
+        break;
 
         case mega::id_exp_Allocate:        functionType = mega::runtime::invocation::eAllocate; break;     
         case mega::id_exp_Call:            functionType = mega::runtime::invocation::eCall; break; 

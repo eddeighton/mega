@@ -99,7 +99,7 @@ static std::string megaMangle( const std::string& strCanonicalTypeName )
                     break;
                 case '(':
                     os << '1';
-                    break;
+                    break;  
                 case ')':
                     os << '2';
                     break;
