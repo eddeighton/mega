@@ -32,7 +32,7 @@
 namespace mega::service
 {
 Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
-    : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), this )
+    : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), this, network::Node::Plugin )
     , m_channel( ioContext )
     , m_stateMachine( *this )
 {
@@ -192,13 +192,13 @@ void Plugin::dispatch( const network::Message& msg )
         case MSG_PlayerNetworkCreatePlanet_Response::ID:
         {
             m_bNetworkRequest = false;
-            //m_bPlanetActive   = true;
+            // m_bPlanetActive   = true;
         }
         break;
         case MSG_PlayerNetworkDestroyPlanet_Response::ID:
         {
             m_bNetworkRequest = false;
-            //m_bPlanetActive   = false;
+            // m_bPlanetActive   = false;
         }
         break;
 

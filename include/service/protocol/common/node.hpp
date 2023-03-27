@@ -35,6 +35,7 @@ public:
         Tool,
         Python,
         Executor,
+        Plugin,
         Daemon,
         Root,
         TOTAL_NODE_TYPES
@@ -42,6 +43,7 @@ public:
 
     static const char* toStr( Type type );
     static Type        fromStr( const char* pszStr );
+    static bool canRunSimulations( Type type );
 };
 
 std::string makeProcessName( Node::Type type );

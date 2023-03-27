@@ -22,6 +22,10 @@
 #include "service/network/network.hpp"
 
 #include "mega/native_types.hpp"
+#include "mega/reference.hpp"
+#include "mega/reference_io.hpp"
+
+#include "log/range.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -76,10 +80,33 @@ void printCurrentNetworkConnection()
     }
 }
 
+#pragma pack(1)
+struct MemoryRecordHeader
+{
+    mega::U16       size;
+    mega::reference ref;
+    mega::U16       dataSize;
+};
+#pragma pack()
+
 void update()
 {
-    while( mp_downstream() != nullptr );
-    mp_upstream( 0.1f, nullptr);
+    while( true )
+    {
+        mega::log::Range* pRange = reinterpret_cast< mega::log::Range* >( mp_downstream() );
+        if( !pRange )
+        {
+            break;
+        }
+        for( mega::U64 iter = pRange->m_memory.m_begin; iter != pRange->m_memory.m_end; )
+        {
+            MemoryRecordHeader* pRecord = reinterpret_cast< MemoryRecordHeader* >( iter );
+            using ::operator<<;
+            std::cout << "Found memory record: " << pRecord->ref << std::endl;
+            iter += pRecord->size;
+        }
+    }
+    mp_upstream( 0.1f, nullptr );
 }
 
 int main( int argc, const char* argv[] )
@@ -169,7 +196,19 @@ int main( int argc, const char* argv[] )
         }
         std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
 
+        bool bLoop = true;
+        while( bLoop )
         {
+            update();
+
+            //int c = std::cin.peek();
+            //if ( c != EOF ) break;
+
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for( 0.015s );
+        }
+
+        /*{
             std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
             char c;
             std::cin >> c;
@@ -189,7 +228,7 @@ int main( int argc, const char* argv[] )
             std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
             char c;
             std::cin >> c;
-        }
+        }*/
 
         mp_planet_destroy();
         {

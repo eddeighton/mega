@@ -55,7 +55,8 @@ public:
     Executor( boost::asio::io_context&   io_context,
               U64                        numThreads,
               short                      daemonPortNumber,
-              network::ConversationBase* pClock = nullptr );
+              network::ConversationBase* pClock   = nullptr,
+              network::Node::Type        nodeType = network::Node::Executor );
     ~Executor() override;
     void shutdown();
 

@@ -181,7 +181,8 @@ network::Message DaemonRequestConversation::RootExeBroadcast( const network::Mes
     {
         for( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
         {
-            if( pConnection->getTypeOpt().value() == network::Node::Executor )
+            if( pConnection->getTypeOpt().value() == network::Node::Executor
+                || pConnection->getTypeOpt().value() == network::Node::Plugin )
             {
                 network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
                 const network::Message               response = sender.RootExeBroadcast( request );
@@ -204,7 +205,8 @@ network::Message DaemonRequestConversation::RootExe( const network::Message&    
     VERIFY_RTE( stackCon.has_value() );
     auto pConnection = m_daemon.m_server.getConnection( stackCon.value() );
     VERIFY_RTE( pConnection );
-    VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor );
+    VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor
+                || pConnection->getTypeOpt().value() == network::Node::Plugin );
     network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
     return sender.RootExe( request );
 }

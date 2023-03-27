@@ -30,6 +30,8 @@
 
 #include <boost/filesystem/operations.hpp>
 
+#include <string_view>
+
 using Path = boost::filesystem::path;
 
 struct LogFilenameTestData
@@ -210,6 +212,64 @@ TEST_F( BasicLogTest, StructureMsg )
     }
 }
 
+TEST_F( BasicLogTest, MemoryMsg )
+{
+    using namespace mega::log;
+
+    Storage log( m_folder / "MemoryMsg" );
+}
+
+#pragma pack(1)
+struct MemoryReadHeader
+{
+    mega::U16       size;
+    mega::reference ref;
+    mega::U16       dataSize;
+};
+#pragma pack()
+
+TEST_F( BasicLogTest, Range )
+{
+    using namespace mega::log;
+
+    Storage log( m_folder / "Range" );
+
+    std::string      strTest = "test string";
+    std::string_view strView( strTest );
+
+    auto                           start = log.getTimeStamp();
+    std::vector< mega::reference > expected{ mega::reference{}, mega::max_net_ref, mega::min_net_ref };
+    {
+        for( const auto& ex : expected )
+        {
+            log.record( Memory::Write( ex, strView ) );
+        }
+    }
+    log.cycle();
+
+    auto end   = log.getTimeStamp();
+    auto range = log.getRange( start );
+    ASSERT_TRUE( range.m_memory.m_begin != range.m_memory.m_end );
+
+    {
+        int  memCount = 0;
+        auto i        = expected.begin();
+        for( mega::U64 iter = range.m_memory.m_begin; iter != range.m_memory.m_end; ++i, ++memCount )
+        {
+            ASSERT_TRUE( memCount < expected.size() );
+
+            Memory::Read record( reinterpret_cast< void* >( iter ) );
+            ASSERT_EQ( record.getRef(), *i );
+
+            {
+                MemoryReadHeader* pHeader = reinterpret_cast< MemoryReadHeader* >( iter );
+                ASSERT_EQ( pHeader->ref, *i );
+            }
+
+            iter += record.size();
+        }
+    }
+}
 /*
 TEST_F( BasicLogTest, LogMsgMany_ )
 {

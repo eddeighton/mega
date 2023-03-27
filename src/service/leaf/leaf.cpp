@@ -134,6 +134,7 @@ void Leaf::setActiveProject( const Project& currentProject )
         case network::Node::Tool:
         case network::Node::Python:
         case network::Node::Executor:
+        case network::Node::Plugin:
             if( !currentProject.isEmpty() && m_megastructureInstallationOpt.has_value() )
             {
                 if( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
@@ -212,6 +213,7 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
         case network::Node::Tool:
         case network::Node::Python:
         case network::Node::Executor:
+        case network::Node::Plugin:
             return network::ConversationBase::Ptr(
                 new LeafRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
             break;

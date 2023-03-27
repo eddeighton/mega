@@ -189,6 +189,7 @@ network::Message LeafRequestConversation::MPDown( const network::Message& reques
         case network::Node::Executor:
         case network::Node::Tool:
         case network::Node::Python:
+        case network::Node::Plugin:
             return getMPODownSender( yield_ctx ).MPDown( request, mp );
         case network::Node::Terminal:
         case network::Node::Daemon:
@@ -223,6 +224,7 @@ network::Message LeafRequestConversation::MPODown( const network::Message& reque
         case network::Node::Executor:
         case network::Node::Tool:
         case network::Node::Python:
+        case network::Node::Plugin:
             return getMPODownSender( yield_ctx ).MPODown( request, mpo );
         case network::Node::Terminal:
         case network::Node::Daemon:
@@ -257,6 +259,7 @@ network::Message LeafRequestConversation::RootAllBroadcast( const network::Messa
         switch( m_leaf.m_nodeType )
         {
             case network::Node::Executor:
+            case network::Node::Plugin:
             {
                 responses.push_back( getExeSender( yield_ctx ).RootAllBroadcast( request ) );
             }
@@ -298,6 +301,7 @@ network::Message LeafRequestConversation::RootExeBroadcast( const network::Messa
 {
     switch( m_leaf.m_nodeType )
     {
+        case network::Node::Plugin:
         case network::Node::Executor:
             return getExeSender( yield_ctx ).RootExeBroadcast( request );
         case network::Node::Terminal:
@@ -317,6 +321,7 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
 {
     switch( m_leaf.m_nodeType )
     {
+        case network::Node::Plugin:
         case network::Node::Executor:
             return getExeSender( yield_ctx ).RootExe( request );
         case network::Node::Terminal:
@@ -338,6 +343,7 @@ void LeafRequestConversation::RootSimRun( const MPO& mpo, boost::asio::yield_con
     VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in RootSimRun" );
     switch( m_leaf.m_nodeType )
     {
+        case network::Node::Plugin:
         case network::Node::Executor:
         {
             MPOLifetime mpoLifetime( m_leaf, *this, mpo, yield_ctx );

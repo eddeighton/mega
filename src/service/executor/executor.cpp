@@ -60,19 +60,19 @@ public:
 };
 
 Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short daemonPortNumber,
-                    network::ConversationBase* pClock )
-    : network::ConversationManager( network::makeProcessName( network::Node::Executor ), io_context )
+                    network::ConversationBase* pClock, network::Node::Type nodeType )
+    : network::ConversationManager( network::makeProcessName( nodeType ), io_context )
     , m_io_context( io_context )
     , m_numThreads( numThreads )
     , m_pClock( pClock )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf(
-          [ &m_receiverChannel = m_receiverChannel ]()
+          [ &m_receiverChannel = m_receiverChannel, nodeType ]()
           {
-              m_receiverChannel.run( network::makeProcessName( network::Node::Executor ) );
+              m_receiverChannel.run( network::makeProcessName( nodeType ) );
               return m_receiverChannel.getSender();
           }(),
-          network::Node::Executor, daemonPortNumber )
+          nodeType, daemonPortNumber )
 {
     m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
         m_leaf.getMegastructureInstallation().getParserPath(), "g_parserSymbol" );
