@@ -56,17 +56,17 @@ void log( const char* pszMsg )
     log.record( mega::log::Log::Write( mega::log::Log::eTrace, pszMsg ) );
 }
 
-void structure_make( const mega::reference& source, const mega::reference& target )
+void structure_make( const mega::reference& source, const mega::reference& target, mega::U32 relationID )
 {
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write(
-        source.getNetworkAddress(), target.getNetworkAddress(), mega::log::Structure::eMake ) );
+        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eMake ) );
 }
-void structure_break( const mega::reference& source, const mega::reference& target )
+void structure_break( const mega::reference& source, const mega::reference& target, mega::U32 relationID )
 {
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write(
-        source.getNetworkAddress(), target.getNetworkAddress(), mega::log::Structure::eBreak ) );
+        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eBreak ) );
 }
 
 void action_start( const mega::reference& source )

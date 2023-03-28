@@ -41,6 +41,11 @@ public:
         , m_upper( ( lower < upper ) ? upper : lower )
     {
     }
+    constexpr inline RelationID( U32 id )
+        : m_lower( static_cast< TypeID::ValueType >( id >> 16 ) )
+        , m_upper( static_cast< TypeID::ValueType >( id ) )
+    {
+    }
 
     constexpr inline bool operator==( const RelationID& cmp ) const
     {

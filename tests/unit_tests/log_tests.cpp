@@ -23,6 +23,8 @@
 
 #include "mega/native_types.hpp"
 #include "mega/reference_limits.hpp"
+#include "mega/relation_id.hpp"
+#include "mega/type_id_limits.hpp"
 
 #include "log/filename.hpp"
 #include "log/log.hpp"
@@ -192,6 +194,14 @@ TEST_F( BasicLogTest, StructureMsg )
         mega::max_heap_ref,
         mega::min_heap_ref,
     };
+    std::vector< mega::RelationID > relationIDs = 
+    {
+        mega::RelationID{ mega::TypeID{}, mega::TypeID{} },
+        mega::RelationID{ mega::TypeID{}, mega::min_typeID_context },
+        mega::RelationID{ mega::TypeID{}, mega::max_typeID_context },
+        mega::RelationID{ mega::min_typeID_context, mega::max_typeID_context },
+        mega::RelationID{ mega::max_typeID_context, mega::max_typeID_context },
+    };
     // clang-format on
     const int iTests = types.size();
 
@@ -199,7 +209,7 @@ TEST_F( BasicLogTest, StructureMsg )
 
     for( int i = 0; i < iTests; ++i )
     {
-        log.record( Structure::Write( sources[ i ], targets[ i ], types[ i ] ) );
+        log.record( Structure::Write( sources[ i ], targets[ i ], relationIDs[ i ].getID(), types[ i ] ) );
     }
 
     int index = 0;
@@ -207,6 +217,7 @@ TEST_F( BasicLogTest, StructureMsg )
     {
         Structure::Read r = *i;
         ASSERT_EQ( r.getType(), types[ index ] );
+        ASSERT_EQ( r.getRelation(), relationIDs[ index ].getID() );
         ASSERT_EQ( r.getSource(), sources[ index ] );
         ASSERT_EQ( r.getTarget(), targets[ index ] );
     }
@@ -219,7 +230,7 @@ TEST_F( BasicLogTest, MemoryMsg )
     Storage log( m_folder / "MemoryMsg" );
 }
 
-#pragma pack(1)
+#pragma pack( 1 )
 struct MemoryReadHeader
 {
     mega::U16       size;

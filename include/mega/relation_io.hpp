@@ -34,7 +34,8 @@ namespace mega
 {
 inline void to_json( nlohmann::json& j, const mega::RelationID& relationID )
 {
-    j = nlohmann::json{ { "lower", relationID.getLower() }, { "upper", relationID.getUpper() } };
+    j = nlohmann::json{
+        { "lower", relationID.getLower().getSymbolID() }, { "upper", relationID.getUpper().getSymbolID() } };
 }
 } // namespace mega
 
