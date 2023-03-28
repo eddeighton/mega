@@ -66,36 +66,62 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
     }
 }
 
-void DatabaseInstance::getObjectTypes( ObjectTypes& objectTypes ) const
+void DatabaseInstance::getConcreteToInterface( ConcreteToInterface& objectTypes ) const
 {
     for( const auto& [ id, pConcreteTypeID ] : m_concreteTypeIDs )
     {
-        std::optional< FinalStage::Concrete::Object* > pObjectOpt;
+        if( pConcreteTypeID->get_context().has_value() )
         {
-            if( pConcreteTypeID->get_context().has_value() )
+            objectTypes.push_back(
+                { id, pConcreteTypeID->get_context().value()->get_interface()->get_interface_id() } );
+        }
+        else if( pConcreteTypeID->get_dim_user().has_value() )
+        {
+            objectTypes.push_back(
+                { id, pConcreteTypeID->get_dim_user().value()->get_interface_dimension()->get_interface_id() } );
+        }
+        else if( pConcreteTypeID->get_dim_allocation().has_value() )
+        {
+            // do nothing
+        }
+        else if( pConcreteTypeID->get_dim_link().has_value() )
+        {
+            // do nothing
+        }
+        else
+        {
+            THROW_RTE( "Unreachable" );
+        }
+    }
+}
+
+void DatabaseInstance::getConcreteToLinkInterface( ConcreteToInterface& objectTypes ) const
+{
+    using namespace FinalStage;
+    for( const auto& [ id, pConcreteTypeID ] : m_concreteTypeIDs )
+    {
+        if( pConcreteTypeID->get_context().has_value() )
+        {
+            if( Concrete::Link* pLink = db_cast< Concrete::Link >( pConcreteTypeID->get_context().value() ) )
             {
-                pObjectOpt = pConcreteTypeID->get_context().value()->get_concrete_object();
-            }
-            else if( pConcreteTypeID->get_dim_user().has_value() )
-            {
-                pObjectOpt = pConcreteTypeID->get_dim_user().value()->get_parent()->get_concrete_object();
-            }
-            else if( pConcreteTypeID->get_dim_allocation().has_value() )
-            {
-                pObjectOpt = pConcreteTypeID->get_dim_allocation().value()->get_parent()->get_concrete_object();
-            }
-            else if( pConcreteTypeID->get_dim_link().has_value() )
-            {
-                pObjectOpt = pConcreteTypeID->get_dim_link().value()->get_parent()->get_concrete_object();
-            }
-            else
-            {
-                THROW_RTE( "Unreachable" );
+                objectTypes.push_back( { id, pLink->get_link_interface()->get_interface_id() } );
             }
         }
-        if( pObjectOpt.has_value() )
+        else if( pConcreteTypeID->get_dim_user().has_value() )
         {
-            objectTypes.push_back( { id, pObjectOpt.value()->get_concrete_id() } );
+            // do nothing
+        }
+        else if( pConcreteTypeID->get_dim_allocation().has_value() )
+        {
+            // do nothing
+        }
+        else if( pConcreteTypeID->get_dim_link().has_value() )
+        {
+            // do nothing
+        }
+        else
+        {
+            THROW_RTE( "Unreachable" );
         }
     }
 }

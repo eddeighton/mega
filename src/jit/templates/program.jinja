@@ -20,8 +20,10 @@
 
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
+#include "mega/relation_id.hpp"
 #include "service/protocol/common/mpo_context_interface.hpp" 
 #include "jit/object_functions.hxx"
+#include "jit/relation_functions.hxx"
 #include "jit/jit_exception.hpp"
 
 namespace mega::mangle
@@ -101,10 +103,86 @@ void record_load_bin( mega::reference ref, void* pData, mega::U64 size )
     }
 }
 
+mega::TypeID concrete_to_interface( mega::TypeID concreteTypeID )
+{
+    switch( concreteTypeID.getSymbolID() )
+    {
+{% for type in concrete_types %}
+        case {{ type.concrete }}: return mega::TypeID( {{ type.interface }} );
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "Unknown concrete type id" };
+        }
+        break;
+    }
+}
+
+mega::TypeID concrete_to_link_interface( mega::TypeID concreteTypeID )
+{
+    switch( concreteTypeID.getSymbolID() )
+    {
+{% for type in concrete_link_types %}
+        case {{ type.concrete }}: return mega::TypeID( {{ type.interface }} );
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "Unknown concrete type id" };
+        }
+        break;
+    }
+}
+
 void record_make( mega::reference source, mega::reference target )
 {
+    const mega::RelationID relationID{ 
+        concrete_to_link_interface( source.getType() ), 
+        concrete_to_link_interface( target.getType() ) };
+
+    switch( relationID.getID() )
+    {
+{% for relation in relation_types %}
+        case {{ relation.id }}:
+        {
+            static thread_local mega::runtime::relation::LinkMake 
+                linkMake( "simulation", mega::RelationID( 
+                    mega::TypeID( {{ relation.lower }} ), 
+                    mega::TypeID( {{ relation.upper }} ) ) );
+            linkMake( source, target );
+        }
+        break;
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "Unknown relationID" };
+        }
+        break;
+    }
 }
 
 void record_break( mega::reference source, mega::reference target )
 {
+    const mega::RelationID relationID{ 
+        concrete_to_link_interface( source.getType() ), 
+        concrete_to_link_interface( target.getType() ) };
+
+    switch( relationID.getID() )
+    {
+{% for relation in relation_types %}
+        case {{ relation.id }}:
+        {
+            static thread_local mega::runtime::relation::LinkBreak 
+                linkBreak( "simulation", mega::RelationID( 
+                    mega::TypeID( {{ relation.lower }} ), 
+                    mega::TypeID( {{ relation.upper }} ) ) );
+            linkBreak( source, target );
+        }
+        break;
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "Unknown relationID" };
+        }
+        break;
+    }
 }

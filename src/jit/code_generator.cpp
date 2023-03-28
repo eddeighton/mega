@@ -267,15 +267,28 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
     nlohmann::json data( { { "events", nlohmann::json::array() },
                            { "object_types", nlohmann::json::array() },
                            { "concrete_types", nlohmann::json::array() },
-                           { "dimension_types", nlohmann::json::array() } } );
+                           { "concrete_link_types", nlohmann::json::array() },
+                           { "dimension_types", nlohmann::json::array() },
+                           { "relation_types", nlohmann::json::array() } } );
 
     {
-        DatabaseInstance::ObjectTypes objectTypes;
-        database.getObjectTypes( objectTypes );
-        for( const auto& type : objectTypes )
+        DatabaseInstance::ConcreteToInterface concreteToInterface;
+        database.getConcreteToInterface( concreteToInterface );
+        for( const auto& type : concreteToInterface )
         {
-            nlohmann::json typeInfo( { { "from", type.first }, { "to", type.second } } );
+            nlohmann::json typeInfo(
+                { { "concrete", printTypeID( type.first ) }, { "interface", printTypeID( type.second ) } } );
             data[ "concrete_types" ].push_back( typeInfo );
+        }
+    }
+    {
+        DatabaseInstance::ConcreteToInterface concreteToLinkInterface;
+        database.getConcreteToLinkInterface( concreteToLinkInterface );
+        for( const auto& type : concreteToLinkInterface )
+        {
+            nlohmann::json typeInfo(
+                { { "concrete", printTypeID( type.first ) }, { "interface", printTypeID( type.second ) } } );
+            data[ "concrete_link_types" ].push_back( typeInfo );
         }
     }
 
@@ -337,6 +350,20 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
     for( const auto& event : events )
     {
         data[ "events" ].push_back( event );
+    }
+
+    // relations
+    {
+        for( const auto& [ id, pRelation ] : database.getRelations() )
+        {
+            std::ostringstream osID;
+            using ::           operator<<;
+            osID << id;
+            nlohmann::json typeInfo( { { "id", osID.str() },
+                                       { "lower", printTypeID( id.getLower() ) },
+                                       { "upper", printTypeID( id.getUpper() ) } } );
+            data[ "relation_types" ].push_back( typeInfo );
+        }
     }
 
     std::ostringstream osCPPCode;

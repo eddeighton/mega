@@ -161,12 +161,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 case StateMachine::SIM:
                 {
                     const auto timeStamp = m_log.getTimeStamp();
-                    // std::ostringstream osLog;
-                    // osLog << "SIM: " << getID() << " " << m_mpo.value();
-                    // m_log.log( log::LogMsg( log::LogMsg::eInfo, osLog.str() ) );
-                    // << " " << getElapsedTime();
-                    // SPDLOG_TRACE( "SIM: SIM {} {} {}", getID(), m_mpo.value(), getElapsedTime() );
-
+                    
                     m_clock.nextCycle();
 
                     {

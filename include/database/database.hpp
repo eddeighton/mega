@@ -53,6 +53,8 @@ public:
     const io::Manifest&           getManifest() const { return m_manifest; }
 
     FinalStage::HyperGraph::Relation* getRelation( const RelationID& relationID ) const;
+    using RelationMap = std::unordered_map< RelationID, FinalStage::HyperGraph::Relation*, RelationID::Hash >;
+    const RelationMap& getRelations() const { return m_relations; }
 
     SizeAlignment getObjectSize( TypeID objectType ) const;
 
@@ -74,8 +76,9 @@ public:
     std::vector< FinalStage::Concrete::Dimensions::LinkReference* > getLinkDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::Allocation* >    getAllocationDimensions() const;
 
-    using ObjectTypes = std::vector< std::pair< TypeID, TypeID > >;
-    void getObjectTypes( ObjectTypes& objectTypes ) const;
+    using ConcreteToInterface = std::vector< std::pair< TypeID, TypeID > >;
+    void getConcreteToInterface( ConcreteToInterface& concreteToInterface ) const;
+    void getConcreteToLinkInterface( ConcreteToInterface& concreteToInterface ) const;
 
 private:
     io::ArchiveEnvironment                            m_environment;
@@ -87,9 +90,7 @@ private:
     InterfaceTypeIDMap                                m_interfaceTypeIDs;
     FinalStage::Concrete::Object*                     m_pConcreteRoot;
     DynamicInvocationsMap                             m_dynamicInvocations;
-
-    using RelationMap = std::unordered_map< RelationID, FinalStage::HyperGraph::Relation*, RelationID::Hash >;
-    RelationMap m_relations;
+    RelationMap                                       m_relations;
 };
 
 } // namespace mega::runtime

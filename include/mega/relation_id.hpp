@@ -52,8 +52,13 @@ public:
         return ( m_lower != cmp.m_lower ) ? ( m_lower < cmp.m_lower ) : ( m_upper < cmp.m_upper );
     }
 
-    TypeID getLower() const { return m_lower; }
-    TypeID getUpper() const { return m_upper; }
+    constexpr inline TypeID getLower() const { return m_lower; }
+    constexpr inline TypeID getUpper() const { return m_upper; }
+    constexpr inline U32    getID() const
+    {
+        return ( static_cast< U32 >( static_cast< TypeID::ValueType >( m_lower ) ) << 16 )
+               + static_cast< U32 >( static_cast< TypeID::ValueType >( m_upper ) );
+    }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )

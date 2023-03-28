@@ -41,25 +41,7 @@ inline void to_json( nlohmann::json& j, const mega::RelationID& relationID )
 inline std::ostream& operator<<( std::ostream& os, const mega::RelationID& relationID )
 {
     // this must work within a filename - used for relation code gen
-    return os <<
-
-           std::hex <<
-
-           std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( relationID.getLower().getObjectID() )
-
-              << '_' <<
-
-           std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( relationID.getLower().getSubObjectID() )
-
-              << '_' <<
-
-           std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( relationID.getUpper().getObjectID() )
-
-              << '_' <<
-
-           std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( relationID.getUpper().getSubObjectID() )
-
-              << std::dec;
+    return os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << relationID.getID() << std::dec;
 }
 
 #endif // GUARD_2023_January_20_relation_io
