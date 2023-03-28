@@ -83,3 +83,7 @@ def example():
     r4 = r2.Root.Get()
 
     print( "Got root back: {} {}".format( r3, r4 ) )
+
+def getFirstSimRoot():
+    mpo = mega.getMPO( "0.0.0" )
+    return mpo.getRoot()

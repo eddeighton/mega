@@ -107,17 +107,21 @@ private:
     boost::asio::steady_timer                            m_timer;
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     StateMachine::MsgVector                              m_messageQueue;
-    bool                                                 m_queueStateMachineMsgs = true;
-    struct QueueStateMachine
+    int                                                  m_queueStack = 0;
+    struct QueueStackDepth
     {
-        bool& b;
-        QueueStateMachine( bool& b ) : b( b ) { b = true; }
-        ~QueueStateMachine() { b = false; }
+        int& stackDepth;
+        QueueStackDepth( int& st )
+            : stackDepth( st )
+        {
+            ++stackDepth;
+        }
+        ~QueueStackDepth() { --stackDepth; }
     };
-    Clock                                                m_clock;
-    std::string                                          m_strSimCreateError;
-    std::optional< network::ReceivedMsg >                m_simCreateMsgOpt;
-    bool                                                 m_bShuttingDown = false;
+    Clock                                 m_clock;
+    std::string                           m_strSimCreateError;
+    std::optional< network::ReceivedMsg > m_simCreateMsgOpt;
+    bool                                  m_bShuttingDown = false;
 };
 
 } // namespace mega::service
