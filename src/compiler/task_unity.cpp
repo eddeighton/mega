@@ -183,7 +183,7 @@ public:
             osCmd << "-logFile " << unityLog.string() << " ";
             osCmd << "-noUpm -batchmode  -quit -nographics -disable-gpu-skinning -disable-assembly-updater "
                      "-disableManagedDebugger ";
-            osCmd << "-executeMethod UnityProtocol.Run";
+            osCmd << "-executeMethod UnityProtocol.RunFromCmdLine";
             osCmd << "-reflectionData " << unityDataFilePath.string();
 
             this->run_cmd( taskProgress, osCmd.str() );
