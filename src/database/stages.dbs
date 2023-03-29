@@ -312,6 +312,10 @@ stage UnityStage
     file UnityAnalysis;
 
     persource accessor ref< Concrete::Context >;
+    global accessor ref< Symbols::SymbolTable >;
+    persource accessor array< ref< Concrete::Dimensions::User > >;
+    persource accessor array< ref< HyperGraph::Relation > >;
+    persource accessor ref< HyperGraph::Graph >;
 }
 
 stage SchematicParseStage

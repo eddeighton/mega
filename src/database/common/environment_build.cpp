@@ -30,14 +30,18 @@ BuildEnvironment::BuildEnvironment( const compiler::Directories& directories )
 {
 }
 
-BuildEnvironment::~BuildEnvironment()
-{
-}
+BuildEnvironment::~BuildEnvironment() = default;
 
 BuildEnvironment::Path BuildEnvironment::DatabaseArchive() const
 {
     VERIFY_RTE( !m_directories.installDir.empty() );
     return m_directories.installDir / "bin/archive.adb";
+}
+
+BuildEnvironment::Path BuildEnvironment::UnityReflection() const
+{
+    VERIFY_RTE( !m_directories.installDir.empty() );
+    return m_directories.installDir / "bin/reflection.json";
 }
 
 void BuildEnvironment::copyToTargetPath( const boost::filesystem::path& from, const boost::filesystem::path& to ) const

@@ -54,6 +54,7 @@ public:
     const Path& buildDir() const { return m_directories.buildDir; }
 
     Path DatabaseArchive() const;
+    Path UnityReflection() const;
 
     Path FilePath( const GeneratedHPPSourceFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const GeneratedCPPSourceFilePath& filePath ) const { return toPath( filePath ); }

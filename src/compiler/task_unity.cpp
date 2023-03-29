@@ -24,10 +24,56 @@
 #include "database/types/component_type.hpp"
 #include "database/types/sources.hpp"
 
+#include "nlohmann/json.hpp"
+
 #include <common/stash.hpp>
+#include <common/file.hpp>
 
 namespace mega::compiler
 {
+namespace
+{
+bool writeJSON( const boost::filesystem::path& filePath, const nlohmann::json& data )
+{
+    std::ostringstream os;
+    os << data;
+    return boost::filesystem::updateFileIfChanged( filePath, os.str() );
+}
+
+void printIContextFullType( UnityStage::Interface::IContext* pContext, std::ostream& os )
+{
+    using namespace UnityStage;
+    using IContextVector = std::vector< Interface::IContext* >;
+    IContextVector path;
+    while( pContext )
+    {
+        path.push_back( pContext );
+        pContext = db_cast< Interface::IContext >( pContext->get_parent() );
+    }
+    std::reverse( path.begin(), path.end() );
+    for( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
+    {
+        ++iNext;
+        if( iNext == iEnd )
+        {
+            os << ( *i )->get_identifier();
+        }
+        else
+        {
+            os << ( *i )->get_identifier() << ".";
+        }
+    }
+}
+
+void printDimensionTraitFullType( UnityStage::Interface::DimensionTrait* pDim, std::ostream& os )
+{
+    using namespace UnityStage;
+    Interface::IContext* pParent = db_cast< Interface::IContext >( pDim->get_parent() );
+    VERIFY_RTE( pParent );
+    printIContextFullType( pParent, os );
+    os << "." << pDim->get_id()->get_str();
+}
+} // namespace
 
 class Task_Unity : public BaseTask
 {
@@ -62,6 +108,65 @@ public:
         using namespace UnityStage;
         Database database( m_environment, m_manifest );
 
+        // generate unity reflection data file
+        const boost::filesystem::path unityDataFilePath = m_environment.UnityReflection();
+        {
+            // clang-format off
+            nlohmann::json data(
+            {
+                { "objects",    nlohmann::json::array() }, 
+                { "dimensions", nlohmann::json::array() },
+                { "links",      nlohmann::json::array() }, 
+                { "structure",  nlohmann::json::array() }
+            });
+            // clang-format on
+
+            {
+                Symbols::SymbolTable* pSymbolTable
+                    = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+
+                for( const auto& [ id, pInterfaceType ] : pSymbolTable->get_interface_type_ids() )
+                {
+                    std::ostringstream osFullTypeName;
+                    if( pInterfaceType->get_context().has_value() )
+                    {
+                        Interface::IContext* pContext = pInterfaceType->get_context().value();
+
+                        if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
+                        {
+                            printIContextFullType( pContext, osFullTypeName );
+                            nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
+                            data[ "objects" ].push_back( typeInfo );
+                        }
+                        else if( Interface::Link* pLink = db_cast< Interface::Link >( pContext ) )
+                        {
+                            printIContextFullType( pContext, osFullTypeName );
+                            nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
+                            data[ "links" ].push_back( typeInfo );
+                        }
+                    }
+                    else if( pInterfaceType->get_dimension().has_value() )
+                    {
+                        Interface::DimensionTrait* pDimension = pInterfaceType->get_dimension().value();
+                        printDimensionTraitFullType( pDimension, osFullTypeName );
+                        nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
+                        data[ "dimensions" ].push_back( typeInfo );
+                    }
+                    else
+                    {
+                        THROW_RTE( "Unknown interface type" );
+                    }
+                }
+            }
+
+            if( writeJSON( unityDataFilePath, data ) )
+            {
+                std::stringstream os;
+                os << "Updated unity data file: " << unityDataFilePath.string();
+                msg( taskProgress, os.str() );
+            }
+        }
+
         VERIFY_RTE_MSG( boost::filesystem::exists( m_unityProjectDir ),
                         "Could not locate unity project directory at: " << m_unityProjectDir.string() );
 
@@ -79,6 +184,7 @@ public:
             osCmd << "-noUpm -batchmode  -quit -nographics -disable-gpu-skinning -disable-assembly-updater "
                      "-disableManagedDebugger ";
             osCmd << "-executeMethod UnityProtocol.Run";
+            osCmd << "-reflectionData " << unityDataFilePath.string();
 
             this->run_cmd( taskProgress, osCmd.str() );
         }
