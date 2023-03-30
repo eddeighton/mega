@@ -149,7 +149,10 @@ public:
                     {
                         Interface::DimensionTrait* pDimension = pInterfaceType->get_dimension().value();
                         printDimensionTraitFullType( pDimension, osFullTypeName );
-                        nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
+
+                        std::string    strBlit = "TODO";
+                        nlohmann::json typeInfo{
+                            { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() }, { "blit", strBlit } };
                         data[ "dimensions" ].push_back( typeInfo );
                     }
                     else
