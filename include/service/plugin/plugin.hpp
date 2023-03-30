@@ -95,32 +95,7 @@ public:
         send( sender, MsgType::make( getID(), sender.getID(), std::move( msg ) ) );
     }
 
-    void runOne()
-    {
-        std::promise< network::ReceivedMsg > pro;
-        std::future< network::ReceivedMsg >  fut = pro.get_future();
-        m_channel.async_receive(
-            [ &pro ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
-            {
-                if( ec )
-                {
-                    SPDLOG_ERROR( "Failed to receive msg with error: {}", ec.what() );
-                    THROW_RTE( "Failed to receive msg on channel: " << ec.what() );
-                    pro.set_exception( std::make_exception_ptr( std::runtime_error( ec.what() ) ) );
-                }
-                else
-                {
-                    pro.set_value( msg );
-                }
-            } );
-
-        dispatch( fut.get().msg );
-    }
-
-    Database* database()
-    {
-        return m_pDatabase.get();
-    }
+    Database* database() { return m_pDatabase.get(); }
 
     log::Range* downstream()
     {
@@ -135,58 +110,8 @@ public:
         m_stateMachine.sendUpstream();
     }
 
-    void tryRun()
-    {
-        if( m_pPlatform )
-        {
-            if( m_lastPlatformStatus.has_value() && !m_bPlatformRequest
-                && ( ( m_ct - m_lastPlatformStatus.value() ) > m_statusRate ) )
-            {
-                using namespace network::platform;
-                send( *m_pPlatform, MSG_PlatformStatus_Response{} );
-                m_lastPlatformStatus.reset();
-            }
-        }
-
-        if( m_pPlayerNetwork )
-        {
-            if( m_lastNetworkStatus.has_value() && !m_bNetworkRequest
-                && ( ( m_ct - m_lastNetworkStatus.value() ) > m_statusRate ) )
-            {
-                using namespace network::player_network;
-                send( *m_pPlayerNetwork, MSG_PlayerNetworkStatus_Response{} );
-                m_lastNetworkStatus.reset();
-            }
-        }
-
-        std::optional< network::ReceivedMsg > msgOpt;
-        while( true )
-        {
-            msgOpt.reset();
-            m_channel.try_receive(
-                [ &msgOpt ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
-                {
-                    if( !ec )
-                    {
-                        msgOpt = msg;
-                    }
-                    else
-                    {
-                        THROW_TODO;
-                    }
-                } );
-
-            if( msgOpt.has_value() )
-            {
-                dispatch( msgOpt.value().msg );
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
-
+    void runOne();
+    void tryRun();
     void dispatch( const network::Message& msg );
 
     I64         network_count();
@@ -200,8 +125,8 @@ public:
     bool planet_current();
 
 private:
-    mega::service::Executor                            m_executor;
     MessageChannel                                     m_channel;
+    mega::service::Executor                            m_executor;
     Platform::Ptr                                      m_pPlatform;
     PlayerNetwork::Ptr                                 m_pPlayerNetwork;
     std::optional< mega::network::PlatformState >      m_platformStateOpt;

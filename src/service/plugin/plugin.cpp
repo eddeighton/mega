@@ -25,6 +25,7 @@
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
 
+#include "service/protocol/model/project.hxx"
 #include "service/protocol/model/platform.hxx"
 #include "service/protocol/model/player_network.hxx"
 #include "service/protocol/model/sim.hxx"
@@ -32,8 +33,8 @@
 namespace mega::service
 {
 Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
-    : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), this, network::Node::Plugin )
-    , m_channel( ioContext )
+    : m_channel( ioContext )
+    , m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), this, network::Node::Plugin )
     , m_stateMachine( *this )
 {
     {
@@ -143,8 +144,83 @@ void Plugin::send( const network::ReceivedMsg& msg )
                           } );
 }
 
+void Plugin::runOne()
+{
+    std::promise< network::ReceivedMsg > pro;
+    std::future< network::ReceivedMsg >  fut = pro.get_future();
+    m_channel.async_receive(
+        [ &pro ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+        {
+            if( ec )
+            {
+                SPDLOG_ERROR( "Failed to receive msg with error: {}", ec.what() );
+                THROW_RTE( "Failed to receive msg on channel: " << ec.what() );
+                pro.set_exception( std::make_exception_ptr( std::runtime_error( ec.what() ) ) );
+            }
+            else
+            {
+                pro.set_value( msg );
+            }
+        } );
+
+    dispatch( fut.get().msg );
+}
+
+void Plugin::tryRun()
+{
+    if( m_pPlatform )
+    {
+        if( m_lastPlatformStatus.has_value() && !m_bPlatformRequest
+            && ( ( m_ct - m_lastPlatformStatus.value() ) > m_statusRate ) )
+        {
+            using namespace network::platform;
+            send( *m_pPlatform, MSG_PlatformStatus_Response{} );
+            m_lastPlatformStatus.reset();
+        }
+    }
+
+    if( m_pPlayerNetwork )
+    {
+        if( m_lastNetworkStatus.has_value() && !m_bNetworkRequest
+            && ( ( m_ct - m_lastNetworkStatus.value() ) > m_statusRate ) )
+        {
+            using namespace network::player_network;
+            send( *m_pPlayerNetwork, MSG_PlayerNetworkStatus_Response{} );
+            m_lastNetworkStatus.reset();
+        }
+    }
+
+    std::optional< network::ReceivedMsg > msgOpt;
+    while( true )
+    {
+        msgOpt.reset();
+        m_channel.try_receive(
+            [ &msgOpt ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+            {
+                if( !ec )
+                {
+                    msgOpt = msg;
+                }
+                else
+                {
+                    THROW_TODO;
+                }
+            } );
+
+        if( msgOpt.has_value() )
+        {
+            dispatch( msgOpt.value().msg );
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
 void Plugin::dispatch( const network::Message& msg )
 {
+    using namespace network::project;
     using namespace network::platform;
     using namespace network::player_network;
     using namespace network::sim;
@@ -205,17 +281,26 @@ void Plugin::dispatch( const network::Message& msg )
         // simulation clock
         case MSG_SimRegister_Request::ID:
         {
-            m_stateMachine.simRegister( network::sim::MSG_SimRegister_Request::get( msg ) );
+            m_stateMachine.simRegister( MSG_SimRegister_Request::get( msg ) );
         }
         break;
         case MSG_SimUnregister_Request::ID:
         {
-            m_stateMachine.simUnregister( network::sim::MSG_SimUnregister_Request::get( msg ) );
+            m_stateMachine.simUnregister( MSG_SimUnregister_Request::get( msg ) );
         }
         break;
         case MSG_SimClock_Request::ID:
         {
-            m_stateMachine.simClock( network::sim::MSG_SimClock_Request::get( msg ) );
+            m_stateMachine.simClock( MSG_SimClock_Request::get( msg ) );
+        }
+        break;
+
+        // project
+        case MSG_SetProject_Request::ID:
+        {
+            const auto& projectMsg = MSG_SetProject_Request::get( msg );
+            SPDLOG_INFO( "plugin::dispatch: Set project request received for project: {}",
+                         projectMsg.project.getProjectInstallPath().string() );
         }
         break;
 

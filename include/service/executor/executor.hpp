@@ -74,6 +74,8 @@ public:
     void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );
     void      conversationCompleted( network::ConversationBase::Ptr pConversation ) override;
 
+    network::ConversationBase* getClock() { return m_pClock; }
+
 private:
     boost::asio::io_context&                 m_io_context;
     U64                                      m_numThreads;

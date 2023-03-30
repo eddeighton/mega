@@ -51,7 +51,7 @@ public:
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
                                                              const network::Message&      msg );
 
-    void                                    setActiveProject( const Project& project );
+    void                           setActiveProject( const Project& project );
     const std::optional< Project > getActiveProject() const { return m_activeProject; }
 
 private:
@@ -60,7 +60,7 @@ private:
     network::Client                              m_rootClient;
     network::Server                              m_server;
     MachineID                                    m_machineID;
-    std::optional< Project >            m_activeProject;
+    std::optional< Project >                     m_activeProject;
     std::unique_ptr< runtime::DatabaseInstance > m_pDatabase;
 };
 

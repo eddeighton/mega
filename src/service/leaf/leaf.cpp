@@ -78,6 +78,7 @@ public:
 
             const Project currentProject          = projectRequest.GetProject();
             m_leaf.m_megastructureInstallationOpt = projectRequest.GetMegastructureInstallation();
+
             m_leaf.setActiveProject( currentProject );
         }
 

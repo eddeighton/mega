@@ -43,22 +43,6 @@
 namespace mega::service
 {
 
-template < typename TConversationFunctor >
-class GenericConversation : public ExecutorRequestConversation
-{
-    TConversationFunctor m_functor;
-
-public:
-    GenericConversation( Executor& executor, const network::ConversationID& conversationID,
-                         const network::ConnectionID& originatingConnectionID, TConversationFunctor&& functor )
-        : ExecutorRequestConversation( executor, conversationID, originatingConnectionID )
-        , m_functor( functor )
-    {
-    }
-
-    void run( boost::asio::yield_context& yield_ctx ) { m_functor( *this, m_executor.getLeafSender(), yield_ctx ); }
-};
-
 Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short daemonPortNumber,
                     network::ConversationBase* pClock, network::Node::Type nodeType )
     : network::ConversationManager( network::makeProcessName( nodeType ), io_context )
@@ -76,6 +60,16 @@ Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short d
 {
     m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
         m_leaf.getMegastructureInstallation().getParserPath(), "g_parserSymbol" );
+
+    if( m_pClock )
+    {
+        // fire and forget to the plugin the active project
+        using namespace network::project;
+        const network::ReceivedMsg rMsg{
+            m_pClock->getConnectionID(),
+            MSG_SetProject_Request::make( m_pClock->getID(), MSG_SetProject_Request{ m_leaf.getActiveProject() } ) };
+        m_pClock->send( rMsg );
+    }
 }
 
 Executor::~Executor()
