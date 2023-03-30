@@ -438,8 +438,12 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     TskDesc meta = encode( Task{ eTask_Meta, manifestFilePath } );
     dependencies.add( meta, operationsTasks );
 
-    TskDesc unity = encode( Task{ eTask_Unity, manifestFilePath } );
-    dependencies.add( unity, TskDescVec{ meta } );
+    TskDesc unityReflection = encode( Task{ eTask_UnityReflection, manifestFilePath } );
+    TskDesc unityAnalysis   = encode( Task{ eTask_UnityAnalysis, manifestFilePath } );
+    TskDesc unity           = encode( Task{ eTask_Unity, manifestFilePath } );
+    dependencies.add( unityReflection, TskDescVec{ meta } );
+    dependencies.add( unityAnalysis, TskDescVec{ unityReflection } );
+    dependencies.add( unity, TskDescVec{ unityAnalysis } );
 
     TskDescVec schematicMapTasks;
     for( const mega::io::schFilePath& schematicFilePath : manifest.getSchematicSourceFiles() )

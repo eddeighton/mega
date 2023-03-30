@@ -55,6 +55,7 @@ public:
 
     Path DatabaseArchive() const;
     Path UnityReflection() const;
+    Path UnityAnalysis() const;
 
     Path FilePath( const GeneratedHPPSourceFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const GeneratedCPPSourceFilePath& filePath ) const { return toPath( filePath ); }

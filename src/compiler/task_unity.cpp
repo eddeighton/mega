@@ -73,7 +73,204 @@ void printDimensionTraitFullType( UnityStage::Interface::DimensionTrait* pDim, s
     printIContextFullType( pParent, os );
     os << "." << pDim->get_id()->get_str();
 }
+
+bool generateUnityReflectionJSON( UnityStage::Database& database, const io::StashEnvironment& m_environment,
+                                  const boost::filesystem::path& unityDataFilePath )
+{
+    using namespace UnityStage;
+
+    // generate unity reflection data file
+    // clang-format off
+    nlohmann::json data(
+    {
+        { "objects",    nlohmann::json::array() }, 
+        { "dimensions", nlohmann::json::array() },
+        { "links",      nlohmann::json::array() }, 
+        { "structure",  nlohmann::json::array() }
+    });
+    // clang-format on
+
+    {
+        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+
+        for( const auto& [ id, pInterfaceType ] : pSymbolTable->get_interface_type_ids() )
+        {
+            std::ostringstream osFullTypeName;
+            if( pInterfaceType->get_context().has_value() )
+            {
+                Interface::IContext* pContext = pInterfaceType->get_context().value();
+
+                if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
+                {
+                    printIContextFullType( pContext, osFullTypeName );
+                    nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
+                    data[ "objects" ].push_back( typeInfo );
+                }
+                else if( Interface::Link* pLink = db_cast< Interface::Link >( pContext ) )
+                {
+                    printIContextFullType( pContext, osFullTypeName );
+                    nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
+                    data[ "links" ].push_back( typeInfo );
+                }
+            }
+            else if( pInterfaceType->get_dimension().has_value() )
+            {
+                Interface::DimensionTrait* pDimension = pInterfaceType->get_dimension().value();
+                printDimensionTraitFullType( pDimension, osFullTypeName );
+
+                std::string    strBlit = "TODO";
+                nlohmann::json typeInfo{
+                    { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() }, { "blit", strBlit } };
+                data[ "dimensions" ].push_back( typeInfo );
+            }
+            else
+            {
+                THROW_RTE( "Unknown interface type" );
+            }
+        }
+    }
+
+    return writeJSON( unityDataFilePath, data );
+}
 } // namespace
+
+class Task_UnityReflection : public BaseTask
+{
+    const mega::io::manifestFilePath& m_manifest;
+
+public:
+    Task_UnityReflection( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+        : BaseTask( taskArguments )
+        , m_manifest( manifest )
+    {
+    }
+
+    virtual void run( mega::pipeline::Progress& taskProgress )
+    {
+        const boost::filesystem::path unityDataFilePath = m_environment.UnityReflection();
+
+        const auto symbolTableCompilationFile
+            = m_environment.SymbolAnalysis_SymbolTable( m_environment.project_manifest() );
+
+        start( taskProgress, "Task_UnityReflection", symbolTableCompilationFile.path(), unityDataFilePath );
+
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( symbolTableCompilationFile ) } );
+
+        if( m_environment.restorePath( unityDataFilePath, determinant ) )
+        {
+            m_environment.setBuildHashCodePath( unityDataFilePath );
+            cached( taskProgress );
+            return;
+        }
+
+        bool bModified = false;
+        {
+            using namespace UnityStage;
+            Database database( m_environment, m_manifest );
+            bModified = generateUnityReflectionJSON( database, m_environment, unityDataFilePath );
+        }
+
+        m_environment.setBuildHashCodePath( unityDataFilePath );
+        m_environment.stashPath( unityDataFilePath, determinant );
+
+        if( bModified )
+        {
+            succeeded( taskProgress );
+        }
+        else
+        {
+            cached( taskProgress );
+        }
+    }
+};
+
+BaseTask::Ptr create_Task_UnityReflection( const TaskArguments&              taskArguments,
+                                           const mega::io::manifestFilePath& manifestFilePath )
+{
+    return std::make_unique< Task_UnityReflection >( taskArguments, manifestFilePath );
+}
+
+class Task_UnityAnalysis : public BaseTask
+{
+    const mega::io::manifestFilePath& m_manifest;
+
+public:
+    Task_UnityAnalysis( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+        : BaseTask( taskArguments )
+        , m_manifest( manifest )
+    {
+    }
+
+    virtual void run( mega::pipeline::Progress& taskProgress )
+    {
+        const boost::filesystem::path unityDataFilePath     = m_environment.UnityReflection();
+        const boost::filesystem::path unityAnalysisFilePath = m_environment.UnityAnalysis();
+
+        start( taskProgress, "Task_UnityAnalysis", unityDataFilePath, unityAnalysisFilePath );
+
+        // the unityAnalysisFilePath file can have changed externally due to editting IN unity.
+        // so DO NOT want to replace it via the stash.
+        std::optional< task::FileHash > optFileHash;
+        if( boost::filesystem::exists( unityAnalysisFilePath ) )
+        {
+            optFileHash = task::FileHash{ unityAnalysisFilePath };
+        }
+
+        // so IF the analysis file EXISTS then INCLUDE it in the determinant
+        // so that way if it has changed it will rerun.
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCodePath( unityDataFilePath ),
+              ( optFileHash.has_value() ? optFileHash.value().get() : std::size_t{} ) } );
+
+        if( m_environment.restorePath( unityAnalysisFilePath, determinant ) )
+        {
+            m_environment.setBuildHashCodePath( unityAnalysisFilePath );
+            cached( taskProgress );
+            return;
+        }
+
+        VERIFY_RTE_MSG( boost::filesystem::exists( m_unityProjectDir ),
+                        "Could not locate unity project directory at: " << m_unityProjectDir.string() );
+
+        VERIFY_RTE_MSG( boost::filesystem::exists( m_unityEditor ),
+                        "Could not locate unity editor at: " << m_unityEditor.string() );
+
+        {
+            const boost::filesystem::path unityLog = m_environment.buildDir() / "unity_log.txt";
+
+            std::ostringstream osCmd;
+
+            osCmd << m_unityEditor.string() << " ";
+            osCmd << "-projectPath " << m_unityProjectDir.string() << " ";
+            osCmd << "-logFile " << unityLog.string() << " ";
+            osCmd << "-noUpm -batchmode  -quit -nographics -disable-gpu-skinning -disable-assembly-updater "
+                     "-disableManagedDebugger ";
+            osCmd << "-executeMethod UnityProtocol.RunFromCmdLine";
+            osCmd << "-reflectionData " << unityDataFilePath.string();
+            osCmd << "-unityData " << unityAnalysisFilePath.string();
+
+            this->run_cmd( taskProgress, osCmd.str() );
+        }
+
+        if( !boost::filesystem::exists( unityAnalysisFilePath ) )
+        {
+            failed( taskProgress );
+        }
+        else
+        {
+            m_environment.setBuildHashCodePath( unityAnalysisFilePath );
+            m_environment.stashPath( unityAnalysisFilePath, determinant );
+            succeeded( taskProgress );
+        }
+    }
+};
+
+BaseTask::Ptr create_Task_UnityAnalysis( const TaskArguments&              taskArguments,
+                                         const mega::io::manifestFilePath& manifestFilePath )
+{
+    return std::make_unique< Task_UnityAnalysis >( taskArguments, manifestFilePath );
+}
 
 class Task_Unity : public BaseTask
 {
@@ -88,15 +285,18 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
+        const boost::filesystem::path unityAnalysisFilePath = m_environment.UnityAnalysis();
+        const auto                    symbolTableCompilationFile
+            = m_environment.SymbolAnalysis_SymbolTable( m_environment.project_manifest() );
+
         const mega::io::CompilationFilePath unityAnalysisCompilationFile
             = m_environment.UnityStage_UnityAnalysis( m_manifest );
 
-        start( taskProgress, "Task_Unity", m_manifest.path(), unityAnalysisCompilationFile.path() );
+        start( taskProgress, "Task_Unity", unityAnalysisFilePath, unityAnalysisCompilationFile.path() );
 
-        // const task::FileHash previousStageHash = m_environment.getBuildHashCode(
-        //    m_environment.OperationsStage_Operations() ( m_schematicFilePath ) );
-
-        const task::DeterminantHash determinant( { m_toolChain.toolChainHash } );
+        const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
+                                                   m_environment.getBuildHashCodePath( unityAnalysisFilePath ),
+                                                   m_environment.getBuildHashCode( symbolTableCompilationFile ) } );
 
         if( m_environment.restore( unityAnalysisCompilationFile, determinant ) )
         {
@@ -108,88 +308,53 @@ public:
         using namespace UnityStage;
         Database database( m_environment, m_manifest );
 
-        // generate unity reflection data file
-        const boost::filesystem::path unityDataFilePath = m_environment.UnityReflection();
+        // load the unityAnalysisFilePath
+        nlohmann::json data;
         {
-            // clang-format off
-            nlohmann::json data(
+            auto pFile = boost::filesystem::loadFileStream( unityAnalysisFilePath );
+            data       = nlohmann::json::parse( *pFile );
+        }
+
+        for( const auto& prefab : data[ "prefabs" ] )
+        {
+            const std::string  guid     = prefab[ "guid" ];
+            const std::string  typeName = prefab[ "typeName" ];
+            const mega::TypeID interfaceTypeID{ TypeID::ValueType{ prefab[ "interfaceTypeID" ] } };
+
+            for( const auto& dataBinding : prefab[ "dataBindings" ] )
             {
-                { "objects",    nlohmann::json::array() }, 
-                { "dimensions", nlohmann::json::array() },
-                { "links",      nlohmann::json::array() }, 
-                { "structure",  nlohmann::json::array() }
-            });
-            // clang-format on
-
-            {
-                Symbols::SymbolTable* pSymbolTable
-                    = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-
-                for( const auto& [ id, pInterfaceType ] : pSymbolTable->get_interface_type_ids() )
-                {
-                    std::ostringstream osFullTypeName;
-                    if( pInterfaceType->get_context().has_value() )
-                    {
-                        Interface::IContext* pContext = pInterfaceType->get_context().value();
-
-                        if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
-                        {
-                            printIContextFullType( pContext, osFullTypeName );
-                            nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
-                            data[ "objects" ].push_back( typeInfo );
-                        }
-                        else if( Interface::Link* pLink = db_cast< Interface::Link >( pContext ) )
-                        {
-                            printIContextFullType( pContext, osFullTypeName );
-                            nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
-                            data[ "links" ].push_back( typeInfo );
-                        }
-                    }
-                    else if( pInterfaceType->get_dimension().has_value() )
-                    {
-                        Interface::DimensionTrait* pDimension = pInterfaceType->get_dimension().value();
-                        printDimensionTraitFullType( pDimension, osFullTypeName );
-
-                        std::string    strBlit = "TODO";
-                        nlohmann::json typeInfo{
-                            { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() }, { "blit", strBlit } };
-                        data[ "dimensions" ].push_back( typeInfo );
-                    }
-                    else
-                    {
-                        THROW_RTE( "Unknown interface type" );
-                    }
-                }
+                const std::string  typeName = dataBinding[ "typeName" ];
+                const mega::TypeID interfaceTypeID{ TypeID::ValueType{ dataBinding[ "interfaceTypeID" ] } };
             }
-
-            if( writeJSON( unityDataFilePath, data ) )
+            for( const auto& linkBinding : prefab[ "linkBindings" ] )
             {
-                std::stringstream os;
-                os << "Updated unity data file: " << unityDataFilePath.string();
-                msg( taskProgress, os.str() );
+                const std::string  typeName = linkBinding[ "typeName" ];
+                const mega::TypeID interfaceTypeID{ TypeID::ValueType{ linkBinding[ "interfaceTypeID" ] } };
             }
         }
 
-        VERIFY_RTE_MSG( boost::filesystem::exists( m_unityProjectDir ),
-                        "Could not locate unity project directory at: " << m_unityProjectDir.string() );
+        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
-        VERIFY_RTE_MSG( boost::filesystem::exists( m_unityEditor ),
-                        "Could not locate unity editor at: " << m_unityEditor.string() );
-
-        const boost::filesystem::path unityLog = m_environment.buildDir() / "unity_log.txt";
-
+        for( const auto& [ id, pInterfaceType ] : pSymbolTable->get_interface_type_ids() )
         {
-            std::ostringstream osCmd;
+            if( pInterfaceType->get_context().has_value() )
+            {
+                Interface::IContext* pContext = pInterfaceType->get_context().value();
 
-            osCmd << m_unityEditor.string() << " ";
-            osCmd << "-projectPath " << m_unityProjectDir.string() << " ";
-            osCmd << "-logFile " << unityLog.string() << " ";
-            osCmd << "-noUpm -batchmode  -quit -nographics -disable-gpu-skinning -disable-assembly-updater "
-                     "-disableManagedDebugger ";
-            osCmd << "-executeMethod UnityProtocol.RunFromCmdLine";
-            osCmd << "-reflectionData " << unityDataFilePath.string();
-
-            this->run_cmd( taskProgress, osCmd.str() );
+                if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
+                {
+                }
+                else if( Interface::Link* pLink = db_cast< Interface::Link >( pContext ) )
+                {
+                }
+            }
+            else if( pInterfaceType->get_dimension().has_value() )
+            {
+            }
+            else
+            {
+                THROW_RTE( "Unknown interface type" );
+            }
         }
 
         const task::FileHash fileHashCode = database.save_UnityAnalysis_to_temp();

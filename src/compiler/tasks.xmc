@@ -57,6 +57,8 @@ TASK(PythonWrapper,std::get< mega::io::megaFilePath >( task.sourceFilePath ),con
 TASK(PythonObject,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
 TASK(Meta,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
+TASK(UnityReflection,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
+TASK(UnityAnalysis,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
 TASK(Unity,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
 
 // Schematic tasks

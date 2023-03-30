@@ -44,6 +44,12 @@ BuildEnvironment::Path BuildEnvironment::UnityReflection() const
     return m_directories.installDir / "bin/reflection.json";
 }
 
+BuildEnvironment::Path BuildEnvironment::UnityAnalysis() const
+{
+    VERIFY_RTE( !m_directories.installDir.empty() );
+    return m_directories.installDir / "bin/unity.json";
+}
+
 void BuildEnvironment::copyToTargetPath( const boost::filesystem::path& from, const boost::filesystem::path& to ) const
 {
     VERIFY_RTE( boost::filesystem::exists( from ) );
