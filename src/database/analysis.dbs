@@ -169,7 +169,7 @@ namespace Allocators
 
 namespace MemoryLayout
 {
-    object Part  -> MemoryStage::MemoryLayout
+    object Part -> MemoryStage::MemoryLayout
     {
         value< mega::U64 >                                  total_domain_size;
         ref< Concrete::Context >                            context;
@@ -177,10 +177,10 @@ namespace MemoryLayout
         array< ref< Concrete::Dimensions::LinkReference > > link_dimensions;
         array< ref< Concrete::Dimensions::Allocation > >    allocation_dimensions;
 
-        late< value< mega::U64 > >                        size;
-        late< value< mega::U64 > >                        alignment;
-        late< value< mega::U64 > >                        offset;
-        late< ref< Buffer > >                             buffer;
+        late< value< mega::U64 > >  size;
+        late< value< mega::U64 > >  alignment;
+        late< value< mega::U64 > >  offset;
+        late< ref< Buffer > >       buffer;
     }
 
     object Buffer -> MemoryStage::MemoryLayout
@@ -203,5 +203,37 @@ namespace MemoryLayout
     object GPUBuffer : Buffer -> MemoryStage::MemoryLayout
     {
         
+    }
+}
+
+namespace UnityAnalysis
+{
+    object DataBinding -> UnityStage::UnityAnalysis
+    {
+        value< std::string >        typeName;
+        value< mega::TypeID >       interfaceTypeID;
+    }
+
+    object LinkBinding -> UnityStage::UnityAnalysis
+    {
+        value< std::string >        typeName;
+        value< mega::TypeID >       interfaceTypeID;
+    }
+
+    object Prefab -> UnityStage::UnityAnalysis
+    {
+        value< std::string >        guid;
+        value< std::string >        typeName;
+        value< mega::TypeID >       interfaceTypeID;
+        array< ref< DataBinding > > dataBindings;
+        array< ref< LinkBinding > > linkBindings;
+    }
+
+    object Binding -> UnityStage::UnityAnalysis
+    {
+        ref< Prefab >           prefab;
+        ref< Concrete::Object > object;
+        map< ref< Concrete::Dimensions::User >, ref< DataBinding > > dataBindings;
+        map< ref< Concrete::Link >,             ref< LinkBinding > > linkBindings;
     }
 }

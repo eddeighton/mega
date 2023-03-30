@@ -66,7 +66,7 @@ function cleanup_files {
 }
 
 cleanup_files "${BUILD_PATH}/${CFG_TUPLE}/mega"         "*.log"
-cleanup_files "${BUILD_PATH}/${CFG_TUPLE}/basic"     "*.log"
+cleanup_files "${BUILD_PATH}/${CFG_TUPLE}/basic"        "*.log"
 cleanup_files "${WORKSPACE_ROOT_PATH}/src"              "*.log"
 
 function cleanup_shm {

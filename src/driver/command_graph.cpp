@@ -114,6 +114,10 @@ const std::string& getIdentifier( FinalStage::Concrete::Context* pContext )
 {
     return pContext->get_interface()->get_identifier();
 }
+const std::string& getIdentifier( FinalStage::Concrete::Dimensions::User* pDim )
+{
+    return pDim->get_interface_dimension()->get_id()->get_str();
+}
 
 template < typename TContextType >
 std::string getContextFullTypeName( TContextType* pContext )
@@ -533,9 +537,6 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
 
     std::ostringstream os;
 
-    nlohmann::json node;
-    NODE( node, getContextFullTypeName< Concrete::Context >( pContext ), "" );
-
     if( Namespace* pNamespace = db_cast< Namespace >( pContext ) )
     {
     }
@@ -550,13 +551,21 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
     }
     else if( Object* pObject = db_cast< Object >( pContext ) )
     {
+        nlohmann::json node;
+        NODE( node, getContextFullTypeName< Concrete::Context >( pContext ), "" );
         os << "Object: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
+        data[ "nodes" ].push_back( node );
     }
     else if( Link* pLink = db_cast< Link >( pContext ) )
     {
-        os << "Link: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
-        node[ "label" ] = os.str();
+        {
+            nlohmann::json node;
+            NODE( node, getContextFullTypeName< Concrete::Context >( pContext ), "" );
+            os << "Link: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+            node[ "label" ] = os.str();
+            data[ "nodes" ].push_back( node );
+        }
 
         Interface::LinkInterface* pLinkInterface = pLink->get_link_interface();
         HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
@@ -613,17 +622,18 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
         THROW_RTE( "Unknown context type" );
     }
 
-    data[ "nodes" ].push_back( node );
-
     for( Concrete::Context* pChildContext : pContext->get_children() )
     {
         recurseTree( data, pChildContext );
 
-        nlohmann::json edge
-            = nlohmann::json::object( { { "from", getContextFullTypeName< Concrete::Context >( pContext ) },
-                                        { "to", getContextFullTypeName< Concrete::Context >( pChildContext ) },
-                                        { "colour", "000000" } } );
-        data[ "edges" ].push_back( edge );
+        if( db_cast< Object >( pChildContext ) || db_cast< Link >( pChildContext ) )
+        {
+            nlohmann::json edge
+                = nlohmann::json::object( { { "from", getContextFullTypeName< Concrete::Context >( pContext ) },
+                                            { "to", getContextFullTypeName< Concrete::Context >( pChildContext ) },
+                                            { "colour", "000000" } } );
+            data[ "edges" ].push_back( edge );
+        }
     }
 }
 
@@ -828,6 +838,77 @@ void generateMemoryGraphViz( std::ostream& os, mega::io::Environment& environmen
     os << data;
 }
 
+void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment, mega::io::Manifest& manifest )
+{
+    using namespace FinalStage;
+
+    nlohmann::json data
+        = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
+
+    Database database( environment, environment.project_manifest() );
+
+    for( UnityAnalysis::Binding* pBinding : database.many< UnityAnalysis::Binding >( environment.project_manifest() ) )
+    {
+        Concrete::Object* pObject = pBinding->get_object();
+
+        std::ostringstream osObjectName;
+        osObjectName << "object_" << getContextFullTypeName( pObject );
+
+        nlohmann::json node;
+        {
+            NODE( node, osObjectName.str(), getContextFullTypeName( pObject ) << getNodeInfo( pObject ) );
+            {
+                nlohmann::json property;
+                PROP( property, "GUID", pBinding->get_prefab()->get_guid() );
+                node[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property;
+                PROP( property, "Type", pBinding->get_prefab()->get_typeName() );
+                node[ "properties" ].push_back( property );
+            }
+        }
+        data[ "nodes" ].push_back( node );
+
+        for( const auto& [ pDim, pBinding ] : pBinding->get_dataBindings() )
+        {
+            nlohmann::json dataNode;
+
+            std::ostringstream osName;
+            osName << "dim_" << getContextFullTypeName( pDim );
+            NODE( dataNode, osName.str(), getContextFullTypeName( pDim ) << getNodeInfo( pDim ) );
+            {
+                nlohmann::json property;
+                PROP( property, "Type", pBinding->get_typeName() );
+                dataNode[ "properties" ].push_back( property );
+            }
+            data[ "nodes" ].push_back( dataNode );
+
+            data[ "edges" ].push_back( nlohmann::json::object(
+                { { "from", osObjectName.str() }, { "to", osName.str() }, { "colour", "0000FF" } } ) );
+        }
+
+        for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
+        {
+            nlohmann::json dataNode;
+
+            std::ostringstream osName;
+            osName << "link_" << getContextFullTypeName( pLink );
+            NODE( dataNode, osName.str(), getContextFullTypeName( pLink ) << getNodeInfo( pLink ) );
+            {
+                nlohmann::json property;
+                PROP( property, "Type", pBinding->get_typeName() );
+                dataNode[ "properties" ].push_back( property );
+            }
+            data[ "nodes" ].push_back( dataNode );
+
+            data[ "edges" ].push_back( nlohmann::json::object(
+                { { "from", osObjectName.str() }, { "to", osName.str() }, { "colour", "00FF00" } } ) );
+        }
+    }
+
+    os << data;
+}
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             strGraphType;
@@ -892,6 +973,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
             else if( strGraphType == "memory" )
             {
                 generateMemoryGraphViz( osOutput, *pEnvironment, manifest );
+            }
+            else if( strGraphType == "unity" )
+            {
+                generateUnityGraphViz( osOutput, *pEnvironment, manifest );
             }
             else
             {

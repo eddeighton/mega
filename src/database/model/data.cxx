@@ -8157,6 +8157,244 @@ namespace MetaAnalysis
 }
 namespace UnityAnalysis
 {
+    // struct UnityAnalysis_DataBinding : public mega::io::Object
+    UnityAnalysis_DataBinding::UnityAnalysis_DataBinding( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding >( loader, this ) )    {
+    }
+    UnityAnalysis_DataBinding::UnityAnalysis_DataBinding( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& typeName, const mega::TypeID& interfaceTypeID)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding >( loader, this ) )          , typeName( typeName )
+          , interfaceTypeID( interfaceTypeID )
+    {
+    }
+    bool UnityAnalysis_DataBinding::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding >( loader, const_cast< UnityAnalysis_DataBinding* >( this ) ) };
+    }
+    void UnityAnalysis_DataBinding::set_inheritance_pointer()
+    {
+    }
+    void UnityAnalysis_DataBinding::load( mega::io::Loader& loader )
+    {
+        loader.load( typeName );
+        loader.load( interfaceTypeID );
+    }
+    void UnityAnalysis_DataBinding::store( mega::io::Storer& storer ) const
+    {
+        storer.store( typeName );
+        storer.store( interfaceTypeID );
+    }
+    void UnityAnalysis_DataBinding::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "UnityAnalysis_DataBinding" },
+                { "filetype" , "UnityAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "typeName", typeName } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interfaceTypeID", interfaceTypeID } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct UnityAnalysis_LinkBinding : public mega::io::Object
+    UnityAnalysis_LinkBinding::UnityAnalysis_LinkBinding( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding >( loader, this ) )    {
+    }
+    UnityAnalysis_LinkBinding::UnityAnalysis_LinkBinding( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& typeName, const mega::TypeID& interfaceTypeID)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding >( loader, this ) )          , typeName( typeName )
+          , interfaceTypeID( interfaceTypeID )
+    {
+    }
+    bool UnityAnalysis_LinkBinding::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding >( loader, const_cast< UnityAnalysis_LinkBinding* >( this ) ) };
+    }
+    void UnityAnalysis_LinkBinding::set_inheritance_pointer()
+    {
+    }
+    void UnityAnalysis_LinkBinding::load( mega::io::Loader& loader )
+    {
+        loader.load( typeName );
+        loader.load( interfaceTypeID );
+    }
+    void UnityAnalysis_LinkBinding::store( mega::io::Storer& storer ) const
+    {
+        storer.store( typeName );
+        storer.store( interfaceTypeID );
+    }
+    void UnityAnalysis_LinkBinding::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "UnityAnalysis_LinkBinding" },
+                { "filetype" , "UnityAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "typeName", typeName } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interfaceTypeID", interfaceTypeID } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct UnityAnalysis_Prefab : public mega::io::Object
+    UnityAnalysis_Prefab::UnityAnalysis_Prefab( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::UnityAnalysis::UnityAnalysis_Prefab >( loader, this ) )    {
+    }
+    UnityAnalysis_Prefab::UnityAnalysis_Prefab( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& guid, const std::string& typeName, const mega::TypeID& interfaceTypeID, const std::vector< data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding > >& dataBindings, const std::vector< data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding > >& linkBindings)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::UnityAnalysis::UnityAnalysis_Prefab >( loader, this ) )          , guid( guid )
+          , typeName( typeName )
+          , interfaceTypeID( interfaceTypeID )
+          , dataBindings( dataBindings )
+          , linkBindings( linkBindings )
+    {
+    }
+    bool UnityAnalysis_Prefab::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::UnityAnalysis::UnityAnalysis_Prefab >( loader, const_cast< UnityAnalysis_Prefab* >( this ) ) };
+    }
+    void UnityAnalysis_Prefab::set_inheritance_pointer()
+    {
+    }
+    void UnityAnalysis_Prefab::load( mega::io::Loader& loader )
+    {
+        loader.load( guid );
+        loader.load( typeName );
+        loader.load( interfaceTypeID );
+        loader.load( dataBindings );
+        loader.load( linkBindings );
+    }
+    void UnityAnalysis_Prefab::store( mega::io::Storer& storer ) const
+    {
+        storer.store( guid );
+        storer.store( typeName );
+        storer.store( interfaceTypeID );
+        storer.store( dataBindings );
+        storer.store( linkBindings );
+    }
+    void UnityAnalysis_Prefab::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "UnityAnalysis_Prefab" },
+                { "filetype" , "UnityAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "guid", guid } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "typeName", typeName } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interfaceTypeID", interfaceTypeID } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dataBindings", dataBindings } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "linkBindings", linkBindings } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct UnityAnalysis_Binding : public mega::io::Object
+    UnityAnalysis_Binding::UnityAnalysis_Binding( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::UnityAnalysis::UnityAnalysis_Binding >( loader, this ) )          , prefab( loader )
+          , object( loader )
+    {
+    }
+    UnityAnalysis_Binding::UnityAnalysis_Binding( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::UnityAnalysis::UnityAnalysis_Prefab >& prefab, const data::Ptr< data::Concrete::Concrete_Object >& object, const std::map< data::Ptr< data::Concrete::Concrete_Dimensions_User >, data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding > >& dataBindings, const std::map< data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding > >& linkBindings)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::UnityAnalysis::UnityAnalysis_Binding >( loader, this ) )          , prefab( prefab )
+          , object( object )
+          , dataBindings( dataBindings )
+          , linkBindings( linkBindings )
+    {
+    }
+    bool UnityAnalysis_Binding::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::UnityAnalysis::UnityAnalysis_Binding >( loader, const_cast< UnityAnalysis_Binding* >( this ) ) };
+    }
+    void UnityAnalysis_Binding::set_inheritance_pointer()
+    {
+    }
+    void UnityAnalysis_Binding::load( mega::io::Loader& loader )
+    {
+        loader.load( prefab );
+        loader.load( object );
+        loader.load( dataBindings );
+        loader.load( linkBindings );
+    }
+    void UnityAnalysis_Binding::store( mega::io::Storer& storer ) const
+    {
+        storer.store( prefab );
+        storer.store( object );
+        storer.store( dataBindings );
+        storer.store( linkBindings );
+    }
+    void UnityAnalysis_Binding::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "UnityAnalysis_Binding" },
+                { "filetype" , "UnityAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "prefab", prefab } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "object", object } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dataBindings", dataBindings } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "linkBindings", linkBindings } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
 }
 namespace SchematicParse
 {
@@ -9336,6 +9574,54 @@ std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > >& Symbols_Symbol
     {
         case data::SymbolTable::Symbols_SymbolTypeID::Object_Part_Type_ID:
             return data::convert< data::SymbolTable::Symbols_SymbolTypeID >( m_data )->dimensions;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::map< data::Ptr< data::Concrete::Concrete_Dimensions_User >, data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding > >& UnityAnalysis_Binding_insert_dataBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->dataBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::map< data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding > >& UnityAnalysis_Binding_insert_linkBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->linkBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding > >& UnityAnalysis_Prefab_push_back_dataBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->dataBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding > >& UnityAnalysis_Prefab_push_back_linkBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->linkBindings;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13056,6 +13342,162 @@ std::string& get_Symbols_SymbolTypeID_symbol(data::Variant& m_data)
         }
     }
 }
+std::map< data::Ptr< data::Concrete::Concrete_Dimensions_User >, data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding > >& get_UnityAnalysis_Binding_dataBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->dataBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::map< data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding > >& get_UnityAnalysis_Binding_linkBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->linkBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Object >& get_UnityAnalysis_Binding_object(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->object;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::UnityAnalysis::UnityAnalysis_Prefab >& get_UnityAnalysis_Binding_prefab(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->prefab;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::TypeID& get_UnityAnalysis_DataBinding_interfaceTypeID(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_DataBinding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_DataBinding >( m_data )->interfaceTypeID;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& get_UnityAnalysis_DataBinding_typeName(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_DataBinding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_DataBinding >( m_data )->typeName;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::TypeID& get_UnityAnalysis_LinkBinding_interfaceTypeID(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_LinkBinding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_LinkBinding >( m_data )->interfaceTypeID;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& get_UnityAnalysis_LinkBinding_typeName(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_LinkBinding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_LinkBinding >( m_data )->typeName;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding > >& get_UnityAnalysis_Prefab_dataBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->dataBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& get_UnityAnalysis_Prefab_guid(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->guid;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::TypeID& get_UnityAnalysis_Prefab_interfaceTypeID(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->interfaceTypeID;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding > >& get_UnityAnalysis_Prefab_linkBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->linkBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& get_UnityAnalysis_Prefab_typeName(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->typeName;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 data::Ptr< data::Concrete::Concrete_Context >& set_Allocators_Allocator_allocated_context(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -16708,6 +17150,162 @@ std::string& set_Symbols_SymbolTypeID_symbol(data::Variant& m_data)
         }
     }
 }
+std::map< data::Ptr< data::Concrete::Concrete_Dimensions_User >, data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding > >& set_UnityAnalysis_Binding_dataBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->dataBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::map< data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding > >& set_UnityAnalysis_Binding_linkBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->linkBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Object >& set_UnityAnalysis_Binding_object(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->object;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::UnityAnalysis::UnityAnalysis_Prefab >& set_UnityAnalysis_Binding_prefab(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Binding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Binding >( m_data )->prefab;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::TypeID& set_UnityAnalysis_DataBinding_interfaceTypeID(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_DataBinding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_DataBinding >( m_data )->interfaceTypeID;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& set_UnityAnalysis_DataBinding_typeName(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_DataBinding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_DataBinding >( m_data )->typeName;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::TypeID& set_UnityAnalysis_LinkBinding_interfaceTypeID(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_LinkBinding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_LinkBinding >( m_data )->interfaceTypeID;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& set_UnityAnalysis_LinkBinding_typeName(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_LinkBinding::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_LinkBinding >( m_data )->typeName;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::UnityAnalysis::UnityAnalysis_DataBinding > >& set_UnityAnalysis_Prefab_dataBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->dataBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& set_UnityAnalysis_Prefab_guid(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->guid;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::TypeID& set_UnityAnalysis_Prefab_interfaceTypeID(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->interfaceTypeID;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::UnityAnalysis::UnityAnalysis_LinkBinding > >& set_UnityAnalysis_Prefab_linkBindings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->linkBindings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& set_UnityAnalysis_Prefab_typeName(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::UnityAnalysis::UnityAnalysis_Prefab::Object_Part_Type_ID:
+            return data::convert< data::UnityAnalysis::UnityAnalysis_Prefab >( m_data )->typeName;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 
 mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
 {
@@ -16874,6 +17472,10 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 133: return new Operations::Operations_NameResolution( loader, objectInfo );
         case 134: return new Operations::Operations_Invocation( loader, objectInfo );
         case 135: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 161: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
+        case 162: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
+        case 163: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
+        case 164: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }
