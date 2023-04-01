@@ -90,7 +90,12 @@ void* mp_downstream()
     return mega::service::g_pPluginWrapper->m_pPlugin->downstream();
 }
 
-void* mp_database()
+mega::I64 mp_hashcode()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->hashcode();
+}
+
+const char* mp_database()
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->database();
 }

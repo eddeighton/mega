@@ -27,6 +27,52 @@ namespace mega::invocation
 using namespace OperationsStage;
 using namespace OperationsStage::Invocations;
 
+namespace
+{
+
+std::string printContextFullType( Concrete::Context* pConcrete )
+{
+    std::ostringstream os;
+    using IContextVector = std::vector< Interface::IContext* >;
+    IContextVector       path;
+    Interface::IContext* pContext = pConcrete->get_interface();
+    while( pContext )
+    {
+        path.push_back( pContext );
+        pContext = db_cast< Interface::IContext >( pContext->get_parent() );
+    }
+    std::reverse( path.begin(), path.end() );
+    for( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
+    {
+        ++iNext;
+        if( iNext == iEnd )
+        {
+            os << ( *i )->get_identifier();
+        }
+        else
+        {
+            os << ( *i )->get_identifier() << ".";
+        }
+    }
+    return os.str();
+}
+inline std::string describe( Concrete::ContextGroup* pContextGroup )
+{
+    std::ostringstream os;
+
+    if( Concrete::Context* pContext = db_cast< Concrete::Context >( pContextGroup ) )
+    {
+        os << printContextFullType( pContext ) << pContext->get_concrete_id();
+    }
+    else
+    {
+        os << "Unknown context group";
+    }
+    return os.str();
+}
+
+} // namespace
+
 template < typename TInstruction, typename... ConstructorArgs >
 TInstruction* make_ins_group( OperationsStage::Database& database, Instructions::InstructionGroup* pParentInstruction,
                               ConstructorArgs&&... ctorArgs )
@@ -135,7 +181,8 @@ bool GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
     if( pFrom && pFrom != pTo )
     {
         Concrete::ContextGroup* pCommon = findCommonRoot( pFrom, pTo );
-        VERIFY( pCommon, Exception, "Common root derivation failed" );
+        VERIFY( pCommon, Exception,
+                "Common root derivation failed from: " << describe( pFrom ) << " to: " << describe( pTo ) );
 
         if( Concrete::Root* pRoot = db_cast< Concrete::Root >( pCommon ) )
         {
@@ -382,8 +429,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                             if( pPrevConcreteContext.has_value() )
                             {
                                 Concrete::Context* pPrevConcrete = pPrevConcreteContext.value();
-                                if( !commonRootDerivation(
-                                        pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
+                                if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
                                     return;
                             }
                         }

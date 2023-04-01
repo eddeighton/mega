@@ -375,10 +375,13 @@ public:
 
             std::map< New::Interface::Object*, New::Symbols::InterfaceTypeID* > objectInterfaceTypeIDs;
             {
-                std::set< U8 > usedObjectIDs;
+                std::set< U8 > usedObjectIDs = { ROOT_TYPE_ID.getObjectID() };
                 for( auto typeID : usedTypeIDs )
                 {
-                    usedObjectIDs.insert( typeID.getObjectID() );
+                    if( typeID.getObjectID() != 0 )
+                    {
+                        usedObjectIDs.insert( typeID.getObjectID() );
+                    }
                 }
 
                 auto usedIter        = usedObjectIDs.begin();
@@ -401,7 +404,8 @@ public:
                                 }
                                 const TypeID newTypeID = TypeID::make_context( objectIDCounter );
                                 pInterfaceTypeID->set_id( newTypeID );
-                                VERIFY_RTE( newInterfaceTypeIDs.insert( { newTypeID, pInterfaceTypeID } ).second );
+                                VERIFY_RTE_MSG( newInterfaceTypeIDs.insert( { newTypeID, pInterfaceTypeID } ).second,
+                                    "Duplicate interface typeID found: " << newTypeID );
                                 ++objectIDCounter;
                             }
                             objectInterfaceTypeIDs.insert( { pObject, pInterfaceTypeID } );

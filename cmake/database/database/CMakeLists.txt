@@ -81,6 +81,7 @@ set( MEGA_DATABASE_INTERFACE_NAMES
     SymbolAnalysisView
     SymbolRollout
     UnityStage
+    UnityStageView
 )
 
 set( MEGA_DATABASE_STAGE_HEADERS )

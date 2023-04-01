@@ -68,9 +68,9 @@ public:
         m_stash.stash( toPath( filePath ), hashCode );
     }
 
-    inline bool stashPath( const boost::filesystem::path& filePath, task::DeterminantHash hashCode ) const
+    inline void stashPath( const boost::filesystem::path& filePath, task::DeterminantHash hashCode ) const
     {
-        return m_stash.restore( filePath, hashCode );
+        m_stash.stash( filePath, hashCode );
     }
 
     template < typename TFilePathType >

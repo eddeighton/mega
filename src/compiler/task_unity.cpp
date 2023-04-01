@@ -21,6 +21,8 @@
 #include "base_task.hpp"
 
 #include "database/model/UnityStage.hxx"
+#include "database/model/UnityStageView.hxx"
+
 #include "database/types/component_type.hpp"
 #include "database/types/sources.hpp"
 
@@ -152,7 +154,8 @@ public:
         const auto symbolTableCompilationFile
             = m_environment.SymbolAnalysis_SymbolTable( m_environment.project_manifest() );
 
-        start( taskProgress, "Task_UnityReflection", symbolTableCompilationFile.path(), unityDataFilePath );
+        start( taskProgress, "Task_UnityReflection", m_environment.project_manifest().path(),
+               unityDataFilePath.filename() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( symbolTableCompilationFile ) } );
@@ -164,24 +167,16 @@ public:
             return;
         }
 
-        bool bModified = false;
         {
             using namespace UnityStage;
             Database database( m_environment, m_manifest );
-            bModified = generateUnityReflectionJSON( database, m_environment, unityDataFilePath );
+            generateUnityReflectionJSON( database, m_environment, unityDataFilePath );
         }
 
         m_environment.setBuildHashCodePath( unityDataFilePath );
         m_environment.stashPath( unityDataFilePath, determinant );
 
-        if( bModified )
-        {
-            succeeded( taskProgress );
-        }
-        else
-        {
-            cached( taskProgress );
-        }
+        succeeded( taskProgress );
     }
 };
 
@@ -207,21 +202,18 @@ public:
         const boost::filesystem::path unityDataFilePath     = m_environment.UnityReflection();
         const boost::filesystem::path unityAnalysisFilePath = m_environment.UnityAnalysis();
 
-        start( taskProgress, "Task_UnityAnalysis", unityDataFilePath, unityAnalysisFilePath );
+        start( taskProgress, "Task_UnityAnalysis", unityDataFilePath.filename(), unityAnalysisFilePath.filename() );
 
-        // the unityAnalysisFilePath file can have changed externally due to editting IN unity.
-        // so DO NOT want to replace it via the stash.
-        std::optional< task::FileHash > optFileHash;
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCodePath( unityDataFilePath ) } );
+
         if( boost::filesystem::exists( unityAnalysisFilePath ) )
         {
-            optFileHash = task::FileHash{ unityAnalysisFilePath };
+            m_environment.setBuildHashCodePath( unityAnalysisFilePath );
+            m_environment.stashPath( unityAnalysisFilePath, determinant );
+            cached( taskProgress );
+            return;
         }
-
-        // so IF the analysis file EXISTS then INCLUDE it in the determinant
-        // so that way if it has changed it will rerun.
-        const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCodePath( unityDataFilePath ),
-              ( optFileHash.has_value() ? optFileHash.value().get() : std::size_t{} ) } );
 
         if( m_environment.restorePath( unityAnalysisFilePath, determinant ) )
         {
@@ -246,9 +238,9 @@ public:
             osCmd << "-logFile " << unityLog.string() << " ";
             osCmd << "-noUpm -batchmode  -quit -nographics -disable-gpu-skinning -disable-assembly-updater "
                      "-disableManagedDebugger ";
-            osCmd << "-executeMethod analysis.UnityAnalysis.RunFromCmdLine";
-            osCmd << "-reflectionData " << unityDataFilePath.string();
-            osCmd << "-unityData " << unityAnalysisFilePath.string();
+            osCmd << "-executeMethod analysis.UnityAnalysis.RunFromCmdLine ";
+            osCmd << "-reflectionData " << unityDataFilePath.string() << " ";
+            osCmd << "-unityData " << unityAnalysisFilePath.string() << " ";
 
             this->run_cmd( taskProgress, osCmd.str() );
         }
@@ -292,7 +284,7 @@ public:
         const mega::io::CompilationFilePath unityAnalysisCompilationFile
             = m_environment.UnityStage_UnityAnalysis( m_manifest );
 
-        start( taskProgress, "Task_Unity", unityAnalysisFilePath, unityAnalysisCompilationFile.path() );
+        start( taskProgress, "Task_Unity", unityAnalysisFilePath.filename(), unityAnalysisCompilationFile.path() );
 
         const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
                                                    m_environment.getBuildHashCodePath( unityAnalysisFilePath ),
@@ -494,4 +486,169 @@ BaseTask::Ptr create_Task_Unity( const TaskArguments&              taskArguments
     return std::make_unique< Task_Unity >( taskArguments, manifestFilePath );
 }
 
+class Task_UnityDatabase : public BaseTask
+{
+    const mega::io::manifestFilePath& m_manifest;
+
+public:
+    Task_UnityDatabase( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+        : BaseTask( taskArguments )
+        , m_manifest( manifest )
+    {
+    }
+
+    virtual void run( mega::pipeline::Progress& taskProgress )
+    {
+        const boost::filesystem::path unityDatabaseFilePath = m_environment.UnityDatabase();
+        const auto                    symbolTableCompilationFile
+            = m_environment.SymbolAnalysis_SymbolTable( m_environment.project_manifest() );
+
+        const mega::io::CompilationFilePath unityAnalysisCompilationFile
+            = m_environment.UnityStage_UnityAnalysis( m_manifest );
+
+        start( taskProgress, "Task_UnityDatabase", m_environment.project_manifest().path(),
+               unityDatabaseFilePath.filename() );
+
+        const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
+                                                   m_environment.getBuildHashCode( symbolTableCompilationFile ),
+                                                   m_environment.getBuildHashCode( unityAnalysisCompilationFile ) } );
+
+        if( m_environment.restorePath( unityDatabaseFilePath, determinant ) )
+        {
+            m_environment.setBuildHashCodePath( unityDatabaseFilePath );
+            cached( taskProgress );
+            return;
+        }
+
+        using namespace UnityStageView;
+        Database database( m_environment, m_manifest );
+
+        nlohmann::json data(
+            { { "prefabBindings", nlohmann::json::array() }, { "relations", nlohmann::json::array() } } );
+
+        for( UnityAnalysis::Binding* pBinding :
+             database.many< UnityAnalysis::Binding >( m_environment.project_manifest() ) )
+        {
+            UnityAnalysis::Prefab* pPrefab = pBinding->get_prefab();
+
+            nlohmann::json binding( { { "guid", pPrefab->get_guid() },
+                                      { "concreteTypeID", pBinding->get_object()->get_concrete_id().getSymbolID() },
+                                      { "interfaceTypeID", pPrefab->get_interfaceTypeID().getSymbolID() },
+                                      { "interfaceTypeName", pPrefab->get_typeName() },
+                                      { "data", nlohmann::json::array() },
+                                      { "links", nlohmann::json::array() } } );
+
+            for( const auto& [ pDim, pBinding ] : pBinding->get_dataBindings() )
+            {
+                nlohmann::json dataBinding( { { "concreteTypeID", pDim->get_concrete_id().getSymbolID() },
+                                              { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
+                                              { "interfaceTypeName", pBinding->get_typeName() } } );
+                binding[ "data" ].push_back( dataBinding );
+            }
+
+            for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
+            {
+                nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
+                                              { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
+                                              { "interfaceTypeName", pBinding->get_typeName() } } );
+                binding[ "links" ].push_back( dataBinding );
+            }
+
+            data[ "prefabBindings" ].push_back( binding );
+        }
+
+        for( HyperGraph::Relation* pRelation :
+             database.many< HyperGraph::Relation >( m_environment.project_manifest() ) )
+        {
+            bool bSourceIsRoot = false;
+            bool bTargetIsRoot = false;
+            {
+                auto lambda = []( std::vector< Interface::Link* > links, RelationID id ) -> bool
+                {
+                    int iFoundRoot  = 0;
+                    int iFoundOther = 0;
+                    for( auto pLink : links )
+                    {
+                        for( auto pConcreteLink : pLink->get_concrete() )
+                        {
+                            auto pObjectOpt = pConcreteLink->get_concrete_object();
+                            if( pObjectOpt.has_value() )
+                            {
+                                if( pObjectOpt.value()->get_concrete_id() == ROOT_TYPE_ID )
+                                {
+                                    ++iFoundRoot;
+                                    continue;
+                                }
+                            }
+                            ++iFoundOther;
+                        }
+                    }
+                    VERIFY_RTE_MSG( ( iFoundOther == 0 ) || ( iFoundRoot == 0 ),
+                                    "Relation to Root also used in other concrete types: " << id );
+                    return iFoundRoot != 0;
+                };
+                bSourceIsRoot = lambda( pRelation->get_sources(), pRelation->get_id() );
+                bTargetIsRoot = lambda( pRelation->get_targets(), pRelation->get_id() );
+            }
+
+            VERIFY_RTE_MSG(
+                !( bSourceIsRoot && bTargetIsRoot ), "Relation is from Root to Root: " << pRelation->get_id() );
+
+            bool bOwning = false;
+            bool bSource = false;
+            {
+                switch( pRelation->get_ownership().get() )
+                {
+                    case Ownership::eOwnNothing:
+                    {
+                        if( bSourceIsRoot )
+                        {
+                            bSource = true;
+                        }
+                        else if( bTargetIsRoot )
+                        {
+                            bSource = false;
+                        }
+                        bOwning = false;
+                    }
+                    break;
+                    case Ownership::eOwnSource:
+                    {
+                        VERIFY_RTE_MSG( !bSourceIsRoot, "Relation owns Root: " << pRelation->get_id() );
+                        bSource = false;
+                        bOwning = true;
+                    }
+                    break;
+                    case Ownership::eOwnTarget:
+                    {
+                        VERIFY_RTE_MSG( !bTargetIsRoot, "Relation owns Root: " << pRelation->get_id() );
+                        bSource = true;
+                        bOwning = true;
+                    }
+                    break;
+                    case Ownership::TOTAL_OWNERSHIP_MODES:
+                        break;
+                }
+            }
+
+            nlohmann::json relation( { { "relationID", pRelation->get_id().getID() },
+                                       { "source_is_root", bSourceIsRoot },
+                                       { "target_is_root", bTargetIsRoot },
+                                       { "ownership", pRelation->get_ownership().str() } } );
+            data[ "relations" ].push_back( relation );
+        }
+
+        writeJSON( unityDatabaseFilePath, data );
+        m_environment.setBuildHashCodePath( unityDatabaseFilePath );
+        m_environment.stash( unityAnalysisCompilationFile, determinant );
+
+        succeeded( taskProgress );
+    }
+};
+
+BaseTask::Ptr create_Task_UnityDatabase( const TaskArguments&              taskArguments,
+                                         const mega::io::manifestFilePath& manifestFilePath )
+{
+    return std::make_unique< Task_UnityDatabase >( taskArguments, manifestFilePath );
+}
 } // namespace mega::compiler

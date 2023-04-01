@@ -47,8 +47,6 @@ Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
             m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), *this );
         m_executor.conversationInitiated( m_pPlayerNetwork, m_executor.getLeafSender() );
     }
-
-    m_pDatabase = std::make_unique< Database >( Database{ 0 } );
 }
 
 Plugin::~Plugin()
@@ -301,6 +299,11 @@ void Plugin::dispatch( const network::Message& msg )
             const auto& projectMsg = MSG_SetProject_Request::get( msg );
             SPDLOG_INFO( "plugin::dispatch: Set project request received for project: {}",
                          projectMsg.project.getProjectInstallPath().string() );
+            boost::filesystem::path unityDatabasePath = projectMsg.project.getProjectBin() / "unityDatabase.json";
+            VERIFY_RTE_MSG( boost::filesystem::exists( unityDatabasePath ),
+                            "Failed to locate unity database: " << unityDatabasePath.string() );
+            m_strDatabasePath = unityDatabasePath.string();
+            m_hashcode        = task::FileHash( unityDatabasePath );
         }
         break;
 

@@ -50,6 +50,12 @@ BuildEnvironment::Path BuildEnvironment::UnityAnalysis() const
     return m_directories.installDir / "bin/unity.json";
 }
 
+BuildEnvironment::Path BuildEnvironment::UnityDatabase() const
+{
+    VERIFY_RTE( !m_directories.installDir.empty() );
+    return m_directories.installDir / "bin/unityDatabase.json";
+}
+
 void BuildEnvironment::copyToTargetPath( const boost::filesystem::path& from, const boost::filesystem::path& to ) const
 {
     VERIFY_RTE( boost::filesystem::exists( from ) );

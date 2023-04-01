@@ -80,6 +80,9 @@ public:
     void getConcreteToInterface( ConcreteToInterface& concreteToInterface ) const;
     void getConcreteToLinkInterface( ConcreteToInterface& concreteToInterface ) const;
 
+    using PrefabBindings = std::vector< FinalStage::UnityAnalysis::Binding* >;
+    PrefabBindings getPrefabBindings() const;
+
 private:
     io::ArchiveEnvironment                            m_environment;
     io::Manifest                                      m_manifest;

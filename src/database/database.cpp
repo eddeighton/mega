@@ -458,4 +458,9 @@ std::vector< FinalStage::Concrete::Dimensions::Allocation* > DatabaseInstance::g
     return getPerCompilationFileType< FinalStage::Concrete::Dimensions::Allocation >( m_manifest, m_database );
 }
 
+DatabaseInstance::PrefabBindings DatabaseInstance::getPrefabBindings() const
+{
+    return m_database.many< FinalStage::UnityAnalysis::Binding >( m_environment.project_manifest() );
+}
+
 } // namespace mega::runtime

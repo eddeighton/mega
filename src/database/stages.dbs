@@ -318,6 +318,16 @@ stage UnityStage
     persource accessor ref< HyperGraph::Graph >;
 }
 
+stage UnityStageView
+{
+    source .manifest;
+    dependency UnityStage;
+
+    global accessor ref< Symbols::SymbolTable >;
+    global accessor array< ref< UnityAnalysis::Binding > >;
+    global accessor array< ref< HyperGraph::Relation > >;
+}
+
 stage SchematicParseStage
 {
     source .sch;

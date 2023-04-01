@@ -21,8 +21,6 @@
 #ifndef GUARD_2023_March_07_plugin
 #define GUARD_2023_March_07_plugin
 
-#include "database.hpp"
-
 #include "service/plugin/platform.hpp"
 #include "service/plugin/player_network.hpp"
 #include "service/plugin/plugin_state_machine.hpp"
@@ -32,6 +30,7 @@
 #include "service/protocol/common/platform_state.hpp"
 
 #include "common/assert_verify.hpp"
+#include "common/stash.hpp"
 
 #include <boost/asio/io_context.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -95,7 +94,8 @@ public:
         send( sender, MsgType::make( getID(), sender.getID(), std::move( msg ) ) );
     }
 
-    Database* database() { return m_pDatabase.get(); }
+    mega::I64   hashcode() { return m_hashcode.get(); }
+    const char* database() { return m_strDatabasePath.c_str(); }
 
     log::Range* downstream()
     {
@@ -125,22 +125,21 @@ public:
     bool planet_current();
 
 private:
-    MessageChannel                                     m_channel;
-    mega::service::Executor                            m_executor;
-    Platform::Ptr                                      m_pPlatform;
-    PlayerNetwork::Ptr                                 m_pPlayerNetwork;
-    std::optional< mega::network::PlatformState >      m_platformStateOpt;
-    std::optional< mega::network::PlayerNetworkState > m_networkStateOpt;
-
-    std::unique_ptr< Database > m_pDatabase;
-
-    float                        m_ct               = 0.0f;
-    float                        m_statusRate       = 1.0f;
-    bool                         m_bNetworkRequest  = false;
-    bool                         m_bPlatformRequest = false;
-    std::optional< float >       m_lastPlatformStatus;
-    std::optional< float >       m_lastNetworkStatus;
-    PluginStateMachine< Plugin > m_stateMachine;
+    MessageChannel                               m_channel;
+    mega::service::Executor                      m_executor;
+    Platform::Ptr                                m_pPlatform;
+    PlayerNetwork::Ptr                           m_pPlayerNetwork;
+    std::optional< network::PlatformState >      m_platformStateOpt;
+    std::optional< network::PlayerNetworkState > m_networkStateOpt;
+    task::FileHash                               m_hashcode;
+    std::string                                  m_strDatabasePath;
+    float                                        m_ct               = 0.0f;
+    float                                        m_statusRate       = 1.0f;
+    bool                                         m_bNetworkRequest  = false;
+    bool                                         m_bPlatformRequest = false;
+    std::optional< float >                       m_lastPlatformStatus;
+    std::optional< float >                       m_lastNetworkStatus;
+    PluginStateMachine< Plugin >                 m_stateMachine;
 };
 } // namespace mega::service
 

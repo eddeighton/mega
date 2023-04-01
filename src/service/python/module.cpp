@@ -209,14 +209,27 @@ const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID
     }
 
     PythonModule::FunctionInfo& functionInfo = iFind->second;
+    std::optional< std::exception_ptr > exceptionPtrOpt;
     mega::runtime::JITFunctor   functor(
-        [ &invocationID, &functionInfo ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
+        [ &invocationID, &functionInfo, &exceptionPtrOpt ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
         {
-            functionInfo.typeInfo
-                = jit.compileInvocationFunction( pLLVMCompiler, "python", invocationID, &functionInfo.pFunctionPtr );
+            try
+            {
+                functionInfo.typeInfo
+                    = jit.compileInvocationFunction( pLLVMCompiler, "python", invocationID, &functionInfo.pFunctionPtr );
+            }
+            catch( std::exception& )
+            {
+                exceptionPtrOpt = std::current_exception();
+            }
         } );
 
     pythonRequest().PythonExecuteJIT( functor );
+    if( exceptionPtrOpt.has_value() )
+    {
+        SPDLOG_ERROR( "PythonModule::invoke rethrowing exception" );
+        std::rethrow_exception(exceptionPtrOpt.value() );
+    }
 
     return functionInfo;
 }

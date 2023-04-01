@@ -441,9 +441,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     TskDesc unityReflection = encode( Task{ eTask_UnityReflection, manifestFilePath } );
     TskDesc unityAnalysis   = encode( Task{ eTask_UnityAnalysis, manifestFilePath } );
     TskDesc unity           = encode( Task{ eTask_Unity, manifestFilePath } );
+    TskDesc unityDatabase   = encode( Task{ eTask_UnityDatabase, manifestFilePath } );
     dependencies.add( unityReflection, TskDescVec{ meta } );
     dependencies.add( unityAnalysis, TskDescVec{ unityReflection } );
     dependencies.add( unity, TskDescVec{ unityAnalysis } );
+    dependencies.add( unityDatabase, TskDescVec{ unity } );
 
     TskDescVec schematicMapTasks;
     for( const mega::io::schFilePath& schematicFilePath : manifest.getSchematicSourceFiles() )
@@ -459,7 +461,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         TskDesc schematicSpawnPoints  = encode( Task{ eTask_SchematicSpawnPoints, schematicFilePath } );
         TskDesc schematicMapFile      = encode( Task{ eTask_SchematicMapFile, schematicFilePath } );
 
-        dependencies.add( schematicParse, TskDescVec{ unity } );
+        dependencies.add( schematicParse, TskDescVec{ unityDatabase } );
 
         dependencies.add( schematicContours, TskDescVec{ schematicParse } );
         dependencies.add( schematicExtrusions, TskDescVec{ schematicContours } );
@@ -476,7 +478,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     {
         TskDescVec completionTasks = componentTasks;
-        completionTasks.push_back( unity );
+        completionTasks.push_back( unityDatabase );
         std::copy( schematicMapTasks.begin(), schematicMapTasks.end(), std::back_inserter( completionTasks ) );
 
         TskDesc complete = encode( Task{ eTask_Complete, manifestFilePath } );
