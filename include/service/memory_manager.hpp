@@ -93,7 +93,7 @@ public:
     {
         // establish the header including the network address, lock timestamp and shared ownership of allocator
         const AllocationID allocationID = m_allocationIDCounter++;
-        const reference    networkAddress{ TypeInstance{ 0, typeID }, m_mpo, allocationID };
+        const reference    networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, allocationID };
         ASSERT( ( typeID != ROOT_TYPE_ID ) || ( allocationID == ROOT_OBJECT_ID ) );
         return New( networkAddress );
     }

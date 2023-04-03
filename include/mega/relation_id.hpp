@@ -29,6 +29,9 @@ namespace mega
 struct RelationID
 {
 public:
+    using ValueType                  = U64;
+    static constexpr ValueType SHIFT = ( sizeof( ValueType ) * 4 );
+
     constexpr inline RelationID()                    = default;
     constexpr inline RelationID( const RelationID& ) = default;
     constexpr inline RelationID( TypeID lower, TypeID upper )
@@ -41,8 +44,8 @@ public:
         , m_upper( ( lower < upper ) ? upper : lower )
     {
     }
-    constexpr inline RelationID( U32 id )
-        : m_lower( static_cast< TypeID::ValueType >( id >> 16 ) )
+    constexpr inline RelationID( ValueType id )
+        : m_lower( static_cast< TypeID::ValueType >( id >> SHIFT ) )
         , m_upper( static_cast< TypeID::ValueType >( id ) )
     {
     }
@@ -57,12 +60,12 @@ public:
         return ( m_lower != cmp.m_lower ) ? ( m_lower < cmp.m_lower ) : ( m_upper < cmp.m_upper );
     }
 
-    constexpr inline TypeID getLower() const { return m_lower; }
-    constexpr inline TypeID getUpper() const { return m_upper; }
-    constexpr inline U32    getID() const
+    constexpr inline TypeID    getLower() const { return m_lower; }
+    constexpr inline TypeID    getUpper() const { return m_upper; }
+    constexpr inline ValueType getID() const
     {
-        return ( static_cast< U32 >( static_cast< TypeID::ValueType >( m_lower ) ) << 16 )
-               + static_cast< U32 >( static_cast< TypeID::ValueType >( m_upper ) );
+        return ( static_cast< ValueType >( static_cast< TypeID::ValueType >( m_lower ) ) << SHIFT )
+               + static_cast< ValueType >( static_cast< TypeID::ValueType >( m_upper ) );
     }
 
     template < class Archive >
@@ -82,6 +85,8 @@ public:
 private:
     TypeID m_lower = TypeID{}, m_upper = TypeID{};
 };
+static_assert( sizeof( RelationID ) == 8U, "Invalid RelationID Size" );
+static_assert( sizeof( RelationID ) == sizeof( RelationID::ValueType ), "Invalid RelationID Size" );
 
 } // namespace mega
 

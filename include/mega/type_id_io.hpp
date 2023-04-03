@@ -40,8 +40,8 @@ inline std::ostream& operator<<( std::ostream& os, const mega::TypeID& typeID )
     {
         // clang-format off
         return os << '[' << std::hex
-                        << std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( typeID.getObjectID() ) << '.'
-                        << std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U16 >( typeID.getSubObjectID() ) 
+                        << std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U16 >( typeID.getObjectID() ) << '.'
+                        << std::setw( 4 ) << std::setfill( '0' ) << static_cast< mega::U16 >( typeID.getSubObjectID() ) 
                 << std::dec << ']';
         // clang-format on
     }
@@ -56,7 +56,8 @@ inline std::istream& operator>>( std::istream& is, mega::TypeID& typeID )
     if( is.peek() == '[' )
     {
         mega::TypeID::ValueType object, subObject;
-        is >> std::dec >> c >> std::hex >> std::setw( 2 ) >> object >> std::dec >> c >> std::hex >> std::setw( 2 ) >> subObject >> std::dec >> c;
+        is >> std::dec >> c >> std::hex >> std::setw( 4 ) >> object >> std::dec >> c >> std::hex >> std::setw( 4 )
+            >> subObject >> std::dec >> c;
         typeID = mega::TypeID::make_context( object, subObject );
         return is;
     }
@@ -74,29 +75,29 @@ namespace boost::serialization
 // xml
 inline void serialize( boost::archive::xml_iarchive& ar, mega::TypeID& typeID, const unsigned int version )
 {
-    mega::I32 value;
-    ar&       boost::serialization::make_nvp( "symbolID", value );
-    typeID = mega::TypeID( static_cast< mega::I16 >( value ) );
+    mega::TypeID::ValueType value;
+    ar&                     boost::serialization::make_nvp( "symbolID", value );
+    typeID = mega::TypeID( value );
 }
 
 inline void serialize( boost::archive::xml_oarchive& ar, mega::TypeID& typeID, const unsigned int version )
 {
-    mega::I32 value = typeID;
-    ar&       boost::serialization::make_nvp( "symbolID", value );
+    mega::TypeID::ValueType value = typeID;
+    ar&                     boost::serialization::make_nvp( "symbolID", value );
 }
 
 // binary
 inline void serialize( boost::archive::binary_iarchive& ar, mega::TypeID& typeID, const unsigned int version )
 {
-    mega::I32 value;
-    ar&       value;
-    typeID = mega::TypeID( static_cast< mega::I16 >( value ) );
+    mega::TypeID::ValueType value;
+    ar&                     value;
+    typeID = mega::TypeID( value );
 }
 
 inline void serialize( boost::archive::binary_oarchive& ar, mega::TypeID& typeID, const unsigned int version )
 {
-    mega::I32 value = typeID;
-    ar&       value;
+    mega::TypeID::ValueType value = typeID;
+    ar&                     value;
 }
 
 } // namespace boost::serialization

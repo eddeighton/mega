@@ -69,9 +69,9 @@ void gen( Args args, FinalStage::Invocations::Instructions::ParentDerivation* pP
     const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
     const mega::U64    szLocalSize = args.database.getLocalDomainSize( targetType );
 
-    os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
-       << ", mega::TypeInstance{ static_cast< mega::Instance >( " << s << ".getInstance() / " << szLocalSize << " ), "
-       << printTypeID( targetType ) << "} );\n";
+    os << args.indent << args.get( pTo ) << " = mega::reference::make( " << 
+            args.get( pFrom ) << ", mega::TypeInstance{ " << printTypeID( targetType ) << ", "
+       << "mega::TypeInstance{ static_cast< mega::Instance >( " << s << ".getInstance() / " << szLocalSize << " ) } );\n";
 
     args.data[ "assignments" ].push_back( os.str() );
 }
@@ -633,8 +633,8 @@ R"TEMPLATE(
 {{ indent }}        ( 
 {{ indent }}            mega::TypeInstance
 {{ indent }}            ( 
-{{ indent }}                {{ instance }}.getInstance(), 
-{{ indent }}                {{ concrete_type_id }} 
+{{ indent }}                {{ concrete_type_id }}, 
+{{ indent }}                {{ instance }}.getInstance()
 {{ indent }}            ),
 {{ indent }}            {{ instance }}.getMPO(), 
 {{ indent }}            {{ instance }}.getAllocationID()

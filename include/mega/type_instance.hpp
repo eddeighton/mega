@@ -31,42 +31,45 @@ using Instance = U16;
 
 static constexpr const char* ROOT_TYPE_NAME = "Root";
 
+#pragma pack(1)
 struct TypeInstance
 {
-    Instance instance = 0U;
     TypeID   type     = {};
+    Instance instance = 0U;
 
     TypeInstance() = default;
     
-    constexpr TypeInstance( Instance instance, TypeID type )
-        : instance( instance )
-        , type( type )
+    constexpr TypeInstance( TypeID type, Instance instance )
+        : type( type )
+        , instance( instance )
     {
     }
-    constexpr TypeInstance( Instance instance, TypeID::ValueType type )
-        : instance( instance )
-        , type( type )
+    constexpr TypeInstance( TypeID::ValueType type , Instance instance )
+        : type( type )
+        , instance( instance )
     {
     }
 
-    static constexpr TypeInstance Object( TypeID type ) { return { 0, TypeID::make_object_type( type ) }; }
+    static constexpr TypeInstance Object( TypeID type ) { return { TypeID::make_object_type( type ), 0 }; }
     static constexpr TypeInstance Root() { return Object( ROOT_TYPE_ID ); }
 
     constexpr inline bool operator==( const TypeInstance& cmp ) const
     {
-        return ( instance == cmp.instance ) && ( type == cmp.type );
+        return ( type == cmp.type ) && ( instance == cmp.instance );
     }
     constexpr inline bool operator!=( const TypeInstance& cmp ) const { return !( *this == cmp ); }
     constexpr inline bool operator<( const TypeInstance& cmp ) const
     {
-        return ( instance != cmp.instance ) ? ( instance < cmp.instance )
-               : ( type != cmp.type )       ? ( type < cmp.type )
+        return ( type != cmp.type )       ? ( type < cmp.type )
+               : ( instance != cmp.instance ) ? ( instance < cmp.instance )
                                             : false;
     }
 
     constexpr inline bool is_valid() const { return type != 0; }
 };
-static_assert( sizeof( TypeInstance ) == 4U, "Invalid TypeInstance Size" );
+#pragma pack()
+
+static_assert( sizeof( TypeInstance ) == 6U, "Invalid TypeInstance Size" );
 
 } // namespace mega
 

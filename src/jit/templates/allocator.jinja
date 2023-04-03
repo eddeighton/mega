@@ -269,7 +269,7 @@ void load_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pS
 {%          if element.singular %}
     {
         const mega::reference parentLinkInterface = mega::reference::make( ref, 
-                mega::TypeInstance{ static_cast< mega::Instance >( {{ element.instance }} ), {{ element.concrete_id }} } );
+                mega::TypeInstance{ {{ element.concrete_id }}, static_cast< mega::Instance >( {{ element.instance }} ) } );
         mega::reference& linkRef = *reinterpret_cast< mega::reference* >( pBuffer + {{ element.offset }} );
         if( linkRef.is_valid() )
         {
@@ -307,7 +307,7 @@ void load_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pS
 {%          else %}
     {
         const mega::reference parentLinkInterface = mega::reference::make( ref, 
-                mega::TypeInstance{ static_cast< mega::Instance >( {{ element.instance }} ), {{ element.concrete_id }} } );
+                mega::TypeInstance{ {{ element.concrete_id }}, static_cast< mega::Instance >( {{ element.instance }} ) } );
         char* pLinkData = pBuffer + {{ element.offset }};
 
         for( mega::U64 i = 0U, iCount = mega::mangle::ref_vector_get_size( pLinkData ); i != iCount; ++i )

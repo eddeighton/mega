@@ -61,7 +61,7 @@ TEST( Reference, InvalidByDefault )
 
 TEST( Reference, HeapAccess )
 {
-    mega::reference h{ mega::TypeInstance{ 123, mega::max_typeID_context }, mega::OwnerID( 255 ), ( mega::HeapAddress )0xFFFFFFFF };
+    mega::reference h{ mega::TypeInstance{ mega::max_typeID_context, 123 }, mega::OwnerID( 255 ), ( mega::HeapAddress )0xFFFFFFFF };
 
     ASSERT_TRUE( h.isHeapAddress() );
     ASSERT_EQ( h.getType(), mega::max_typeID_context );
@@ -74,7 +74,7 @@ TEST( Reference, NetAccess )
 {
     using namespace mega;
     mega::MPO       testMPO( 1, 2, 3 );
-    mega::reference h{ mega::TypeInstance{ 123, mega::max_typeID_context }, testMPO, 4 };
+    mega::reference h{ mega::TypeInstance{ mega::max_typeID_context, 123}, testMPO, 4 };
 
     ASSERT_TRUE( h.isNetworkAddress() );
     ASSERT_EQ( h.getType(), mega::max_typeID_context );
@@ -85,7 +85,7 @@ TEST( Reference, NetAccess )
 
 TEST( Reference, HeaderAccess )
 {
-    mega::TypeInstance     typeInstance{ 123, mega::max_typeID_context };
+    mega::TypeInstance     typeInstance{ mega::max_typeID_context, 123 };
     mega::MPO              testMPO( 1, 2, 3 );
     mega::reference        networkAddress{ typeInstance, testMPO, 4 };
     mega::ObjectHeaderBase header{ networkAddress, 9 };
@@ -119,7 +119,7 @@ TEST( Reference, HeaderAccess )
 // TEST( Reference, TypeInstance )
 // {
 //     const OtherTypeInstance expected{
-//         std::numeric_limits< mega::Instance >::min(), mega::min_typeID_context };
+//         mega::min_typeID_context, std::numeric_limits< mega::Instance >::min() };
 // 
 //     std::string str;
 //     {
@@ -139,7 +139,7 @@ TEST( Reference, HeaderAccess )
 TEST( Reference, TypeInstance2 )
 {
     const mega::TypeInstance expected{
-        std::numeric_limits< mega::Instance >::max(), mega::max_typeID_context };
+        mega::max_typeID_context, std::numeric_limits< mega::Instance >::max() };
 
     std::string str;
     {

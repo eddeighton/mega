@@ -30,24 +30,24 @@
 namespace mega
 {
 static constexpr auto max_net_ref = mega::reference{
-    mega::TypeInstance{ std::numeric_limits< mega::Instance >::max(), max_typeID_symbol },
+    mega::TypeInstance{ max_typeID_symbol, std::numeric_limits< mega::Instance >::max() },
     mega::MPO{ std::numeric_limits< mega::MachineID >::max(), std::numeric_limits< mega::ProcessID >::max(),
                std::numeric_limits< mega::OwnerID >::max() },
     std::numeric_limits< mega::AllocationID >::max() };
 
 static constexpr auto min_net_ref = mega::reference{
-    mega::TypeInstance{ std::numeric_limits< mega::Instance >::min(), min_typeID_symbol },
+    mega::TypeInstance{ min_typeID_symbol, std::numeric_limits< mega::Instance >::min() },
     mega::MPO{ std::numeric_limits< mega::MachineID >::min(), std::numeric_limits< mega::ProcessID >::min(),
                std::numeric_limits< mega::OwnerID >::min() },
     std::numeric_limits< mega::AllocationID >::min() };
 
 static const auto max_heap_ref
-    = mega::reference{ mega::TypeInstance{ std::numeric_limits< mega::Instance >::max(), max_typeID_context },
+    = mega::reference{ mega::TypeInstance{ max_typeID_context, std::numeric_limits< mega::Instance >::max() },
                        0, // std::numeric_limits< mega::OwnerID >::max(),
                        reinterpret_cast< void* >( std::numeric_limits< mega::U64 >::max() ) };
 
 static const auto min_heap_ref
-    = mega::reference{ mega::TypeInstance{ std::numeric_limits< mega::Instance >::min(), min_typeID_context },
+    = mega::reference{ mega::TypeInstance{ min_typeID_context, std::numeric_limits< mega::Instance >::min() },
                        0, // std::numeric_limits< mega::OwnerID >::min(),
                        reinterpret_cast< void* >( std::numeric_limits< mega::U64 >::min() ) };
 } // namespace mega

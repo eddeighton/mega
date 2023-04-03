@@ -242,14 +242,14 @@ inline void serialize( boost::archive::xml_oarchive& ar, mega::reference& ref, c
 
 inline void serialize( boost::archive::binary_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
 {
-    ar& value.instance;
     ar& value.type;
+    ar& value.instance;
 }
 
 inline void serialize( boost::archive::binary_oarchive& ar, mega::TypeInstance& value, const unsigned int version )
 {
-    ar& value.instance;
     ar& value.type;
+    ar& value.instance;
 }
 
 inline void serialize( boost::archive::binary_iarchive& ar, mega::MP& value, const unsigned int version )

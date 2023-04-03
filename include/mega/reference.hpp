@@ -44,7 +44,7 @@ static constexpr HeapAddress NULL_ADDRESS = nullptr;
 static_assert( sizeof( HeapAddress ) == 8U, "Invalid HeapAddress Size" );
 static_assert( sizeof( HeapAddress ) == sizeof( U64 ), "Invalid HeapAddress Size" );
 
-using AllocationID = U32;
+using AllocationID = U16;
 using Flags        = U8;
 
 constexpr static const AllocationID ROOT_OBJECT_ID = 0;
@@ -57,26 +57,28 @@ enum FlagsType : U8 // check reference_io if change
 
 class reference
 {
+    #pragma pack(1)
     struct HeapAddressData
     {
-        HeapAddress m_heap;    // 8
-        U16         m_padding; // 2
-
+        HeapAddress  m_heap;    // 8
         OwnerID      m_ownerID; // 1
         Flags        m_flags;   // 1
-        TypeInstance m_type;    // 4
+        TypeInstance m_type;    // 6
     };
+    #pragma pack()
     static_assert( sizeof( HeapAddressData ) == 16U, "Invalid HeapAddressData Size" );
 
+    #pragma pack(1)
     struct NetworkAddressData
     {
-        AllocationID m_allocationID; // 4
+        AllocationID m_allocationID; // 2
         MachineID    m_machineID;    // 4
         ProcessID    m_processID;    // 2
         OwnerID      m_ownerID;      // 1
         Flags        m_flags;        // 1
-        TypeInstance m_type;         // 4
+        TypeInstance m_type;         // 6
     };
+    #pragma pack()
     static_assert( sizeof( NetworkAddressData ) == 16U, "Invalid NetworkAddressData Size" );
 
     union
@@ -128,7 +130,7 @@ public:
     }
 
     constexpr reference( TypeInstance typeInstance, OwnerID owner, HeapAddress heap )
-        : prc{ heap, 0, owner, HEAP_ADDRESS, typeInstance }
+        : prc{ heap, owner, HEAP_ADDRESS, typeInstance }
     {
     }
     constexpr reference( TypeInstance typeInstance, MPO mpo, AllocationID allocationID )
@@ -142,11 +144,11 @@ public:
     {
         if( other.isHeapAddress() )
         {
-            return { TypeInstance{ other.getInstance(), typeID }, other.getOwnerID(), other.getHeap() };
+            return { TypeInstance{ typeID, other.getInstance() }, other.getOwnerID(), other.getHeap() };
         }
         else
         {
-            return { TypeInstance{ other.getInstance(), typeID }, other.getMPO(), other.getAllocationID() };
+            return { TypeInstance{ typeID, other.getInstance() }, other.getMPO(), other.getAllocationID() };
         }
     }
 

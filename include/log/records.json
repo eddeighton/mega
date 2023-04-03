@@ -28,7 +28,7 @@
         },
         {
             "type": "Structure",
-            "padding": 4,
+            "padding": 7,
             "align": 16,
             "has_enum": true,
             "has_buffer": false,
@@ -51,7 +51,7 @@
                     "name": "Target"
                 },
                 {
-                    "type": "mega::U32",
+                    "type": "mega::RelationID::ValueType",
                     "name": "Relation"
                 }
             ],
@@ -59,7 +59,7 @@
         },
         {
             "type": "Scheduling",
-            "padding": 12,
+            "padding": 15,
             "align": 16,
             "has_enum": true,
             "has_buffer": false,
