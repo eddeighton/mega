@@ -70,6 +70,7 @@ public:
 
     static PyObject*       cast( PythonModule& module, const mega::reference& ref );
     static mega::reference cast( PyObject* pObject );
+    static std::optional< mega::reference > tryCast( PyObject* pObject );
 
 private:
     PythonModule&   m_module;

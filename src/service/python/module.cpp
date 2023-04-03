@@ -222,6 +222,10 @@ const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID
             {
                 exceptionPtrOpt = std::current_exception();
             }
+            catch( mega::runtime::JITException& )
+            {
+                exceptionPtrOpt = std::current_exception();
+            }
         } );
 
     pythonRequest().PythonExecuteJIT( functor );

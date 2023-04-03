@@ -265,7 +265,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
 {
     if( ( !context.is_valid() ) || ( !parameter.is_valid() ) )
     {
-        throw mega::runtime::JITException{ "Invalid parameters to link_make_{{ relationID }}" };
+        throw mega::runtime::JITException{ "Invalid parameters to link_break_{{ relationID }}" };
     }
 
     prepare( context );
@@ -276,11 +276,11 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     
     if( !isSource( source ) )
     {
-        throw mega::runtime::JITException{ "link_make_{{ relationID }} given invalid source" };
+        throw mega::runtime::JITException{ "link_break_{{ relationID }} given invalid source" };
     }
     if( !isTarget( target ) )
     {
-        throw mega::runtime::JITException{ "link_make_{{ relationID }}given invalid target" };
+        throw mega::runtime::JITException{ "link_break_{{ relationID }} given invalid target" };
     }
 
 {% if source_singular %}
@@ -292,7 +292,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     {
         if( targetRef != source )
         {
-            throw mega::runtime::JITException{ "link_make_{{ relationID }} error found while breaking link" };
+            throw mega::runtime::JITException{ "link_break_{{ relationID }} error found while breaking link" };
         }
         mega::mangle::structure_break( source, target, {{ relationID }} );
         sourceRef = mega::reference{};
@@ -306,7 +306,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     {
         if( !mega::mangle::ref_vector_contains( pTargetData, source ) )
         {
-            throw mega::runtime::JITException{ "link_make_{{ relationID }} error found while breaking link" };
+            throw mega::runtime::JITException{ "link_break_{{ relationID }} error found while breaking link" };
         }
         mega::mangle::structure_break( source, target, {{ relationID }} );
         sourceRef = mega::reference{};
@@ -322,7 +322,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     {
         if( !mega::mangle::ref_vector_contains( pSourceData, target ) )
         {
-            throw mega::runtime::JITException{ "link_make_{{ relationID }} error found while breaking link" };
+            throw mega::runtime::JITException{ "link_break_{{ relationID }} error found while breaking link" };
         }
         mega::mangle::structure_break( source, target, {{ relationID }} );
         mega::mangle::ref_vector_remove( pSourceData, target );
@@ -335,7 +335,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     {
         if( !mega::mangle::ref_vector_contains( pTargetData, source ) )
         {
-            throw mega::runtime::JITException{ "link_make_{{ relationID }} error found while breaking link" };
+            throw mega::runtime::JITException{ "link_break_{{ relationID }} error found while breaking link" };
         }
         mega::mangle::structure_break( source, target, {{ relationID }} );
         mega::mangle::ref_vector_remove( pSourceData, target );

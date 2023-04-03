@@ -76,3 +76,11 @@ def test1():
     pl = r.PlanetParent.Planet()
 
     mega.cycle()
+
+
+def test2():
+
+    r = mega.getMPO( "0.0.0" ).getRoot()
+    p = r.PlanetParent()
+
+    r.PlanetParent( mega.WriteOperation.REMOVE, p )

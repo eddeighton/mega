@@ -31,6 +31,8 @@
 #include "mega/invocation_id.hpp"
 #include "mega/types/python_mangle.hpp"
 
+#include "jit/jit_exception.hpp"
+
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/python.hxx"
 #include "service/protocol/model/python_leaf.hxx"
@@ -94,7 +96,31 @@ public:
     template < typename Functor >
     void invoke( Functor&& functor )
     {
-        pythonRequest().PythonFunctor( runtime::Functor{ std::move( functor ) } );
+        std::optional< std::exception_ptr > exceptionPtrOpt;
+
+        auto lambda = [ functor = std::move( functor ), &exceptionPtrOpt ]()
+        {
+            try
+            {
+                functor();
+            }
+            catch( std::exception& )
+            {
+                exceptionPtrOpt = std::current_exception();
+            }
+            catch( mega::runtime::JITException& )
+            {
+                exceptionPtrOpt = std::current_exception();
+            }
+        };
+
+        pythonRequest().PythonFunctor( runtime::Functor{ lambda } );
+
+        if( exceptionPtrOpt.has_value() )
+        {
+            SPDLOG_ERROR( "PythonModule::invoke rethrowing exception" );
+            std::rethrow_exception( exceptionPtrOpt.value() );
+        }
     }
 
     // Megastructure Execution

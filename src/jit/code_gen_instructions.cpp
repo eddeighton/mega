@@ -71,7 +71,7 @@ void gen( Args args, FinalStage::Invocations::Instructions::ParentDerivation* pP
 
     os << args.indent << args.get( pTo ) << " = mega::reference::make( " << 
             args.get( pFrom ) << ", mega::TypeInstance{ " << printTypeID( targetType ) << ", "
-       << "mega::TypeInstance{ static_cast< mega::Instance >( " << s << ".getInstance() / " << szLocalSize << " ) } );\n";
+       << "static_cast< mega::Instance >( " << s << ".getInstance() / " << szLocalSize << " ) } );\n";
 
     args.data[ "assignments" ].push_back( os.str() );
 }
@@ -268,7 +268,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Call* pCall )
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ concrete_type_id }} );
+{{ indent }}    static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ interface_type_id }} );
 {{ indent }}    return mega::runtime::CallResult{ function(), {{ instance }}, mega::TypeID( {{ interface_type_id }} ) };
 {{ indent }}}
 )TEMPLATE";
@@ -283,7 +283,7 @@ R"TEMPLATE(
 
         nlohmann::json templateData(
             { { "indent", osIndent.str() },
-              { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
+              //{ "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
               { "interface_type_id", printTypeID( pConcreteTarget->get_interface()->get_interface_id() ) },
               { "instance", args.get( pInstance ) } } );
 

@@ -70,8 +70,8 @@ public:
                                     void** ppFunction ) override;
     virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, const RelationID& relationID,
                                       int functionType, void** ppFunction ) override;
-    virtual void getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo ) override;
-    virtual void getPythonFunction( mega::TypeID typeID, void** ppFunction ) override;
+    virtual void getActionFunction( mega::TypeID concreteTypeID, void** ppFunction, ActionInfo& actionInfo ) override;
+    virtual void getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction ) override;
     virtual void getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int functionType,
                                       void** ppFunction ) override;
 

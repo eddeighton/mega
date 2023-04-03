@@ -240,11 +240,11 @@ mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID )
     }
     else if( pConcreteTypeID->get_dim_allocation().has_value() )
     {
-        THROW_RTE( "Interface ID asked for allocation dimension" );
+        THROW_RTE( "DatabaseInstance::getInterfaceTypeID: " << concreteTypeID << " asked for allocation dimension" );
     }
     else if( pConcreteTypeID->get_dim_link().has_value() )
     {
-        THROW_RTE( "Interface ID asked for link dimension" );
+        THROW_RTE( "DatabaseInstance::getInterfaceTypeID: " << concreteTypeID << " asked for link dimension" );
     }
     else
     {
@@ -290,19 +290,18 @@ FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectTy
     return pObject;
 }
 
-FinalStage::Concrete::Action* DatabaseInstance::getAction( mega::TypeID actionType ) const
+FinalStage::Interface::Action* DatabaseInstance::getAction( mega::TypeID interfaceTypeID ) const
 {
-    VERIFY_RTE_MSG( actionType != mega::TypeID{}, "Null TypeID in getAction" );
-    auto iFind = m_concreteTypeIDs.find( actionType );
-    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << actionType );
-    auto pConcreteTypeID = iFind->second;
-
-    FinalStage::Concrete::Action* pAction = nullptr;
-    if( pConcreteTypeID->get_context().has_value() )
+    VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getAction" );
+    auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
+    VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate interface type id: " << interfaceTypeID );
+    auto pInterfaceTypeID = iFind->second;
+    FinalStage::Interface::Action* pAction = nullptr;
+    if( pInterfaceTypeID->get_context().has_value() )
     {
-        pAction = FinalStage::db_cast< FinalStage::Concrete::Action >( pConcreteTypeID->get_context().value() );
+        pAction = FinalStage::db_cast< FinalStage::Interface::Action >( pInterfaceTypeID->get_context().value() );
     }
-    VERIFY_RTE_MSG( pAction, "Failed to locate concrete action id: " << actionType );
+    VERIFY_RTE_MSG( pAction, "Failed to locate concrete action id: " << interfaceTypeID );
     return pAction;
 }
 
@@ -317,21 +316,21 @@ const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::T
     {
         return pConcreteTypeID->get_context().value()->get_component();
     }
-    THROW_RTE( "Unreachable" );
+    THROW_RTE( "DatabaseInstance::getComponent Unreachable" );
 }
 
-const FinalStage::Components::Component* DatabaseInstance::getOperationComponent( mega::TypeID objectType ) const
+const FinalStage::Components::Component* DatabaseInstance::getOperationComponent( mega::TypeID interfaceTypeID ) const
 {
-    VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getOperationComponent" );
-    auto iFind = m_concreteTypeIDs.find( objectType );
-    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
+    VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getOperationComponent" );
+    auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
+    VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate concrete type id: " << interfaceTypeID );
     auto pConcreteTypeID = iFind->second;
 
     if( pConcreteTypeID->get_context().has_value() )
     {
-        return pConcreteTypeID->get_context().value()->get_interface()->get_component();
+        return pConcreteTypeID->get_context().value()->get_component();
     }
-    THROW_RTE( "Unreachable" );
+    THROW_RTE( "DatabaseInstance::getOperationComponent Unreachable" );
 }
 /*
 mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const

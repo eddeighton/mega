@@ -476,6 +476,7 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
         break;
         case object::eCallGetter:
         {
+            // NOTE: typeID here is an interface type id
             *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
         }
         break;
@@ -557,25 +558,28 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
     }
 }
 
-void JIT::getActionFunction( mega::TypeID typeID, void** ppFunction, ActionInfo& actionInfo )
+void JIT::getActionFunction( mega::TypeID concreteTypeID, void** ppFunction, ActionInfo& actionInfo )
 {
-    SPDLOG_TRACE( "JIT::getActionFunction : {}", typeID );
+    SPDLOG_TRACE( "JIT::getActionFunction : {}", concreteTypeID );
 
     m_functionPointers.insert( ppFunction );
 
-    *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
+    const mega::TypeID interfaceTypeID = m_database.getInterfaceTypeID( concreteTypeID );
 
-    const FinalStage::Concrete::Action* pAction = m_database.getAction( typeID );
+    *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( interfaceTypeID );
+
+    // TODO
+    //const FinalStage::Concrete::Action* pAction = m_database.getAction( interfaceTypeID );
     actionInfo.type                             = ActionInfo::eAction;
 }
 
-void JIT::getPythonFunction( mega::TypeID typeID, void** ppFunction )
+void JIT::getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction )
 {
-    SPDLOG_TRACE( "JIT::getPythonFunction : {}", typeID );
+    SPDLOG_TRACE( "JIT::getPythonFunction : {}", interfaceTypeID );
 
     m_functionPointers.insert( ppFunction );
 
-    *ppFunction = ( void* )m_componentManager.getPythonFunctionPtr( typeID );
+    *ppFunction = ( void* )m_componentManager.getPythonFunctionPtr( interfaceTypeID );
 }
 
 void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int fType,

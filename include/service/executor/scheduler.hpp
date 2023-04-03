@@ -72,7 +72,7 @@ public:
     void cycle();
 
 private:
-    const ActionFunction& getActionFunction( TypeID typeID );
+    const ActionFunction& getActionFunction( TypeID concreteTypeID );
 
 private:
     log::Storage&                          m_log;

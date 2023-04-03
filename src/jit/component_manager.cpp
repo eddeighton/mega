@@ -93,11 +93,10 @@ ComponentManager::ComponentManager( const mega::Project& project, DatabaseInstan
 {
 }
 
-TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concreteTypeID )
+TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID interfaceTypeID )
 {
-    SPDLOG_TRACE( "RUNTIME: ComponentManager getOperationFunctionPtr : {}", concreteTypeID );
+    SPDLOG_TRACE( "RUNTIME: ComponentManager getOperationFunctionPtr : {}", interfaceTypeID );
 
-    const mega::TypeID interfaceTypeID = m_database.getInterfaceTypeID( concreteTypeID );
 
     {
         auto iFind = m_functions.find( interfaceTypeID );
@@ -108,7 +107,7 @@ TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concr
     }
 
     {
-        const FinalStage::Components::Component* pDBComponent = m_database.getOperationComponent( concreteTypeID );
+        const FinalStage::Components::Component* pDBComponent = m_database.getOperationComponent( interfaceTypeID );
         const mega::io::ComponentFilePath&       componentBuildPath = pDBComponent->get_file_path();
         const boost::filesystem::path componentPath = m_project.getProjectBin() / componentBuildPath.path().filename();
 
@@ -128,15 +127,13 @@ TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concr
         }
     }
 
-    SPDLOG_ERROR( "ComponentManager failed to locate symbol : {}", concreteTypeID );
-    THROW_RTE( "Failed to locate symbol: " << concreteTypeID );
+    SPDLOG_ERROR( "ComponentManager failed to locate symbol : {}", interfaceTypeID );
+    THROW_RTE( "Failed to locate symbol: " << interfaceTypeID );
 }
 
-TypeErasedFunction ComponentManager::getPythonFunctionPtr( mega::TypeID concreteTypeID )
+TypeErasedFunction ComponentManager::getPythonFunctionPtr( mega::TypeID interfaceTypeID )
 {
-    SPDLOG_TRACE( "RUNTIME: ComponentManager getPythonFunctionPtr : {}", concreteTypeID );
-
-    const mega::TypeID interfaceTypeID = m_database.getInterfaceTypeID( concreteTypeID );
+    SPDLOG_TRACE( "RUNTIME: ComponentManager getPythonFunctionPtr : {}", interfaceTypeID );
 
     {
         auto iFind = m_pythonFunctions.find( interfaceTypeID );
@@ -147,7 +144,7 @@ TypeErasedFunction ComponentManager::getPythonFunctionPtr( mega::TypeID concrete
     }
 
     {
-        const FinalStage::Components::Component* pDBComponent = m_database.getOperationComponent( concreteTypeID );
+        const FinalStage::Components::Component* pDBComponent = m_database.getOperationComponent( interfaceTypeID );
         const mega::io::ComponentFilePath&       componentBuildPath = pDBComponent->get_python_file_path();
         const boost::filesystem::path componentPath = m_project.getProjectBin() / componentBuildPath.path().filename();
 
@@ -170,8 +167,8 @@ TypeErasedFunction ComponentManager::getPythonFunctionPtr( mega::TypeID concrete
         }
     }
 
-    SPDLOG_ERROR( "ComponentManager failed to locate symbol : {}", concreteTypeID );
-    THROW_RTE( "Failed to locate symbol: " << concreteTypeID );
+    SPDLOG_ERROR( "ComponentManager failed to locate symbol : {}", interfaceTypeID );
+    THROW_RTE( "Failed to locate symbol: " << interfaceTypeID );
 }
 
 } // namespace mega::runtime

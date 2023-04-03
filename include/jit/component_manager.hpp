@@ -69,8 +69,8 @@ public:
 
     ComponentManager( const mega::Project& project, DatabaseInstance& database );
 
-    TypeErasedFunction getOperationFunctionPtr( mega::TypeID concreteTypeID );
-    TypeErasedFunction getPythonFunctionPtr( mega::TypeID concreteTypeID );
+    TypeErasedFunction getOperationFunctionPtr( mega::TypeID interfaceTypeID );
+    TypeErasedFunction getPythonFunctionPtr( mega::TypeID interfaceTypeID );
 
 private:
     void loadComponent() {}

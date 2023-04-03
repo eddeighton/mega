@@ -27,6 +27,7 @@
 
 #include "mega/reference_io.hpp"
 #include "mega/invocation_id.hpp"
+#include "mega/types/traits.hpp"
 
 #include "mega/types/python_mangle.hpp"
 
@@ -46,17 +47,19 @@ typedef struct
     PyObject_HEAD PythonReference* pReference;
 } PythonReferenceData;
 
+static PyTypeObject* g_pTypeObject_Hack = nullptr;
+
 static PythonReference* fromPyObject( PyObject* pPyObject )
 {
-    // if( pPyObject->ob_type == PythonReference::Registration::getTypeObject() )
+    if( g_pTypeObject_Hack != nullptr )
     {
-        PythonReferenceData* pLogicalObject = ( PythonReferenceData* )pPyObject;
-        return pLogicalObject->pReference;
+        if( pPyObject->ob_type == g_pTypeObject_Hack )
+        {
+            PythonReferenceData* pLogicalObject = ( PythonReferenceData* )pPyObject;
+            return pLogicalObject->pReference;
+        }
     }
-    /*else
-    {
-        return nullptr;
-    }*/
+    return nullptr;
 }
 
 static void type_dealloc( PyObject* pPyObject )
@@ -172,7 +175,7 @@ PythonReference::Registration::Registration( const SymbolTable& symbols )
         Py_INCREF( m_pTypeObject );
         // successfully generated the dynamic type...
         // PyModule_AddObject( pPythonModule, "Host", (PyObject*)&m_type );
-
+        g_pTypeObject_Hack = m_pTypeObject;
         SPDLOG_INFO( "Successfully registered Python Reference Type" );
     }
 }
@@ -181,6 +184,7 @@ PythonReference::Registration::~Registration()
 {
     if( m_pTypeObject )
     {
+        g_pTypeObject_Hack = nullptr;
         Py_DECREF( m_pTypeObject );
     }
 }
@@ -244,7 +248,7 @@ int PythonReference::set( void* pClosure, PyObject* pValue )
 PyObject* PythonReference::str() const
 {
     std::ostringstream os;
-    using ::operator<<;
+    using ::           operator<<;
     os << m_reference;
     return Py_BuildValue( "s", os.str().c_str() );
 }
@@ -328,24 +332,91 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 case id_exp_Write_Link:
                 {
                     VERIFY_RTE_MSG( pyArgs.size() > 0, "Write Link requires atleast one argument" );
-                    pybind11::object firstArg = pyArgs[ 0 ];
-                    mega::reference  arg      = cast( firstArg.ptr() );
 
-                    WriteOperation writeOperation = WriteOperation::DEFAULT;
-                    if( pyArgs.size() == 2 )
+                    std::optional< mega::reference >       argRefOpt;
+                    std::optional< mega::ReferenceVector > argRefVectorOpt;
+                    std::optional< WriteOperation >        argWriteOpOpt;
                     {
-                        writeOperation = pybind11::cast< WriteOperation >( firstArg );
+                        if( pyArgs.size() == 2 )
+                        {
+                            argWriteOpOpt = pybind11::cast< WriteOperation >( pyArgs[ 0 ] );
+                            VERIFY_RTE_MSG( argWriteOpOpt.has_value(), "Invalid arguments to link write" );
+
+                            pybind11::object arg = pyArgs[ 1 ];
+                            argRefOpt            = tryCast( arg.ptr() );
+                            if( !argRefOpt.has_value() )
+                            {
+                                argRefVectorOpt = pybind11::cast< mega::ReferenceVector >( arg );
+                            }
+                        }
+                        else if( pyArgs.size() == 1 )
+                        {
+                            pybind11::object arg = pyArgs[ 0 ];
+                            try
+                            {
+                                argRefOpt = tryCast( arg.ptr() );
+                                if( !argRefOpt.has_value() )
+                                {
+                                    argRefVectorOpt = pybind11::cast< mega::ReferenceVector >( arg );
+                                }
+                            }
+                            catch( pybind11::cast_error& )
+                            {
+                                argWriteOpOpt = pybind11::cast< WriteOperation >( arg );
+                            }
+                        }
+                        else
+                        {
+                            THROW_RTE( "Invalid number of arguments to link write" );
+                        }
+                    }
+
+                    if( !argWriteOpOpt.has_value() )
+                    {
+                        argWriteOpOpt = ::WriteOperation::DEFAULT;
                     }
 
                     mega::reference result;
-                    m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, writeOperation, &arg, &result ]()
-                        {
-                            auto pWriteLinkFunction
-                                = reinterpret_cast< mega::runtime::invocation::WriteLink::FunctionPtr >(
-                                    functionInfo.pFunctionPtr );
-                            result = pWriteLinkFunction( m_reference, writeOperation, arg );
-                        } );
+
+                    if( !argRefOpt.has_value() && !argRefVectorOpt.has_value() )
+                    {
+                        VERIFY_RTE_MSG(
+                            argWriteOpOpt.value() == WriteOperation::RESET,
+                            "Invalid write operation type with no other parameters to write link invocation" );
+                        m_module.invoke(
+                            [ &functionInfo, &m_reference = m_reference, &argWriteOpOpt, &result ]()
+                            {
+                                auto pWriteLinkFunction
+                                    = reinterpret_cast< mega::runtime::invocation::WriteLink::FunctionPtr >(
+                                        functionInfo.pFunctionPtr );
+                                result = pWriteLinkFunction( m_reference, argWriteOpOpt.value(), {} );
+                            } );
+                    }
+                    else if( argRefOpt.has_value() )
+                    {
+                        m_module.invoke(
+                            [ &functionInfo, &m_reference = m_reference, &argWriteOpOpt, &argRefOpt, &result ]()
+                            {
+                                auto pWriteLinkFunction
+                                    = reinterpret_cast< mega::runtime::invocation::WriteLink::FunctionPtr >(
+                                        functionInfo.pFunctionPtr );
+                                result = pWriteLinkFunction( m_reference, argWriteOpOpt.value(), argRefOpt.value() );
+                            } );
+                    }
+                    else if( argRefVectorOpt.has_value() )
+                    {
+                        THROW_RTE( "WriteLinkRange not implemented in python yet" );
+                        m_module.invoke(
+                            [ &functionInfo, &m_reference = m_reference, &argWriteOpOpt, &argRefVectorOpt, &result ]()
+                            {
+                                auto pWriteLinkFunction
+                                    = reinterpret_cast< mega::runtime::invocation::WriteLinkRange::FunctionPtr >(
+                                        functionInfo.pFunctionPtr );
+                                result = pWriteLinkFunction(
+                                    m_reference, argWriteOpOpt.value(), &argRefVectorOpt.value() );
+                            } );
+                    }
+
                     return cast( m_module, result );
                 }
                 break;
@@ -490,6 +561,18 @@ mega::reference PythonReference::cast( PyObject* pObject )
     else
     {
         return {};
+    }
+}
+
+std::optional< mega::reference > PythonReference::tryCast( PyObject* pObject )
+{
+    if( PythonReference* pRef = fromPyObject( pObject ) )
+    {
+        return pRef->getReference();
+    }
+    else
+    {
+        return std::optional< mega::reference >{};
     }
 }
 

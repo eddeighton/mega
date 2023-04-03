@@ -92,6 +92,15 @@ struct __invoke_impl
         return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( function( context ) );
     }
 {% else if invocation.explicit_operation == "WriteLink" %}
+    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, WriteOperation overload ) const
+    {
+        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
+        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
+        // WriteLink
+        static thread_local mega::runtime::invocation::WriteLink function( g_unit_name, id );
+        return function( context, overload, {} );
+    }
     template< typename T >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, const T& interfaceRef ) const
     {

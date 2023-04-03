@@ -303,9 +303,9 @@ public:
 
     template < typename TComponentType >
     static inline Compilation make_python_obj_compilation( const io::BuildEnvironment& environment,
-                                                                  const utilities::ToolChain& toolChain,
-                                                                  TComponentType*             pComponent,
-                                                                  const io::megaFilePath&     sourceFile
+                                                           const utilities::ToolChain& toolChain,
+                                                           TComponentType*             pComponent,
+                                                           const io::megaFilePath&     sourceFile
 
     )
     {
@@ -324,7 +324,8 @@ public:
         compilation.defines     = pComponent->get_cpp_defines();
         compilation.includeDirs = pComponent->get_include_directories();
 
-        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ) };
+        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
+                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ) };
 
         compilation.inputFile    = environment.FilePath( environment.PythonWrapper( sourceFile ) );
         compilation.outputObject = environment.FilePath( environment.PythonObj( sourceFile ) );
@@ -334,9 +335,9 @@ public:
 
     template < typename TComponentType >
     static inline Compilation make_initialiser_obj_compilation( const io::BuildEnvironment& environment,
-                                                                  const utilities::ToolChain& toolChain,
-                                                                  TComponentType*             pComponent,
-                                                                  const io::megaFilePath&     sourceFile
+                                                                const utilities::ToolChain& toolChain,
+                                                                TComponentType*             pComponent,
+                                                                const io::megaFilePath&     sourceFile
 
     )
     {
