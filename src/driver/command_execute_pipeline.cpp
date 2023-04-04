@@ -50,7 +50,7 @@ namespace driver::execute_pipeline
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path stashDir, pipelineXML, outputPipelineResultPath, inputPipelineResultPath, toolchainXML;
-    bool                    bRunLocally = false, bForceNoStash = false;
+    bool                    bRunLocally = false, bForceNoStash = false, bExecuteUpTo = false;
     std::string             strTaskName, strSourceFile;
 
     namespace po = boost::program_options;
@@ -67,23 +67,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
         ( "task",               po::value< std::string >( &strTaskName ),                           "Specific task to run. ( Local only )" )
         ( "source",             po::value< std::string >( &strSourceFile ),                         "Source file for specific task. ( Local only )" )
         ( "force_no_stash",     po::bool_switch( &bForceNoStash ),                                  "Prevent stash restore for specified task. ( Local only )" )
+        ( "execute_up_to",      po::bool_switch( &bExecuteUpTo ),                                   "Only execute up to the specified task. ( Local only )" )
         ;
         // clang-format on
-    }
-
-    if ( !strTaskName.empty() )
-    {
-        VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
-        VERIFY_RTE_MSG( !strSourceFile.empty(), "Task requires source file specification" );
-    }
-    if ( !strSourceFile.empty() )
-    {
-        VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
-        VERIFY_RTE_MSG( !strTaskName.empty(), "Source file requires task specification" );
-    }
-    if ( !inputPipelineResultPath.empty() )
-    {
-        VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify prior build result" );
     }
 
     po::positional_options_description p;
@@ -93,7 +79,21 @@ void command( bool bHelp, const std::vector< std::string >& args )
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
-    if ( bHelp )
+    if( !strTaskName.empty() )
+    {
+        VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
+    }
+    if( !strSourceFile.empty() )
+    {
+        VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
+        VERIFY_RTE_MSG( !strTaskName.empty(), "Source file requires task specification" );
+    }
+    if( !inputPipelineResultPath.empty() )
+    {
+        VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify prior build result" );
+    }
+
+    if( bHelp )
     {
         std::cout << commandOptions << "\n";
     }
@@ -104,7 +104,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
         std::optional< mega::pipeline::PipelineResult > pipelineResult;
         {
-            if ( bRunLocally )
+            if( bRunLocally )
             {
                 SPDLOG_INFO( "Running pipeline locally" );
                 mega::utilities::ToolChain toolchain;
@@ -116,7 +116,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     ia&                          boost::serialization::make_nvp( "toolchain", toolchain );
                 }
                 pipelineResult = runPipelineLocally( stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile,
-                                                     inputPipelineResultPath, bForceNoStash, std::cout );
+                                                     inputPipelineResultPath, bForceNoStash, bExecuteUpTo, std::cout );
             }
             else
             {
@@ -125,7 +125,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     mega::service::Terminal terminal;
                     pipelineResult = terminal.PipelineRun( pipelineConfig );
                 }
-                catch ( std::exception& ex )
+                catch( std::exception& ex )
                 {
                     THROW_RTE( "Exception executing pipeline: " << ex.what() );
                 }
@@ -134,14 +134,14 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
         VERIFY_RTE_MSG( pipelineResult.has_value(), "Failed to get pipeline result" );
 
-        if ( pipelineResult.value().getSuccess() && !outputPipelineResultPath.empty() )
+        if( pipelineResult.value().getSuccess() && !outputPipelineResultPath.empty() )
         {
             auto pOutStream = boost::filesystem::createBinaryOutputFileStream( outputPipelineResultPath );
             boost::archive::xml_oarchive archive( *pOutStream );
             archive&                     boost::serialization::make_nvp( "PipelineResult", pipelineResult.value() );
         }
 
-        if ( !pipelineResult.value().getSuccess() )
+        if( !pipelineResult.value().getSuccess() )
         {
             SPDLOG_WARN( "Pipeline failed: {}", pipelineResult.value().getMessage() );
             THROW_RTE( "Pipeline failed: " << pipelineResult.value().getMessage() );

@@ -437,6 +437,11 @@ public:
                     if( !inheritanceAnalysis( pAbstract, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
+                if( std::optional< Interface::SizeTrait* > sizeOpt = pAbstract->get_size_trait() )
+                {
+                    if( !sizeAnalysis( pAbstract, sizeOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
+                }
                 bProcess = true;
             }
         }
@@ -501,6 +506,11 @@ public:
                 if( std::optional< InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
                 {
                     if( !inheritanceAnalysis( pObject, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
+                }
+                if( std::optional< Interface::SizeTrait* > sizeOpt = pObject->get_size_trait() )
+                {
+                    if( !sizeAnalysis( pObject, sizeOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
                 bProcess = true;

@@ -329,8 +329,21 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
+    const TskDesc globalMemory = encode( Task{ eTask_GlobalMemoryStage, manifestFilePath } );
+    dependencies.add( globalMemory, memoryTasks );
+
+    TskDescVec globalMemoryRolloutTasks;
+    {
+        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        {
+            const TskDesc globalMemoryRollout = encode( Task{ eTask_GlobalMemoryStageRollout, sourceFilePath } );
+            dependencies.add( globalMemoryRollout, TskDescVec{ globalMemory } );
+            globalMemoryRolloutTasks.push_back( globalMemoryRollout );
+        }
+    }
+
     const TskDesc concreteTypeAnalysis = encode( Task{ eTask_ConcreteTypeAnalysis, manifestFilePath } );
-    dependencies.add( concreteTypeAnalysis, memoryTasks );
+    dependencies.add( concreteTypeAnalysis, globalMemoryRolloutTasks );
 
     TskDescVec concreteTypeIDRolloutTasks;
     {

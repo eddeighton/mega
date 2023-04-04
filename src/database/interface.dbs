@@ -99,6 +99,7 @@ namespace Interface
         array< ref< Parser::AbstractDef > > abstract_defs;
         late< array< ref< DimensionTrait > > > dimension_traits;
         late< opt< ref< InheritanceTrait > > > inheritance_trait;
+        late< opt< ref< SizeTrait > > > size_trait;
     }
     object Action : IContext -> InterfaceStage::Tree
     {
@@ -125,6 +126,7 @@ namespace Interface
         array< ref< Parser::ObjectDef > > object_defs;
         late< array< ref< DimensionTrait > > > dimension_traits;
         late< opt< ref< InheritanceTrait > > > inheritance_trait;
+        late< opt< ref< SizeTrait > > > size_trait;
     }
     object Link : IContext -> InterfaceStage::Tree
     {

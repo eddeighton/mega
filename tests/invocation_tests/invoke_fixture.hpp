@@ -122,7 +122,7 @@ public:
         mega::pipeline::PipelineResult runPipeline()
         {
             return mega::pipeline::runPipelineLocally(
-                g_stashDir, g_toolChain, m_pipeline, "", "", {}, false, std::cout );
+                g_stashDir, g_toolChain, m_pipeline, "", "", {}, false, false, std::cout );
         };
     };
 

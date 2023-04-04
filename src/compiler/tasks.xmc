@@ -44,6 +44,9 @@ TASK(DerivationRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath )
 TASK(HyperGraph,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
 TASK(HyperGraphRollout,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
+TASK(GlobalMemoryStage,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
+TASK(GlobalMemoryStageRollout,  std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+
 TASK(Allocators,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(Operations,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(OperationsPCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)

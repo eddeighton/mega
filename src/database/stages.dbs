@@ -241,10 +241,31 @@ stage MemoryStage
     persource accessor ref< Concrete::Root >;
 }
 
-stage ConcreteTypeAnalysis
+stage GlobalMemoryStage
 {
     source .manifest;
     dependency MemoryStage;
+
+    file GlobalMemoryLayout;
+
+    persource accessor array< ref< Concrete::Object > >;
+}
+
+stage GlobalMemoryStageRollout
+{
+    source .mega;
+    dependency GlobalMemoryStage;
+
+    file GlobalMemoryRollout;
+
+    global accessor array< ref< MemoryLayout::MemoryMap > >;
+    persource accessor array< ref< Concrete::Object > >;
+}
+
+stage ConcreteTypeAnalysis
+{
+    source .manifest;
+    dependency GlobalMemoryStageRollout;
 
     file ConcreteTable;
 

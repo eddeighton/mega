@@ -18,7 +18,13 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-
+inline std::string toHex( mega::TypeID typeID )
+{
+    std::ostringstream os;
+    os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << 
+        static_cast< mega::U32 >( typeID.getSymbolID() );
+    return os.str();
+}
 
 class InterfaceGen
 {
@@ -104,7 +110,7 @@ public:
             traitNames.push_back( os.str() );
 
             nlohmann::json trait_struct( { { "name", os.str() },
-                                           { "typeid", pContext->get_interface_id().getSymbolID() },
+                                           { "typeid", toHex( pContext->get_interface_id() ) },
                                            { "types", traitNames },
                                            { "traits", nlohmann::json::array() } } );
 
@@ -133,7 +139,7 @@ public:
             traitNames.push_back( os.str() );
 
             nlohmann::json trait_struct( { { "name", os.str() },
-                                           { "typeid", pDimensionTrait->get_interface_id().getSymbolID() },
+                                           { "typeid", toHex( pDimensionTrait->get_interface_id() ) },
                                            { "types", traitNames },
                                            { "traits", nlohmann::json::array() } } );
 
@@ -192,7 +198,7 @@ public:
         traitNames.push_back( os.str() );
 
         nlohmann::json trait_struct( { { "name", os.str() },
-                                       { "typeid", pContext->get_interface_id().getSymbolID() },
+                                       { "typeid", toHex( pContext->get_interface_id() ) },
                                        { "types", traitNames },
                                        { "traits", nlohmann::json::array() } } );
 
@@ -215,7 +221,7 @@ public:
         traitNames.push_back( os.str() );
 
         nlohmann::json trait_struct( { { "name", os.str() },
-                                       { "typeid", pContext->get_interface_id().getSymbolID() },
+                                       { "typeid", toHex( pContext->get_interface_id() ) },
                                        { "types", traitNames },
                                        { "traits", nlohmann::json::array() } } );
         {
@@ -254,7 +260,7 @@ public:
         }
 
         nlohmann::json contextData( { { "name", pFirstContext->get_identifier() },
-                                      { "typeid", id.getSymbolID() },
+                                      { "typeid", toHex( id ) },
                                       { "trait_structs", nlohmann::json::array() },
                                       { "nested", osNested.str() },
                                       { "has_operation", false },
@@ -298,6 +304,13 @@ public:
                     for ( const nlohmann::json& trait :
                           getDimensionTraits( typenames, pAbstract, pAbstract->get_dimension_traits() ) )
                     {
+                        contextData[ "trait_structs" ].push_back( trait );
+                        structs.push_back( trait );
+                    }
+                    if ( pAbstract->get_size_trait().has_value() )
+                    {
+                        const nlohmann::json& trait
+                            = getSizeTrait( typenames, pAbstract, pAbstract->get_size_trait().value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
@@ -400,6 +413,13 @@ public:
                     for ( const nlohmann::json& trait :
                           getDimensionTraits( typenames, pObject, pObject->get_dimension_traits() ) )
                     {
+                        contextData[ "trait_structs" ].push_back( trait );
+                        structs.push_back( trait );
+                    }
+                    if ( pObject->get_size_trait().has_value() )
+                    {
+                        const nlohmann::json& trait
+                            = getSizeTrait( typenames, pObject, pObject->get_size_trait().value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }

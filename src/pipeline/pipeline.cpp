@@ -73,6 +73,45 @@ Version Configuration::getVersion() const
     return header.version;
 }
 
+Dependencies::Dependencies( const Dependencies& other, const std::vector< TaskDescriptor >& targets )
+{
+    const Graph& graph = other.getDependencies();
+
+    TaskSet open, closed;
+    {
+        for( auto t : targets )
+        {
+            open.insert( t );
+            m_tasks.insert( t );
+        }
+    }
+
+    while( !open.empty() )
+    {
+        // get the first one and move it to closed
+        TaskDescriptor t = *open.begin();
+        open.erase( open.begin() );
+        closed.insert( t );
+
+        // find all dependent tasks
+        auto i    = graph.lower_bound( t );
+        auto iEnd = graph.upper_bound( t );
+        for( ; i != iEnd; ++i )
+        {
+            auto dependency = i->second;
+            m_graph.insert( { t, dependency } );
+
+            // add each task if NOT already closed
+            auto iFind = closed.find( dependency );
+            if( iFind == closed.end() )
+            {
+                open.insert( dependency );
+                m_tasks.insert( dependency );
+            }
+        }
+    }
+}
+
 void Dependencies::add( const TaskDescriptor& newTask, const TaskDescriptor::Vector& dependencies )
 {
     VERIFY_RTE( newTask != TaskDescriptor() );
@@ -118,6 +157,19 @@ TaskDescriptor::Vector Schedule::getReady() const
     return ready;
 }
 
+std::vector< TaskDescriptor > Schedule::getTasks( const std::string& strTaskName ) const
+{
+    std::vector< TaskDescriptor > tasks;
+    for( const TaskDescriptor& task : m_dependencies.getTasks() )
+    {
+        if( task.getName() == strTaskName )
+        {
+            tasks.push_back( task );
+        }
+    }
+    return tasks;
+}
+
 std::optional< TaskDescriptor > Schedule::getTask( const std::string& strTaskName,
                                                    const std::string& strSourceFile ) const
 {
@@ -132,6 +184,20 @@ std::optional< TaskDescriptor > Schedule::getTask( const std::string& strTaskNam
     }
 
     return result;
+}
+
+Schedule Schedule::getUpTo( const std::string& strTaskName ) const
+{
+    auto result = getTasks( strTaskName );
+    VERIFY_RTE_MSG( !result.empty(), "Failed to locate tasks: " << strTaskName );
+    return { Dependencies( m_dependencies, result ) };
+}
+
+Schedule Schedule::getUpTo( const std::string& strTaskName, const std::string& strSourceFile ) const
+{
+    std::optional< TaskDescriptor > result = getTask( strTaskName, strSourceFile );
+    VERIFY_RTE_MSG( result.has_value(), "Failed to locate task: " << strTaskName << " with source: " << strSourceFile );
+    return { Dependencies( m_dependencies, { result.value() } ) };
 }
 
 Stash::~Stash() = default;
@@ -183,7 +249,7 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
                                    const mega::pipeline::Configuration& pipelineConfig, const std::string& strTaskName,
                                    const std::string&             strSourceFile,
                                    const boost::filesystem::path& inputPipelineResultPath, bool bForceNoStash,
-                                   std::ostream& osLog )
+                                   bool bExecuteUpTo, std::ostream& osLog )
 {
     VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
     task::Stash          stash( stashDir );
@@ -279,10 +345,10 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
         EG_PARSER_INTERFACE* getParser() { return m_pParser.get(); }
     } dependencies( toolChain );
 
-    mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
-
-    if( !strTaskName.empty() && !strSourceFile.empty() )
+    if( !strTaskName.empty() && !strSourceFile.empty() && !bExecuteUpTo )
     {
+        mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
+        osLog << "Running ONLY task: " << strTaskName << " with source: " << strSourceFile << std::endl;
         std::optional< mega::pipeline::TaskDescriptor > taskOpt = schedule.getTask( strTaskName, strSourceFile );
         VERIFY_RTE_MSG( taskOpt.has_value(),
                         "Failed to locate task with name: " << strTaskName << " and source file: " << strSourceFile );
@@ -290,6 +356,22 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
     }
     else
     {
+        mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
+
+        if( bExecuteUpTo )
+        {
+            if( !strSourceFile.empty() )
+            {
+                mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
+                osLog << "Running UP TO task: " << strTaskName << " with source: " << strSourceFile << std::endl;
+                schedule = schedule.getUpTo( strTaskName, strSourceFile );
+            }
+            else
+            {
+                osLog << "Running UP TO task: " << strTaskName << std::endl;
+                schedule = schedule.getUpTo( strTaskName );
+            }
+        }
         while( !schedule.isComplete() && pipelineResult.getSuccess() )
         {
             bool bProgress = false;

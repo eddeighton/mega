@@ -147,6 +147,7 @@ namespace Parser
 
     object AbstractDef : ContextDef -> ParserStage::AST
     {
+        ref< Size > size;
         ref< Inheritance > inheritance;
     }
 
@@ -170,6 +171,7 @@ namespace Parser
 
     object ObjectDef : ContextDef -> ParserStage::AST
     {
+        ref< Size > size;
         ref< Inheritance > inheritance;
     }
 

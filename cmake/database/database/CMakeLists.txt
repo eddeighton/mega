@@ -59,6 +59,8 @@ set( MEGA_DATABASE_INTERFACE_NAMES
     DerivationAnalysisRollout
     DerivationAnalysisView
     FinalStage
+    GlobalMemoryStage
+    GlobalMemoryStageRollout
     HyperGraphAnalysis
     HyperGraphAnalysisRollout
     HyperGraphAnalysisView

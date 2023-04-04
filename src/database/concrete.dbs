@@ -127,6 +127,11 @@ namespace Concrete
         array< ref< Link > > owning_links -> HyperGraphAnalysisRollout::PerSourceModel;
     }
 
+    object MemoryMappedObject : Object -> GlobalMemoryStageRollout::GlobalMemoryRollout
+    {
+        ref< MemoryLayout::MemoryMap > memory_map;
+    }
+
     object Link : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Link > link;

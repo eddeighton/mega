@@ -49,6 +49,10 @@ class Dependencies
 public:
     using TaskSet = std::set< TaskDescriptor >;
     using Graph   = std::multimap< TaskDescriptor, TaskDescriptor >;
+
+    Dependencies() = default;
+    Dependencies( const Dependencies& other, const std::vector< TaskDescriptor >& targets );
+
     void           add( const TaskDescriptor& newTask, const TaskDescriptor::Vector& dependencies );
     const TaskSet& getTasks() const { return m_tasks; }
     const Graph&   getDependencies() const { return m_graph; }
@@ -64,7 +68,10 @@ public:
     Schedule( const Dependencies& dependencies );
 
     TaskDescriptor::Vector          getReady() const;
+    std::vector< TaskDescriptor >   getTasks( const std::string& strTaskName ) const;
     std::optional< TaskDescriptor > getTask( const std::string& strTaskName, const std::string& strSourceFile ) const;
+    Schedule                        getUpTo( const std::string& strTaskName ) const;
+    Schedule                        getUpTo( const std::string& strTaskName, const std::string& strSourceFile ) const;
     bool                            isComplete() const { return m_dependencies.getTasks() == m_complete; }
 
     void complete( const TaskDescriptor& task ) { m_complete.insert( task ); }
@@ -133,7 +140,8 @@ public:
 PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, const mega::utilities::ToolChain& toolChain,
                                    const mega::pipeline::Configuration& pipelineConfig, const std::string& strTaskName,
                                    const std::string&             strSourceFile,
-                                   const boost::filesystem::path& inputPipelineResultPath, bool bForceNoStash, std::ostream& osLog );
+                                   const boost::filesystem::path& inputPipelineResultPath, bool bForceNoStash,
+                                   bool bExecuteUpTo, std::ostream& osLog );
 
 } // namespace mega::pipeline
 

@@ -204,6 +204,18 @@ namespace MemoryLayout
     {
         
     }
+
+    object MemoryMap -> GlobalMemoryStage::GlobalMemoryLayout
+    {
+        ref< Interface::IContext >          interface;
+        value< mega::U64 >                  block_size;
+        value< mega::U64 >                  block_alignment;
+        value< mega::U64 >                  fixed_allocation;
+        array< ref< Concrete::Object > >    concrete;
+
+        // this does not work - due to per source versus global :(
+        // late< array< ref< Concrete::MemoryMappedObject > > > concrete -> GlobalMemoryStageRollout::GlobalMemoryRollout;
+    }
 }
 
 namespace UnityAnalysis

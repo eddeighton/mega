@@ -551,6 +551,8 @@ public:
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
+        Size* pSize = parse_size( database );
+        parse_comment();
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
@@ -569,7 +571,7 @@ public:
             }
         }
 
-        return database.construct< AbstractDef >( AbstractDef::Args{ body, pInheritance } );
+        return database.construct< AbstractDef >( AbstractDef::Args{ body, pSize, pInheritance } );
     }
 
     EventDef* parse_event( Database& database )
@@ -638,6 +640,8 @@ public:
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
+        Size* pSize = parse_size( database );
+        parse_comment();
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
@@ -660,7 +664,7 @@ public:
             }
         }
 
-        return database.construct< ObjectDef >( ObjectDef::Args{ body, pInheritance } );
+        return database.construct< ObjectDef >( ObjectDef::Args{ body, pSize, pInheritance } );
     }
 
     void parse_cardinality( mega::Cardinality& linker )

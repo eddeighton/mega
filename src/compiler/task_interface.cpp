@@ -407,14 +407,17 @@ public:
         using namespace InterfaceStage;
         std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
         std::optional< Interface::InheritanceTrait* >             inheritance;
+        std::optional< Interface::SizeTrait* >                    size;
         for ( Parser::AbstractDef* pDef : pAbstract->get_abstract_defs() )
         {
             collectDimensionTraits( database, pAbstract, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
+            collectSizeTrait( database, pDef, size );
         }
 
         pAbstract->set_dimension_traits( dimensions );
         pAbstract->set_inheritance_trait( inheritance );
+        pAbstract->set_size_trait( size );
     }
     void onAction( InterfaceStage::Database& database, InterfaceStage::Interface::Action* pAction )
     {
@@ -508,15 +511,18 @@ public:
         using namespace InterfaceStage;
         std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
         std::optional< Interface::InheritanceTrait* >             inheritance;
+        std::optional< Interface::SizeTrait* >                    size;
         for ( Parser::ObjectDef* pDef : pObject->get_object_defs() )
         {
             collectDimensionTraits( database, pObject, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
+            collectSizeTrait( database, pDef, size );
             VERIFY_PARSER( pDef->get_body().empty(), "Object has body", pDef->get_id() );
         }
 
         pObject->set_dimension_traits( dimensions );
         pObject->set_inheritance_trait( inheritance );
+        pObject->set_size_trait( size );
     }
     void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink )
     {
