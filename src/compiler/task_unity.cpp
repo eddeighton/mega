@@ -523,8 +523,26 @@ public:
         using namespace UnityStageView;
         Database database( m_environment, m_manifest );
 
-        nlohmann::json data(
-            { { "prefabBindings", nlohmann::json::array() }, { "relations", nlohmann::json::array() } } );
+        nlohmann::json data( { { "prefabBindings", nlohmann::json::array() },
+                               { "relations", nlohmann::json::array() },
+                               { "memoryMaps", nlohmann::json::array() } } );
+
+        for( MemoryLayout::MemoryMap* pMemoryMap :
+             database.many< MemoryLayout::MemoryMap >( m_environment.project_manifest() ) )
+        {
+            nlohmann::json memoryMap(
+                { { "blockSize", pMemoryMap->get_block_size() },
+                  { "allocation", pMemoryMap->get_fixed_allocation() },
+                  { "alignment", pMemoryMap->get_block_alignment() },
+                  { "interfaceTypeID", pMemoryMap->get_interface()->get_interface_id().getSymbolID() },
+                  { "concrete", nlohmann::json::array() } } );
+
+            for( Concrete::Object* pObject : pMemoryMap->get_concrete() )
+            {
+                memoryMap[ "concrete" ].push_back( pObject->get_concrete_id().getSymbolID() );
+            }
+            data[ "memoryMaps" ].push_back( memoryMap );
+        }
 
         for( UnityAnalysis::Binding* pBinding :
              database.many< UnityAnalysis::Binding >( m_environment.project_manifest() ) )

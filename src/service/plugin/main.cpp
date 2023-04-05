@@ -93,14 +93,14 @@ void update()
 {
     while( true )
     {
-        mega::log::Range* pRange = reinterpret_cast< mega::log::Range* >( mp_downstream() );
+        const mega::log::Range* pRange = reinterpret_cast< const mega::log::Range* >( mp_downstream() );
         if( !pRange )
         {
             break;
         }
         for( mega::U64 iter = pRange->m_memory.m_begin; iter != pRange->m_memory.m_end; )
         {
-            MemoryRecordHeader* pRecord = reinterpret_cast< MemoryRecordHeader* >( iter );
+            const MemoryRecordHeader* pRecord = reinterpret_cast< const MemoryRecordHeader* >( iter );
             using ::operator<<;
             std::cout << "Found memory record: " << pRecord->ref << std::endl;
             iter += pRecord->size;

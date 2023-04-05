@@ -85,19 +85,34 @@ void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel 
         = std::make_unique< mega::service::PluginWrapper >( pszConsoleLogLevel, pszFileLogLevel );
 }
 
-void* mp_downstream()
+const void* mp_downstream()
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->downstream();
 }
 
-mega::I64 mp_hashcode()
+mega::I64 mp_database_hashcode()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->hashcode();
+    return mega::service::g_pPluginWrapper->m_pPlugin->database_hashcode();
 }
 
 const char* mp_database()
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->database();
+}
+
+MEGA_64 mp_memory_state()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->memory_state();
+}
+
+MEGA_64 mp_memory_size()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->memory_size();
+}
+
+const void* mp_memory_data()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->memory_data();
 }
 
 void mp_upstream( float delta, void* pRange )

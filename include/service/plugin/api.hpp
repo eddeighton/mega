@@ -33,9 +33,14 @@ extern "C"
     void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
     void mp_shutdown();
 
-    MEGA_64 mp_hashcode();
+    MEGA_64 mp_database_hashcode();
     const char* mp_database();
-    void* mp_downstream();
+
+    MEGA_64 mp_memory_state();
+    MEGA_64 mp_memory_size();
+    const void* mp_memory_data();
+
+    const void* mp_downstream();
     void mp_upstream( float delta, void* pRange );
 
     // network connection

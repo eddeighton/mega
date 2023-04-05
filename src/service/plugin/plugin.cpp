@@ -279,12 +279,16 @@ void Plugin::dispatch( const network::Message& msg )
         // simulation clock
         case MSG_SimRegister_Request::ID:
         {
-            m_stateMachine.simRegister( MSG_SimRegister_Request::get( msg ) );
+            const network::sim::MSG_SimRegister_Request& msg_ = MSG_SimRegister_Request::get( msg );
+            m_stateMachine.simRegister( msg_ );
+            m_memoryDescription.onRegister( msg_.senderRef );
         }
         break;
         case MSG_SimUnregister_Request::ID:
         {
-            m_stateMachine.simUnregister( MSG_SimUnregister_Request::get( msg ) );
+            const auto& msg_ = MSG_SimUnregister_Request::get( msg );
+            m_stateMachine.simUnregister( msg_ );
+            m_memoryDescription.onUnregister( msg_.mpo );
         }
         break;
         case MSG_SimClock_Request::ID:
@@ -302,8 +306,8 @@ void Plugin::dispatch( const network::Message& msg )
             boost::filesystem::path unityDatabasePath = projectMsg.project.getProjectBin() / "unityDatabase.json";
             VERIFY_RTE_MSG( boost::filesystem::exists( unityDatabasePath ),
                             "Failed to locate unity database: " << unityDatabasePath.string() );
-            m_strDatabasePath = unityDatabasePath.string();
-            m_hashcode        = task::FileHash( unityDatabasePath );
+            m_strDatabasePath  = unityDatabasePath.string();
+            m_databaseHashcode = task::FileHash( unityDatabasePath );
         }
         break;
 

@@ -21,6 +21,8 @@
 #ifndef GUARD_2023_March_07_plugin
 #define GUARD_2023_March_07_plugin
 
+#include "memory_info.hpp"
+
 #include "service/plugin/platform.hpp"
 #include "service/plugin/player_network.hpp"
 #include "service/plugin/plugin_state_machine.hpp"
@@ -94,10 +96,14 @@ public:
         send( sender, MsgType::make( getID(), sender.getID(), std::move( msg ) ) );
     }
 
-    mega::I64   hashcode() { return m_hashcode.get(); }
+    mega::I64   database_hashcode() { return m_databaseHashcode.get(); }
     const char* database() { return m_strDatabasePath.c_str(); }
 
-    log::Range* downstream()
+    mega::I64   memory_state() { return m_memoryDescription.getState(); }
+    mega::I64   memory_size() { return m_memoryDescription.getSize(); }
+    const void* memory_data() { return m_memoryDescription.getData(); }
+
+    const log::Range* downstream()
     {
         tryRun();
         return m_stateMachine.getDownstream();
@@ -131,8 +137,10 @@ private:
     PlayerNetwork::Ptr                           m_pPlayerNetwork;
     std::optional< network::PlatformState >      m_platformStateOpt;
     std::optional< network::PlayerNetworkState > m_networkStateOpt;
-    task::FileHash                               m_hashcode;
+    task::FileHash                               m_databaseHashcode;
     std::string                                  m_strDatabasePath;
+    common::Hash                                 m_memoryHashcode;
+    MemoryDescription                            m_memoryDescription;
     float                                        m_ct               = 0.0f;
     float                                        m_statusRate       = 1.0f;
     bool                                         m_bNetworkRequest  = false;

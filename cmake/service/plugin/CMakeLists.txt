@@ -46,6 +46,7 @@ set( PLUGIN_SRC_DIR ${MEGA_SRC_DIR}/service/plugin )
 ####################################################################
 
 set( PLUGIN_API
+    ${MEGA_API_DIR}/service/plugin/memory_info.hpp 
     ${MEGA_API_DIR}/service/plugin/api.hpp 
     ${MEGA_API_DIR}/service/plugin/platform.hpp 
     ${MEGA_API_DIR}/service/plugin/player_network.hpp 
