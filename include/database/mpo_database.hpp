@@ -17,17 +17,34 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "request.hpp"
-#include "service/tool.hpp"
+#ifndef GUARD_2023_April_04_mpo_database
+#define GUARD_2023_April_04_mpo_database
 
-namespace mega::service
+#include "database/common/api.hpp"
+#include "database/common/environment_archive.hpp"
+
+#include "database/model/FinalStage.hxx"
+#include "database/model/manifest.hxx"
+
+#include <unordered_map>
+
+namespace mega::runtime
 {
 
-// network::project::Impl
-
-void ToolRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
+class EGDB_EXPORT MPODatabase
 {
-    SPDLOG_TRACE( "ToolRequestConversation::SetProject: {}", project.getProjectInstallPath().string() );
-}
+public:
+    MPODatabase( const boost::filesystem::path& projectDatabasePath );
 
-} // namespace mega::service
+    using MemoryMapping = std::unordered_map< TypeID, FinalStage::MemoryLayout::MemoryMap*, TypeID::Hash >;
+    MemoryMapping getMemoryMappings();
+
+private:
+    io::ArchiveEnvironment m_environment;
+    io::Manifest           m_manifest;
+    FinalStage::Database   m_database;
+};
+
+} // namespace mega::runtime
+
+#endif // GUARD_2023_April_04_mpo_database

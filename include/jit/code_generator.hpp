@@ -25,7 +25,7 @@
 #include "function_declarations.hpp"
 #include "indent.hpp"
 
-#include "database/database.hpp"
+#include "database/jit_database.hpp"
 
 #include "invocation_functions.hxx"
 #include "operator_functions.hxx"
@@ -49,7 +49,7 @@ class JIT_EXPORT CodeGenerator
 public:
     using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
 
-    static std::string allocatorTypeName( const DatabaseInstance&                      database,
+    static std::string allocatorTypeName( const JITDatabase&                      database,
                                           FinalStage::Concrete::Dimensions::Allocator* pAllocDim );
 
     class LLVMCompiler
@@ -63,16 +63,16 @@ public:
     CodeGenerator( const mega::MegastructureInstallation& megastructureInstallation,
                    const mega::Project&                   project );
 
-    void generate_alllocator( const LLVMCompiler& compiler, const DatabaseInstance& database, mega::TypeID objectTypeID,
+    void generate_alllocator( const LLVMCompiler& compiler, const JITDatabase& database, mega::TypeID objectTypeID,
                               std::ostream& os );
-    void generate_invocation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+    void generate_invocation( const LLVMCompiler& compiler, const JITDatabase& database,
                               const mega::InvocationID&               invocationID,
                               mega::runtime::invocation::FunctionType invocationType, std::ostream& os );
-    void generate_relation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+    void generate_relation( const LLVMCompiler& compiler, const JITDatabase& database,
                             const RelationID& relationID, std::ostream& os );
-    void generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os );
+    void generate_program( const LLVMCompiler& compiler, const JITDatabase& database, std::ostream& os );
 
-    void generate_operator( const LLVMCompiler& compiler, const DatabaseInstance& database, TypeID target,
+    void generate_operator( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target,
                             mega::runtime::operators::FunctionType invocationType, std::ostream& os );
 
 private:
@@ -82,12 +82,12 @@ private:
                        nlohmann::json&                                                       data,
                        Indent&                                                               indent ) const;
 
-    void generateInstructions( const DatabaseInstance&                             database,
+    void generateInstructions( const JITDatabase&                             database,
                                FinalStage::Invocations::Instructions::Instruction* pInstruction,
                                const VariableMap& variables, FunctionDeclarations& functions, nlohmann::json& data,
                                Indent& indent ) const;
 
-    nlohmann::json generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
+    nlohmann::json generate( const JITDatabase& database, const mega::InvocationID& invocationID,
                              std::string& strName ) const;
 
 private:

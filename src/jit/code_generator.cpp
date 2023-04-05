@@ -47,7 +47,7 @@ CodeGenerator::CodeGenerator( const mega::MegastructureInstallation& megastructu
 {
 }
 
-std::string CodeGenerator::allocatorTypeName( const DatabaseInstance&                      database,
+std::string CodeGenerator::allocatorTypeName( const JITDatabase&                      database,
                                               FinalStage::Concrete::Dimensions::Allocator* pAllocDim )
 {
     using namespace FinalStage;
@@ -85,7 +85,7 @@ std::string CodeGenerator::allocatorTypeName( const DatabaseInstance&           
     return osTypeName.str();
 }
 
-nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
+nlohmann::json CodeGenerator::generate( const JITDatabase& database, const mega::InvocationID& invocationID,
                                         std::string& strName ) const
 {
     FunctionDeclarations functions;
@@ -119,7 +119,7 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
     return data;
 }
 
-void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const JITDatabase& database,
                                          const mega::InvocationID&               invocationID,
                                          mega::runtime::invocation::FunctionType invocationType, std::ostream& os )
 {
@@ -180,7 +180,7 @@ void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const Dat
     compiler.compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 
-void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const DatabaseInstance& database,
+void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDatabase& database,
                                        const RelationID& relationID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_relation" );
@@ -260,7 +260,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const Datab
     compiler.compileToLLVMIR( osModuleName.str(), osCPPCode.str(), os, std::nullopt );
 }
 
-void CodeGenerator::generate_program( const LLVMCompiler& compiler, const DatabaseInstance& database, std::ostream& os )
+void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDatabase& database, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_program" );
 
@@ -272,7 +272,7 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
                            { "relation_types", nlohmann::json::array() } } );
 
     {
-        DatabaseInstance::ConcreteToInterface concreteToInterface;
+        JITDatabase::ConcreteToInterface concreteToInterface;
         database.getConcreteToInterface( concreteToInterface );
         for( const auto& type : concreteToInterface )
         {
@@ -282,7 +282,7 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const Databa
         }
     }
     {
-        DatabaseInstance::ConcreteToInterface concreteToLinkInterface;
+        JITDatabase::ConcreteToInterface concreteToLinkInterface;
         database.getConcreteToLinkInterface( concreteToLinkInterface );
         for( const auto& type : concreteToLinkInterface )
         {

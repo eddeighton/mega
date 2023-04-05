@@ -30,7 +30,7 @@
 namespace mega::runtime
 {
 
-Program::Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
+Program::Program( JITDatabase& database, JITCompiler::Module::Ptr pModule )
     : m_pModule( pModule )
 {
     SPDLOG_TRACE( "Program::ctor" );

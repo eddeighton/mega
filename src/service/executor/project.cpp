@@ -30,13 +30,18 @@ namespace mega::service
 // network::project::Impl
 void ExecutorRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
 {
-    //std::vector< Simulation::Ptr > simulations;
-    //m_executor.getSimulations( simulations );
+    {
+        std::vector< Simulation::Ptr > simulations;
+        m_executor.getSimulations( simulations );
+        for( Simulation::Ptr pSim : simulations )
+        {
+            network::project::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
+            rq.SetProject( project );
+        }
+    }
 
     if( network::ConversationBase* pClock = m_executor.getClock() )
     {
-        // network::project::Request_Sender rq( *this, pClock->getID(), *pClock, yield_ctx );
-        // rq.SetProject( project );
 
         // fire and forget to the plugin
         using namespace network::project;

@@ -44,7 +44,7 @@ public:
                 strConsoleLogLevel = pszConsoleLogLevel;
             if( pszFileLogLevel )
                 strLogFileLevel = pszFileLogLevel;
-            mega::network::configureLog( logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
+            mega::network::configureLog( logFolder, "plugin", mega::network::fromStr( strConsoleLogLevel ),
                                          mega::network::fromStr( strLogFileLevel ) );
         }
 

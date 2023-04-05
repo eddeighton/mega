@@ -24,6 +24,8 @@
 #include "mega/types/traits.hpp"
 #include "mega/reference.hpp"
 
+#include "database/mpo_database.hpp"
+
 #include "jit/functions.hpp"
 
 #include "service/memory_manager.hpp"
@@ -62,6 +64,7 @@ protected:
     network::TransactionProducer              m_transactionProducer;
     boost::asio::yield_context*               m_pYieldContext = nullptr;
     reference                                 m_root;
+    std::unique_ptr< runtime::MPODatabase >   m_pDatabase;
     std::unique_ptr< runtime::MemoryManager > m_pMemoryManager;
 
 public:

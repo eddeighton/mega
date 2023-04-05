@@ -349,10 +349,12 @@ void link_overwrite_{{ relationID }}( mega::reference context, mega::reference p
 {
     prepare( context );
     prepare( parameter );
+    throw mega::runtime::JITException{ "link_overwrite_{{ relationID }} NOT IMPLEMENTED" };
 }
 
 void link_reset_{{ relationID }}( mega::reference context, mega::reference parameter )
 {
     prepare( context );
     prepare( parameter );
+    throw mega::runtime::JITException{ "link_reset_{{ relationID }} NOT IMPLEMENTED" };
 }

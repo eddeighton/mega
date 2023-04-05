@@ -28,7 +28,7 @@
 #include "program.hpp"
 #include "relation.hpp"
 
-#include "database/database.hpp"
+#include "database/jit_database.hpp"
 #include "database/model/OperationsStage.hxx"
 
 #include "utilities/project.hpp"
@@ -85,7 +85,7 @@ private:
     const Project                   m_project;
 
     JITCompiler                            m_jitCompiler;
-    DatabaseInstance                       m_database;
+    JITDatabase                       m_database;
     mega::io::FileStore::Ptr               m_pythonFileStore;
     OperationsStage::Database              m_pythonDatabase;
     FinalStage::Database                   m_pythonDatabaseFinal;

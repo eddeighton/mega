@@ -175,7 +175,7 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
             dispatchRequestImpl( msg, yield_ctx );
 
             // check if connection has disconnected
-            if( m_disconnections.empty() )
+            if( !m_disconnections.empty() )
             {
                 ASSERT( !m_stack.empty() );
                 if( m_disconnections.count( m_stack.back() ) )

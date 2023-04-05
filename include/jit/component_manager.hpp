@@ -23,7 +23,7 @@
 #include "api.hpp"
 #include "functions.hpp"
 
-#include "database/database.hpp"
+#include "database/jit_database.hpp"
 
 #include "utilities/project.hpp"
 
@@ -67,7 +67,7 @@ class JIT_EXPORT ComponentManager
 public:
     using Ptr = std::unique_ptr< ComponentManager >;
 
-    ComponentManager( const mega::Project& project, DatabaseInstance& database );
+    ComponentManager( const mega::Project& project, JITDatabase& database );
 
     TypeErasedFunction getOperationFunctionPtr( mega::TypeID interfaceTypeID );
     TypeErasedFunction getPythonFunctionPtr( mega::TypeID interfaceTypeID );
@@ -76,7 +76,7 @@ private:
     void loadComponent() {}
 
     const mega::Project& m_project;
-    DatabaseInstance&             m_database;
+    JITDatabase&             m_database;
     InterfaceComponentMap         m_interfaceComponents;
     FunctionPtrMap                m_functions;
     InterfaceComponentMap         m_pythonComponents;

@@ -27,7 +27,7 @@ namespace mega::runtime
 
 struct Args
 {
-    const DatabaseInstance&           database;
+    const JITDatabase&           database;
     const CodeGenerator::VariableMap& variables;
     FunctionDeclarations&             functions;
     nlohmann::json&                   data;
@@ -808,7 +808,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Range* pRange )
 
 } // namespace
 
-void CodeGenerator::generateInstructions( const DatabaseInstance&                             database,
+void CodeGenerator::generateInstructions( const JITDatabase&                             database,
                                           FinalStage::Invocations::Instructions::Instruction* pInstruction,
                                           const VariableMap& variables, FunctionDeclarations& functions,
                                           nlohmann::json& data, Indent& indent ) const

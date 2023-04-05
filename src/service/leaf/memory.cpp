@@ -39,8 +39,10 @@ namespace mega::service
 // network::memory::Impl
 void LeafRequestConversation::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised" );
-    m_leaf.m_pRemoteMemoryManager->MPODestroyed( mpo );
+    if( m_leaf.m_pJIT.get() )
+    {
+        m_leaf.m_pRemoteMemoryManager->MPODestroyed( mpo );
+    }
 }
 
 reference LeafRequestConversation::NetworkAllocate( const MPO& parent, const TypeID& objectTypeID,

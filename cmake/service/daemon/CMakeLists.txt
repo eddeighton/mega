@@ -61,7 +61,6 @@ ENDIF( ${WIN32} )
 target_link_libraries( daemon utilities )
 target_link_libraries( daemon protocol )
 target_link_libraries( daemon network )
-target_link_libraries( daemon database )
 
 set_target_properties( daemon PROPERTIES FOLDER service )
 

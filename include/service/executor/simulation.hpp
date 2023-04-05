@@ -78,6 +78,9 @@ public:
     virtual MPO  SimCreate( boost::asio::yield_context& ) override;
     virtual void SimDestroy( boost::asio::yield_context& ) override;
 
+    // network::project::Impl
+    virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
+    
     // network::leaf_exe::Impl
     virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 

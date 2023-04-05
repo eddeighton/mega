@@ -431,6 +431,7 @@ stage FinalStage
     global accessor ref< Symbols::SymbolTable >;
     global accessor ref< Dependencies::Analysis >;
     global accessor array< ref< UnityAnalysis::Binding > >;
+    global accessor array< ref< MemoryLayout::MemoryMap > >;
     
     persource accessor ref< Interface::Root >;
     persource accessor ref< Concrete::Root >;

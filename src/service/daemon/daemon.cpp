@@ -79,7 +79,7 @@ Daemon::Daemon( boost::asio::io_context& ioContext,
         conversationInitiated(
             std::make_shared< DaemonEnrole >( *this, m_rootClient.getConnectionID(), promise ), m_rootClient );
         using namespace std::chrono_literals;
-        while ( std::future_status::timeout == future.wait_for( 0s ) )
+        while( std::future_status::timeout == future.wait_for( 0s ) )
         {
             ioContext.run_one();
         }
@@ -95,25 +95,6 @@ Daemon::~Daemon()
 void Daemon::setActiveProject( const Project& project )
 {
     m_activeProject = project;
-    m_pDatabase.reset();
-    try
-    {
-        if ( !m_activeProject->getProjectInstallPath().empty()
-             && boost::filesystem::exists( project.getProjectDatabase() ) )
-        {
-            m_pDatabase.reset( new runtime::DatabaseInstance( project.getProjectDatabase() ) );
-        }
-    }
-    catch ( mega::io::DatabaseVersionException& ex )
-    {
-        SPDLOG_ERROR( "Database version exception: {}", project.getProjectInstallPath().string(), ex.what() );
-    }
-    catch ( std::exception& ex )
-    {
-        SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
-                      project.getProjectInstallPath().string(), ex.what() );
-        THROW_RTE( ex.what() );
-    }
 }
 
 void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::MP leafMP )

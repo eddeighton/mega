@@ -26,7 +26,7 @@
 
 #include "program_functions.hxx"
 
-#include "database/database.hpp"
+#include "database/jit_database.hpp"
 
 #include <memory>
 
@@ -37,7 +37,7 @@ class JIT_EXPORT Program
 public:
     using Ptr = std::shared_ptr< Program >;
 
-    Program( DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
+    Program( JITDatabase& database, JITCompiler::Module::Ptr pModule );
 
     program::ObjectSaveBin::FunctionPtr getObjectSaveBin() const { return m_objectSaveBin; }
     program::ObjectLoadBin::FunctionPtr getObjectLoadBin() const { return m_objectLoadBin; }

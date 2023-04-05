@@ -21,14 +21,14 @@
 
 #include "symbol_utils.hpp"
 
-#include "database/database.hpp"
+#include "database/jit_database.hpp"
 
 #include "service/network/log.hpp"
 
 namespace mega::runtime
 {
 
-Allocator::Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
+Allocator::Allocator( TypeID objectTypeID, JITDatabase& database, JITCompiler::Module::Ptr pModule )
     : m_pModule( pModule )
     , m_objectTypeID( objectTypeID )
     , m_sizeAlignment( database.getObjectSize( m_objectTypeID ) )

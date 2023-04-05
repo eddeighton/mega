@@ -17,12 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/database.hpp"
+#include "database/jit_database.hpp"
 
 namespace mega::runtime
 {
 
-DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDatabasePath )
+JITDatabase::JITDatabase( const boost::filesystem::path& projectDatabasePath )
     : m_environment( projectDatabasePath )
     , m_manifest( m_environment, m_environment.project_manifest() )
     , m_database( m_environment, m_manifest.getManifestFilePath() )
@@ -66,7 +66,7 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
     }
 }
 
-void DatabaseInstance::getConcreteToInterface( ConcreteToInterface& objectTypes ) const
+void JITDatabase::getConcreteToInterface( ConcreteToInterface& objectTypes ) const
 {
     for( const auto& [ id, pConcreteTypeID ] : m_concreteTypeIDs )
     {
@@ -95,7 +95,7 @@ void DatabaseInstance::getConcreteToInterface( ConcreteToInterface& objectTypes 
     }
 }
 
-void DatabaseInstance::getConcreteToLinkInterface( ConcreteToInterface& objectTypes ) const
+void JITDatabase::getConcreteToLinkInterface( ConcreteToInterface& objectTypes ) const
 {
     using namespace FinalStage;
     for( const auto& [ id, pConcreteTypeID ] : m_concreteTypeIDs )
@@ -126,14 +126,14 @@ void DatabaseInstance::getConcreteToLinkInterface( ConcreteToInterface& objectTy
     }
 }
 
-FinalStage::HyperGraph::Relation* DatabaseInstance::getRelation( const RelationID& relationID ) const
+FinalStage::HyperGraph::Relation* JITDatabase::getRelation( const RelationID& relationID ) const
 {
     auto iFind = m_relations.find( relationID );
     VERIFY_RTE_MSG( iFind != m_relations.end(), "Failed to locate relation: " << relationID );
     return iFind->second;
 }
 
-mega::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType ) const
+mega::SizeAlignment JITDatabase::getObjectSize( mega::TypeID objectType ) const
 {
     VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getObjectSize" );
     using namespace FinalStage;
@@ -164,7 +164,7 @@ mega::SizeAlignment DatabaseInstance::getObjectSize( mega::TypeID objectType ) c
 }
 
 const FinalStage::Operations::Invocation*
-DatabaseInstance::getExistingInvocation( const mega::InvocationID& invocation ) const
+JITDatabase::getExistingInvocation( const mega::InvocationID& invocation ) const
 {
     using namespace FinalStage;
     using InvocationMap = std::map< mega::InvocationID, Operations::Invocation* >;
@@ -205,25 +205,25 @@ DatabaseInstance::getExistingInvocation( const mega::InvocationID& invocation ) 
     return nullptr;
 }
 
-const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const mega::InvocationID& invocation ) const
+const FinalStage::Operations::Invocation* JITDatabase::getInvocation( const mega::InvocationID& invocation ) const
 {
     const FinalStage::Operations::Invocation* pInvocation = getExistingInvocation( invocation );
     VERIFY_RTE_MSG( pInvocation, "Failed to locate invocation: " << invocation );
     return pInvocation;
 }
 
-const FinalStage::Operations::Invocation* DatabaseInstance::tryGetInvocation( const InvocationID& invocation ) const
+const FinalStage::Operations::Invocation* JITDatabase::tryGetInvocation( const InvocationID& invocation ) const
 {
     return getExistingInvocation( invocation );
 }
 
-void DatabaseInstance::addDynamicInvocation( const InvocationID&                       invocationID,
+void JITDatabase::addDynamicInvocation( const InvocationID&                       invocationID,
                                              const FinalStage::Operations::Invocation* pInvocation )
 {
     m_dynamicInvocations.insert( { invocationID, pInvocation } );
 }
 
-mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID ) const
+mega::TypeID JITDatabase::getInterfaceTypeID( mega::TypeID concreteTypeID ) const
 {
     VERIFY_RTE_MSG( concreteTypeID != mega::TypeID{}, "Null TypeID in getInterfaceTypeID" );
     auto iFind = m_concreteTypeIDs.find( concreteTypeID );
@@ -240,11 +240,11 @@ mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID )
     }
     else if( pConcreteTypeID->get_dim_allocation().has_value() )
     {
-        THROW_RTE( "DatabaseInstance::getInterfaceTypeID: " << concreteTypeID << " asked for allocation dimension" );
+        THROW_RTE( "JITDatabase::getInterfaceTypeID: " << concreteTypeID << " asked for allocation dimension" );
     }
     else if( pConcreteTypeID->get_dim_link().has_value() )
     {
-        THROW_RTE( "DatabaseInstance::getInterfaceTypeID: " << concreteTypeID << " asked for link dimension" );
+        THROW_RTE( "JITDatabase::getInterfaceTypeID: " << concreteTypeID << " asked for link dimension" );
     }
     else
     {
@@ -252,7 +252,7 @@ mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID )
     }
 }
 
-std::vector< TypeID > DatabaseInstance::getCompatibleConcreteTypes( TypeID interfaceTypeID ) const
+std::vector< TypeID > JITDatabase::getCompatibleConcreteTypes( TypeID interfaceTypeID ) const
 {
     VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getCompatibleConcreteTypes" );
     std::vector< TypeID > result;
@@ -274,7 +274,7 @@ std::vector< TypeID > DatabaseInstance::getCompatibleConcreteTypes( TypeID inter
     return result;
 }
 
-FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectType ) const
+FinalStage::Concrete::Object* JITDatabase::getObject( mega::TypeID objectType ) const
 {
     VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getObject" );
     auto iFind = m_concreteTypeIDs.find( objectType );
@@ -290,7 +290,7 @@ FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectTy
     return pObject;
 }
 
-FinalStage::Interface::Action* DatabaseInstance::getAction( mega::TypeID interfaceTypeID ) const
+FinalStage::Interface::Action* JITDatabase::getAction( mega::TypeID interfaceTypeID ) const
 {
     VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getAction" );
     auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
@@ -305,7 +305,7 @@ FinalStage::Interface::Action* DatabaseInstance::getAction( mega::TypeID interfa
     return pAction;
 }
 
-const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::TypeID objectType ) const
+const FinalStage::Components::Component* JITDatabase::getComponent( mega::TypeID objectType ) const
 {
     VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getComponent" );
     auto iFind = m_concreteTypeIDs.find( objectType );
@@ -316,10 +316,10 @@ const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::T
     {
         return pConcreteTypeID->get_context().value()->get_component();
     }
-    THROW_RTE( "DatabaseInstance::getComponent Unreachable" );
+    THROW_RTE( "JITDatabase::getComponent Unreachable" );
 }
 
-const FinalStage::Components::Component* DatabaseInstance::getOperationComponent( mega::TypeID interfaceTypeID ) const
+const FinalStage::Components::Component* JITDatabase::getOperationComponent( mega::TypeID interfaceTypeID ) const
 {
     VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getOperationComponent" );
     auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
@@ -330,10 +330,10 @@ const FinalStage::Components::Component* DatabaseInstance::getOperationComponent
     {
         return pConcreteTypeID->get_context().value()->get_component();
     }
-    THROW_RTE( "DatabaseInstance::getOperationComponent Unreachable" );
+    THROW_RTE( "JITDatabase::getOperationComponent Unreachable" );
 }
 /*
-mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
+mega::U64 JITDatabase::getTotalDomainSize( mega::TypeID concreteID ) const
 {
     using namespace FinalStage;
 
@@ -367,7 +367,7 @@ mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
     }
 }
 */
-mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
+mega::U64 JITDatabase::getLocalDomainSize( mega::TypeID concreteID ) const
 {
     VERIFY_RTE_MSG( concreteID != mega::TypeID{}, "Null TypeID in getLocalDomainSize" );
     using namespace FinalStage;
@@ -420,12 +420,12 @@ std::vector< T* > getPerCompilationFileType( const mega::io::Manifest& manifest,
     return result;
 }
 
-std::vector< FinalStage::Concrete::Object* > DatabaseInstance::getObjects() const
+std::vector< FinalStage::Concrete::Object* > JITDatabase::getObjects() const
 {
     return getPerCompilationFileType< FinalStage::Concrete::Object >( m_manifest, m_database );
 }
 
-std::unordered_map< std::string, mega::TypeID > DatabaseInstance::getIdentities() const
+std::unordered_map< std::string, mega::TypeID > JITDatabase::getIdentities() const
 {
     std::unordered_map< std::string, mega::TypeID > identities;
     for( const auto& [ name, pSymbol ] : m_pSymbolTable->get_symbol_names() )
@@ -442,22 +442,22 @@ std::unordered_map< std::string, mega::TypeID > DatabaseInstance::getIdentities(
     return identities;
 }
 
-std::vector< FinalStage::Concrete::Dimensions::User* > DatabaseInstance::getUserDimensions() const
+std::vector< FinalStage::Concrete::Dimensions::User* > JITDatabase::getUserDimensions() const
 {
     return getPerCompilationFileType< FinalStage::Concrete::Dimensions::User >( m_manifest, m_database );
 }
 
-std::vector< FinalStage::Concrete::Dimensions::LinkReference* > DatabaseInstance::getLinkDimensions() const
+std::vector< FinalStage::Concrete::Dimensions::LinkReference* > JITDatabase::getLinkDimensions() const
 {
     return getPerCompilationFileType< FinalStage::Concrete::Dimensions::LinkReference >( m_manifest, m_database );
 }
 
-std::vector< FinalStage::Concrete::Dimensions::Allocation* > DatabaseInstance::getAllocationDimensions() const
+std::vector< FinalStage::Concrete::Dimensions::Allocation* > JITDatabase::getAllocationDimensions() const
 {
     return getPerCompilationFileType< FinalStage::Concrete::Dimensions::Allocation >( m_manifest, m_database );
 }
 
-DatabaseInstance::PrefabBindings DatabaseInstance::getPrefabBindings() const
+JITDatabase::PrefabBindings JITDatabase::getPrefabBindings() const
 {
     return m_database.many< FinalStage::UnityAnalysis::Binding >( m_environment.project_manifest() );
 }

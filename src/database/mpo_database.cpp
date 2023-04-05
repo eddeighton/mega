@@ -17,17 +17,28 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "request.hpp"
-#include "service/tool.hpp"
+#include "database/mpo_database.hpp"
 
-namespace mega::service
+namespace mega::runtime
 {
 
-// network::project::Impl
-
-void ToolRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
+MPODatabase::MPODatabase( const boost::filesystem::path& projectDatabasePath )
+    : m_environment( projectDatabasePath )
+    , m_manifest( m_environment, m_environment.project_manifest() )
+    , m_database( m_environment, m_manifest.getManifestFilePath() )
 {
-    SPDLOG_TRACE( "ToolRequestConversation::SetProject: {}", project.getProjectInstallPath().string() );
 }
 
-} // namespace mega::service
+MPODatabase::MemoryMapping MPODatabase::getMemoryMappings()
+{
+    MPODatabase::MemoryMapping result;
+
+    using namespace FinalStage;
+    for( MemoryLayout::MemoryMap* pMemoryMap :
+         m_database.many< MemoryLayout::MemoryMap >( m_environment.project_manifest() ) )
+    {
+        result.insert( { pMemoryMap->get_interface()->get_interface_id(), pMemoryMap } );
+    }
+    return result;
+}
+} // namespace mega::runtime

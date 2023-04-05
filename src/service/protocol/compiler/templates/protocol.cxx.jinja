@@ -105,34 +105,36 @@ Request_Sender::Request_Sender( ConversationBase& _conversation_,
 {%endfor%} 
 )
 {
-    SUSPEND_MPO_CONTEXT();
-    ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
-        m_conversation.shared_from_this(), m_sender.getConnectionID() );
-
+    Message _response_;
     {
-        const Message _msg_ = MSG_{{ request.name }}_Request::make
-        (
-            m_conversation.getID(), m_receiver,
-            MSG_{{ request.name }}_Request
-            {
-{%for p in request.params%}
-                {{p.name}}{% if not loop.is_last %},{%endif%}
-{%endfor%} 
-            }
-        );
+        mega::_MPOContextStack _mpoStack;
+        ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
+            m_conversation.shared_from_this(), m_sender.getConnectionID() );
 
-        if ( const boost::system::error_code ec = m_sender.send( _msg_, m_yield_ctx ) )
         {
-            THROW_RTE( "Error writing: " << ec.what() );
-        }
-    }
+            const Message _msg_ = MSG_{{ request.name }}_Request::make
+            (
+                m_conversation.getID(), m_receiver,
+                MSG_{{ request.name }}_Request
+                {
+{%for p in request.params%}
+                    {{p.name}}{% if not loop.is_last %},{%endif%}
+{%endfor%} 
+                }
+            );
 
-    const Message _msg_ = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
-    VERIFY_RTE_MSG( _msg_.getID() == {{ filename }}::MSG_{{ request.name }}_Response::ID,
-        "Unexpected reponse of type: " << _msg_ << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
-    RESUME_MPO_CONTEXT();
+            if ( const boost::system::error_code ec = m_sender.send( _msg_, m_yield_ctx ) )
+            {
+                THROW_RTE( "Error writing: " << ec.what() );
+            }
+        }
+
+        _response_ = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
+        VERIFY_RTE_MSG( _response_.getID() == {{ filename }}::MSG_{{ request.name }}_Response::ID,
+            "Unexpected reponse of type: " << _response_ << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+    }
 {%if request.return_type != "void" %}
-    return {{ filename }}::MSG_{{ request.name }}_Response::get( _msg_ ).{{ request.return_msg_member }};
+    return {{ filename }}::MSG_{{ request.name }}_Response::get( _response_ ).{{ request.return_msg_member }};
 {% endif %}
 }
 {% endfor %}

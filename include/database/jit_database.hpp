@@ -38,7 +38,7 @@
 namespace mega::runtime
 {
 
-class EGDB_EXPORT DatabaseInstance
+class EGDB_EXPORT JITDatabase
 {
     using InterfaceTypeIDMap    = std::map< mega::TypeID, ::FinalStage::Symbols::InterfaceTypeID* >;
     using ConcreteTypeIDMap     = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
@@ -47,7 +47,7 @@ class EGDB_EXPORT DatabaseInstance
     const FinalStage::Operations::Invocation* getExistingInvocation( const InvocationID& invocation ) const;
 
 public:
-    DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
+    JITDatabase( const boost::filesystem::path& projectDatabasePath );
 
     const io::ArchiveEnvironment& getEnvironment() const { return m_environment; }
     const io::Manifest&           getManifest() const { return m_manifest; }

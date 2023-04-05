@@ -26,7 +26,7 @@
 
 #include "relation_functions.hxx"
 
-#include "database/database.hpp"
+#include "database/jit_database.hpp"
 
 #include "mega/relation_id.hpp"
 
@@ -39,7 +39,7 @@ class JIT_EXPORT Relation
 public:
     using Ptr = std::shared_ptr< Relation >;
 
-    Relation( const RelationID& relationID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
+    Relation( const RelationID& relationID, JITDatabase& database, JITCompiler::Module::Ptr pModule );
 
     relation::LinkMake::FunctionPtr      getMake() const { return m_pMake; }
     relation::LinkBreak::FunctionPtr     getBreak() const { return m_pBreak; }

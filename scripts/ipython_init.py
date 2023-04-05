@@ -1,4 +1,3 @@
-
 #  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 #  Author: Edward Deighton
 #  License: Please see license.txt in the project root folder.
@@ -23,17 +22,17 @@ import sys
 import os
 
 # grab the mega structure environment
-WORKSPACE_ROOT_PATH = os.environ['WORKSPACE_ROOT_PATH']
-BUILD_PATH = os.environ['BUILD_PATH']
-CFG_LINK = os.environ['CFG_LINK']
-CFG_TYPE = os.environ['CFG_TYPE']
-CFG_TUPLE = os.environ['CFG_TUPLE']
+WORKSPACE_ROOT_PATH = os.environ["WORKSPACE_ROOT_PATH"]
+BUILD_PATH = os.environ["BUILD_PATH"]
+CFG_LINK = os.environ["CFG_LINK"]
+CFG_TYPE = os.environ["CFG_TYPE"]
+CFG_TUPLE = os.environ["CFG_TUPLE"]
 
-MEGA_BIN =  BUILD_PATH + '/' + CFG_TUPLE + "/mega/install/bin" 
+MEGA_BIN = BUILD_PATH + "/" + CFG_TUPLE + "/mega/install/bin"
 
-sys.path.append( MEGA_BIN )
+sys.path.append(MEGA_BIN)
 
-os.chdir( "/home/foobar/test_{}".format( CFG_TYPE ) )
+os.chdir("/home/foobar/test_{}".format(CFG_TYPE))
 
 import megastructure
 import asyncio
@@ -42,6 +41,7 @@ mega = megastructure
 
 _continue = True
 
+
 async def run_megastructure():
     global _continue
     while _continue:
@@ -49,7 +49,8 @@ async def run_megastructure():
         await asyncio.sleep(0.1)
 
 
-asyncio.create_task( run_megastructure() )
+asyncio.create_task(run_megastructure())
+
 
 def getAllMPOs():
     for machine in megastructure.getRoot().getMachines():
@@ -57,30 +58,39 @@ def getAllMPOs():
             for mpo in process.getMPOs():
                 yield mpo
 
+
 def getAllMPOsList():
     return [mpo for mpo in getAllMPOs()]
+
 
 def getFirstMPO():
     return getAllMPOsList()[0]
 
+
 def getFirstRoot():
     return getFirstMPO().getRoot()
 
+
 mega = megastructure
 
-def test1():
-    p = mega.getProcess( "0.0")
-    mpo = p.createMPO()
-    r = mpo.getRoot()
+REMOVE = mega.WriteOperation.REMOVE
 
+
+def createPlanet(mpo):
+    r = mpo.getRoot()
     pl = r.PlanetParent.Planet()
 
-    mega.cycle()
 
-
-def test2():
-
-    r = mega.getMPO( "0.0.0" ).getRoot()
+def removePlanet(mpo):
+    r = mpo.getRoot()
     p = r.PlanetParent()
+    r.PlanetParent(REMOVE, p)
 
-    r.PlanetParent( mega.WriteOperation.REMOVE, p )
+
+def createAndRemovePlanet(mpo):
+    r = mpo.getRoot()
+    p = r.PlanetParent.Planet()
+    print(p)
+    r.PlanetParent(REMOVE, p.PlanetChild.Get())
+    pAfterBreak = r.PlanetParent()
+    print(pAfterBreak)

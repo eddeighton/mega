@@ -36,6 +36,7 @@
 #include "mega/bin_archive.hpp"
 
 #include <boost/filesystem/operations.hpp>
+#include <memory>
 
 namespace mega::service
 {
@@ -161,7 +162,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 case StateMachine::SIM:
                 {
                     const auto timeStamp = m_log.getTimeStamp();
-                    
+
                     m_clock.nextCycle();
 
                     {
@@ -263,9 +264,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 network::ReceivedMsg Simulation::receive( boost::asio::yield_context& yield_ctx )
 {
     network::ReceivedMsg msg;
-    SUSPEND_MPO_CONTEXT();
-    msg = ExecutorRequestConversation::receive( yield_ctx );
-    RESUME_MPO_CONTEXT();
+    {
+        mega::_MPOContextStack _mpoStack;
+        msg = ExecutorRequestConversation::receive( yield_ctx );
+    }
     return msg;
 }
 
@@ -446,7 +448,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
     // NOTE: how SimLockRelease is acknoledged when the simulation routine goes
     // through its simulation requests - INCLUDING the clock response
     // need to avoid the timer generating a clock response WHILE process other request
-    // since this could interupt expected responses 
+    // since this could interupt expected responses
     QueueStackDepth queueMsgs( m_queueStack );
     applyTransaction( transaction );
 }
@@ -462,6 +464,14 @@ MPO Simulation::SimCreate( boost::asio::yield_context& )
     VERIFY_RTE_MSG( m_mpo.has_value(), "SimCreate failed and has no mpo" );
     // This is called when RootSimRun acks the pending SimCreate from ExecutorRequestConversation::SimCreate
     return m_mpo.value();
+}
+
+void Simulation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "SIM::SetProject: {}", m_mpo.has_value() ? m_mpo.value() : MPO{} );
+
+    m_pDatabase.reset();
+    m_pDatabase = std::make_unique< runtime::MPODatabase >( project.getProjectDatabase() );
 }
 
 void Simulation::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx )

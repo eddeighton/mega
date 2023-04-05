@@ -53,7 +53,7 @@ std::string makeIterName( FinalStage::Concrete::Context* pContext )
 }
 
 template < typename TDimensionType >
-std::string calculateElementOffset( const DatabaseInstance& database, TDimensionType* pUserDim,
+std::string calculateElementOffset( const JITDatabase& database, TDimensionType* pUserDim,
                                     std::string& strInstance )
 {
     using namespace FinalStage;
@@ -103,7 +103,7 @@ std::string calculateElementOffset( const DatabaseInstance& database, TDimension
     return offset.str();
 }
 
-void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::Concrete::Dimensions::User* pUserDim,
+void generateAllocatorDimensions( const JITDatabase& database, FinalStage::Concrete::Dimensions::User* pUserDim,
                                   nlohmann::json& data )
 {
     std::string    strInstance;
@@ -123,7 +123,7 @@ void generateAllocatorDimensions( const DatabaseInstance& database, FinalStage::
     data[ "elements" ].push_back( element );
 }
 
-std::optional< nlohmann::json > allocatorLink( const DatabaseInstance& database, FinalStage::Concrete::Link* pLink )
+std::optional< nlohmann::json > allocatorLink( const JITDatabase& database, FinalStage::Concrete::Link* pLink )
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
@@ -255,7 +255,7 @@ std::optional< nlohmann::json > allocatorLink( const DatabaseInstance& database,
     }
 }
 
-void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Concrete::Context* pContext,
+void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete::Context* pContext,
                                nlohmann::json& data )
 {
     using namespace FinalStage;
@@ -351,7 +351,7 @@ void recurseAllocatorElements( const DatabaseInstance& database, FinalStage::Con
     }
 }
 
-void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const DatabaseInstance& database,
+void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JITDatabase& database,
                                          mega::TypeID objectTypeID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_alllocator: {}", objectTypeID );

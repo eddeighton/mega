@@ -20,8 +20,6 @@
 #ifndef DAEMON_25_MAY_2022
 #define DAEMON_25_MAY_2022
 
-#include "database/database.hpp"
-
 #include "service/network/client.hpp"
 #include "service/network/server.hpp"
 #include "service/network/conversation_manager.hpp"
@@ -57,11 +55,10 @@ public:
 private:
     void onLeafDisconnect( const network::ConnectionID& connectionID, mega::MP mp );
 
-    network::Client                              m_rootClient;
-    network::Server                              m_server;
-    MachineID                                    m_machineID;
-    std::optional< Project >                     m_activeProject;
-    std::unique_ptr< runtime::DatabaseInstance > m_pDatabase;
+    network::Client          m_rootClient;
+    network::Server          m_server;
+    MachineID                m_machineID;
+    std::optional< Project > m_activeProject;
 };
 
 } // namespace mega::service

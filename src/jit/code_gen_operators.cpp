@@ -28,7 +28,7 @@ namespace mega::runtime
 namespace
 {
 
-void gen_cast( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const DatabaseInstance& database, TypeID target,
+void gen_cast( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database, TypeID target,
                std::ostream& os )
 {
     // clang-format off
@@ -76,7 +76,7 @@ mega::reference mega_cast_{{ target }}( const mega::reference& source )
 
 } // namespace
 
-void CodeGenerator::generate_operator( const LLVMCompiler& compiler, const DatabaseInstance& database, TypeID target,
+void CodeGenerator::generate_operator( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target,
                                        mega::runtime::operators::FunctionType invocationType, std::ostream& os )
 {
     switch( invocationType )

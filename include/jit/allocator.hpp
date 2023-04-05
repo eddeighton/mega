@@ -28,7 +28,7 @@
 #include "mega/type_id.hpp"
 #include "mega/memory.hpp"
 
-#include "database/database.hpp"
+#include "database/jit_database.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -39,7 +39,7 @@ namespace mega::runtime
 class JIT_EXPORT Allocator
 {
 public:
-    Allocator( TypeID objectTypeID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule );
+    Allocator( TypeID objectTypeID, JITDatabase& database, JITCompiler::Module::Ptr pModule );
 
     using Ptr = std::shared_ptr< Allocator >;
 

@@ -87,7 +87,7 @@ ComponentManager::InterfaceComponent::InterfaceComponent( const ComponentPath&  
     }
 }
 
-ComponentManager::ComponentManager( const mega::Project& project, DatabaseInstance& database )
+ComponentManager::ComponentManager( const mega::Project& project, JITDatabase& database )
     : m_project( project )
     , m_database( database )
 {

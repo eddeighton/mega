@@ -22,14 +22,14 @@
 
 #include "symbol_utils.hpp"
 
-#include "database/database.hpp"
+#include "database/jit_database.hpp"
 
 #include "service/network/log.hpp"
 
 namespace mega::runtime
 {
 
-Relation::Relation( const RelationID& relationID, DatabaseInstance& database, JITCompiler::Module::Ptr pModule )
+Relation::Relation( const RelationID& relationID, JITDatabase& database, JITCompiler::Module::Ptr pModule )
     : m_relationID( relationID )
     , m_pModule( pModule )
 {

@@ -70,11 +70,19 @@ MPOContext* getMPOContext();
 void        resetMPOContext();
 void        setMPOContext( MPOContext* pMPOContext );
 
-#define SUSPEND_MPO_CONTEXT()                    \
-    MPOContext* _pMPOContext_ = getMPOContext(); \
-    resetMPOContext()
-
-#define RESUME_MPO_CONTEXT() setMPOContext( _pMPOContext_ )
+struct _MPOContextStack
+{
+    MPOContext* _pMPOContext_;
+    inline _MPOContextStack()
+    {
+        _pMPOContext_ = getMPOContext();
+        resetMPOContext();
+    }
+    inline ~_MPOContextStack()
+    {
+        setMPOContext( _pMPOContext_ );
+    }
+};
 
 } // namespace mega
 
