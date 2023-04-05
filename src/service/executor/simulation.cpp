@@ -127,10 +127,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         if( m_pClock )
         {
             m_pClock->send( network::ReceivedMsg{
-                getConnectionID(),
-                network::sim::MSG_SimRegister_Request::make(
-                    getID(), m_pClock->getID(),
-                    network::sim::MSG_SimRegister_Request{ network::SenderRef{ m_mpo.value(), this } } ) } );
+                getConnectionID(), network::sim::MSG_SimRegister_Request::make(
+                                       getID(), m_pClock->getID(),
+                                       network::sim::MSG_SimRegister_Request{ network::SenderRef{
+                                           m_mpo.value(), this, m_pMemoryManager->getAllocators() } } ) } );
         }
         else
         {
@@ -171,6 +171,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     }
 
                     cycleComplete();
+
+                    m_pMemoryManager->doubleBuffer();
 
                     /*if( m_log.getTimeStamp() % 60 == 0 )
                     {
@@ -474,7 +476,7 @@ void Simulation::SetProject( const Project& project, boost::asio::yield_context&
     m_pDatabase = std::make_unique< runtime::MPODatabase >( project.getProjectDatabase() );
 }
 
-void Simulation::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void Simulation::RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::RootSimRun: {}", mpo );
 
@@ -482,7 +484,7 @@ void Simulation::RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_c
     setMPOContext( this );
     m_pYieldContext = &yield_ctx;
 
-    createRoot( mpo );
+    createRoot( project, mpo );
     runSimulation( yield_ctx );
 
     resetMPOContext();
@@ -529,8 +531,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         if( const auto& writer = m_stateMachine.writer(); writer.has_value() )
             status.setWriter( writer.value() );
 
-        status.setAllocationID( m_pMemoryManager->getAllocationID() );
-        status.setAllocationCount( m_pMemoryManager->getAllocationCount() );
+        status.setMemory( m_pMemoryManager->getStatus() );
     }
 
     return status;

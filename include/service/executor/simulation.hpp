@@ -82,7 +82,7 @@ public:
     virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
     
     // network::leaf_exe::Impl
-    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,

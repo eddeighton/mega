@@ -28,6 +28,8 @@
 #include <utility>
 
 #include <vector>
+
+#include <stdbool.h>
 /*
 #include <deque>
 #include <list>

@@ -27,6 +27,8 @@
 
 #include "mega/reference_io.hpp"
 
+#include "service/protocol/common/sender_ref.hpp"
+
 #include <functional>
 #include <memory>
 #include <unordered_map>
@@ -49,8 +51,14 @@ public:
     {
     }
 
-    U64 getAllocationCount() const { return m_heapMap.size(); }
-    
+    network::MemoryStatus getStatus() const
+    {
+        network::MemoryStatus status;
+        status.m_heap   = m_usedHeapMemory;
+        status.m_object = m_heapMap.size();
+        return status;
+    }
+
     void MPODestroyed( const MPO& mpo )
     {
         std::vector< reference > heapAddresses;
@@ -94,6 +102,7 @@ public:
         const mega::SizeAlignment sizeAlignment = pAllocator->getSizeAlignment();
 
         HeapBufferPtr pHeapBuffer( sizeAlignment );
+        m_usedHeapMemory += sizeAlignment.size;
 
         // establish the header including the network address, lock timestamp and shared ownership of allocator
         const TimeStamp lockTime = 0U;
@@ -103,7 +112,8 @@ public:
         // invoke the constructor
         pAllocator->getCtor()( pHeapBuffer.get() );
 
-        const reference heapAddress = reference{ objectAddress.getTypeInstance(), objectAddress.getOwnerID(), pHeapBuffer.get() };
+        const reference heapAddress
+            = reference{ objectAddress.getTypeInstance(), objectAddress.getOwnerID(), pHeapBuffer.get() };
 
         m_heapMap.insert( { heapAddress, std::move( pHeapBuffer ) } );
         m_netMap.insert( { objectAddress, heapAddress } );
@@ -142,6 +152,7 @@ public:
     }
 
 private:
+    U64              m_usedHeapMemory = 0U;
     MP               m_mp;
     GetAllocatorFPtr m_getAllocatorFPtr;
     HeapMap          m_heapMap;

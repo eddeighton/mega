@@ -97,7 +97,7 @@ reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )
     }
     else
     {
-        MPO targetMPO = parent.getMPO();
+        MPO       targetMPO = parent.getMPO();
         TimeStamp lockCycle = m_lockTracker.isWrite( targetMPO );
         if( lockCycle == 0U )
         {
@@ -164,13 +164,17 @@ void MPOContext::writeLock( reference& ref )
     }
 }
 
-void MPOContext::createRoot( const mega::MPO& mpo )
+void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
 {
     m_mpo = mpo;
+
+    m_pDatabase.reset();
+    m_pDatabase = std::make_unique< runtime::MPODatabase >( project.getProjectDatabase() );
 
     m_pMemoryManager.reset();
 
     m_pMemoryManager = std::make_unique< runtime::MemoryManager >(
+        *m_pDatabase,
         mpo,
         [ jitRequest = getLeafJITRequest() ]( TypeID typeID ) mutable -> runtime::Allocator::Ptr
         {

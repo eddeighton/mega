@@ -48,7 +48,7 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
         os << m_leaf.getProcessName() << " of type: " << mega::network::Node::toStr( m_leaf.m_nodeType );
         status.setDescription( os.str() );
 
-        status.setAllocationCount( m_leaf.m_pRemoteMemoryManager->getAllocationCount() );
+        status.setMemory( m_leaf.m_pRemoteMemoryManager->getStatus() );
     }
 
     return status;

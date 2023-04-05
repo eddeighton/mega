@@ -90,14 +90,26 @@ struct StatusPrinter
             }
         }
 
-        if( status.getAllocationID().has_value() )
+        if( status.getMemory().has_value() )
         {
-            line( iCurrentDepth + 2 ) << "Object Allocations: " << status.getAllocationID().value() << "\n";
-        }
+            const network::MemoryStatus& memory = status.getMemory().value();
 
-        if( status.getAllocationCount().has_value() )
-        {
-            line( iCurrentDepth + 2 ) << "Active objects: " << status.getAllocationCount().value() << "\n";
+            line( iCurrentDepth + 2 ) << "Heap Memory\n";
+            line( iCurrentDepth + 4 ) << "Bytes:   " << memory.m_heap << "\n";
+            line( iCurrentDepth + 4 ) << "Objects:" << memory.m_object << "\n";
+            line( iCurrentDepth + 2 ) << "Fixed Memory\n";
+
+            for( const auto& alloc : memory.m_allocators )
+            {
+                if( alloc.typeID != mega::TypeID{} )
+                {
+                    line( iCurrentDepth + 4 ) << "Type: " << alloc.typeID << "\n";
+                    line( iCurrentDepth + 4 ) << "Total:" << alloc.status.total << "\n";
+                    line( iCurrentDepth + 4 ) << "Block:" << alloc.status.blockSize << "\n";
+                    line( iCurrentDepth + 4 ) << "Alloc:" << alloc.status.allocations << "\n";
+                    line( iCurrentDepth + 4 ) << "Free: " << alloc.status.free << "\n";
+                }
+            }
         }
 
         if( status.getReads().has_value() )

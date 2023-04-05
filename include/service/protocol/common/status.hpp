@@ -21,7 +21,9 @@
 #define STATUS_23_SEPT_2022
 
 #include "mega/reference.hpp"
+
 #include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/sender_ref.hpp"
 
 #include "log/index.hpp"
 
@@ -50,8 +52,7 @@ public:
     const std::optional< MPO >&                   getMPO() const { return m_mpo; }
     const std::vector< network::ConversationID >& getConversations() const { return m_conversationIDs; }
     const std::optional< log::IndexRecord >&      getLogIterator() const { return m_logIterator; }
-    const std::optional< U64 >&                   getAllocationID() const { return m_allocationID; }
-    const std::optional< U64 >&                   getAllocationCount() const { return m_allocationCount; }
+    const std::optional< network::MemoryStatus >& getMemory() const { return m_memory; }
 
     const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getReads() const { return m_reads; }
     const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getWrites() const { return m_writes; }
@@ -69,8 +70,7 @@ public:
         m_conversationIDs = conversations;
     }
     void setLogIterator( const log::IndexRecord& iterator ) { m_logIterator = iterator; }
-    void setAllocationID( U64 id ) { m_allocationID = id; }
-    void setAllocationCount( U64 count ) { m_allocationCount = count; }
+    void setMemory( network::MemoryStatus memoryStatus ) { m_memory = memoryStatus; }
 
     void setReads( const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& value ) { m_reads = value; }
     void setWrites( const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& value ) { m_writes = value; }
@@ -87,8 +87,7 @@ public:
         archive& m_mpo;
         archive& m_conversationIDs;
         archive& m_logIterator;
-        archive& m_allocationID;
-        archive& m_allocationCount;
+        archive& m_memory;
 
         archive& m_reads;
         archive& m_writes;
@@ -105,8 +104,7 @@ private:
     std::optional< MPO >                   m_mpo;
     std::vector< network::ConversationID > m_conversationIDs;
     std::optional< log::IndexRecord >      m_logIterator;
-    std::optional< U64 >                   m_allocationID;
-    std::optional< U64 >                   m_allocationCount;
+    std::optional< network::MemoryStatus > m_memory;
 
     std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_reads;
     std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_writes;

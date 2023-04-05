@@ -29,8 +29,7 @@ namespace mega::service
 {
 
 // network::memory::Impl
-void DaemonRequestConversation::MPODestroyed( const MPO& mpo,
-                                              boost::asio::yield_context& yield_ctx )
+void DaemonRequestConversation::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     for( auto& [ id, pCon ] : m_daemon.m_server.getConnections() )
     {
@@ -39,7 +38,7 @@ void DaemonRequestConversation::MPODestroyed( const MPO& mpo,
     }
 }
 
-void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
+void DaemonRequestConversation::RootSimRun( const Project& project, const MPO& mpo,
                                             boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun: {}", mpo );
@@ -53,12 +52,12 @@ void DaemonRequestConversation::RootSimRun( const MPO&                  mpo,
     {
         // network::Server::ConnectionLabelRAII connectionLabel( m_daemon.m_server, mpo, pConnection );
         network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
-        sender.RootSimRun( mpo );
+        sender.RootSimRun( project, mpo );
     }
 }
 
 TimeStamp DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
-                                                 boost::asio::yield_context& yield_ctx )
+                                                  boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::SimLockRead from: {} to: {}", requestingMPO, targetMPO );
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
@@ -77,7 +76,7 @@ TimeStamp DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, cons
 }
 
 TimeStamp DaemonRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
-                                                  boost::asio::yield_context& yield_ctx )
+                                                   boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::SimLockWrite from: {} to: {}", requestingMPO, targetMPO );
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )

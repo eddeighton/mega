@@ -163,7 +163,7 @@ void MPOConversation::run( boost::asio::yield_context& yield_ctx )
     m_bRunComplete = true;
 }
 
-void MPOConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+void MPOConversation::RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     m_mpo = mpo;
     m_python.setMPO( mpo );
@@ -174,7 +174,7 @@ void MPOConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_conte
     // note the runtime will query getThisMPO while creating the root
     SPDLOG_TRACE( "PYTHON RootSimRun: Acquired mpo context: {}", mpo );
     {
-        createRoot( mpo );
+        createRoot( project, mpo );
 
         for( const auto& msg : m_messageQueue )
         {

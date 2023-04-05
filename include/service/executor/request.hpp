@@ -79,7 +79,7 @@ public:
                                    getID() );
     }
 
-    // network::leaf_exe::Impl - NOTE: RootSimRun note implemented here
+    // network::leaf_exe::Impl - NOTE: RootSimRun not implemented here
     virtual network::Message RootAllBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExeBroadcast( const network::Message&     request,

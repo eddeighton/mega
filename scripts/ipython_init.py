@@ -94,3 +94,16 @@ def createAndRemovePlanet(mpo):
     r.PlanetParent(REMOVE, p.PlanetChild.Get())
     pAfterBreak = r.PlanetParent()
     print(pAfterBreak)
+
+def getMPO():
+    return mega.getMPO( "0.0.0" )
+
+def createReactorState( mpo ):
+
+    r = mpo.getRoot()
+    b = r.BaseParent.Base()
+    c = b.CompartmentParent.Compartment()
+    r = c.SystemParent.Reactor()
+    s = r.SystemStateParent.ReactorState()
+
+    return s

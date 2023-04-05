@@ -147,7 +147,6 @@ public:
                 }
             }
 
-            // using MemoryMappedObjects = std::vector< Concrete::MemoryMappedObject* >;
             for( auto i = mappedObjects.begin(), iEnd = mappedObjects.end(); i != iEnd; )
             {
                 if( ::GlobalMemoryStage::Interface::IContext* pInterface = i->first )
@@ -217,6 +216,11 @@ public:
 
         mega::io::CompilationFilePath rolloutCompilationFile
             = m_environment.GlobalMemoryStageRollout_GlobalMemoryRollout( m_sourceFilePath );
+
+        start( taskProgress,
+               "Task_GlobalMemoryStageRollout",
+               globalMemoryCompilationFile.path(),
+               rolloutCompilationFile.path() );
 
         const task::DeterminantHash determinant = { m_environment.getBuildHashCode( globalMemoryCompilationFile ) };
 

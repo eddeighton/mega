@@ -63,15 +63,14 @@ network::Status MPOConversation::GetStatus( const std::vector< network::Status >
 
         status.setLogIterator( m_log.getIterator() );
 
-        status.setAllocationID( m_pMemoryManager->getAllocationID() );
-        status.setAllocationCount( m_pMemoryManager->getAllocationCount() );
+        status.setMemory( m_pMemoryManager->getStatus() );
     }
 
     return status;
 }
 
 network::Status PythonRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                            boost::asio::yield_context&           yield_ctx )
+                                                      boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "PythonRequestConversation::GetStatus" );
 

@@ -51,7 +51,7 @@ public:
 
     MegastructureInstallation getMegastructureInstallation();
     const Project&            getProject() const { return m_config.getProject(); }
-    void                               setProject( const Project& project ) { m_config.setProject( project ); }
+    void                      setProject( const Project& project ) { m_config.setProject( project ); }
 
 private:
     void loadConfig();
@@ -60,12 +60,12 @@ private:
     void onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MachineID machineID );
 
 private:
-    network::Server                                     m_server;
-    task::BuildHashCodes                                m_buildHashCodes;
-    task::Stash                                         m_stash;
-    mega::network::RootConfig                           m_config;
+    network::Server                            m_server;
+    task::BuildHashCodes                       m_buildHashCodes;
+    task::Stash                                m_stash;
+    mega::network::RootConfig                  m_config;
     std::optional< MegastructureInstallation > m_megastructureInstallationOpt;
-    MPOManager                                          m_mpoManager;
+    MPOManager                                 m_mpoManager;
 };
 
 } // namespace mega::service

@@ -307,26 +307,50 @@ public:
                         {
                             Old::Symbols::InterfaceTypeID* pOldInterfaceTypeID = iFind->second;
 
-                            auto jFind = newInterfaceTypeIDSequences.find( idSeq );
-                            VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                            "Duplicate Interface Type ID Sequnce found: "
-                                                << idSeq << " : " << pContext->get_identifier() );
+                            // NOTE: the type MAY have been changed from non-object to object
+                            // if so - cannot reuse the typeid since subobject MUST be zero for object
+                            TypeID reusedTypeID = pOldInterfaceTypeID->get_id();
+                            {
+                                New::Interface::Object* pNewObject = db_cast< New::Interface::Object >( pContext );
+                                Old::Interface::Object* pOldObject = nullptr;
+                                {
+                                    if( auto pContextOpt = pOldInterfaceTypeID->get_context(); pContextOpt.has_value() )
+                                    {
+                                        pOldObject = db_cast< Old::Interface::Object >( pContextOpt.value() );
+                                    }
+                                }
+                                if( ( pOldObject && !pNewObject ) || ( !pOldObject && pNewObject ) )
+                                {
+                                    reusedTypeID = {};
+                                }
+                            }
+
+                            {
+                                auto jFind = newInterfaceTypeIDSequences.find( idSeq );
+                                VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
+                                                "Duplicate Interface Type ID Sequnce found: "
+                                                    << idSeq << " : " << pContext->get_identifier() );
+                            }
 
                             auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
-                                New::Symbols::InterfaceTypeID::Args{
-                                    idSeq, pOldInterfaceTypeID->get_id(), pContext, std::nullopt } );
-                            VERIFY_RTE( usedTypeIDs.insert( pOldInterfaceTypeID->get_id() ).second );
+                                New::Symbols::InterfaceTypeID::Args{ idSeq, reusedTypeID, pContext, std::nullopt } );
                             VERIFY_RTE( newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } ).second );
-                            VERIFY_RTE(
-                                newInterfaceTypeIDs.insert( { pOldInterfaceTypeID->get_id(), pNewInterfaceSymbol } )
-                                    .second );
+
+                            if( reusedTypeID != TypeID{} )
+                            {
+                                VERIFY_RTE( usedTypeIDs.insert( reusedTypeID ).second );
+                                VERIFY_RTE(
+                                    newInterfaceTypeIDs.insert( { reusedTypeID, pNewInterfaceSymbol } ).second );
+                            }
                         }
                         else
                         {
-                            auto jFind = newInterfaceTypeIDSequences.find( idSeq );
-                            VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                            "Duplicate Interface Type ID Sequnce found: "
-                                                << idSeq << " : " << pContext->get_identifier() );
+                            {
+                                auto jFind = newInterfaceTypeIDSequences.find( idSeq );
+                                VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
+                                                "Duplicate Interface Type ID Sequnce found: "
+                                                    << idSeq << " : " << pContext->get_identifier() );
+                            }
 
                             auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                                 New::Symbols::InterfaceTypeID::Args{ idSeq, TypeID{}, pContext, std::nullopt } );
@@ -405,9 +429,10 @@ public:
                                 const TypeID newTypeID = TypeID::make_context( objectIDCounter );
                                 pInterfaceTypeID->set_id( newTypeID );
                                 VERIFY_RTE_MSG( newInterfaceTypeIDs.insert( { newTypeID, pInterfaceTypeID } ).second,
-                                    "Duplicate interface typeID found: " << newTypeID );
+                                                "Duplicate interface typeID found: " << newTypeID );
                                 ++objectIDCounter;
                             }
+                            ASSERT( pInterfaceTypeID->get_id().getSubObjectID() == 0 );
                             objectInterfaceTypeIDs.insert( { pObject, pInterfaceTypeID } );
                         }
                     }
@@ -455,7 +480,8 @@ public:
                             VERIFY_RTE_MSG( pObjectInterfaceTypeID, "Failed locating object interface typeid" );
 
                             const TypeID objectTypeID = pObjectInterfaceTypeID->get_id();
-                            ASSERT( objectTypeID.isContextID() && objectTypeID.getSubObjectID() == 0 );
+                            ASSERT( objectTypeID.isContextID() );
+                            ASSERT( objectTypeID.getSubObjectID() == 0 );
                             objectID = objectTypeID.getObjectID();
                         }
                     }
@@ -478,7 +504,7 @@ public:
 
                     pInterfaceTypeID->set_id( newTypeID );
                     VERIFY_RTE_MSG( newInterfaceTypeIDs.insert( { newTypeID, pInterfaceTypeID } ).second,
-                        "Failed to generate unique typeID: " << newTypeID );
+                                    "Failed to generate unique typeID: " << newTypeID );
                 }
             }
         }

@@ -139,7 +139,7 @@ public:
         m_tool.runComplete();
     }
 
-    virtual void RootSimRun( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override
+    virtual void RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
         m_tool.setMPO( mpo );
 
@@ -149,7 +149,7 @@ public:
         // note the runtime will query getThisMPO while creating the root
         SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", mpo );
         {
-            createRoot( mpo );
+            createRoot( project, mpo );
             m_functor( yield_ctx );
         }
         SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", mpo );
@@ -193,8 +193,7 @@ public:
 
             status.setLogIterator( m_log.getIterator() );
 
-            status.setAllocationID( m_pMemoryManager->getAllocationID() );
-            status.setAllocationCount( m_pMemoryManager->getAllocationCount() );
+            status.setMemory( m_pMemoryManager->getStatus() );
         }
 
         return status;

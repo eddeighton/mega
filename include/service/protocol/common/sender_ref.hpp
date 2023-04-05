@@ -25,6 +25,8 @@
 
 #include "common/assert_verify.hpp"
 
+#include <array>
+
 namespace mega::network
 {
 
@@ -41,6 +43,60 @@ public:
 
     MPO               m_mpo;
     ConversationBase* m_pSender;
+
+    struct AllocatorBase
+    {
+        TypeID type  = {};
+        void*  pBase = nullptr;
+    };
+    static constexpr U64 MAX_ALLOCATORS = 8;
+    using AllocatorBaseArray            = std::array< AllocatorBase, MAX_ALLOCATORS >;
+    AllocatorBaseArray m_allocators;
+};
+
+struct AllocatorStatus
+{
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& total;
+        archive& blockSize;
+        archive& allocations;
+        archive& free;
+    }
+
+    U64 total;
+    U64 blockSize;
+    U64 allocations;
+    U64 free;
+};
+
+struct MemoryStatus
+{
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& m_heap;
+        archive& m_object;
+        archive& m_allocators;
+    }
+
+    U64 m_heap;
+    U64 m_object;
+
+    struct TypedAllocatorStatus
+    {
+        template < class Archive >
+        inline void serialize( Archive& archive, const unsigned int version )
+        {
+            archive& typeID;
+            archive& status;
+        }
+        TypeID          typeID;
+        AllocatorStatus status;
+    };
+    using TypedAllocatorStatusArray = std::array< TypedAllocatorStatus, network::SenderRef::MAX_ALLOCATORS >;
+    TypedAllocatorStatusArray m_allocators;
 };
 
 } // namespace mega::network

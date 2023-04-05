@@ -21,8 +21,15 @@
 #ifndef GUARD_2023_January_07_memory_manager
 #define GUARD_2023_January_07_memory_manager
 
+#include "fixed_allocator.hpp"
+
 #include "jit/allocator.hpp"
 #include "jit/object_header.hpp"
+
+#include "database/mpo_database.hpp"
+
+#include "service/protocol/common/sender_ref.hpp"
+//#include "service/network/log.hpp"
 
 #include "mega/memory.hpp"
 #include "mega/reference_io.hpp"
@@ -36,23 +43,91 @@ namespace mega::runtime
 
 class MemoryManager
 {
-    using HeapMap = std::unordered_map< reference, HeapBufferPtr, reference::Hash >;
-    using NetMap  = std::unordered_map< reference, reference, reference::Hash >;
+    using PtrVariant = std::variant< HeapBufferPtr, FixedAllocator::FixedPtr >;
+    inline void* get( const PtrVariant& ptr )
+    {
+        struct GetPtrVisitor
+        {
+            void* operator()( const HeapBufferPtr& heapPtr ) const { return heapPtr.get(); }
+            void* operator()( const FixedAllocator::FixedPtr& fixedPtr ) const { return fixedPtr.get(); }
+        };
+        return std::visit( GetPtrVisitor{}, ptr );
+    }
+
+    using HeapMap      = std::unordered_map< reference, PtrVariant, reference::Hash >;
+    using NetMap       = std::unordered_map< reference, reference, reference::Hash >;
+    using Allocators   = std::map< TypeID, FixedAllocator::Ptr >;
+    using AllocatorMap = std::unordered_map< TypeID, FixedAllocator*, TypeID::Hash >;
 
 public:
     using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID ) >;
 
-    template < typename TFunctor >
-    MemoryManager( MPO mpo, TFunctor&& getAllocatorFunction )
-        : m_mpo( mpo )
-        , m_getAllocatorFPtr( std::move( getAllocatorFunction ) )
+    network::MemoryStatus getStatus() const
     {
+        network::MemoryStatus status;
+        status.m_heap   = m_usedHeapMemory;
+        status.m_object = m_heapMap.size();
+
+        auto i = status.m_allocators.begin();
+        for( const auto& [ typeID, pAllocator ] : m_allocators )
+        {
+            i->typeID = typeID;
+            i->status = pAllocator->getStatus();
+            ++i;
+        }
+        return status;
     }
 
-    AllocationID getAllocationID() const { return m_allocationIDCounter; }
-    U64          getAllocationCount() const { return m_heapMap.size(); }
+    template < typename TFunctor >
+    inline MemoryManager( MPODatabase& database, MPO mpo, TFunctor&& getAllocatorFunction )
+        : m_database( database )
+        , m_mpo( mpo )
+        , m_getAllocatorFPtr( std::move( getAllocatorFunction ) )
+    {
+        for( const auto& [ typeID, pMapping ] : database.getMemoryMappings() )
+        {
+            FixedAllocator::Ptr pAllocator = std::make_unique< FixedAllocator >(
+                pMapping->get_block_size(), pMapping->get_fixed_allocation(), pMapping->get_block_alignment() );
 
-    reference networkToHeap( const reference& networkAddress ) const
+            // register with all types
+            for( FinalStage::Concrete::Object* pObject : pMapping->get_concrete() )
+            {
+                //SPDLOG_TRACE( "Fixed allocations for: {} of {}", typeID, pObject->get_concrete_id() );
+                VERIFY_RTE( m_allocatorsMap.insert( { pObject->get_concrete_id(), pAllocator.get() } ).second );
+            }
+
+            m_allocators.insert( { typeID, std::move( pAllocator ) } );
+        }
+    }
+
+    inline network::SenderRef::AllocatorBaseArray getAllocators() const
+    {
+        network::SenderRef::AllocatorBaseArray result;
+        auto                                   i = result.begin();
+
+        for( const auto& [ typeID, pAllocator ] : m_allocators )
+        {
+            VERIFY_RTE_MSG( i != result.end(), "Too many allocators for SenderRef::AllocatorBaseArray" );
+            i->type  = typeID;
+            i->pBase = pAllocator->getDoubleBuffer();
+            ++i;
+        }
+
+        return result;
+    }
+
+    inline void doubleBuffer()
+    {
+        for( const auto& [ _, pAllocator ] : m_allocators )
+        {
+            pAllocator->copyToDoubleBuffer();
+        }
+    }
+
+    inline AllocationID getAllocationID() const { return m_allocationIDCounter; }
+    inline U64          getAllocationCount() const { return m_heapMap.size(); }
+
+    inline reference networkToHeap( const reference& networkAddress ) const
     {
         ASSERT( networkAddress.isNetworkAddress() );
         auto    iFind = m_netMap.find( networkAddress.getObjectAddress() );
@@ -63,42 +138,53 @@ public:
     }
 
 private:
-    reference New( const reference& networkAddress )
+    inline reference construct( const reference& networkAddress, PtrVariant&& memory, Allocator::Ptr pAllocator )
     {
         const reference objectNetAddress = networkAddress.getObjectAddress();
-        Allocator::Ptr  pAllocator       = m_getAllocatorFPtr( objectNetAddress.getType() );
+        void*           pAddress         = get( memory );
 
-        const mega::SizeAlignment sizeAlignment = pAllocator->getSizeAlignment();
-        VERIFY_RTE_MSG( sizeAlignment.size > 0U, "Invalid size alignment" );
-
-        HeapBufferPtr pHeapBuffer( sizeAlignment );
-
-        const TimeStamp lockTime = 0U;
-
-        new( pHeapBuffer.get() ) ObjectHeader{ ObjectHeaderBase{ objectNetAddress, lockTime }, pAllocator };
+        // establish the header including the network address, lock timestamp and shared ownership of allocator
+        new( pAddress ) ObjectHeader{ ObjectHeaderBase{ objectNetAddress, 0U }, pAllocator };
 
         // invoke the constructor
-        pAllocator->getCtor()( pHeapBuffer.get() );
+        pAllocator->getCtor()( pAddress );
 
-        reference heapAddress{ objectNetAddress.getTypeInstance(), m_mpo.getOwnerID(), pHeapBuffer.get() };
+        const reference heapAddress{ objectNetAddress.getTypeInstance(), m_mpo.getOwnerID(), pAddress };
 
-        VERIFY_RTE( m_heapMap.insert( { heapAddress, std::move( pHeapBuffer ) } ).second );
+        VERIFY_RTE( m_heapMap.insert( { heapAddress, std::move( memory ) } ).second );
         VERIFY_RTE( m_netMap.insert( { objectNetAddress, heapAddress } ).second );
 
         return reference::make( heapAddress, networkAddress.getTypeInstance() );
     }
 
 public:
-    reference New( TypeID typeID )
+    inline reference New( TypeID typeID )
     {
-        // establish the header including the network address, lock timestamp and shared ownership of allocator
-        const AllocationID allocationID = m_allocationIDCounter++;
-        const reference    networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, allocationID };
-        ASSERT( ( typeID != ROOT_TYPE_ID ) || ( allocationID == ROOT_OBJECT_ID ) );
-        return New( networkAddress );
+        // must acquire allocator EVERYTIME for now - which means request to JIT
+        const TypeID   objectType = TypeID::make_object_type( typeID );
+        Allocator::Ptr pAllocator = m_getAllocatorFPtr( objectType );
+        auto           iFind      = m_allocatorsMap.find( objectType );
+        if( iFind != m_allocatorsMap.end() )
+        {
+            //SPDLOG_TRACE( "Memory Manager:New fixed allocation for: {} of {}", typeID, objectType );
+            FixedAllocator::FixedPtr pFixed = iFind->second->allocate();
+            const reference          networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, pFixed.getID() };
+            return construct( networkAddress, PtrVariant{ std::move( pFixed ) }, pAllocator );
+        }
+        else
+        {
+            //SPDLOG_TRACE( "Memory Manager:New heap allocation for: {} of {}", typeID, objectType );
+            auto          sizeAlign = pAllocator->getSizeAlignment();
+            HeapBufferPtr memory( sizeAlign );
+            m_usedHeapMemory += sizeAlign.size;
+            const AllocationID allocationID = m_allocationIDCounter++;
+            const reference    networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, allocationID };
+            ASSERT( ( typeID != ROOT_TYPE_ID ) || ( allocationID == ROOT_OBJECT_ID ) );
+            return construct( networkAddress, PtrVariant{ std::move( memory ) }, pAllocator );
+        }
     }
 
-    void Delete( reference& ref )
+    inline void Delete( reference& ref )
     {
         ASSERT( ref.isHeapAddress() );
 
@@ -114,7 +200,7 @@ public:
         }
 
         // get the object header
-        auto pHeader = reinterpret_cast< ObjectHeader* >( iFind->second.get() );
+        auto pHeader = reinterpret_cast< ObjectHeader* >( get( iFind->second ) );
 
         // invoke the destructor
         pHeader->m_pAllocator->getDtor()( pHeader );
@@ -131,10 +217,14 @@ public:
 
 private:
     AllocationID     m_allocationIDCounter = ROOT_OBJECT_ID;
+    U64              m_usedHeapMemory      = 0U;
+    MPODatabase      m_database;
     MPO              m_mpo;
     GetAllocatorFPtr m_getAllocatorFPtr;
     HeapMap          m_heapMap;
     NetMap           m_netMap;
+    Allocators       m_allocators;
+    AllocatorMap     m_allocatorsMap;
 };
 
 } // namespace mega::runtime

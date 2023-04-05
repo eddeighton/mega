@@ -123,7 +123,7 @@ public:
     void cycleComplete();
 
 protected:
-    void createRoot( const mega::MPO& mpo );
+    void createRoot( const Project& project, const mega::MPO& mpo );
 
 private:
     boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID )

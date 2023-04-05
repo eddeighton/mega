@@ -60,8 +60,9 @@ public:
     virtual void PythonFunctor( const mega::runtime::Functor& functor, boost::asio::yield_context& yield_ctx ) override;
     virtual void PythonShutdown( boost::asio::yield_context& yield_ctx ) override;
 
-    void         run( boost::asio::yield_context& yield_ctx ) override;
-    virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    void run( boost::asio::yield_context& yield_ctx ) override;
+    virtual void
+    RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // mega::MPOContext
     // clock
@@ -70,6 +71,7 @@ public:
     virtual F32       dt() override { return F32{}; }
 
     bool isRunComplete() const { return m_bRunComplete; }
+
 private:
     bool                                m_bRunning = true;
     Python&                             m_python;

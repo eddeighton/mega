@@ -33,6 +33,7 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( MEGA_LEAF_API 
     ${MEGA_API_DIR}/service/cycle.hpp
+    ${MEGA_API_DIR}/service/fixed_allocator.hpp
     ${MEGA_API_DIR}/service/leaf.hpp
     ${MEGA_API_DIR}/service/lock_tracker.hpp
     ${MEGA_API_DIR}/service/memory_manager.hpp
