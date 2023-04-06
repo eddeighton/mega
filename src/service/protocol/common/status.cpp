@@ -24,140 +24,169 @@
 
 namespace mega::network
 {
-namespace
+StatusPrinter::StatusPrinter()
 {
-struct StatusPrinter
+}
+
+std::ostream& StatusPrinter::print( std::ostream& os, int iIndent, char c ) const
 {
-    std::ostream& os;
-    int           iCurrentDepth = 0;
-    StatusPrinter( std::ostream& os )
-        : os( os )
+    int iBarCount = m_stack.size() - 1;
+    for( auto iBar : m_stack )
     {
+        for( int i = 1; i < iBar; ++i )
+        {
+            if( i == 1 )
+            {
+                os << "|";
+            }
+            else if( iBarCount == 0 )
+            {
+                os << c;
+            }
+            else
+            {
+                os << ' ';
+            }
+        }
+        --iBarCount;
     }
-    StatusPrinter( std::ostream& os, int iCurrentDepth )
-        : os( os )
-        , iCurrentDepth( iCurrentDepth )
+    for( int i = 1; i < iIndent; ++i )
     {
+        os << c;
     }
+    return os;
+}
 
-    std::ostream& line( int iPadding ) const
+std::ostream& StatusPrinter::line( std::ostream& os, int iIndent ) const
+{
+    return print( os, iIndent, ' ' );
+}
+
+std::ostream& StatusPrinter::dash( std::ostream& os, int iIndent ) const
+{
+    return print( os, iIndent, '-' );
+}
+
+void StatusPrinter::printNodeInfo( const Status& status, std::ostream& os )
+{
+    using ::operator<<; //( std::ostream&, const mega::MP& );
+
+    int indent = 4;
+
+    // generate padding
+    if( status.getMPO().has_value() )
     {
-        for( int i = 1; i < iPadding; ++i )
-        {
-            os << " ";
-        }
-        return os;
+        line( os, 4 ) << "MPO: " << status.getMPO().value() << "\n";
     }
-
-    std::ostream& operator()( const Status& status ) const
+    else if( status.getMP().has_value() )
     {
-        using ::operator<<; //( std::ostream&, const mega::MP& );
-
-        if( !status.getDescription().empty() )
-        {
-            line( iCurrentDepth ) << "NODE[ " << status.getDescription() << " ]\n";
-        }
-
-        // generate padding
-        if( status.getMachineID().has_value() )
-        {
-            const mega::MachineID& machineID = status.getMachineID().value();
-            line( iCurrentDepth + 2 ) << "M: " << machineID << "\n";
-        }
-
-        if( status.getMP().has_value() )
-        {
-            const mega::MP& mp = status.getMP().value();
-            line( iCurrentDepth + 2 ) << "MP: " << mp << "\n";
-        }
-
-        if( status.getMPO().has_value() )
-        {
-            const mega::MPO& mpo = status.getMPO().value();
-            line( iCurrentDepth + 2 ) << "MPO: " << mpo << "\n";
-        }
-
-        if( status.getLogIterator().has_value() )
-        {
-            const log::IndexRecord& iter = status.getLogIterator().value();
-            for( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
-            {
-                if( auto amt = iter.get( log::TrackType( i ) ).get(); amt > 0 )
-                {
-                    line( iCurrentDepth + 2 ) << "LOG: " << log::toName( log::TrackType( i ) ) << ": "
-                                              << iter.get( log::TrackType( i ) ).get() << "\n";
-                }
-            }
-        }
-
-        if( status.getMemory().has_value() )
-        {
-            const network::MemoryStatus& memory = status.getMemory().value();
-
-            line( iCurrentDepth + 2 ) << "Heap Memory\n";
-            line( iCurrentDepth + 4 ) << "Bytes:   " << memory.m_heap << "\n";
-            line( iCurrentDepth + 4 ) << "Objects:" << memory.m_object << "\n";
-            line( iCurrentDepth + 2 ) << "Fixed Memory\n";
-
-            for( const auto& alloc : memory.m_allocators )
-            {
-                if( alloc.typeID != mega::TypeID{} )
-                {
-                    line( iCurrentDepth + 4 ) << "Type: " << alloc.typeID << "\n";
-                    line( iCurrentDepth + 4 ) << "Total:" << alloc.status.total << "\n";
-                    line( iCurrentDepth + 4 ) << "Block:" << alloc.status.blockSize << "\n";
-                    line( iCurrentDepth + 4 ) << "Alloc:" << alloc.status.allocations << "\n";
-                    line( iCurrentDepth + 4 ) << "Free: " << alloc.status.free << "\n";
-                }
-            }
-        }
-
-        if( status.getReads().has_value() )
-        {
-            for( const auto& [ mpo, lockCycle ] : status.getReads().value() )
-            {
-                line( iCurrentDepth + 2 ) << "Read: " << mpo << " cycle: " << lockCycle << "\n";
-            }
-        }
-
-        if( status.getWrites().has_value() )
-        {
-            for( const auto& [ mpo, lockCycle ] : status.getWrites().value() )
-            {
-                line( iCurrentDepth + 2 ) << "Write: " << mpo << " cycle: " << lockCycle << "\n";
-            }
-        }
-
-        if( status.getReaders().has_value() )
-        {
-            for( const auto& mpo : status.getReaders().value() )
-            {
-                line( iCurrentDepth + 2 ) << "Reader: " << mpo << "\n";
-            }
-        }
-
-        if( status.getWriter().has_value() )
-        {
-            line( iCurrentDepth + 2 ) << "Writer: " << status.getWriter().value() << "\n";
-        }
-
-        for( const auto& conID : status.getConversations() )
-        {
-            line( iCurrentDepth + 2 ) << "ConID: " << conID << "\n";
-        }
-
-        for( const Status& child : status.getChildren() )
-        {
-            ( StatusPrinter( os, iCurrentDepth + 4 ) )( child );
-        }
-        return os;
+        line( os, indent ) << "MP: " << status.getMP().value() << "\n";
     }
-};
-} // namespace
+    else if( status.getMachineID().has_value() )
+    {
+        line( os, indent ) << "M: " << status.getMachineID().value() << "\n";
+    }
+
+    if( status.getLogIterator().has_value() )
+    {
+        const log::IndexRecord& iter = status.getLogIterator().value();
+        for( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
+        {
+            if( auto amt = iter.get( log::TrackType( i ) ).get(); amt > 0 )
+            {
+                line( os, indent ) << "LOG: " << log::toName( log::TrackType( i ) ) << ": "
+                                   << iter.get( log::TrackType( i ) ).get() << "\n";
+            }
+        }
+    }
+
+    if( status.getMemory().has_value() )
+    {
+        const network::MemoryStatus& memory = status.getMemory().value();
+
+        line( os, indent ) << "Heap Memory\n";
+        line( os, indent * 2 ) << "Bytes:  " << memory.m_heap << "\n";
+        line( os, indent * 2 ) << "Objects:" << memory.m_object << "\n";
+        line( os, indent ) << "Fixed Memory\n";
+
+        for( const auto& alloc : memory.m_allocators )
+        {
+            if( alloc.typeID != mega::TypeID{} )
+            {
+                line( os, indent * 2 ) << "Type: " << alloc.typeID << "\n";
+                line( os, indent * 2 ) << "Total:" << alloc.status.total << " ( " << alloc.status.blockSize << " * "
+                                       << alloc.status.allocations << " )\n";
+                line( os, indent * 2 ) << "Free: " << alloc.status.free << "\n";
+            }
+        }
+    }
+
+    if( status.getReads().has_value() )
+    {
+        for( const auto& [ mpo, lockCycle ] : status.getReads().value() )
+        {
+            line( os, indent ) << "Read: " << mpo << " cycle: " << lockCycle << "\n";
+        }
+    }
+
+    if( status.getWrites().has_value() )
+    {
+        for( const auto& [ mpo, lockCycle ] : status.getWrites().value() )
+        {
+            line( os, indent ) << "Write: " << mpo << " cycle: " << lockCycle << "\n";
+        }
+    }
+
+    if( status.getReaders().has_value() )
+    {
+        for( const auto& mpo : status.getReaders().value() )
+        {
+            line( os, indent ) << "Reader: " << mpo << "\n";
+        }
+    }
+
+    if( status.getWriter().has_value() )
+    {
+        line( os, indent ) << "Writer: " << status.getWriter().value() << "\n";
+    }
+
+    // for( const auto& conID : status.getConversations() )
+    // {
+    //     line( os, indent ) << "ConID: " << conID << "\n";
+    // }
+
+    for( const Status& child : status.getChildren() )
+    {
+        printNode( child, os );
+    }
+}
+
+void StatusPrinter::printNode( const Status& status, std::ostream& os )
+{
+    // empty line
+    line( os, 4 ) << "\n";
+
+    if( !status.getDescription().empty() )
+    {
+        dash( os ) << "NODE[ " << status.getDescription() << " ]\n";
+    }
+
+    m_stack.push_back( 4 );
+    printNodeInfo( status, os );
+    m_stack.pop_back();
+}
+
+void StatusPrinter::print( const Status& status, std::ostream& os )
+{
+    printNode( status, os );
+}
 
 std::ostream& operator<<( std::ostream& os, const Status& status )
 {
-    return ( StatusPrinter( os ) )( status );
+    StatusPrinter printer;
+    printer.print( status, os );
+    return os;
 }
+#
 
 } // namespace mega::network

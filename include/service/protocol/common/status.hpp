@@ -115,7 +115,25 @@ private:
     StatusVector m_childStatus;
 };
 
-std::ostream& operator<<( std::ostream& os, const Status& conversationID );
+class StatusPrinter
+{
+public:
+    StatusPrinter();
+
+    void print( const Status& status, std::ostream& os );
+
+private:
+    void printNodeInfo( const Status& status, std::ostream& os );
+    void printNode( const Status& status, std::ostream& os );
+
+    std::ostream& print( std::ostream& os, int iIndent, char c ) const;
+    std::ostream& line( std::ostream& os, int iIndent = 0 ) const;
+    std::ostream& dash( std::ostream& os, int iIndent = 0 ) const;
+
+    std::vector< int > m_stack;
+};
+
+// std::ostream& operator<<( std::ostream& os, const Status& conversationID );
 
 } // namespace mega::network
 

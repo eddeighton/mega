@@ -113,7 +113,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
         else
         {
-            std::cout << terminal.GetNetworkStatus() << std::endl;
+            mega::network::StatusPrinter statusPrinter;
+            mega::network::Status status = terminal.GetNetworkStatus();
+            statusPrinter.print( status, std::cout );
         }
 
         if ( bTime )
