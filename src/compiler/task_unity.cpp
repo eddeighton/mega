@@ -300,6 +300,8 @@ public:
         using namespace UnityStage;
         Database database( m_environment, m_manifest );
 
+        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+
         // load the unityAnalysisFilePath
         nlohmann::json data;
         {
@@ -309,6 +311,41 @@ public:
 
         using PrefabMap = std::map< TypeID, UnityAnalysis::Prefab* >;
         PrefabMap prefabs;
+
+        // generate Root prefab
+        {
+            Concrete::Object* pRootObject = nullptr;
+            {
+                for( const auto& [ _, pConcreteType ] : pSymbolTable->get_concrete_type_ids() )
+                {
+                    if( pConcreteType->get_id() == ROOT_TYPE_ID )
+                    {
+                        VERIFY_RTE( pConcreteType->get_context().has_value() );
+                        pRootObject = db_cast< Concrete::Object >( pConcreteType->get_context().value() );
+                        break;
+                    }
+                }
+                VERIFY_RTE( pRootObject );
+            }
+
+            std::vector< UnityAnalysis::DataBinding* > dataBindings;
+            std::vector< UnityAnalysis::LinkBinding* > linkBindings;
+            {
+                for( Concrete::Link* pLink : pRootObject->get_all_links() )
+                {
+                    std::ostringstream osTypeName;
+                    printIContextFullType( pLink->get_link(), osTypeName );
+                    UnityAnalysis::LinkBinding* pLinkBinding
+                        = database.construct< UnityAnalysis::LinkBinding >( UnityAnalysis::LinkBinding::Args{
+                            osTypeName.str(), pLink->get_link()->get_interface_id() } );
+                    linkBindings.push_back( pLinkBinding );
+                }
+            }
+
+            UnityAnalysis::Prefab* pRootPrefab = database.construct< UnityAnalysis::Prefab >(
+                UnityAnalysis::Prefab::Args{ "", "Root", ROOT_TYPE_ID, dataBindings, linkBindings } );
+            prefabs.insert( { ROOT_TYPE_ID, pRootPrefab } );
+        }
 
         for( const auto& prefab : data[ "prefabs" ] )
         {
@@ -341,8 +378,6 @@ public:
             prefabs.insert( { interfaceTypeID, pPrefab } );
         }
 
-        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-
         using ObjectVector = std::vector< Concrete::Object* >;
         using DimMap       = std::multimap< Concrete::Object*, Concrete::Dimensions::User* >;
         using LinkMap      = std::multimap< Concrete::Object*, Concrete::Link* >;
@@ -351,7 +386,7 @@ public:
         DimMap       dimMap;
         LinkMap      linkMap;
         {
-            for( const auto& [ id, pConcreteType ] : pSymbolTable->get_concrete_type_ids() )
+            for( const auto& [ _, pConcreteType ] : pSymbolTable->get_concrete_type_ids() )
             {
                 if( pConcreteType->get_context().has_value() )
                 {
