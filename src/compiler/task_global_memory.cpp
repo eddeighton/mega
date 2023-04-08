@@ -219,7 +219,8 @@ public:
 
         start( taskProgress,
                "Task_GlobalMemoryStageRollout",
-               globalMemoryCompilationFile.path(),
+               m_environment.project_manifest().path(),
+               // globalMemoryCompilationFile.path(),
                rolloutCompilationFile.path() );
 
         const task::DeterminantHash determinant = { m_environment.getBuildHashCode( globalMemoryCompilationFile ) };

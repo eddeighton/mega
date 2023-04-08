@@ -120,7 +120,7 @@ const std::string& getIdentifier( FinalStage::Concrete::Dimensions::User* pDim )
 }
 
 template < typename TContextType >
-std::string getContextFullTypeName( TContextType* pContext )
+std::string getContextFullTypeName( TContextType* pContext, std::string strDelim = "_" )
 {
     using namespace FinalStage;
 
@@ -141,7 +141,7 @@ std::string getContextFullTypeName( TContextType* pContext )
         {
             if( !bFirst )
             {
-                os << "_";
+                os << strDelim;
             }
             else
             {
@@ -151,6 +151,16 @@ std::string getContextFullTypeName( TContextType* pContext )
         }
     }
 
+    return os.str();
+}
+
+template< typename TContextType, typename TDimensionType >
+std::string getDimensionFullTypeName( TDimensionType* pDim, std::string strDelim = "_" )
+{
+    TContextType* pParent = pDim->get_parent();
+    VERIFY_RTE( pParent );
+    std::ostringstream os;
+    os << getContextFullTypeName( pParent, strDelim ) << strDelim << getIdentifier( pDim );
     return os.str();
 }
 
@@ -849,6 +859,14 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
 
     for( UnityAnalysis::Binding* pBinding : database.many< UnityAnalysis::Binding >( environment.project_manifest() ) )
     {
+        std::string strName;
+        {
+            UnityAnalysis::Prefab* pPrefab = db_cast< UnityAnalysis::Prefab >( pBinding->get_binding() );
+            UnityAnalysis::Manual* pManual = db_cast< UnityAnalysis::Manual >( pBinding->get_binding() );
+            VERIFY_RTE( pPrefab || pManual );
+            strName = pPrefab ? pPrefab->get_guid() : pManual->get_name();
+        }
+
         Concrete::Object* pObject = pBinding->get_object();
 
         std::ostringstream osObjectName;
@@ -856,15 +874,15 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
 
         nlohmann::json node;
         {
-            NODE( node, osObjectName.str(), getContextFullTypeName( pObject ) << getNodeInfo( pObject ) );
+            NODE( node, osObjectName.str(), getContextFullTypeName( pObject, "::" ) << getNodeInfo( pObject ) );
             {
                 nlohmann::json property;
-                PROP( property, "GUID", pBinding->get_prefab()->get_guid() );
+                PROP( property, "Name", strName );
                 node[ "properties" ].push_back( property );
             }
             {
                 nlohmann::json property;
-                PROP( property, "Type", pBinding->get_prefab()->get_typeName() );
+                PROP( property, "Type", pBinding->get_binding()->get_typeName() );
                 node[ "properties" ].push_back( property );
             }
         }
@@ -875,8 +893,8 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
             nlohmann::json dataNode;
 
             std::ostringstream osName;
-            osName << "dim_" << getContextFullTypeName( pDim );
-            NODE( dataNode, osName.str(), getContextFullTypeName( pDim ) << getNodeInfo( pDim ) );
+            osName << "dim_" << getDimensionFullTypeName< Concrete::Context >( pDim );
+            NODE( dataNode, osName.str(), getDimensionFullTypeName< Concrete::Context >( pDim, "::" ) << getNodeInfo( pDim ) );
             {
                 nlohmann::json property;
                 PROP( property, "Type", pBinding->get_typeName() );
@@ -894,7 +912,7 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
 
             std::ostringstream osName;
             osName << "link_" << getContextFullTypeName( pLink );
-            NODE( dataNode, osName.str(), getContextFullTypeName( pLink ) << getNodeInfo( pLink ) );
+            NODE( dataNode, osName.str(), getContextFullTypeName( pLink, "::" ) << getNodeInfo( pLink ) );
             {
                 nlohmann::json property;
                 PROP( property, "Type", pBinding->get_typeName() );

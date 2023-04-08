@@ -4,147 +4,205 @@
         {
             "canon": "unsigned char",
             "mangle": "unsigned_char",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Byte",
+            "size": 1
         },
         {
             "canon": "signed char",
             "mangle": "signed_char",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.SByte",
+            "size": 1
         },
         {
             "canon": "unsigned short",
             "mangle": "unsigned_short",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.UInt16",
+            "size": 2
         },
         {
             "canon": "signed short",
             "mangle": "signed_short",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Int16",
+            "size": 2
         },
         {
             "canon": "unsigned int",
             "mangle": "unsigned_int",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.UInt16",
+            "size": 2
         },
         {
             "canon": "signed int",
             "mangle": "signed_int",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Int32",
+            "size": 4
         },
         {
             "canon": "int",
             "mangle": "int",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Int32",
+            "size": 4
         },
         {
             "canon": "unsigned long int",
             "mangle": "unsigned_long_int",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.UInt64",
+            "size": 8
         },
         {
             "canon": "signed long int",
             "mangle": "signed_long_int",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Int64",
+            "size": 8
         },
         {
             "canon": "float",
             "mangle": "float",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Single",
+            "size": 4
         },
         {
             "canon": "double",
             "mangle": "double",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Double",
+            "size": 8
         },
         {
             "canon": "bool",
             "mangle": "bool",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Byte",
+            "size": 1
         },
         {
             "canon": "_Bool",
             "mangle": "_Bool",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Byte",
+            "size": 1
         },
         {
             "canon": "mega::U8",
             "mangle": "U8",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Byte",
+            "size": 1
         },
         {
             "canon": "mega::I8",
             "mangle": "I8",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.SByte",
+            "size": 1
         },
         {
             "canon": "mega::U16",
             "mangle": "U16",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.UInt16",
+            "size": 2
         },
         {
             "canon": "mega::I16",
             "mangle": "I16",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Int16",
+            "size": 2
         },
         {
             "canon": "mega::U32",
             "mangle": "U32",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.UInt32",
+            "size": 4
         },
         {
             "canon": "mega::I32",
             "mangle": "I32",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Int32",
+            "size": 4
         },
         {
             "canon": "mega::U64",
             "mangle": "U64",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.UInt64",
+            "size": 8
         },
         {
             "canon": "mega::I64",
             "mangle": "I64",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Int64",
+            "size": 8
         },
         {
             "canon": "mega::F32",
             "mangle": "F32",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Single",
+            "size": 4
         },
         {
             "canon": "mega::F64",
             "mangle": "F64",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.Double",
+            "size": 8
         },
         {
             "canon": "mega::TimeStamp",
             "mangle": "TimeStamp",
-            "impl": "Simple"
+            "impl": "Simple",
+            "blit": "System.UInt32",
+            "size": 4
         },
         {
             "canon": "mega::reference",
             "mangle": "classmega00reference",
-            "impl": "NonSimple"
+            "impl": "NonSimple",
+            "blit": "interop.Reference",
+            "size": 16
         },
         {
             "canon": "mega::ReferenceVector",
             "mangle": "classmega00ReferenceVector",
-            "impl": "NonSimple"
+            "impl": "NonSimple",
+            "blit": "",
+            "size": 0
         },
         {
             "canon": "std::vector< mega::reference >",
             "mangle": "classstd00vector3classmega00reference4",
-            "impl": "NonSimple"
+            "impl": "NonSimple",
+            "blit": "",
+            "size": 0
         },
         {
             "canon": "std::basic_string<char>",
             "mangle": "classstd00basic_string3char4",
-            "impl": "NonSimple"
+            "impl": "NonSimple",
+            "blit": "",
+            "size": 0
         },
         {
             "canon": "std::vector<int>",
             "mangle": "classstd00vector3int4",
-            "impl": "NonSimple"
+            "impl": "NonSimple",
+            "blit": "",
+            "size": 0
         }
     ]
 }

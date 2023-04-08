@@ -232,18 +232,27 @@ namespace UnityAnalysis
         value< mega::TypeID >       interfaceTypeID;
     }
 
-    object Prefab -> UnityStage::UnityAnalysis
+    object ObjectBinding -> UnityStage::UnityAnalysis
     {
-        value< std::string >        guid;
         value< std::string >        typeName;
         value< mega::TypeID >       interfaceTypeID;
         array< ref< DataBinding > > dataBindings;
         array< ref< LinkBinding > > linkBindings;
     }
 
+    object Prefab : ObjectBinding -> UnityStage::UnityAnalysis
+    {
+        value< std::string > guid;
+    }
+
+    object Manual : ObjectBinding -> UnityStage::UnityAnalysis
+    {
+        value< std::string > name;
+    }
+
     object Binding -> UnityStage::UnityAnalysis
     {
-        ref< Prefab >           prefab;
+        ref< ObjectBinding >    binding;
         ref< Concrete::Object > object;
         map< ref< Concrete::Dimensions::User >, ref< DataBinding > > dataBindings;
         map< ref< Concrete::Link >,             ref< LinkBinding > > linkBindings;

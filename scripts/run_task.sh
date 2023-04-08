@@ -19,6 +19,6 @@ PipelineResult=$1
 TaskName=$2
 SourceName=$3
 
-echo "mega -x --configuration ${BUILD_PATH}/${CFG_TUPLE}/game/build/Game_pipeline.xml --result_in ${PipelineResult} --local --stash_dir ./stash/ --toolchain_xml ${BUILD_PATH}/${CFG_TUPLE}/mega/install/etc/toolchain.xml --task ${TaskName} --source ${SourceName}"
+echo "mega -x --configuration ${BUILD_PATH}/${CFG_TUPLE}/game/build/Game_pipeline.xml --result_in ${PipelineResult} --force_no_stash --local --stash_dir ./stash/ --toolchain_xml ${BUILD_PATH}/${CFG_TUPLE}/mega/install/etc/toolchain.xml --task ${TaskName} --source ${SourceName}"
 
-mega -x --configuration ${BUILD_PATH}/${CFG_TUPLE}/game/build/Game_pipeline.xml --result_in ${PipelineResult} --local --stash_dir ./stash/ --toolchain_xml ${BUILD_PATH}/${CFG_TUPLE}/mega/install/etc/toolchain.xml --task ${TaskName} --source ${SourceName}
+mega -x --configuration ${BUILD_PATH}/${CFG_TUPLE}/game/build/Game_pipeline.xml --result_in ${PipelineResult} --force_no_stash --local --stash_dir ./stash/ --toolchain_xml ${BUILD_PATH}/${CFG_TUPLE}/mega/install/etc/toolchain.xml --task ${TaskName} --source ${SourceName}

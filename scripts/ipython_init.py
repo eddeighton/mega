@@ -102,7 +102,7 @@ def createReactorState( mpo ):
 
     r = mpo.getRoot()
     b = r.BaseParent.Base()
-    c = b.CompartmentParent.Compartment()
+    c = b.AreaParent.Area()
     r = c.SystemParent.Reactor()
     s = r.SystemStateParent.ReactorState()
 

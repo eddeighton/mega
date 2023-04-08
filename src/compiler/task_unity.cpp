@@ -309,11 +309,11 @@ public:
             data       = nlohmann::json::parse( *pFile );
         }
 
-        using PrefabMap = std::map< TypeID, UnityAnalysis::Prefab* >;
-        PrefabMap prefabs;
+        using BindingMap = std::map< TypeID, UnityAnalysis::ObjectBinding* >;
+        BindingMap bindings;
 
         // generate Root prefab
-        {
+        /*{
             Concrete::Object* pRootObject = nullptr;
             {
                 for( const auto& [ _, pConcreteType ] : pSymbolTable->get_concrete_type_ids() )
@@ -344,7 +344,40 @@ public:
 
             UnityAnalysis::Prefab* pRootPrefab = database.construct< UnityAnalysis::Prefab >(
                 UnityAnalysis::Prefab::Args{ "", "Root", ROOT_TYPE_ID, dataBindings, linkBindings } );
-            prefabs.insert( { ROOT_TYPE_ID, pRootPrefab } );
+            bindings.insert( { ROOT_TYPE_ID, pRootPrefab } );
+        }*/
+
+        for( const auto& manual : data[ "manuals" ] )
+        {
+            std::vector< UnityAnalysis::DataBinding* > dataBindings;
+            {
+                for( const auto& dataBinding : manual[ "dataBindings" ] )
+                {
+                    UnityAnalysis::DataBinding* pDataBinding
+                        = database.construct< UnityAnalysis::DataBinding >( UnityAnalysis::DataBinding::Args{
+                            dataBinding[ "typeName" ],
+                            mega::TypeID{ TypeID::ValueType{ dataBinding[ "interfaceTypeID" ] } } } );
+                    dataBindings.push_back( pDataBinding );
+                }
+            }
+            std::vector< UnityAnalysis::LinkBinding* > linkBindings;
+            {
+                for( const auto& linkBinding : manual[ "linkBindings" ] )
+                {
+                    UnityAnalysis::LinkBinding* pLinkBinding
+                        = database.construct< UnityAnalysis::LinkBinding >( UnityAnalysis::LinkBinding::Args{
+                            linkBinding[ "typeName" ],
+                            mega::TypeID{ TypeID::ValueType{ linkBinding[ "interfaceTypeID" ] } } } );
+                    linkBindings.push_back( pLinkBinding );
+                }
+            }
+
+            const TypeID interfaceTypeID{ TypeID::ValueType{ manual[ "interfaceTypeID" ] } };
+            VERIFY_RTE_MSG( interfaceTypeID != TypeID{}, "Invalid type ID from unity for: " << manual[ "manualName" ] );
+            UnityAnalysis::Manual* pManual = database.construct< UnityAnalysis::Manual >( UnityAnalysis::Manual::Args{
+                UnityAnalysis::ObjectBinding::Args{ manual[ "typeName" ], interfaceTypeID, dataBindings, linkBindings },
+                manual[ "manualName" ] } );
+            bindings.insert( { interfaceTypeID, pManual } );
         }
 
         for( const auto& prefab : data[ "prefabs" ] )
@@ -372,10 +405,12 @@ public:
                 }
             }
 
-            const TypeID           interfaceTypeID{ TypeID::ValueType{ prefab[ "interfaceTypeID" ] } };
+            const TypeID interfaceTypeID{ TypeID::ValueType{ prefab[ "interfaceTypeID" ] } };
+            VERIFY_RTE_MSG( interfaceTypeID != TypeID{}, "Invalid type ID from unity for: " << prefab[ "guid" ] );
             UnityAnalysis::Prefab* pPrefab = database.construct< UnityAnalysis::Prefab >( UnityAnalysis::Prefab::Args{
-                prefab[ "guid" ], prefab[ "typeName" ], interfaceTypeID, dataBindings, linkBindings } );
-            prefabs.insert( { interfaceTypeID, pPrefab } );
+                UnityAnalysis::ObjectBinding::Args{ prefab[ "typeName" ], interfaceTypeID, dataBindings, linkBindings },
+                prefab[ "guid" ] } );
+            bindings.insert( { interfaceTypeID, pPrefab } );
         }
 
         using ObjectVector = std::vector< Concrete::Object* >;
@@ -419,21 +454,29 @@ public:
         // actually determine bindings...
         for( Concrete::Object* pObject : objectVector )
         {
-            UnityAnalysis::Prefab* pPrefab = nullptr;
+            UnityAnalysis::ObjectBinding* pObjectBinding = nullptr;
             for( Interface::IContext* pInherited : pObject->get_inheritance() )
             {
-                auto iFind = prefabs.find( pInherited->get_interface_id() );
-                if( iFind != prefabs.end() )
+                auto iFind = bindings.find( pInherited->get_interface_id() );
+                if( iFind != bindings.end() )
                 {
-                    pPrefab = iFind->second;
+                    pObjectBinding = iFind->second;
                     break;
                 }
             }
-            if( pPrefab )
+            if( pObjectBinding )
             {
+                std::string strName;
+                {
+                    UnityAnalysis::Prefab* pPrefab = db_cast< UnityAnalysis::Prefab >( pObjectBinding );
+                    UnityAnalysis::Manual* pManual = db_cast< UnityAnalysis::Manual >( pObjectBinding );
+                    VERIFY_RTE( pPrefab || pManual );
+                    strName = pPrefab ? pPrefab->get_guid() : pManual->get_name();
+                }
+
                 std::map< Concrete::Dimensions::User*, UnityAnalysis::DataBinding* > dataBindings;
                 {
-                    for( UnityAnalysis::DataBinding* pDataBinding : pPrefab->get_dataBindings() )
+                    for( UnityAnalysis::DataBinding* pDataBinding : pObjectBinding->get_dataBindings() )
                     {
                         const TypeID interfaceTypeID = pDataBinding->get_interfaceTypeID();
 
@@ -445,16 +488,15 @@ public:
                             if( interfaceTypeID == pDim->get_interface_dimension()->get_interface_id() )
                             {
                                 VERIFY_RTE_MSG( pFoundDimension == nullptr,
-                                                "Found duplicate binding to dimension in prefab: "
-                                                    << pPrefab->get_guid()
-                                                    << " concrete type: " << pObject->get_concrete_id()
+                                                "Found duplicate binding to dimension in object binding: "
+                                                    << strName << " concrete type: " << pObject->get_concrete_id()
                                                     << " dimension interface type: " << interfaceTypeID );
                                 pFoundDimension = pDim;
                             }
                         }
                         VERIFY_RTE_MSG( pFoundDimension,
-                                        "Failed to locate conrete dimension in prefab: "
-                                            << pPrefab->get_guid() << " concrete type: " << pObject->get_concrete_id()
+                                        "Failed to locate conrete dimension in object binding: "
+                                            << strName << " concrete type: " << pObject->get_concrete_id()
                                             << " dimension interface type: " << interfaceTypeID );
                         dataBindings.insert( { pFoundDimension, pDataBinding } );
                     }
@@ -462,7 +504,7 @@ public:
 
                 std::map< Concrete::Link*, UnityAnalysis::LinkBinding* > linkBindings;
                 {
-                    for( UnityAnalysis::LinkBinding* pLinkBinding : pPrefab->get_linkBindings() )
+                    for( UnityAnalysis::LinkBinding* pLinkBinding : pObjectBinding->get_linkBindings() )
                     {
                         const TypeID interfaceTypeID = pLinkBinding->get_interfaceTypeID();
 
@@ -485,16 +527,15 @@ public:
                             if( bFound )
                             {
                                 VERIFY_RTE_MSG( pFoundLink == nullptr,
-                                                "Found duplicate binding to link in prefab: "
-                                                    << pPrefab->get_guid()
-                                                    << " concrete type: " << pObject->get_concrete_id()
+                                                "Found duplicate binding to link in object binding: "
+                                                    << strName << " concrete type: " << pObject->get_concrete_id()
                                                     << " link interface type: " << interfaceTypeID );
                                 pFoundLink = pLink;
                             }
                         }
                         VERIFY_RTE_MSG( pFoundLink,
-                                        "Failed to locate conrete link in prefab: "
-                                            << pPrefab->get_guid() << " concrete type: " << pObject->get_concrete_id()
+                                        "Failed to locate conrete link in object binding: "
+                                            << strName << " concrete type: " << pObject->get_concrete_id()
                                             << " link interface type: " << interfaceTypeID );
                         linkBindings.insert( { pFoundLink, pLinkBinding } );
                     }
@@ -502,7 +543,7 @@ public:
 
                 // have found highest priority binding!
                 database.construct< UnityAnalysis::Binding >(
-                    UnityAnalysis::Binding::Args{ pPrefab, pObject, dataBindings, linkBindings } );
+                    UnityAnalysis::Binding::Args{ pObjectBinding, pObject, dataBindings, linkBindings } );
             }
         }
 
@@ -559,6 +600,7 @@ public:
         Database database( m_environment, m_manifest );
 
         nlohmann::json data( { { "prefabBindings", nlohmann::json::array() },
+                               { "manualBindings", nlohmann::json::array() },
                                { "relations", nlohmann::json::array() },
                                { "memoryMaps", nlohmann::json::array() } } );
 
@@ -582,32 +624,66 @@ public:
         for( UnityAnalysis::Binding* pBinding :
              database.many< UnityAnalysis::Binding >( m_environment.project_manifest() ) )
         {
-            UnityAnalysis::Prefab* pPrefab = pBinding->get_prefab();
+            UnityAnalysis::ObjectBinding* pObjectBinding = pBinding->get_binding();
 
-            nlohmann::json binding( { { "guid", pPrefab->get_guid() },
-                                      { "concreteTypeID", pBinding->get_object()->get_concrete_id().getSymbolID() },
-                                      { "interfaceTypeID", pPrefab->get_interfaceTypeID().getSymbolID() },
-                                      { "interfaceTypeName", pPrefab->get_typeName() },
-                                      { "data", nlohmann::json::array() },
-                                      { "links", nlohmann::json::array() } } );
-
-            for( const auto& [ pDim, pBinding ] : pBinding->get_dataBindings() )
+            if( UnityAnalysis::Prefab* pPrefab = db_cast< UnityAnalysis::Prefab >( pObjectBinding ) )
             {
-                nlohmann::json dataBinding( { { "concreteTypeID", pDim->get_concrete_id().getSymbolID() },
-                                              { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
-                                              { "interfaceTypeName", pBinding->get_typeName() } } );
-                binding[ "data" ].push_back( dataBinding );
-            }
+                nlohmann::json binding( { { "guid", pPrefab->get_guid() },
+                                          { "concreteTypeID", pBinding->get_object()->get_concrete_id().getSymbolID() },
+                                          { "interfaceTypeID", pPrefab->get_interfaceTypeID().getSymbolID() },
+                                          { "interfaceTypeName", pPrefab->get_typeName() },
+                                          { "data", nlohmann::json::array() },
+                                          { "links", nlohmann::json::array() } } );
 
-            for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
+                for( const auto& [ pDim, pBinding ] : pBinding->get_dataBindings() )
+                {
+                    nlohmann::json dataBinding( { { "concreteTypeID", pDim->get_concrete_id().getSymbolID() },
+                                                  { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
+                                                  { "interfaceTypeName", pBinding->get_typeName() } } );
+                    binding[ "data" ].push_back( dataBinding );
+                }
+
+                for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
+                {
+                    nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
+                                                  { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
+                                                  { "interfaceTypeName", pBinding->get_typeName() } } );
+                    binding[ "links" ].push_back( dataBinding );
+                }
+
+                data[ "prefabBindings" ].push_back( binding );
+            }
+            else if( UnityAnalysis::Manual* pManual = db_cast< UnityAnalysis::Manual >( pObjectBinding ) )
             {
-                nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
-                                              { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
-                                              { "interfaceTypeName", pBinding->get_typeName() } } );
-                binding[ "links" ].push_back( dataBinding );
-            }
+                nlohmann::json binding( { { "name", pManual->get_name() },
+                                          { "concreteTypeID", pBinding->get_object()->get_concrete_id().getSymbolID() },
+                                          { "interfaceTypeID", pManual->get_interfaceTypeID().getSymbolID() },
+                                          { "interfaceTypeName", pManual->get_typeName() },
+                                          { "data", nlohmann::json::array() },
+                                          { "links", nlohmann::json::array() } } );
 
-            data[ "prefabBindings" ].push_back( binding );
+                for( const auto& [ pDim, pBinding ] : pBinding->get_dataBindings() )
+                {
+                    nlohmann::json dataBinding( { { "concreteTypeID", pDim->get_concrete_id().getSymbolID() },
+                                                  { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
+                                                  { "interfaceTypeName", pBinding->get_typeName() } } );
+                    binding[ "data" ].push_back( dataBinding );
+                }
+
+                for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
+                {
+                    nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
+                                                  { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
+                                                  { "interfaceTypeName", pBinding->get_typeName() } } );
+                    binding[ "links" ].push_back( dataBinding );
+                }
+
+                data[ "manualBindings" ].push_back( binding );
+            }
+            else
+            {
+                THROW_RTE( "Unknown binding type" );
+            }
         }
 
         for( HyperGraph::Relation* pRelation :
