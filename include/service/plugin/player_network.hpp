@@ -53,7 +53,6 @@ public:
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
     // network::planet::Impl
-    virtual void PlayerNetworkDestroy( boost::asio::yield_context& yield_ctx ) override;
     virtual bool PlayerNetworkConnect( const mega::I64& networkID, boost::asio::yield_context& yield_ctx ) override;
     virtual void PlayerNetworkDisconnect( boost::asio::yield_context& yield_ctx ) override;
     virtual void PlayerNetworkCreatePlanet( boost::asio::yield_context& yield_ctx ) override;

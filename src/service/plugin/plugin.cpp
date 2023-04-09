@@ -37,6 +37,7 @@ Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
     , m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), this, network::Node::Plugin )
     , m_stateMachine( *this )
 {
+    SPDLOG_TRACE( "Plugin::Plugin()" );
     {
         m_pPlatform = std::make_shared< Platform >(
             m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), *this );
@@ -61,16 +62,8 @@ Plugin::~Plugin()
             runOne();
         }
         m_bNetworkRequest = true;
-        send( *m_pPlayerNetwork, MSG_PlayerNetworkDestroy_Request{} );
-        while( m_bNetworkRequest )
-        {
-            runOne();
-        }
-        if( m_pPlayerNetwork )
-        {
-            m_executor.conversationCompleted( m_pPlayerNetwork );
-            m_pPlayerNetwork.reset();
-        }
+        send( *m_pPlayerNetwork, MSG_PlayerNetworkStatus_Response{ false } );
+        m_pPlayerNetwork.reset();
     }
     if( m_pPlatform )
     {
@@ -80,16 +73,8 @@ Plugin::~Plugin()
             runOne();
         }
         m_bPlatformRequest = true;
-        send( *m_pPlatform, MSG_PlatformDestroy_Request{} );
-        while( m_bPlatformRequest )
-        {
-            runOne();
-        }
-        if( m_pPlatform )
-        {
-            m_executor.conversationCompleted( m_pPlatform );
-            m_pPlatform.reset();
-        }
+        send( *m_pPlatform, MSG_PlatformStatus_Response{ false } );
+        m_pPlatform.reset();
     }
 }
 
@@ -131,15 +116,31 @@ const network::ConversationID& Plugin::getID() const
 
 void Plugin::send( const network::ReceivedMsg& msg )
 {
-    m_channel.async_send( boost::system::error_code(), msg,
-                          [ &msg ]( boost::system::error_code ec )
-                          {
-                              if( ec )
-                              {
-                                  SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
-                                  THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
-                              }
-                          } );
+    m_channel.async_send(
+        boost::system::error_code(), msg,
+        [ &msg ]( boost::system::error_code ec )
+        {
+            if( ec )
+            {
+                if( ec.value() == boost::asio::error::eof )
+                {
+                }
+                else if( ec.value() == boost::asio::error::operation_aborted )
+                {
+                }
+                else if( ec.value() == boost::asio::experimental::error::channel_closed )
+                {
+                }
+                else if( ec.value() == boost::asio::experimental::error::channel_cancelled )
+                {
+                }
+                else if( ec.failed() )
+                {
+                    SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
+                    THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
+                }
+            }
+        } );
 }
 
 void Plugin::runOne()
@@ -152,7 +153,6 @@ void Plugin::runOne()
             if( ec )
             {
                 SPDLOG_ERROR( "Failed to receive msg with error: {}", ec.what() );
-                THROW_RTE( "Failed to receive msg on channel: " << ec.what() );
                 pro.set_exception( std::make_exception_ptr( std::runtime_error( ec.what() ) ) );
             }
             else
@@ -172,7 +172,7 @@ void Plugin::tryRun()
             && ( ( m_ct - m_lastPlatformStatus.value() ) > m_statusRate ) )
         {
             using namespace network::platform;
-            send( *m_pPlatform, MSG_PlatformStatus_Response{} );
+            send( *m_pPlatform, MSG_PlatformStatus_Response{ true } );
             m_lastPlatformStatus.reset();
         }
     }
@@ -183,7 +183,7 @@ void Plugin::tryRun()
             && ( ( m_ct - m_lastNetworkStatus.value() ) > m_statusRate ) )
         {
             using namespace network::player_network;
-            send( *m_pPlayerNetwork, MSG_PlayerNetworkStatus_Response{} );
+            send( *m_pPlayerNetwork, MSG_PlayerNetworkStatus_Response{ true } );
             m_lastNetworkStatus.reset();
         }
     }
@@ -232,11 +232,6 @@ void Plugin::dispatch( const network::Message& msg )
             m_lastPlatformStatus = m_ct;
         }
         break;
-        case MSG_PlatformDestroy_Response::ID:
-        {
-            m_bPlatformRequest = false;
-        }
-        break;
 
         // network
         case MSG_PlayerNetworkStatus_Request::ID:
@@ -244,11 +239,6 @@ void Plugin::dispatch( const network::Message& msg )
             // SPDLOG_TRACE( "plugin::dispatch: {}", msg.getName() );
             m_networkStateOpt   = MSG_PlayerNetworkStatus_Request::get( msg ).state;
             m_lastNetworkStatus = m_ct;
-        }
-        break;
-        case MSG_PlayerNetworkDestroy_Response::ID:
-        {
-            m_bNetworkRequest = false;
         }
         break;
 

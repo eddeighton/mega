@@ -109,6 +109,96 @@ void update()
     mp_upstream( 0.1f, nullptr );
 }
 
+void testStuff()
+{
+        /*printCurrentNetworkConnection();
+        std::cout << "PLUGIN_TEST: Total networks: " << mp_network_count() << std::endl;
+
+        MEGA_64 networkID = 0;
+        std::cout << "PLUGIN_TEST: Connecting to: '" << mp_network_name( networkID ) << "' network" << std::endl;
+
+        mp_network_connect( networkID );
+        {
+            while( -1 == mp_network_current() )
+            {
+                update();
+            }
+        }
+
+        printCurrentNetworkConnection();
+        std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
+
+        mp_planet_create();
+        {
+            while( mp_planet_current() == false )
+            {
+                update();
+            }
+        }
+        std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;*/
+
+        /*bool bLoop = true;
+        while( bLoop )
+        {
+            update();
+
+            //int c = std::cin.peek();
+            //if ( c != EOF ) break;
+
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for( 0.015s );
+        }*/
+
+        /*{
+            std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
+            char c;
+            std::cin >> c;
+        }
+
+        {
+            auto timeNOw = std::chrono::steady_clock::now();
+            for( int i = 0; i != 1000; ++i )
+            {
+                update();
+            }
+            std::cout << "1000 cycles took: ";
+            print( elapsed( timeNOw ), std::cout );
+            std::cout << std::endl;
+        }
+        {
+            std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
+            char c;
+            std::cin >> c;
+        }*/
+
+        /*mp_planet_destroy();
+        {
+            while( mp_planet_current() == true )
+            {
+                update();
+            }
+        }
+        std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
+        printCurrentNetworkConnection();
+
+        {
+            std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
+            char c;
+            std::cin >> c;
+        }
+
+        mp_network_disconnect();
+        {
+            while( -1 != mp_network_current() )
+            {
+                update();
+            }
+        }
+        printCurrentNetworkConnection();
+        std::cout << "PLUGIN_TEST: Shutting down" << std::endl;*/
+
+}
+
 int main( int argc, const char* argv[] )
 {
     using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
@@ -163,99 +253,18 @@ int main( int argc, const char* argv[] )
         std::cout << "PLUGIN_TEST: Initialising plugin" << std::endl;
         mp_initialise( strConsoleLogLevel.c_str(), strLogFileLevel.c_str() );
 
-        {
+        /*{
             while( mp_network_count() == 0 )
             {
-                update();
             }
-        }
-
-        printCurrentNetworkConnection();
-        std::cout << "PLUGIN_TEST: Total networks: " << mp_network_count() << std::endl;
-
-        MEGA_64 networkID = 0;
-        std::cout << "PLUGIN_TEST: Connecting to: '" << mp_network_name( networkID ) << "' network" << std::endl;
-
-        mp_network_connect( networkID );
-        {
-            while( -1 == mp_network_current() )
-            {
-                update();
-            }
-        }
-
-        printCurrentNetworkConnection();
-        std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
-
-        mp_planet_create();
-        {
-            while( mp_planet_current() == false )
-            {
-                update();
-            }
-        }
-        std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
-
-        bool bLoop = true;
-        while( bLoop )
-        {
-            update();
-
-            //int c = std::cin.peek();
-            //if ( c != EOF ) break;
-
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for( 0.015s );
-        }
-
-        /*{
-            std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
-            char c;
-            std::cin >> c;
-        }
-
-        {
-            auto timeNOw = std::chrono::steady_clock::now();
-            for( int i = 0; i != 1000; ++i )
-            {
-                update();
-            }
-            std::cout << "1000 cycles took: ";
-            print( elapsed( timeNOw ), std::cout );
-            std::cout << std::endl;
-        }
-        {
-            std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
-            char c;
-            std::cin >> c;
         }*/
 
-        mp_planet_destroy();
+        for( int i = 0; i < 100; ++i )
         {
-            while( mp_planet_current() == true )
-            {
-                update();
-            }
+            mp_upstream( 0.1f, nullptr );
         }
-        std::cout << "PLUGIN_TEST: Current planet: " << std::boolalpha << mp_planet_current() << std::endl;
-        printCurrentNetworkConnection();
-
-        {
-            std::cout << "PLUGIN_TEST: waiting for input..." << std::endl;
-            char c;
-            std::cin >> c;
-        }
-
-        mp_network_disconnect();
-        {
-            while( -1 != mp_network_current() )
-            {
-                update();
-            }
-        }
-        printCurrentNetworkConnection();
+        
         std::cout << "PLUGIN_TEST: Shutting down" << std::endl;
-
         mp_shutdown();
 
         std::cout << "PLUGIN_TEST: Shutdown complete" << std::endl;

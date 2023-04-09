@@ -86,7 +86,7 @@ void Platform::run( boost::asio::yield_context& yield_ctx )
             m_state.m_availableNetworks = { "Single Player" };
 
             // send status update to plugin
-            rq.PlatformStatus( m_state );
+            m_bRunning = rq.PlatformStatus( m_state );
         }
     }
     catch( std::exception& ex )
@@ -98,12 +98,5 @@ void Platform::run( boost::asio::yield_context& yield_ctx )
     
     SPDLOG_TRACE( "Platform::run complete" );
 }
-
-void Platform::PlatformDestroy( boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "Platform::PlatformDestroy" );
-    m_bRunning = false;
-}
-
 
 } // namespace mega::service

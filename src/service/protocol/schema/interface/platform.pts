@@ -19,14 +19,8 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-msg PlatformDestroy
-{
-    request();
-    response();
-}
-
 msg PlatformStatus
 {
     request( mega::network::PlatformState state );
-    response();
+    response( bool bContinue );
 }

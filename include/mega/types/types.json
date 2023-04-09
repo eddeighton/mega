@@ -3,42 +3,42 @@
     "types": [
         {
             "canon": "unsigned char",
-            "mangle": "unsigned_char",
+            "mangle": "unsignedchar",
             "impl": "Simple",
             "blit": "System.Byte",
             "size": 1
         },
         {
             "canon": "signed char",
-            "mangle": "signed_char",
+            "mangle": "signedchar",
             "impl": "Simple",
             "blit": "System.SByte",
             "size": 1
         },
         {
             "canon": "unsigned short",
-            "mangle": "unsigned_short",
+            "mangle": "unsignedshort",
             "impl": "Simple",
             "blit": "System.UInt16",
             "size": 2
         },
         {
             "canon": "signed short",
-            "mangle": "signed_short",
+            "mangle": "signedshort",
             "impl": "Simple",
             "blit": "System.Int16",
             "size": 2
         },
         {
             "canon": "unsigned int",
-            "mangle": "unsigned_int",
+            "mangle": "unsignedint",
             "impl": "Simple",
             "blit": "System.UInt16",
             "size": 2
         },
         {
             "canon": "signed int",
-            "mangle": "signed_int",
+            "mangle": "signedint",
             "impl": "Simple",
             "blit": "System.Int32",
             "size": 4
@@ -52,14 +52,14 @@
         },
         {
             "canon": "unsigned long int",
-            "mangle": "unsigned_long_int",
+            "mangle": "unsignedlongint",
             "impl": "Simple",
             "blit": "System.UInt64",
             "size": 8
         },
         {
             "canon": "signed long int",
-            "mangle": "signed_long_int",
+            "mangle": "signedlongint",
             "impl": "Simple",
             "blit": "System.Int64",
             "size": 8

@@ -19,16 +19,10 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-msg PlayerNetworkDestroy
-{
-    request();
-    response();
-}
-
 msg PlayerNetworkStatus
 {
     request( mega::network::PlayerNetworkState state );
-    response();
+    response( bool bContinue );
 }
 
 msg PlayerNetworkConnect

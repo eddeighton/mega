@@ -349,10 +349,6 @@ void load_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pS
                 recursiveLoadFunction( newObject, pSerialiser );
             }
 {%              endfor %}
-            else
-            {
-                throw mega::runtime::JITException( "load_object_xml_structure_{{ objectTypeID }} failed to load link" );
-            }
         }
         if( mega::mangle::ref_vector_get_size( pLinkData ) != iCount )
         {

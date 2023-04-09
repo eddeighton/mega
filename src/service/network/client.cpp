@@ -50,7 +50,7 @@ Client::Client( boost::asio::io_context& ioContext, ConversationManager& convers
     Traits::Resolver::query        query( strServiceIP, strPort );
     Traits::Resolver::results_type endpoints = m_resolver.resolve( query );
 
-    if ( endpoints.empty() )
+    if( endpoints.empty() )
     {
         SPDLOG_ERROR( "Failed to resolve ip: {} port: {}", strServiceIP, portNumber );
         THROW_RTE( "Failed to resolve ip: " << strServiceIP << " port: " << portNumber );
@@ -69,14 +69,33 @@ Client::Client( boost::asio::io_context& ioContext, ConversationManager& convers
 void Client::stop()
 {
     boost::system::error_code ec;
+
     // shutdown_receive leaving work around when shutdown on windows
     // m_socket.shutdown( m_socket.shutdown_receive, ec );
-    m_socket.shutdown(m_socket.shutdown_both, ec);
+    m_socket.shutdown( m_socket.shutdown_both, ec);
+
+    //m_ioContext.post(
+    //     [ this ]()
+    //     {
+    //         boost::system::error_code ec;
+    //         m_socket.shutdown( m_socket.shutdown_both, ec );
+    //         m_socket.close();
+    //     } );
+
+    //m_strand.post(
+    //    [ this ]()
+    //    {
+    //        boost::system::error_code ec;
+    //        m_socket.shutdown( m_socket.shutdown_receive, ec );
+    //        m_socket.close();
+    //    },
+    //    std::allocator<char>() );
+    //   m_ioContext.run_one();
 }
 
-void Client::disconnected() 
-{ 
-    SPDLOG_TRACE( "Client disconnected from: {}", m_connectionID ); 
+void Client::disconnected()
+{
+    SPDLOG_TRACE( "Client disconnected from: {}", m_connectionID );
 }
 
 Client::~Client() = default;

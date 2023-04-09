@@ -84,7 +84,7 @@ void PlayerNetwork::run( boost::asio::yield_context& yield_ctx )
     {
         while( m_bRunning )
         {
-            rq.PlayerNetworkStatus( m_state );
+            m_bRunning = rq.PlayerNetworkStatus( m_state );
         }
     }
     catch( std::exception& ex )
@@ -95,12 +95,6 @@ void PlayerNetwork::run( boost::asio::yield_context& yield_ctx )
     dispatchRemaining( yield_ctx );
     
     SPDLOG_TRACE( "PlayerNetwork::run complete" );
-}
-
-void PlayerNetwork::PlayerNetworkDestroy( boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "PlayerNetwork::PlayerNetworkDestroy" );
-    m_bRunning = false;
 }
 
 bool PlayerNetwork::PlayerNetworkConnect( const mega::I64& networkID, boost::asio::yield_context& yield_ctx )

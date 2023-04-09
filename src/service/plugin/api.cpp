@@ -21,7 +21,11 @@
 #include "service/plugin/api.hpp"
 #include "service/plugin/plugin.hpp"
 
+#include <spdlog/async.h>
+
 #include <thread>
+#include <cstdlib>
+#include <sstream>
 
 namespace mega::service
 {
@@ -37,15 +41,30 @@ public:
                    U64 uiNumThreads = std::thread::hardware_concurrency() )
     {
         {
-            boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
-            std::string             strConsoleLogLevel = "warn";
-            std::string             strLogFileLevel    = "warn";
+            boost::filesystem::path logFolder;
+            {
+                const char* pszCFG_TYPE = std::getenv( "CFG_TYPE" );
+                if( pszCFG_TYPE != nullptr )
+                {
+                    std::ostringstream os;
+                    os << "/home/foobar/test_" << pszCFG_TYPE << "/log";
+                    logFolder = os.str();
+                }
+                else
+                {
+                    logFolder = boost::filesystem::current_path() / "log";
+                }
+            }
+
+            std::string strConsoleLogLevel = "warn";
+            std::string strLogFileLevel    = "warn";
             if( pszConsoleLogLevel )
                 strConsoleLogLevel = pszConsoleLogLevel;
             if( pszFileLogLevel )
                 strLogFileLevel = pszFileLogLevel;
-            mega::network::configureLog( logFolder, "plugin", mega::network::fromStr( strConsoleLogLevel ),
-                                         mega::network::fromStr( strLogFileLevel ) );
+            m_pLogger = mega::network::configureLog(
+                logFolder, "plugin", mega::network::fromStr( strConsoleLogLevel ), mega::network::fromStr( strLogFileLevel ) );
+            m_pThreadPool = spdlog::thread_pool();
         }
 
         m_pPlugin = std::make_shared< mega::service::Plugin >( m_ioContext, uiNumThreads );
@@ -58,18 +77,18 @@ public:
     ~PluginWrapper()
     {
         m_pPlugin.reset();
-
         m_ioContext.stop();
-
         for( std::thread& thread : m_threads )
         {
             thread.join();
         }
     }
 
-    boost::asio::io_context    m_ioContext;
-    std::vector< std::thread > m_threads;
-    Plugin::Ptr                m_pPlugin;
+    std::shared_ptr< spdlog::logger >               m_pLogger;
+    std::shared_ptr< spdlog::details::thread_pool > m_pThreadPool;
+    boost::asio::io_context                         m_ioContext;
+    std::vector< std::thread >                      m_threads;
+    Plugin::Ptr                                     m_pPlugin;
 };
 
 static PluginWrapper::Ptr g_pPluginWrapper;

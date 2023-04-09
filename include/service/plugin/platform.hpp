@@ -51,9 +51,6 @@ public:
 
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
-    // network::platform::Impl
-    virtual void PlatformDestroy( boost::asio::yield_context& yield_ctx ) override;
-
 private:
     network::ConversationBase&   m_plugin;
     boost::asio::yield_context*  m_pYieldContext = nullptr;
