@@ -133,10 +133,8 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
 set( MEGA_PROTOCOL_COMMON_SOURCE
     ${MEGA_SRC_DIR}/service/protocol/common/context.cpp  
     ${MEGA_SRC_DIR}/service/protocol/common/conversation_base.cpp  
-    ${MEGA_SRC_DIR}/service/protocol/common/conversation_id.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/node.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/root_config.cpp
-    ${MEGA_SRC_DIR}/service/protocol/common/status.cpp
     )
 
 add_library( protocol 

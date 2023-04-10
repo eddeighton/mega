@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,41 +18,44 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/protocol/common/conversation_id.hpp"
+#ifndef GUARD_2023_April_10_status_printer
+#define GUARD_2023_April_10_status_printer
 
-#include "common/assert_verify.hpp"
+#include "service/protocol/common/status.hpp"
 
-#include <algorithm>
+#include <vector>
+#include <ostream>
 
-namespace mega::network
+namespace mega::utilities
 {
 
-std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID )
+class StatusPrinter
 {
-    return os << conversationID.getID() << "_" << conversationID.getConnectionID();
-}
-
-std::istream& operator>>( std::istream& is, ConversationID& conversationID )
-{
-    std::string str;
-    is >> str;
-
-    auto iter = std::find( str.begin(), str.end(), '_' );
-
-    VERIFY_RTE( iter != str.end() );
-
-    const std::string strCon( iter + 1, str.end() );
-
-    ConversationID::ID id;
+public:
+    struct Config
     {
-        std::string        strInt( str.begin(), iter );
-        std::istringstream isInt( strInt );
-        isInt >> id;
-    }
+        bool m_bConversations   = false;
+        bool m_bMemory          = false;
+        bool m_bLocks           = false;
+        bool m_bLog             = false;
+    };
+    StatusPrinter( Config config );
 
-    conversationID = ConversationID{ id, strCon };
+    void print( const network::Status& status, std::ostream& os );
 
-    return is;
-}
+private:
+    void printNodeInfo( const network::Status& status, std::ostream& os );
+    void printNode( const network::Status& status, std::ostream& os, bool bLast );
 
-} // namespace mega::network
+    std::ostream& print( std::ostream& os, int iIndent, char c ) const;
+    std::ostream& line( std::ostream& os, int iIndent = 0 ) const;
+    std::ostream& dash( std::ostream& os, int iIndent = 0 ) const;
+
+    std::vector< int > m_stack;
+    std::vector< bool > m_stackLast;
+    Config m_config;
+};
+
+} // namespace mega::utilities
+
+#endif // GUARD_2023_April_10_status_printer

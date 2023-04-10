@@ -22,6 +22,8 @@
 #include "service/network/log.hpp"
 #include "service/protocol/common/status.hpp"
 
+#include "utilities/status_printer.hpp"
+
 #include "mega/reference_io.hpp"
 
 #include "spdlog/stopwatch.h"
@@ -38,9 +40,10 @@ namespace driver::status
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    bool        bTime = false;
-    std::string strMPO, strMsg;
-    int msgSize = 0;
+    bool                                   bTime = false;
+    std::string                            strMPO, strMsg;
+    int                                    msgSize = 0;
+    mega::utilities::StatusPrinter::Config m_config;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Project Commands" );
@@ -51,6 +54,11 @@ void command( bool bHelp, const std::vector< std::string >& args )
             ( "time",    po::bool_switch( &bTime ),             "Calculate performance timing" )
             ( "msg",     po::value< std::string >( &strMsg ),   "Message to send in ping" )
             ( "size",    po::value< int >( &msgSize ),          "Message size to generate ( instead of input msg )" )
+
+            ( "conv",    po::bool_switch( &m_config.m_bConversations ), "Response conversations status" )
+            ( "mem",     po::bool_switch( &m_config.m_bMemory        ), "Response memory status" )
+            ( "locks",   po::bool_switch( &m_config.m_bLocks         ), "Response locks status" )
+            ( "logs",    po::bool_switch( &m_config.m_bLog           ), "Response log status" )
             ;
         // clang-format on
     }
@@ -59,7 +67,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
     po::notify( vm );
 
-    if ( bHelp )
+    if( bHelp )
     {
         std::cout << commandOptions << "\n";
     }
@@ -79,16 +87,16 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
         // bTime
         std::optional< spdlog::stopwatch > sw;
-        if ( bTime )
+        if( bTime )
         {
             sw = spdlog::stopwatch{};
             sw->reset();
         }
 
-        if ( !strMPO.empty() )
+        if( !strMPO.empty() )
         {
             auto dotCount = std::count_if( strMPO.begin(), strMPO.end(), []( char c ) { return c == '.'; } );
-            if ( dotCount == 2 )
+            if( dotCount == 2 )
             {
                 mega::MPO mpo;
                 {
@@ -97,7 +105,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 }
                 std::cout << terminal.PingMPO( mpo, strMsg ) << std::endl;
             }
-            else if ( dotCount < 2 )
+            else if( dotCount < 2 )
             {
                 mega::MP mp;
                 {
@@ -113,12 +121,12 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
         else
         {
-            mega::network::StatusPrinter statusPrinter;
-            mega::network::Status status = terminal.GetNetworkStatus();
+            mega::utilities::StatusPrinter statusPrinter( m_config );
+            mega::network::Status          status = terminal.GetNetworkStatus();
             statusPrinter.print( status, std::cout );
         }
 
-        if ( bTime )
+        if( bTime )
         {
             SPDLOG_INFO(
                 "Total time: {}", std::chrono::duration_cast< mega::network::LogTime >( sw.value().elapsed() ) );
