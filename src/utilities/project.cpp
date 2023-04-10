@@ -43,6 +43,10 @@ boost::filesystem::path Project::getProjectDatabase() const
 {
     return getProjectBin() / "archive.adb";
 }
+boost::filesystem::path Project::getProjectUnityDatabase() const
+{
+    return getProjectBin() / "unityDatabase.json";
+}
 boost::filesystem::path Project::getProjectTempDir() const
 {
     return m_projectInstallPath / "tmp/";

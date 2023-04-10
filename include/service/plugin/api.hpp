@@ -24,7 +24,7 @@
 #ifdef _WIN64
 using MEGA_64 = long long;
 #else
-using MEGA_64 = long int;
+using MEGA_64 = unsigned long int;
 #endif
 
 extern "C"

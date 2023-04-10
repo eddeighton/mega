@@ -136,6 +136,7 @@ void Leaf::setActiveProject( const Project& currentProject )
         case network::Node::Python:
         case network::Node::Executor:
         case network::Node::Plugin:
+        {
             if( !currentProject.isEmpty() && m_megastructureInstallationOpt.has_value() )
             {
                 if( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
@@ -151,33 +152,32 @@ void Leaf::setActiveProject( const Project& currentProject )
                                 == currentProject.getProjectInstallPath() )
                             {
                                 SPDLOG_INFO( "Leaf: {} setActiveProject reloading project {}", m_mp,
-                                              currentProject.getProjectInstallPath().string() );
+                                             currentProject.getProjectInstallPath().string() );
                             }
                             else
                             {
                                 SPDLOG_INFO( "Leaf: {} setActiveProject changing project from {} to: {}", m_mp,
-                                              m_activeProject.value().getProjectInstallPath().string(),
-                                              currentProject.getProjectInstallPath().string() );
+                                             m_activeProject.value().getProjectInstallPath().string(),
+                                             currentProject.getProjectInstallPath().string() );
                             }
                         }
                         else
                         {
                             SPDLOG_INFO( "Leaf: {} setActiveProject creating runtime for project: {}", m_mp,
-                                          currentProject.getProjectInstallPath().string() );
+                                         currentProject.getProjectInstallPath().string() );
                             m_pJIT = std::make_unique< runtime::JIT >(
                                 m_megastructureInstallationOpt.value(), currentProject );
                         }
-                        m_activeProject = currentProject;
                     }
                     catch( mega::io::DatabaseVersionException& ex )
                     {
-                        SPDLOG_ERROR( "Database version exception: {}", currentProject.getProjectInstallPath().string(),
-                                      ex.what() );
+                        SPDLOG_ERROR(
+                            "Database version exception: {}", currentProject.getProjectInstallPath().string(), ex.what() );
                     }
                     catch( std::exception& ex )
                     {
                         SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
-                                      currentProject.getProjectInstallPath().string(), ex.what() );
+                                    currentProject.getProjectInstallPath().string(), ex.what() );
                         throw;
                     }
                 }
@@ -185,15 +185,32 @@ void Leaf::setActiveProject( const Project& currentProject )
                 {
                     m_pJIT.reset();
                     SPDLOG_WARN( "JIT uninitialised.  Active project: {} has no database",
-                                 currentProject.getProjectInstallPath().string() );
+                                currentProject.getProjectInstallPath().string() );
                 }
+                m_activeProject = currentProject;
+                /*{
+                    const boost::filesystem::path unityDatabasePath
+                        = currentProject.getProjectUnityDatabase();
+                    if( boost::filesystem::exists( unityDatabasePath ) )
+                    {
+                        // m_unityDatabaseHashCode = task::FileHash( unityDatabasePath );
+                    }
+                    else
+                    {
+                        m_unityDatabaseHashCode.reset();
+                    }
+                }*/
             }
             else
             {
                 m_pJIT.reset();
-                SPDLOG_WARN( "JIT uninitialised.  No active project" );
+                SPDLOG_WARN( "JIT uninitialised.  Active project: {} has no database",
+                             currentProject.getProjectInstallPath().string() );
+                m_activeProject.reset();
+                //m_unityDatabaseHashCode.reset();
             }
             break;
+        }
         case network::Node::Daemon:
         case network::Node::Root:
         case network::Node::TOTAL_NODE_TYPES:

@@ -29,6 +29,12 @@ msg SetProject
     response();
 }
 
+msg SetUnityProject
+{
+    request( mega::Project project, mega::U64 dbHash );
+    response();
+}
+
 msg GetMegastructureInstallation
 {
     request();

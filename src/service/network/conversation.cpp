@@ -285,7 +285,7 @@ std::optional< ReceivedMsg > InThreadConversation::try_receive( boost::asio::yie
 {
     std::optional< ReceivedMsg > result;
 
-    while( m_channel.try_receive(
+    m_channel.try_receive(
         [ &optMsg = result ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
         {
             if( !ec )
@@ -296,8 +296,7 @@ std::optional< ReceivedMsg > InThreadConversation::try_receive( boost::asio::yie
             {
                 THROW_TODO;
             }
-        } ) )
-        ;
+        } );
 
     return result;
 }
@@ -335,7 +334,7 @@ std::optional< ReceivedMsg > ConcurrentConversation::try_receive( boost::asio::y
 {
     std::optional< ReceivedMsg > result;
 
-    while( m_channel.try_receive(
+    m_channel.try_receive(
         [ &optMsg = result ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
         {
             if( !ec )
@@ -346,8 +345,7 @@ std::optional< ReceivedMsg > ConcurrentConversation::try_receive( boost::asio::y
             {
                 THROW_TODO;
             }
-        } ) )
-        ;
+        } );
 
     return result;
 }

@@ -88,6 +88,7 @@ public:
         VERIFY_RTE_MSG( m_activeProject.has_value(), "No active project" );
         return m_activeProject.value();
     }
+    std::optional< task::FileHash > getUnityDBHashCode() const { return m_unityDatabaseHashCode; }
 
     HeapMemory&            getHeapMemory();
     std::set< mega::MPO >& getMPOs() { return m_mpos; }
@@ -108,6 +109,7 @@ private:
     std::unique_ptr< runtime::JIT >                  m_pJIT;
     std::optional< MegastructureInstallation >       m_megastructureInstallationOpt;
     std::optional< Project >                         m_activeProject;
+    std::optional< task::FileHash >                  m_unityDatabaseHashCode;
     std::unique_ptr< runtime::RemoteMemoryManager >  m_pRemoteMemoryManager;
 };
 

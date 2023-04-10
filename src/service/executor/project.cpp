@@ -42,11 +42,20 @@ void ExecutorRequestConversation::SetProject( const Project& project, boost::asi
 
     if( network::ConversationBase* pClock = m_executor.getClock() )
     {
-
         // fire and forget to the plugin
         using namespace network::project;
+        mega::U64 unityDBHashCode = 0U;
+        {
+            // assume thread safe access here
+            auto dbHashCode = m_executor.m_leaf.getUnityDBHashCode();
+            if( dbHashCode.has_value() )
+            {
+                unityDBHashCode = dbHashCode.value().get();
+            }
+        }
         const network::ReceivedMsg rMsg{
-            pClock->getConnectionID(), MSG_SetProject_Request::make( getID(), MSG_SetProject_Request{ project } ) };
+            pClock->getConnectionID(),
+            MSG_SetUnityProject_Request::make( getID(), MSG_SetUnityProject_Request{ project, unityDBHashCode } ) };
         pClock->send( rMsg );
     }
 }

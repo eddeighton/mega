@@ -30,15 +30,18 @@
 #include "service/protocol/model/player_network.hxx"
 #include "service/protocol/model/sim.hxx"
 
+#include <chrono>
+
 namespace mega::service
 {
+
 Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
     : m_channel( ioContext )
     , m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), this, network::Node::Plugin )
     , m_stateMachine( *this )
 {
     SPDLOG_TRACE( "Plugin::Plugin()" );
-    {
+    /*{
         m_pPlatform = std::make_shared< Platform >(
             m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), *this );
         m_executor.conversationInitiated( m_pPlatform, m_executor.getLeafSender() );
@@ -47,14 +50,14 @@ Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
         m_pPlayerNetwork = std::make_shared< PlayerNetwork >(
             m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), *this );
         m_executor.conversationInitiated( m_pPlayerNetwork, m_executor.getLeafSender() );
-    }
+    }*/
 }
 
 Plugin::~Plugin()
 {
     SPDLOG_TRACE( "Plugin::~Plugin()" );
 
-    if( m_pPlayerNetwork )
+    /*if( m_pPlayerNetwork )
     {
         using namespace network::player_network;
         while( m_bNetworkRequest )
@@ -75,7 +78,7 @@ Plugin::~Plugin()
         m_bPlatformRequest = true;
         send( *m_pPlatform, MSG_PlatformStatus_Response{ false } );
         m_pPlatform.reset();
-    }
+    }*/
 }
 
 network::ConnectionID Plugin::getConnectionID() const
@@ -91,6 +94,7 @@ network::ConnectionID Plugin::getConnectionID() const
 
 boost::system::error_code Plugin::send( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
+    // SPDLOG_TRACE( "Plugin::send()" );
     const network::ReceivedMsg rMsg{ getConnectionID(), msg };
     send( rMsg );
     return boost::system::error_code{};
@@ -98,6 +102,7 @@ boost::system::error_code Plugin::send( const network::Message& msg, boost::asio
 
 void Plugin::sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg )
 {
+    SPDLOG_TRACE( "Plugin::sendErrorResponse()" );
     const network::ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.getReceiverID(), strErrorMsg ) };
     send( rMsg );
 }
@@ -116,6 +121,7 @@ const network::ConversationID& Plugin::getID() const
 
 void Plugin::send( const network::ReceivedMsg& msg )
 {
+    // SPDLOG_TRACE( "Plugin::send" );
     m_channel.async_send(
         boost::system::error_code(), msg,
         [ &msg ]( boost::system::error_code ec )
@@ -145,28 +151,31 @@ void Plugin::send( const network::ReceivedMsg& msg )
 
 void Plugin::runOne()
 {
-    std::promise< network::ReceivedMsg > pro;
-    std::future< network::ReceivedMsg >  fut = pro.get_future();
-    m_channel.async_receive(
-        [ &pro ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
-        {
-            if( ec )
+    if( !tryRun() )
+    {
+        std::promise< network::ReceivedMsg > pro;
+        std::future< network::ReceivedMsg >  fut = pro.get_future();
+        m_channel.async_receive(
+            [ &pro ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
             {
-                SPDLOG_ERROR( "Failed to receive msg with error: {}", ec.what() );
-                pro.set_exception( std::make_exception_ptr( std::runtime_error( ec.what() ) ) );
-            }
-            else
-            {
-                pro.set_value( msg );
-            }
-        } );
+                if( ec )
+                {
+                    SPDLOG_ERROR( "Failed to receive msg with error: {}", ec.what() );
+                    pro.set_exception( std::make_exception_ptr( std::runtime_error( ec.what() ) ) );
+                }
+                else
+                {
+                    pro.set_value( msg );
+                }
+            } );
 
-    dispatch( fut.get().msg );
+        dispatch( fut.get().msg );
+    }
 }
 
-void Plugin::tryRun()
+bool Plugin::tryRun()
 {
-    if( m_pPlatform )
+    /*if( m_pPlatform )
     {
         if( m_lastPlatformStatus.has_value() && !m_bPlatformRequest
             && ( ( m_ct - m_lastPlatformStatus.value() ) > m_statusRate ) )
@@ -186,34 +195,35 @@ void Plugin::tryRun()
             send( *m_pPlayerNetwork, MSG_PlayerNetworkStatus_Response{ true } );
             m_lastNetworkStatus.reset();
         }
-    }
+    }*/
 
-    std::optional< network::ReceivedMsg > msgOpt;
+    bool bDispatchedMsg = false;
     while( true )
     {
-        msgOpt.reset();
+        std::optional< network::ReceivedMsg > result;
         m_channel.try_receive(
-            [ &msgOpt ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+            [ &optMsg = result ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
             {
                 if( !ec )
                 {
-                    msgOpt = msg;
+                    optMsg = msg;
                 }
                 else
                 {
                     THROW_TODO;
                 }
             } );
-
-        if( msgOpt.has_value() )
+        if( result.has_value() )
         {
-            dispatch( msgOpt.value().msg );
+            dispatch( result.value().msg );
+            bDispatchedMsg = true;
         }
         else
         {
             break;
         }
     }
+    return bDispatchedMsg;
 }
 
 void Plugin::dispatch( const network::Message& msg )
@@ -226,10 +236,10 @@ void Plugin::dispatch( const network::Message& msg )
     switch( msg.getID() )
     {
         // platform
-        case MSG_PlatformStatus_Request::ID:
+        /*case MSG_PlatformStatus_Request::ID:
         {
-            m_platformStateOpt   = MSG_PlatformStatus_Request::get( msg ).state;
-            m_lastPlatformStatus = m_ct;
+            //m_platformStateOpt   = MSG_PlatformStatus_Request::get( msg ).state;
+            //m_lastPlatformStatus = m_ct;
         }
         break;
 
@@ -237,8 +247,8 @@ void Plugin::dispatch( const network::Message& msg )
         case MSG_PlayerNetworkStatus_Request::ID:
         {
             // SPDLOG_TRACE( "plugin::dispatch: {}", msg.getName() );
-            m_networkStateOpt   = MSG_PlayerNetworkStatus_Request::get( msg ).state;
-            m_lastNetworkStatus = m_ct;
+            //m_networkStateOpt   = MSG_PlayerNetworkStatus_Request::get( msg ).state;
+            //m_lastNetworkStatus = m_ct;
         }
         break;
 
@@ -264,21 +274,21 @@ void Plugin::dispatch( const network::Message& msg )
             m_bNetworkRequest = false;
             // m_bPlanetActive   = false;
         }
-        break;
+        break;*/
 
         // simulation clock
         case MSG_SimRegister_Request::ID:
         {
             const network::sim::MSG_SimRegister_Request& msg_ = MSG_SimRegister_Request::get( msg );
             m_stateMachine.simRegister( msg_ );
-            m_memoryDescription.onRegister( msg_.senderRef );
+            //  m_memoryDescription.onRegister( msg_.senderRef );
         }
         break;
         case MSG_SimUnregister_Request::ID:
         {
             const auto& msg_ = MSG_SimUnregister_Request::get( msg );
             m_stateMachine.simUnregister( msg_ );
-            m_memoryDescription.onUnregister( msg_.mpo );
+            //  m_memoryDescription.onUnregister( msg_.mpo );
         }
         break;
         case MSG_SimClock_Request::ID:
@@ -288,16 +298,14 @@ void Plugin::dispatch( const network::Message& msg )
         break;
 
         // project
-        case MSG_SetProject_Request::ID:
+        case MSG_SetUnityProject_Request::ID:
         {
-            const auto& projectMsg = MSG_SetProject_Request::get( msg );
-            SPDLOG_INFO( "plugin::dispatch: Set project request received for project: {}",
-                         projectMsg.project.getProjectInstallPath().string() );
-            boost::filesystem::path unityDatabasePath = projectMsg.project.getProjectBin() / "unityDatabase.json";
-            VERIFY_RTE_MSG( boost::filesystem::exists( unityDatabasePath ),
-                            "Failed to locate unity database: " << unityDatabasePath.string() );
-            m_strDatabasePath  = unityDatabasePath.string();
-            m_databaseHashcode = task::FileHash( unityDatabasePath );
+            const MSG_SetUnityProject_Request& projectMsg = MSG_SetUnityProject_Request::get( msg );
+            SPDLOG_INFO( "plugin::dispatch: Set project request received for project: {} {}",
+                         projectMsg.project.getProjectInstallPath().string(),
+                         projectMsg.dbHash );
+            m_strDatabasePath  = projectMsg.project.getProjectUnityDatabase().string();
+            m_databaseHashcode = projectMsg.dbHash;
         }
         break;
 
@@ -309,25 +317,26 @@ void Plugin::dispatch( const network::Message& msg )
         }
         break;
         default:
-            THROW_RTE( "plugin::dispatch Unsupported msg type: " << msg.getName() );
+            SPDLOG_ERROR( "Unhandled message in Plugin::dispatch: {}", msg.getName() );
+            // THROW_RTE( "plugin::dispatch Unsupported msg type: " << msg.getName() );
             break;
     }
 }
-I64 Plugin::network_count()
+U64 Plugin::network_count()
 {
-    if( m_platformStateOpt.has_value() )
+    /*if( m_platformStateOpt.has_value() )
     {
         return m_platformStateOpt.value().m_availableNetworks.size();
     }
-    else
+    else*/
     {
         return 0;
     }
 }
 
-const char* Plugin::network_name( int networkID )
+const char* Plugin::network_name( U64 networkID )
 {
-    if( m_platformStateOpt.has_value() )
+    /*if( m_platformStateOpt.has_value() )
     {
         const network::PlatformState& platform = m_platformStateOpt.value();
         const auto&                   networks = platform.m_availableNetworks;
@@ -337,85 +346,85 @@ const char* Plugin::network_name( int networkID )
             hmm = networks[ networkID ];
             return hmm.c_str();
         }
-    }
+    }*/
     return nullptr;
 }
 
-void Plugin::network_connect( I64 networkID )
+void Plugin::network_connect( U64 networkID )
 {
     SPDLOG_TRACE( "Plugin::network_connect: {}", networkID );
 
-    using namespace network::player_network;
+    /*using namespace network::player_network;
     if( m_pPlayerNetwork )
     {
         m_bNetworkRequest = true;
         send( *m_pPlayerNetwork, MSG_PlayerNetworkConnect_Request{ networkID } );
-    }
+    }*/
 }
 
 void Plugin::network_disconnect()
 {
     SPDLOG_TRACE( "Plugin::network_disconnect" );
 
-    using namespace network::player_network;
+    /*using namespace network::player_network;
     if( m_pPlayerNetwork )
     {
         m_bNetworkRequest = true;
         send( *m_pPlayerNetwork, MSG_PlayerNetworkDisconnect_Request{} );
-    }
+    }*/
 }
 
-I64 Plugin::network_current()
+U64 Plugin::network_current()
 {
-    if( m_networkStateOpt.has_value() && m_platformStateOpt.has_value() )
-    {
-        const network::PlatformState&      platform = m_platformStateOpt.value();
-        const network::PlayerNetworkState& network  = m_networkStateOpt.value();
+    /* if( m_networkStateOpt.has_value() && m_platformStateOpt.has_value() )
+     {
+         const network::PlatformState&      platform = m_platformStateOpt.value();
+         const network::PlayerNetworkState& network  = m_networkStateOpt.value();
 
-        auto iFind = std::find(
-            platform.m_availableNetworks.begin(), platform.m_availableNetworks.end(), network.m_currentNetwork );
-        if( iFind != platform.m_availableNetworks.end() )
-        {
-            const I64 result = std::distance( platform.m_availableNetworks.begin(), iFind );
-            // SPDLOG_TRACE( "Plugin::network_current: {}", result );
-            return result;
-        }
-    }
+         auto iFind = std::find(
+             platform.m_availableNetworks.begin(), platform.m_availableNetworks.end(), network.m_currentNetwork );
+         if( iFind != platform.m_availableNetworks.end() )
+         {
+             const I64 result = std::distance( platform.m_availableNetworks.begin(), iFind );
+             // SPDLOG_TRACE( "Plugin::network_current: {}", result );
+             return result;
+         }
+     }*/
     // SPDLOG_TRACE( "Plugin::network_current: {}", -1 );
-    return -1;
+    return 0U;
 }
 
 void Plugin::planet_create()
 {
     SPDLOG_TRACE( "Plugin::planet_create" );
 
-    using namespace network::player_network;
+    /*using namespace network::player_network;
     if( m_pPlayerNetwork )
     {
         m_bNetworkRequest = true;
         send( *m_pPlayerNetwork, MSG_PlayerNetworkCreatePlanet_Request{} );
-    }
+    }*/
 }
 
 void Plugin::planet_destroy()
 {
     SPDLOG_TRACE( "Plugin::planet_destroy" );
 
-    using namespace network::player_network;
+    /*using namespace network::player_network;
     if( m_pPlayerNetwork )
     {
         m_bNetworkRequest = true;
         send( *m_pPlayerNetwork, MSG_PlayerNetworkDestroyPlanet_Request{} );
-    }
+    }*/
 }
 bool Plugin::planet_current()
 {
     // SPDLOG_TRACE( "Plugin::planet_current" );
-    if( m_networkStateOpt.has_value() )
+    /*if( m_networkStateOpt.has_value() )
     {
         return m_networkStateOpt.value().m_currentPlanet.has_value();
     }
-    else
+    else*/
     {
         return false;
     }

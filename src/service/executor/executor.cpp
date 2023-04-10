@@ -65,9 +65,17 @@ Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short d
     {
         // fire and forget to the plugin the active project
         using namespace network::project;
+        mega::U64 unityDBHashCode = 0U;
+        {
+            if( m_leaf.getUnityDBHashCode().has_value() )
+            {
+                unityDBHashCode = m_leaf.getUnityDBHashCode().value().get();
+            }
+        }
         const network::ReceivedMsg rMsg{
             m_pClock->getConnectionID(),
-            MSG_SetProject_Request::make( m_pClock->getID(), MSG_SetProject_Request{ m_leaf.getActiveProject() } ) };
+            MSG_SetUnityProject_Request::make( m_pClock->getID(), 
+                MSG_SetUnityProject_Request{ m_leaf.getActiveProject(), unityDBHashCode } ) };
         m_pClock->send( rMsg );
     }
 }
@@ -80,6 +88,9 @@ Executor::~Executor()
 
 void Executor::shutdown()
 {
+    VERIFY_RTE_MSG( m_simulations.empty(),
+        "Simulations stil running when shutting executor down" );
+        
     m_receiverChannel.stop();
 }
 

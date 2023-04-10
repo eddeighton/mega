@@ -96,12 +96,24 @@ public:
         send( sender, MsgType::make( getID(), sender.getID(), std::move( msg ) ) );
     }
 
-    mega::I64   database_hashcode() { return m_databaseHashcode.get(); }
+    U64         database_hashcode() { return m_databaseHashcode; }
     const char* database() { return m_strDatabasePath.c_str(); }
 
-    mega::I64   memory_state() { return m_memoryDescription.getState(); }
-    mega::I64   memory_size() { return m_memoryDescription.getSize(); }
-    const void* memory_data() { return m_memoryDescription.getData(); }
+    U64 memory_state()
+    {
+        return 0;
+        // m_memoryDescription.getState();
+    }
+    U64 memory_size()
+    {
+        return 0;
+        // m_memoryDescription.getSize();
+    }
+    const void* memory_data()
+    {
+        return nullptr;
+        // m_memoryDescription.getData();
+    }
 
     const log::Range* downstream()
     {
@@ -112,42 +124,41 @@ public:
     void upstream( float delta, void* pRange )
     {
         m_ct += delta;
-
         m_stateMachine.sendUpstream();
     }
 
     void runOne();
-    void tryRun();
+    bool tryRun();
     void dispatch( const network::Message& msg );
 
-    I64         network_count();
-    const char* network_name( int networkID );
-    void        network_connect( I64 networkID );
+    U64         network_count();
+    const char* network_name( U64 networkID );
+    void        network_connect( U64 networkID );
     void        network_disconnect();
-    I64         network_current();
+    U64         network_current();
 
     void planet_create();
     void planet_destroy();
     bool planet_current();
 
 private:
-    MessageChannel                               m_channel;
-    mega::service::Executor                      m_executor;
-    Platform::Ptr                                m_pPlatform;
-    PlayerNetwork::Ptr                           m_pPlayerNetwork;
-    std::optional< network::PlatformState >      m_platformStateOpt;
-    std::optional< network::PlayerNetworkState > m_networkStateOpt;
-    task::FileHash                               m_databaseHashcode;
-    std::string                                  m_strDatabasePath;
-    common::Hash                                 m_memoryHashcode;
-    MemoryDescription                            m_memoryDescription;
-    float                                        m_ct               = 0.0f;
-    float                                        m_statusRate       = 1.0f;
-    bool                                         m_bNetworkRequest  = false;
-    bool                                         m_bPlatformRequest = false;
-    std::optional< float >                       m_lastPlatformStatus;
-    std::optional< float >                       m_lastNetworkStatus;
-    PluginStateMachine< Plugin >                 m_stateMachine;
+    MessageChannel          m_channel;
+    mega::service::Executor m_executor;
+    // Platform::Ptr                                m_pPlatform;
+    // PlayerNetwork::Ptr                           m_pPlayerNetwork;
+    // std::optional< network::PlatformState >      m_platformStateOpt;
+    // std::optional< network::PlayerNetworkState > m_networkStateOpt;
+    U64         m_databaseHashcode = 0U; // MUS BE zero for interop to do nothing
+    std::string m_strDatabasePath;
+    U64         m_memoryHashcode;
+    // MemoryDescription                            m_memoryDescription;
+    float m_ct = 0.0f;
+    // float                        m_statusRate       = 1.0f;
+    // bool                         m_bNetworkRequest  = false;
+    // bool                         m_bPlatformRequest = false;
+    // std::optional< float >       m_lastPlatformStatus;
+    // std::optional< float >       m_lastNetworkStatus;
+    PluginStateMachine< Plugin > m_stateMachine;
 };
 } // namespace mega::service
 

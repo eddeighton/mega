@@ -40,6 +40,7 @@ public:
 
     boost::filesystem::path getProjectBin() const;
     boost::filesystem::path getProjectDatabase() const;
+    boost::filesystem::path getProjectUnityDatabase() const;
     boost::filesystem::path getProjectTempDir() const;
 
     template < class Archive >

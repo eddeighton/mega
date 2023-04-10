@@ -98,6 +98,7 @@ public:
     {
         for( auto& [ mpo, state ] : m_sims )
         {
+            ASSERT( state.m_type == State::eWaitingForUpstream );
             m_sender.send( *state.m_pSender, network::sim::MSG_SimClock_Response{} );
             state.m_type = State::eWaitingForClock;
         }
@@ -105,8 +106,11 @@ public:
 
     void simRegister( const network::sim::MSG_SimRegister_Request& msg )
     {
+        // start in the eWaitingForDownstream state such that
+        // sim will send register initially and wait for clock response
+        // then it will start sending clock request
         m_sims.insert(
-            { msg.senderRef.m_mpo, { State::eWaitingForClock, msg.senderRef.m_pSender, log::Range{} } } );
+            { msg.senderRef.m_mpo, { State::eWaitingForDownstream, msg.senderRef.m_pSender, log::Range{} } } );
     }
 
     void simUnregister( const network::sim::MSG_SimUnregister_Request& msg ) { m_sims.erase( msg.mpo ); }

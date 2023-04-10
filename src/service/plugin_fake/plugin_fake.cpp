@@ -19,18 +19,72 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "service/plugin/api.hpp"
-#include "service/plugin/plugin.hpp"
+
+#include "service/executor/executor.hpp"
+
+#include "mega/native_types.hpp"
+
+#include "service/network/log.hpp"
 
 #include <spdlog/async.h>
+
+#include <boost/asio/io_context.hpp>
+#include <boost/filesystem.hpp>
 
 #include <thread>
 #include <cstdlib>
 #include <sstream>
+#include <memory>
 
 namespace mega::service
 {
 namespace
 {
+
+class FakePlugin
+{
+    mega::service::Executor m_executor;
+
+public:
+    using Ptr = std::shared_ptr< FakePlugin >;
+
+    FakePlugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
+        : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort() )
+    {
+    }
+
+    FakePlugin( const FakePlugin& )            = delete;
+    FakePlugin( FakePlugin&& )                 = delete;
+    FakePlugin& operator=( const FakePlugin& ) = delete;
+    FakePlugin& operator=( FakePlugin&& )      = delete;
+
+    mega::U64   database_hashcode() { return 0; }
+    const char* database() { return nullptr; }
+
+    mega::U64   memory_state() { return 0; }
+    mega::U64   memory_size() { return 0; }
+    const void* memory_data() { return nullptr; }
+
+    const log::Range* downstream() { return nullptr; }
+
+    void upstream( float delta, void* pRange )
+    {
+        //
+        boost::filesystem::path f( "/build/linux_gcc_shared_debug/game/install/bin/unityDatabase.json" );
+        auto                    h = task::FileHash( f );
+        SPDLOG_TRACE( "Got unityDatabase.json hashcode of: {}", h.get() );
+    }
+
+    U64         network_count() { return 0; }
+    const char* network_name( U64 networkID ) { return nullptr; }
+    void        network_connect( U64 networkID ) {}
+    void        network_disconnect() {}
+    U64         network_current() { return 0; }
+
+    void planet_create() {}
+    void planet_destroy() {}
+    bool planet_current() { return false; }
+};
 
 class PluginWrapper
 {
@@ -63,12 +117,13 @@ public:
                 strConsoleLogLevel = pszConsoleLogLevel;
             if( pszFileLogLevel )
                 strLogFileLevel = pszFileLogLevel;
-            m_pLogger = mega::network::configureLog( logFolder, "plugin", mega::network::fromStr( strConsoleLogLevel ),
-                                                     mega::network::fromStr( strLogFileLevel ) );
+            m_pLogger
+                = mega::network::configureLog( logFolder, "plugin_fake", mega::network::fromStr( strConsoleLogLevel ),
+                                               mega::network::fromStr( strLogFileLevel ) );
             m_pThreadPool = spdlog::thread_pool();
         }
 
-        m_pPlugin = std::make_shared< mega::service::Plugin >( m_ioContext, uiNumThreads );
+        m_pPlugin = std::make_shared< FakePlugin >( m_ioContext, uiNumThreads );
 
         for( int i = 0; i < uiNumThreads; ++i )
         {
@@ -92,7 +147,7 @@ public:
     using ExecutorType = decltype( m_ioContext.get_executor() );
     boost::asio::executor_work_guard< ExecutorType > m_work_guard;
     std::vector< std::thread >                       m_threads;
-    Plugin::Ptr                                      m_pPlugin;
+    FakePlugin::Ptr                                  m_pPlugin;
 };
 
 static PluginWrapper::Ptr g_pPluginWrapper;
@@ -123,12 +178,12 @@ const char* mp_database()
     return mega::service::g_pPluginWrapper->m_pPlugin->database();
 }
 
-MEGA_64 mp_memory_state()
+mega::U64 mp_memory_state()
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->memory_state();
 }
 
-MEGA_64 mp_memory_size()
+mega::U64 mp_memory_size()
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->memory_size();
 }

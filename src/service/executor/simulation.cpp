@@ -99,13 +99,10 @@ network::jit::Request_Sender Simulation::getLeafJITRequest()
 
 void Simulation::issueClock()
 {
-    if( !m_pClock )
-    {
-        Simulation* pThis = this;
-        using namespace std::chrono_literals;
-        m_timer.expires_from_now( 15ms );
-        m_timer.async_wait( [ pThis ]( boost::system::error_code ec ) { pThis->clock(); } );
-    }
+    Simulation* pThis = this;
+    using namespace std::chrono_literals;
+    m_timer.expires_from_now( 15ms );
+    m_timer.async_wait( [ pThis ]( boost::system::error_code ec ) { pThis->clock(); } );
 }
 
 void Simulation::clock()
@@ -138,6 +135,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         }
 
         bool                    bRegistedAsTerminating = false;
+        TimeStamp               lastCycle              = m_log.getTimeStamp();
         StateMachine::MsgVector tempMessages;
         while( !m_stateMachine.isTerminated() )
         {
@@ -161,7 +159,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case StateMachine::SIM:
                 {
-                    const auto timeStamp = m_log.getTimeStamp();
+                    lastCycle = m_log.getTimeStamp();
 
                     m_clock.nextCycle();
 
@@ -178,15 +176,6 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         SPDLOG_TRACE( "SIM: cycleComplete {} {}", m_mpo.value(), m_log.getTimeStamp() );
                     }*/
-
-                    if( m_pClock )
-                    {
-                        m_pClock->send( network::ReceivedMsg{
-                            getConnectionID(),
-                            network::sim::MSG_SimClock_Request::make(
-                                getID(), m_pClock->getID(),
-                                network::sim::MSG_SimClock_Request{ m_mpo.value(), m_log.getRange( timeStamp ) } ) } );
-                    }
                 }
                 break;
                 case StateMachine::READ:
@@ -220,6 +209,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             }
 
             // process a message
+            if( !m_stateMachine.isTerminated() )
             {
                 ASSERT( m_queueStack == 0 );
                 unqueue();
@@ -234,9 +224,20 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         if( m_stateMachine.onMsg( { msg } ) )
                         {
-                            if( !m_stateMachine.isTerminated() )
+                            //if( !m_stateMachine.isTerminated() )
                             {
-                                issueClock();
+                                if( m_pClock )
+                                {
+                                    m_pClock->send( network::ReceivedMsg{
+                                        getConnectionID(), network::sim::MSG_SimClock_Request::make(
+                                                               getID(), m_pClock->getID(),
+                                                               network::sim::MSG_SimClock_Request{
+                                                                   m_mpo.value(), m_log.getRange( lastCycle ) } ) } );
+                                }
+                                else
+                                {
+                                    issueClock();
+                                }
                             }
                         }
                     }
@@ -307,9 +308,9 @@ bool Simulation::queue( const network::ReceivedMsg& msg )
     {
         switch( StateMachine::getMsgID( msg ) )
         {
-            case network::sim::MSG_SimClock_Response::ID:
+            case StateMachine::Clock::ID:
             {
-                // ignor further clock responses
+                // ignor further state machine msgs
                 return true;
             }
             default:
@@ -447,12 +448,15 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
                                  const network::Transaction& transaction, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimLockRelease: {} {}", requestingMPO, targetMPO );
-    // NOTE: how SimLockRelease is acknoledged when the simulation routine goes
-    // through its simulation requests - INCLUDING the clock response
-    // need to avoid the timer generating a clock response WHILE process other request
-    // since this could interupt expected responses
-    QueueStackDepth queueMsgs( m_queueStack );
-    applyTransaction( transaction );
+    if( !m_stateMachine.isTerminating() )
+    {
+        // NOTE: how SimLockRelease is acknoledged when the simulation routine goes
+        // through its simulation requests - INCLUDING the clock response
+        // need to avoid the timer generating a clock response WHILE process other request
+        // since this could interupt expected responses
+        QueueStackDepth queueMsgs( m_queueStack );
+        applyTransaction( transaction );
+    }
 }
 
 MPO Simulation::SimCreate( boost::asio::yield_context& )
