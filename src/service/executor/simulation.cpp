@@ -150,7 +150,15 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 for( const auto& msg : m_stateMachine.acks() )
                 {
-                    dispatchRequestImpl( msg, yield_ctx );
+                    if( m_stateMachine.getMsgID( msg ) == StateMachine::Block::ID )
+                    {
+                        SPDLOG_TRACE( "SIM: runSimulation Blocking Destroy msg" );
+                        m_blockDestroyMsgOpt = msg;
+                    }
+                    else
+                    {
+                        dispatchRequestImpl( msg, yield_ctx );
+                    }
                 }
                 m_stateMachine.resetAcks();
             }
@@ -219,12 +227,13 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     case StateMachine::Read::ID:
                     case StateMachine::Write::ID:
                     case StateMachine::Release::ID:
+                    case StateMachine::Block::ID:
                     case StateMachine::Destroy::ID:
                     case StateMachine::Clock::ID:
                     {
                         if( m_stateMachine.onMsg( { msg } ) )
                         {
-                            //if( !m_stateMachine.isTerminated() )
+                            // if( !m_stateMachine.isTerminated() )
                             {
                                 if( m_pClock )
                                 {
@@ -324,6 +333,7 @@ bool Simulation::queue( const network::ReceivedMsg& msg )
             case StateMachine::Read::ID:
             case StateMachine::Write::ID:
             case StateMachine::Release::ID:
+            case StateMachine::Block::ID:
             case StateMachine::Destroy::ID:
             case StateMachine::Clock::ID:
             {
@@ -381,6 +391,12 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     {
         SPDLOG_ERROR( "SIM::run JIT exception {}", ex.what() );
         m_strSimCreateError = ex.what();
+    }
+
+    if( m_blockDestroyMsgOpt.has_value() )
+    {
+        // acknowledge block destroy
+        dispatchRequestImpl( m_blockDestroyMsgOpt.value(), yield_ctx );
     }
 }
 
@@ -503,6 +519,11 @@ void Simulation::SimDestroy( boost::asio::yield_context& )
     {
         SPDLOG_TRACE( "SIM::SimDestroy: {}", m_mpo.value() );
     }
+    // do nothing
+}
+void Simulation::SimDestroyBlocking( boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "SIM::SimDestroyBlocking" );
     // do nothing
 }
 

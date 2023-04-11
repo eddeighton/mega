@@ -26,8 +26,10 @@
 
 #include "common/assert_verify.hpp"
 
-#include <boost/program_options.hpp>
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/signal_set.hpp>
+
+#include <boost/program_options.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/config.hpp>
 
@@ -35,6 +37,7 @@
 #include <sstream>
 #include <chrono>
 #include <thread>
+
 
 int main( int argc, const char* argv[] )
 {
@@ -92,6 +95,22 @@ int main( int argc, const char* argv[] )
         boost::asio::io_context ioContext;
 
         mega::service::Executor executor( ioContext, uiNumThreads, daemonPortNumber );
+
+        auto signalHandler = [ &executor ]( const boost::system::error_code& error, int signalNumber )
+            {
+                if( !error )
+                {
+                    std::cout << "\nSignal handler shutting down executor" << std::endl;
+                    executor.shutdown();
+                }
+            };
+
+        // Construct a signal set registered for process termination.
+        boost::asio::signal_set signals( ioContext, SIGINT, SIGTERM);
+
+        // Start an asynchronous wait for one of the signals to occur.
+        signals.async_wait( signalHandler );
+
 
         std::vector< std::thread > threads;
         for( int i = 0; i < uiNumThreads; ++i )

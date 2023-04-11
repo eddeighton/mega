@@ -74,8 +74,8 @@ Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short d
         }
         const network::ReceivedMsg rMsg{
             m_pClock->getConnectionID(),
-            MSG_SetUnityProject_Request::make( m_pClock->getID(), 
-                MSG_SetUnityProject_Request{ m_leaf.getActiveProject(), unityDBHashCode } ) };
+            MSG_SetUnityProject_Request::make(
+                m_pClock->getID(), MSG_SetUnityProject_Request{ m_leaf.getActiveProject(), unityDBHashCode } ) };
         m_pClock->send( rMsg );
     }
 }
@@ -86,11 +86,43 @@ Executor::~Executor()
     SPDLOG_TRACE( "Executor shutdown" );
 }
 
+class ExecutorShutdown : public ExecutorRequestConversation
+{
+    std::promise< void >& m_promise;
+    std::vector< Simulation::Ptr > m_simulations;
+public:
+    ExecutorShutdown( Executor& exe, std::promise< void >& promise, std::vector< Simulation::Ptr > simulations )
+        : ExecutorRequestConversation( exe, exe.createConversationID( "shutdown" ), {} )
+        , m_promise( promise )
+        , m_simulations( simulations )
+    {
+    }
+    void run( boost::asio::yield_context& yield_ctx )
+    {
+        SPDLOG_TRACE( "ExecutorShutdown run" );
+        for( Simulation::Ptr pSim : m_simulations )
+        {
+            network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
+            rq.SimDestroyBlocking();
+        }
+        boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
+    }
+};
+
 void Executor::shutdown()
 {
-    VERIFY_RTE_MSG( m_simulations.empty(),
-        "Simulations stil running when shutting executor down" );
-        
+    std::vector< Simulation::Ptr > simulations;
+    getSimulations( simulations );
+    if( !simulations.empty() )
+    {
+        SPDLOG_WARN( "Simulations still running when shutting executor down" );
+        std::promise< void > promise;
+        std::future< void >  future = promise.get_future();
+        network::ConversationBase::Ptr pShutdown( new ExecutorShutdown( *this, promise, simulations ) );
+        conversationInitiated( pShutdown, getLeafSender() );
+        future.get();
+    }
+
     m_receiverChannel.stop();
 }
 

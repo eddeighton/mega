@@ -94,3 +94,9 @@ msg SimDestroy
     request();
     response();
 }
+
+msg SimDestroyBlocking
+{
+    request();
+    response();
+}

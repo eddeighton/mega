@@ -239,11 +239,11 @@ void Conversation::dispatchRemaining( boost::asio::yield_context& yield_ctx )
     {
         bRemaining = false;
 
-       /* while( !m_deferedMessages.empty() || !m_unqueuedMessages.empty() )
-        {
-            run_one( yield_ctx );
-            bRemaining = true;
-        }*/
+        /* while( !m_deferedMessages.empty() || !m_unqueuedMessages.empty() )
+         {
+             run_one( yield_ctx );
+             bRemaining = true;
+         }*/
 
         // close out existing messages
         std::optional< network::ReceivedMsg > pendingMsgOpt = try_receive( yield_ctx );
@@ -303,15 +303,31 @@ std::optional< ReceivedMsg > InThreadConversation::try_receive( boost::asio::yie
 
 void InThreadConversation::send( const ReceivedMsg& msg )
 {
-    m_channel.async_send( boost::system::error_code(), msg,
-                          [ &msg ]( boost::system::error_code ec )
-                          {
-                              if( ec )
-                              {
-                                  SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
-                                  THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
-                              }
-                          } );
+    m_channel.async_send(
+        boost::system::error_code(), msg,
+        [ &msg ]( boost::system::error_code ec )
+        {
+            if( ec )
+            {
+                if( ec.value() == boost::asio::error::eof )
+                {
+                }
+                else if( ec.value() == boost::asio::error::operation_aborted )
+                {
+                }
+                else if( ec.value() == boost::asio::experimental::error::channel_closed )
+                {
+                }
+                else if( ec.value() == boost::asio::experimental::error::channel_cancelled )
+                {
+                }
+                else if( ec.failed() )
+                {
+                    SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
+                    THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
+                }
+            }
+        } );
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -352,15 +368,31 @@ std::optional< ReceivedMsg > ConcurrentConversation::try_receive( boost::asio::y
 
 void ConcurrentConversation::send( const ReceivedMsg& msg )
 {
-    m_channel.async_send( boost::system::error_code(), msg,
-                          [ &msg ]( boost::system::error_code ec )
-                          {
-                              if( ec )
-                              {
-                                  SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
-                                  THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
-                              }
-                          } );
+    m_channel.async_send(
+        boost::system::error_code(), msg,
+        [ &msg ]( boost::system::error_code ec )
+        {
+            if( ec )
+            {
+                if( ec.value() == boost::asio::error::eof )
+                {
+                }
+                else if( ec.value() == boost::asio::error::operation_aborted )
+                {
+                }
+                else if( ec.value() == boost::asio::experimental::error::channel_closed )
+                {
+                }
+                else if( ec.value() == boost::asio::experimental::error::channel_cancelled )
+                {
+                }
+                else if( ec.failed() )
+                {
+                    SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
+                    THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
+                }
+            }
+        } );
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -402,14 +434,30 @@ ReceivedMsg ExternalConversation::receive()
 
 void ExternalConversation::send( const ReceivedMsg& msg )
 {
-    m_channel.async_send( boost::system::error_code(), msg,
-                          [ &msg ]( boost::system::error_code ec )
-                          {
-                              if( ec )
-                              {
-                                  SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
-                                  THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
-                              }
-                          } );
+    m_channel.async_send(
+        boost::system::error_code(), msg,
+        [ &msg ]( boost::system::error_code ec )
+        {
+            if( ec )
+            {
+                if( ec.value() == boost::asio::error::eof )
+                {
+                }
+                else if( ec.value() == boost::asio::error::operation_aborted )
+                {
+                }
+                else if( ec.value() == boost::asio::experimental::error::channel_closed )
+                {
+                }
+                else if( ec.value() == boost::asio::experimental::error::channel_cancelled )
+                {
+                }
+                else if( ec.failed() )
+                {
+                    SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
+                    THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
+                }
+            }
+        } );
 }
 } // namespace mega::network

@@ -74,11 +74,12 @@ public:
 
     void resetAcks() { m_acks.clear(); }
 
-    using Read    = network::sim::MSG_SimLockRead_Request;
-    using Write   = network::sim::MSG_SimLockWrite_Request;
-    using Release = network::sim::MSG_SimLockRelease_Request;
-    using Destroy = network::sim::MSG_SimDestroy_Request;
-    using Clock   = network::sim::MSG_SimClock_Response;
+    using Read      = network::sim::MSG_SimLockRead_Request;
+    using Write     = network::sim::MSG_SimLockWrite_Request;
+    using Release   = network::sim::MSG_SimLockRelease_Request;
+    using Destroy   = network::sim::MSG_SimDestroy_Request;
+    using Block     = network::sim::MSG_SimDestroyBlocking_Request;
+    using Clock     = network::sim::MSG_SimClock_Response;
 
     static network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
     static const mega::MPO&   getSimID( const Msg& msg )
@@ -92,6 +93,7 @@ public:
             case Release::ID:
                 return Release::get( msg.msg ).requestingMPO;
             case Destroy::ID:
+            case Block::ID:
             case Clock::ID:
             default:
                 THROW_RTE( "Unreachable" );
@@ -178,6 +180,7 @@ public:
                         }
                     }
                     break;
+                    case Block::ID:
                     case Destroy::ID:
                         THROW_RTE( "Unreachable" );
                     default:
@@ -302,6 +305,7 @@ public:
                         m_msgQueue.push_back( msg );
                     }
                     break;
+                case Block::ID:
                 case Destroy::ID:
                     THROW_RTE( "Unreachable" );
                 default:
@@ -430,6 +434,7 @@ public:
                         m_msgQueue.push_back( msg );
                     }
                     break;
+                case Block::ID:
                 case Destroy::ID:
                     THROW_RTE( "Unreachable" );
                 default:
@@ -488,6 +493,7 @@ public:
                     bClockTicked = true;
                 }
                 break;
+                case Block::ID:
                 case Destroy::ID:
                 {
                     m_acks.push_back( msg );
@@ -511,6 +517,7 @@ public:
         {
             switch( getMsgID( msg ) )
             {
+                case Block::ID:
                 case Destroy::ID:
                     m_state = TERM;
                     break;
