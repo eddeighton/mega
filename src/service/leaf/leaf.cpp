@@ -188,18 +188,18 @@ void Leaf::setActiveProject( const Project& currentProject )
                                 currentProject.getProjectInstallPath().string() );
                 }
                 m_activeProject = currentProject;
-                /*{
+                {
                     const boost::filesystem::path unityDatabasePath
                         = currentProject.getProjectUnityDatabase();
                     if( boost::filesystem::exists( unityDatabasePath ) )
                     {
-                        // m_unityDatabaseHashCode = task::FileHash( unityDatabasePath );
+                        m_unityDatabaseHashCode = task::FileHash( unityDatabasePath );
                     }
                     else
                     {
                         m_unityDatabaseHashCode.reset();
                     }
-                }*/
+                }
             }
             else
             {
@@ -207,7 +207,7 @@ void Leaf::setActiveProject( const Project& currentProject )
                 SPDLOG_WARN( "JIT uninitialised.  Active project: {} has no database",
                              currentProject.getProjectInstallPath().string() );
                 m_activeProject.reset();
-                //m_unityDatabaseHashCode.reset();
+                m_unityDatabaseHashCode.reset();
             }
             break;
         }
