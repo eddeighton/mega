@@ -36,6 +36,10 @@ TEST( TypeID, RootSymbol )
     ASSERT_TRUE( mega::ROOT_TYPE_ID.isContextID() );
     ASSERT_TRUE( !mega::ROOT_SYMBOL_ID.isObject() );
     ASSERT_TRUE( mega::ROOT_TYPE_ID.isObject() );
+
+    ASSERT_TRUE( mega::ROOT_TYPE_ID.is_valid() );
+    ASSERT_TRUE( mega::ROOT_SYMBOL_ID.is_valid() );
+    ASSERT_TRUE( !mega::TypeID{}.is_valid() );
 }
 
 TEST( TypeID, DefaultValue )

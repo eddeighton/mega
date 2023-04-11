@@ -65,7 +65,7 @@ struct TypeInstance
                                             : false;
     }
 
-    constexpr inline bool is_valid() const { return type != 0; }
+    constexpr inline bool is_valid() const { return type.is_valid(); }
 };
 #pragma pack()
 

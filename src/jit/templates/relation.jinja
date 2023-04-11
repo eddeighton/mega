@@ -123,16 +123,16 @@ void unlinkSource( mega::reference& source )
     prepare( sourceRef );
     if( sourceRef.is_valid() )
     {
-        mega::reference& targetRef = *reinterpret_cast< mega::reference* >( getTargetData( sourceRef ) );
-        if( source != targetRef )
+        mega::reference& sourceTarget = *reinterpret_cast< mega::reference* >( getTargetData( sourceRef ) );
+        if( source != sourceTarget )
         {
             throw mega::runtime::JITException{ "Hypergraph error source not equal to target ref" };
         }
 
         // generate edge delete record
-        mega::mangle::structure_break( targetRef, sourceRef, {{ relationID }} );
+        mega::mangle::structure_break( source, sourceRef, {{ relationID }} );
         sourceRef = mega::reference{};
-        targetRef = mega::reference{};
+        sourceTarget = mega::reference{};
     }
 }
 {%      else %}
@@ -150,7 +150,7 @@ void unlinkSource( mega::reference& source )
         }
 
         // generate edge delete record
-        mega::mangle::structure_break( targetRef, sourceRef, {{ relationID }} );
+        mega::mangle::structure_break( sourceRef, targetRef, {{ relationID }} );
         mega::mangle::ref_vector_remove( pTargetData, source );
         sourceRef = mega::reference{};
     }
@@ -174,7 +174,7 @@ void unlinkTarget( mega::reference& target )
         }
 
         // generate edge delete record
-        mega::mangle::structure_break( targetRef, sourceRef, {{ relationID }} );
+        mega::mangle::structure_break( sourceRef, targetRef, {{ relationID }} );
         sourceRef = mega::reference{};
         targetRef = mega::reference{};
     }
@@ -288,59 +288,56 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     mega::reference& sourceRef = *reinterpret_cast< mega::reference* >( getSourceData( source ) );
     mega::reference& targetRef = *reinterpret_cast< mega::reference* >( getTargetData( target ) );
 
-    if( sourceRef == target )
+    if( ( sourceRef != target ) || ( targetRef != source ) )
     {
-        if( targetRef != source )
-        {
-            throw mega::runtime::JITException{ "link_break_{{ relationID }} error found while breaking link" };
-        }
-        mega::mangle::structure_break( source, target, {{ relationID }} );
-        sourceRef = mega::reference{};
-        targetRef = mega::reference{};
+        throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
     }
+            
+    mega::mangle::structure_break( source, target, {{ relationID }} );
+    sourceRef = mega::reference{};
+    targetRef = mega::reference{};
+        
 {%      else %}
     mega::reference& sourceRef = *reinterpret_cast< mega::reference* >( getSourceData( source ) );
     void* pTargetData = getTargetData( target );
 
-    if( sourceRef == target )
+    if( ( sourceRef != target ) || ( !mega::mangle::ref_vector_contains( pTargetData, source ) ) )
     {
-        if( !mega::mangle::ref_vector_contains( pTargetData, source ) )
-        {
-            throw mega::runtime::JITException{ "link_break_{{ relationID }} error found while breaking link" };
-        }
-        mega::mangle::structure_break( source, target, {{ relationID }} );
-        sourceRef = mega::reference{};
-        mega::mangle::ref_vector_remove( pTargetData, source );
+        throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
     }
+
+    mega::mangle::structure_break( source, target, {{ relationID }} );
+    sourceRef = mega::reference{};
+    mega::mangle::ref_vector_remove( pTargetData, source );
+    
 {%      endif %}
 {% else %}
 {%      if target_singular %}
     void* pSourceData = getSourceData( source );
     mega::reference& targetRef = *reinterpret_cast< mega::reference* >( getTargetData( target ) );
 
-    if( targetRef == source )
+    if( ( targetRef != source ) || ( !mega::mangle::ref_vector_contains( pSourceData, target ) ) )
     {
-        if( !mega::mangle::ref_vector_contains( pSourceData, target ) )
-        {
-            throw mega::runtime::JITException{ "link_break_{{ relationID }} error found while breaking link" };
-        }
-        mega::mangle::structure_break( source, target, {{ relationID }} );
-        mega::mangle::ref_vector_remove( pSourceData, target );
-        targetRef = mega::reference{};
+        throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
     }
+
+    mega::mangle::structure_break( source, target, {{ relationID }} );
+    mega::mangle::ref_vector_remove( pSourceData, target );
+    targetRef = mega::reference{};
+    
 {%      else %}
     void* pSourceData = getSourceData( source );
     void* pTargetData = getTargetData( target );
-    if( mega::mangle::ref_vector_contains( pSourceData, target ) )
+    if( !mega::mangle::ref_vector_contains( pSourceData, target ) ||
+        !mega::mangle::ref_vector_contains( pTargetData, source ) )
     {
-        if( !mega::mangle::ref_vector_contains( pTargetData, source ) )
-        {
-            throw mega::runtime::JITException{ "link_break_{{ relationID }} error found while breaking link" };
-        }
-        mega::mangle::structure_break( source, target, {{ relationID }} );
-        mega::mangle::ref_vector_remove( pSourceData, target );
-        mega::mangle::ref_vector_remove( pTargetData, source );
+        throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
     }
+    
+    mega::mangle::structure_break( source, target, {{ relationID }} );
+    mega::mangle::ref_vector_remove( pSourceData, target );
+    mega::mangle::ref_vector_remove( pTargetData, source );
+    
 {%      endif %}
 {% endif %}
 }

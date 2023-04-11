@@ -57,7 +57,7 @@ enum FlagsType : U8 // check reference_io if change
 
 class reference
 {
-    #pragma pack(1)
+#pragma pack( 1 )
     struct HeapAddressData
     {
         HeapAddress  m_heap;    // 8
@@ -65,10 +65,10 @@ class reference
         Flags        m_flags;   // 1
         TypeInstance m_type;    // 6
     };
-    #pragma pack()
+#pragma pack()
     static_assert( sizeof( HeapAddressData ) == 16U, "Invalid HeapAddressData Size" );
 
-    #pragma pack(1)
+#pragma pack( 1 )
     struct NetworkAddressData
     {
         AllocationID m_allocationID; // 2
@@ -78,7 +78,7 @@ class reference
         Flags        m_flags;        // 1
         TypeInstance m_type;         // 6
     };
-    #pragma pack()
+#pragma pack()
     static_assert( sizeof( NetworkAddressData ) == 16U, "Invalid NetworkAddressData Size" );
 
     union
@@ -123,6 +123,9 @@ public:
     constexpr inline TypeID       getType() const { return prc.m_type.type; }
     constexpr inline Instance     getInstance() const { return prc.m_type.instance; }
     constexpr inline TypeInstance getTypeInstance() const { return prc.m_type; }
+    constexpr inline bool         isHeapAddress() const { return prc.m_flags == HEAP_ADDRESS; }
+    constexpr inline bool         isNetworkAddress() const { return prc.m_flags == NETWORK_ADDRESS; }
+    constexpr inline bool         is_valid() const { return getTypeInstance().is_valid(); }
 
     constexpr reference()
         : net{ 0U, 0U, 0U, 0U, NETWORK_ADDRESS, TypeInstance{} }
@@ -168,11 +171,6 @@ public:
             return { typeInstance, other.getMPO(), other.getAllocationID() };
         }
     }
-
-    constexpr inline bool isHeapAddress() const { return prc.m_flags == HEAP_ADDRESS; }
-    constexpr inline bool isNetworkAddress() const { return prc.m_flags == NETWORK_ADDRESS; }
-
-    constexpr inline bool is_valid() const { return net.m_type.is_valid(); }
 
     constexpr inline bool operator==( const reference& cmp ) const
     {

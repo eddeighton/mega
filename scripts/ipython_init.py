@@ -75,6 +75,10 @@ mega = megastructure
 
 REMOVE = mega.WriteOperation.REMOVE
 
+def COPYME():
+    r = mpo.getRoot()
+    p = r.PlanetParent.Planet()
+    mega.cycle()
 
 def createPlanet(mpo):
     r = mpo.getRoot()

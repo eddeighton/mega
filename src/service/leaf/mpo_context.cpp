@@ -185,6 +185,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
 
     // instantiate the root
     m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
+    VERIFY_RTE_MSG( m_root.is_valid(), "Root allocation failed" );
 }
 
 void MPOContext::jit( runtime::JITFunctor func )

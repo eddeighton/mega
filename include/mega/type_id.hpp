@@ -86,6 +86,7 @@ public:
     constexpr inline SubValueType getSubObjectID() const { return contextID.subObject; }
 
     constexpr inline operator ValueType() const { return value; }
+    constexpr inline bool is_valid() const { return value != 0U; }
 
     constexpr inline bool operator==( const TypeID& cmp ) const { return value == cmp.value; }
     constexpr inline bool operator!=( const TypeID& cmp ) const { return !( *this == cmp ); }
