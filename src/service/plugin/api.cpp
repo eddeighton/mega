@@ -21,6 +21,8 @@
 #include "service/plugin/api.hpp"
 #include "service/plugin/plugin.hpp"
 
+#include "common/requireSemicolon.hpp"
+
 #include <spdlog/async.h>
 
 #include <thread>
@@ -103,87 +105,125 @@ static PluginWrapper::Ptr g_pPluginWrapper;
 
 void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
 {
-    mega::service::g_pPluginWrapper.reset();
-    mega::service::g_pPluginWrapper
-        = std::make_unique< mega::service::PluginWrapper >( pszConsoleLogLevel, pszFileLogLevel );
+    try
+    {
+        mega::service::g_pPluginWrapper.reset();
+        mega::service::g_pPluginWrapper
+            = std::make_unique< mega::service::PluginWrapper >( pszConsoleLogLevel, pszFileLogLevel );
+    }
+    catch( std::exception& ex )
+    {
+        SPDLOG_ERROR( "Exception in mp_initialise msg: {}", ex.what() );
+        mega::service::g_pPluginWrapper.reset();
+    }
+    catch( ... )
+    {
+        SPDLOG_ERROR( "Unknown Exception in mp_initialise" );
+        mega::service::g_pPluginWrapper.reset();
+    }
 }
+
+#define TRAP_EXCEPTIONS( code )                                                           \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                      \
+        try {                                                                             \
+            if( mega::service::g_pPluginWrapper.get() )                                   \
+            {                                                                             \
+                code;                                                                     \
+            }                                                                             \
+            else                                                                          \
+            {                                                                             \
+                SPDLOG_ERROR( "Plugin NOT INITIALISED in {}", BOOST_CURRENT_FUNCTION );   \
+            }                                                                             \
+        } catch( std::exception & ex ) {                                                  \
+            SPDLOG_ERROR( "Exception in {} msg: {}", BOOST_CURRENT_FUNCTION, ex.what() ); \
+        } catch( ... ) { SPDLOG_ERROR( "Unknown Exception in {}", BOOST_CURRENT_FUNCTION ); } )
 
 const void* mp_downstream()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->downstream();
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->downstream() );
+    return nullptr;
 }
 
 mega::U64 mp_database_hashcode()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->database_hashcode();
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->database_hashcode() );
+    return 0U;
 }
 
 const char* mp_database()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->database();
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->database() );
+    return nullptr;
 }
 
 MEGA_64 mp_memory_state()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->memory_state();
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->memory_state() );
+    return 0U;
 }
 
 MEGA_64 mp_memory_size()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->memory_size();
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->memory_size() );
+    return 0U;
 }
 
 const void* mp_memory_data()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->memory_data();
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->memory_data() );
+    return nullptr;
 }
 
 void mp_upstream( float delta, void* pRange )
 {
-    mega::service::g_pPluginWrapper->m_pPlugin->upstream( delta, pRange );
+    TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->upstream( delta, pRange ) );
 }
 
 void mp_shutdown()
 {
-    mega::service::g_pPluginWrapper.reset();
+    TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper.reset() );
 }
 
 mega::U64 mp_network_count()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->network_count();
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->network_count() );
+    return 0U;
 }
 
 const char* mp_network_name( mega::U64 networkID )
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->network_name( networkID );
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->network_name( networkID ) );
+    return nullptr;
 }
 
 void mp_network_connect( mega::U64 networkID )
 {
-    mega::service::g_pPluginWrapper->m_pPlugin->network_connect( networkID );
+    TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->network_connect( networkID ) );
 }
 
 void mp_network_disconnect()
 {
-    mega::service::g_pPluginWrapper->m_pPlugin->network_disconnect();
+    TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->network_disconnect() );
 }
 
 mega::U64 mp_network_current()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->network_current();
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->network_current() );
+    return 0U;
 }
 
 void mp_planet_create()
 {
-    mega::service::g_pPluginWrapper->m_pPlugin->planet_create();
+    TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->planet_create() );
 }
 
 void mp_planet_destroy()
 {
-    mega::service::g_pPluginWrapper->m_pPlugin->planet_destroy();
+    TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->planet_destroy() );
 }
 
 bool mp_planet_current()
 {
-    return mega::service::g_pPluginWrapper->m_pPlugin->planet_current();
+    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->planet_current() );
+    return false;
 }

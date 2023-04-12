@@ -82,8 +82,18 @@ Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short d
 
 Executor::~Executor()
 {
-    m_receiverChannel.stop();
-    SPDLOG_TRACE( "Executor shutdown" );
+    try
+    {
+        shutdown();
+    }
+    catch( std::exception& ex )
+    {
+        SPDLOG_ERROR( "Exception shutting down executor: {}", ex.what() );
+    }
+    catch( ... )
+    {
+        SPDLOG_ERROR( "Unknown exception shutting down executor" );
+    }
 }
 
 class ExecutorShutdown : public ExecutorRequestConversation
@@ -111,6 +121,7 @@ public:
 
 void Executor::shutdown()
 {
+    SPDLOG_TRACE( "Executor shutdown" );
     std::vector< Simulation::Ptr > simulations;
     getSimulations( simulations );
     if( !simulations.empty() )
@@ -124,6 +135,7 @@ void Executor::shutdown()
     }
 
     m_receiverChannel.stop();
+    SPDLOG_TRACE( "Executor shutdown completed" );
 }
 
 network::ConversationBase::Ptr Executor::joinConversation( const network::ConnectionID& originatingConnectionID,

@@ -137,7 +137,10 @@ PYBIND11_MODULE( megastructure, pythonModule )
             "Get Megastructure Process", pybind11::arg( "strID" ) = "" )
         .def(
             "getMPO", []( std::string strID ) { return getModule()->getMPO( strID ); }, "Get Megastructure MPO",
-            pybind11::arg( "strID" ) = "" );
+            pybind11::arg( "strID" ) = "" )
+        .def(
+            "getThisMPO", []() { return getModule()->getMPO(); }, "Get the active MPO" )
+            ;
 
     pythonModule.def(
         "run_one", [] { return getModule()->run_one(); }, "Run the Megastructure Message Queue for one message" );
