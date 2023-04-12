@@ -92,8 +92,9 @@ public:
     {
         inline U64 operator()( const reference& ref ) const noexcept
         {
-            const reference& net = ref.getHeaderAddress();
-            return net.getAllocationID() + ( ( U64 )net.getMachineID() << 4 );
+            const reference& r = ref.getNetworkAddress();
+            const U64* p = reinterpret_cast< const U64* >( &r );
+            return *p + *( p + 1 );
         }
     };
 
@@ -175,14 +176,14 @@ public:
     constexpr inline bool operator==( const reference& cmp ) const
     {
         // clang-format off
+        // if( isHeapAddress() && cmp.isHeapAddress() )
+        // {
+        //     return prc.m_heap == cmp.prc.m_heap &&
+        //            prc.m_ownerID == cmp.prc.m_ownerID &&
+        //            prc.m_flags == cmp.prc.m_flags &&
+        //            prc.m_type == cmp.prc.m_type;
+        // }
         if( isNetworkAddress() && cmp.isNetworkAddress() )
-        {
-            return prc.m_heap == cmp.prc.m_heap &&
-                   prc.m_ownerID == cmp.prc.m_ownerID &&
-                   prc.m_flags == cmp.prc.m_flags &&
-                   prc.m_type == cmp.prc.m_type;
-        }
-        else if( !isNetworkAddress() && !cmp.isNetworkAddress() )
         {
             return net.m_allocationID == cmp.net.m_allocationID &&
                    net.m_machineID == cmp.net.m_machineID &&
@@ -191,9 +192,13 @@ public:
                    net.m_flags == cmp.net.m_flags &&
                    net.m_type == cmp.net.m_type;
         }
+        else if( isNetworkAddress() )
+        {
+            return this->operator==( cmp.getNetworkAddress() );
+        }
         else
         {
-            return false;
+            return getNetworkAddress().operator==( cmp );
         }
         // clang-format on
     }
@@ -202,14 +207,14 @@ public:
     constexpr inline bool operator<( const reference& cmp ) const
     {
         // clang-format off
-        if( isHeapAddress() && cmp.isHeapAddress() )
-        {
-            return ( prc.m_heap     != cmp.prc.m_heap  )    ?   ( prc.m_heap        < cmp.prc.m_heap        ) : 
-                   ( prc.m_ownerID  != cmp.prc.m_ownerID )  ?   ( prc.m_ownerID     < cmp.prc.m_ownerID     ) : 
-                   ( prc.m_flags    != cmp.prc.m_flags )    ?   ( prc.m_flags       < cmp.prc.m_flags       ) : 
-                                                                ( prc.m_type        < cmp.prc.m_type        ) ;
-        }
-        else if( isNetworkAddress() && cmp.isNetworkAddress() )
+        // if( isHeapAddress() && cmp.isHeapAddress() )
+        // {
+        //     return ( prc.m_heap     != cmp.prc.m_heap  )    ?   ( prc.m_heap        < cmp.prc.m_heap        ) : 
+        //            ( prc.m_ownerID  != cmp.prc.m_ownerID )  ?   ( prc.m_ownerID     < cmp.prc.m_ownerID     ) : 
+        //            ( prc.m_flags    != cmp.prc.m_flags )    ?   ( prc.m_flags       < cmp.prc.m_flags       ) : 
+        //                                                         ( prc.m_type        < cmp.prc.m_type        ) ;
+        // }
+        if( isNetworkAddress() && cmp.isNetworkAddress() )
         {
             // important to compare MPO first - since this is used by some algorithms 
             return ( net.m_machineID      != cmp.net.m_machineID )      ? ( net.m_machineID     < cmp.net.m_machineID ) :
@@ -219,9 +224,13 @@ public:
                    ( net.m_flags          != cmp.net.m_flags )          ? ( net.m_flags         < cmp.net.m_flags ) :
                                                                           ( net.m_type          < cmp.net.m_type );
         }
+        else if( isNetworkAddress() )
+        {
+            return this->operator<( cmp.getNetworkAddress() );
+        }
         else
         {
-            return isHeapAddress();
+            return getNetworkAddress().operator<( cmp );
         }
         // clang-format on
     }
@@ -242,15 +251,21 @@ inline void reference::setLockCycle( TimeStamp lockCycle )
 {
     reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_lockCycle = lockCycle;
 }
+
 inline const reference& reference::getHeaderAddress() const
 {
     if( isNetworkAddress() )
     {
         return *this;
     }
-    else
+    else if( getHeap() != nullptr )
     {
         return reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_networkAddress;
+    }
+    else
+    {
+        static const reference nullref;
+        return nullref;
     }
 }
 
@@ -260,9 +275,13 @@ inline reference reference::getNetworkAddress() const
     {
         return *this;
     }
-    else
+    else if( getHeap() != nullptr )
     {
         return make( reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_networkAddress, getTypeInstance() );
+    }
+    else
+    {
+        return make( reference{}, getTypeInstance() );
     }
 }
 

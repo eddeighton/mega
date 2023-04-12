@@ -54,7 +54,7 @@ void Conversation::requestCompleted()
     m_stack.pop_back();
     if( m_stack.empty() )
     {
-        SPDLOG_TRACE( "Conversation::requestCompleted: {}", getID() );
+        // SPDLOG_TRACE( "Conversation::requestCompleted: {}", getID() );
         m_conversationManager.conversationCompleted( shared_from_this() );
     }
 }
@@ -157,7 +157,7 @@ void Conversation::run( boost::asio::yield_context& yield_ctx )
 
 void Conversation::run_one( boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "Conversation::run_one" );
+    // SPDLOG_TRACE( "Conversation::run_one" );
     unqueue();
     const ReceivedMsg msg = receiveDeferred( yield_ctx );
     dispatchRequestImpl( msg, yield_ctx );

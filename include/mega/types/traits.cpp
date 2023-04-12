@@ -83,12 +83,12 @@ void action_stop( const mega::reference& source )
 bool ref_vector_contains( void* pData, const mega::reference& ref )
 {
     const ReferenceVector& vec = reify< ReferenceVector >( pData );
-    return std::find( vec.cbegin(), vec.cend(), ref ) != vec.cend();
+    return std::find( vec.cbegin(), vec.cend(), ref.getNetworkAddress() ) != vec.cend();
 }
 void ref_vector_remove( void* pData, const mega::reference& ref )
 {
     auto& vec   = reify< ReferenceVector >( pData );
-    auto  iFind = std::find( vec.begin(), vec.end(), ref );
+    auto  iFind = std::find( vec.begin(), vec.end(), ref.getNetworkAddress() );
     if( iFind != vec.end() )
     {
         vec.erase( iFind );
@@ -97,7 +97,7 @@ void ref_vector_remove( void* pData, const mega::reference& ref )
 void ref_vector_add( void* pData, const mega::reference& ref )
 {
     auto& vec = reify< ReferenceVector >( pData );
-    vec.push_back( ref );
+    vec.push_back( ref.getNetworkAddress() );
 }
 void ref_vector_clear( void* pData )
 {
@@ -121,43 +121,43 @@ mega::reference& ref_vector_get_at( void* pData, mega::U64 index )
 void xml_save_begin_structure( const mega::reference& ref, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
-    archive.beginStructure( ref );
+    archive.beginStructure( ref.getNetworkAddress() );
 }
 void xml_save_end_structure( const mega::reference& ref, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
-    archive.endStructure( ref );
+    archive.endStructure( ref.getNetworkAddress() );
 }
 void xml_save_begin_data( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
-    archive.beginData( pszName, bIsObject, ref );
+    archive.beginData( pszName, bIsObject, ref.getNetworkAddress() );
 }
 void xml_save_end_data( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );
-    archive.endData( pszName, bIsObject, ref );
+    archive.endData( pszName, bIsObject, ref.getNetworkAddress() );
 }
 
 void xml_load_begin_structure( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
-    archive.beginStructure( pszName, bIsObject, ref );
+    archive.beginStructure( pszName, bIsObject, ref.getNetworkAddress() );
 }
 void xml_load_end_structure( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
-    archive.endStructure( pszName, bIsObject, ref );
+    archive.endStructure( pszName, bIsObject, ref.getNetworkAddress() );
 }
 void xml_load_begin_data( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
-    archive.beginData( pszName, bIsObject, ref );
+    archive.beginData( pszName, bIsObject, ref.getNetworkAddress() );
 }
 void xml_load_end_data( const mega::reference& ref, const char* pszName, bool bIsObject, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
-    archive.endData( pszName, bIsObject, ref );
+    archive.endData( pszName, bIsObject, ref.getNetworkAddress() );
 }
 
 bool xml_is_tag( const char* pszTag, void* pSerialiser )
@@ -169,7 +169,7 @@ bool xml_is_tag( const char* pszTag, void* pSerialiser )
 void xml_load_allocation( const mega::reference& ref, void* pSerialiser )
 {
     auto& archive = reify< XMLLoadArchive >( pSerialiser );
-    archive.allocation( ref );
+    archive.allocation( ref.getNetworkAddress() );
 }
 
 mega::U64 xml_load_tag_count( void* pSerialiser )

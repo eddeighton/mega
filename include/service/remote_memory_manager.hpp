@@ -83,7 +83,7 @@ public:
         auto iFind = m_netMap.find( networkAddress.getObjectAddress() );
         if( iFind != m_netMap.end() )
         {
-            networkAddress = iFind->second;
+            networkAddress = reference::make( iFind->second, networkAddress.getTypeInstance() );
             return true;
         }
         return false;
@@ -112,13 +112,13 @@ public:
         // invoke the constructor
         pAllocator->getCtor()( pHeapBuffer.get() );
 
-        const reference heapAddress
+        const reference objectHeapAddress
             = reference{ objectAddress.getTypeInstance(), objectAddress.getOwnerID(), pHeapBuffer.get() };
 
-        m_heapMap.insert( { heapAddress, std::move( pHeapBuffer ) } );
-        m_netMap.insert( { objectAddress, heapAddress } );
+        m_heapMap.insert( { objectHeapAddress, std::move( pHeapBuffer ) } );
+        m_netMap.insert( { objectAddress, objectHeapAddress } );
 
-        return heapAddress;
+        return reference::make( objectHeapAddress, networkAddress.getTypeInstance() );
     }
 
     void Delete( reference& ref )

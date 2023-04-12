@@ -47,7 +47,7 @@ public:
 
     inline const Index& refToIndex( const reference& maybeNetAddress )
     {
-        reference ref = maybeNetAddress.getHeaderAddress();
+        reference ref = maybeNetAddress.getNetworkAddress();
         auto iFind = m_table.find( ref );
         if( iFind == m_table.end() )
         {
@@ -60,7 +60,7 @@ public:
 
     inline std::optional< Index > refToIndexIfExist( const reference& maybeNetAddress ) const
     {
-        auto iFind = m_table.find( maybeNetAddress.getHeaderAddress() );
+        auto iFind = m_table.find( maybeNetAddress.getNetworkAddress() );
         if( iFind != m_table.end() )
         {
             return iFind->second;

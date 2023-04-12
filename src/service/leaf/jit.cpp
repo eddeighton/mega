@@ -28,12 +28,12 @@ namespace mega::service
 
 // network::jit::Impl
 
-void LeafRequestConversation::GetAllocator( const mega::TypeID&         objectTypeID,
+void LeafRequestConversation::GetAllocator( const mega::TypeID&         typeID,
                                             const mega::U64&            jitAllocatorPtr,
                                             boost::asio::yield_context& yield_ctx )
 {
     runtime::Allocator::Ptr* pAllocatorPtr = type_reify< runtime::Allocator::Ptr >( jitAllocatorPtr );
-    *pAllocatorPtr = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), objectTypeID );
+    *pAllocatorPtr = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), typeID );
 }
 
 void LeafRequestConversation::ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx )

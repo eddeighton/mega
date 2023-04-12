@@ -95,10 +95,11 @@ JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
     return pModule;
 }
 
-Allocator::Ptr JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID )
+Allocator::Ptr JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& typeID )
 {
     Allocator::Ptr pAllocator;
     {
+        const TypeID objectTypeID = TypeID::make_object_type( typeID );
         auto iFind = m_allocators.find( objectTypeID );
         if( iFind != m_allocators.end() )
         {

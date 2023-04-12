@@ -82,7 +82,8 @@ def COPYME():
 
 def createPlanet(mpo):
     r = mpo.getRoot()
-    pl = r.PlanetParent.Planet()
+    p = r.PlanetParent.Planet()
+    mega.cycle()
 
 
 def removePlanet(mpo):

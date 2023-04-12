@@ -57,7 +57,7 @@ public:
 
     std::unordered_map< std::string, mega::TypeID > getIdentities() const;
 
-    Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& objectTypeID );
+    Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& typeID );
 
     virtual InvocationTypeInfo compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                                           const mega::InvocationID& invocationID,

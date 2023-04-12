@@ -113,7 +113,7 @@ void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversa
 
 void ConversationManager::conversationJoined( ConversationBase::Ptr pConversation )
 {
-    SPDLOG_TRACE( "ConversationManager::conversationJoined: {} {}", m_strProcessName, pConversation->getID() );
+    // SPDLOG_TRACE( "ConversationManager::conversationJoined: {} {}", m_strProcessName, pConversation->getID() );
     {
         WriteLock lock( m_mutex );
         m_conversations.insert( std::make_pair( pConversation->getID(), pConversation ) );
@@ -171,7 +171,7 @@ ExternalConversation::Ptr ConversationManager::getExternalConversation() const
 
 void ConversationManager::dispatch( const ReceivedMsg& msg )
 {
-    SPDLOG_TRACE( "ConversationManager::dispatch: {} {}", m_strProcessName, msg.msg.getReceiverID() );
+    // SPDLOG_TRACE( "ConversationManager::dispatch: {} {}", m_strProcessName, msg.msg.getReceiverID() );
     ConversationBase::Ptr pConversation = findExistingConversation( msg.msg.getReceiverID() );
     if( !pConversation )
     {

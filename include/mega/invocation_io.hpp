@@ -61,13 +61,13 @@ namespace detail
             if( typeID.isSymbolID() )
             {
                 // symbol id
-                os << 's' << std::hex << std::setw( 4 ) << std::setfill( '0' ) << -static_cast< mega::I32 >( typeID.getSymbolID() ) << std::dec;
+                os << 's' << std::dec << -typeID.getSymbolID() << std::dec;
             }
             else
             {
                 // context id
-                os << 't' << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U32 >( typeID.getObjectID() ) <<
-                        std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast< mega::U32 >( typeID.getSubObjectID() ) << std::dec;
+                os << 't' << std::hex << std::setw( 4 ) << std::setfill( '0' ) << typeID.getObjectID() <<
+                        std::hex << std::setw( 4 ) << std::setfill( '0' ) << typeID.getSubObjectID() << std::dec;
             }
             if( pNext != pEnd )
             {

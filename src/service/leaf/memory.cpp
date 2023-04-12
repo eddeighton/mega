@@ -81,7 +81,7 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
     SPDLOG_TRACE( "LeafRequestConversation::NetworkToHeap: {} {}", ref, lockCycle );
 
     // short circuit if already got it
-    if( ref.isHeapAddress() && ref.getLockCycle() != lockCycle )
+    if( ref.isHeapAddress() && ref.getLockCycle() == lockCycle )
     {
         return ref;
     }
