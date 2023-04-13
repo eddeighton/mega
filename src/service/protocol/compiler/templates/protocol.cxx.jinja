@@ -36,6 +36,7 @@ namespace mega::network
 {
 namespace {{ filename }}
 {
+
 Request_Encoder::Request_Encoder( Sender pSender, const ConversationID& sender )
     :   m_pSender( pSender )
     ,   m_sender( sender )
@@ -130,8 +131,29 @@ Request_Sender::Request_Sender( ConversationBase& _conversation_,
         }
 
         _response_ = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
-        VERIFY_RTE_MSG( _response_.getID() == {{ filename }}::MSG_{{ request.name }}_Response::ID,
-            "Unexpected reponse of type: " << _response_ << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+        if( _response_.getID() != {{ filename }}::MSG_{{ request.name }}_Response::ID )
+        {
+            switch( _response_.getID() )
+            {
+                case MSG_Error_Dispatch::ID:
+                {
+                    THROW_RTE( "Dispatch error received instead of MSG_{{ request.name }}_Response: " << 
+                        MSG_Error_Dispatch::get( _response_ ).what );
+                }
+                break;
+                case MSG_Error_Response::ID:
+                {
+                    THROW_RTE( "Error response received instead of MSG_{{ request.name }}_Response: " << 
+                        MSG_Error_Response::get( _response_ ).what );
+                }
+                break;
+                default:
+                {
+                    THROW_RTE( "Unexpected reponse of type: " << _response_ << 
+                        " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+                }
+            }
+        }
     }
 {%if request.return_type != "void" %}
     return {{ filename }}::MSG_{{ request.name }}_Response::get( _response_ ).{{ request.return_msg_member }};
@@ -178,11 +200,32 @@ External_Request_Sender::External_Request_Sender( ConversationBase& sender,
 
     const network::ReceivedMsg result = m_receiver.receive();
 
-    const Message _msg_ = result.msg;
-    VERIFY_RTE_MSG( _msg_.getID() == {{ filename }}::MSG_{{ request.name }}_Response::ID,
-        "Unexpected reponse of type: " << _msg_ << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+    const Message _response_ = result.msg;
+    if( _response_.getID() != {{ filename }}::MSG_{{ request.name }}_Response::ID )
+    {
+        switch( _response_.getID() )
+        {
+            case MSG_Error_Dispatch::ID:
+            {
+                THROW_RTE( "Dispatch error received instead of MSG_{{ request.name }}_Response: " << 
+                    MSG_Error_Dispatch::get( _response_ ).what );
+            }
+            break;
+            case MSG_Error_Response::ID:
+            {
+                THROW_RTE( "Error response received instead of MSG_{{ request.name }}_Response: " << 
+                    MSG_Error_Response::get( _response_ ).what );
+            }
+            break;
+            default:
+            {
+                THROW_RTE( "Unexpected reponse of type: " << _response_ << 
+                    " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+            }
+        }
+    }
 {%if request.return_type != "void" %}
-    return {{ filename }}::MSG_{{ request.name }}_Response::get( _msg_ ).{{ request.return_msg_member }};
+    return {{ filename }}::MSG_{{ request.name }}_Response::get( _response_ ).{{ request.return_msg_member }};
 {% endif %}
 }
 {% endfor %}

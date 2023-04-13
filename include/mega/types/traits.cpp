@@ -62,11 +62,35 @@ void structure_make( const mega::reference& source, const mega::reference& targe
     log.record( mega::log::Structure::Write(
         source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eMake ) );
 }
+void structure_make_source( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
+{
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Structure::Write(
+        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eMakeSource ) );
+}
+void structure_make_target( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
+{
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Structure::Write(
+        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eMakeTarget ) );
+}
 void structure_break( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write(
         source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eBreak ) );
+}
+void structure_break_source( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
+{
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Structure::Write(
+        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eBreakSource ) );
+}
+void structure_break_target( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
+{
+    mega::log::Storage& log = mega::Context::get()->getLog();
+    log.record( mega::log::Structure::Write(
+        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eBreakTarget ) );
 }
 
 void action_start( const mega::reference& source )

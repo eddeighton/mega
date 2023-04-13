@@ -428,7 +428,10 @@ reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yiel
 {
     SPDLOG_TRACE( "SIM::SimAllocate: {}", objectTypeID );
     QueueStackDepth queueMsgs( m_queueStack );
-    return m_pMemoryManager->New( objectTypeID ).getHeaderAddress();
+    reference allocated = m_pMemoryManager->New( objectTypeID ).getHeaderAddress();
+    m_log.record( mega::log::Structure::Write(
+        reference{}, allocated, 0, mega::log::Structure::eConstruct ) );
+    return allocated;
 }
 
 Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx )

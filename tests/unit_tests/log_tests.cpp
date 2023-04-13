@@ -172,11 +172,11 @@ TEST_F( BasicLogTest, StructureMsg )
     // clang-format off
     std::vector< Structure::Type > types = 
     {
-        Structure::eMake, 
+        Structure::eConstruct, 
+        Structure::eDestruct, 
         Structure::eMake, 
         Structure::eBreak,
-        Structure::eMake, 
-        Structure::eBreak
+        Structure::eBreakSource
     };
     std::vector< mega::reference > sources =
     {

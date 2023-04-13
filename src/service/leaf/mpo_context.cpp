@@ -91,9 +91,12 @@ MPO MPOContext::constructMPO( MP machineProcess )
 
 reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )
 {
+    reference allocated;
     if( parent.getMPO() == getThisMPO() )
     {
-        return m_pMemoryManager->New( objectTypeID );
+        allocated = m_pMemoryManager->New( objectTypeID );
+        m_log.record( mega::log::Structure::Write(
+            parent.getNetworkAddress(), allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
     }
     else
     {
@@ -105,8 +108,10 @@ reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )
             VERIFY_RTE_MSG( lockCycle != 0U, "Failed to acquire write lock on: " << targetMPO );
             m_lockTracker.onWrite( targetMPO, lockCycle );
         }
-        return getLeafMemoryRequest().NetworkAllocate( targetMPO, objectTypeID, lockCycle );
+        allocated = getLeafMemoryRequest().NetworkAllocate( targetMPO, objectTypeID, lockCycle );
     }
+
+    return allocated;
 }
 
 // networkToHeap ONLY called when MPO matches
@@ -186,6 +191,8 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     // instantiate the root
     m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
     VERIFY_RTE_MSG( m_root.is_valid(), "Root allocation failed" );
+    m_log.record( mega::log::Structure::Write(
+        reference{}, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
 }
 
 void MPOContext::jit( runtime::JITFunctor func )
@@ -213,10 +220,17 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
 
             switch( structure.m_data.m_Type )
             {
+                case log::Structure::eConstruct:
+                case log::Structure::eDestruct:
+                    break;
                 case log::Structure::eMake:
+                case log::Structure::eMakeSource:
+                case log::Structure::eMakeTarget:
                     recordMake( structure.m_data.m_Source, structure.m_data.m_Target );
                     break;
                 case log::Structure::eBreak:
+                case log::Structure::eBreakSource:
+                case log::Structure::eBreakTarget:
                     recordBreak( structure.m_data.m_Source, structure.m_data.m_Target );
                     break;
                 default:
@@ -248,7 +262,28 @@ void MPOContext::cycleComplete()
     m_log.cycle();
 
     network::TransactionProducer::MPOTransactions transactions;
-    m_transactionProducer.generate( transactions );
+    network::TransactionProducer::UnparentedSet unparentedObjects;
+    m_transactionProducer.generate( transactions, unparentedObjects );
+
+    for( const auto& unparentedObject : unparentedObjects )
+    {
+        // destroy the object
+        SPDLOG_TRACE( "MPOContext: cycleComplete: {} unparented: {}", m_mpo.value(), unparentedObject );
+        if( unparentedObject.getMPO() == m_mpo.value() )
+        {
+            // delete the heap address
+            {
+                reference toDelete = unparentedObject;
+                if( toDelete.isNetworkAddress() )
+                {
+                    toDelete = m_pMemoryManager->networkToHeap( toDelete );
+                }
+                m_pMemoryManager->Delete( toDelete );
+            }
+            m_log.record( mega::log::Structure::Write(
+                reference{}, unparentedObject.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
+        }
+    }
 
     for( const auto& [ writeLockMPO, lockCycle ] : m_lockTracker.getWrites() )
     {

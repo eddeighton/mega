@@ -33,6 +33,7 @@
 #include <utility>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <map>
 #include <optional>
 
@@ -125,8 +126,9 @@ public:
     }
 
     using MPOTransactions = std::map< MPO, Transaction::Out >;
+    using UnparentedSet = std::unordered_set< reference, reference::Hash >;
 
-    void generateStructure( MPOTransactions& transactions )
+    void generateStructure( MPOTransactions& transactions, UnparentedSet& unparented )
     {
         using RecordType                    = log::Structure::Read;
         log::Iterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
@@ -134,8 +136,64 @@ public:
         for( ; iter != iterEnd; ++iter )
         {
             const RecordType r = *iter;
-            ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
-            transactions[ r.getSource().getMPO() ].push_back( r );
+            switch( r.getType() )
+            {
+                case log::Structure::eConstruct:
+                {
+
+                }
+                break;
+                case log::Structure::eDestruct:
+                {
+
+                }
+                break;
+                case log::Structure::eMake:
+                {
+                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    transactions[ r.getSource().getMPO() ].push_back( r );
+                }
+                break;
+                case log::Structure::eMakeSource:
+                {
+                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    transactions[ r.getSource().getMPO() ].push_back( r );
+                    unparented.erase( r.getSource().getObjectAddress() );
+                }
+                break;
+                case log::Structure::eMakeTarget:
+                {
+                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    transactions[ r.getSource().getMPO() ].push_back( r );
+                    unparented.erase( r.getTarget().getObjectAddress() );
+                }
+                break;
+                case log::Structure::eBreak:
+                {
+                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    transactions[ r.getSource().getMPO() ].push_back( r );
+                }
+                break;
+                case log::Structure::eBreakSource:
+                {
+                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    transactions[ r.getSource().getMPO() ].push_back( r );
+                    unparented.insert( r.getSource().getObjectAddress() );
+                }
+                break;
+                case log::Structure::eBreakTarget:
+                {
+                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    transactions[ r.getSource().getMPO() ].push_back( r );
+                    unparented.insert( r.getTarget().getObjectAddress() );
+                }
+                break;
+                default:
+                {
+                    THROW_RTE( "Unknown structure record type" );
+                }
+                break;
+            }
         }
     }
     void generateScheduling( MPOTransactions& transactions )
@@ -161,9 +219,9 @@ public:
         }
     }
 
-    void generate( MPOTransactions& transactions )
+    void generate( MPOTransactions& transactions, UnparentedSet& unparented )
     {
-        generateStructure( transactions );
+        generateStructure( transactions, unparented );
         generateScheduling( transactions );
         generateMemory( transactions );
         m_iterator = m_iteratorEnd;

@@ -47,7 +47,7 @@ CodeGenerator::CodeGenerator( const mega::MegastructureInstallation& megastructu
 {
 }
 
-std::string CodeGenerator::allocatorTypeName( const JITDatabase&                      database,
+std::string CodeGenerator::allocatorTypeName( const JITDatabase&                           database,
                                               FinalStage::Concrete::Dimensions::Allocator* pAllocDim )
 {
     using namespace FinalStage;
@@ -192,6 +192,8 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
     const bool bTargetSingular
         = !pRelation->get_target_interface()->get_link_trait()->get_cardinality().maximum().isMany();
 
+    const auto ownership = pRelation->get_ownership();
+
     std::ostringstream osRelationID;
     {
         using ::operator<<;
@@ -207,6 +209,8 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                            { "module_name", osModuleName.str() },
                            { "source_singular", bSourceSingular },
                            { "target_singular", bTargetSingular },
+                           { "source_owned", ownership.get() == Ownership::eOwnSource },
+                           { "target_owned", ownership.get() == Ownership::eOwnTarget },
                            { "sources", nlohmann::json::array() },
                            { "targets", nlohmann::json::array() } } );
 

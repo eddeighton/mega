@@ -36,8 +36,14 @@
                 {
                     "name": "Type",
                     "values": [
+                        "Construct",
+                        "Destruct",
                         "Make",
-                        "Break"
+                        "MakeSource",
+                        "MakeTarget",
+                        "Break",
+                        "BreakSource",
+                        "BreakTarget"
                     ]
                 }
             ],

@@ -90,6 +90,7 @@ def removePlanet(mpo):
     r = mpo.getRoot()
     p = r.PlanetParent()
     r.PlanetParent(REMOVE, p)
+    mega.cycle()
 
 
 def createAndRemovePlanet(mpo):

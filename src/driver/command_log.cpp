@@ -126,7 +126,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 {
                     const Read&        record = *i;
                     std::ostringstream os;
-                    os << toString( record.getType() ) << ": " << record.getSource() << ": " << record.getTarget();
+                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( record.getType() ) << ": " << record.getSource() << ": " << record.getTarget();
                     SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, os.str() );
                 }
             }
@@ -137,7 +137,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 {
                     const Read&        schedulingRecord = *i;
                     std::ostringstream os;
-                    os << toString( schedulingRecord.getType() ) << ": " << schedulingRecord.getRef();
+                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( schedulingRecord.getType() ) << ": " << schedulingRecord.getRef();
                     SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, os.str() );
                 }
             }

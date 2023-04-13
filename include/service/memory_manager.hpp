@@ -184,7 +184,7 @@ public:
         }
     }
 
-    inline void Delete( reference& ref )
+    inline void Delete( const reference& ref )
     {
         ASSERT( ref.isHeapAddress() );
 
@@ -210,9 +210,6 @@ public:
 
         // remove the heap address entry
         m_heapMap.erase( iFind );
-
-        // null out the reference
-        ref = reference{};
     }
 
 private:
