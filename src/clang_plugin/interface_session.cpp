@@ -52,10 +52,12 @@ class InterfaceSession : public AnalysisSession
 
     using SymbolTypeIDMap    = std::map< mega::TypeID, Symbols::SymbolTypeID* >;
     using InterfaceTypeIDMap = std::map< mega::TypeID, Symbols::InterfaceTypeID* >;
+    using MangleMap          = std::unordered_map< std::string, MegaMangle::Mangle* >;
 
     std::map< std::string, Symbols::SymbolTypeID* > m_symbols;
     SymbolTypeIDMap                                 m_symbolIDs;
     InterfaceTypeIDMap                              m_interfaceTypeIDs;
+    MangleMap                                       m_mangleMap;
 
 public:
     InterfaceSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir,
@@ -68,6 +70,11 @@ public:
         m_symbols          = pSymbolTable->get_symbol_names();
         m_symbolIDs        = pSymbolTable->get_symbol_type_ids();
         m_interfaceTypeIDs = pSymbolTable->get_interface_type_ids();
+
+        for( auto pMangle : m_database.many< MegaMangle::Mangle >( m_environment.project_manifest() ) )
+        {
+            m_mangleMap.insert( { pMangle->get_canon(), pMangle } );
+        }
     }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
@@ -151,13 +158,21 @@ public:
                 // determine the type
                 std::string                           strCanonicalType;
                 std::vector< Symbols::SymbolTypeID* > symbols;
+                MegaMangle::Mangle*                   pMangle = nullptr;
                 {
                     QualType typeType
                         = getTypeTrait( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Type" );
-                    QualType                      typeTypeCanonical = typeType.getCanonicalType();
+                    QualType typeTypeCanonical = typeType.getCanonicalType();
                     // std::vector< mega::TypeID > dimensionTypes;
 
                     strCanonicalType = typeTypeCanonical.getAsString();
+
+                    auto iFind = m_mangleMap.find( strCanonicalType );
+                    VERIFY_RTE_MSG( iFind != m_mangleMap.end(),
+                                    "Failed to locate mangle for canonical type: "
+                                        << strCanonicalType
+                                        << " for dimension: " << pDimensionTrait->get_interface_id() );
+                    pMangle = iFind->second;
 
                     // only attempt this is it has a base type identifier
                     /*if( typeTypeCanonical.getBaseTypeIdentifier() )
@@ -265,8 +280,9 @@ public:
                     THROW_RTE( "Error attempting to record if dimension is simple" );
                 }
 
-                m_database.construct< Interface::DimensionTrait >( Interface::DimensionTrait::Args{
-                    pDimensionTrait, strCanonicalType, strErasedType, szSize, szAlignment, bIsSimple, symbols } );
+                m_database.construct< Interface::DimensionTrait >(
+                    Interface::DimensionTrait::Args{ pDimensionTrait, strCanonicalType, pMangle, strErasedType, szSize,
+                                                     szAlignment, bIsSimple, symbols } );
             }
             else
             {

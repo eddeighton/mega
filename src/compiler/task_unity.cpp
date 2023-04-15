@@ -76,64 +76,6 @@ void printDimensionTraitFullType( UnityStage::Interface::DimensionTrait* pDim, s
     os << "." << pDim->get_id()->get_str();
 }
 
-bool generateUnityReflectionJSON( UnityStage::Database& database, const io::StashEnvironment& m_environment,
-                                  const boost::filesystem::path& unityDataFilePath )
-{
-    using namespace UnityStage;
-
-    // generate unity reflection data file
-    // clang-format off
-    nlohmann::json data(
-    {
-        { "objects",    nlohmann::json::array() }, 
-        { "dimensions", nlohmann::json::array() },
-        { "links",      nlohmann::json::array() }, 
-        { "structure",  nlohmann::json::array() }
-    });
-    // clang-format on
-
-    {
-        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-
-        for( const auto& [ id, pInterfaceType ] : pSymbolTable->get_interface_type_ids() )
-        {
-            std::ostringstream osFullTypeName;
-            if( pInterfaceType->get_context().has_value() )
-            {
-                Interface::IContext* pContext = pInterfaceType->get_context().value();
-
-                if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
-                {
-                    printIContextFullType( pContext, osFullTypeName );
-                    nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
-                    data[ "objects" ].push_back( typeInfo );
-                }
-                else if( Interface::Link* pLink = db_cast< Interface::Link >( pContext ) )
-                {
-                    printIContextFullType( pContext, osFullTypeName );
-                    nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
-                    data[ "links" ].push_back( typeInfo );
-                }
-            }
-            else if( pInterfaceType->get_dimension().has_value() )
-            {
-                Interface::DimensionTrait* pDimension = pInterfaceType->get_dimension().value();
-                printDimensionTraitFullType( pDimension, osFullTypeName );
-
-                std::string    strBlit = "TODO";
-                nlohmann::json typeInfo{
-                    { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() }, { "blit", strBlit } };
-                data[ "dimensions" ].push_back( typeInfo );
-            }
-            else
-            {
-                THROW_RTE( "Unknown interface type" );
-            }
-        }
-    }
-
-    return writeJSON( unityDataFilePath, data );
-}
 } // namespace
 
 class Task_UnityReflection : public BaseTask
@@ -170,7 +112,80 @@ public:
         {
             using namespace UnityStage;
             Database database( m_environment, m_manifest );
-            generateUnityReflectionJSON( database, m_environment, unityDataFilePath );
+            {
+                std::unordered_map< std::string, MegaMangle::Mangle* > mangleMap;
+                for( auto pMangle : database.many< MegaMangle::Mangle >( m_environment.project_manifest() ) )
+                {
+                    mangleMap.insert( { pMangle->get_canon(), pMangle } );
+                }
+
+                // generate unity reflection data file
+                // clang-format off
+                nlohmann::json data(
+                {
+                    { "objects",    nlohmann::json::array() }, 
+                    { "dimensions", nlohmann::json::array() },
+                    { "links",      nlohmann::json::array() }, 
+                    { "structure",  nlohmann::json::array() }
+                });
+                // clang-format on
+
+                {
+                    Symbols::SymbolTable* pSymbolTable
+                        = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+
+                    for( const auto& [ id, pInterfaceType ] : pSymbolTable->get_interface_type_ids() )
+                    {
+                        std::ostringstream osFullTypeName;
+                        if( pInterfaceType->get_context().has_value() )
+                        {
+                            Interface::IContext* pContext = pInterfaceType->get_context().value();
+
+                            if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
+                            {
+                                printIContextFullType( pContext, osFullTypeName );
+                                nlohmann::json typeInfo{
+                                    { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
+                                data[ "objects" ].push_back( typeInfo );
+                            }
+                            else if( Interface::Link* pLink = db_cast< Interface::Link >( pContext ) )
+                            {
+                                printIContextFullType( pContext, osFullTypeName );
+                                nlohmann::json typeInfo{
+                                    { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
+                                data[ "links" ].push_back( typeInfo );
+                            }
+                        }
+                        else if( pInterfaceType->get_dimension().has_value() )
+                        {
+                            Interface::DimensionTrait* pDimension = pInterfaceType->get_dimension().value();
+                            printDimensionTraitFullType( pDimension, osFullTypeName );
+
+                            const std::string strCanon = pDimension->get_canonical_type();
+                            auto              iFind    = mangleMap.find( strCanon );
+                            if( iFind == mangleMap.end() )
+                            {
+                                std::ostringstream os;
+                                os << "Failed to locate mangle for canonical type: " << strCanon
+                                   << " for: " << pDimension->get_interface_id();
+                                msg( taskProgress, os.str() );
+                            }
+                            using namespace std::string_literals;
+                            nlohmann::json typeInfo{
+                                { "symbol", id.getSymbolID() },
+                                { "name", osFullTypeName.str() },
+                                { "blit", ( iFind != mangleMap.end() ) ? iFind->second->get_blit() : ""s } };
+                            data[ "dimensions" ].push_back( typeInfo );
+                        }
+                        else
+                        {
+                            THROW_RTE( "Unknown interface type" );
+                        }
+                    }
+                }
+
+                writeJSON( unityDataFilePath, data );
+            }
         }
 
         m_environment.setBuildHashCodePath( unityDataFilePath );
@@ -604,6 +619,12 @@ public:
                                { "relations", nlohmann::json::array() },
                                { "memoryMaps", nlohmann::json::array() } } );
 
+        std::unordered_map< std::string, MegaMangle::Mangle* > mangleMap;
+        for( auto pMangle : database.many< MegaMangle::Mangle >( m_environment.project_manifest() ) )
+        {
+            mangleMap.insert( { pMangle->get_canon(), pMangle } );
+        }
+
         for( MemoryLayout::MemoryMap* pMemoryMap :
              database.many< MemoryLayout::MemoryMap >( m_environment.project_manifest() ) )
         {
@@ -616,7 +637,30 @@ public:
 
             for( Concrete::Object* pObject : pMemoryMap->get_concrete() )
             {
-                memoryMap[ "concrete" ].push_back( pObject->get_concrete_id().getSymbolID() );
+                nlohmann::json concrete( { { "concrete_type_id", pObject->get_concrete_id().getSymbolID() },
+                                           { "dimensions", nlohmann::json::array() } } );
+
+                for( auto pBuffer : pObject->get_buffers() )
+                {
+                    for( auto pPart : pBuffer->get_parts() )
+                    {
+                        for( auto pDim : pPart->get_user_dimensions() )
+                        {
+                            const std::string strCanonical = pDim->get_interface_dimension()->get_canonical_type();
+                            auto              iFind        = mangleMap.find( strCanonical );
+                            VERIFY_RTE_MSG( iFind != mangleMap.end(),
+                                            "Failed to locate mega mangle for canonical type: "
+                                                << strCanonical << " of dimension: " << pDim->get_concrete_id() );
+
+                            nlohmann::json dimension( { { "concrete_type_id", pDim->get_concrete_id().getSymbolID() },
+                                                        { "offset", pDim->get_offset() },
+                                                        { "blit", iFind->second->get_blit() } } );
+                            concrete[ "dimensions" ].push_back( dimension );
+                        }
+                    }
+                }
+
+                memoryMap[ "concrete" ].push_back( concrete );
             }
             data[ "memoryMaps" ].push_back( memoryMap );
         }

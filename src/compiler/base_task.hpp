@@ -159,19 +159,27 @@ public:
     int run_cmd( mega::pipeline::Progress& taskProgress, const std::string& strCmd, bool bTreatFailureAsError = true )
     {
         std::string strOutput, strError;
+
+        // always print cmd before anything 
+        {
+            std::ostringstream os;
+            os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nCMD    : " << strCmd;
+            os << common::COLOUR_END;
+            taskProgress.onProgress( os.str() );
+        }
+
         const int   iExitCode = common::runProcess( strCmd, strOutput, strError );
 
         {
             std::ostringstream os;
-            os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nCMD    : " << strCmd;
-            {
+            { 
                 std::istringstream isOut( strOutput );
                 std::string        str;
                 while( isOut && std::getline( isOut, str ) )
                 {
                     if( !str.empty() )
                     {
-                        os << "\nOUT    : " << str;
+                        os << common::COLOUR_BLUE_BEGIN << "\nOUT    : " << str;
                     }
                 }
             }
@@ -179,6 +187,7 @@ public:
             os << common::COLOUR_END;
             taskProgress.onProgress( os.str() );
         }
+        
 
         if( iExitCode && bTreatFailureAsError )
         {

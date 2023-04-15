@@ -27,15 +27,17 @@
 #include "reference.hpp"
 #include "operation_id.hpp"
 #include "result_type.hpp"
-#include "coroutine.hpp"
 #include "mega/types/traits.hpp"
-#include "type_path.hpp"
+#include "type_path.hpp" // has array
 #include "variant.hpp"
 #include "event.hpp"
 #include "clock.hpp"
-#include "operations.hpp"
-#include "iterators.hpp"
-#include "scheduler.hpp"
+#include "operations.hpp" 
+#include "iterators.hpp" // has array and vector and defines __mega_vector std::vector type alias
 #include "write_operation.hpp"
+
+#include "coroutine.hpp" // has stl dependencies
+#include "scheduler.hpp" // has stl dependencies
+#include "maths_types.hpp" // has boost math stuff
 
 #endif //EG_STANDARD_STUFF

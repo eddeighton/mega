@@ -19,11 +19,14 @@
 
 #include "traits.hpp"
 
+
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
 #include "mega/xml_archive.hpp"
 
 #include "traits.hpp"
+
+#include "mega/maths_types_io.hpp"
 
 #include "log/log.hpp"
 

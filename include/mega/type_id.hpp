@@ -23,7 +23,10 @@
 
 #include "mega/native_types.hpp"
 
-// #include <limits>
+#ifndef MEGAJIT
+#include <limits>
+namespace boost::serialization{};
+#endif
 
 namespace mega
 {
@@ -58,7 +61,12 @@ private:
     }
 
 public:
+#ifndef MEGAJIT
+    static constexpr ValueType LOWEST_SYMBOL_ID = std::numeric_limits< ValueType >::min(); // -2147483648
+    static_assert( LOWEST_SYMBOL_ID == 0x80000000, "Incorrect LOWEST_SYMBOL_ID value" );
+#else
     static constexpr ValueType LOWEST_SYMBOL_ID = 0x80000000; // -2147483648
+#endif
 
     struct Hash
     {
@@ -100,6 +108,16 @@ public:
     {
         return TypeID{ ContextID{ 0U, typeID.getObjectID(), eType } };
     }
+
+#ifndef MEGAJIT
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        using namespace boost::serialization;
+        serialize( archive, *this, version );
+    }
+#endif
+
 };
 static_assert( sizeof( TypeID ) == 4U, "Invalid TypeID Size" );
 

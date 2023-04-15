@@ -81,7 +81,7 @@ public:
             { m_toolChain.toolChainHash, m_environment.ImplementationTemplate(),
               m_environment.getBuildHashCode( m_environment.OperationsStage_Operations( m_sourceFilePath ) ) } );
 
-        if ( m_environment.restore( implementationFile, determinant ) )
+        if( m_environment.restore( implementationFile, determinant ) )
         {
             m_environment.setBuildHashCode( implementationFile );
             cached( taskProgress );
@@ -107,16 +107,16 @@ public:
             std::vector< Interface::IContext* > contexts;
             {
                 std::set< Interface::IContext* > uniqueContexts;
-                for ( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                for( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
-                    for ( auto pElementVector : pInvocation->get_context()->get_vectors() )
+                    for( auto pElementVector : pInvocation->get_context()->get_vectors() )
                     {
-                        for ( auto pElement : pElementVector->get_elements() )
+                        for( auto pElement : pElementVector->get_elements() )
                         {
-                            if ( pElement->get_interface()->get_context().has_value() )
+                            if( pElement->get_interface()->get_context().has_value() )
                             {
                                 Interface::IContext* pContext = pElement->get_interface()->get_context().value();
-                                if ( uniqueContexts.count( pContext ) == 0 )
+                                if( uniqueContexts.count( pContext ) == 0 )
                                 {
                                     uniqueContexts.insert( pContext );
                                     contexts.push_back( pContext );
@@ -129,11 +129,11 @@ public:
 
             {
                 std::vector< std::string > typeNameStack;
-                for ( Interface::IContext* pContext : contexts )
+                for( Interface::IContext* pContext : contexts )
                 {
                     Interface::IContext*       pIter = pContext;
                     std::vector< std::string > typeNamePath;
-                    while ( pIter )
+                    while( pIter )
                     {
                         typeNamePath.push_back( pIter->get_identifier() );
                         pIter = db_cast< Interface::IContext >( pIter->get_parent() );
@@ -144,15 +144,17 @@ public:
                     implData[ "interfaces" ].push_back( os.str() );
                 }
 
-                for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                for( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
                     std::ostringstream osContextIDs;
                     {
                         bool bFirst = true;
                         for( TypeID typeID : id.m_context )
                         {
-                            if( bFirst ) bFirst = false;
-                            else osContextIDs << ',';
+                            if( bFirst )
+                                bFirst = false;
+                            else
+                                osContextIDs << ',';
                             osContextIDs << "mega::TypeID{ " << typeID.getSymbolID() << " }";
                         }
                     }
@@ -162,8 +164,10 @@ public:
                         bool bFirst = true;
                         for( TypeID typeID : id.m_type_path )
                         {
-                            if( bFirst ) bFirst = false;
-                            else osTypePathIDs << ',';
+                            if( bFirst )
+                                bFirst = false;
+                            else
+                                osTypePathIDs << ',';
                             osTypePathIDs << "mega::TypeID{ " << typeID.getSymbolID() << " }";
                         }
                     }
@@ -225,14 +229,19 @@ public:
         const mega::io::GeneratedCPPSourceFilePath implementationFile
             = m_environment.Implementation( m_sourceFilePath );
 
-        const mega::io::ObjectFilePath implementationObj = m_environment.ImplementationObj( m_sourceFilePath );
+        const mega::io::PrecompiledHeaderFile includePCH        = m_environment.IncludePCH( m_sourceFilePath );
+        const mega::io::PrecompiledHeaderFile interfacePCH      = m_environment.InterfacePCH( m_sourceFilePath );
+        const mega::io::PrecompiledHeaderFile operationsPCH     = m_environment.OperationsPCH( m_sourceFilePath );
+        const mega::io::ObjectFilePath        implementationObj = m_environment.ImplementationObj( m_sourceFilePath );
 
         start( taskProgress, "Task_ImplementationObj", m_sourceFilePath.path(), implementationObj.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( implementationFile ) } );
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( includePCH ),
+              m_environment.getBuildHashCode( interfacePCH ), m_environment.getBuildHashCode( operationsPCH ),
+              m_environment.getBuildHashCode( implementationFile ) } );
 
-        if ( m_environment.restore( implementationObj, determinant ) )
+        if( m_environment.restore( implementationObj, determinant ) )
         {
             m_environment.setBuildHashCode( implementationObj );
             cached( taskProgress );
@@ -247,13 +256,13 @@ public:
             getComponent< Components::Component >( database, m_sourceFilePath ),
             m_sourceFilePath );
 
-        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
+        if( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             failed( taskProgress );
             return;
         }
 
-        if ( m_environment.exists( implementationObj ) )
+        if( m_environment.exists( implementationObj ) )
         {
             m_environment.setBuildHashCode( implementationObj );
             m_environment.stash( implementationObj, determinant );

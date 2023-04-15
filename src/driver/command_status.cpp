@@ -44,6 +44,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     std::string                            strMPO, strMsg;
     int                                    msgSize = 0;
     mega::utilities::StatusPrinter::Config m_config;
+    m_config.m_bLocks = true; // default to always on
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Project Commands" );

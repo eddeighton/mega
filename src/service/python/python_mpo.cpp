@@ -33,7 +33,7 @@ PythonMPO::PythonMPO( PythonModule& module, mega::MPO mpo )
 
 mega::reference PythonMPO::getRoot() const
 {
-    return reference::Root( m_mpo );
+    return reference::make_root( m_mpo );
 }
 
 } // namespace mega::service::python

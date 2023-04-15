@@ -138,6 +138,7 @@ stage InterfaceAnalysisStage
     global accessor array< ref< Components::Component > >;
     global accessor ref< Dependencies::Analysis >;
     global accessor ref< Symbols::SymbolTable >;
+    global accessor array< ref< MegaMangle::Mangle > >;
     
     persource accessor ref< Interface::Root >;
     persource accessor array< ref< Parser::SystemInclude > >;
@@ -338,6 +339,7 @@ stage UnityStage
     persource accessor array< ref< Concrete::Dimensions::User > >;
     persource accessor array< ref< HyperGraph::Relation > >;
     persource accessor ref< HyperGraph::Graph >;
+    global accessor array< ref< MegaMangle::Mangle > >;
 }
 
 stage UnityStageView
@@ -349,6 +351,7 @@ stage UnityStageView
     global accessor ref< Symbols::SymbolTable >;
     global accessor array< ref< UnityAnalysis::Binding > >;
     global accessor array< ref< HyperGraph::Relation > >;
+    global accessor array< ref< MegaMangle::Mangle > >;
 }
 
 stage SchematicParseStage

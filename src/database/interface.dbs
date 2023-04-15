@@ -32,6 +32,7 @@ namespace Interface
         array< ref< Concrete::Dimensions::User > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
 
         value< std::string >                    canonical_type  -> InterfaceAnalysisStage::Clang;
+        ref< MegaMangle::Mangle >               mangle          -> InterfaceAnalysisStage::Clang;
         value< std::string >                    erased_type     -> InterfaceAnalysisStage::Clang;
         value< mega::U64 >                      size            -> InterfaceAnalysisStage::Clang;
         value< mega::U64 >                      alignment       -> InterfaceAnalysisStage::Clang;

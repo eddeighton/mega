@@ -73,9 +73,10 @@ ComponentManager::InterfaceComponent::InterfaceComponent( const ComponentPath&  
         SPDLOG_TRACE( "RUNTIME: InterfaceComponent symbol : {}", strSymbol );
         mega::TypeID interfaceTypeID;
         {
-            // symbol is always '_ma123'
-            VERIFY_RTE_MSG( strSymbol.size() > 3, "Invalid symbol in mega alias section: " << strSymbol );
-            const std::string  strID( strSymbol.begin() + 3, strSymbol.end() );
+            // c alias symbol:        '_ca0x8efefd52e1eb2505_65562'
+            // python alias symbol:   '_pa0x1077e5fca12a0068_65559'
+            VERIFY_RTE_MSG( strSymbol.size() > 22, "Invalid symbol in mega alias section: " << strSymbol );
+            const std::string  strID( strSymbol.begin() + 22, strSymbol.end() );
             std::istringstream is( strID );
             is >> interfaceTypeID;
             VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Invalid type ID decoded from symbol: " << strSymbol );

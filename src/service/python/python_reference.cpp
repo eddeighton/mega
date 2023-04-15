@@ -158,7 +158,7 @@ PythonReference::Registration::Registration( const SymbolTable& symbols )
 
     slots.push_back( PyType_Slot{ 0 } );
 
-    static std::string strTypeName = "reference";
+    static std::string strTypeName = "megastructure.reference";
 
     PyType_Spec spec = {
         strTypeName.c_str(), sizeof( PythonReferenceData ), 0, Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, slots.data() };
@@ -168,7 +168,7 @@ PythonReference::Registration::Registration( const SymbolTable& symbols )
     if( PyType_Ready( m_pTypeObject ) < 0 )
     {
         // set exception
-        THROW_RTE( "Failed to create python egreference type" );
+        THROW_RTE( "Failed to create python mega.reference type" );
     }
     else
     {
@@ -176,7 +176,7 @@ PythonReference::Registration::Registration( const SymbolTable& symbols )
         // successfully generated the dynamic type...
         // PyModule_AddObject( pPythonModule, "Host", (PyObject*)&m_type );
         g_pTypeObject_Hack = m_pTypeObject;
-        SPDLOG_INFO( "Successfully registered Python Reference Type" );
+        //SPDLOG_INFO( "Successfully registered Python Reference Type" );
     }
 }
 
@@ -249,7 +249,7 @@ PyObject* PythonReference::str() const
 {
     std::ostringstream os;
     using ::           operator<<;
-    os << m_reference;
+    os << m_reference.getNetworkAddress();
     return Py_BuildValue( "s", os.str().c_str() );
 }
 

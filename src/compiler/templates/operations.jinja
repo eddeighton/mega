@@ -33,7 +33,7 @@
 
 extern "C"
 {
-{{ operation.return_type }} _mw{{ operation.typeID }}( mega::reference* _p{% for param in operation.params %}, {{param.type}} {{param.name}}{% endfor %} )
+{{ operation.return_type }} _c{{ operation.hash }}_{{ operation.typeID }}( mega::reference* _p{% for param in operation.params %}, {{param.type}} {{param.name}}{% endfor %} )
 {
 {% if operation.return_type != "void" %}
     return 
@@ -45,6 +45,6 @@ extern "C"
     ( {% for param in operation.params %}{{param.name}}{% if not loop.is_last%}, {% endif %}{% endfor %} );
 }
 }
-BOOST_DLL_ALIAS_SECTIONED( _mw{{ operation.typeID }}, _ma{{ operation.typeID }}, mega )
+BOOST_DLL_ALIAS_SECTIONED( _c{{ operation.hash }}_{{ operation.typeID }}, _ca{{ operation.hash }}_{{ operation.typeID }}, mega )
 
 {% endfor %}

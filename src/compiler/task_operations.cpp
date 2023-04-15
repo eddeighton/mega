@@ -136,6 +136,7 @@ public:
 
             nlohmann::json operation( { { "return_type", "mega::ActionCoroutine" },
                                         { "body", osBody.str() },
+                                        { "hash", common::Hash{ osBody.str() }.toHexString() },
                                         { "typeID", pAction->get_interface_id().getSymbolID() },
                                         { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },
@@ -171,6 +172,7 @@ public:
 
             nlohmann::json operation( { { "return_type", pFunction->get_return_type_trait()->get_str() },
                                         { "body", strBody },
+                                        { "hash", common::Hash{ strBody }.toHexString() },
                                         { "typeID", pFunction->get_interface_id().getSymbolID() },
                                         { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },

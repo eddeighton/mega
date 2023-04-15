@@ -27,6 +27,8 @@
 #include "mega/xml_archive.hpp"
 #include "mega/record_archive.hpp"
 
+#include "mega/maths_types_io.hpp"
+
 #include "service/protocol/common/context.hpp"
 
 #include "log/records.hxx"

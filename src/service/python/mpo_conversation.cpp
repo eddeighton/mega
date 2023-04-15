@@ -142,9 +142,17 @@ network::Message MPOConversation::dispatchRequestsUntilResponse( boost::asio::yi
             break;
         }
     }
-    if( msg.msg.getID() == network::MSG_Error_Response::ID )
+    if( msg.msg.getID() == network::MSG_Error_Dispatch::ID )
     {
-        throw std::runtime_error( network::MSG_Error_Response::get( msg.msg ).what );
+        const std::string& strError = network::MSG_Error_Dispatch::get( msg.msg ).what;
+        SPDLOG_ERROR( "Got error dispatch: {}", strError );
+        throw std::runtime_error( strError );
+    }
+    else if( msg.msg.getID() == network::MSG_Error_Response::ID )
+    {
+        const std::string& strError = network::MSG_Error_Response::get( msg.msg ).what;
+        SPDLOG_ERROR( "Got error response: {}", strError );
+        throw std::runtime_error( strError );
     }
     return msg.msg;
 }

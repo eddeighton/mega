@@ -39,7 +39,7 @@ namespace mega::service
 // network::memory::Impl
 void LeafRequestConversation::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    if( m_leaf.m_pJIT.get() )
+    if( m_leaf.m_pJIT.get() && m_leaf.m_pRemoteMemoryManager.get() )
     {
         m_leaf.m_pRemoteMemoryManager->MPODestroyed( mpo );
     }

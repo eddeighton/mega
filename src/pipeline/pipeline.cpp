@@ -73,7 +73,7 @@ Version Configuration::getVersion() const
     return header.version;
 }
 
-Dependencies::Dependencies( const Dependencies& other, const std::vector< TaskDescriptor >& targets )
+Dependencies::Dependencies( const Dependencies& other, const std::vector< TaskDescriptor >& targets, bool bInclusive )
 {
     const Graph& graph = other.getDependencies();
 
@@ -82,7 +82,10 @@ Dependencies::Dependencies( const Dependencies& other, const std::vector< TaskDe
         for( auto t : targets )
         {
             open.insert( t );
-            m_tasks.insert( t );
+            if( bInclusive )
+            {
+                m_tasks.insert( t );
+            }
         }
     }
 
@@ -186,18 +189,18 @@ std::optional< TaskDescriptor > Schedule::getTask( const std::string& strTaskNam
     return result;
 }
 
-Schedule Schedule::getUpTo( const std::string& strTaskName ) const
+Schedule Schedule::getUpTo( const std::string& strTaskName, bool bInclusive ) const
 {
     auto result = getTasks( strTaskName );
     VERIFY_RTE_MSG( !result.empty(), "Failed to locate tasks: " << strTaskName );
-    return { Dependencies( m_dependencies, result ) };
+    return { Dependencies( m_dependencies, result, bInclusive ) };
 }
 
-Schedule Schedule::getUpTo( const std::string& strTaskName, const std::string& strSourceFile ) const
+Schedule Schedule::getUpTo( const std::string& strTaskName, const std::string& strSourceFile, bool bInclusive ) const
 {
     std::optional< TaskDescriptor > result = getTask( strTaskName, strSourceFile );
     VERIFY_RTE_MSG( result.has_value(), "Failed to locate task: " << strTaskName << " with source: " << strSourceFile );
-    return { Dependencies( m_dependencies, { result.value() } ) };
+    return { Dependencies( m_dependencies, { result.value() }, bInclusive ) };
 }
 
 Stash::~Stash() = default;
@@ -364,12 +367,12 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
             {
                 mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
                 osLog << "Running UP TO task: " << strTaskName << " with source: " << strSourceFile << std::endl;
-                schedule = schedule.getUpTo( strTaskName, strSourceFile );
+                schedule = schedule.getUpTo( strTaskName, strSourceFile, false );
             }
             else
             {
                 osLog << "Running UP TO task: " << strTaskName << std::endl;
-                schedule = schedule.getUpTo( strTaskName );
+                schedule = schedule.getUpTo( strTaskName, false );
             }
         }
         while( !schedule.isComplete() && pipelineResult.getSuccess() )

@@ -138,20 +138,14 @@ public:
         {
             CleverUtility c( types, pFunction->get_identifier() );
 
-            std::string strBody;
+            common::Hash hash{ pFunction->get_return_type_trait()->get_str() };
+            for( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )
             {
-                for( auto pDef : pFunction->get_function_defs() )
-                {
-                    if( !pDef->get_body().empty() )
-                    {
-                        strBody = pDef->get_body();
-                        break;
-                    }
-                }
+                hash ^= strParamType;
             }
 
             nlohmann::json operation( { { "return_type", pFunction->get_return_type_trait()->get_str() },
-                                        { "body", strBody },
+                                        { "hash", hash.toHexString() },
                                         { "typeID", pFunction->get_interface_id().getSymbolID() },
                                         { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },

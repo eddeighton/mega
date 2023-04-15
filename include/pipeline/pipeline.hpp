@@ -51,7 +51,7 @@ public:
     using Graph   = std::multimap< TaskDescriptor, TaskDescriptor >;
 
     Dependencies() = default;
-    Dependencies( const Dependencies& other, const std::vector< TaskDescriptor >& targets );
+    Dependencies( const Dependencies& other, const std::vector< TaskDescriptor >& targets, bool bInclusive );
 
     void           add( const TaskDescriptor& newTask, const TaskDescriptor::Vector& dependencies );
     const TaskSet& getTasks() const { return m_tasks; }
@@ -70,9 +70,9 @@ public:
     TaskDescriptor::Vector          getReady() const;
     std::vector< TaskDescriptor >   getTasks( const std::string& strTaskName ) const;
     std::optional< TaskDescriptor > getTask( const std::string& strTaskName, const std::string& strSourceFile ) const;
-    Schedule                        getUpTo( const std::string& strTaskName ) const;
-    Schedule                        getUpTo( const std::string& strTaskName, const std::string& strSourceFile ) const;
-    bool                            isComplete() const { return m_dependencies.getTasks() == m_complete; }
+    Schedule                        getUpTo( const std::string& strTaskName, bool bInclusive ) const;
+    Schedule getUpTo( const std::string& strTaskName, const std::string& strSourceFile, bool bInclusive ) const;
+    bool     isComplete() const { return m_dependencies.getTasks() == m_complete; }
 
     void complete( const TaskDescriptor& task ) { m_complete.insert( task ); }
 

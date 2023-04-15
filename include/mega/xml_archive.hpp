@@ -24,6 +24,7 @@
 #include "mega/reference.hpp"
 #include "mega/address_table.hpp"
 #include "mega/tag_parser.hpp"
+#include "mega/type_id_io.hpp"
 #include "mega/reference_io.hpp"
 
 #include "common/file.hpp"

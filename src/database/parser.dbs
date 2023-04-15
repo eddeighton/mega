@@ -42,6 +42,18 @@ namespace Components
     }
 }
 
+namespace MegaMangle
+{
+    object Mangle -> ComponentListing::Components
+    {
+        value< std::string >    canon;
+        value< std::string >    mangle;
+        value< std::string >    impl;
+        value< std::string >    blit;
+        value< mega::U64 >      blit_size;
+    }
+}
+
 namespace Parser
 {
     object Identifier -> ParserStage::AST

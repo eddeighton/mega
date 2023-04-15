@@ -76,7 +76,7 @@ reference MPOContext::getRoot( MPO mpo )
     }
     else
     {
-        return reference::Root( mpo );
+        return reference::make_root( mpo );
     }
 }
 

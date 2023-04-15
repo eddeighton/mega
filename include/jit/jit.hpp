@@ -85,7 +85,7 @@ private:
     const Project                   m_project;
 
     JITCompiler                            m_jitCompiler;
-    JITDatabase                       m_database;
+    JITDatabase                            m_database;
     mega::io::FileStore::Ptr               m_pythonFileStore;
     OperationsStage::Database              m_pythonDatabase;
     FinalStage::Database                   m_pythonDatabaseFinal;

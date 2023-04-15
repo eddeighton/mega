@@ -35,6 +35,9 @@ struct F2
 
     constexpr inline float& x() { return data[ 0 ]; }
     constexpr inline float& y() { return data[ 1 ]; }
+
+    constexpr inline void x( float f ) { data[ 0 ] = f; }
+    constexpr inline void y( float f ) { data[ 1 ] = f; }
 };
 
 namespace boost::qvm
@@ -66,6 +69,10 @@ struct F3
     constexpr inline float& x() { return data[ 0 ]; }
     constexpr inline float& y() { return data[ 1 ]; }
     constexpr inline float& z() { return data[ 2 ]; }
+
+    constexpr inline void x( float f ) { data[ 0 ] = f; }
+    constexpr inline void y( float f ) { data[ 1 ] = f; }
+    constexpr inline void z( float f ) { data[ 2 ] = f; }
 };
 
 namespace boost::qvm
@@ -98,6 +105,11 @@ struct F4
     constexpr inline float& y() { return data[ 1 ]; }
     constexpr inline float& z() { return data[ 2 ]; }
     constexpr inline float& w() { return data[ 3 ]; }
+    
+    constexpr inline void x( float f ) { data[ 0 ] = f; }
+    constexpr inline void y( float f ) { data[ 1 ] = f; }
+    constexpr inline void z( float f ) { data[ 2 ] = f; }
+    constexpr inline void w( float f ) { data[ 3 ] = f; }
 };
 
 namespace boost::qvm
@@ -130,6 +142,11 @@ struct Quat
     constexpr inline float& y() { return data[ 1 ]; }
     constexpr inline float& z() { return data[ 2 ]; }
     constexpr inline float& w() { return data[ 3 ]; }
+    
+    constexpr inline void x( float f ) { data[ 0 ] = f; }
+    constexpr inline void y( float f ) { data[ 1 ] = f; }
+    constexpr inline void z( float f ) { data[ 2 ] = f; }
+    constexpr inline void w( float f ) { data[ 3 ] = f; }
 };
 
 namespace boost::qvm

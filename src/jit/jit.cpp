@@ -75,6 +75,7 @@ JIT::JIT( const MegastructureInstallation& megastructureInstallation, const Proj
 
 JIT::~JIT()
 {
+    SPDLOG_TRACE( "JIT::~JIT {}", m_functionPointers.size() );
     // reset ALL function pointers
     for( auto& pFunctionPtr : m_functionPointers )
     {

@@ -85,13 +85,27 @@ add_custom_target( generate_python_mangle_allocators
 )
 add_dependencies( generate_python_mangle_allocators inja )
 
+
+add_custom_target( generate_mega_mangle_meta
+    COMMAND inja
+        --data ${MEGA_API_DIR}/mega/types/types.json
+        --template ${MEGA_API_DIR}/mega/types/mega_mangle_meta.hxx.jinja
+        --output ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
+    DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/mega_mangle_meta.hxx.jinja inja
+    BYPRODUCTS  ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
+    COMMENT "Generating Mega Mangle Meta" 
+    SOURCES ${MEGA_API_DIR}/mega/types/types.json
+)
+add_dependencies( generate_mega_mangle_meta inja )
+
 set_target_properties( generate_mangle_types PROPERTIES FOLDER service )
 set_target_properties( generate_mangle_allocators PROPERTIES FOLDER service )
 set_target_properties( generate_python_mangle_types PROPERTIES FOLDER service )
 set_target_properties( generate_python_mangle_allocators PROPERTIES FOLDER service )
-
+set_target_properties( generate_mega_mangle_meta PROPERTIES FOLDER service )
 
 set( MEGA_LIBRARY
+    ${MEGA_API_DIR}/mega/archive_traits.hpp
     ${MEGA_API_DIR}/mega/address_table.hpp
     ${MEGA_API_DIR}/mega/allocator.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
@@ -108,6 +122,8 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/invocation_io.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
+    ${MEGA_API_DIR}/mega/maths_types.hpp
+    ${MEGA_API_DIR}/mega/maths_types_io.hpp
     ${MEGA_API_DIR}/mega/memory.hpp
     ${MEGA_API_DIR}/mega/mpo.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp

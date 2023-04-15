@@ -100,6 +100,8 @@ int main( int argc, const char* argv[] )
 
         boost::asio::io_context ioContext( 1 );
 
+        SPDLOG_INFO( "Using stash folder: {}", stashFolder.string() );
+
         mega::service::Root root( ioContext, stashFolder, portNumber );
 
         std::vector< std::thread > threads;

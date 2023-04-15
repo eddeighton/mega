@@ -22,6 +22,7 @@
 
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
+#include "mega/maths_types.hpp"
 
 #include <cstddef>
 #include <type_traits>
@@ -89,7 +90,7 @@ struct DimensionTraits
 using ReferenceVector = std::vector< mega::reference >;
 
 static constexpr char psz_mega_reference[]        = "class mega::reference";
-static constexpr char psz_mega_reference_vector[] = "class mega::ReferenceVector";
+static constexpr char psz_mega_reference_vector[] = "class std::vector<class mega::reference>";
 
 } // namespace mega
 

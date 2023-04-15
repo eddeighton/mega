@@ -39,8 +39,8 @@ class LLVMCompilerImpl : public runtime::CodeGenerator::LLVMCompiler
 {
 public:
     LLVMCompilerImpl( network::ConversationBase& conversation, network::Sender& sender,
-                      const mega::MegastructureInstallation& megaInstall,
-                      const mega::Project& project, boost::asio::yield_context& yield_ctx )
+                      const mega::MegastructureInstallation& megaInstall, const mega::Project& project,
+                      boost::asio::yield_context& yield_ctx )
         : m_conversation( conversation )
         , m_sender( sender )
         , m_megaInstall( megaInstall )
@@ -48,7 +48,7 @@ public:
         , m_clangPath( megaInstall.getClangPath() )
         , m_yield_ctx( yield_ctx )
     {
-        if ( !boost::filesystem::exists( m_tempDir ) )
+        if( !boost::filesystem::exists( m_tempDir ) )
         {
             boost::filesystem::create_directories( m_tempDir );
         }
@@ -58,19 +58,19 @@ public:
                                   std::optional< const FinalStage::Components::Component* > pComponent ) const override;
 
     const mega::MegastructureInstallation& getMegaInstall() const { return m_megaInstall; }
-    const boost::filesystem::path&                  getTempDir() const { return m_tempDir; }
-    const boost::filesystem::path&                  getClangPath() const { return m_clangPath; }
+    const boost::filesystem::path&         getTempDir() const { return m_tempDir; }
+    const boost::filesystem::path&         getClangPath() const { return m_clangPath; }
 
     void stash( const std::string& filePath, mega::U64 determinant ) const;
     bool restore( const std::string& filePath, mega::U64 determinant ) const;
 
 private:
-    network::ConversationBase&               m_conversation;
-    network::Sender&                         m_sender;
+    network::ConversationBase&      m_conversation;
+    network::Sender&                m_sender;
     mega::MegastructureInstallation m_megaInstall;
-    boost::filesystem::path                  m_clangPath;
-    boost::filesystem::path                  m_tempDir;
-    boost::asio::yield_context&              m_yield_ctx;
+    boost::filesystem::path         m_clangPath;
+    boost::filesystem::path         m_tempDir;
+    boost::asio::yield_context&     m_yield_ctx;
 };
 } // namespace service
 } // namespace mega

@@ -142,7 +142,7 @@ public:
     {
     }
 
-    static constexpr inline reference Root( MPO mpo ) { return { TypeInstance::Root(), mpo, ROOT_OBJECT_ID }; }
+    static constexpr inline reference make_root( MPO mpo ) { return { TypeInstance::make_root(), mpo, ROOT_OBJECT_ID }; }
 
     static constexpr inline reference make( const reference& other, TypeID typeID )
     {

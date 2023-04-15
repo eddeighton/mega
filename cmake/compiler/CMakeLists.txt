@@ -115,6 +115,9 @@ set( COMPILER_SOURCE
     ${COMPILER_TASKS}
     ${MEGA_SRC_DIR}/compiler/compiler.cpp
 
+    # generate file from mega mangle
+    ${MEGA_SRC_DIR}/compiler/mega_mangle_meta.hxx
+
     ## ensure the version is baked into the shared object
     ${MEGA_SRC_DIR}/version/version.cxx
 )
@@ -122,6 +125,8 @@ set( COMPILER_SOURCE
 add_library( compiler MODULE
     ${COMPILER_SOURCE}
 )
+
+add_dependencies( compiler generate_mega_mangle_meta )
 
 set_target_properties( compiler PROPERTIES FOLDER compiler )
 

@@ -24,6 +24,11 @@
 #include "mega/native_types.hpp"
 #include "mega/type_id.hpp"
 
+#ifndef MEGAJIT
+#include <limits>
+namespace boost::serialization{};
+#endif
+
 namespace mega
 {
 
@@ -50,8 +55,8 @@ struct TypeInstance
     {
     }
 
-    static constexpr TypeInstance Object( TypeID type ) { return { TypeID::make_object_type( type ), 0 }; }
-    static constexpr TypeInstance Root() { return Object( ROOT_TYPE_ID ); }
+    static constexpr TypeInstance make_object( TypeID type ) { return { TypeID::make_object_type( type ), 0 }; }
+    static constexpr TypeInstance make_root() { return make_object( ROOT_TYPE_ID ); }
 
     constexpr inline bool operator==( const TypeInstance& cmp ) const
     {
@@ -66,6 +71,16 @@ struct TypeInstance
     }
 
     constexpr inline bool is_valid() const { return type.is_valid(); }
+
+#ifndef MEGAJIT
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        using namespace boost::serialization;
+        serialize( archive, *this, version );
+    }
+#endif
+
 };
 #pragma pack()
 

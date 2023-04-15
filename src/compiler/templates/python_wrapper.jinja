@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "{{ include }}"
+// #include "{{ include }}"
 
 #include <pybind11/pybind11.h>
 
@@ -138,7 +138,7 @@ public:
 
 extern "C"
 {
-PyObject* _pw{{ operation.typeID }}( mega::runtime::CallResult& callResult, const pybind11::args& pyArgs )
+PyObject* _p{{ operation.hash }}_{{ operation.typeID }}( mega::runtime::CallResult& callResult, const pybind11::args& pyArgs )
 {
     using FPtr = {{ operation.return_type }} (*)( mega::reference*{% for param in operation.params %}, {{param.type}} {{param.name}}{% endfor %} );
     FPtr pOp = reinterpret_cast< FPtr >( const_cast< void* >( callResult.pFunction ) );
@@ -156,6 +156,6 @@ PyObject* _pw{{ operation.typeID }}( mega::runtime::CallResult& callResult, cons
 
 }
 }
-BOOST_DLL_ALIAS_SECTIONED( _pw{{ operation.typeID }}, _pa{{ operation.typeID }}, mega )
+BOOST_DLL_ALIAS_SECTIONED( _p{{ operation.hash }}_{{ operation.typeID }}, _pa{{ operation.hash }}_{{ operation.typeID }}, mega )
 
 {% endfor %}

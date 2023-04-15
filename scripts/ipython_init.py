@@ -38,9 +38,12 @@ import megastructure
 import asyncio
 
 mega = megastructure
+F2 = mega.F2
+F3 = mega.F3
+F4 = mega.F4
+Quat = mega.Quat
 
 _continue = True
-
 
 async def run_megastructure():
     global _continue
@@ -50,6 +53,12 @@ async def run_megastructure():
 
 
 asyncio.create_task(run_megastructure())
+
+print( "CFG_TUPLE: {}".format( CFG_TUPLE ) )
+print( "cwd: {}".format( os.getcwd() ) )
+
+r = mega.getMPO().getRoot()
+print( "Local root r is: {}".format( r ) )
 
 
 def getAllMPOs():
@@ -85,7 +94,7 @@ def createPlanet(mpo):
     p = r.PlanetParent.Planet()
     mega.cycle()
 
-
+            
 def removePlanet(mpo):
     r = mpo.getRoot()
     p = r.PlanetParent()

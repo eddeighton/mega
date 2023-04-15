@@ -19,6 +19,8 @@
 
 #include "base_task.hpp"
 
+#include "mega_mangle_meta.hxx"
+
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 
@@ -118,6 +120,8 @@ public:
 
         using namespace ComponentListing;
         Database database( m_environment, projectManifestPath );
+
+        constructMegaMangle( database );
 
         for( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
         {

@@ -44,20 +44,20 @@ namespace
 void runCompilation( const std::string& strCmd )
 {
     SPDLOG_DEBUG( "Compiling: {}", strCmd );
-    
+
     std::string strOutput, strError;
-    const int iExitCode = common::runProcess( strCmd, strOutput, strError );
-    
-    if ( iExitCode != 0 )
+    const int   iExitCode = common::runProcess( strCmd, strOutput, strError );
+
+    if( iExitCode != 0 )
     {
         std::istringstream isErr( strError );
-    
+
         std::ostringstream osError;
         osError << common::COLOUR_RED_BEGIN << "FAILED : ";
         std::string str;
-        while ( isErr && std::getline( isErr, str ) )
+        while( isErr && std::getline( isErr, str ) )
         {
-            if ( !str.empty() )
+            if( !str.empty() )
             {
                 osError << "\nERROR  : " << str;
             }
@@ -71,35 +71,35 @@ void runCompilation( const std::string& strCmd )
 void compile( const boost::filesystem::path& clangPath, const boost::filesystem::path& inputCPPFilePath,
               const boost::filesystem::path&                            outputIRFilePath,
               std::optional< const FinalStage::Components::Component* > pComponent,
-              const mega::MegastructureInstallation&           megastructureInstallation )
+              const mega::MegastructureInstallation&                    megastructureInstallation )
 {
     auto startTime = std::chrono::steady_clock::now();
     {
         std::ostringstream osCmd;
 
         using namespace std::string_literals;
-        static const std::string hackFlagsForNow = " -std=c++17"s;
+        static const std::string hackFlagsForNow = " -std=c++20 -DMEGAJIT"s;
 
         osCmd << clangPath << hackFlagsForNow << " -S -emit-llvm ";
 
-        if ( pComponent.has_value() )
+        if( pComponent.has_value() )
         {
             // flags
-            for ( const std::string& flag : pComponent.value()->get_cpp_flags() )
+            for( const std::string& flag : pComponent.value()->get_cpp_flags() )
             {
                 VERIFY_RTE( !flag.empty() );
                 osCmd << "-" << flag << " ";
             }
 
             // defines
-            for ( const std::string& strDefine : pComponent.value()->get_cpp_defines() )
+            for( const std::string& strDefine : pComponent.value()->get_cpp_defines() )
             {
                 VERIFY_RTE( !strDefine.empty() );
                 osCmd << "-D" << strDefine << " ";
             }
 
             // include directories
-            for ( const boost::filesystem::path& includeDir : pComponent.value()->get_include_directories() )
+            for( const boost::filesystem::path& includeDir : pComponent.value()->get_include_directories() )
             {
                 osCmd << "-I " << includeDir.string() << " ";
             }
@@ -118,12 +118,12 @@ void compile( const boost::filesystem::path& clangPath, const boost::filesystem:
 }
 
 void compileToLLVMIRImpl( const LLVMCompilerImpl& compiler, const std::string& strName, const std::string& strCPPCode,
-                      std::ostream& osIR, std::optional< const FinalStage::Components::Component* > pComponent )
+                          std::ostream& osIR, std::optional< const FinalStage::Components::Component* > pComponent )
 {
     const boost::filesystem::path irFilePath = compiler.getTempDir() / ( strName + ".ir" );
 
     const task::DeterminantHash determinant{ strCPPCode };
-    if ( compiler.restore( irFilePath.string(), determinant.get() ) )
+    if( compiler.restore( irFilePath.string(), determinant.get() ) )
     {
         boost::filesystem::loadAsciiFile( irFilePath, osIR );
     }
