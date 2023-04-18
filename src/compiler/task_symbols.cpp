@@ -326,7 +326,8 @@ public:
                             }
 
                             {
-                                auto jFind = newInterfaceTypeIDSequences.find( idSeq );
+                                auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
+                                using ::operator<<;
                                 VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                                 "Duplicate Interface Type ID Sequnce found: "
                                                     << idSeq << " : " << pContext->get_identifier() );
@@ -346,7 +347,8 @@ public:
                         else
                         {
                             {
-                                auto jFind = newInterfaceTypeIDSequences.find( idSeq );
+                                auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
+                                using ::operator<<;
                                 VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                                 "Duplicate Interface Type ID Sequnce found: "
                                                     << idSeq << " : " << pContext->get_identifier() );
@@ -368,7 +370,8 @@ public:
                     {
                         Old::Symbols::InterfaceTypeID* pOldInterfaceTypeID = iFind->second;
 
-                        auto jFind = newInterfaceTypeIDSequences.find( idSeq );
+                        auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
+                        using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                         "Duplicate Interface Type ID Sequnce found: "
                                             << idSeq << " : " << pDimension->get_id()->get_str() );
@@ -383,7 +386,8 @@ public:
                     }
                     else
                     {
-                        auto jFind = newInterfaceTypeIDSequences.find( idSeq );
+                        auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
+                        using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
                                         "Duplicate Interface Type ID Sequnce found: "
                                             << idSeq << " : " << pDimension->get_id()->get_str() );

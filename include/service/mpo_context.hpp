@@ -126,12 +126,7 @@ protected:
     void createRoot( const Project& project, const mega::MPO& mpo );
 
 private:
-    boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID )
-    {
-        std::ostringstream os;
-        os << "log_" << conversationID;
-        return boost::filesystem::current_path() / os.str();
-    }
+    boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID );
 };
 
 } // namespace mega

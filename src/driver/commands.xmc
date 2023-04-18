@@ -2,6 +2,7 @@
 COMMAND(status,"status,s","Megastructure Status Reports")
 COMMAND(project,"project,p","Project Commands")
 COMMAND(log,"log,l","Megastructure Log Commands")
+COMMAND(trace,"trace,t","Megastructure Trace Commands")
 COMMAND(sim,"sim,m","Simulation Commands")
 COMMAND(stash,"stash,a","Megastructure Stash Commands")
 COMMAND(json,"json,j","Dump database to json")

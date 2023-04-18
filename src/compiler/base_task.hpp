@@ -22,11 +22,11 @@
 
 #include "pipeline/pipeline.hpp"
 
+#include "compiler/build_report.hpp"
+
 #include "database/common/environment_stash.hpp"
 
 #include "database/types/sources.hpp"
-
-// #include "database/model/file_info.hxx"
 
 #include "utilities/tool_chain_hash.hpp"
 
@@ -70,8 +70,28 @@
         throw std::runtime_error( _os2.str() );                                                                 \
     } )
 
+
 namespace mega::compiler
 {
+// used by Task_InterfaceTree and others
+inline std::string toString( const std::vector< std::string >& name )
+{
+    std::ostringstream os;
+    bool               bFirst = true;
+    for( const auto& s : name )
+    {
+        if( bFirst )
+        {
+            bFirst = false;
+            os << s;
+        }
+        else
+        {
+            os << ' ' << s;
+        }
+    }
+    return os.str();
+}
 
 struct TaskArguments
 {
@@ -95,7 +115,7 @@ struct TaskArguments
 class BaseTask
 {
 protected:
-    std::string                       m_strTaskName;
+    TaskName                          m_taskName;
     const mega::io::StashEnvironment& m_environment;
     const mega::utilities::ToolChain& m_toolChain;
     const boost::filesystem::path&    m_unityProjectDir;
@@ -116,8 +136,8 @@ public:
     }
     virtual ~BaseTask() = default;
 
-    const std::string& getTaskName() const { return m_strTaskName; }
-    bool               isCompleted() const { return m_bCompleted; }
+    const TaskName& getTaskName() const { return m_taskName; }
+    bool            isCompleted() const { return m_bCompleted; }
 
     template < typename TComponentType, typename TDatabase >
     TComponentType* getComponent( TDatabase& database, const mega::io::SourceFilePath& sourceFilePath ) const
@@ -160,26 +180,23 @@ public:
     {
         std::string strOutput, strError;
 
-        // always print cmd before anything 
+        // always print cmd before anything
         {
-            std::ostringstream os;
-            os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nCMD    : " << strCmd;
-            os << common::COLOUR_END;
-            taskProgress.onProgress( os.str() );
+            taskProgress.onProgress( TaskReport{ TaskReport::eCMD, m_taskName, strCmd }.str() );
         }
 
-        const int   iExitCode = common::runProcess( strCmd, strOutput, strError );
+        const int iExitCode = common::runProcess( strCmd, strOutput, strError );
 
         {
             std::ostringstream os;
-            { 
+            {
                 std::istringstream isOut( strOutput );
                 std::string        str;
                 while( isOut && std::getline( isOut, str ) )
                 {
                     if( !str.empty() )
                     {
-                        os << common::COLOUR_BLUE_BEGIN << "\nOUT    : " << str;
+                        os << TaskReport{ TaskReport::eOUT, m_taskName, str }.str();
                     }
                 }
             }
@@ -187,23 +204,23 @@ public:
             os << common::COLOUR_END;
             taskProgress.onProgress( os.str() );
         }
-        
 
         if( iExitCode && bTreatFailureAsError )
         {
             std::istringstream isErr( strError );
 
             std::ostringstream osError;
-            osError << common::COLOUR_RED_BEGIN << "FAILED : " << m_strTaskName;
+            osError << TaskReport{ TaskReport::eFAILED, m_taskName }.str();
+
             std::string str;
             while( isErr && std::getline( isErr, str ) )
             {
                 if( !str.empty() )
                 {
-                    osError << "\nERROR  : " << str;
+                    osError << TaskReport{ TaskReport::eERROR, m_taskName, str }.str();
                 }
             }
-            osError << common::COLOUR_END;
+
             taskProgress.onProgress( osError.str() );
         }
 
@@ -213,56 +230,34 @@ public:
     void start( mega::pipeline::Progress& taskProgress, const char* pszName, const boost::filesystem::path& fromPath,
                 const boost::filesystem::path& toPath )
     {
-        {
-            std::ostringstream os;
-            os << std::setw( 30 ) << pszName << " " << std::setw( 35 ) << fromPath.string() << " -> " << std::setw( 85 )
-               << toPath.string();
-            m_strTaskName = os.str();
-        }
-
-        {
-            std::ostringstream os;
-            os << "STARTED: " << common::COLOUR_YELLOW_BEGIN << m_strTaskName << common::COLOUR_END;
-            taskProgress.onStarted( os.str() );
-        }
+        m_taskName = TaskName{ pszName, fromPath.string(), toPath.string() };
+        taskProgress.onStarted( TaskReport{ TaskReport::eSTARTED, m_taskName }.str() );
     }
 
     void cached( mega::pipeline::Progress& taskProgress )
     {
         VERIFY_RTE( !m_bCompleted );
         m_bCompleted = true;
-
-        std::ostringstream os;
-        os << common::COLOUR_CYAN_BEGIN << "CACHED : " << m_strTaskName << common::COLOUR_END;
-        taskProgress.onCompleted( os.str() );
+        taskProgress.onCompleted( TaskReport{ TaskReport::eCACHED, m_taskName }.str() );
     }
 
     void succeeded( mega::pipeline::Progress& taskProgress )
     {
         VERIFY_RTE( !m_bCompleted );
         m_bCompleted = true;
-
-        std::ostringstream os;
-        os << common::COLOUR_GREEN_BEGIN << "SUCCESS: " << m_strTaskName << common::COLOUR_END;
-        taskProgress.onCompleted( os.str() );
+        taskProgress.onCompleted( TaskReport{ TaskReport::eSUCCESS, m_taskName }.str() );
     }
 
     virtual void failed( mega::pipeline::Progress& taskProgress )
     {
         VERIFY_RTE( !m_bCompleted );
         m_bCompleted = true;
-
-        std::ostringstream os;
-        os << common::COLOUR_RED_BEGIN << "FAILED : " << m_strTaskName << common::COLOUR_END;
-        taskProgress.onFailed( os.str() );
+        taskProgress.onCompleted( TaskReport{ TaskReport::eFAILED, m_taskName }.str() );
     }
 
     void msg( mega::pipeline::Progress& taskProgress, const std::string& strMsg )
     {
-        std::ostringstream os;
-        os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nMSG    : " << strMsg
-           << common::COLOUR_END;
-        taskProgress.onProgress( os.str() );
+        taskProgress.onProgress( TaskReport{ TaskReport::eMSG, m_taskName, strMsg }.str() );
     }
 };
 

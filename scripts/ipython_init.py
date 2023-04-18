@@ -122,3 +122,21 @@ def createReactorState( mpo ):
     s = r.SystemStateParent.ReactorState()
 
     return s
+
+
+def moonTest( mpo ):
+
+    plugin = mega.getProcess( "0.1")
+    mpo = plugin.createMPO()
+    r = mpo.getRoot()
+    p = r.PlanetParent.Planet()
+    m = p.MoonParent.Moon()
+    mega.cycle()
+
+def moveM1( x, y, z ):
+    m1.m_translation( F3( x,y,z) )
+    cycle()
+
+def moveM2( x, y, z ):
+    m2.m_translation( F3( x,y,z) )
+    cycle()

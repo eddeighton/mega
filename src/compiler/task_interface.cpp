@@ -23,7 +23,6 @@
 
 namespace mega::compiler
 {
-
 class Task_InterfaceTree : public BaseTask
 {
 public:
@@ -41,7 +40,7 @@ public:
         VERIFY_RTE( !ids.empty() );
         using namespace InterfaceStage;
         Name name = currentName;
-        for ( const Parser::Identifier* pID : ids )
+        for( const Parser::Identifier* pID : ids )
         {
             name.push_back( pID->get_str() );
         }
@@ -51,7 +50,7 @@ public:
     InterfaceStage::Interface::ContextGroup* findContextGroup( const Name& name, const NameResMap& namedContexts )
     {
         NameResMap::const_iterator iFind = namedContexts.find( name );
-        if ( iFind != namedContexts.end() )
+        if( iFind != namedContexts.end() )
         {
             return iFind->second;
         }
@@ -75,23 +74,23 @@ public:
         const Name             name                   = fromParserID( currentName, pContextDef->get_id()->get_ids() );
         TInterfaceContextType* pInterfaceContextGroup = nullptr;
         {
-            if ( Interface::ContextGroup* pContextGroup = findContextGroup( name, namedContexts ) )
+            if( Interface::ContextGroup* pContextGroup = findContextGroup( name, namedContexts ) )
             {
                 pInterfaceContextGroup = db_cast< TInterfaceContextType >( pContextGroup );
                 VERIFY_PARSER( pInterfaceContextGroup,
-                               "IContext definition of identifier: " << name << " with mixed types",
+                               "IContext definition of identifier: " << toString( name ) << " with mixed types",
                                pContextDef->get_id() );
                 aggregateFunctor( pInterfaceContextGroup, pContextDef );
             }
             else
             {
                 Interface::ContextGroup* pParent = pRoot;
-                if ( name.size() > 1U )
+                if( name.size() > 1U )
                 {
                     Name parentName = name;
                     parentName.pop_back();
                     pParent = findContextGroup( parentName, namedContexts );
-                    VERIFY_PARSER( pParent, "Failed to locate parent for: " << name, pContextDef->get_id() );
+                    VERIFY_PARSER( pParent, "Failed to locate parent for: " << toString( name ), pContextDef->get_id() );
                 }
                 pInterfaceContextGroup = constructorFunctor( database, name.back(), pParent, pComponent, pContextDef );
                 pParent->push_back_children( pInterfaceContextGroup );
@@ -108,11 +107,11 @@ public:
             using namespace InterfaceStage;
             using namespace InterfaceStage::Interface;
 
-            if ( Root* pParentContext = db_cast< Root >( pParent ) )
+            if( Root* pParentContext = db_cast< Root >( pParent ) )
             {
                 return true;
             }
-            else if ( Namespace* pParentNamespace = db_cast< Namespace >( pParent ) )
+            else if( Namespace* pParentNamespace = db_cast< Namespace >( pParent ) )
             {
                 return isGlobalNamespace()( pParentNamespace->get_parent() );
             }
@@ -136,9 +135,9 @@ public:
 
         VERIFY_RTE( pContextDef );
 
-        for ( Parser::Include* pInclude : pContextDef->get_includes() )
+        for( Parser::Include* pInclude : pContextDef->get_includes() )
         {
-            if ( Parser::MegaIncludeNested* pNestedInclude = db_cast< Parser::MegaIncludeNested >( pInclude ) )
+            if( Parser::MegaIncludeNested* pNestedInclude = db_cast< Parser::MegaIncludeNested >( pInclude ) )
             {
                 Parser::IncludeRoot* pIncludeRoot       = pNestedInclude->get_root();
                 Parser::ContextDef*  pIncludeContextDef = pIncludeRoot->get_ast();
@@ -148,23 +147,23 @@ public:
                 const Name name                   = fromParserID( currentName, pNestedInclude->get_id()->get_ids() );
                 Namespace* pInterfaceContextGroup = nullptr;
                 {
-                    if ( Interface::ContextGroup* pContextGroup = findContextGroup( name, namedContexts ) )
+                    if( Interface::ContextGroup* pContextGroup = findContextGroup( name, namedContexts ) )
                     {
                         pInterfaceContextGroup = db_cast< Namespace >( pContextGroup );
                         VERIFY_PARSER( pInterfaceContextGroup,
-                                       "IContext definition of identifier: " << name << " with mixed types",
+                                       "IContext definition of identifier: " << toString( name ) << " with mixed types",
                                        pContextDef->get_id() );
                         pInterfaceContextGroup->push_back_namespace_defs( pIncludeContextDef );
                     }
                     else
                     {
                         Interface::ContextGroup* pParent = pRoot;
-                        if ( name.size() > 1U )
+                        if( name.size() > 1U )
                         {
                             Name parentName = name;
                             parentName.pop_back();
                             pParent = findContextGroup( parentName, namedContexts );
-                            VERIFY_PARSER( pParent, "Failed to locate parent for: " << name, pContextDef->get_id() );
+                            VERIFY_PARSER( pParent, "Failed to locate parent for: " << toString( name ), pContextDef->get_id() );
                         }
 
                         const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
@@ -179,16 +178,16 @@ public:
                 }
                 recurse( database, pComponent, pRoot, pInterfaceContextGroup, pIncludeContextDef, name, namedContexts );
             }
-            else if ( auto pInlineInclude = db_cast< Parser::MegaIncludeInline >( pInclude ) )
+            else if( auto pInlineInclude = db_cast< Parser::MegaIncludeInline >( pInclude ) )
             {
                 Parser::IncludeRoot* pIncludeRoot = pInlineInclude->get_root();
                 recurse( database, pComponent, pRoot, pGroup, pIncludeRoot->get_ast(), currentName, namedContexts );
             }
         }
 
-        for ( Parser::ContextDef* pChildContext : pContextDef->get_children() )
+        for( Parser::ContextDef* pChildContext : pContextDef->get_children() )
         {
-            if ( auto pNamespaceDef = db_cast< Parser::NamespaceDef >( pChildContext ) )
+            if( auto pNamespaceDef = db_cast< Parser::NamespaceDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::NamespaceDef, Namespace >(
                     database, pComponent, pRoot, pNamespaceDef, currentName, namedContexts,
@@ -204,7 +203,7 @@ public:
                     []( Namespace* pNamespace, Parser::ContextDef* pNamespaceDef )
                     { pNamespace->push_back_namespace_defs( pNamespaceDef ); } );
             }
-            else if ( auto pAbstractDef = db_cast< Parser::AbstractDef >( pChildContext ) )
+            else if( auto pAbstractDef = db_cast< Parser::AbstractDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::AbstractDef, Abstract >(
                     database, pComponent, pRoot, pAbstractDef, currentName, namedContexts,
@@ -219,7 +218,7 @@ public:
                     []( Abstract* pAbstract, Parser::AbstractDef* pAbstractDef )
                     { pAbstract->push_back_abstract_defs( pAbstractDef ); } );
             }
-            else if ( auto pActionDef = db_cast< Parser::ActionDef >( pChildContext ) )
+            else if( auto pActionDef = db_cast< Parser::ActionDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::ActionDef, Action >(
                     database, pComponent, pRoot, pActionDef, currentName, namedContexts,
@@ -234,7 +233,7 @@ public:
                     []( Action* pAction, Parser::ActionDef* pActionDef )
                     { pAction->push_back_action_defs( pActionDef ); } );
             }
-            else if ( auto pEventDef = db_cast< Parser::EventDef >( pChildContext ) )
+            else if( auto pEventDef = db_cast< Parser::EventDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::EventDef, Event >(
                     database, pComponent, pRoot, pEventDef, currentName, namedContexts,
@@ -248,7 +247,7 @@ public:
                     },
                     []( Event* pEvent, Parser::EventDef* pEventDef ) { pEvent->push_back_event_defs( pEventDef ); } );
             }
-            else if ( auto pFunctionDef = db_cast< Parser::FunctionDef >( pChildContext ) )
+            else if( auto pFunctionDef = db_cast< Parser::FunctionDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::FunctionDef, Function >(
                     database, pComponent, pRoot, pFunctionDef, currentName, namedContexts,
@@ -263,7 +262,7 @@ public:
                     []( Function* pFunction, Parser::FunctionDef* pFunctionDef )
                     { pFunction->push_back_function_defs( pFunctionDef ); } );
             }
-            else if ( auto pObjectDef = db_cast< Parser::ObjectDef >( pChildContext ) )
+            else if( auto pObjectDef = db_cast< Parser::ObjectDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::ObjectDef, Object >(
                     database, pComponent, pRoot, pObjectDef, currentName, namedContexts,
@@ -278,7 +277,7 @@ public:
                     []( Object* pObject, Parser::ObjectDef* pObjectDef )
                     { pObject->push_back_object_defs( pObjectDef ); } );
             }
-            else if ( auto pLinkInterfaceDef = db_cast< Parser::LinkInterfaceDef >( pChildContext ) )
+            else if( auto pLinkInterfaceDef = db_cast< Parser::LinkInterfaceDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::LinkInterfaceDef, LinkInterface >(
                     database, pComponent, pRoot, pLinkInterfaceDef, currentName, namedContexts,
@@ -294,7 +293,7 @@ public:
                     []( LinkInterface* pLinkInterface, Parser::LinkInterfaceDef* pLinkInterfaceDef )
                     { pLinkInterface->push_back_link_defs( pLinkInterfaceDef ); } );
             }
-            else if ( auto pLinkDef = db_cast< Parser::LinkDef >( pChildContext ) )
+            else if( auto pLinkDef = db_cast< Parser::LinkDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::LinkDef, Link >(
                     database, pComponent, pRoot, pLinkDef, currentName, namedContexts,
@@ -308,7 +307,7 @@ public:
                     },
                     []( Link* pLink, Parser::LinkDef* pLinkDef ) { pLink->push_back_link_defs( pLinkDef ); } );
             }
-            else if ( auto pBufferDef = db_cast< Parser::BufferDef >( pChildContext ) )
+            else if( auto pBufferDef = db_cast< Parser::BufferDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::BufferDef, Buffer >(
                     database, pComponent, pRoot, pBufferDef, currentName, namedContexts,
@@ -336,9 +335,9 @@ public:
     {
         using namespace InterfaceStage;
 
-        for ( auto pParserDim : pDef->get_dimensions() )
+        for( auto pParserDim : pDef->get_dimensions() )
         {
-            for ( Parser::Dimension* pExistingDimension : dimensions )
+            for( Parser::Dimension* pExistingDimension : dimensions )
             {
                 VERIFY_PARSER( pParserDim->get_id()->get_str() != pExistingDimension->get_id()->get_str(),
                                "IContext has duplicate dimensions", pDef->get_id() );
@@ -355,7 +354,7 @@ public:
         using namespace InterfaceStage;
         Parser::Inheritance*              pInheritanceDef = pContextDef->get_inheritance();
         const std::vector< std::string >& strings         = pInheritanceDef->get_strings();
-        if ( !strings.empty() )
+        if( !strings.empty() )
         {
             VERIFY_PARSER( !inheritance.has_value(), "Duplicate inheritance specified", pContextDef->get_id() );
             inheritance = database.construct< Interface::InheritanceTrait >(
@@ -370,7 +369,7 @@ public:
         using namespace InterfaceStage;
         Parser::Size*      pSizeDef = pContextDef->get_size();
         const std::string& str      = pSizeDef->get_str();
-        if ( !str.empty() )
+        if( !str.empty() )
         {
             VERIFY_PARSER( !size.has_value(), "Duplicate size specified", pContextDef->get_id() );
             size = database.construct< Interface::SizeTrait >( Interface::SizeTrait::Args{ pSizeDef } );
@@ -382,9 +381,9 @@ public:
         using namespace InterfaceStage;
         std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
         {
-            for ( Parser::ContextDef* pDef : pNamespace->get_namespace_defs() )
+            for( Parser::ContextDef* pDef : pNamespace->get_namespace_defs() )
             {
-                if ( pNamespace->get_is_global() )
+                if( pNamespace->get_is_global() )
                 {
                     VERIFY_PARSER( pDef->get_dimensions().empty(), "Global namespace has dimensions", pDef->get_id() );
                     VERIFY_PARSER(
@@ -408,7 +407,7 @@ public:
         std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
         std::optional< Interface::InheritanceTrait* >             inheritance;
         std::optional< Interface::SizeTrait* >                    size;
-        for ( Parser::AbstractDef* pDef : pAbstract->get_abstract_defs() )
+        for( Parser::AbstractDef* pDef : pAbstract->get_abstract_defs() )
         {
             collectDimensionTraits( database, pAbstract, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
@@ -426,7 +425,7 @@ public:
         std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
         std::optional< Interface::InheritanceTrait* >             inheritance;
         std::optional< Interface::SizeTrait* >                    size;
-        for ( Parser::ActionDef* pDef : pAction->get_action_defs() )
+        for( Parser::ActionDef* pDef : pAction->get_action_defs() )
         {
             collectDimensionTraits( database, pAction, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
@@ -443,7 +442,7 @@ public:
         std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
         std::optional< Interface::InheritanceTrait* >             inheritance;
         std::optional< Interface::SizeTrait* >                    size;
-        for ( Parser::EventDef* pDef : pEvent->get_event_defs() )
+        for( Parser::EventDef* pDef : pEvent->get_event_defs() )
         {
             collectDimensionTraits( database, pEvent, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
@@ -462,14 +461,14 @@ public:
         Interface::ReturnTypeTrait*   pReturnTypeTrait   = nullptr;
 
         std::string strArguments, strReturnType;
-        for ( Parser::FunctionDef* pDef : pFunction->get_function_defs() )
+        for( Parser::FunctionDef* pDef : pFunction->get_function_defs() )
         {
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
 
             Parser::ArgumentList* pArguments = pDef->get_argumentList();
             // if ( !pArguments->get_str().empty() )
             {
-                if ( !pArgumentListTrait )
+                if( !pArgumentListTrait )
                 {
                     pArgumentListTrait = database.construct< Interface::ArgumentListTrait >(
                         Interface::ArgumentListTrait::Args{ pArguments } );
@@ -485,7 +484,7 @@ public:
             Parser::ReturnType* pReturnType = pDef->get_returnType();
             // if ( !pReturnType->get_str().empty() )
             {
-                if ( !pReturnTypeTrait )
+                if( !pReturnTypeTrait )
                 {
                     pReturnTypeTrait = database.construct< Interface::ReturnTypeTrait >(
                         Interface::ReturnTypeTrait::Args{ pReturnType } );
@@ -512,7 +511,7 @@ public:
         std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
         std::optional< Interface::InheritanceTrait* >             inheritance;
         std::optional< Interface::SizeTrait* >                    size;
-        for ( Parser::ObjectDef* pDef : pObject->get_object_defs() )
+        for( Parser::ObjectDef* pDef : pObject->get_object_defs() )
         {
             collectDimensionTraits( database, pObject, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
@@ -528,12 +527,12 @@ public:
     {
         using namespace InterfaceStage;
 
-        for ( Parser::LinkDef* pDef : pLink->get_link_defs() )
+        for( Parser::LinkDef* pDef : pLink->get_link_defs() )
         {
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Link has dimensions", pDef->get_id() );
             VERIFY_PARSER( pDef->get_body().empty(), "Link has body", pDef->get_id() );
 
-            if ( Parser::LinkInterfaceDef* pLinkInterfaceDef = db_cast< Parser::LinkInterfaceDef >( pDef ) )
+            if( Parser::LinkInterfaceDef* pLinkInterfaceDef = db_cast< Parser::LinkInterfaceDef >( pDef ) )
             {
                 Interface::LinkInterface* pLinkInterface = db_cast< Interface::LinkInterface >( pLink );
                 VERIFY_PARSER( pLinkInterface, "Invalid link interface definition", pLinkInterfaceDef->get_id() );
@@ -570,7 +569,7 @@ public:
 
         const task::DeterminantHash determinant( { m_toolChain.toolChainHash, parserStageASTHashCode } );
 
-        if ( m_environment.restore( treePath, determinant ) )
+        if( m_environment.restore( treePath, determinant ) )
         {
             m_environment.setBuildHashCode( treePath );
             cached( taskProgress );
@@ -593,35 +592,35 @@ public:
 
         recurse( database, pComponent, pInterfaceRoot, pInterfaceRoot, pRoot->get_ast(), currentName, namedContexts );
 
-        for ( Interface::Namespace* pNamespace : database.many< Interface::Namespace >( m_sourceFilePath ) )
+        for( Interface::Namespace* pNamespace : database.many< Interface::Namespace >( m_sourceFilePath ) )
         {
             onNamespace( database, pNamespace );
         }
-        for ( Interface::Abstract* pAbstract : database.many< Interface::Abstract >( m_sourceFilePath ) )
+        for( Interface::Abstract* pAbstract : database.many< Interface::Abstract >( m_sourceFilePath ) )
         {
             onAbstract( database, pAbstract );
         }
-        for ( Interface::Action* pAction : database.many< Interface::Action >( m_sourceFilePath ) )
+        for( Interface::Action* pAction : database.many< Interface::Action >( m_sourceFilePath ) )
         {
             onAction( database, pAction );
         }
-        for ( Interface::Event* pEvent : database.many< Interface::Event >( m_sourceFilePath ) )
+        for( Interface::Event* pEvent : database.many< Interface::Event >( m_sourceFilePath ) )
         {
             onEvent( database, pEvent );
         }
-        for ( Interface::Function* pFunction : database.many< Interface::Function >( m_sourceFilePath ) )
+        for( Interface::Function* pFunction : database.many< Interface::Function >( m_sourceFilePath ) )
         {
             onFunction( database, pFunction );
         }
-        for ( Interface::Object* pObject : database.many< Interface::Object >( m_sourceFilePath ) )
+        for( Interface::Object* pObject : database.many< Interface::Object >( m_sourceFilePath ) )
         {
             onObject( database, pObject );
         }
-        for ( Interface::Link* pLink : database.many< Interface::Link >( m_sourceFilePath ) )
+        for( Interface::Link* pLink : database.many< Interface::Link >( m_sourceFilePath ) )
         {
             onLink( database, pLink );
         }
-        for ( Interface::Buffer* pBuffer : database.many< Interface::Buffer >( m_sourceFilePath ) )
+        for( Interface::Buffer* pBuffer : database.many< Interface::Buffer >( m_sourceFilePath ) )
         {
             onBuffer( database, pBuffer );
         }

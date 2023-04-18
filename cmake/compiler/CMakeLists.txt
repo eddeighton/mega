@@ -35,10 +35,12 @@ include( ../preprocess_cpp.cmake )
 # configuration library that can be statically linked
 set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/configuration.hpp
+    ${MEGA_API_DIR}/compiler/build_report.hpp
 )
 
 set( COMPILER_LIB_SOURCE
     ${MEGA_SRC_DIR}/compiler/configuration.cpp  
+    ${MEGA_SRC_DIR}/compiler/build_report.cpp
 )
 
 add_library( compiler_config

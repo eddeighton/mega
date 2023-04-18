@@ -191,8 +191,8 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     // instantiate the root
     m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
     VERIFY_RTE_MSG( m_root.is_valid(), "Root allocation failed" );
-    m_log.record( mega::log::Structure::Write(
-        reference{}, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+    m_log.record(
+        mega::log::Structure::Write( reference{}, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
 }
 
 void MPOContext::jit( runtime::JITFunctor func )
@@ -262,7 +262,7 @@ void MPOContext::cycleComplete()
     m_log.cycle();
 
     network::TransactionProducer::MPOTransactions transactions;
-    network::TransactionProducer::UnparentedSet unparentedObjects;
+    network::TransactionProducer::UnparentedSet   unparentedObjects;
     m_transactionProducer.generate( transactions, unparentedObjects );
 
     for( const auto& unparentedObject : unparentedObjects )
@@ -301,4 +301,25 @@ void MPOContext::cycleComplete()
     m_lockTracker.reset();
 }
 
+boost::filesystem::path MPOContext::makeLogDirectory( const network::ConversationID& conversationID )
+{
+    boost::filesystem::path logFolder;
+    {
+        const char* pszCFG_TYPE = std::getenv( "CFG_TYPE" );
+        if( pszCFG_TYPE != nullptr )
+        {
+            std::ostringstream os;
+            os << "/home/foobar/test_" << pszCFG_TYPE;
+            logFolder = os.str();
+        }
+        else
+        {
+            logFolder = boost::filesystem::current_path();
+        }
+    }
+
+    std::ostringstream os;
+    os << "log_" << conversationID;
+    return logFolder / os.str();
+}
 } // namespace mega

@@ -50,7 +50,6 @@ namespace MegaMangle
         value< std::string >    mangle;
         value< std::string >    impl;
         value< std::string >    blit;
-        value< mega::U64 >      blit_size;
     }
 }
 

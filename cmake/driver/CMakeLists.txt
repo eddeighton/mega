@@ -37,6 +37,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 #get inja
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 
+#get ftxui
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/ftxui/ftxui_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -67,6 +70,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_stash.cpp
 		${DRIVER_SOURCE_DIR}/command_status.cpp
 		${DRIVER_SOURCE_DIR}/command_tool_chain.cpp
+		${DRIVER_SOURCE_DIR}/command_trace.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 
@@ -104,6 +108,7 @@ link_fmt( mega )
 link_inja( mega )
 link_json( mega )
 link_spdlog( mega )
+link_ftxui( mega )
 
 install( TARGETS mega DESTINATION bin)
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )

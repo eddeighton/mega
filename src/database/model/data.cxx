@@ -212,12 +212,11 @@ namespace Components
     MegaMangle_Mangle::MegaMangle_Mangle( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::MegaMangle_Mangle >( loader, this ) )    {
     }
-    MegaMangle_Mangle::MegaMangle_Mangle( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canon, const std::string& mangle, const std::string& impl, const std::string& blit, const mega::U64& blit_size)
+    MegaMangle_Mangle::MegaMangle_Mangle( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canon, const std::string& mangle, const std::string& impl, const std::string& blit)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::MegaMangle_Mangle >( loader, this ) )          , canon( canon )
           , mangle( mangle )
           , impl( impl )
           , blit( blit )
-          , blit_size( blit_size )
     {
     }
     bool MegaMangle_Mangle::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -233,7 +232,6 @@ namespace Components
         loader.load( mangle );
         loader.load( impl );
         loader.load( blit );
-        loader.load( blit_size );
     }
     void MegaMangle_Mangle::store( mega::io::Storer& storer ) const
     {
@@ -241,7 +239,6 @@ namespace Components
         storer.store( mangle );
         storer.store( impl );
         storer.store( blit );
-        storer.store( blit_size );
     }
     void MegaMangle_Mangle::to_json( nlohmann::json& _part__ ) const
     {
@@ -272,11 +269,6 @@ namespace Components
         {
             nlohmann::json property = nlohmann::json::object({
                 { "blit", blit } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "blit_size", blit_size } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -10341,11 +10333,11 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& g
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         default:
         {
@@ -10453,11 +10445,11 @@ std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& 
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         default:
         {
@@ -10481,11 +10473,11 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_Concrete_Context
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         default:
         {
@@ -10509,11 +10501,11 @@ data::Ptr< data::Tree::Interface_IContext >& get_Concrete_Context_interface(data
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         default:
         {
@@ -12287,18 +12279,6 @@ std::string& get_MegaMangle_Mangle_blit(data::Variant& m_data)
     {
         case data::Components::MegaMangle_Mangle::Object_Part_Type_ID:
             return data::convert< data::Components::MegaMangle_Mangle >( m_data )->blit;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& get_MegaMangle_Mangle_blit_size(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Components::MegaMangle_Mangle::Object_Part_Type_ID:
-            return data::convert< data::Components::MegaMangle_Mangle >( m_data )->blit_size;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -16299,18 +16279,6 @@ std::string& set_MegaMangle_Mangle_blit(data::Variant& m_data)
     {
         case data::Components::MegaMangle_Mangle::Object_Part_Type_ID:
             return data::convert< data::Components::MegaMangle_Mangle >( m_data )->blit;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& set_MegaMangle_Mangle_blit_size(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Components::MegaMangle_Mangle::Object_Part_Type_ID:
-            return data::convert< data::Components::MegaMangle_Mangle >( m_data )->blit_size;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );

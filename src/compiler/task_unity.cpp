@@ -20,6 +20,8 @@
 
 #include "base_task.hpp"
 
+#include "mega/relation_io.hpp"
+
 #include "database/model/UnityStage.hxx"
 #include "database/model/UnityStageView.hxx"
 
@@ -510,7 +512,7 @@ public:
                             }
                         }
                         VERIFY_RTE_MSG( pFoundDimension,
-                                        "Failed to locate conrete dimension in object binding: "
+                                        "Failed to locate concrete dimension in object binding: "
                                             << strName << " concrete type: " << pObject->get_concrete_id()
                                             << " dimension interface type: " << interfaceTypeID );
                         dataBindings.insert( { pFoundDimension, pDataBinding } );
@@ -549,7 +551,7 @@ public:
                             }
                         }
                         VERIFY_RTE_MSG( pFoundLink,
-                                        "Failed to locate conrete link in object binding: "
+                                        "Failed to locate concrete link in object binding: "
                                             << strName << " concrete type: " << pObject->get_concrete_id()
                                             << " link interface type: " << interfaceTypeID );
                         linkBindings.insert( { pFoundLink, pLinkBinding } );
@@ -756,6 +758,7 @@ public:
                             ++iFoundOther;
                         }
                     }
+                    using ::operator<<;
                     VERIFY_RTE_MSG( ( iFoundOther == 0 ) || ( iFoundRoot == 0 ),
                                     "Relation to Root also used in other concrete types: " << id );
                     return iFoundRoot != 0;
@@ -764,6 +767,7 @@ public:
                 bTargetIsRoot = lambda( pRelation->get_targets(), pRelation->get_id() );
             }
 
+            using ::operator<<;
             VERIFY_RTE_MSG(
                 !( bSourceIsRoot && bTargetIsRoot ), "Relation is from Root to Root: " << pRelation->get_id() );
 
