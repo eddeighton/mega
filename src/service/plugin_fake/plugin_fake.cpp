@@ -61,10 +61,6 @@ public:
     mega::U64   database_hashcode() { return 0; }
     const char* database() { return nullptr; }
 
-    mega::U64   memory_state() { return 0; }
-    mega::U64   memory_size() { return 0; }
-    const void* memory_data() { return nullptr; }
-
     const log::Range* downstream() { return nullptr; }
 
     void upstream( float delta, void* pRange )
@@ -176,21 +172,6 @@ mega::U64 mp_database_hashcode()
 const char* mp_database()
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->database();
-}
-
-mega::U64 mp_memory_state()
-{
-    return mega::service::g_pPluginWrapper->m_pPlugin->memory_state();
-}
-
-mega::U64 mp_memory_size()
-{
-    return mega::service::g_pPluginWrapper->m_pPlugin->memory_size();
-}
-
-const void* mp_memory_data()
-{
-    return mega::service::g_pPluginWrapper->m_pPlugin->memory_data();
 }
 
 void mp_upstream( float delta, void* pRange )

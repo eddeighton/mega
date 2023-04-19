@@ -156,24 +156,6 @@ const char* mp_database()
     return nullptr;
 }
 
-MEGA_64 mp_memory_state()
-{
-    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->memory_state() );
-    return 0U;
-}
-
-MEGA_64 mp_memory_size()
-{
-    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->memory_size() );
-    return 0U;
-}
-
-const void* mp_memory_data()
-{
-    TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->memory_data() );
-    return nullptr;
-}
-
 void mp_upstream( float delta, void* pRange )
 {
     TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->upstream( delta, pRange ) );

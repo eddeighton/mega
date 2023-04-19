@@ -21,8 +21,6 @@
 #ifndef GUARD_2023_March_07_plugin
 #define GUARD_2023_March_07_plugin
 
-#include "memory_info.hpp"
-
 #include "service/plugin/platform.hpp"
 #include "service/plugin/player_network.hpp"
 #include "service/plugin/plugin_state_machine.hpp"
@@ -99,23 +97,7 @@ public:
     U64         database_hashcode() { return m_databaseHashcode; }
     const char* database() { return m_strDatabasePath.c_str(); }
 
-    U64 memory_state()
-    {
-        return 0;
-        // m_memoryDescription.getState();
-    }
-    U64 memory_size()
-    {
-        return 0;
-        // m_memoryDescription.getSize();
-    }
-    const void* memory_data()
-    {
-        return nullptr;
-        // m_memoryDescription.getData();
-    }
-
-    const log::Range* downstream()
+    const Downstream* downstream()
     {
         tryRun();
         return m_stateMachine.getDownstream();

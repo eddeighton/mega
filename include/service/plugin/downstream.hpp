@@ -18,48 +18,23 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_April_05_memory_info
-#define GUARD_2023_April_05_memory_info
+#ifndef GUARD_2023_April_18_downstream
+#define GUARD_2023_April_18_downstream
 
 #include "service/protocol/common/sender_ref.hpp"
 
-#include <array>
-#include <vector>
-#include <algorithm>
+#include "log/range.hpp"
+
+#include "mega/mpo.hpp"
 
 namespace mega::service
 {
-
-class MemoryDescription
+struct Downstream
 {
-    struct MPOInfo
-    {
-        MPO                                    mpo;
-        network::SenderRef::AllocatorBaseArray allocators;
-    };
-    using MPOInfoVector = std::vector< MPOInfo >;
-    MPOInfoVector m_mpoInfos;
-    U64           m_state = 1U;
-
-public:
-    void onRegister( const network::SenderRef& senderRef )
-    {
-        ++m_state;
-        m_mpoInfos.push_back( MPOInfo{ senderRef.m_mpo, senderRef.m_allocators } );
-    }
-
-    void onUnregister( MPO mpo )
-    {
-        ++m_state;
-        m_mpoInfos.erase( std::remove_if( m_mpoInfos.begin(), m_mpoInfos.end(),
-                                          [ mpo ]( const MPOInfo& mpoInfo ) { return mpoInfo.mpo == mpo; } ),
-                          m_mpoInfos.end() );
-    }
-
-    U64         getState() const { return m_state; }
-    U64         getSize() const { return m_mpoInfos.size(); }
-    const void* getData() const { return reinterpret_cast< const void* >( m_mpoInfos.data() ); }
+    MPO                                    m_mpo;
+    log::Range                             m_range;
+    network::SenderRef::AllocatorBaseArray m_allocators;
 };
 } // namespace mega::service
 
-#endif // GUARD_2023_April_05_memory_info
+#endif // GUARD_2023_April_18_downstream

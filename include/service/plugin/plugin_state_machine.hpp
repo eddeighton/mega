@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_March_21_state_machine
 #define GUARD_2023_March_21_state_machine
 
-#include "log/range.hpp"
+#include "downstream.hpp"
 
 #include "service/protocol/model/sim.hxx"
 
@@ -47,7 +47,7 @@ class PluginStateMachine
         };
         Type                       m_type;
         network::ConversationBase* m_pSender;
-        log::Range                 m_range;
+        Downstream                 m_downstream;
     };
     using MPOTable = std::unordered_map< MPO, State, MPO::Hash >;
 
@@ -57,7 +57,7 @@ public:
     {
     }
 
-    log::Range* getDownstream()
+    Downstream* getDownstream()
     {
         bool bRemaining = true;
         while( bRemaining )
@@ -71,7 +71,7 @@ public:
                     {
                         // return it now
                         state.m_type = State::eWaitingForUpstream;
-                        return &state.m_range;
+                        return &state.m_downstream;
                     }
                     break;
                     case State::eWaitingForClock:
@@ -109,8 +109,9 @@ public:
         // start in the eWaitingForDownstream state such that
         // sim will send register initially and wait for clock response
         // then it will start sending clock request
-        m_sims.insert(
-            { msg.senderRef.m_mpo, { State::eWaitingForDownstream, msg.senderRef.m_pSender, log::Range{} } } );
+        m_sims.insert( { msg.senderRef.m_mpo,
+                         { State::eWaitingForDownstream, msg.senderRef.m_pSender,
+                           Downstream{ msg.senderRef.m_mpo, log::Range{}, msg.senderRef.m_allocators } } } );
     }
 
     void simUnregister( const network::sim::MSG_SimUnregister_Request& msg ) { m_sims.erase( msg.mpo ); }
@@ -121,8 +122,8 @@ public:
         ASSERT( iFind != m_sims.end() );
         State& state = iFind->second;
 
-        state.m_range = msg.range;
-        state.m_type  = State::eWaitingForDownstream;
+        state.m_downstream.m_range = msg.range;
+        state.m_type               = State::eWaitingForDownstream;
     }
 
 private:
