@@ -22,34 +22,48 @@
 #define GUARD_2023_March_21_api
 
 #ifdef _WIN64
-using MEGA_64 = long long;
+using MEGA_64 = unsigned long long;
 #else
 using MEGA_64 = unsigned long int;
+#endif
+
+#if defined( _WIN32 )
+#    ifdef MEGA_PLUGIN_SHARED_MODULE
+#        define MEGA_PLUGIN_EXPORT __declspec( dllexport )
+#    else
+#        define MEGA_PLUGIN_EXPORT __declspec( dllimport )
+#    endif
+#elif defined( __GNUC__ )
+#    ifdef MEGA_PLUGIN_SHARED_MODULE
+#        define MEGA_PLUGIN_EXPORT __attribute__( ( visibility( "default" ) ) )
+#    else
+#        define MEGA_PLUGIN_EXPORT
+#    endif
 #endif
 
 extern "C"
 {
     // lifetime
-    void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
-    void mp_shutdown();
+    MEGA_PLUGIN_EXPORT void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel );
+    MEGA_PLUGIN_EXPORT void mp_shutdown();
 
-    MEGA_64 mp_database_hashcode();
-    const char* mp_database();
+    MEGA_PLUGIN_EXPORT MEGA_64 mp_database_hashcode();
+    MEGA_PLUGIN_EXPORT const char* mp_database();
 
-    const void* mp_downstream();
-    void mp_upstream( float delta, void* pRange );
+    MEGA_PLUGIN_EXPORT const void* mp_downstream();
+    MEGA_PLUGIN_EXPORT void mp_upstream( float delta, void* pRange );
 
     // network connection
-    MEGA_64 mp_network_count();
-    const char* mp_network_name( MEGA_64 networkID );
-    void mp_network_connect( MEGA_64 networkID );
-    void mp_network_disconnect();
-    MEGA_64 mp_network_current();
+    MEGA_PLUGIN_EXPORT MEGA_64 mp_network_count();
+    MEGA_PLUGIN_EXPORT const char* mp_network_name( MEGA_64 networkID );
+    MEGA_PLUGIN_EXPORT void mp_network_connect( MEGA_64 networkID );
+    MEGA_PLUGIN_EXPORT void mp_network_disconnect();
+    MEGA_PLUGIN_EXPORT MEGA_64 mp_network_current();
 
     // planet
-    void mp_planet_create();
-    void mp_planet_destroy();
-    bool mp_planet_current();
+    MEGA_PLUGIN_EXPORT void mp_planet_create();
+    MEGA_PLUGIN_EXPORT void mp_planet_destroy();
+    MEGA_PLUGIN_EXPORT bool mp_planet_current();
 }
 
 #endif //GUARD_2023_March_21_api

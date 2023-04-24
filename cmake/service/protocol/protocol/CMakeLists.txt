@@ -149,6 +149,11 @@ target_link_libraries( protocol utilities )
 target_link_libraries( protocol pipeline )
 
 IF( ${WIN32} )
+
+target_compile_options(protocol PRIVATE /bigobj)
+# for windows need to work around limit of 65K symbols - /Ob2 appears to achieve this
+# target_compile_options(protocol PRIVATE /Ob2)
+
 target_compile_options( protocol PUBLIC "/await:strict" )
 set_property(TARGET protocol PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
 ELSE( ${WIN32} )

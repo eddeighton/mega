@@ -18,6 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "service/network/conversation_manager.hpp"
+#include "service/network/network.hpp"
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/conversation_id.hpp"
@@ -70,11 +71,6 @@ ConversationID ConversationManager::createConversationID( const ConnectionID& co
     WriteLock lock( m_mutex );
     return { ++m_nextConversationID, connectionID };
 }
-
-// static const mega::U64 NON_SEGMENTED_STACK_SIZE  = 0x0FFFFF; // 1M bytes
-// static const mega::U64 NON_SEGMENTED_STACK_SIZE  = 0x200000; // 2,097,152
-static const mega::U64 NON_SEGMENTED_STACK_SIZE     = 0x400000; // 4,194,304
-// static const mega::U64 NON_SEGMENTED_STACK_SIZE  = 0xAFFFFF; // 11,534,335
 
 void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pConversation, Sender& parentSender )
 {

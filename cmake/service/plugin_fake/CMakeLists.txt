@@ -56,6 +56,8 @@ set( PLUGIN_FAKE_SOURCE
 add_library( plugin_fake SHARED ${PLUGIN_FAKE_API} ${PLUGIN_FAKE_SOURCE} )
 
 IF( ${WIN32} )
+add_definitions(-DMEGA_PLUGIN_SHARED_MODULE)
+set_property(TARGET plugin_fake PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
 target_compile_options( plugin_fake PUBLIC "/await:strict" )
 target_compile_options( plugin_fake PRIVATE "/bigobj" )
 ELSE( ${WIN32} )

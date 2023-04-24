@@ -133,7 +133,6 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/jit/program.cpp
     ${MEGA_SRC_DIR}/jit/relation_functions.cxx
     ${MEGA_SRC_DIR}/jit/relation.cpp
-    ${MEGA_SRC_DIR}/jit/tag_parser.cpp
     
 )
 

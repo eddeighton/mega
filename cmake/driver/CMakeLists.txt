@@ -37,9 +37,6 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 #get inja
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 
-#get ftxui
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/ftxui/ftxui_include.cmake )
-
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -108,7 +105,6 @@ link_fmt( mega )
 link_inja( mega )
 link_json( mega )
 link_spdlog( mega )
-link_ftxui( mega )
 
 install( TARGETS mega DESTINATION bin)
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )

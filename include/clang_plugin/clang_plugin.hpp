@@ -55,6 +55,7 @@ using EGChar = char;
 struct MEGA_CLANG_PLUGIN_EXPORT EG_PLUGIN_INTERFACE
 {
     virtual void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema ) = 0;
+    virtual void onMegaPragma() = 0;
     virtual void setMode( const char* strMode, const char* strSrcDir, const char* strBuildDir,
                              const char* strSourceFile )
         = 0;

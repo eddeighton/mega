@@ -103,7 +103,7 @@ static PluginWrapper::Ptr g_pPluginWrapper;
 
 } // namespace mega::service
 
-void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
+MEGA_PLUGIN_EXPORT void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
 {
     try
     {
@@ -138,73 +138,73 @@ void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel 
             SPDLOG_ERROR( "Exception in {} msg: {}", BOOST_CURRENT_FUNCTION, ex.what() ); \
         } catch( ... ) { SPDLOG_ERROR( "Unknown Exception in {}", BOOST_CURRENT_FUNCTION ); } )
 
-const void* mp_downstream()
+MEGA_PLUGIN_EXPORT const void* mp_downstream()
 {
     TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->downstream() );
     return nullptr;
 }
 
-mega::U64 mp_database_hashcode()
+MEGA_PLUGIN_EXPORT mega::U64 mp_database_hashcode()
 {
     TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->database_hashcode() );
     return 0U;
 }
 
-const char* mp_database()
+MEGA_PLUGIN_EXPORT const char* mp_database()
 {
     TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->database() );
     return nullptr;
 }
 
-void mp_upstream( float delta, void* pRange )
+MEGA_PLUGIN_EXPORT void mp_upstream( float delta, void* pRange )
 {
     TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->upstream( delta, pRange ) );
 }
 
-void mp_shutdown()
+MEGA_PLUGIN_EXPORT void mp_shutdown()
 {
     TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper.reset() );
 }
 
-mega::U64 mp_network_count()
+MEGA_PLUGIN_EXPORT mega::U64 mp_network_count()
 {
     TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->network_count() );
     return 0U;
 }
 
-const char* mp_network_name( mega::U64 networkID )
+MEGA_PLUGIN_EXPORT const char* mp_network_name( mega::U64 networkID )
 {
     TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->network_name( networkID ) );
     return nullptr;
 }
 
-void mp_network_connect( mega::U64 networkID )
+MEGA_PLUGIN_EXPORT void mp_network_connect( mega::U64 networkID )
 {
     TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->network_connect( networkID ) );
 }
 
-void mp_network_disconnect()
+MEGA_PLUGIN_EXPORT void mp_network_disconnect()
 {
     TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->network_disconnect() );
 }
 
-mega::U64 mp_network_current()
+MEGA_PLUGIN_EXPORT mega::U64 mp_network_current()
 {
     TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->network_current() );
     return 0U;
 }
 
-void mp_planet_create()
+MEGA_PLUGIN_EXPORT void mp_planet_create()
 {
     TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->planet_create() );
 }
 
-void mp_planet_destroy()
+MEGA_PLUGIN_EXPORT void mp_planet_destroy()
 {
     TRAP_EXCEPTIONS( mega::service::g_pPluginWrapper->m_pPlugin->planet_destroy() );
 }
 
-bool mp_planet_current()
+MEGA_PLUGIN_EXPORT bool mp_planet_current()
 {
     TRAP_EXCEPTIONS( return mega::service::g_pPluginWrapper->m_pPlugin->planet_current() );
     return false;

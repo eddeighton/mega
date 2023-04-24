@@ -60,22 +60,6 @@ Session::Ptr make_library_session( ASTContext* pASTContext, Sema* pSema, const c
     return std::make_unique< AnalysisSession >( pASTContext, pSema, strSrcDir, strBuildDir, strSourceFile );
 }
 
-class TestPragmaHandler : public clang::PragmaHandler
-{
-public:
-    TestPragmaHandler()
-        : PragmaHandler( "mega" )
-    {
-    }
-    void HandlePragma( Preprocessor& PP, PragmaIntroducer Introducer, Token& PragmaTok )
-    {
-        //std::cout << "GOT PRAGMA!!!" << std::endl;
-        g_bMegaEnabled = !g_bMegaEnabled;
-    }
-};
-
-static PragmaHandlerRegistry::Add< TestPragmaHandler > Y( "mega", "mega pragma description" );
-
 } // namespace clang
 
 namespace mega
@@ -101,6 +85,11 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
         g_pASTContext->getEGInvokeName();
     }
 
+    virtual void onMegaPragma()
+    {
+        g_bMegaEnabled = !g_bMegaEnabled;
+    }
+    
     virtual void setMode( const char* strMode, const char* strSrcDir, const char* strBuildDir,
                           const char* strSourceFile )
     {

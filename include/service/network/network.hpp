@@ -20,6 +20,8 @@
 #ifndef MEGA_NETWORK_16_MAY_2022
 #define MEGA_NETWORK_16_MAY_2022
 
+#include "mega/native_types.hpp"
+
 #include <boost/asio/ip/tcp.hpp>
 // #include <boost/asio/ip/udp.hpp>
 
@@ -28,6 +30,13 @@ namespace mega::network
 
 short MegaDaemonPort();
 short MegaRootPort();
+
+// For systems not supporting segmented stacks - need a stack size of coroutines
+//                                                    0x0FFFFF; // 1M bytes
+//                                                    0x200000; // 2,097,152
+//static const mega::U64 NON_SEGMENTED_STACK_SIZE     = 0x400000; // 4,194,304
+static const mega::U64 NON_SEGMENTED_STACK_SIZE     = 0x800000; // 8 MB
+//                                                    0xAFFFFF; // 11,534,335
 
 struct Traits
 {

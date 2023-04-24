@@ -44,8 +44,20 @@
             "blit": "System.UInt64"
         },
         {
+            "canon": "unsigned long long",
+            "mangle": "unsignedlonglong",
+            "impl": "Simple",
+            "blit": "System.UInt64"
+        },
+        {
             "canon": "long",
             "mangle": "long",
+            "impl": "Simple",
+            "blit": "System.Int64"
+        },
+        {
+            "canon": "long long",
+            "mangle": "longlong",
             "impl": "Simple",
             "blit": "System.Int64"
         },

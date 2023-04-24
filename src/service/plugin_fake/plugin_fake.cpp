@@ -66,9 +66,9 @@ public:
     void upstream( float delta, void* pRange )
     {
         //
-        boost::filesystem::path f( "/build/linux_gcc_shared_debug/game/install/bin/unityDatabase.json" );
-        auto                    h = task::FileHash( f );
-        SPDLOG_TRACE( "Got unityDatabase.json hashcode of: {}", h.get() );
+       // boost::filesystem::path f( "/build/linux_gcc_shared_debug/game/install/bin/unityDatabase.json" );
+       // auto                    h = task::FileHash( f );
+       // SPDLOG_TRACE( "Got unityDatabase.json hashcode of: {}", h.get() );
     }
 
     U64         network_count() { return 0; }
@@ -152,74 +152,74 @@ static PluginWrapper::Ptr g_pPluginWrapper;
 
 } // namespace mega::service
 
-void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
+MEGA_PLUGIN_EXPORT void mp_initialise( const char* pszConsoleLogLevel, const char* pszFileLogLevel )
 {
     mega::service::g_pPluginWrapper.reset();
     mega::service::g_pPluginWrapper
         = std::make_unique< mega::service::PluginWrapper >( pszConsoleLogLevel, pszFileLogLevel );
 }
 
-const void* mp_downstream()
-{
-    return mega::service::g_pPluginWrapper->m_pPlugin->downstream();
-}
-
-mega::U64 mp_database_hashcode()
-{
-    return mega::service::g_pPluginWrapper->m_pPlugin->database_hashcode();
-}
-
-const char* mp_database()
-{
-    return mega::service::g_pPluginWrapper->m_pPlugin->database();
-}
-
-void mp_upstream( float delta, void* pRange )
-{
-    mega::service::g_pPluginWrapper->m_pPlugin->upstream( delta, pRange );
-}
-
-void mp_shutdown()
+MEGA_PLUGIN_EXPORT void mp_shutdown()
 {
     mega::service::g_pPluginWrapper.reset();
 }
 
-mega::U64 mp_network_count()
+MEGA_PLUGIN_EXPORT mega::U64 mp_database_hashcode()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->database_hashcode();
+}
+
+MEGA_PLUGIN_EXPORT const char* mp_database()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->database();
+}
+
+MEGA_PLUGIN_EXPORT const void* mp_downstream()
+{
+    return mega::service::g_pPluginWrapper->m_pPlugin->downstream();
+}
+
+MEGA_PLUGIN_EXPORT void mp_upstream( float delta, void* pRange )
+{
+    mega::service::g_pPluginWrapper->m_pPlugin->upstream( delta, pRange );
+}
+
+MEGA_PLUGIN_EXPORT mega::U64 mp_network_count()
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->network_count();
 }
 
-const char* mp_network_name( mega::U64 networkID )
+MEGA_PLUGIN_EXPORT const char* mp_network_name( mega::U64 networkID )
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->network_name( networkID );
 }
 
-void mp_network_connect( mega::U64 networkID )
+MEGA_PLUGIN_EXPORT void mp_network_connect( mega::U64 networkID )
 {
     mega::service::g_pPluginWrapper->m_pPlugin->network_connect( networkID );
 }
 
-void mp_network_disconnect()
+MEGA_PLUGIN_EXPORT void mp_network_disconnect()
 {
     mega::service::g_pPluginWrapper->m_pPlugin->network_disconnect();
 }
 
-mega::U64 mp_network_current()
+MEGA_PLUGIN_EXPORT mega::U64 mp_network_current()
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->network_current();
 }
 
-void mp_planet_create()
+MEGA_PLUGIN_EXPORT void mp_planet_create()
 {
     mega::service::g_pPluginWrapper->m_pPlugin->planet_create();
 }
 
-void mp_planet_destroy()
+MEGA_PLUGIN_EXPORT void mp_planet_destroy()
 {
     mega::service::g_pPluginWrapper->m_pPlugin->planet_destroy();
 }
 
-bool mp_planet_current()
+MEGA_PLUGIN_EXPORT bool mp_planet_current()
 {
     return mega::service::g_pPluginWrapper->m_pPlugin->planet_current();
 }

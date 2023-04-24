@@ -194,7 +194,8 @@ public:
     ExternalConversation( ConversationManager& conversationManager, const ConversationID& conversationID,
                           boost::asio::io_context& ioContext );
 
-    ReceivedMsg receive();
+    // make this virtual so that windows can build...
+   virtual ReceivedMsg receive();
 
     // Sender
     virtual ConnectionID getConnectionID() const

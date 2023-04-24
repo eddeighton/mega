@@ -63,6 +63,8 @@ set( PLUGIN_SOURCE
 add_library( plugin SHARED ${PLUGIN_API} ${PLUGIN_SOURCE} )
 
 IF( ${WIN32} )
+add_definitions(-DMEGA_PLUGIN_SHARED_MODULE)
+set_property(TARGET plugin PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
 target_compile_options( plugin PUBLIC "/await:strict" )
 target_compile_options( plugin PRIVATE "/bigobj" )
 ELSE( ${WIN32} )

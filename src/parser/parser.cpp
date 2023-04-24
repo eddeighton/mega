@@ -1136,7 +1136,7 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 };
 
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;
-EG_PARSER_IMPL                                g_parserSymbol;
+MEGA_PARSER_EXPORT EG_PARSER_IMPL g_parserSymbol;
 
 /*
 std::unique_ptr< EG_PARSER_INTERFACE > getParser()

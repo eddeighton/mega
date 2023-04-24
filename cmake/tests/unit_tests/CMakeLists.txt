@@ -91,6 +91,7 @@ target_link_libraries( mega_tests network)
 target_link_libraries( mega_tests pipeline)
 target_link_libraries( mega_tests executorLib)
 target_link_libraries( mega_tests log)
+target_link_libraries( mega_tests mega_mangle)
 
 gtest_add_tests( TARGET mega_tests SOURCES ${MEGA_UNIT_TESTS} )
 

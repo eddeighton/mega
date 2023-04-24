@@ -29,10 +29,13 @@
 
 #include "common/file.hpp"
 
+#include <boost/archive/basic_xml_archive.hpp>
 #include <boost/archive/basic_xml_iarchive.hpp>
 #include <boost/archive/basic_xml_oarchive.hpp>
 
-#include <boost/archive/impl/basic_xml_grammar.hpp>
+#include "W:\root\thirdparty\boost\src\libs\serialization\src\basic_xml_grammar.ipp"
+
+// #include <boost/archive/impl/basic_xml_grammar.hpp>
 #include <boost/archive/impl/basic_xml_iarchive.ipp>
 #include <boost/archive/impl/basic_xml_oarchive.ipp>
 #include <boost/archive/impl/xml_iarchive_impl.ipp>

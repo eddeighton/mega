@@ -46,7 +46,14 @@ public:
     void run( TExecutor& strandOrIOContext, const ConnectionID& connectionID )
     {
         m_connectionID = connectionID;
-        boost::asio::spawn( strandOrIOContext, [ this ]( boost::asio::yield_context yield ) { receive( yield ); } );
+        boost::asio::spawn( 
+            strandOrIOContext, 
+            [ this ]( boost::asio::yield_context yield ) { receive( yield ); }
+        // segmented stacks do NOT work on windows
+#ifndef BOOST_USE_SEGMENTED_STACKS
+        , boost::coroutines::attributes(NON_SEGMENTED_STACK_SIZE)
+#endif
+        );
     }
     void stop() { m_bContinue = false; }
 
@@ -78,7 +85,12 @@ public:
                             {
                                 //
                                 receiver.receive( yield );
-                            } );
+                            }
+        // segmented stacks do NOT work on windows
+#ifndef BOOST_USE_SEGMENTED_STACKS
+        , boost::coroutines::attributes(NON_SEGMENTED_STACK_SIZE)
+#endif
+                            );
     }
 
     void stop() { m_bContinue = false; }

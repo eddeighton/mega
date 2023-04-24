@@ -31,6 +31,10 @@
 #include <vector>
 
 #include <stdbool.h>
+
+#ifdef _WIN32
+#define _Bool bool
+#endif
 /*
 #include <deque>
 #include <list>

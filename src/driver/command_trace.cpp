@@ -25,7 +25,7 @@
 
 #include "compiler/build_report.hpp"
 #include "compiler/base_task.hpp"
-
+/*
 #include "ftxui/component/component.hpp" // for Checkbox, Renderer, Horizontal, Vertical, Input, Menu, Radiobox, ResizableSplitLeft, Tab
 #include "ftxui/component/component_base.hpp"     // for ComponentBase, Component
 #include "ftxui/component/component_options.hpp"  // for MenuOption, InputOption
@@ -44,7 +44,7 @@
 #include "ftxui/screen/color_info.hpp" // for ColorInfo
 #include "ftxui/screen/terminal.hpp"   // for Size, Dimensions
 #include "ftxui/component/loop.hpp"    // for Loop
-
+*/
 #include "common/stl.hpp"
 #include "common/compose.hpp"
 
@@ -151,7 +151,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                               } ) ),
              } ) );*/
 
-        if( bShowUI )
+        /*if( bShowUI )
         {
             using namespace ftxui;
 
@@ -214,7 +214,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 std::this_thread::sleep_for( std::chrono::milliseconds( 40 ) );
                 screen.PostEvent( ftxui::Event::Custom );
             }
-        }
+        }*/
         // bContinue = false;
         inputThread.join();
     }

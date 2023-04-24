@@ -83,7 +83,16 @@ add_subdirectory(pipeline)
 
 add_subdirectory(database)
 
+IF( ${WIN32} )
+
+# windows specific projects
+
+ELSE( ${WIN32} )
+
+# linux specific projects
 add_subdirectory(schematic)
+
+ENDIF( ${WIN32} )
 
 add_subdirectory(invocation)
 add_subdirectory(clang_plugin)
@@ -97,7 +106,17 @@ add_subdirectory(service)
 add_subdirectory(driver)
 add_subdirectory(tests)
 add_subdirectory(mega)
+
+IF( ${WIN32} )
+
+# windows specific projects
+
+ELSE( ${WIN32} )
+
+# linux specific projects
 add_subdirectory(editor)
+
+ENDIF( ${WIN32} )
 
 # always last - toolchain reads other files from build
 add_subdirectory(toolchain)

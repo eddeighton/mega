@@ -409,8 +409,8 @@ std::optional< ::mega::U64 > getConstant( ASTContext* pASTContext, Sema* pSema, 
 QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
                          const std::vector< QualType >& typeParameters )
 {
-    IdentifierInfo& identifierInfo = pASTContext->Idents.get( mega::EG_VARIANT_TYPE );
-    LookupResult    result( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
+    IdentifierInfo* pIdentifierInfo = pASTContext->getEGVariantName();
+    LookupResult    result( *pSema, pIdentifierInfo, loc, Sema::LookupAnyName );
     if( pSema->LookupQualifiedName( result, pDeclContext ) )
     {
         if( ClassTemplateDecl* pDecl = llvm::dyn_cast< ClassTemplateDecl >( result.getFoundDecl() ) )

@@ -164,6 +164,8 @@ set( MEGA_TYPES
     #${MEGA_API_DIR}/mega/types/python_mangle.hpp
     #${MEGA_API_DIR}/mega/types/python_mangle_types.cxx
     #${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
+    
+    ${MEGA_SRC_DIR}/jit/tag_parser.cpp
 )
 
 add_library( mega_mangle SHARED ${MEGA_TYPES} )
@@ -176,6 +178,9 @@ target_compile_options( mega_mangle PRIVATE /bigobj)
 # target_compile_options(database PRIVATE /Ob2)
 # set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
 set_property(TARGET mega_mangle PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON )
+
+target_link_libraries( mega_mangle protocol )
+
 ELSE( ${WIN32} )
 target_link_options( mega_mangle PUBLIC -export-dynamic )
 ENDIF( ${WIN32} )

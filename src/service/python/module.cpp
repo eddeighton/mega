@@ -212,7 +212,7 @@ PYBIND11_MODULE( megastructure, pythonModule )
 
     pybind11::class_< Quat >( pythonModule, "Quat" )
         .def( pybind11::init<>() )
-        .def( pybind11::init< float, float, float, float >() )
+        /*.def( pybind11::init< float, float, float, float >() )
         .def( pybind11::init( []( const F3& axis, float angle ) { return boost::qvm::rot_quat( axis, angle ); } ) )
         .def_property(
             "x", []( Quat& v ) { return v.x(); }, []( Quat& v, float f ) { return v.x( f ); }, "X coordinate" )
@@ -256,7 +256,7 @@ PYBIND11_MODULE( megastructure, pythonModule )
             "rotate_z", []( Quat& v, float angle ) { boost::qvm::rotate_z( v, angle ); },
             "Rotate in z axis" )
 
-            QVM_PYBIND11_OPERATORS( Quat ) QVM_PYBIND11_FUNCTIONS( Quat );
+            QVM_PYBIND11_OPERATORS( Quat ) QVM_PYBIND11_FUNCTIONS( Quat )*/;
 
     pybind11::class_< F33 >( pythonModule, "F33", pybind11::buffer_protocol() )
         .def( pybind11::init<>() )
