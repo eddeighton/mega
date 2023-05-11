@@ -21,7 +21,7 @@
 #include "jit/program.hpp"
 
 #include "jit.hpp"
-#include "symbol_utils.hpp"
+#include "symbol.hpp"
 
 #include "service/network/log.hpp"
 
@@ -34,35 +34,15 @@ Program::Program( JITDatabase& database, JITCompiler::Module::Ptr pModule )
     : m_pModule( pModule )
 {
     SPDLOG_TRACE( "Program::ctor" );
-    {
-        std::ostringstream os;
-        symbolPrefix( "object_save_bin", os );
-        os << "N4mega6TypeIDEPvS1_";
-        m_objectSaveBin = m_pModule->get< program::ObjectSaveBin::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "object_load_bin", os );
-        os << "N4mega6TypeIDEPvS1_";
-        m_objectLoadBin = m_pModule->get< program::ObjectLoadBin::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "record_load_bin", os );
-        os << "N4mega9referenceEPvm";
-        m_recordLoadBin = m_pModule->get< program::RecordLoadBin::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "record_make", os );
-        os << "N4mega9referenceES0_";
-        m_recordMake = m_pModule->get< program::RecordMake::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "record_break", os );
-        os << "N4mega9referenceES0_";
-        m_recordBreak = m_pModule->get< program::RecordBreak::FunctionPtr >( os.str() );
-    }
+    m_objectSaveBin = m_pModule->get< program::ObjectSaveBin::FunctionPtr >(
+        Symbol( "object_save_bin", Symbol::ID_VStar_VStar ) );
+    m_objectLoadBin = m_pModule->get< program::ObjectLoadBin::FunctionPtr >( 
+        Symbol( "object_load_bin", Symbol::ID_VStar_VStar ) );
+    m_recordLoadBin = m_pModule->get< program::RecordLoadBin::FunctionPtr >( 
+        Symbol( "record_load_bin", Symbol::Ref_VStar_U64 ) );
+    m_recordMake = m_pModule->get< program::RecordMake::FunctionPtr >( 
+        Symbol( "record_make", Symbol::Ref_Ref ) );
+    m_recordBreak = m_pModule->get< program::RecordBreak::FunctionPtr >( 
+        Symbol( "record_break", Symbol::Ref_Ref ) );
 }
 } // namespace mega::runtime

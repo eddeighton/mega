@@ -48,8 +48,6 @@ namespace mega::runtime
 
 class JIT_EXPORT JIT : public JITBase
 {
-    friend class ObjectTypeAllocator;
-
 public:
     JIT( const MegastructureInstallation& megastructureInstallation, const Project& project );
     JIT( const MegastructureInstallation& megastructureInstallation, const Project& project, JIT& oldJIT );

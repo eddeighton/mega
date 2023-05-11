@@ -18,7 +18,10 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "jit.hpp"
+
+#include "symbol.hpp"
 #include "symbol_utils.hpp"
+
 #include "object_functions.hxx"
 #include "invocation_functions.hxx"
 #include "program_functions.hxx"
@@ -337,98 +340,74 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
     {
         case invocation::eRead:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< invocation::Read::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::Read::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eWrite:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceEPKv";
-            *ppFunction = ( void* )pModule->get< invocation::Write::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::Write::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref_CVStar ) );
         }
         break;
         case invocation::eReadLink:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< invocation::ReadLink::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::ReadLink::FunctionPtr >(
+                Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eWriteLink:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceE14WriteOperationRKS0_";
-            *ppFunction = ( void* )pModule->get< invocation::WriteLink::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::WriteLink::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref_Wo_RefCR ) );
         }
         break;
         case invocation::eWriteLinkRange:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceE14WriteOperationRKS0_";
-            *ppFunction = ( void* )pModule->get< invocation::WriteLinkRange::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::WriteLinkRange::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref_Wo_CVStar ) );
         }
         break;
         case invocation::eAllocate:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< invocation::Allocate::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::Allocate::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eCall:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< invocation::Call::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::Call::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eGet:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< invocation::Get::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::Get::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eSave:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceEPv";
-            *ppFunction = ( void* )pModule->get< invocation::Save::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::Save::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref_VStar ) );
         }
         break;
         case invocation::eLoad:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceEPv";
-            *ppFunction = ( void* )pModule->get< invocation::Load::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::Load::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref_VStar ) );
         }
         break;
         case invocation::eStart:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< invocation::Start::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::Start::FunctionPtr >( 
+                Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eStop:
         {
-            std::ostringstream os;
-            symbolPrefix( invocationID, os );
-            os << "N4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< invocation::Stop::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< invocation::Stop::FunctionPtr >(
+                Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::TOTAL_FUNCTION_TYPES:
@@ -618,26 +597,20 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
     {
         case operators::eCast:
         {
-            std::ostringstream os;
-            symbolPrefix( "mega_cast_", target, os );
-            os << "RKN4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< operators::Cast::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< operators::Cast::FunctionPtr >(
+                Symbol( "mega_cast_", target, Symbol::Ref ) );
         }
         break;
         case operators::eActive:
         {
-            std::ostringstream os;
-            symbolPrefix( "mega_cast_", target, os );
-            os << "RKN4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< operators::Active::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< operators::Active::FunctionPtr >(
+                Symbol( "mega_cast_", target, Symbol::Ref ) );
         }
         break;
         case operators::eStopped:
         {
-            std::ostringstream os;
-            symbolPrefix( "mega_cast_", target, os );
-            os << "RKN4mega9referenceE";
-            *ppFunction = ( void* )pModule->get< operators::Stopped::FunctionPtr >( os.str() );
+            *ppFunction = ( void* )pModule->get< operators::Stopped::FunctionPtr >(
+                Symbol( "mega_cast_", target, Symbol::Ref ) );
         }
         break;
         case operators::TOTAL_FUNCTION_TYPES:

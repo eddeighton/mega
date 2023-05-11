@@ -109,15 +109,19 @@ set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/jit/object_header.hpp
     ${MEGA_API_DIR}/jit/operator_functions.hxx
     ${MEGA_API_DIR}/jit/orc.hpp
+    ${MEGA_API_DIR}/jit/orc_api.hpp
     ${MEGA_API_DIR}/jit/program_functions.hxx
     ${MEGA_API_DIR}/jit/program.hpp
     ${MEGA_API_DIR}/jit/relation_functions.hxx
     ${MEGA_API_DIR}/jit/relation.hpp
+    ${MEGA_API_DIR}/jit/symbol.hpp
 
 )
 
 set( RUNTIME_SOURCE
+
     ${MEGA_SRC_DIR}/jit/symbol_utils.hpp
+    ${MEGA_SRC_DIR}/jit/symbols.cpp
 
     ${MEGA_SRC_DIR}/jit/allocator.cpp
     ${MEGA_SRC_DIR}/jit/code_gen_allocator.cpp
@@ -175,3 +179,19 @@ install( FILES ${RUNTIME_HEADERS} DESTINATION include/jit )
 install( TARGETS jit EXPORT jit DESTINATION bin)
 install( EXPORT jit NAMESPACE MEGA:: FILE jit-config.cmake DESTINATION share )
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+add_library( symbol_test SHARED
+    ${MEGA_SRC_DIR}/jit/symbol_test.cpp
+)
+
+set_target_properties( symbol_test PROPERTIES FOLDER service )
+target_include_directories( symbol_test PUBLIC ${MEGA_API_DIR} )
+
+install( TARGETS symbol_test DESTINATION bin)
+
+link_boost( symbol_test system )
+link_common( symbol_test )

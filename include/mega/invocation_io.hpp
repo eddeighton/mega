@@ -25,29 +25,9 @@
 
 #include "database/types/operation.hpp"
 
-#include "nlohmann/json.hpp"
-
 #include <vector>
 #include <array>
 #include <ostream>
-
-namespace mega
-{
-inline void to_json( nlohmann::json& j, const mega::TypeID& typeID )
-{
-    std::ostringstream os;
-    using ::           operator<<;
-    os << typeID;
-    j = nlohmann::json{ { "typeID", os.str() } };
-}
-
-inline void to_json( nlohmann::json& j, const mega::InvocationID& invocationID )
-{
-    j = nlohmann::json{ { "context", invocationID.m_context },
-                        { "type_path", invocationID.m_type_path },
-                        { "operation", invocationID.m_operation } };
-}
-} // namespace mega
 
 namespace detail
 {

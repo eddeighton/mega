@@ -239,7 +239,7 @@ IF( ${WIN32} )
 
 target_compile_options(database PRIVATE /bigobj)
 # for windows need to work around limit of 65K symbols - /Ob2 appears to achieve this
-target_compile_options(database PRIVATE /Ob2)
+#target_compile_options(database PRIVATE /Ob2)
 # symbols are manually exported so ensure this is OFF
 set_property(TARGET database PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS OFF )
 

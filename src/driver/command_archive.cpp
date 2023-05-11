@@ -23,6 +23,7 @@
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/common/environment_build.hpp"
+#include "database/common/environment_archive.hpp"
 #include "database/common/archive.hpp"
 
 #include "common/scheduler.hpp"
@@ -44,16 +45,17 @@ namespace driver
     {
         void command( bool bHelp, const std::vector< std::string >& args )
         {
-            boost::filesystem::path srcDir, buildDir, outputFilePath;
+            boost::filesystem::path srcDir, buildDir, outputFilePath, inputArchiveFilePath;
 
             namespace po = boost::program_options;
             po::options_description commandOptions( " Generate retail archive" );
             {
                 // clang-format off
             commandOptions.add_options()
-                ( "src_dir",    po::value< boost::filesystem::path >( &srcDir ),            "Source directory" )
-                ( "build_dir",  po::value< boost::filesystem::path >( &buildDir ),          "Build directory" )
-                ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),    "Archive file to generate" )
+                ( "src_dir",    po::value< boost::filesystem::path >( &srcDir ),              "Source directory" )
+                ( "build_dir",  po::value< boost::filesystem::path >( &buildDir ),            "Build directory" )
+                ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),      "Archive file to generate" )
+                ( "input",      po::value< boost::filesystem::path >( &inputArchiveFilePath ),"Input archive file to test" )
                 ;
                 // clang-format on
             }
@@ -65,6 +67,13 @@ namespace driver
             if ( bHelp )
             {
                 std::cout << commandOptions << "\n";
+            }
+            else if( !inputArchiveFilePath.empty() )
+            {
+                mega::io::ArchiveEnvironment environment( inputArchiveFilePath );
+                std::cout << "Successfully loaded archive: " << inputArchiveFilePath.string() << std::endl;
+                std::cout << "Archive version: " << environment.getVersion() << std::endl;
+
             }
             else
             {

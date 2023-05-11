@@ -138,8 +138,8 @@ public:
         m_jitDynLib.addGenerator( ExitOnErr( llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
             m_jit.getDataLayout().getGlobalPrefix() ) ) );
 
-        auto module = ExitOnErr( parseModule( strModule, m_name ) );
-        ExitOnErr( m_jit.addIRModule( m_jitDynLib, std::move( module ) ) );
+        auto jitModule = ExitOnErr( parseModule( strModule, m_name ) );
+        ExitOnErr( m_jit.addIRModule( m_jitDynLib, std::move( jitModule ) ) );
     }
 
     ~ModuleImpl() { ExitOnErr( m_jit.getExecutionSession().removeJITDylib( m_jitDynLib ) ); }

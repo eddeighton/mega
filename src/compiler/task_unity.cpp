@@ -253,7 +253,7 @@ public:
             osCmd << m_unityEditor.string() << " ";
             osCmd << "-projectPath " << m_unityProjectDir.string() << " ";
             osCmd << "-logFile " << unityLog.string() << " ";
-            osCmd << "-noUpm -batchmode  -quit -nographics -disable-gpu-skinning -disable-assembly-updater "
+            osCmd << "-noUpm -batchmode -quit -nographics -disable-gpu-skinning -disable-assembly-updater "
                      "-disableManagedDebugger ";
             osCmd << "-executeMethod analysis.UnityAnalysis.RunFromCmdLine ";
             osCmd << "-reflectionData " << unityDataFilePath.string() << " ";

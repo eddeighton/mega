@@ -31,6 +31,7 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( RUNTIME_SOURCE
+    ${MEGA_API_DIR}/jit/orc_api.hpp
     ${MEGA_API_DIR}/jit/orc.hpp
     ${MEGA_SRC_DIR}/jit/orc.cpp
 )
@@ -42,6 +43,8 @@ add_library( orc SHARED
 
 target_link_libraries( orc mega_interface )
 target_link_libraries( orc utilities )
+
+# target_link_libraries( orc "X:/win8_static_release/llvm/install/lib/clang/15.0.0/lib/x86_64-pc-windows-msvc/libclang_rt.builtins.a" )
 
 set_target_properties( orc PROPERTIES FOLDER service )
 add_definitions(-DMEGA_ORC_API_SHARED_MODULE)

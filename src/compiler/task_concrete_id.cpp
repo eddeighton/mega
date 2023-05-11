@@ -330,13 +330,13 @@ public:
         // set object ID first
         std::map< New::Concrete::Object*, New::Symbols::ConcreteTypeID* > objectConcreteTypeIDs;
         {
-            std::set< U8 > usedObjectIDs;
+            std::set< TypeID::SubValueType > usedObjectIDs;
             for( auto typeID : usedTypeIDs )
             {
                 usedObjectIDs.insert( typeID.getObjectID() );
             }
             auto usedIter        = usedObjectIDs.begin();
-            U8   objectIDCounter = ROOT_TYPE_ID.getObjectID();
+            TypeID::SubValueType   objectIDCounter = ROOT_TYPE_ID.getObjectID();
 
             for( auto [ _, pSymbolTypeID ] : new_concrete_type_id_sequences )
             {
@@ -363,7 +363,7 @@ public:
         }
 
         // establish the used subObjectIDs per objectID
-        std::multimap< U8, U8 > usedSubObjectIDs;
+        std::multimap< TypeID::SubValueType, TypeID::SubValueType > usedSubObjectIDs;
         for( const auto typeID : usedTypeIDs )
         {
             usedSubObjectIDs.insert( { typeID.getObjectID(), typeID.getSubObjectID() } );
@@ -374,7 +374,7 @@ public:
                   New::Symbols::ConcreteTypeID* pConcreteTypeID, New::Concrete::ContextGroup* pContextGroup )
         {
             // locate the object
-            U8 objectID = 0;
+            TypeID::SubValueType objectID = 0;
             {
                 New::Concrete::Object* pObject = nullptr;
                 {
@@ -404,7 +404,7 @@ public:
             {
                 auto i           = usedSubObjectIDs.lower_bound( objectID );
                 auto iEnd        = usedSubObjectIDs.upper_bound( objectID );
-                U8   subObjectID = 0U;
+                TypeID::SubValueType   subObjectID = 0U;
                 while( ( i != iEnd ) && ( subObjectID == i->second ) )
                 {
                     ++i;

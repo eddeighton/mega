@@ -24,20 +24,8 @@
 #include "mega/relation_id.hpp"
 #include "mega/type_id_io.hpp"
 
-#include "nlohmann/json.hpp"
-
-#include <vector>
-#include <array>
 #include <ostream>
-
-namespace mega
-{
-inline void to_json( nlohmann::json& j, const mega::RelationID& relationID )
-{
-    j = nlohmann::json{
-        { "lower", relationID.getLower().getSymbolID() }, { "upper", relationID.getUpper().getSymbolID() } };
-}
-} // namespace mega
+#include <iomanip>
 
 inline std::ostream& operator<<( std::ostream& os, const mega::RelationID& relationID )
 {

@@ -1,3 +1,5 @@
+
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,49 +19,26 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef ARCHIVE_18_04_2019
-#define ARCHIVE_18_04_2019
+#ifndef GUARD_2023_April_25_boost_bin_iprimitive
+#define GUARD_2023_April_25_boost_bin_iprimitive
 
-#include "database/common/api.hpp"
-#include "object_loader.hpp"
-
-#include "utilities/serialization_helpers.hpp"
-
-#include <boost/filesystem/path.hpp>
-
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/map.hpp>
+#include <boost/archive/impl/basic_binary_iarchive.ipp>
+#include <boost/archive/impl/basic_binary_oarchive.ipp>
+#include <boost/archive/impl/basic_binary_iprimitive.ipp>
+#include <boost/archive/impl/basic_binary_oprimitive.ipp>
 
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 
-#include <optional>
-#include <type_traits>
-#include <set>
+#include <boost/archive/binary_iarchive_impl.hpp>
+#include <boost/archive/binary_oarchive_impl.hpp>
 
-namespace boost::archive
-{
+#include <boost/archive/basic_binary_oprimitive.hpp>
+#include <boost/archive/basic_binary_iprimitive.hpp>
+#include <boost/archive/basic_binary_oarchive.hpp>
+#include <boost/archive/basic_binary_iarchive.hpp>
 
-class EGDB_EXPORT MegaIArchive : public binary_iarchive
-{
-    std::set< mega::io::ObjectInfo* >& m_objectInfos;
+// #include "W:\root\thirdparty\boost\src\libs\serialization\src\basic_xml_grammar.ipp"
+// #include <boost/archive/impl/basic_xml_grammar.hpp>
 
-public:
-    MegaIArchive( std::istream& os, std::set< mega::io::ObjectInfo* >& objectInfos, ::data::ObjectPartLoader& loader );
-    void objectInfo( mega::io::ObjectInfo* pObjectInfo );
-
-    ::data::ObjectPartLoader& m_loader;
-};
-
-class EGDB_EXPORT MegaOArchive : public binary_oarchive
-{
-    std::set< const mega::io::ObjectInfo* >& m_objectInfos;
-
-public:
-    MegaOArchive( std::ostream& os, std::set< const mega::io::ObjectInfo* >& objectInfos );
-    void objectInfo( const mega::io::ObjectInfo* pObjectInfo );
-};
-
-} // namespace boost::archive
-
-#endif // ARCHIVE_18_04_2019
+#endif //GUARD_2023_April_25_boost_bin_iprimitive

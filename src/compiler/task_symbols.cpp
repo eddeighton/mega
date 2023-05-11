@@ -403,7 +403,7 @@ public:
 
             std::map< New::Interface::Object*, New::Symbols::InterfaceTypeID* > objectInterfaceTypeIDs;
             {
-                std::set< U8 > usedObjectIDs = { ROOT_TYPE_ID.getObjectID() };
+                std::set< TypeID::SubValueType > usedObjectIDs = { ROOT_TYPE_ID.getObjectID() };
                 for( auto typeID : usedTypeIDs )
                 {
                     if( typeID.getObjectID() != 0 )
@@ -413,7 +413,7 @@ public:
                 }
 
                 auto usedIter        = usedObjectIDs.begin();
-                U8   objectIDCounter = ROOT_TYPE_ID.getObjectID();
+                TypeID::SubValueType   objectIDCounter = ROOT_TYPE_ID.getObjectID();
                 ASSERT( objectIDCounter == 1U );
 
                 // set all object interface type IDs
@@ -444,7 +444,7 @@ public:
             }
 
             // establish the used subObjectIDs per objectID
-            std::multimap< U8, U8 > usedSubObjectIDs;
+            std::multimap< TypeID::SubValueType, TypeID::SubValueType > usedSubObjectIDs;
             for( const auto typeID : usedTypeIDs )
             {
                 // only add non-zero sub object IDs
@@ -460,7 +460,7 @@ public:
                 if( pInterfaceTypeID->get_id() == TypeID{} )
                 {
                     // locate the object
-                    U8 objectID = 0;
+                    TypeID::SubValueType objectID = 0;
                     {
                         New::Interface::Object* pObject = nullptr;
                         {
@@ -495,7 +495,7 @@ public:
                     {
                         auto i           = usedSubObjectIDs.lower_bound( objectID );
                         auto iEnd        = usedSubObjectIDs.upper_bound( objectID );
-                        U8   subObjectID = 1U;
+                        TypeID::SubValueType   subObjectID = 1U;
                         while( ( i != iEnd ) && ( subObjectID == i->second ) )
                         {
                             ++i;

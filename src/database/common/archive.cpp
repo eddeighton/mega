@@ -25,11 +25,11 @@
 
 #include "common/assert_verify.hpp"
 
-#include <boost/iostreams/stream.hpp>
 #include "database/types/sources.hpp"
 
 #include <boost/filesystem.hpp>
 
+#include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/copy.hpp>
@@ -178,9 +178,11 @@ struct ReadArchive::Pimpl
         VERIFY_RTE_MSG(
             boost::filesystem::exists( m_filePath ), "Failed to locate archive file: " << m_filePath.string() );
         // read the table of contents
-        SourceType                      fileSource( m_filePath.string() );
+        SourceType                      fileSource( m_filePath.string(), std::ios::binary | std::ios::in );
         StreamType                      istream( fileSource );
-        boost::archive::binary_iarchive archive( istream );
+
+        //std::ifstream istream( filePath.c_str(), std::ios::binary | std::ios::in );
+        boost::archive::binary_iarchive archive(istream);
         archive&                        m_toc;
     }
 
@@ -280,7 +282,7 @@ void ReadArchive::compile_archive( const boost::filesystem::path& filePath, cons
         {
             const boost::filesystem::path  filePath   = srcDir / file.m_id;
             const mega::U64                szFileSize = boost::filesystem::file_size( filePath );
-            ReadArchive::Pimpl::SourceType fileSource( filePath.string() );
+            ReadArchive::Pimpl::SourceType fileSource( filePath.string(), std::ios::binary | std::ios::in);
             ReadArchive::Pimpl::StreamType istream( fileSource );
             boost::iostreams::eds_copy( istream, ofStream, szFileSize );
         }
@@ -293,7 +295,7 @@ void ReadArchive::compile_archive( const boost::filesystem::path& filePath, cons
         {
             const boost::filesystem::path  filePath   = buildDir / file.m_id;
             const mega::U64                szFileSize = boost::filesystem::file_size( filePath );
-            ReadArchive::Pimpl::SourceType fileSource( filePath.string() );
+            ReadArchive::Pimpl::SourceType fileSource( filePath.string(), std::ios::binary | std::ios::in);
             ReadArchive::Pimpl::StreamType istream( fileSource );
             boost::iostreams::eds_copy( istream, ofStream, szFileSize );
         }

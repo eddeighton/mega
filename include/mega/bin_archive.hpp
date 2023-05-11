@@ -26,19 +26,7 @@
 
 #include "common/assert_verify.hpp"
 
-#include <boost/archive/binary_iarchive_impl.hpp>
-#include <boost/archive/binary_oarchive_impl.hpp>
-
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-
-#include <boost/archive/basic_binary_iprimitive.hpp>
-#include <boost/archive/basic_binary_oprimitive.hpp>
-
-#include <boost/archive/impl/basic_binary_iarchive.ipp>
-#include <boost/archive/impl/basic_binary_oarchive.ipp>
-#include <boost/archive/impl/basic_binary_iprimitive.ipp>
-#include <boost/archive/impl/basic_binary_oprimitive.ipp>
+#include "mega/boost_serialization_workaround.hpp"
 
 #include <boost/interprocess/streams/vectorstream.hpp>
 

@@ -176,8 +176,8 @@ void Leaf::setActiveProject( const Project& currentProject )
                     }
                     catch( std::exception& ex )
                     {
-                        SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
-                                    currentProject.getProjectInstallPath().string(), ex.what() );
+                        SPDLOG_ERROR( "Leaf: {} setActiveProject failed to initialise project: {} error: {}",
+                                    m_mp, currentProject.getProjectInstallPath().string(), ex.what() );
                         throw;
                     }
                 }

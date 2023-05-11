@@ -37,6 +37,13 @@ IF( ${WIN32} )
 
 add_definitions(-D_WIN32_WINNT=0x0601)
 add_definitions(-DNOMINMAX -D_NOMINMAX)
+add_definitions(-DMTd )
+
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /O2 /Ob1 /D NDEBUG ")
+set( CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /Zi /O2 /Ob1 /D NDEBUG ")
+
+string(APPEND CMAKE_EXE_LINKER_FLAGS " /DEBUG /OPT:ICF /OPT:REF")
+string(APPEND CMAKE_SHARED_LINKER_FLAGS " /DEBUG /OPT:ICF /OPT:REF")
 
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:DebugDLL>")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")

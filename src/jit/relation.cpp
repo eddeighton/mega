@@ -20,7 +20,7 @@
 
 #include "relation.hpp"
 
-#include "symbol_utils.hpp"
+#include "symbol.hpp"
 
 #include "database/jit_database.hpp"
 
@@ -35,30 +35,14 @@ Relation::Relation( const RelationID& relationID, JITDatabase& database, JITComp
 {
     SPDLOG_TRACE( "Relation::ctor for {}.{}", relationID.getLower(), relationID.getUpper() );
 
-    {
-        std::ostringstream os;
-        symbolPrefix( "link_make_", relationID, os );
-        os << "N4mega9referenceES0_";
-        m_pMake = pModule->get< relation::LinkMake::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "link_break_", relationID, os );
-        os << "N4mega9referenceES0_";
-        m_pBreak = pModule->get< relation::LinkBreak::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "link_overwrite_", relationID, os );
-        os << "N4mega9referenceES0_";
-        m_pOverwrite = pModule->get< relation::LinkOverwrite::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "link_reset_", relationID, os );
-        os << "N4mega9referenceES0_";
-        m_pReset = pModule->get< relation::LinkReset::FunctionPtr >( os.str() );
-    }
+    m_pMake = pModule->get< relation::LinkMake::FunctionPtr >( 
+        Symbol( "link_make_", relationID, Symbol::Ref_Ref ) );
+    m_pBreak = pModule->get< relation::LinkBreak::FunctionPtr >( 
+        Symbol( "link_break_", relationID, Symbol::Ref_Ref ) );
+    m_pOverwrite = pModule->get< relation::LinkOverwrite::FunctionPtr >( 
+        Symbol( "link_overwrite_", relationID, Symbol::Ref_Ref ) );
+    m_pReset = pModule->get< relation::LinkReset::FunctionPtr >( 
+        Symbol( "link_reset_", relationID, Symbol::Ref_Ref ) );
 }
 
 } // namespace mega::runtime

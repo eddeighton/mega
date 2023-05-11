@@ -252,7 +252,7 @@ public:
     {
         VERIFY_RTE( !m_bCompleted );
         m_bCompleted = true;
-        taskProgress.onCompleted( TaskReport{ TaskReport::eFAILED, m_taskName }.str() );
+        taskProgress.onFailed( TaskReport{ TaskReport::eFAILED, m_taskName }.str() );
     }
 
     void msg( mega::pipeline::Progress& taskProgress, const std::string& strMsg )

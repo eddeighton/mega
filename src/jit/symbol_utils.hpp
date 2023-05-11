@@ -20,10 +20,7 @@
 #ifndef SYMBOL_UTILS_SEPT_19_2022
 #define SYMBOL_UTILS_SEPT_19_2022
 
-#include "mega/relation_id.hpp"
-#include "mega/relation_io.hpp"
-#include "mega/reference.hpp"
-#include "mega/invocation_io.hpp"
+#include "mega/type_id.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -39,46 +36,6 @@ static inline std::string printTypeID( const TypeID& typeID )
     std::ostringstream os;
     os << "0x" << std::hex << std::setfill( '0' ) << std::setw( 4 ) << typeID.getSymbolID();
     return os.str();
-}
-
-static inline void symbolPrefix( const char* prefix, std::ostream& os )
-{
-    std::ostringstream osTypeID;
-    osTypeID << prefix;
-    os << "_Z" << osTypeID.str().size() << osTypeID.str();
-}
-
-static inline void symbolPrefix( const char* prefix, RelationID relationID, std::ostream& os )
-{
-    using ::operator<<;
-    std::ostringstream osTypeID;
-    osTypeID << prefix << relationID;
-    os << "_Z" << osTypeID.str().size() << osTypeID.str();
-}
-
-static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, std::ostream& os )
-{
-    using ::           operator<<;
-    std::ostringstream osTypeID;
-    osTypeID << prefix << printTypeID( objectTypeID );
-    os << "_Z" << osTypeID.str().size() << osTypeID.str();
-}
-
-static inline void symbolPrefix( const mega::InvocationID& invocationID, std::ostream& os )
-{
-    using ::           operator<<;
-    std::ostringstream osTypeID;
-    osTypeID << invocationID;
-    os << "_Z" << osTypeID.str().size() << osTypeID.str();
-}
-
-static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, mega::TypeID objectTypeID2,
-                                 std::ostream& os )
-{
-    using ::           operator<<;
-    std::ostringstream osTypeID;
-    osTypeID << prefix << printTypeID( objectTypeID ) << '_' << printTypeID( objectTypeID2 );
-    os << "_Z" << osTypeID.str().size() << osTypeID.str();
 }
 
 static std::string megaMangle( const std::string& strCanonicalTypeName )

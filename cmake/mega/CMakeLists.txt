@@ -110,6 +110,8 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/allocator.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
     ${MEGA_API_DIR}/mega/bin_archive.hpp
+    ${MEGA_API_DIR}/mega/boost_serialization_workaround.hpp
+    ${MEGA_API_DIR}/mega/boost_serialization_xml_workaround.hpp
     ${MEGA_API_DIR}/mega/clock.hpp
     ${MEGA_API_DIR}/mega/common_strings.hpp 
     ${MEGA_API_DIR}/mega/coroutine.hpp
@@ -121,6 +123,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/invocation_id.hpp
     ${MEGA_API_DIR}/mega/invocation_io.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
+    ${MEGA_API_DIR}/mega/json_io.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
     ${MEGA_API_DIR}/mega/maths_types.hpp
     ${MEGA_API_DIR}/mega/maths_types_io.hpp

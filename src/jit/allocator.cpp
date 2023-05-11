@@ -19,7 +19,7 @@
 
 #include "allocator.hpp"
 
-#include "symbol_utils.hpp"
+#include "symbol.hpp"
 
 #include "database/jit_database.hpp"
 
@@ -35,56 +35,22 @@ Allocator::Allocator( TypeID objectTypeID, JITDatabase& database, JITCompiler::M
 {
     SPDLOG_TRACE( "Allocator::ctor for {}", m_objectTypeID );
 
-    {
-        std::ostringstream os;
-        symbolPrefix( "ctor_", objectTypeID, os );
-        os << "Pv";
-        m_pCtor = pModule->get< object::ObjectCtor::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "dtor_", objectTypeID, os );
-        os << "Pv";
-        m_pDtor = pModule->get< object::ObjectDtor::FunctionPtr >( os.str() );
-    }
-
-    {
-        std::ostringstream os;
-        symbolPrefix( "save_object_bin_", objectTypeID, os );
-        os << "PvS_";
-        m_pSaveBin = pModule->get< object::ObjectSaveBin::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "load_object_bin_", objectTypeID, os );
-        os << "PvS_";
-        m_pLoadBin = pModule->get< object::ObjectLoadBin::FunctionPtr >( os.str() );
-    }
-
-    {
-        std::ostringstream os;
-        symbolPrefix( "save_object_xml_structure_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
-        m_pSaveXMLStructure = pModule->get< object::ObjectSaveXMLStructure::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "load_object_xml_structure_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
-        m_pLoadXMLStructure = pModule->get< object::ObjectLoadXMLStructure::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "save_object_xml_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
-        m_pSaveXML = pModule->get< object::ObjectSaveXML::FunctionPtr >( os.str() );
-    }
-    {
-        std::ostringstream os;
-        symbolPrefix( "load_object_xml_", objectTypeID, os );
-        os << "N4mega9referenceEPv";
-        m_pLoadXML = pModule->get< object::ObjectLoadXML::FunctionPtr >( os.str() );
-    }
+    m_pCtor = pModule->get< object::ObjectCtor::FunctionPtr >( 
+        Symbol( "ctor_", objectTypeID, Symbol::VStar ) );
+    m_pDtor = pModule->get< object::ObjectDtor::FunctionPtr >( 
+        Symbol( "dtor_", objectTypeID, Symbol::VStar ) );
+    m_pSaveBin = pModule->get< object::ObjectSaveBin::FunctionPtr >( 
+        Symbol( "save_object_bin_", objectTypeID, Symbol::VStar_VStar ) );
+    m_pLoadBin = pModule->get< object::ObjectLoadBin::FunctionPtr >( 
+        Symbol( "load_object_bin_", objectTypeID, Symbol::VStar_VStar ) );
+    m_pSaveXMLStructure = pModule->get< object::ObjectSaveXMLStructure::FunctionPtr >(  
+        Symbol( "save_object_xml_structure_", objectTypeID, Symbol::Ref_VStar ) );
+    m_pLoadXMLStructure = pModule->get< object::ObjectLoadXMLStructure::FunctionPtr >(
+        Symbol( "load_object_xml_structure_", objectTypeID, Symbol::Ref_VStar ) );
+    m_pSaveXML = pModule->get< object::ObjectSaveXML::FunctionPtr >(
+        Symbol( "save_object_xml_", objectTypeID, Symbol::Ref_VStar ) );
+    m_pLoadXML = pModule->get< object::ObjectLoadXML::FunctionPtr >( 
+        Symbol( "load_object_xml_", objectTypeID, Symbol::Ref_VStar ) );
 }
 
 } // namespace mega::runtime

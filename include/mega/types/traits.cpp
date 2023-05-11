@@ -19,10 +19,12 @@
 
 #include "traits.hpp"
 
-
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
+
 #include "mega/xml_archive.hpp"
+#include "mega/record_archive.hpp"
+#include "mega/bin_archive.hpp"
 
 #include "traits.hpp"
 

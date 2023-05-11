@@ -29,21 +29,7 @@
 
 #include "common/file.hpp"
 
-#include <boost/archive/basic_xml_archive.hpp>
-#include <boost/archive/basic_xml_iarchive.hpp>
-#include <boost/archive/basic_xml_oarchive.hpp>
-
-#include "W:\root\thirdparty\boost\src\libs\serialization\src\basic_xml_grammar.ipp"
-
-// #include <boost/archive/impl/basic_xml_grammar.hpp>
-#include <boost/archive/impl/basic_xml_iarchive.ipp>
-#include <boost/archive/impl/basic_xml_oarchive.ipp>
-#include <boost/archive/impl/xml_iarchive_impl.ipp>
-#include <boost/archive/impl/xml_oarchive_impl.ipp>
-
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/serialization/nvp.hpp>
+#include "mega/boost_serialization_xml_workaround.hpp"
 
 #include <list>
 #include <string>

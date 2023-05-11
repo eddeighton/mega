@@ -27,12 +27,6 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get clang
 #include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
 
-#get json
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
-
-#get inja
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
-
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -79,8 +73,6 @@ link_boost( utilities filesystem )
 link_boost( utilities iostreams )
 link_boost( utilities serialization )
 #link_clang( utilities )
-link_json( utilities )
-link_inja( utilities )
 link_common( utilities )
 
 install( FILES ${UTILITIES_HEADERS} DESTINATION include/utilities )

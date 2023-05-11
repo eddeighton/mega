@@ -23,6 +23,8 @@
 
 #include "database/model/FinalStage.hxx"
 
+#include "mega/json_io.hpp"
+
 #include "nlohmann/json.hpp"
 
 #include <set>

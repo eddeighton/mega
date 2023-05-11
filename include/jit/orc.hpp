@@ -20,19 +20,8 @@
 #ifndef JIT_8_AUG_2022
 #define JIT_8_AUG_2022
 
-#if defined( _WIN32 )
-#   ifdef MEGA_ORC_API_SHARED_MODULE
-#       define ORC_EXPORT __declspec( dllexport )
-#   else
-#       define ORC_EXPORT __declspec( dllimport )
-#   endif
-#elif defined( __GNUC__ )
-#   ifdef MEGA_ORC_API_SHARED_MODULE
-#       define ORC_EXPORT __attribute__( ( visibility( "default" ) ) )
-#   else
-#       define ORC_EXPORT
-#   endif
-#endif
+#include "orc_api.hpp"
+#include "symbol.hpp"
 
 #include "utilities/megastructure_installation.hpp"
 
@@ -54,15 +43,14 @@ public:
         friend class JITCompiler;
         virtual ~Module() = 0;
 
+        virtual void* getRawFunctionPtr( const std::string& strSymbol ) = 0;
     public:
         using Ptr = std::shared_ptr< Module >;
 
-        virtual void* getRawFunctionPtr( const std::string& strSymbol ) = 0;
-
         template< typename FunctionType >
-        FunctionType get( const std::string& strSymbol )
+        FunctionType get( const Symbol& symbol )
         {
-            return reinterpret_cast< FunctionType >( getRawFunctionPtr( strSymbol ) );
+            return reinterpret_cast< FunctionType >( getRawFunctionPtr( symbol.get() ) );
         }
     };
  

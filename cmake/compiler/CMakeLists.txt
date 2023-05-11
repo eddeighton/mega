@@ -24,6 +24,12 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -154,6 +160,8 @@ target_include_directories( compiler PUBLIC ${MEGA_API_DIR} )
 link_boost( compiler system )
 link_boost( compiler filesystem )
 link_boost( compiler serialization )
+link_json( compiler )
+link_inja( compiler )
 link_common( compiler )
 
 
