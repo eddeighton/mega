@@ -6171,6 +6171,385 @@ namespace PerSourceConcreteTable
     }
         
 }
+namespace MetaAnalysis
+{
+    // struct Meta_Plan : public mega::io::Object
+    Meta_Plan::Meta_Plan( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MetaAnalysis::Meta_Plan >( loader, this ) )          , p_Concrete_Concrete_Action( loader )
+    {
+    }
+    bool Meta_Plan::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::MetaAnalysis::Meta_Plan >( loader, const_cast< Meta_Plan* >( this ) ) };
+    }
+    void Meta_Plan::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Action->m_inheritance = data::Ptr< data::MetaAnalysis::Meta_Plan >( p_Concrete_Concrete_Action, this );
+    }
+    void Meta_Plan::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Action );
+    }
+    void Meta_Plan::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Action );
+    }
+    void Meta_Plan::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Meta_Plan" },
+                { "filetype" , "MetaAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Meta_Animation : public mega::io::Object
+    Meta_Animation::Meta_Animation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MetaAnalysis::Meta_Animation >( loader, this ) )          , p_Concrete_Concrete_Action( loader )
+    {
+    }
+    bool Meta_Animation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::MetaAnalysis::Meta_Animation >( loader, const_cast< Meta_Animation* >( this ) ) };
+    }
+    void Meta_Animation::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Action->m_inheritance = data::Ptr< data::MetaAnalysis::Meta_Animation >( p_Concrete_Concrete_Action, this );
+    }
+    void Meta_Animation::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Action );
+    }
+    void Meta_Animation::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Action );
+    }
+    void Meta_Animation::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Meta_Animation" },
+                { "filetype" , "MetaAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Meta_Automata : public mega::io::Object
+    Meta_Automata::Meta_Automata( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MetaAnalysis::Meta_Automata >( loader, this ) )          , p_Concrete_Concrete_Action( loader )
+    {
+    }
+    bool Meta_Automata::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::MetaAnalysis::Meta_Automata >( loader, const_cast< Meta_Automata* >( this ) ) };
+    }
+    void Meta_Automata::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Action->m_inheritance = data::Ptr< data::MetaAnalysis::Meta_Automata >( p_Concrete_Concrete_Action, this );
+    }
+    void Meta_Automata::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Action );
+    }
+    void Meta_Automata::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Action );
+    }
+    void Meta_Automata::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Meta_Automata" },
+                { "filetype" , "MetaAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+}
+namespace AutomataAnalysis
+{
+    // struct Automata_Node : public mega::io::Object
+    Automata_Node::Automata_Node( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Node >( loader, this ) )    {
+    }
+    Automata_Node::Automata_Node( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AutomataAnalysis::Automata_Node > >& nodes)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Node >( loader, this ) )          , nodes( nodes )
+    {
+    }
+    bool Automata_Node::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Node >( loader, const_cast< Automata_Node* >( this ) ) };
+    }
+    void Automata_Node::set_inheritance_pointer()
+    {
+    }
+    void Automata_Node::load( mega::io::Loader& loader )
+    {
+        loader.load( nodes );
+    }
+    void Automata_Node::store( mega::io::Storer& storer ) const
+    {
+        storer.store( nodes );
+    }
+    void Automata_Node::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Automata_Node" },
+                { "filetype" , "AutomataAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "nodes", nodes } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Automata_Start : public mega::io::Object
+    Automata_Start::Automata_Start( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Start >( loader, this ) )          , p_MetaAnalysis_Meta_Automata( loader )
+    {
+    }
+    Automata_Start::Automata_Start( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AutomataAnalysis::Automata_Node > >& nodes)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Start >( loader, this ) )          , p_MetaAnalysis_Meta_Automata( loader )
+          , nodes( nodes )
+    {
+    }
+    bool Automata_Start::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Start >( loader, const_cast< Automata_Start* >( this ) ) };
+    }
+    void Automata_Start::set_inheritance_pointer()
+    {
+        p_MetaAnalysis_Meta_Automata->m_inheritance = data::Ptr< data::AutomataAnalysis::Automata_Start >( p_MetaAnalysis_Meta_Automata, this );
+    }
+    void Automata_Start::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MetaAnalysis_Meta_Automata );
+        loader.load( nodes );
+    }
+    void Automata_Start::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MetaAnalysis_Meta_Automata );
+        storer.store( nodes );
+    }
+    void Automata_Start::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Automata_Start" },
+                { "filetype" , "AutomataAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "nodes", nodes } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Automata_Literal : public mega::io::Object
+    Automata_Literal::Automata_Literal( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Literal >( loader, this ) )          , p_AutomataAnalysis_Automata_Node( loader )
+          , p_Operations_Automata_Literal( loader )
+    {
+    }
+    Automata_Literal::Automata_Literal( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& value)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Literal >( loader, this ) )          , p_AutomataAnalysis_Automata_Node( loader )
+          , p_Operations_Automata_Literal( loader )
+          , value( value )
+    {
+    }
+    bool Automata_Literal::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Literal >( loader, const_cast< Automata_Literal* >( this ) ) };
+    }
+    void Automata_Literal::set_inheritance_pointer()
+    {
+        p_AutomataAnalysis_Automata_Node->m_inheritance = data::Ptr< data::AutomataAnalysis::Automata_Literal >( p_AutomataAnalysis_Automata_Node, this );
+    }
+    void Automata_Literal::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AutomataAnalysis_Automata_Node );
+        loader.load( value );
+    }
+    void Automata_Literal::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AutomataAnalysis_Automata_Node );
+        storer.store( value );
+    }
+    void Automata_Literal::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Automata_Literal" },
+                { "filetype" , "AutomataAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "value", value } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Automata_Block : public mega::io::Object
+    Automata_Block::Automata_Block( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Block >( loader, this ) )          , p_AutomataAnalysis_Automata_Node( loader )
+    {
+    }
+    bool Automata_Block::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Block >( loader, const_cast< Automata_Block* >( this ) ) };
+    }
+    void Automata_Block::set_inheritance_pointer()
+    {
+        p_AutomataAnalysis_Automata_Node->m_inheritance = data::Ptr< data::AutomataAnalysis::Automata_Block >( p_AutomataAnalysis_Automata_Node, this );
+    }
+    void Automata_Block::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AutomataAnalysis_Automata_Node );
+    }
+    void Automata_Block::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AutomataAnalysis_Automata_Node );
+    }
+    void Automata_Block::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Automata_Block" },
+                { "filetype" , "AutomataAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Automata_Repeat : public mega::io::Object
+    Automata_Repeat::Automata_Repeat( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Repeat >( loader, this ) )          , p_AutomataAnalysis_Automata_Block( loader )
+    {
+    }
+    bool Automata_Repeat::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Repeat >( loader, const_cast< Automata_Repeat* >( this ) ) };
+    }
+    void Automata_Repeat::set_inheritance_pointer()
+    {
+        p_AutomataAnalysis_Automata_Block->m_inheritance = data::Ptr< data::AutomataAnalysis::Automata_Repeat >( p_AutomataAnalysis_Automata_Block, this );
+    }
+    void Automata_Repeat::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AutomataAnalysis_Automata_Block );
+    }
+    void Automata_Repeat::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AutomataAnalysis_Automata_Block );
+    }
+    void Automata_Repeat::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Automata_Repeat" },
+                { "filetype" , "AutomataAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Automata_Alternative : public mega::io::Object
+    Automata_Alternative::Automata_Alternative( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Alternative >( loader, this ) )          , p_AutomataAnalysis_Automata_Block( loader )
+    {
+    }
+    bool Automata_Alternative::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Alternative >( loader, const_cast< Automata_Alternative* >( this ) ) };
+    }
+    void Automata_Alternative::set_inheritance_pointer()
+    {
+        p_AutomataAnalysis_Automata_Block->m_inheritance = data::Ptr< data::AutomataAnalysis::Automata_Alternative >( p_AutomataAnalysis_Automata_Block, this );
+    }
+    void Automata_Alternative::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AutomataAnalysis_Automata_Block );
+    }
+    void Automata_Alternative::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AutomataAnalysis_Automata_Block );
+    }
+    void Automata_Alternative::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Automata_Alternative" },
+                { "filetype" , "AutomataAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Automata_Interupt : public mega::io::Object
+    Automata_Interupt::Automata_Interupt( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AutomataAnalysis::Automata_Interupt >( loader, this ) )          , p_AutomataAnalysis_Automata_Block( loader )
+    {
+    }
+    bool Automata_Interupt::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AutomataAnalysis::Automata_Interupt >( loader, const_cast< Automata_Interupt* >( this ) ) };
+    }
+    void Automata_Interupt::set_inheritance_pointer()
+    {
+        p_AutomataAnalysis_Automata_Block->m_inheritance = data::Ptr< data::AutomataAnalysis::Automata_Interupt >( p_AutomataAnalysis_Automata_Block, this );
+    }
+    void Automata_Interupt::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AutomataAnalysis_Automata_Block );
+    }
+    void Automata_Interupt::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AutomataAnalysis_Automata_Block );
+    }
+    void Automata_Interupt::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Automata_Interupt" },
+                { "filetype" , "AutomataAnalysis" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+}
 namespace Operations
 {
     // struct Invocations_Variables_Variable : public mega::io::Object
@@ -8386,9 +8765,52 @@ namespace Operations
         }
     }
         
-}
-namespace MetaAnalysis
-{
+    // struct Automata_Literal : public mega::io::Object
+    Automata_Literal::Automata_Literal( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_AutomataAnalysis_Automata_Literal( loader )
+    {
+    }
+    Automata_Literal::Automata_Literal( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< AutomataAnalysis::Automata_Literal > p_AutomataAnalysis_Automata_Literal, const std::vector< data::Ptr< data::Concrete::Concrete_Action > >& sequence)
+        :   mega::io::Object( objectInfo )          , p_AutomataAnalysis_Automata_Literal( p_AutomataAnalysis_Automata_Literal )
+          , sequence( sequence )
+    {
+    }
+    bool Automata_Literal::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Automata_Literal::set_inheritance_pointer()
+    {
+        p_AutomataAnalysis_Automata_Literal->p_Operations_Automata_Literal = data::Ptr< data::Operations::Automata_Literal >( p_AutomataAnalysis_Automata_Literal, this );
+    }
+    void Automata_Literal::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AutomataAnalysis_Automata_Literal );
+        loader.load( sequence );
+    }
+    void Automata_Literal::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AutomataAnalysis_Automata_Literal );
+        storer.store( sequence );
+    }
+    void Automata_Literal::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Automata_Literal" },
+                { "filetype" , "Operations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "sequence", sequence } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
 }
 namespace UnityAnalysis
 {
@@ -8743,6 +9165,52 @@ namespace SchematicSpawnPoints
 {
 }
 
+std::vector< data::Ptr< data::Concrete::Concrete_Action > >& Automata_Literal_push_back_sequence(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Literal::Object_Part_Type_ID:
+            return data::convert< data::Operations::Automata_Literal >( m_data )->sequence;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Node > >& Automata_Node_push_back_nodes(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Node::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Literal::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Block::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Repeat::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Alternative::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Interupt::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Node > >& Automata_Start_push_back_nodes(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Start >( m_data )->nodes;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< std::string >& Components_Component_push_back_cpp_defines(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -10039,6 +10507,64 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& get_Allocators_A
         }
     }
 }
+std::vector< data::Ptr< data::Concrete::Concrete_Action > >& get_Automata_Literal_sequence(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Literal::Object_Part_Type_ID:
+            return data::convert< data::Operations::Automata_Literal >( m_data )->sequence;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& get_Automata_Literal_value(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Literal::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Literal >( m_data )->value;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Node > >& get_Automata_Node_nodes(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Node::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Literal::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Block::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Repeat::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Alternative::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Interupt::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Node > >& get_Automata_Start_nodes(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Start >( m_data )->nodes;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 boost::filesystem::path& get_Components_Component_build_dir(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -10223,6 +10749,14 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Concre
             return data::convert< data::Concrete::Concrete_Namespace >( m_data )->dimensions;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Object >( m_data )->dimensions;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Action >( m_data )->dimensions;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Action >( m_data )->dimensions;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Action >( m_data )->dimensions;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Action >( m_data )->dimensions;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10234,6 +10768,14 @@ data::Ptr< data::Tree::Interface_Action >& get_Concrete_Action_interface_action(
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Action >( m_data )->interface_action;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Action >( m_data )->interface_action;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Action >( m_data )->interface_action;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Action >( m_data )->interface_action;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Action >( m_data )->interface_action;
         default:
         {
@@ -10249,6 +10791,14 @@ mega::U64& get_Concrete_Action_local_size(data::Variant& m_data)
             return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->local_size;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->local_size;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->local_size;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->local_size;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->local_size;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->local_size;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10267,6 +10817,14 @@ mega::U64& get_Concrete_Action_total_size(data::Variant& m_data)
             return data::convert< data::MemoryLayout::Concrete_Link >( m_data )->total_size;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Buffer >( m_data )->total_size;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->total_size;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->total_size;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->total_size;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->total_size;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10311,6 +10869,14 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Concrete_Conte
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10338,6 +10904,14 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& g
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         default:
         {
@@ -10367,6 +10941,14 @@ data::Ptr< data::MemoryLayout::Allocators_Allocator >& get_Concrete_Context_allo
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10394,6 +10976,14 @@ data::Ptr< data::Components::Components_Component >& get_Concrete_Context_compon
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         default:
         {
@@ -10423,6 +11013,14 @@ mega::TypeID& get_Concrete_Context_concrete_id(data::Variant& m_data)
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10445,11 +11043,19 @@ std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& 
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         default:
         {
@@ -10473,11 +11079,19 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_Concrete_Context
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         default:
         {
@@ -10507,6 +11121,14 @@ data::Ptr< data::Tree::Interface_IContext >& get_Concrete_Context_interface(data
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10529,11 +11151,19 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& get_Concrete_Context_parent(
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::MetaAnalysis::Meta_Plan::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::MetaAnalysis::Meta_Animation::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::MetaAnalysis::Meta_Automata::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         default:
         {
@@ -14099,6 +14729,64 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& set_Allocators_A
             return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
         case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Concrete::Concrete_Action > >& set_Automata_Literal_sequence(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Literal::Object_Part_Type_ID:
+            return data::convert< data::Operations::Automata_Literal >( m_data )->sequence;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& set_Automata_Literal_value(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Literal::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Literal >( m_data )->value;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Node > >& set_Automata_Node_nodes(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Node::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Literal::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Block::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Repeat::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Alternative::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        case data::AutomataAnalysis::Automata_Interupt::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Node >( m_data )->nodes;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AutomataAnalysis::Automata_Node > >& set_Automata_Start_nodes(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AutomataAnalysis::Automata_Start::Object_Part_Type_ID:
+            return data::convert< data::AutomataAnalysis::Automata_Start >( m_data )->nodes;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -18132,6 +18820,16 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 102: return new PerSourceConcreteTable::Concrete_Dimensions_LinkReference( loader, objectInfo );
         case 106: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
         case 110: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 164: return new MetaAnalysis::Meta_Plan( loader, objectInfo );
+        case 165: return new MetaAnalysis::Meta_Animation( loader, objectInfo );
+        case 166: return new MetaAnalysis::Meta_Automata( loader, objectInfo );
+        case 173: return new AutomataAnalysis::Automata_Node( loader, objectInfo );
+        case 174: return new AutomataAnalysis::Automata_Start( loader, objectInfo );
+        case 175: return new AutomataAnalysis::Automata_Literal( loader, objectInfo );
+        case 177: return new AutomataAnalysis::Automata_Block( loader, objectInfo );
+        case 178: return new AutomataAnalysis::Automata_Repeat( loader, objectInfo );
+        case 179: return new AutomataAnalysis::Automata_Alternative( loader, objectInfo );
+        case 180: return new AutomataAnalysis::Automata_Interupt( loader, objectInfo );
         case 61: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
         case 62: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
         case 63: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
@@ -18180,12 +18878,13 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 135: return new Operations::Operations_NameResolution( loader, objectInfo );
         case 136: return new Operations::Operations_Invocation( loader, objectInfo );
         case 137: return new Operations::Operations_Invocations( loader, objectInfo );
-        case 164: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
-        case 165: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
-        case 166: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
-        case 167: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
-        case 168: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
-        case 169: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
+        case 176: return new Operations::Automata_Literal( loader, objectInfo );
+        case 167: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
+        case 168: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
+        case 169: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
+        case 170: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
+        case 171: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
+        case 172: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

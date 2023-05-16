@@ -85,7 +85,10 @@ set( JINJA_TEMPLATES
 	)
 
 set( COMPILER_TASKS
+    ${MEGA_SRC_DIR}/compiler/automata.hpp
+    ${MEGA_SRC_DIR}/compiler/automata.cpp
     ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
+    ${MEGA_SRC_DIR}/compiler/task_automata.cpp
     ${MEGA_SRC_DIR}/compiler/task_complete.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete_id.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp

@@ -47,6 +47,7 @@ set( MEGA_DATABASE_GENERATED_SOURCES
 
 
 set( MEGA_DATABASE_INTERFACE_NAMES
+    AutomataStage
     ComponentListing
     ComponentListingView
     ConcreteStage
@@ -109,6 +110,7 @@ set( DATABASE_SCHEMAS
         ${MEGA_SRC_DIR}/database/concrete.dbs
         ${MEGA_SRC_DIR}/database/operations.dbs
         ${MEGA_SRC_DIR}/database/analysis.dbs
+        ${MEGA_SRC_DIR}/database/automata.dbs
         )
 
 set( COMPILER_OUTPUTS 

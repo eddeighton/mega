@@ -35,9 +35,13 @@ include_directories( ${MEGA_SRC_DIR} )
 
 set( MEGA_UNIT_TESTS_DIR ${MEGA_TEST_DIR}/unit_tests )
 
+set( COMPILER_SRC
+	${MEGA_SRC_DIR}/compiler/automata.cpp )
+
 set( MEGA_UNIT_TESTS
 	#${MEGA_UNIT_TESTS_DIR}/scheduler_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/asio_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/automata_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/compiler_pipeline_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/database_tests.cpp 
 	${MEGA_UNIT_TESTS_DIR}/glob_tests.cpp
@@ -58,7 +62,7 @@ set( MEGA_UNIT_TESTS_DATA
 
 enable_testing()
 
-add_executable( mega_tests ${MEGA_UNIT_TESTS} ${MEGA_UNIT_TESTS_DIR}/main_test_runner.cpp )
+add_executable( mega_tests ${MEGA_UNIT_TESTS} ${COMPILER_SRC} ${MEGA_UNIT_TESTS_DIR}/main_test_runner.cpp )
 
 IF( ${WIN32} )
 target_compile_options( mega_tests PUBLIC "/await:strict" )

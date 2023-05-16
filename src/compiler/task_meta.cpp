@@ -31,26 +31,26 @@ namespace mega::compiler
 
 class Task_Meta : public BaseTask
 {
-    const mega::io::manifestFilePath& m_manifest;
+    const mega::io::megaFilePath& m_sourceFilePath;
 
 public:
-    Task_Meta( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
+    Task_Meta( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
-        , m_manifest( manifest )
+        , m_sourceFilePath( sourceFilePath )
     {
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath megaAnalysisCompilationFile
-            = m_environment.MetaStage_MetaAnalysis( m_manifest );
+            = m_environment.MetaStage_MetaAnalysis( m_sourceFilePath );
 
-        start( taskProgress, "Task_Meta", m_manifest.path(), megaAnalysisCompilationFile.path() );
+        start( taskProgress, "Task_Meta", m_sourceFilePath.path(), megaAnalysisCompilationFile.path() );
 
-        // const task::FileHash previousStageHash = m_environment.getBuildHashCode(
-        //    m_environment.OperationsStage_Operations() ( m_schematicFilePath ) );
-
-        const task::DeterminantHash determinant( { m_toolChain.toolChainHash } );
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash,
+              m_environment.getBuildHashCode(
+                  m_environment.DerivationAnalysisRollout_PerSourceDerivations( m_sourceFilePath ) ) } );
 
         if( m_environment.restore( megaAnalysisCompilationFile, determinant ) )
         {
@@ -60,12 +60,42 @@ public:
         }
 
         using namespace MetaStage;
-        Database database( m_environment, m_manifest );
+        Database database( m_environment, m_sourceFilePath );
 
+        using namespace std::string_literals;
+        static const std::vector< std::string > metaTypes = { "IAutomata"s, "IPlan"s };
 
-        
+        for( Concrete::Action* pAction : database.many< Concrete::Action >( m_sourceFilePath ) )
+        {
+            std::string strMetaType;
+            {
+                for( Interface::IContext* pInherited : pAction->get_inheritance() )
+                {
+                    const std::string& strIdentifier = pInherited->get_identifier();
+                    auto               iFind         = std::find( metaTypes.begin(), metaTypes.end(), strIdentifier );
+                    if( iFind != metaTypes.end() )
+                    {
+                        VERIFY_RTE_MSG( strMetaType.empty(),
+                                        "Duplicate meta types detected for action: " << pAction->get_concrete_id() );
+                        strMetaType = *iFind;
+                    }
+                }
+            }
 
-        // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
+            if( strMetaType == "IAutomata" )
+            {
+                database.construct< MetaStage::Meta::Automata >( MetaStage::Meta::Automata::Args{ pAction } );
+                break;
+            }
+            else if( strMetaType == "IPlan" )
+            {
+                database.construct< MetaStage::Meta::Plan >( MetaStage::Meta::Plan::Args{ pAction } );
+            }
+            else
+            {
+                database.construct< MetaStage::Meta::Animation >( MetaStage::Meta::Animation::Args{ pAction } );
+            }
+        }
 
         const task::FileHash fileHashCode = database.save_MetaAnalysis_to_temp();
         m_environment.setBuildHashCode( megaAnalysisCompilationFile, fileHashCode );
@@ -76,9 +106,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Meta( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_Meta( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
 {
-    return std::make_unique< Task_Meta >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_Meta >( taskArguments, sourceFilePath );
 }
 
 } // namespace mega::compiler

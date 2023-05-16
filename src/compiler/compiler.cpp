@@ -346,13 +346,16 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc concreteTypeAnalysis = encode( Task{ eTask_ConcreteTypeAnalysis, manifestFilePath } );
     dependencies.add( concreteTypeAnalysis, globalMemoryRolloutTasks );
 
-    TskDescVec concreteTypeIDRolloutTasks;
+    TskDescVec metaTasks;
     {
         for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc concreteTypeRollout = encode( Task{ eTask_ConcreteTypeRollout, sourceFilePath } );
+            const TskDesc metaTask = encode( Task{ eTask_Meta, sourceFilePath } );
+
             dependencies.add( concreteTypeRollout, TskDescVec{ concreteTypeAnalysis } );
-            concreteTypeIDRolloutTasks.push_back( concreteTypeRollout );
+            dependencies.add( metaTask, TskDescVec{ concreteTypeRollout } );
+            metaTasks.push_back( metaTask );
         }
     }
 
@@ -378,9 +381,9 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                             const TskDesc initialiserObj    = encode( Task{ eTask_InitialiserObject, sourceFilePath } );
                             const TskDesc pythonObj         = encode( Task{ eTask_PythonObject, sourceFilePath } );
 
-                            dependencies.add( operations, concreteTypeIDRolloutTasks );
-                            dependencies.add( pythonWrapper, concreteTypeIDRolloutTasks );
-                            dependencies.add( initialiser, concreteTypeIDRolloutTasks );
+                            dependencies.add( operations, metaTasks );
+                            dependencies.add( pythonWrapper, metaTasks );
+                            dependencies.add( initialiser, metaTasks );
                             dependencies.add( operationsPCH, TskDescVec{ operations } );
                             dependencies.add( implementation, TskDescVec{ operationsPCH } );
                             dependencies.add( implementationObj, TskDescVec{ implementation } );
@@ -419,7 +422,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                         dependencies.add( objectInterfaceGeneration, deps );
                         dependencies.add( objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration } );
 
-                        TskDescVec tasks = concreteTypeIDRolloutTasks;
+                        TskDescVec tasks = metaTasks;
                         tasks.push_back( objectInterfaceAnalysis );
 
                         for( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
@@ -449,14 +452,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    TskDesc meta = encode( Task{ eTask_Meta, manifestFilePath } );
-    dependencies.add( meta, operationsTasks );
-
     TskDesc unityReflection = encode( Task{ eTask_UnityReflection, manifestFilePath } );
     TskDesc unityAnalysis   = encode( Task{ eTask_UnityAnalysis, manifestFilePath } );
     TskDesc unity           = encode( Task{ eTask_Unity, manifestFilePath } );
     TskDesc unityDatabase   = encode( Task{ eTask_UnityDatabase, manifestFilePath } );
-    dependencies.add( unityReflection, TskDescVec{ meta } );
+    dependencies.add( unityReflection, operationsTasks );
     dependencies.add( unityAnalysis, TskDescVec{ unityReflection } );
     dependencies.add( unity, TskDescVec{ unityAnalysis } );
     dependencies.add( unityDatabase, TskDescVec{ unity } );

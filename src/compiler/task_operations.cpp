@@ -19,7 +19,7 @@
 
 #include "base_task.hpp"
 
-#include "database/model/ConcreteStage.hxx"
+#include "database/model/OperationsStage.hxx"
 
 #include "database/types/clang_compilation.hpp"
 
@@ -84,15 +84,15 @@ public:
     {
     }
 
-    void recurse( ConcreteStage::Interface::IContext* pContext,
-                  nlohmann::json&                     data,
-                  CleverUtility::IDList&              namespaces,
-                  CleverUtility::IDList&              types )
+    void recurse( OperationsStage::Interface::IContext* pContext,
+                  nlohmann::json&                       data,
+                  CleverUtility::IDList&                namespaces,
+                  CleverUtility::IDList&                types )
     {
-        using namespace ConcreteStage;
-        using namespace ConcreteStage::Interface;
+        using namespace OperationsStage;
+        using namespace OperationsStage::Interface;
 
-        if ( auto pNamespace = db_cast< Namespace >( pContext ) )
+        if( auto pNamespace = db_cast< Namespace >( pContext ) )
         {
             /*if ( pNamespace->get_is_global() )
             {
@@ -105,64 +105,86 @@ public:
             else*/
             {
                 CleverUtility c( types, pNamespace->get_identifier() );
-                for ( IContext* pNestedContext : pNamespace->get_children() )
+                for( IContext* pNestedContext : pNamespace->get_children() )
                 {
                     recurse( pNestedContext, data, namespaces, types );
                 }
             }
         }
-        else if ( auto pAbstract = db_cast< Abstract >( pContext ) )
+        else if( auto pAbstract = db_cast< Abstract >( pContext ) )
         {
             CleverUtility c( types, pAbstract->get_identifier() );
-            for ( IContext* pNestedContext : pAbstract->get_children() )
+            for( IContext* pNestedContext : pAbstract->get_children() )
             {
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if ( auto pAction = db_cast< Action >( pContext ) )
+        else if( auto pAction = db_cast< Action >( pContext ) )
         {
             CleverUtility c( types, pAction->get_identifier() );
 
-            std::ostringstream osBody;
-            for ( auto pDef : pAction->get_action_defs() )
+            if( auto pAutomata = db_cast< Automata::Start >( pAction ) )
             {
-                if ( !pDef->get_body().empty() )
-                {
-                    osBody << pDef->get_body();
-                    break;
-                }
+                std::ostringstream osBody;
+
+                osBody << "\nco_return mega::done();";
+
+                nlohmann::json operation( { { "return_type", "mega::ActionCoroutine" },
+                                            { "body", osBody.str() },
+                                            { "hash", common::Hash{ osBody.str() }.toHexString() },
+                                            { "typeID", pAction->get_interface_id().getSymbolID() },
+                                            { "has_namespaces", !namespaces.empty() },
+                                            { "namespaces", namespaces },
+                                            { "types", types },
+                                            { "params_string", "" },
+                                            { "params", nlohmann::json::array() } } );
+
+                data[ "operations" ].push_back( operation );
             }
-            osBody << "\nco_return mega::done();";
+            else
+            {
+                std::ostringstream osBody;
+                for( auto pDef : pAction->get_action_defs() )
+                {
+                    if( !pDef->get_body().empty() )
+                    {
+                        osBody << pDef->get_body();
+                        break;
+                    }
+                }
 
-            nlohmann::json operation( { { "return_type", "mega::ActionCoroutine" },
-                                        { "body", osBody.str() },
-                                        { "hash", common::Hash{ osBody.str() }.toHexString() },
-                                        { "typeID", pAction->get_interface_id().getSymbolID() },
-                                        { "has_namespaces", !namespaces.empty() },
-                                        { "namespaces", namespaces },
-                                        { "types", types },
-                                        { "params_string", "" },
-                                        { "params", nlohmann::json::array() } } );
+                osBody << "\nco_return mega::done();";
 
-            data[ "operations" ].push_back( operation );
+                nlohmann::json operation( { { "return_type", "mega::ActionCoroutine" },
+                                            { "body", osBody.str() },
+                                            { "hash", common::Hash{ osBody.str() }.toHexString() },
+                                            { "typeID", pAction->get_interface_id().getSymbolID() },
+                                            { "has_namespaces", !namespaces.empty() },
+                                            { "namespaces", namespaces },
+                                            { "types", types },
+                                            { "params_string", "" },
+                                            { "params", nlohmann::json::array() } } );
 
-            for ( IContext* pNestedContext : pAction->get_children() )
+                data[ "operations" ].push_back( operation );
+            }
+
+            for( IContext* pNestedContext : pAction->get_children() )
             {
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if ( auto pEvent = db_cast< Event >( pContext ) )
+        else if( auto pEvent = db_cast< Event >( pContext ) )
         {
         }
-        else if ( auto pFunction = db_cast< Function >( pContext ) )
+        else if( auto pFunction = db_cast< Function >( pContext ) )
         {
             CleverUtility c( types, pFunction->get_identifier() );
 
             std::string strBody;
             {
-                for ( auto pDef : pFunction->get_function_defs() )
+                for( auto pDef : pFunction->get_function_defs() )
                 {
-                    if ( !pDef->get_body().empty() )
+                    if( !pDef->get_body().empty() )
                     {
                         strBody = pDef->get_body();
                         break;
@@ -181,7 +203,7 @@ public:
                                         { "params", nlohmann::json::array() } } );
             {
                 int iParamCounter = 1;
-                for ( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )
+                for( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )
                 {
                     std::ostringstream osParamName;
                     osParamName << "p_" << iParamCounter++;
@@ -192,23 +214,23 @@ public:
 
             data[ "operations" ].push_back( operation );
         }
-        else if ( auto pObject = db_cast< Object >( pContext ) )
+        else if( auto pObject = db_cast< Object >( pContext ) )
         {
             CleverUtility c( types, pObject->get_identifier() );
-            for ( IContext* pNestedContext : pObject->get_children() )
+            for( IContext* pNestedContext : pObject->get_children() )
             {
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if ( auto pLink = db_cast< Link >( pContext ) )
+        else if( auto pLink = db_cast< Link >( pContext ) )
         {
             CleverUtility c( types, pLink->get_identifier() );
-            for ( IContext* pNestedContext : pLink->get_children() )
+            for( IContext* pNestedContext : pLink->get_children() )
             {
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if ( auto pBuffer = db_cast< Buffer >( pContext ) )
+        else if( auto pBuffer = db_cast< Buffer >( pContext ) )
         {
         }
         else
@@ -231,7 +253,7 @@ public:
                   m_environment.ConcreteTypeRollout_PerSourceConcreteTable( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( concreteFile ) } );
 
-        if ( m_environment.restore( operationsFile, determinant ) )
+        if( m_environment.restore( operationsFile, determinant ) )
         {
             m_environment.setBuildHashCode( operationsFile );
             cached( taskProgress );
@@ -239,8 +261,8 @@ public:
         }
 
         {
-            using namespace ConcreteStage;
-            using namespace ConcreteStage::Interface;
+            using namespace OperationsStage;
+            using namespace OperationsStage::Interface;
 
             Database database( m_environment, m_sourceFilePath );
 
@@ -256,7 +278,7 @@ public:
 
                 Interface::Root*      pRoot = database.one< Interface::Root >( m_sourceFilePath );
                 CleverUtility::IDList namespaces, types;
-                for ( IContext* pContext : pRoot->get_children() )
+                for( IContext* pContext : pRoot->get_children() )
                 {
                     recurse( pContext, data, namespaces, types );
                 }
@@ -304,7 +326,7 @@ public:
               m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ) } );
 
-        using namespace ConcreteStage;
+        using namespace OperationsStage;
 
         Database               database( m_environment, m_sourceFilePath );
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
@@ -312,8 +334,8 @@ public:
         const mega::Compilation compilationCMD = mega::Compilation::make_operationsPCH_compilation(
             m_environment, m_toolChain, pComponent, m_sourceFilePath );
 
-        if ( m_environment.restore( operationsPCH, determinant )
-             && m_environment.restore( compilationFile, determinant ) )
+        if( m_environment.restore( operationsPCH, determinant )
+            && m_environment.restore( compilationFile, determinant ) )
         {
             // if( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
             {
@@ -324,7 +346,7 @@ public:
             }
         }
 
-        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
+        if( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             std::ostringstream os;
             os << "Error compiling operations pch file for source file: " << m_sourceFilePath.path();
@@ -334,7 +356,7 @@ public:
         }
         else
         {
-            if ( m_environment.exists( compilationFile ) && m_environment.exists( operationsPCH ) )
+            if( m_environment.exists( compilationFile ) && m_environment.exists( operationsPCH ) )
             {
                 m_environment.setBuildHashCode( compilationFile );
                 m_environment.stash( compilationFile, determinant );

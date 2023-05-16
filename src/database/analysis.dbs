@@ -218,6 +218,19 @@ namespace MemoryLayout
     }
 }
 
+namespace Meta
+{
+    object Plan : Concrete::Action -> MetaStage::MetaAnalysis
+    {
+    }
+    object Animation : Concrete::Action -> MetaStage::MetaAnalysis
+    {
+    }
+    object Automata : Concrete::Action -> MetaStage::MetaAnalysis
+    {
+    }
+}
+
 namespace UnityAnalysis
 {
     object DataBinding -> UnityStage::UnityAnalysis

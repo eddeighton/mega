@@ -301,35 +301,51 @@ stage ConcreteTypeRollout
     global accessor ref< Symbols::SymbolTable >;
 }
 
+stage MetaStage
+{
+    source .mega;
+    dependency ConcreteTypeRollout;
+
+    file MetaAnalysis;
+
+    persource accessor array< ref< Concrete::Action > >;
+    persource accessor array< ref< Concrete::Function > >;
+    persource accessor array< ref< Concrete::Object > >;
+    persource accessor array< ref< Concrete::Event > >;
+    persource accessor array< ref< Concrete::Dimensions::User > >;
+}
+
+stage AutomataStage
+{
+    source .mega;
+    dependency MetaStage;
+
+    file AutomataAnalysis;
+
+    persource accessor array< ref< Meta::Automata > >;
+}
+
 stage OperationsStage
 {
     source .manifest;
     source .mega;
     source .cpp;
-    dependency ConcreteTypeRollout;
+    
+    dependency AutomataStage;
 
     file Operations;
 
     global accessor array< ref< Components::Component > >;
     global accessor ref< Symbols::SymbolTable >;
     global accessor ref< Derivation::Mapping >;
-}
 
-stage MetaStage
-{
-    source .manifest;
-    dependency OperationsStage;
-
-    file MetaAnalysis;
-
-    persource accessor ref< Concrete::Context >;
-
+    persource accessor ref< Interface::Root >;
 }
 
 stage UnityStage
 {
     source .manifest;
-    dependency MetaStage;
+    dependency OperationsStage;
 
     file UnityAnalysis;
 
