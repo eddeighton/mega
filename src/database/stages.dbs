@@ -70,10 +70,24 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Buffer > >;
 }
 
+stage MetaStage
+{
+    source .mega;
+    dependency InterfaceStage;
+
+    file MetaAnalysis;
+
+    persource accessor array< ref< Interface::Action > >;
+    persource accessor array< ref< Interface::Function > >;
+    persource accessor array< ref< Interface::Object > >;
+    persource accessor array< ref< Interface::Event > >;
+    persource accessor array< ref< Interface::DimensionTrait > >;
+}
+
 stage DependencyAnalysis
 {
     source .manifest;
-    dependency InterfaceStage;
+    dependency MetaStage;
 
     file DPGraph;
 
@@ -143,6 +157,7 @@ stage InterfaceAnalysisStage
     persource accessor ref< Interface::Root >;
     persource accessor array< ref< Parser::SystemInclude > >;
     persource accessor array< ref< Parser::CPPInclude > >;
+    persource accessor array< ref< Meta::Automata > >;
 }
 
 stage ConcreteStage
@@ -182,6 +197,8 @@ stage DerivationAnalysisView
     global accessor array< ref< Components::Component > >;
     persource accessor ref< Interface::Root >;
     global accessor ref< Symbols::SymbolTable >;
+
+    global accessor array< ref< Meta::Automata > >;
 }
 
 stage DerivationAnalysisRollout
@@ -301,24 +318,10 @@ stage ConcreteTypeRollout
     global accessor ref< Symbols::SymbolTable >;
 }
 
-stage MetaStage
-{
-    source .mega;
-    dependency ConcreteTypeRollout;
-
-    file MetaAnalysis;
-
-    persource accessor array< ref< Concrete::Action > >;
-    persource accessor array< ref< Concrete::Function > >;
-    persource accessor array< ref< Concrete::Object > >;
-    persource accessor array< ref< Concrete::Event > >;
-    persource accessor array< ref< Concrete::Dimensions::User > >;
-}
-
 stage AutomataStage
 {
     source .mega;
-    dependency MetaStage;
+    dependency ConcreteTypeRollout;
 
     file AutomataAnalysis;
 
@@ -340,12 +343,25 @@ stage OperationsStage
     global accessor ref< Derivation::Mapping >;
 
     persource accessor ref< Interface::Root >;
+    persource accessor array< ref< Automata::Start > >;
+}
+
+stage ValueSpaceStage
+{
+    source .mega;
+
+    dependency OperationsStage;
+
+    file ValueSpace;
+
+    persource accessor array< ref< Automata::Start > >;
+    persource accessor ref< Operations::Invocations >;
 }
 
 stage UnityStage
 {
     source .manifest;
-    dependency OperationsStage;
+    dependency ValueSpaceStage;
 
     file UnityAnalysis;
 
@@ -466,5 +482,6 @@ stage FinalStage
     persource accessor array< ref< Concrete::Dimensions::Allocation > >;
     persource accessor array< ref< HyperGraph::Relation > >;
     persource accessor ref< HyperGraph::Graph >;
+    persource accessor array< ref< Automata::Start > >;
     
 }

@@ -51,10 +51,9 @@ TASK(Meta,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::
 
 TASK(Allocators,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(Operations,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK(AutomataParse,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(Automata,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(OperationsPCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK(AutomataAnalysis,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
-TASK(AutomataObject,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(ValueSpace,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
 TASK(Implementation,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(ImplementationObj,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)

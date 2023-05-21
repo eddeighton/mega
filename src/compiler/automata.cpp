@@ -20,25 +20,35 @@
 
 #include "automata.hpp"
 
+#include "common/assert_verify.hpp"
+
 namespace mega::automata
 {
 
 using TokenStringArray = std::array< std::string, TOTAL_TOKENS >;
 
-static const TokenStringArray g_tokenStrings
-    = { std::string{ "{" },  std::string{ "}" },      std::string{ "maybe" },
-        std::string{ "or" }, std::string{ "repeat" }, std::string{ "interupt" } };
+// clang-format off
+static const TokenStringArray g_tokenStrings = { 
+    std::string{ "}" },
+    std::string{ "seq" },
+    std::string{ "maybe" },
+    std::string{ "or" },
+    std::string{ "repeat" },
+    std::string{ "interupt" }
+};
+// clang-format on
 
 void tokenise( const std::string& str, TokenVector& tokens )
 {
-    auto iter    = str.cbegin();
-    auto iterEnd = str.cend();
+    auto iter         = str.cbegin();
+    auto iterEnd      = str.cend();
     auto literalBegin = iter;
 
     while( iter != iterEnd )
     {
-        const auto dist = std::distance( iter, iterEnd );
-        int iCounter = 0;
+        const auto dist     = std::distance( iter, iterEnd );
+        int        iCounter = 0;
+        auto       iterNext = iter;
         for( const auto& tok : g_tokenStrings )
         {
             const auto tokenType = static_cast< TokenType >( iCounter );
@@ -46,14 +56,57 @@ void tokenise( const std::string& str, TokenVector& tokens )
             {
                 if( std::equal( iter, iter + tok.size(), tok.cbegin() ) )
                 {
-                    if( literalBegin != iter )
+                    bool bFound = false;
+                    switch( tokenType )
                     {
-                        tokens.push_back( std::string_view{ literalBegin, iter } );
+                        case eBraceClose:
+                        {
+                            iterNext = iter + tok.size();
+                            bFound   = true;
+                        }
+                        break;
+                        default:
+                        {
+                            bool bConsumedOpenBrace = false;
+                            auto iNext              = iter + tok.size();
+                            while( iNext != iterEnd )
+                            {
+                                if( *iNext == '{' )
+                                {
+                                    ++iNext;
+                                    bConsumedOpenBrace = true;
+                                    break;
+                                }
+                                else if( std::isspace( *iNext ) )
+                                {
+                                    ++iNext;
+                                }
+                                else
+                                {
+                                    // comments???
+                                    break;
+                                }
+                            }
+
+                            if( bConsumedOpenBrace )
+                            {
+                                iterNext = iNext;
+                                bFound   = true;
+                            }
+                        }
+                        break;
                     }
-                    iter += tok.size();
-                    tokens.push_back( tokenType );
-                    literalBegin = iter;
-                    break;
+                    if( bFound )
+                    {
+                        if( literalBegin != iter )
+                        {
+                            tokens.push_back( std::string_view{ literalBegin, iter } );
+                        }
+                        iter         = iterNext;
+                        literalBegin = iterNext;
+                        tokens.push_back( tokenType );
+                        break;
+                    }
                 }
             }
             ++iCounter;

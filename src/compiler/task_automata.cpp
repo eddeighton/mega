@@ -23,6 +23,7 @@
 #include "automata.hpp"
 
 #include "database/model/AutomataStage.hxx"
+
 #include "database/types/component_type.hpp"
 #include "database/types/sources.hpp"
 
@@ -52,7 +53,8 @@ public:
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash,
-              m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ) } );
+              m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.MetaStage_MetaAnalysis( m_sourceFilePath ) ) } );
 
         if( m_environment.restore( compilationFile, determinant ) )
         {
@@ -70,7 +72,7 @@ public:
             std::string strBody;
             {
                 std::ostringstream osBody;
-                for( auto pDef : pAutomata->get_interface_action()->get_action_defs() )
+                for( auto pDef : pAutomata->get_action_defs() )
                 {
                     if( !pDef->get_body().empty() )
                     {
@@ -84,90 +86,87 @@ public:
             automata::TokenVector tokens;
             automata::tokenise( strBody, tokens );
 
-            Automata::Start* pStart = database.construct< Automata::Start >( Automata::Start::Args{ pAutomata, {} } );
+            Automata::Sequence* pInitialSequenceBlock = database.construct< Automata::Sequence >(
+                Automata::Sequence::Args{ Automata::Block::Args{ Automata::Node::Args{ {} }, 0 } } );
+            Automata::Start* pStart
+                = database.construct< Automata::Start >( Automata::Start::Args{ pAutomata, pInitialSequenceBlock } );
 
             using NodeStack = std::vector< Automata::Node* >;
-            NodeStack stack;
+            NodeStack stack{ pInitialSequenceBlock };
+            mega::U64 blockID = 1;
             struct Visitor
             {
-                Database&        m_database;
-                Automata::Start* m_pStart;
-                NodeStack&       m_stack;
-                Visitor( Database& database, Automata::Start* pStart, NodeStack& stack )
+                Database&  m_database;
+                NodeStack& m_stack;
+                mega::U64& m_blockID;
+                Visitor( Database& database, NodeStack& stack, mega::U64& blockID )
                     : m_database( database )
-                    , m_pStart( pStart )
                     , m_stack( stack )
+                    , m_blockID( blockID )
                 {
                 }
+
+            private:
+                void add( Automata::Node* pNode )
+                {
+                    VERIFY_RTE( !m_stack.empty() );
+                    m_stack.back()->push_back_nodes( pNode );
+                }
+
+                void push( Automata::Node* pNode )
+                {
+                    add( pNode );
+                    m_stack.push_back( pNode );
+                }
+
+            public:
                 void operator()( const std::string_view& literal )
                 {
                     Automata::Literal* pLit = m_database.construct< Automata::Literal >(
                         Automata::Literal::Args{ Automata::Node::Args{ {} }, std::string{ literal } } );
-                    if( m_stack.empty() )
-                    {
-                        m_pStart->push_back_nodes( pLit );
-                    }
-                    else
-                    {
-                        m_stack.back()->push_back_nodes( pLit );
-                    }
+                    add( pLit );
                 }
                 void operator()( automata::TokenType token )
                 {
                     switch( token )
                     {
-                        case mega::automata::eBraceOpen:
-                            break;
                         case mega::automata::eBraceClose:
                         {
                             VERIFY_RTE_MSG( !m_stack.empty(), "Invalid stack in automata" );
                             m_stack.pop_back();
                         }
                         break;
+                        case mega::automata::eSeq:
+                        {
+                            Automata::Sequence* pSeq
+                                = m_database.construct< Automata::Sequence >( Automata::Sequence::Args{
+                                    Automata::Block::Args{ Automata::Node::Args{ {} }, m_blockID++ } } );
+                            push( pSeq );
+                        }
+                        break;
                         case mega::automata::eMaybe:
                         case mega::automata::eOr:
                         {
-                            Automata::Alternative* pAlt = m_database.construct< Automata::Alternative >(
-                                Automata::Alternative::Args{ Automata::Node::Args{ {} } } );
-                            if( m_stack.empty() )
-                            {
-                                m_pStart->push_back_nodes( pAlt );
-                            }
-                            else
-                            {
-                                m_stack.back()->push_back_nodes( pAlt );
-                            }
-                            m_stack.push_back( pAlt );
+                            Automata::Alternative* pAlt
+                                = m_database.construct< Automata::Alternative >( Automata::Alternative::Args{
+                                    Automata::Block::Args{ Automata::Node::Args{ {} }, m_blockID++ } } );
+                            push( pAlt );
                         }
                         break;
                         case mega::automata::eRepeat:
                         {
-                            Automata::Repeat* pRepeat = m_database.construct< Automata::Repeat >(
-                                Automata::Repeat::Args{ Automata::Node::Args{ {} } } );
-                            if( m_stack.empty() )
-                            {
-                                m_pStart->push_back_nodes( pRepeat );
-                            }
-                            else
-                            {
-                                m_stack.back()->push_back_nodes( pRepeat );
-                            }
-                            m_stack.push_back( pRepeat );
+                            Automata::Repeat* pRepeat
+                                = m_database.construct< Automata::Repeat >( Automata::Repeat::Args{
+                                    Automata::Block::Args{ Automata::Node::Args{ {} }, m_blockID++ } } );
+                            push( pRepeat );
                         }
                         break;
                         case mega::automata::eInterupt:
                         {
-                            Automata::Interupt* pInterupt = m_database.construct< Automata::Interupt >(
-                                Automata::Interupt::Args{ Automata::Node::Args{ {} } } );
-                            if( m_stack.empty() )
-                            {
-                                m_pStart->push_back_nodes( pInterupt );
-                            }
-                            else
-                            {
-                                m_stack.back()->push_back_nodes( pInterupt );
-                            }
-                            m_stack.push_back( pInterupt );
+                            Automata::InteruptHandler* pInterupt
+                                = m_database.construct< Automata::InteruptHandler >( Automata::InteruptHandler::Args{
+                                    Automata::Block::Args{ Automata::Node::Args{ {} }, m_blockID++ } } );
+                            push( pInterupt );
                         }
                         break;
                         case mega::automata::TOTAL_TOKENS:
@@ -175,13 +174,13 @@ public:
                             break;
                     }
                 }
-            } visitor( database, pStart, stack );
+            } visitor( database, stack, blockID );
 
             for( const auto& token : tokens )
             {
                 std::visit( visitor, token );
             }
-            VERIFY_RTE_MSG( stack.empty(), "Invalid stack in automata" );
+            VERIFY_RTE_MSG( stack.size() == 1, "Invalid stack in automata" );
         }
 
         const task::FileHash fileHashCode = database.save_AutomataAnalysis_to_temp();

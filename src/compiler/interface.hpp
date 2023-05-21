@@ -323,6 +323,18 @@ public:
                     VERIFY_RTE( !bFoundType );
                     bFoundType                     = true;
                     contextData[ "has_operation" ] = true;
+
+                    if( auto pStartState = db_cast< Meta::Automata >( pAction ) )
+                    {
+                        contextData[ "operation_return_type" ] = "mega::ActionCoroutine";
+                        contextData[ "operation_parameters" ]  = "mega::U64 _blockID";
+                    }
+                    else
+                    {
+                        contextData[ "operation_return_type" ] = "mega::ActionCoroutine";
+                        contextData[ "operation_parameters" ]  = "";
+                    }
+
                     if ( auto opt = pAction->get_inheritance_trait() )
                     {
                         for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAction, opt.value() ) )

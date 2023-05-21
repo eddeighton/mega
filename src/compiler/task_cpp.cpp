@@ -131,6 +131,8 @@ public:
 
                 for( const mega::io::megaFilePath& megaFile : pTransitiveDep->get_mega_source_files() )
                 {
+                    // ensure meta analysis loaded
+                    database.many< Meta::Automata >( megaFile );
                     Interface::Root* pRoot = database.one< Interface::Root >( megaFile );
                     for( IContext* pContext : pRoot->get_children() )
                     {

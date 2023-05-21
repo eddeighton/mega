@@ -77,6 +77,39 @@ class Task_Operations : public BaseTask
         }
     };
 
+    template < typename T >
+    nlohmann::json generateBlock( T* pNode, mega::U64 blockID, std::ostream& osBody )
+    {
+        using namespace OperationsStage;
+        std::ostringstream os;
+        {
+            for( auto pNode : pNode->get_nodes() )
+            {
+                if( auto pLit = db_cast< Automata::Literal >( pNode ) )
+                {
+                    os << pLit->get_value();
+                    osBody << pLit->get_value();
+                }
+            }
+        }
+        return nlohmann::json( { { "id", blockID }, { "body", os.str() } } );
+    }
+
+    void generateAutomataRecurse( OperationsStage::Automata::Block* pBlock, nlohmann::json& data, std::ostream& osBody )
+    {
+        using namespace OperationsStage;
+
+        data[ "blocks" ].push_back( generateBlock( pBlock, pBlock->get_id(), osBody ) );
+
+        for( auto pNode : pBlock->get_nodes() )
+        {
+            if( auto pNestedBlock = db_cast< Automata::Block >( pNode ) )
+            {
+                generateAutomataRecurse( pNestedBlock, data, osBody );
+            }
+        }
+    }
+
 public:
     Task_Operations( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
@@ -119,25 +152,34 @@ public:
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if( auto pAction = db_cast< Action >( pContext ) )
+        else if( Interface::Action* pAction = db_cast< Interface::Action >( pContext ) )
         {
             CleverUtility c( types, pAction->get_identifier() );
 
-            if( auto pAutomata = db_cast< Automata::Start >( pAction ) )
+            if( auto pStartState = db_cast< Automata::Start >( pAction ) )
             {
+                nlohmann::json operation( {
+
+                    { "automata", true },
+                    { "return_type", "mega::ActionCoroutine" },
+                    { "body", "" },
+                    { "hash", "" },
+                    { "typeID", pAction->get_interface_id().getSymbolID() },
+                    { "has_namespaces", !namespaces.empty() },
+                    { "namespaces", namespaces },
+                    { "types", types },
+                    { "params_string", "mega::U64 _blockID" },
+                    { "params", nlohmann::json::array() },
+                    { "blocks", nlohmann::json::array() } } );
+
+                {
+                    nlohmann::json param( { { "type", "mega::U64" }, { "name", "_blockID" } } );
+                    operation[ "params" ].push_back( param );
+                }
+
                 std::ostringstream osBody;
-
-                osBody << "\nco_return mega::done();";
-
-                nlohmann::json operation( { { "return_type", "mega::ActionCoroutine" },
-                                            { "body", osBody.str() },
-                                            { "hash", common::Hash{ osBody.str() }.toHexString() },
-                                            { "typeID", pAction->get_interface_id().getSymbolID() },
-                                            { "has_namespaces", !namespaces.empty() },
-                                            { "namespaces", namespaces },
-                                            { "types", types },
-                                            { "params_string", "" },
-                                            { "params", nlohmann::json::array() } } );
+                generateAutomataRecurse( pStartState->get_sequence(), operation, osBody );
+                operation[ "hash" ] = common::Hash{ osBody.str() }.toHexString();
 
                 data[ "operations" ].push_back( operation );
             }
@@ -155,15 +197,18 @@ public:
 
                 osBody << "\nco_return mega::done();";
 
-                nlohmann::json operation( { { "return_type", "mega::ActionCoroutine" },
-                                            { "body", osBody.str() },
-                                            { "hash", common::Hash{ osBody.str() }.toHexString() },
-                                            { "typeID", pAction->get_interface_id().getSymbolID() },
-                                            { "has_namespaces", !namespaces.empty() },
-                                            { "namespaces", namespaces },
-                                            { "types", types },
-                                            { "params_string", "" },
-                                            { "params", nlohmann::json::array() } } );
+                nlohmann::json operation( {
+
+                    { "automata", false },
+                    { "return_type", "mega::ActionCoroutine" },
+                    { "body", osBody.str() },
+                    { "hash", common::Hash{ osBody.str() }.toHexString() },
+                    { "typeID", pAction->get_interface_id().getSymbolID() },
+                    { "has_namespaces", !namespaces.empty() },
+                    { "namespaces", namespaces },
+                    { "types", types },
+                    { "params_string", "" },
+                    { "params", nlohmann::json::array() } } );
 
                 data[ "operations" ].push_back( operation );
             }
@@ -192,15 +237,18 @@ public:
                 }
             }
 
-            nlohmann::json operation( { { "return_type", pFunction->get_return_type_trait()->get_str() },
-                                        { "body", strBody },
-                                        { "hash", common::Hash{ strBody }.toHexString() },
-                                        { "typeID", pFunction->get_interface_id().getSymbolID() },
-                                        { "has_namespaces", !namespaces.empty() },
-                                        { "namespaces", namespaces },
-                                        { "types", types },
-                                        { "params_string", pFunction->get_arguments_trait()->get_str() },
-                                        { "params", nlohmann::json::array() } } );
+            nlohmann::json operation( {
+
+                { "automata", false },
+                { "return_type", pFunction->get_return_type_trait()->get_str() },
+                { "body", strBody },
+                { "hash", common::Hash{ strBody }.toHexString() },
+                { "typeID", pFunction->get_interface_id().getSymbolID() },
+                { "has_namespaces", !namespaces.empty() },
+                { "namespaces", namespaces },
+                { "types", types },
+                { "params_string", pFunction->get_arguments_trait()->get_str() },
+                { "params", nlohmann::json::array() } } );
             {
                 int iParamCounter = 1;
                 for( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )
@@ -275,6 +323,9 @@ public:
                 TemplateEngine templateEngine( m_environment, injaEnvironment );
 
                 nlohmann::json data( { { "operations", nlohmann::json::array() } } );
+
+                // NOTE: MUST ensure automata analysis loaded
+                database.many< Automata::Start >( m_sourceFilePath );
 
                 Interface::Root*      pRoot = database.one< Interface::Root >( m_sourceFilePath );
                 CleverUtility::IDList namespaces, types;

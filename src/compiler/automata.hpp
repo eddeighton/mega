@@ -30,8 +30,8 @@ namespace mega::automata
 {
 enum TokenType
 {
-    eBraceOpen,
     eBraceClose,
+    eSeq,
     eMaybe,
     eOr,
     eRepeat,

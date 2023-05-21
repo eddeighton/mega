@@ -26,19 +26,19 @@ namespace Automata
         array< ref< Node > > nodes;
     }
 
-    object Start : Meta::Automata -> AutomataStage::AutomataAnalysis
-    {
-        array< ref< Node > > nodes;
-    }
-
     object Literal : Node -> AutomataStage::AutomataAnalysis
     {
         value< std::string > value;
-
-        array< ref< Concrete::Action > > sequence -> OperationsStage::Operations;
     }
 
     object Block : Node -> AutomataStage::AutomataAnalysis
+    {
+        value< mega::U64 > id;
+
+        array< ref< Interface::Action > > actions -> ValueSpaceStage::ValueSpace;
+    }
+
+    object Sequence : Block -> AutomataStage::AutomataAnalysis
     {
     }
 
@@ -50,8 +50,17 @@ namespace Automata
     {
     }
 
-    object Interupt : Block -> AutomataStage::AutomataAnalysis
+    object InteruptHandler : Block -> AutomataStage::AutomataAnalysis
     {
+    }
+
+    object EventHandler : Block -> AutomataStage::AutomataAnalysis
+    {
+    }
+
+    object Start : Meta::Automata -> AutomataStage::AutomataAnalysis
+    {
+        ref< Sequence > sequence;
     }
 
 }

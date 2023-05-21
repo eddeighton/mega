@@ -79,6 +79,9 @@ public:
 
         Database database( m_environment, m_sourceFilePath );
 
+        // ensure meta analysis loaded
+        database.many< Meta::Automata >( m_sourceFilePath );
+
         ::inja::Environment injaEnvironment;
         {
             injaEnvironment.set_trim_blocks( true );

@@ -45,6 +45,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <unordered_set>
 
 namespace driver
 {
@@ -154,7 +155,7 @@ std::string getContextFullTypeName( TContextType* pContext, std::string strDelim
     return os.str();
 }
 
-template< typename TContextType, typename TDimensionType >
+template < typename TContextType, typename TDimensionType >
 std::string getDimensionFullTypeName( TDimensionType* pDim, std::string strDelim = "_" )
 {
     TContextType* pParent = pDim->get_parent();
@@ -894,7 +895,8 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
 
             std::ostringstream osName;
             osName << "dim_" << getDimensionFullTypeName< Concrete::Context >( pDim );
-            NODE( dataNode, osName.str(), getDimensionFullTypeName< Concrete::Context >( pDim, "::" ) << getNodeInfo( pDim ) );
+            NODE( dataNode, osName.str(),
+                  getDimensionFullTypeName< Concrete::Context >( pDim, "::" ) << getNodeInfo( pDim ) );
             {
                 nlohmann::json property;
                 PROP( property, "Type", pBinding->get_typeName() );
@@ -927,6 +929,134 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
 
     os << data;
 }
+
+std::string getBlockName( FinalStage::Automata::Block* pBlock )
+{
+    using namespace FinalStage;
+    std::string strBlockName;
+    if( db_cast< Automata::Sequence >( pBlock ) )
+    {
+        strBlockName = "Sequence";
+    }
+    else if( db_cast< Automata::Repeat >( pBlock ) )
+    {
+        strBlockName = "Repeat";
+    }
+    else if( db_cast< Automata::Alternative >( pBlock ) )
+    {
+        strBlockName = "Alternative";
+    }
+    else if( db_cast< Automata::InteruptHandler >( pBlock ) )
+    {
+        strBlockName = "Interupt";
+    }
+    else if( db_cast< Automata::EventHandler >( pBlock ) )
+    {
+        strBlockName = "Event";
+    }
+    else
+    {
+        strBlockName = "Uknown";
+    }
+    return strBlockName;
+}
+
+std::string getBlockID( const std::string& strAutomataName, FinalStage::Automata::Block* pBlock )
+{
+    std::ostringstream osBlockID;
+    osBlockID << strAutomataName << pBlock->get_id();
+    return osBlockID.str();
+}
+
+
+void automataRecurse( nlohmann::json& data, const std::string& strAutomataName, 
+    std::unordered_set< std::string >& actions, FinalStage::Automata::Block* pBlock )
+{
+    using namespace FinalStage;
+
+    const std::string strBlockID   = getBlockID( strAutomataName, pBlock );
+    const std::string strBlockName = getBlockName( pBlock );
+
+    nlohmann::json node;
+    {
+        NODE( node, strBlockID, strBlockName );
+    }
+    data[ "nodes" ].push_back( node );
+
+    for( auto pAction : pBlock->get_actions() )
+    {
+        std::ostringstream osActionName;
+        osActionName << "action_" << strAutomataName << getContextFullTypeName( pAction );
+        if( actions.find( osActionName.str() ) == actions.end() )
+        {
+            nlohmann::json node;
+            NODE( node, osActionName.str(), getContextFullTypeName( pAction, "::" ) << getNodeInfo( pAction ) );
+            data[ "nodes" ].push_back( node );
+            actions.insert( osActionName.str() );
+        }
+
+        data[ "edges" ].push_back( nlohmann::json::object( { { "from", getBlockID( strAutomataName, pBlock ) },
+                                                             { "to", osActionName.str() },
+                                                             { "colour", "FF0000" } } ) );
+    }
+
+    Automata::Block* pLast = pBlock;
+    for( auto pNode : pBlock->get_nodes() )
+    {
+        if( auto pNestedBlock = db_cast< Automata::Block >( pNode ) )
+        {
+            data[ "edges" ].push_back( nlohmann::json::object( { { "from", getBlockID( strAutomataName, pLast ) },
+                                                                 { "to", getBlockID( strAutomataName, pNestedBlock ) },
+                                                                 { "colour", "00FF00" } } ) );
+
+            automataRecurse( data, strAutomataName, actions, pNestedBlock );
+            pLast = pNestedBlock;
+        }
+    }
+}
+
+void generateAutomataGraphViz( std::ostream& os, mega::io::Environment& environment, mega::io::Manifest& manifest )
+{
+    using namespace FinalStage;
+
+    nlohmann::json data
+        = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
+
+    std::unordered_set< std::string > actions;
+
+    for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    {
+        Database database( environment, sourceFilePath );
+
+        for( Automata::Start* pAutomata : database.many< Automata::Start >( sourceFilePath ) )
+        {
+            std::ostringstream osAutomataName;
+            osAutomataName << "automata_" << getContextFullTypeName( pAutomata );
+
+            nlohmann::json node;
+            {
+                NODE(
+                    node, osAutomataName.str(), getContextFullTypeName( pAutomata, "::" ) << getNodeInfo( pAutomata ) );
+                {
+                    nlohmann::json property;
+                    PROP( property, "Name", pAutomata->get_identifier() );
+                    node[ "properties" ].push_back( property );
+                }
+            }
+            data[ "nodes" ].push_back( node );
+
+            automataRecurse( data, osAutomataName.str(), actions, pAutomata->get_sequence() );
+
+            data[ "edges" ].push_back(
+                nlohmann::json::object( { { "from", osAutomataName.str() },
+                                          { "to", getBlockID( osAutomataName.str(), pAutomata->get_sequence() ) },
+                                          { "colour", "000000" } } ) );
+        }
+    }
+
+    os << data;
+}
+
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             strGraphType;
@@ -995,6 +1125,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
             else if( strGraphType == "unity" )
             {
                 generateUnityGraphViz( osOutput, *pEnvironment, manifest );
+            }
+            else if( strGraphType == "automata" )
+            {
+                generateAutomataGraphViz( osOutput, *pEnvironment, manifest );
             }
             else
             {

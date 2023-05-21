@@ -85,6 +85,7 @@ set( MEGA_DATABASE_INTERFACE_NAMES
     SymbolRollout
     UnityStage
     UnityStageView
+    ValueSpaceStage
 )
 
 set( MEGA_DATABASE_STAGE_HEADERS )

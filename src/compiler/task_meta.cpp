@@ -49,8 +49,7 @@ public:
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash,
-              m_environment.getBuildHashCode(
-                  m_environment.DerivationAnalysisRollout_PerSourceDerivations( m_sourceFilePath ) ) } );
+              m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( m_sourceFilePath ) ) } );
 
         if( m_environment.restore( megaAnalysisCompilationFile, determinant ) )
         {
@@ -65,35 +64,42 @@ public:
         using namespace std::string_literals;
         static const std::vector< std::string > metaTypes = { "IAutomata"s, "IPlan"s };
 
-        for( Concrete::Action* pAction : database.many< Concrete::Action >( m_sourceFilePath ) )
+        for( Interface::Action* pAction : database.many< Interface::Action >( m_sourceFilePath ) )
         {
-            std::string strMetaType;
+            auto iMetaTypeIter = metaTypes.end();
             {
-                for( Interface::IContext* pInherited : pAction->get_inheritance() )
+                if( pAction->get_inheritance_trait().has_value() )
                 {
-                    const std::string& strIdentifier = pInherited->get_identifier();
-                    auto               iFind         = std::find( metaTypes.begin(), metaTypes.end(), strIdentifier );
-                    if( iFind != metaTypes.end() )
+                    auto inheritance = pAction->get_inheritance_trait().value();
+
+                    for( const std::string& strIdentifier : inheritance->get_strings() )
                     {
-                        VERIFY_RTE_MSG( strMetaType.empty(),
-                                        "Duplicate meta types detected for action: " << pAction->get_concrete_id() );
-                        strMetaType = *iFind;
+                        auto iFind = std::find( metaTypes.begin(), metaTypes.end(), strIdentifier );
+                        if( iFind != metaTypes.end() )
+                        {
+                            VERIFY_RTE_MSG( iMetaTypeIter == metaTypes.end(),
+                                            "Duplicate meta types detected for action: " << pAction->get_identifier() );
+                            iMetaTypeIter = iFind;
+                        }
                     }
                 }
             }
 
-            if( strMetaType == "IAutomata" )
+            if( iMetaTypeIter == metaTypes.end() )
             {
-                database.construct< MetaStage::Meta::Automata >( MetaStage::Meta::Automata::Args{ pAction } );
-                break;
+                database.construct< Meta::Animation >( Meta::Animation::Args{ pAction } );
             }
-            else if( strMetaType == "IPlan" )
+            else if( std::distance( metaTypes.begin(), iMetaTypeIter ) == 0 )
             {
-                database.construct< MetaStage::Meta::Plan >( MetaStage::Meta::Plan::Args{ pAction } );
+                database.construct< Meta::Automata >( Meta::Automata::Args{ pAction } );
+            }
+            else if( std::distance( metaTypes.begin(), iMetaTypeIter ) == 1 )
+            {
+                database.construct< Meta::Plan >( Meta::Plan::Args{ pAction } );
             }
             else
             {
-                database.construct< MetaStage::Meta::Animation >( MetaStage::Meta::Animation::Args{ pAction } );
+                THROW_RTE( "Unreachable" );
             }
         }
 

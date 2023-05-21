@@ -1402,11 +1402,15 @@ void fileDependencies( Mapping& mapping, Schema::Ptr pSchema )
                 if( PrimaryObjectPart::Ptr pPrimaryPart = std::dynamic_pointer_cast< PrimaryObjectPart >( pPart ) )
                 {
                     Object::Ptr pObject = pPrimaryPart->m_object.lock();
-                    if( Object::Ptr pBase = pObject->m_base )
+                    while( pObject )
                     {
-                        File::Ptr pDependencyFile = pBase->getPrimaryObjectPart( pStage )->m_file.lock();
-                        if( pDependencyFile != pFile )
-                            dependencies.insert( pDependencyFile );
+                        pObject = pObject->m_base;
+                        if( pObject )
+                        {
+                            File::Ptr pDependencyFile = pObject->getPrimaryObjectPart( pStage )->m_file.lock();
+                            if( pDependencyFile != pFile )
+                                dependencies.insert( pDependencyFile );
+                        }
                     }
                 }
                 else if( InheritedObjectPart::Ptr pInheritedSecondaryObjectPart

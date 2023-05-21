@@ -25,7 +25,23 @@
 {% endif %}
 {{ operation.return_type }} {% for type in operation.types %}{{type}}::{% endfor %}operator()({{ operation.params_string }}) const
 {
+{% if operation.automata %}
+    switch( _blockID )
+    {
+{% for block in operation.blocks %}
+        case {{ block.id }}:
+        //_MEGABEGIN{{block.id}}
+        {
+            {{ block.body }}
+        }
+        //_MEGAEND{{block.id}}
+        break;
+{% endfor %}
+    }
+    co_return mega::done();
+{% else %}
     {{ operation.body }}
+{% endif %}
 }
 {% if operation.has_namespaces %} 
 } 

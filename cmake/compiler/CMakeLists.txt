@@ -119,6 +119,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_schematic_wall_sections.cpp
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
     ${MEGA_SRC_DIR}/compiler/task_unity.cpp
+    ${MEGA_SRC_DIR}/compiler/task_value_space.cpp
 )
 
 
