@@ -73,6 +73,7 @@ namespace Operations
 
     object Invocation -> OperationsStage::Operations
     {
+        value< mega::InvocationID > id;
         ref< Context > context;
         ref< TypePath > type_path;
         value< mega::OperationID > operation;

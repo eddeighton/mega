@@ -1000,7 +1000,7 @@ OperationsStage::Operations::Invocation* construct( Database& database, Symbols:
     }
 
     Invocation* pInvocation = database.construct< Invocation >( Invocation::Args{
-        pContext, pTypePath, id.m_operation, osName.str(), osContextStr.str(), osTypePathStr.str(), {} } );
+        id, pContext, pTypePath, id.m_operation, osName.str(), osContextStr.str(), osTypePathStr.str(), {} } );
 
     // 3. Compute name resolution
     NameResolution* pNameResolution = resolve( database, pInvocation );

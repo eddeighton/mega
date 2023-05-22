@@ -8624,8 +8624,9 @@ namespace Operations
           , root_instruction( loader )
     {
     }
-    Operations_Invocation::Operations_Invocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Operations_Context >& context, const data::Ptr< data::Operations::Operations_TypePath >& type_path, const mega::OperationID& operation, const std::string& name, const std::string& context_str, const std::string& type_path_str, const std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >& variables)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocation >( loader, this ) )          , context( context )
+    Operations_Invocation::Operations_Invocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::InvocationID& id, const data::Ptr< data::Operations::Operations_Context >& context, const data::Ptr< data::Operations::Operations_TypePath >& type_path, const mega::OperationID& operation, const std::string& name, const std::string& context_str, const std::string& type_path_str, const std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >& variables)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocation >( loader, this ) )          , id( id )
+          , context( context )
           , type_path( type_path )
           , operation( operation )
           , name( name )
@@ -8643,6 +8644,7 @@ namespace Operations
     }
     void Operations_Invocation::load( mega::io::Loader& loader )
     {
+        loader.load( id );
         loader.load( context );
         loader.load( type_path );
         loader.load( operation );
@@ -8666,6 +8668,7 @@ namespace Operations
     }
     void Operations_Invocation::store( mega::io::Storer& storer ) const
     {
+        storer.store( id );
         storer.store( context );
         storer.store( type_path );
         storer.store( operation );
@@ -8711,6 +8714,11 @@ namespace Operations
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            _part__[ "properties" ].push_back( property );
+        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context", context } } );
@@ -11203,11 +11211,11 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& get_Concrete_Context_parent(
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         default:
         {
@@ -13455,6 +13463,18 @@ std::optional< bool >& get_Operations_Invocation_homogeneous(data::Variant& m_da
     {
         case data::Operations::Operations_Invocation::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->homogeneous;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::InvocationID& get_Operations_Invocation_id(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Operations_Invocation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17579,6 +17599,18 @@ std::optional< bool >& set_Operations_Invocation_homogeneous(data::Variant& m_da
     {
         case data::Operations::Operations_Invocation::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->homogeneous;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::InvocationID& set_Operations_Invocation_id(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Operations_Invocation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );

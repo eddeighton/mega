@@ -51,6 +51,9 @@ set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
 set( JINJA_TEMPLATES 
 	${DRIVER_SOURCE_DIR}/graphviz.jinja 
+	${DRIVER_SOURCE_DIR}/retail.jinja 
+	${DRIVER_SOURCE_DIR}/retail_context.jinja 
+	${DRIVER_SOURCE_DIR}/retail_invocation.jinja 
 	)
 
 set( DRIVER_SOURCES
@@ -63,6 +66,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_log.cpp
 		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp
 		${DRIVER_SOURCE_DIR}/command_project.cpp
+		${DRIVER_SOURCE_DIR}/command_retail.cpp
 		${DRIVER_SOURCE_DIR}/command_sim.cpp
 		${DRIVER_SOURCE_DIR}/command_stash.cpp
 		${DRIVER_SOURCE_DIR}/command_status.cpp

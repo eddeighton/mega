@@ -1,0 +1,14 @@
+struct {{ type }}
+{
+{% for operation in operations %}
+{% if operation.implicit %}
+    inline {{ operation.return_type }} operator()({{ operation.params_string }}) const;
+{% else %}
+    struct {{ operation.type }}
+    {
+        inline {{ operation.return_type }} operator()({{ operation.params_string }}) const;
+    } {{ operation.symbol }};
+{% endif %}
+{% endfor %}
+    {{ nested }}
+} {{ symbol }};
