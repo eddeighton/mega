@@ -49,6 +49,37 @@ inline constexpr bool isOperationImplicit( OperationID operationType )
     return ( operationType == id_Imp_NoParams ) || ( operationType == id_Imp_Params );
 }
 
+inline constexpr bool isOperationArgs( OperationID operationType )
+{
+    switch( operationType )
+    {
+        case id_Imp_NoParams:
+            return false;
+        case id_Imp_Params:
+            return true;
+        case id_Start:
+            return false;
+        case id_Stop:
+            return false;
+        case id_Save:
+            return true;
+        case id_Load:
+            return true;
+        case id_Files:
+            return false;
+        case id_Get:
+            return false;
+        case id_Range:
+            return false;
+        case id_Raw:
+            return false;
+        case HIGHEST_OPERATION_TYPE:
+            return false;
+        default:
+            return false;
+    }
+}
+
 inline constexpr bool isOperationType( TypeID id )
 {
     return id.isSymbolID() && ( id.getSymbolID() < HIGHEST_OPERATION_TYPE );
@@ -71,7 +102,6 @@ enum InvocableID : TypeID::ValueType
     id_Variant = HIGHEST_OPERATION_TYPE,
     id_TypePath
 };
-
 
 enum ExplicitOperationID : TypeID::ValueType
 {

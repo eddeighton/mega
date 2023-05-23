@@ -2,11 +2,13 @@ struct {{ type }}
 {
 {% for operation in operations %}
 {% if operation.implicit %}
-    inline {{ operation.return_type }} operator()({{ operation.params_string }}) const;
+    template< typename... Args >
+    inline typename _result_type< {{ type }}, Args... >::Type operator()({% if operation.has_args %}Args... args{% endif %}) const;
 {% else %}
     struct {{ operation.type }}
     {
-        inline {{ operation.return_type }} operator()({{ operation.params_string }}) const;
+        template< typename... Args >
+        inline typename _result_type< {{ operation.type }}, Args... >::Type operator()({% if operation.has_args %}Args... args{% endif %}) const;
     } {{ operation.symbol }};
 {% endif %}
 {% endfor %}

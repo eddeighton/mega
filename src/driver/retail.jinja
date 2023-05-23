@@ -17,6 +17,40 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+{% for include in cppIncludes %}
+#include "{{include}}"
+{% endfor %}
+
+#include "mega/native_types.hpp"
+#include "mega/reference.hpp"
+#include "mega/operation_id.hpp"
+#include "mega/types/traits.hpp"
+//#include "mega/type_path.hpp" // has array
+
+
+//#include "mega/variant.hpp"
+
+
+#include "mega/event.hpp"
+#include "mega/clock.hpp"
+//#include "mega/operations.hpp" 
+//#include "mega/iterators.hpp" // has array and vector and defines __mega_vector std::vector type alias
+#include "mega/write_operation.hpp"
+
+#include "mega/coroutine.hpp" // has stl dependencies
+#include "mega/scheduler.hpp" // has stl dependencies
+#include "mega/maths_types.hpp" // has boost math stuff
+
+{% for include in systemIncludes %}
+#include <{{include}}>
+{% endfor %}
+
+namespace
+{
+
+template< typename T, typename... Args  >
+struct _result_type;
+
 template< typename To, typename From >
 static To mega_cast( const From& from );
 
@@ -30,7 +64,14 @@ static bool mega_stopped( const Context& context );
 {{ interface }}
 
 // concrete
-{{ concrete }}
+{% for object in objects %}
+struct {{ object.type }}
+{
+{% for member in object.members %}
+    {{ member.type }} {{ member.name }};
+{% endfor %}
+};
+{% endfor %}
 
 // traits
 {% for struct in trait_structs %}
@@ -42,6 +83,15 @@ struct {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endi
 };
 {% endfor %}
 
+// result types
+{% for operation in operations %}
+template<{%if operation.has_args%}typename... Args{% endif %}>
+struct _result_type< {% for type in operation.types %}{{type}}{% if not loop.is_last %}::{% endif %}{% endfor %}{%if operation.has_args%}, Args... {% endif %}>
+{
+    using Type = {{ operation.return_type }};
+};
+{% endfor %}
+
 // operations
 {% for operation in operations %}
 
@@ -49,9 +99,11 @@ struct {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endi
 {% for namespace in operation.namespaces %}{% if loop.is_first%}namespace {%else%}::{% endif %}{{namespace}}{% endfor %}
 { 
 {% endif %}
-{{ operation.return_type }} {% for type in operation.types %}{{type}}::{% endfor %}operator()({{ operation.params_string }}) const
+template< typename... Args >
+typename _result_type< {% for type in operation.types %}{{type}}{% if not loop.is_last %}::{% endif %}{% endfor %}, Args... >::Type {% for type in operation.types %}{{type}}::{% endfor %}operator()({%if operation.has_args%}Args... args{% endif %}) const
 {
 {% if operation.automata %}
+    int _blockID;
     switch( _blockID )
     {
 {% for block in operation.blocks %}
@@ -71,4 +123,6 @@ struct {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endi
 } 
 {% endif %}
 {% endfor %}
+
+}
 

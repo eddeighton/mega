@@ -218,6 +218,7 @@ void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& 
 
             { "automata", false },
             { "implicit", mega::isOperationImplicit( pInvocation->get_operation() ) },
+            { "has_args", mega::isOperationArgs( pInvocation->get_operation() ) },
             { "type", osType.str() },
             { "has_namespaces", !namespaces.empty() },
             { "namespaces", namespaces },
@@ -238,7 +239,8 @@ void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& 
             case mega::id_exp_Write:
             {
                 std::ostringstream osParams;
-                osParams << "const " << pInvocation->get_runtime_return_type_str() << "& arg";
+                // osParams << "const " << pInvocation->get_runtime_return_type_str() << "& arg";
+                osParams << "Args... args";
                 operation[ "params_string" ] = osParams.str();
             }
             break;
@@ -400,6 +402,7 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
         { "name", pContext->get_identifier() },
         { "typeid", toHex( pContext->get_interface_id() ) },
         { "has_operation", false },
+        { "operation_has_args", false },
         { "invocations", osInvocations.str() },
         { "nested", osNested.str() },
         { "trait_structs", nlohmann::json::array() }
@@ -436,11 +439,13 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
         {
             context[ "operation_return_type" ] = "mega::ActionCoroutine";
             context[ "operation_parameters" ]  = "mega::U64 _blockID";
+            context[ "operation_has_args" ]    = true;
         }
         else
         {
             context[ "operation_return_type" ] = "mega::ActionCoroutine";
             context[ "operation_parameters" ]  = "";
+            context[ "operation_has_args" ]    = false;
         }
     }
     else if( Interface::Event* pEvent = db_cast< Interface::Event >( pContext ) )
@@ -454,6 +459,7 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
     else if( Interface::Function* pFunction = db_cast< Interface::Function >( pContext ) )
     {
         context[ "has_operation" ]         = true;
+        context[ "operation_has_args" ]    = true;
         context[ "operation_return_type" ] = pFunction->get_return_type_trait()->get_str();
         context[ "operation_parameters" ]  = pFunction->get_arguments_trait()->get_str();
     }
@@ -550,6 +556,7 @@ void recurseOperations( FinalStage::Interface::IContext* pContext,
 
                 { "automata", true },
                 { "return_type", "mega::ActionCoroutine" },
+                { "has_args", true },
                 { "body", "" },
                 { "has_namespaces", !namespaces.empty() },
                 { "namespaces", namespaces },
@@ -588,6 +595,7 @@ void recurseOperations( FinalStage::Interface::IContext* pContext,
 
                 { "automata", false },
                 { "return_type", "mega::ActionCoroutine" },
+                { "has_args", false },
                 { "body", osBody.str() },
                 { "has_namespaces", !namespaces.empty() },
                 { "namespaces", namespaces },
@@ -627,6 +635,7 @@ void recurseOperations( FinalStage::Interface::IContext* pContext,
 
             { "automata", false },
             { "return_type", pFunction->get_return_type_trait()->get_str() },
+            { "has_args", true },
             { "body", strBody },
             { "has_namespaces", !namespaces.empty() },
             { "namespaces", namespaces },
@@ -770,12 +779,167 @@ void command( bool bHelp, const std::vector< std::string >& args )
             }
             std::ostringstream osConcrete;
 
-            nlohmann::json data( { { "interface", osInterface.str() },
-                                   { "concrete", osConcrete.str() },
+            nlohmann::json data( { { "cppIncludes", nlohmann::json::array() },
+                                   { "systemIncludes", nlohmann::json::array() },
+                                   { "result_types", nlohmann::json::array() },
+                                   { "interface", osInterface.str() },
+                                   { "objects", nlohmann::json::array() },
                                    { "trait_structs", traitStructs },
                                    { "operations", interfaceOperations }
 
             } );
+
+            {
+                std::set< boost::filesystem::path > cppIncludes;
+                for( const mega::io::megaFilePath& megaFile : manifest.getMegaSourceFiles() )
+                {
+                    for( Parser::CPPInclude* pCPPInclude : database.many< Parser::CPPInclude >( megaFile ) )
+                    {
+                        cppIncludes.insert( pCPPInclude->get_cppSourceFilePath() );
+                    }
+                }
+                for( const auto& cppInclude : cppIncludes )
+                {
+                    data[ "cppIncludes" ].push_back( cppInclude.string() );
+                }
+            }
+            {
+                std::set< std::string > systemIncludes;
+                for( const mega::io::megaFilePath& megaFile : manifest.getMegaSourceFiles() )
+                {
+                    for( Parser::SystemInclude* pSystemInclude : database.many< Parser::SystemInclude >( megaFile ) )
+                    {
+                        systemIncludes.insert( pSystemInclude->get_str() );
+                    }
+                }
+                for( const auto& systemInclude : systemIncludes )
+                {
+                    data[ "systemIncludes" ].push_back( systemInclude );
+                }
+            }
+
+            using ConcreteNames = std::map< Concrete::Context*, std::string >;
+            ConcreteNames concreteNames;
+            {
+                for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
+                {
+                    for( Concrete::Object* pObject : database.many< Concrete::Object >( megaSrcFile ) )
+                    {
+                        std::ostringstream os;
+                        os << "o_" << pObject->get_concrete_id().getObjectID();
+                        concreteNames.insert( { ( Concrete::Context* )pObject, os.str() } );
+
+                        nlohmann::json object( { { "type", os.str() }, { "members", nlohmann::json::array() }
+
+                        } );
+
+                        for( auto pBuffer : pObject->get_buffers() )
+                        {
+                            for( auto pPart : pBuffer->get_parts() )
+                            {
+                                for( auto pAllocation : pPart->get_allocation_dimensions() )
+                                {
+                                    auto pAllocatorDim = db_cast< Concrete::Dimensions::Allocator >( pAllocation );
+                                    VERIFY_RTE( pAllocatorDim );
+
+                                    auto getLocalDomainSize = []( Concrete::Context* pContext ) -> mega::U64
+                                    {
+                                        if( auto pObject = db_cast< Concrete::Object >( pContext ) )
+                                        {
+                                            return 1U;
+                                        }
+                                        else if( auto pEvent = db_cast< Concrete::Event >( pContext ) )
+                                        {
+                                            return pEvent->get_local_size();
+                                        }
+                                        else if( auto pAction = db_cast< Concrete::Action >( pContext ) )
+                                        {
+                                            return pAction->get_local_size();
+                                        }
+                                        else if( auto pLink = db_cast< Concrete::Link >( pContext ) )
+                                        {
+                                            return 1U;
+                                        }
+                                        else
+                                        {
+                                            return 1U;
+                                        }
+                                    };
+
+                                    std::ostringstream     osTypeName;
+                                    Allocators::Allocator* pAllocator = pAllocatorDim->get_allocator();
+                                    if( auto pAlloc = db_cast< Allocators::Nothing >( pAllocator ) )
+                                    {
+                                        // do nothing
+                                        THROW_RTE( "Unreachable" );
+                                    }
+                                    else if( auto pAlloc = db_cast< Allocators::Singleton >( pAllocator ) )
+                                    {
+                                        osTypeName << "bool";
+                                    }
+                                    else if( auto pAlloc = db_cast< Allocators::Range32 >( pAllocator ) )
+                                    {
+                                        osTypeName << "mega::Bitmask32Allocator< "
+                                                   << getLocalDomainSize( pAlloc->get_allocated_context() ) << " >";
+                                    }
+                                    else if( auto pAlloc = db_cast< Allocators::Range64 >( pAllocator ) )
+                                    {
+                                        osTypeName << "mega::Bitmask64Allocator< "
+                                                   << getLocalDomainSize( pAlloc->get_allocated_context() ) << " >";
+                                    }
+                                    else if( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocator ) )
+                                    {
+                                        osTypeName << "mega::RingAllocator< mega::Instance, "
+                                                   << getLocalDomainSize( pAlloc->get_allocated_context() ) << " >";
+                                    }
+                                    else
+                                    {
+                                        THROW_RTE( "Unknown allocator type" );
+                                    }
+
+                                    std::ostringstream osName;
+                                    osName << "m_" << pAllocation->get_concrete_id().getSubObjectID();
+                                    nlohmann::json member( { { "type", osTypeName.str() }, { "name", osName.str() } } );
+                                    object[ "members" ].push_back( member );
+                                    concreteNames.insert( { ( Concrete::Context* )pAllocation, osName.str() } );
+                                }
+                                for( auto pLink : pPart->get_link_dimensions() )
+                                {
+                                    std::ostringstream osType;
+                                    if( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLink ) )
+                                    {
+                                        osType << "mega::reference";
+                                    }
+                                    else if( auto pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( pLink ) )
+                                    {
+                                        osType << "std::vector< mega::reference >";
+                                    }
+                                    else
+                                    {
+                                        THROW_RTE( "Unknown link reference type" );
+                                    }
+                                    std::ostringstream osName;
+                                    osName << "m_" << pLink->get_concrete_id().getSubObjectID();
+                                    nlohmann::json member( { { "type", osType.str() }, { "name", osName.str() } } );
+                                    object[ "members" ].push_back( member );
+                                    concreteNames.insert( { ( Concrete::Context* )pLink, osName.str() } );
+                                }
+                                for( auto pDim : pPart->get_user_dimensions() )
+                                {
+                                    std::ostringstream osName;
+                                    osName << "m_" << pDim->get_concrete_id().getSubObjectID();
+                                    nlohmann::json member(
+                                        { { "type", pDim->get_interface_dimension()->get_canonical_type() },
+                                          { "name", osName.str() } } );
+                                    object[ "members" ].push_back( member );
+                                    concreteNames.insert( { ( Concrete::Context* )pDim, osName.str() } );
+                                }
+                            }
+                        }
+                        data[ "objects" ].push_back( object );
+                    }
+                }
+            }
 
             std::ostringstream osOperations;
             {
