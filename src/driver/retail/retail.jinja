@@ -100,7 +100,7 @@ struct _result_type< {% for type in operation.types %}{{type}}{% if not loop.is_
 { 
 {% endif %}
 template< typename... Args >
-typename _result_type< {% for type in operation.types %}{{type}}{% if not loop.is_last %}::{% endif %}{% endfor %}, Args... >::Type {% for type in operation.types %}{{type}}::{% endfor %}operator()({%if operation.has_args%}Args... args{% endif %}) const
+typename _result_type< {% for type in operation.types %}{{type}}{% if not loop.is_last %}::{% endif %}{% endfor %}, Args... >::Type {% for type in operation.types %}{{type}}::{% endfor %}operator()({%if operation.has_args%}{% if operation.has_args_explicit %}{{operation.params_string}}{% else %}Args... args{% endif %}{% endif %}) const
 {
 {% if operation.automata %}
     int _blockID;

@@ -20,7 +20,7 @@ struct {{ name }} : public mega::reference
     
 {% if has_operation %}
     template< typename... Args >
-    typename _result_type< {{ name }}, Args... >::Type operator()({%if operation_has_args%}Args... args{% endif %}) const;
+    typename _result_type< {{ name }}, Args... >::Type operator()({%if operation_has_args%}{% if operation_has_args_explicit %}{{operation_params_string}}{% else %}Args... args{% endif %}{% endif %}) const;
 {% endif %}
 
     // traits

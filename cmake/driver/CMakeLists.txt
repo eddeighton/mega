@@ -51,9 +51,9 @@ set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
 set( JINJA_TEMPLATES 
 	${DRIVER_SOURCE_DIR}/graphviz.jinja 
-	${DRIVER_SOURCE_DIR}/retail.jinja 
-	${DRIVER_SOURCE_DIR}/retail_context.jinja 
-	${DRIVER_SOURCE_DIR}/retail_invocation.jinja 
+	${DRIVER_SOURCE_DIR}/retail/retail.jinja 
+	${DRIVER_SOURCE_DIR}/retail/retail_context.jinja 
+	${DRIVER_SOURCE_DIR}/retail/retail_invocation.jinja 
 	)
 
 set( DRIVER_SOURCES
