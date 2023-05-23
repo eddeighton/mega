@@ -1,5 +1,7 @@
 struct {{ type }}
 {
+    {{ context }}& ref;
+    {{ type }}({{ context }}& ref):ref(ref){}
 {% for operation in operations %}
 {% if operation.implicit %}
     template< typename... Args >
@@ -7,10 +9,12 @@ struct {{ type }}
 {% else %}
     struct {{ operation.type }}
     {
+        {{ context }}& ref;
+        {{ operation.type }}({{ context }}& ref):ref(ref){}
         template< typename... Args >
         inline typename _result_type< {{ operation.type }}, Args... >::Type operator()({% if operation.has_args %}Args... args{% endif %}) const;
-    } {{ operation.symbol }};
+    } {{ operation.symbol }} = {{ operation.type }}(ref);
 {% endif %}
 {% endfor %}
     {{ nested }}
-} {{ symbol }};
+} {{ symbol }} = {{ type }}({% if first_level_deep %}*this{% else %}ref{% endif %} );

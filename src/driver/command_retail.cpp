@@ -179,7 +179,7 @@ struct InvocationTree
 
 void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& namespaces,
                          CleverUtility::IDList& types, const InvocationTree::Node& node, std::ostream& os,
-                         nlohmann::json& interfaceOperations )
+                         nlohmann::json& interfaceOperations, bool bFirstLevelDeep, const std::string& strContext )
 {
     std::ostringstream osTypeName;
     osTypeName << "_" << node.pSymbol->get_symbol();
@@ -189,11 +189,14 @@ void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& 
     std::ostringstream osNested;
     for( const auto& [ pSymbol, childNode ] : node.m_children )
     {
-        recurseInvocations( templateEngine, namespaces, types, childNode, osNested, interfaceOperations );
+        recurseInvocations(
+            templateEngine, namespaces, types, childNode, osNested, interfaceOperations, false, strContext );
     }
 
     nlohmann::json invocation( {
 
+        { "context", strContext },
+        { "first_level_deep", bFirstLevelDeep },
         { "type", osTypeName.str() },
         { "symbol", node.pSymbol->get_symbol() },
         { "nested", osNested.str() },
@@ -217,6 +220,7 @@ void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& 
         nlohmann::json operation( {
 
             { "automata", false },
+            { "first_level_deep", false },
             { "implicit", mega::isOperationImplicit( pInvocation->get_operation() ) },
             { "has_args", mega::isOperationArgs( pInvocation->get_operation() ) },
             { "type", osType.str() },
@@ -226,7 +230,7 @@ void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& 
             { "symbol", mega::getExplicitOperationString( opType ) },
             { "return_type", pInvocation->get_return_type_str() },
             { "params_string", "" },
-            { "body", "" }
+            { "body", "THROW_RTE( \"NOT IMPLEMENTED\" );\n" }
 
         } );
 
@@ -234,6 +238,7 @@ void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& 
         {
             case mega::id_exp_Read:
             {
+                operation[ "body" ] = "//TODO\n";
             }
             break;
             case mega::id_exp_Write:
@@ -394,7 +399,8 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
     std::ostringstream osInvocations;
     for( const auto& [ pSymbol, childNode ] : tree.m_root.m_children )
     {
-        recurseInvocations( templateEngine, namespaces, types, childNode, osInvocations, interfaceOperations );
+        recurseInvocations( templateEngine, namespaces, types, childNode, osInvocations, interfaceOperations, true,
+                            pContext->get_identifier() );
     }
 
     nlohmann::json context( {
@@ -555,6 +561,7 @@ void recurseOperations( FinalStage::Interface::IContext* pContext,
             nlohmann::json operation( {
 
                 { "automata", true },
+                { "first_level_deep", true },
                 { "return_type", "mega::ActionCoroutine" },
                 { "has_args", true },
                 { "body", "" },
@@ -594,6 +601,7 @@ void recurseOperations( FinalStage::Interface::IContext* pContext,
             nlohmann::json operation( {
 
                 { "automata", false },
+                { "first_level_deep", true },
                 { "return_type", "mega::ActionCoroutine" },
                 { "has_args", false },
                 { "body", osBody.str() },
@@ -634,6 +642,7 @@ void recurseOperations( FinalStage::Interface::IContext* pContext,
         nlohmann::json operation( {
 
             { "automata", false },
+            { "first_level_deep", true },
             { "return_type", pFunction->get_return_type_trait()->get_str() },
             { "has_args", true },
             { "body", strBody },
