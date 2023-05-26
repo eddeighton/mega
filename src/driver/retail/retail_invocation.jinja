@@ -1,7 +1,7 @@
 struct {{ type }}
 {
     {{ context }}& _ref;
-    {{ type }}({{ context }}& ref):_ref(ref){}
+    inline {{ type }}({{ context }}& ref):_ref(ref){}
 {% for operation in operations %}
 {% if operation.implicit %}
     template< typename... Args >

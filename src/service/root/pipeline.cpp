@@ -160,14 +160,14 @@ mega::pipeline::PipelineResult RootPipelineConversation::PipelineRun( const mega
         std::ostringstream os;
         if ( bScheduleFailed )
         {
-            SPDLOG_WARN( "FAILURE: Pipeline {} failed in: {}ms", configuration.getPipelineID(),
+            SPDLOG_WARN( "FAILURE: Pipeline {} failed: {}", configuration.getPipelineID(),
                          std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
             os << "Pipeline: " << configuration.getPipelineID() << " failed";
             return pipeline::PipelineResult( false, os.str(), m_root.m_buildHashCodes.get() );
         }
         else
         {
-            SPDLOG_INFO( "SUCCESS: Pipeline {} succeeded in: {}", configuration.getPipelineID(),
+            SPDLOG_INFO( "SUCCESS: Pipeline {} succeeded: {}", configuration.getPipelineID(),
                          std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
             os << "Pipeline: " << configuration.getPipelineID() << " succeeded";
             return pipeline::PipelineResult( true, os.str(), m_root.m_buildHashCodes.get() );

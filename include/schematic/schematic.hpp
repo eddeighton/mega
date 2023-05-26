@@ -72,6 +72,8 @@ public:
             polyGroups.push_back( m_pCompilationMarkup.get() );
     }
 
+    Compilation::Ptr getCompilation() const { return m_pCompilation; }
+
 private:
     Compilation::Ptr                   m_pCompilation;
     std::unique_ptr< MultiPathMarkup > m_pCompilationMarkup;

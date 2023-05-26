@@ -197,7 +197,7 @@ public:
 
         // check the version is latest
         const auto actualVersion = Version::getVersion();
-        using ::operator<<;
+        using ::   operator<<;
         VERIFY_RTE_MSG( actualVersion == m_configuration->header.version,
                         "Pipeine version mismatch: Configuration version: " << m_configuration->header.version
                                                                             << " Actual Version: " << actualVersion );
@@ -464,7 +464,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     dependencies.add( unity, TskDescVec{ unityAnalysis } );
     dependencies.add( unityDatabase, TskDescVec{ unity } );
 
-    TskDescVec schematicMapTasks;
+    /*TskDescVec schematicMapTasks;
     for( const mega::io::schFilePath& schematicFilePath : manifest.getSchematicSourceFiles() )
     {
         TskDesc schematicParse        = encode( Task{ eTask_SchematicParse, schematicFilePath } );
@@ -491,12 +491,12 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         dependencies.add( schematicMapFile, TskDescVec{ schematicSpawnPoints } );
 
         schematicMapTasks.push_back( schematicMapFile );
-    }
+    }*/
 
     {
         TskDescVec completionTasks = componentTasks;
         completionTasks.push_back( unityDatabase );
-        std::copy( schematicMapTasks.begin(), schematicMapTasks.end(), std::back_inserter( completionTasks ) );
+        // std::copy( schematicMapTasks.begin(), schematicMapTasks.end(), std::back_inserter( completionTasks ) );
 
         TskDesc complete = encode( Task{ eTask_Complete, manifestFilePath } );
         dependencies.add( complete, completionTasks );
@@ -538,19 +538,13 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
         pTask->run( progress );
         if( !pTask->isCompleted() )
         {
-            std::ostringstream os;
-            os << "FAILED : " << pTask->getTaskName() << " Task did NOT complete";
-            progress.onProgress( os.str() );
+            pTask->msg( progress, "Task did NOT complete" );
             pTask->failed( progress );
         }
     }
     catch( std::exception& ex )
     {
-        std::ostringstream os;
-        os << "FAILED : " << pTask->getTaskName();
-        os << "\n" << ex.what();
-        progress.onProgress( os.str() );
-
+        pTask->msg( progress, ex.what() );
         pTask->failed( progress );
     }
 }

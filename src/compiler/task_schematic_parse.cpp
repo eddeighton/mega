@@ -24,6 +24,9 @@
 #include "database/types/component_type.hpp"
 #include "database/types/sources.hpp"
 
+#include "schematic/factory.hpp"
+#include "schematic/schematic.hpp"
+
 #include <common/stash.hpp>
 
 namespace mega::compiler
@@ -59,6 +62,24 @@ public:
 
         using namespace SchematicParseStage;
         Database database( m_environment, m_schematicFilePath );
+
+        schematic::File::Ptr pFile = schematic::load( m_environment.FilePath( m_schematicFilePath ) );
+
+        if( schematic::Schematic::Ptr pSchematic = boost::dynamic_pointer_cast< schematic::Schematic >( pFile ) )
+        {
+            using namespace schematic;
+
+            pSchematic->task_contours();
+            pSchematic->task_extrusions();
+            pSchematic->task_compilation();
+
+            Compilation::Ptr pCompilation = pSchematic->getCompilation();
+            VERIFY_RTE_MSG( pCompilation, "Failed to acquire schematic compilation" );
+
+            // pCompilation->getFaces(int &floorFaces, int &fillerFaces)
+        }
+
+        //pSchematicFile->
 
         // Components::Component* pComponent = getComponent< Components::Component >( database, m_schematicFilePath );
 

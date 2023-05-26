@@ -385,7 +385,7 @@ stage UnityStageView
     global accessor array< ref< HyperGraph::Relation > >;
     global accessor array< ref< MegaMangle::Mangle > >;
 }
-
+/*
 stage SchematicParseStage
 {
     source .sch;
@@ -457,7 +457,7 @@ stage SchematicSpawnPointsStage
 
     file SchematicSpawnPoints;
 }
-
+*/
 
 stage FinalStage
 {

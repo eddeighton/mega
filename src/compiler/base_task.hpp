@@ -207,12 +207,11 @@ public:
 
         if( iExitCode && bTreatFailureAsError )
         {
-            std::istringstream isErr( strError );
-
             std::ostringstream osError;
             osError << TaskReport{ TaskReport::eFAILED, m_taskName }.str();
 
             std::string str;
+            std::istringstream isErr( strError );
             while( isErr && std::getline( isErr, str ) )
             {
                 if( !str.empty() )

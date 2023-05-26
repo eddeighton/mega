@@ -26,12 +26,11 @@
 #include "compiler/build_report.hpp"
 #include "compiler/base_task.hpp"
 /*
-#include "ftxui/component/component.hpp" // for Checkbox, Renderer, Horizontal, Vertical, Input, Menu, Radiobox, ResizableSplitLeft, Tab
-#include "ftxui/component/component_base.hpp"     // for ComponentBase, Component
-#include "ftxui/component/component_options.hpp"  // for MenuOption, InputOption
-#include "ftxui/component/event.hpp"              // for Event, Event::Custom
-#include "ftxui/component/screen_interactive.hpp" // for Component, ScreenInteractive
-#include "ftxui/dom/elements.hpp"
+#include "ftxui/component/component.hpp" // for Checkbox, Renderer, Horizontal, Vertical, Input, Menu, Radiobox,
+ResizableSplitLeft, Tab #include "ftxui/component/component_base.hpp"     // for ComponentBase, Component #include
+"ftxui/component/component_options.hpp"  // for MenuOption, InputOption #include "ftxui/component/event.hpp" // for
+Event, Event::Custom #include "ftxui/component/screen_interactive.hpp" // for Component, ScreenInteractive #include
+"ftxui/dom/elements.hpp"
 // for text, color, operator|, bgcolor, filler, Element, vbox, size, hbox, separator, flex, window,
 // graph, EQUAL, paragraph, WIDTH, hcenter, Elements, bold, vscroll_indicator, HEIGHT, flexbox,
 // hflow, border, frame, flex_grow, gauge, paragraphAlignCenter, paragraphAlignJustify, paragraphAlignLeft,
@@ -47,6 +46,7 @@
 */
 #include "common/stl.hpp"
 #include "common/compose.hpp"
+#include "common/terminal.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
@@ -55,37 +55,25 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <iomanip>
 
 namespace driver::trace
 {
-/*
-Component Inner( std::vector< Component > children )
-{
-    Component vlist = Container::Vertical( std::move( children ) );
-    return Renderer( vlist,
-                     [ vlist ]
-                     {
-                         return hbox( {
-                             text( " " ),
-                             vlist->Render(),
-                         } );
-                     } );
-}
-
-Component Empty()
-{
-    return std::make_shared< ComponentBase >();
-}*/
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    namespace po                    = boost::program_options;
-    bool                    bShowUI = true;
+    namespace po    = boost::program_options;
+    bool bShowUI    = true;
+    bool bShowMsgs  = false;
+    bool bShowStart = false;
+
     po::options_description commandOptions( " Simulation Commands" );
     {
         // clang-format off
         commandOptions.add_options()
-            ( "ui",    po::bool_switch( &bShowUI ), "Show FTXUI user interface for progress report" )
+            ( "ui",     po::bool_switch( &bShowUI ),    "Show FTXUI user interface for progress report" )
+            ( "msg",    po::bool_switch( &bShowMsgs ),  "Show messages" )
+            ( "start",  po::bool_switch( &bShowStart ), "Show starts" )
 
             ;
         // clang-format on
@@ -109,37 +97,138 @@ void command( bool bHelp, const std::vector< std::string >& args )
         mega::compiler::BuildStatus buildState;
 
         std::thread inputThread(
-            [ &buildState, &mut, &bContinue, &bShowUI ]()
+            [ &buildState, &mut, &bContinue, &bShowUI, &bShowMsgs, &bShowStart ]()
             {
                 while( bContinue )
                 {
                     std::string strLine;
                     if( std::getline( std::cin, strLine ) )
                     {
+                        std::istringstream         is( strLine );
+                        mega::compiler::TaskReport report;
+                        bool                       bReadReport = false;
+
                         try
                         {
-                            std::istringstream         is( strLine );
-                            mega::compiler::TaskReport report;
                             is >> report;
-                            {
-                                std::lock_guard< std::mutex > lock( mut );
-                                buildState.progress( report );
-                                if( !bShowUI )
-                                {
-                                    std::cout << report.str();
-                                }
-                            }
+                            bReadReport = true;
                         }
                         catch( std::exception& )
                         {
+                            // ignore bad lines
+                        }
+                        if( bReadReport )
+                        {
+                            std::lock_guard< std::mutex > lock( mut );
+                            buildState.progress( report );
                             if( !bShowUI )
                             {
-                                std::cout << strLine;
+                                const char* pDrawColour = nullptr;
+                                std::string sepLine = "";
+                                switch( report.type )
+                                {
+                                    case mega::compiler::TaskReport::eMSG:
+                                        if( bShowMsgs )
+                                        {
+                                            pDrawColour = common::COLOUR_BLUE_BEGIN;
+                                            sepLine = "\n";
+                                        }
+                                        break;
+                                    case mega::compiler::TaskReport::eCMD:
+                                        if( bShowMsgs )
+                                        {
+                                            pDrawColour = common::COLOUR_CYAN_BEGIN;
+                                            sepLine = "\n";
+                                        }
+                                        break;
+                                    case mega::compiler::TaskReport::eOUT:
+                                        if( bShowMsgs )
+                                        {
+                                            pDrawColour = common::COLOUR_CYAN_BEGIN;
+                                        }
+                                        break;
+                                    case mega::compiler::TaskReport::eSTARTED:
+                                        if( bShowStart )
+                                        {
+                                            pDrawColour = common::COLOUR_WHITE_BEGIN;
+                                        }
+                                        break;
+                                    case mega::compiler::TaskReport::eFAILED:
+                                        pDrawColour = common::COLOUR_RED_BEGIN;
+                                        break;
+                                    case mega::compiler::TaskReport::eERROR:
+                                        pDrawColour = common::COLOUR_RED_BEGIN;
+                                        break;
+                                    case mega::compiler::TaskReport::eCACHED:
+                                        pDrawColour = common::COLOUR_YELLOW_BEGIN;
+                                        break;
+                                    case mega::compiler::TaskReport::eSUCCESS:
+                                        pDrawColour = common::COLOUR_GREEN_BEGIN;
+                                        break;
+                                    case mega::compiler::TaskReport::TOTAL_REPORT_TYPES:
+                                        break;
+                                }
+                                if( pDrawColour )
+                                {
+                                    std::cout << pDrawColour <<
+
+                                        std::setw( 9 ) << std::setfill( ' ' ) << report.type <<
+
+                                        std::setw( 35 ) << std::setfill( ' ' ) << report.name.task <<
+
+                                        std::setw( 30 ) << std::right << std::setfill( ' ' ) << report.name.source <<
+
+                                        " -> " <<
+
+                                        std::setw( 80 ) << std::left << std::setfill( ' ' ) << report.name.target <<
+
+                                        sepLine << report.info <<
+
+                                        common::COLOUR_END << std::endl;
+                                }
                             }
                         }
                     }
                 }
             } );
+
+        inputThread.join();
+    }
+}
+
+} // namespace driver::trace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+Component Inner( std::vector< Component > children )
+{
+    Component vlist = Container::Vertical( std::move( children ) );
+    return Renderer( vlist,
+                     [ vlist ]
+                     {
+                         return hbox( {
+                             text( " " ),
+                             vlist->Render(),
+                         } );
+                     } );
+}
+
+Component Empty()
+{
+    return std::make_shared< ComponentBase >();
+}*/
 
         // auto pRootComponent = Inner( { Collapsible( "Megastructure 1", Empty() ) } );
         /*     Inner( {
@@ -173,8 +262,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
             auto pRootComponent = Renderer(
                 [ & ]()
-                { 
-                    return components->Render() | ftxui::vscroll_indicator | ftxui::frame | ftxui::borderLight; 
+                {
+                    return components->Render() | ftxui::vscroll_indicator | ftxui::frame | ftxui::borderLight;
                 } );
             // clang-format off
             // clang-format on
@@ -216,12 +305,6 @@ void command( bool bHelp, const std::vector< std::string >& args )
             }
         }*/
         // bContinue = false;
-        inputThread.join();
-    }
-}
-
-} // namespace driver::trace
-
 /*
 std::lock_guard< std::mutex > lock( mut );
 

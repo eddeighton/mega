@@ -107,16 +107,16 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_operations.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
     ${MEGA_SRC_DIR}/compiler/task_python.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_connection.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_contour.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_extrusion.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_floor_plan.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_map_file.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_parse.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_spawn_points.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_value_space.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_visibility.cpp
-    ${MEGA_SRC_DIR}/compiler/task_schematic_wall_sections.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_connection.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_contour.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_extrusion.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_floor_plan.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_map_file.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_parse.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_spawn_points.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_value_space.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_visibility.cpp
+    #${MEGA_SRC_DIR}/compiler/task_schematic_wall_sections.cpp
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
     ${MEGA_SRC_DIR}/compiler/task_unity.cpp
     ${MEGA_SRC_DIR}/compiler/task_value_space.cpp
@@ -158,6 +158,7 @@ target_link_libraries( compiler compiler_config )
 target_link_libraries( compiler utilities )
 target_link_libraries( compiler database )
 target_link_libraries( compiler pipeline )
+target_link_libraries( compiler schematic )
 
 target_include_directories( compiler PUBLIC ${MEGA_API_DIR} )
 
