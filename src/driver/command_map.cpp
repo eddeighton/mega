@@ -28,10 +28,12 @@
 
 #include "utilities/project.hpp"
 
+#ifndef _WIN32
 #include "schematic/factory.hpp"
 #include "schematic/schematic.hpp"
 #include "schematic/compilation.hpp"
 #include "schematic/visibility.hpp"
+#endif
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -58,6 +60,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
     boost::filesystem::path schematicFilePath, projectPath, outputFilePath;
 
     namespace po = boost::program_options;
+
+#ifdef _WIN32
+    THROW_RTE( "Map commands not supported on windows" );
+#else
 
     po::options_description commandOptions( " Process schematic files" );
     {
@@ -113,6 +119,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         // using namespace FinalStage;
         // Database database( environment, environment.project_manifest() );
     }
+#endif
 }
 
 } // namespace driver::map
