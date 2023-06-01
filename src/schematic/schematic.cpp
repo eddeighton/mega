@@ -112,7 +112,7 @@ void Schematic::task_compilation()
         Schematic::Ptr pThis = boost::dynamic_pointer_cast< Schematic >( getPtr() );
 
         m_pCompilation.reset();
-        m_pCompilation.reset( new Compilation( pThis ) );
+        m_pCompilation.reset( new analysis::Compilation( pThis ) );
 
         m_pCompilation->getEdges( edges );
     }

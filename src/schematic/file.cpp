@@ -18,6 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "schematic/file.hpp"
+#include "schematic/schematic.hpp"
 
 namespace schematic
 {
@@ -33,4 +34,11 @@ File::File( File::PtrCst pOriginal, Node::Ptr pNewParent, const std::string& str
     VERIFY_RTE( !pNewParent );
 }
 
+File::CompilationConfig File::getDefaultCompilationConfig()
+{
+    CompilationConfig config;
+    config.set( Schematic::eStage_Site );
+    config.set( Schematic::eStage_SiteContour );
+    return config;
+}
 } // namespace schematic

@@ -68,7 +68,7 @@ void saveFile( const std::string& strFilePath, const format::File& file )
 {
     try
     {
-        auto                         outFile = boost::filesystem::createOrLoadNewFileStream( strFilePath );
+        auto                         outFile = boost::filesystem::createNewFileStream( strFilePath );
         boost::archive::xml_oarchive oa( *outFile, boostXMLArchiveFlags );
         oa&                          boost::serialization::make_nvp( "file", file );
     }

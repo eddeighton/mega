@@ -44,8 +44,7 @@ bool doesFaceHaveDoorstep( exact::Arrangement::Face_const_handle hFace )
 
     // search through all holes
     for( exact::Arrangement::Hole_const_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
-         holeIter != holeIterEnd;
-         ++holeIter )
+         holeIter != holeIterEnd; ++holeIter )
     {
         exact::Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
         exact::Arrangement::Ccb_halfedge_const_circulator start = iter;
@@ -62,20 +61,20 @@ bool doesFaceHaveDoorstep( exact::Arrangement::Face_const_handle hFace )
 }
 } // namespace
 
-namespace schematic
+namespace analysis
 {
 
 Compilation::Compilation()
 {
 }
 
-Compilation::Compilation( Schematic::Ptr pSchematic )
+Compilation::Compilation( schematic::Schematic::Ptr pSchematic )
 {
-    for( Site::Ptr pSite : pSchematic->getSites() )
+    for( schematic::Site::Ptr pSite : pSchematic->getSites() )
     {
         recurse( pSite );
     }
-    for( Site::Ptr pSite : pSchematic->getSites() )
+    for( schematic::Site::Ptr pSite : pSchematic->getSites() )
     {
         connect( pSite );
     }
@@ -90,7 +89,7 @@ Compilation::Compilation( Schematic::Ptr pSchematic )
         }
     }
 
-    for( Site::Ptr pSite : pSchematic->getSites() )
+    for( schematic::Site::Ptr pSite : pSchematic->getSites() )
     {
         recursePost( pSite );
     }
@@ -125,9 +124,9 @@ void Compilation::renderContour( Arrangement&            arr,
     }
 }
 
-void Compilation::recurse( Site::Ptr pSite )
+void Compilation::recurse( schematic::Site::Ptr pSite )
 {
-    if( Space::Ptr pSpace = boost::dynamic_pointer_cast< Space >( pSite ) )
+    if( schematic::Space::Ptr pSpace = boost::dynamic_pointer_cast< schematic::Space >( pSite ) )
     {
         const exact::Transform transform = pSpace->getAbsoluteExactTransform();
 
@@ -145,15 +144,15 @@ void Compilation::recurse( Site::Ptr pSite )
         }
     }
 
-    for( Site::Ptr pNestedSite : pSite->getSites() )
+    for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
     {
         recurse( pNestedSite );
     }
 }
 
-void Compilation::recursePost( Site::Ptr pSite )
+void Compilation::recursePost( schematic::Site::Ptr pSite )
 {
-    if( Space::Ptr pSpace = boost::dynamic_pointer_cast< Space >( pSite ) )
+    if( schematic::Space::Ptr pSpace = boost::dynamic_pointer_cast< schematic::Space >( pSite ) )
     {
         const exact::Transform transform = pSpace->getAbsoluteExactTransform();
 
@@ -161,14 +160,14 @@ void Compilation::recursePost( Site::Ptr pSite )
         renderContour( m_arr, transform, pSpace->getSitePolygon() );
     }
 
-    for( Site::Ptr pNestedSite : pSite->getSites() )
+    for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
     {
         recursePost( pNestedSite );
     }
 }
 
 void constructConnectionEdges( ::exact::Arrangement&                 arr,
-                               Connection::Ptr                       pConnection,
+                               schematic::Connection::Ptr            pConnection,
                                ::exact::Arrangement::Halfedge_handle firstBisectorEdge,
                                ::exact::Arrangement::Halfedge_handle secondBisectorEdge )
 {
@@ -245,11 +244,11 @@ void constructConnectionEdges( ::exact::Arrangement&                 arr,
     }
 }
 
-void Compilation::connect( Site::Ptr pSite )
+void Compilation::connect( schematic::Site::Ptr pSite )
 {
     static ::exact::InexactToExact converter;
 
-    if( Connection::Ptr pConnection = boost::dynamic_pointer_cast< Connection >( pSite ) )
+    if( schematic::Connection::Ptr pConnection = boost::dynamic_pointer_cast< schematic::Connection >( pSite ) )
     {
         const exact::Transform transform = pConnection->getAbsoluteExactTransform();
 
@@ -258,9 +257,9 @@ void Compilation::connect( Site::Ptr pSite )
         Arrangement::Halfedge_handle                firstBisectorEdge, secondBisectorEdge;
         bool                                        bFoundFirst = false, bFoundSecond = false;
         {
-            const Segment&     firstSeg = pConnection->getFirstSegment();
-            const exact::Point ptFirstStart( transform( converter( firstSeg[ 0 ] ) ) );
-            const exact::Point ptFirstEnd( transform( converter( firstSeg[ 1 ] ) ) );
+            const schematic::Segment& firstSeg = pConnection->getFirstSegment();
+            const exact::Point        ptFirstStart( transform( converter( firstSeg[ 0 ] ) ) );
+            const exact::Point        ptFirstEnd( transform( converter( firstSeg[ 1 ] ) ) );
 
             Curve_handle firstCurve = CGAL::insert( m_arr, Curve( ptFirstStart, ptFirstEnd ) );
 
@@ -285,9 +284,9 @@ void Compilation::connect( Site::Ptr pSite )
         }
 
         {
-            const Segment&     secondSeg = pConnection->getSecondSegment();
-            const exact::Point ptSecondStart( transform( converter( secondSeg[ 1 ] ) ) );
-            const exact::Point ptSecondEnd( transform( converter( secondSeg[ 0 ] ) ) );
+            const schematic::Segment& secondSeg = pConnection->getSecondSegment();
+            const exact::Point        ptSecondStart( transform( converter( secondSeg[ 1 ] ) ) );
+            const exact::Point        ptSecondEnd( transform( converter( secondSeg[ 0 ] ) ) );
 
             Curve_handle secondCurve = CGAL::insert( m_arr, Curve( ptSecondStart, ptSecondEnd ) );
 
@@ -329,7 +328,7 @@ void Compilation::connect( Site::Ptr pSite )
         }
     }
 
-    for( Site::Ptr pNestedSite : pSite->getSites() )
+    for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
     {
         connect( pNestedSite );
     }
@@ -361,7 +360,7 @@ void Compilation::getEdges( std::vector< schematic::Segment >& edges )
     exact::ExactToInexact convert;
     for( auto i = m_arr.edges_begin(); i != m_arr.edges_end(); ++i )
     {
-        edges.push_back( schematic::Segment( convert( i->source()->point() ), convert( i->target()->point() ) ) );
+        edges.emplace_back( convert( i->source()->point() ), convert( i->target()->point() ) );
     }
 }
 
@@ -525,17 +524,17 @@ void Compilation::renderFillers( const boost::filesystem::path& filepath )
 
     SVGStyle style;
     generateHTML( filepath, m_arr, edgeGroups, style );
-}
+}*/
 
 void Compilation::save( std::ostream& os ) const
 {
-    Formatter formatter;
+    exact::Formatter formatter;
     CGAL::write( m_arr, os, formatter );
 }
 
 void Compilation::load( std::istream& is )
 {
-    Formatter formatter;
+    exact::Formatter formatter;
     CGAL::read( m_arr, is, formatter );
-}*/
-} // namespace schematic
+}
+} // namespace analysis

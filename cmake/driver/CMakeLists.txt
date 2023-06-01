@@ -65,6 +65,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_log.cpp
 		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp
+		${DRIVER_SOURCE_DIR}/command_map.cpp
 		${DRIVER_SOURCE_DIR}/command_project.cpp
 		${DRIVER_SOURCE_DIR}/command_retail.cpp
 		${DRIVER_SOURCE_DIR}/command_sim.cpp
@@ -95,6 +96,7 @@ target_link_libraries( mega network )
 target_link_libraries( mega protocol )
 target_link_libraries( mega terminal )
 target_link_libraries( mega utilities )
+target_link_libraries( mega schematic )
 
 set_target_properties( mega PROPERTIES FOLDER service )
 

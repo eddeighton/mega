@@ -34,6 +34,10 @@
 namespace schematic
 {
 class Schematic;
+}
+
+namespace analysis
+{
 
 class Compilation
 {
@@ -48,7 +52,7 @@ class Compilation
 public:
     using Ptr = std::shared_ptr< Compilation >;
 
-    Compilation( boost::shared_ptr< Schematic > pSchematic );
+    Compilation( boost::shared_ptr< schematic::Schematic > pSchematic );
 
     static void renderContour( Arrangement& arr, const exact::Transform& transform, const exact::Polygon& poly );
 
@@ -68,13 +72,13 @@ public:
     void load( std::istream& is );
 
 private:
-    void recurse( Site::Ptr pSpace );
-    void recursePost( Site::Ptr pSpace );
-    void connect( Site::Ptr pConnection );
-    void findSpaceFaces( Space::Ptr pSpace, FaceHandleSet& faces, FaceHandleSet& spaceFaces );
+    void recurse( schematic::Site::Ptr pSpace );
+    void recursePost( schematic::Site::Ptr pSpace );
+    void connect( schematic::Site::Ptr pConnection );
+    void findSpaceFaces( schematic::Space::Ptr pSpace, FaceHandleSet& faces, FaceHandleSet& spaceFaces );
 
     Arrangement m_arr;
 };
-} // namespace schematic
+} // namespace analysis
 
 #endif // COMPILATION_15_DEC_2020

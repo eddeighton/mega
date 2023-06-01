@@ -67,10 +67,6 @@ private:
     bool m_bValue = false;
 };
 
-} // namespace exact
-
-namespace CGAL
-{
 inline std::ostream& operator<<( std::ostream& os, const exact::DefaultedBool& defBool )
 {
     return os << defBool.get();
@@ -83,7 +79,7 @@ inline std::istream& operator>>( std::istream& is, exact::DefaultedBool& defBool
     defBool.set( bValue );
     return is;
 }
-} // namespace CGAL
+} // namespace exact
 
 namespace schematic
 {

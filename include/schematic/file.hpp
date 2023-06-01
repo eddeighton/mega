@@ -48,6 +48,7 @@ public:
 
     using CompilationConfig = std::bitset< 16 >;
 
+    static CompilationConfig getDefaultCompilationConfig();
 };
 
 } // namespace schematic

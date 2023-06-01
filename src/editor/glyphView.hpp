@@ -34,27 +34,30 @@ class GlyphView : public GridView, public schematic::GlyphFactory
     Q_OBJECT
 
 public:
-    //lifetime and focus
-    explicit GlyphView( QWidget *parent, MainWindow* pMainWindow );
+    // lifetime and focus
+    explicit GlyphView( QWidget* parent, MainWindow* pMainWindow );
     ~GlyphView();
 
     virtual void postCreate( Document::Ptr pDocument );
     virtual void onViewFocussed();
     virtual void onViewUnfocussed();
     virtual void onZoomed();
-    
+
 public:
-    //glyph factory interface
-    virtual schematic::IGlyph::Ptr createControlPoint( schematic::ControlPoint* pControlPoint, schematic::IGlyph::Ptr pParent );
+    // glyph factory interface
+    virtual schematic::IGlyph::Ptr createControlPoint( schematic::ControlPoint* pControlPoint,
+                                                       schematic::IGlyph::Ptr   pParent );
     virtual schematic::IGlyph::Ptr createOrigin( schematic::Origin* pOrigin, schematic::IGlyph::Ptr pParent );
-    virtual schematic::IGlyph::Ptr createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup, schematic::IGlyph::Ptr pParent );
-    virtual schematic::IGlyph::Ptr createMarkupText( schematic::MarkupText* pMarkupText, schematic::IGlyph::Ptr pParent );
-    virtual void onEditted( bool bCommandCompleted );
-    
+    virtual schematic::IGlyph::Ptr createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup,
+                                                             schematic::IGlyph::Ptr         pParent );
+    virtual schematic::IGlyph::Ptr createMarkupText( schematic::MarkupText* pMarkupText,
+                                                     schematic::IGlyph::Ptr pParent );
+    virtual void                   onEditted( bool bCommandCompleted );
+
 public:
     virtual void onDocumentUpdate();
-    
-    //visibility handling
+
+    // visibility handling
     using GlyphVisibilityConfig = std::bitset< 16 >;
     enum GlyphVisibility
     {
@@ -63,49 +66,48 @@ public:
         eGlyphVis_Sites,
         eGlyphVis_Connections
     };
-    
+
     const GlyphVisibilityConfig& getGlyphVisibilityConfig() const { return m_visibilityConfig; }
-    
-    void updateVisibility( 
-        const GlyphVisibilityConfig& glyphVisibilityConfig,
-        const schematic::File::CompilationConfig& config );
-    
+
+    void updateVisibility( const GlyphVisibilityConfig&              glyphVisibilityConfig,
+                           const schematic::File::CompilationConfig& config );
+
 public:
-    //context handling
+    // context handling
     void selectContext( schematic::IEditContext* pNewContext );
 
-    //selection handling
-    schematic::IEditContext* getActiveContext() const { return m_pActiveContext; }
+    // selection handling
+    schematic::IEditContext*  getActiveContext() const { return m_pActiveContext; }
     schematic::Schematic::Ptr getCurrentClip() const;
-    Toolbox::Ptr getToolbox() const;
-    
+    Toolbox::Ptr              getToolbox() const;
+
     SelectionSet getSelection() const;
     SelectionSet getSelectedByRect( const QRectF& rect ) const;
     SelectionSet getSelectedByPath( const QPainterPath& path ) const;
-    void setSelected( const SelectionSet& selection );
+    void         setSelected( const SelectionSet& selection );
 
     schematic::IGlyph* findGlyph( QGraphicsItem* pItem ) const;
     schematic::IGlyph* findSelectableTopmostGlyph( const QPointF& pos ) const;
 
 protected:
-    //QT virtual functions
+    // QT virtual functions
     virtual void mouseDoubleClickEvent( QMouseEvent* pEvent );
     virtual void mousePressEvent( QMouseEvent* pEvent );
     virtual void mouseMoveEvent( QMouseEvent* pEvent );
     virtual void mouseReleaseEvent( QMouseEvent* pEvent );
-        
+
 signals:
     void OnClipboardAction();
-        
+
 private slots:
-    //commands
+    // commands
     void CmdTabOut();
     void CmdSelectAll();
     void CmdCut();
     void CmdCopy();
     void CmdPaste();
     void CmdDelete();
-    
+
     void CmdRotateLeft();
     void CmdRotateRight();
     void CmdFlipHorizontal();
@@ -117,30 +119,28 @@ private slots:
     void CmdAABB();
     void CmdConvexHull();
     void CmdReparent();
-    
+
     void CmdSelectTool();
     void CmdLassoTool();
     void CmdDrawTool();
     void CmdEditTool();
 
 protected:
-    Document::Ptr m_pDocument;
+    Document::Ptr            m_pDocument;
     schematic::IEditContext* m_pActiveContext = nullptr;
-    
-    SelectTool  m_selectTool;
-    LassoTool   m_lassoTool;
-    PenTool     m_penTool;
-    EditTool    m_editTool;
-    Tool*       m_pActiveTool;
+
+    SelectTool            m_selectTool;
+    LassoTool             m_lassoTool;
+    PenTool               m_penTool;
+    EditTool              m_editTool;
+    Tool*                 m_pActiveTool;
     GlyphVisibilityConfig m_visibilityConfig;
-    
+
 private:
     ItemMap m_itemMap;
     SpecMap m_specMap;
-    
 };
 
-}
+} // namespace editor
 
-
-#endif //GLYPH_VIEW_03_FEB_2021
+#endif // GLYPH_VIEW_03_FEB_2021

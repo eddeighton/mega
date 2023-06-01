@@ -39,7 +39,7 @@ class Document
         UndoHistory( Document& document );
         ~UndoHistory();
 
-        void           onNewVersion();
+        void                 onNewVersion();
         schematic::File::Ptr onUndo();
         schematic::File::Ptr onRedo();
 
@@ -59,8 +59,8 @@ class Document
 public:
     using Ptr = std::shared_ptr< Document >;
 
-    Document( DocumentChangeObserver& observer );
-    Document( DocumentChangeObserver& observer, const boost::filesystem::path& path );
+    Document( DocumentChangeObserver& observer, const schematic::File::CompilationConfig& config );
+    Document( DocumentChangeObserver& observer, const schematic::File::CompilationConfig& config, const boost::filesystem::path& path );
 
     bool                                     isModified() const;
     const std::string&                       getUniqueObjectName() const { return m_uniqueObjectName; }
@@ -68,7 +68,7 @@ public:
 
     virtual schematic::File::Ptr getFile() const = 0;
 
-    void setCompilationConfig( const schematic::File::CompilationConfig& config );
+    virtual void setCompilationConfig( const schematic::File::CompilationConfig& config );
 
     virtual void onEditted( bool bCommandCompleted );
 
@@ -85,7 +85,7 @@ protected:
     const std::string                        m_uniqueObjectName;
     Timing::UpdateTick                       m_lastModifiedTick;
     std::optional< boost::filesystem::path > m_optPath;
-    schematic::File::CompilationConfig             m_compilationConfig;
+    schematic::File::CompilationConfig       m_compilationConfig;
     UndoHistory                              m_undoHistory;
 };
 
@@ -94,10 +94,12 @@ class SchematicDocument : public Document
 public:
     using Ptr = std::shared_ptr< SchematicDocument >;
 
-    SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic );
     SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic,
-                       const boost::filesystem::path& path );
+                       const schematic::File::CompilationConfig& config );
+    SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic,
+                       const schematic::File::CompilationConfig& config, const boost::filesystem::path& path );
 
+    virtual void setCompilationConfig( const schematic::File::CompilationConfig& config );
     virtual void onEditted( bool bCommandCompleted );
 
     virtual schematic::File::Ptr getFile() const { return m_pSchematic; }
@@ -109,6 +111,7 @@ public:
     virtual void redo();
 
 protected:
+    void calculateDerived( const schematic::File::CompilationConfig& config );
     void calculateDerived();
 
 private:

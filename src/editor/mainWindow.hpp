@@ -2,7 +2,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-
 #include "DockManager.h"
 
 #include "messages.hpp"
@@ -22,80 +21,79 @@
 
 #endif
 
-namespace Ui 
+namespace Ui
 {
-    class MainWindow;
+class MainWindow;
 }
 
 namespace editor
 {
-    class MainWindow : public QMainWindow, public DocumentChangeObserver
+class MainWindow : public QMainWindow, public DocumentChangeObserver
+{
+    Q_OBJECT
+
+    struct DocViewWidget
     {
-        Q_OBJECT
+        Document::Ptr     pDocument;
+        QWidget*          pView       = nullptr;
+        ads::CDockWidget* pDockWidget = nullptr;
+        bool              bFocussed   = false;
+    };
+    using DocumentViewMap = std::map< ads::CDockWidget*, DocViewWidget >;
 
-        struct DocViewWidget
-        {
-            Document::Ptr pDocument;
-            QWidget* pView = nullptr;
-            ads::CDockWidget* pDockWidget = nullptr;
-            bool bFocussed = false;
-        };
-        using DocumentViewMap = std::map< ads::CDockWidget*, DocViewWidget >;
+    using ActionMap = std::map< QAction*, int >;
 
-        using ActionMap = std::map< QAction*, int >;
-        
-        //void fifoMonitor();
-    public:
-        explicit MainWindow(QWidget *parent = 0);
-        virtual ~MainWindow();
+    // void fifoMonitor();
+public:
+    explicit MainWindow( QWidget* parent = 0 );
+    virtual ~MainWindow();
 
-        Ui::MainWindow* getUI() { return m_pMainWindowImpl; }
-        Toolbox::Ptr getToolbox() const { return m_pToolbox; }
+    Ui::MainWindow* getUI() { return m_pMainWindowImpl; }
+    Toolbox::Ptr    getToolbox() const { return m_pToolbox; }
 
-        void addActionRef( QAction* pAction );
-        void decActionRef( QAction* pAction );
+    void addActionRef( QAction* pAction );
+    void decActionRef( QAction* pAction );
 
-    protected:
-        void closeEvent( QCloseEvent* pEvent );
-        
-        void OnNewSchematic( SchematicDocument::Ptr pNewSchematic );
+protected:
+    void closeEvent( QCloseEvent* pEvent );
 
-        bool TestClosingDocument( DocViewWidget& docView );
+    void OnNewSchematic( SchematicDocument::Ptr pNewSchematic );
 
-    protected:
-        //DocumentChangeObserver
-        virtual void OnDocumentChanged( Document* pDocument );
+    bool TestClosingDocument( DocViewWidget& docView );
 
-    public:
-            
-    public slots:
-        void OnDocumentSaved( const void* pDocument );
+protected:
+    // DocumentChangeObserver
+    virtual void OnDocumentChanged( Document* pDocument );
 
-        void OnFloatingWidgetCreated( ads::CFloatingDockContainer* pFloatingWidget );
-        void OnFocusedDockWidgetCloseRequested( ads::CFloatingDockContainer* pDockContainer );
-        void OnDockWidgetCloseRequested( ads::CDockWidget* DockWidget );
-        void OnDockWidgetClosed( ads::CDockWidget* DockWidget );
+
+public:
+public slots:
+    void OnDocumentSaved( const void* pDocument );
+
+    void OnFloatingWidgetCreated( ads::CFloatingDockContainer* pFloatingWidget );
+    void OnFocusedDockWidgetCloseRequested( ads::CFloatingDockContainer* pDockContainer );
+    void OnDockWidgetCloseRequested( ads::CDockWidget* DockWidget );
+    void OnDockWidgetClosed( ads::CDockWidget* DockWidget );
     /*
         void OnDockWidgetRemoved( ads::CDockWidget* DockWidget );
         void OnDockWidgetAboutToBeRemoved( ads::CDockWidget* DockWidget );
         */
-        void OnFocusedDockWidgetChanged( ads::CDockWidget* pOld, ads::CDockWidget* pNew );
+    void OnFocusedDockWidgetChanged( ads::CDockWidget* pOld, ads::CDockWidget* pNew );
 
-        void OnNewBase();
-        void OnNewShip();
-        void OnLoadSchematic( ClipboardMsg msg );
-        void OnLoad();
-        void OnSaveAll();
-        
+    void OnNewBase();
+    void OnNewShip();
+    void OnLoadSchematic( ClipboardMsg msg );
+    void OnLoad();
+    void OnSaveAll();
 
-    protected:
-        Ui::MainWindow* m_pMainWindowImpl;
-        ads::CDockManager* m_pDockManager;
-        DocumentViewMap m_docViewMap;
-        ActionMap m_actionRefCountMap;
-        Toolbox::Ptr m_pToolbox;
-    };
+protected:
+    Ui::MainWindow*                    m_pMainWindowImpl;
+    ads::CDockManager*                 m_pDockManager;
+    DocumentViewMap                    m_docViewMap;
+    ActionMap                          m_actionRefCountMap;
+    Toolbox::Ptr                       m_pToolbox;
+};
 
-}
+} // namespace editor
 
 #endif // MAINWINDOW_H

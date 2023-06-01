@@ -180,18 +180,21 @@ schematic::File::Ptr Document::UndoHistory::onRedo()
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-Document::Document( DocumentChangeObserver& observer )
+Document::Document( DocumentChangeObserver& observer, const schematic::File::CompilationConfig& config )
     : m_documentChangeObserver( observer )
     , m_uniqueObjectName( generateUUID() )
     , m_undoHistory( *this )
+    , m_compilationConfig( config )
 {
 }
 
-Document::Document( DocumentChangeObserver& observer, const boost::filesystem::path& path )
+Document::Document( DocumentChangeObserver& observer, const schematic::File::CompilationConfig& config,
+                    const boost::filesystem::path& path )
     : m_documentChangeObserver( observer )
     , m_optPath( path )
     , m_uniqueObjectName( generateUUID() )
     , m_undoHistory( *this )
+    , m_compilationConfig( config )
 {
 }
 
@@ -240,38 +243,57 @@ void Document::saved( const boost::filesystem::path& filePath )
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic )
-    : Document( observer )
+SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic,
+                                      const schematic::File::CompilationConfig& config )
+    : Document( observer, config )
     , m_pSchematic( pSchematic )
 {
+    calculateDerived();
+
     m_undoHistory.onNewVersion();
 }
 
 SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic,
-                                      const boost::filesystem::path& path )
-    : Document( observer, path )
+                                      const schematic::File::CompilationConfig& config,
+                                      const boost::filesystem::path&            path )
+    : Document( observer, config, path )
     , m_pSchematic( pSchematic )
 {
+    calculateDerived();
+
     m_undoHistory.onNewVersion();
 }
 
-void SchematicDocument::calculateDerived()
+void SchematicDocument::calculateDerived( const schematic::File::CompilationConfig& config )
 {
     if( m_pSchematic )
     {
-        if( m_compilationConfig[ schematic::Schematic::eStage_SiteContour ] )
+        if( config[ schematic::Schematic::eStage_SiteContour ] )
         {
             m_pSchematic->task_contours();
         }
-        if( m_compilationConfig[ schematic::Schematic::eStage_Extrusion ] )
+        if( config[ schematic::Schematic::eStage_Extrusion ] )
         {
             m_pSchematic->task_extrusions();
         }
-        if( m_compilationConfig[ schematic::Schematic::eStage_Compilation ] )
+        if( config[ schematic::Schematic::eStage_Compilation ] )
         {
             m_pSchematic->task_compilation();
         }
     }
+}
+void SchematicDocument::calculateDerived()
+{
+    calculateDerived( m_compilationConfig );
+}
+
+void SchematicDocument::setCompilationConfig( const schematic::File::CompilationConfig& config )
+{
+    if( config != m_compilationConfig )
+    {
+        calculateDerived( config );
+    }
+    Document::setCompilationConfig( config );
 }
 
 void SchematicDocument::onEditted( bool bCommandCompleted )

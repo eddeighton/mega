@@ -359,9 +359,8 @@ void MainWindow::OnFloatingWidgetCreated( ads::CFloatingDockContainer* pFloating
     MainWindow* pThis = this;
 
     // closeRequested
-    QObject::connect(
-        pFloatingWidget, &ads::CFloatingDockContainer::closeRequested,
-        [ pThis, pFloatingWidget ]() { pThis->OnFocusedDockWidgetCloseRequested( pFloatingWidget ); } );
+    QObject::connect( pFloatingWidget, &ads::CFloatingDockContainer::closeRequested,
+                      [ pThis, pFloatingWidget ]() { pThis->OnFocusedDockWidgetCloseRequested( pFloatingWidget ); } );
 }
 /*
 void MainWindow::OnDockWidgetRemoved( ads::CDockWidget* DockWidget )
@@ -487,7 +486,8 @@ void MainWindow::OnNewBase()
         pNewBase->init();
     }
 
-    SchematicDocument::Ptr pNewSchematic( new SchematicDocument( *this, pNewBase ) );
+    SchematicDocument::Ptr pNewSchematic(
+        new SchematicDocument( *this, pNewBase, schematic::File::getDefaultCompilationConfig() ) );
     OnNewSchematic( pNewSchematic );
 }
 
@@ -498,7 +498,8 @@ void MainWindow::OnNewShip()
         pNewShip->init();
     }
 
-    SchematicDocument::Ptr pNewSchematic( new SchematicDocument( *this, pNewShip ) );
+    SchematicDocument::Ptr pNewSchematic(
+        new SchematicDocument( *this, pNewShip, schematic::File::getDefaultCompilationConfig() ) );
     OnNewSchematic( pNewSchematic );
 }
 
@@ -506,12 +507,14 @@ void MainWindow::OnLoadSchematic( ClipboardMsg msg )
 {
     if( msg.optFilePath.has_value() )
     {
-        SchematicDocument::Ptr pNewSchematic( new SchematicDocument( *this, msg.pSchematic, msg.optFilePath.value() ) );
+        SchematicDocument::Ptr pNewSchematic( new SchematicDocument(
+            *this, msg.pSchematic, schematic::File::getDefaultCompilationConfig(), msg.optFilePath.value() ) );
         OnNewSchematic( pNewSchematic );
     }
     else
     {
-        SchematicDocument::Ptr pNewSchematic( new SchematicDocument( *this, msg.pSchematic ) );
+        SchematicDocument::Ptr pNewSchematic(
+            new SchematicDocument( *this, msg.pSchematic, schematic::File::getDefaultCompilationConfig() ) );
         OnNewSchematic( pNewSchematic );
     }
 }
@@ -541,7 +544,8 @@ void MainWindow::OnLoad()
 
             if( schematic::Schematic::Ptr pSchematic = boost::dynamic_pointer_cast< schematic::Schematic >( pFile ) )
             {
-                SchematicDocument::Ptr pNewSchematic( new SchematicDocument( *this, pSchematic, filePath ) );
+                SchematicDocument::Ptr pNewSchematic( new SchematicDocument(
+                    *this, pSchematic, schematic::File::getDefaultCompilationConfig(), filePath ) );
                 OnNewSchematic( pNewSchematic );
             }
             else if( schematic::Mission::Ptr pMission = boost::dynamic_pointer_cast< schematic::Mission >( pFile ) )

@@ -126,7 +126,7 @@ struct formatter< mega::network::LogTime >
     {
         using DurationType = std::chrono::duration< mega::I64, std::ratio< 1, 1'000'000'000 > >;
         auto c             = std::chrono::duration_cast< DurationType >( logTime ).count();
-        return format_to(
+        return fmt::format_to(
             ctx.out(), "{}s.{:03}ms.{:03}us",
             // clang-format off
             ( c % 1'000'000'000'000   ) / 1'000'000'000,
@@ -148,7 +148,7 @@ struct formatter< mega::network::Message >
     {
         std::ostringstream os;
         os << msg;
-        return format_to( ctx.out(), "{}", os.str() );
+        return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -162,7 +162,7 @@ struct formatter< mega::network::ConversationID >
     {
         std::ostringstream os;
         os << conversationID;
-        return format_to( ctx.out(), "{}", os.str() );
+        return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -176,7 +176,7 @@ struct formatter< mega::TypeID >
         std::ostringstream os;
         using ::           operator<<;
         os << typeID;
-        return format_to( ctx.out(), "{}", os.str() );
+        return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -190,7 +190,7 @@ struct formatter< mega::TypeInstance >
         std::ostringstream os;
         using ::           operator<<;
         os << typeInstance;
-        return format_to( ctx.out(), "{}", os.str() );
+        return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -204,7 +204,7 @@ struct formatter< mega::MP >
         std::ostringstream os;
         using ::           operator<<;
         os << mp;
-        return format_to( ctx.out(), "{}", os.str() );
+        return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -218,7 +218,7 @@ struct formatter< mega::MPO >
         std::ostringstream os;
         using ::           operator<<;
         os << mpo;
-        return format_to( ctx.out(), "{}", os.str() );
+        return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -232,7 +232,7 @@ struct formatter< mega::reference >
         std::ostringstream os;
         using ::           operator<<;
         os << ref;
-        return format_to( ctx.out(), "{}", os.str() );
+        return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };
 
@@ -245,7 +245,7 @@ struct formatter< mega::InvocationID >
     {
         std::ostringstream os;
         os << invocationID;
-        return format_to( ctx.out(), "{}", os.str() );
+        return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };
 

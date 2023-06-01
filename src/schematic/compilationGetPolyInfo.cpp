@@ -236,7 +236,7 @@ void faceToPolygonWithHoles( schematic::Arrangement::Face_const_handle hFace, sc
 } // namespace
 
 /*
-namespace schematic
+namespace analysis
 {
 
 void Compilation::findSpaceFaces( Space::Ptr pSpace, FaceHandleSet& faces, FaceHandleSet& spaceFaces )
