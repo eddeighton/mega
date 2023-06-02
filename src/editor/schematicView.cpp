@@ -35,6 +35,9 @@ void SchematicView::postCreate( SchematicDocument::Ptr pDocument )
     GlyphView::postCreate( pDocument );
 
     m_pSchematicDocument = pDocument;
+    VERIFY_RTE( pDocument );
+
+    m_itemModel.OnSchematicFocussed( m_pSchematicDocument->getSchematic() );
 
     GlyphView* pGlyphView = this;
 
@@ -80,6 +83,11 @@ void SchematicView::onViewFocussed()
     m_pMainWindow->getUI()->actionView_Sections     ->setChecked( false );
     m_pMainWindow->getUI()->actionView_Visibility   ->setChecked( false );
     // clang-format on
+
+    if( m_pSchematicDocument )
+    {
+        m_itemModel.OnSchematicFocussed( m_pSchematicDocument->getSchematic() );
+    }
 }
 
 void SchematicView::onViewUnfocussed()

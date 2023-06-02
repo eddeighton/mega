@@ -174,7 +174,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockProperties">
    <property name="windowTitle">
-    <string>Properties</string>
+    <string>Structure</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>

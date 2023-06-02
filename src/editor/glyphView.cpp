@@ -23,16 +23,63 @@ namespace editor
 
 GlyphView::GlyphView( QWidget* pParent, MainWindow* pMainWindow )
     : GridView( pParent, pMainWindow )
+    , m_selectionModel( &m_itemModel )
     , m_selectTool( *this )
     , m_lassoTool( *this )
     , m_penTool( *this )
     , m_editTool( *this )
     , m_pActiveTool( &m_selectTool )
 {
+    QObject::connect(
+        &m_selectionModel, &SelectionModel::currentChanged, this, &GlyphView::OnCurrentSelectionItemChanged );
+    QObject::connect( &m_selectionModel, &SelectionModel::selectionChanged, this, &GlyphView::OnSelectionChanged );
 }
 
-GlyphView::~GlyphView()
+GlyphView::~GlyphView() = default;
+
+void GlyphView::OnCurrentSelectionItemChanged( const QModelIndex&, const QModelIndex& )
 {
+    qDebug() << "GlyphView::OnCurrentSelectionItemChanged";
+}
+
+Selectable* GlyphView::selectableFromNode( schematic::Node::PtrCst pNode ) const
+{
+    Selectable* pSelectable = nullptr;
+
+    if( schematic::Site::PtrCst pSite = boost::dynamic_pointer_cast< const schematic::Site >( pNode ) )
+    {
+        if( auto pSpec = dynamic_cast< const schematic::GlyphSpec* >( pSite.get() ) )
+        {
+            auto iFind = m_specMap.find( pSpec );
+            if( iFind != m_specMap.end() )
+            {
+                auto iFind2 = m_itemMap.find( iFind->second );
+                if( iFind2 != m_itemMap.end() )
+                {
+                    pSelectable = Selection::glyphToSelectable( iFind2->second );
+                }
+            }
+        }
+    }
+    return pSelectable;
+}
+
+void GlyphView::OnSelectionChanged( const QItemSelection& selected, const QItemSelection& deselected )
+{
+    qDebug() << "GlyphView::OnSelectionChanged";
+
+    const QModelIndexList selectedIndices = selected.indexes();
+    for( QModelIndexList::const_iterator i = selectedIndices.begin(), iEnd = selectedIndices.end(); i != iEnd; ++i )
+    {
+        if( Selectable* pSelectable = selectableFromNode( m_itemModel.getIndexNode( *i ) ) )
+            pSelectable->setSelected( true );
+    }
+    const QModelIndexList deselectedIndices = deselected.indexes();
+    for( QModelIndexList::const_iterator i = deselectedIndices.begin(), iEnd = deselectedIndices.end(); i != iEnd; ++i )
+    {
+        if( Selectable* pSelectable = selectableFromNode( m_itemModel.getIndexNode( *i ) ) )
+            pSelectable->setSelected( false );
+    }
 }
 
 void GlyphView::postCreate( Document::Ptr pDocument )
@@ -68,6 +115,9 @@ void GlyphView::onViewFocussed()
     CMD_CONNECT( actionLasso, CmdLassoTool );
     CMD_CONNECT( actionDraw, CmdDrawTool );
     CMD_CONNECT( actionEdit, CmdEditTool );
+
+    m_pMainWindow->getUI()->treeView->setModel( &m_itemModel );
+    m_pMainWindow->getUI()->treeView->setSelectionModel( &m_selectionModel );
 
     if( m_pMainWindow->getUI()->actionSelect->isChecked() )
     {
@@ -164,6 +214,8 @@ schematic::IGlyph::Ptr GlyphView::createMarkupText( schematic::MarkupText* pMark
 void GlyphView::onEditted( bool bCommandCompleted )
 {
     m_pDocument->onEditted( bCommandCompleted );
+
+    m_itemModel.OnBlueprintUpdate();
 }
 
 void GlyphView::onDocumentUpdate()
@@ -213,7 +265,7 @@ void GlyphView::updateVisibility( const GlyphVisibilityConfig&              glyp
     {
         schematic::IGlyph* pGlyph = i.second;
 
-        if( Renderable* pRenderable = dynamic_cast< Renderable* >( pGlyph ) )
+        if( auto pRenderable = dynamic_cast< Renderable* >( pGlyph ) )
         {
             bool bShowType = true;
 
@@ -225,7 +277,7 @@ void GlyphView::updateVisibility( const GlyphVisibilityConfig&              glyp
                 }
                 else
                 {
-                    if( const GlyphOrigin* pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph->getParent().get() ) )
+                    if( auto pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph->getParent().get() ) )
                     {
                         if( !testGlyphOrigin( pOrigin ) )
                             bShowType = false;
@@ -240,21 +292,21 @@ void GlyphView::updateVisibility( const GlyphVisibilityConfig&              glyp
                 }
                 else
                 {
-                    if( const GlyphOrigin* pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph->getParent().get() ) )
+                    if( auto pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph->getParent().get() ) )
                     {
                         if( !testGlyphOrigin( pOrigin ) )
                             bShowType = false;
                     }
                 }
             }
-            else if( const GlyphOrigin* pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph ) )
+            else if( auto pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph ) )
             {
                 if( !testGlyphOrigin( pOrigin ) )
                     bShowType = false;
             }
             else if( dynamic_cast< const GlyphPolygonGroup* >( pGlyph ) )
             {
-                if( const GlyphOrigin* pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph->getParent().get() ) )
+                if( auto pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph->getParent().get() ) )
                 {
                     if( !testGlyphOrigin( pOrigin ) )
                         bShowType = false;
@@ -285,10 +337,10 @@ void GlyphView::selectContext( schematic::IEditContext* pNewContext )
 
     if( pOldContext )
     {
-        SpecMap::const_iterator iFind = m_specMap.find( pOldContext->getOrigin() );
+        auto iFind = m_specMap.find( pOldContext->getOrigin() );
         if( iFind != m_specMap.end() )
         {
-            ItemMap::const_iterator iFind2 = m_itemMap.find( iFind->second );
+            auto iFind2 = m_itemMap.find( iFind->second );
             if( iFind2 != m_itemMap.end() )
                 iFind2->second->update();
         }
@@ -296,10 +348,10 @@ void GlyphView::selectContext( schematic::IEditContext* pNewContext )
 
     VERIFY_RTE( m_pActiveContext );
     {
-        SpecMap::const_iterator iFind = m_specMap.find( m_pActiveContext->getOrigin() );
+        auto iFind = m_specMap.find( m_pActiveContext->getOrigin() );
         if( iFind != m_specMap.end() )
         {
-            ItemMap::const_iterator iFind2 = m_itemMap.find( iFind->second );
+            auto iFind2 = m_itemMap.find( iFind->second );
             if( iFind2 != m_itemMap.end() )
                 iFind2->second->update();
         }
@@ -324,7 +376,7 @@ Toolbox::Ptr GlyphView::getToolbox() const
 SelectionSet GlyphView::getSelection() const
 {
     SelectionSet selection;
-    for( ItemMap::const_iterator i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
+    for( auto i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
     {
         if( Selectable* pSelectable = Selection::glyphToSelectable( i->second ) )
         {
@@ -394,7 +446,7 @@ SelectionSet GlyphView::getSelectedByPath( const QPainterPath& path ) const
 
 void GlyphView::setSelected( const SelectionSet& selection )
 {
-    for( ItemMap::const_iterator i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
+    for( auto i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
     {
         if( Selectable* pSelectable = Selection::glyphToSelectable( i->second ) )
         {
@@ -406,32 +458,24 @@ void GlyphView::setSelected( const SelectionSet& selection )
         }
     }
 
-    /*
-    ASSERT( m_pSelectionModel );
-    ASSERT( m_pModel );
-
     QItemSelection itemSelection;
 
-    for( SelectionSet::const_iterator i = selection.begin(),
-         iEnd = selection.end(); i!=iEnd; ++i )
+    for( SelectionSet::const_iterator i = selection.begin(), iEnd = selection.end(); i != iEnd; ++i )
     {
         schematic::IGlyph* pGlyph = *i;
-        if( const schematic::Site* pSite =
-                dynamic_cast< const schematic::Site* >( pGlyph->getGlyphSpec() ) )
+        if( const schematic::Site* pSite = dynamic_cast< const schematic::Site* >( pGlyph->getGlyphSpec() ) )
         {
-            itemSelection.push_back( QItemSelectionRange( m_pModel->getNodeIndex( pSite->getPtr() ) ) );
+            itemSelection.push_back( QItemSelectionRange( m_itemModel.getNodeIndex( pSite->getPtr() ) ) );
         }
     }
 
-    m_pSelectionModel->select( itemSelection, QItemSelectionModel::ClearAndSelect );
-
-    */
+    m_selectionModel.select( itemSelection, QItemSelectionModel::ClearAndSelect );
 }
 
 schematic::IGlyph* GlyphView::findGlyph( QGraphicsItem* pItem ) const
 {
-    schematic::IGlyph*      pGlyph = 0u;
-    ItemMap::const_iterator iFind  = m_itemMap.find( pItem );
+    schematic::IGlyph* pGlyph = 0u;
+    auto               iFind  = m_itemMap.find( pItem );
     if( iFind != m_itemMap.end() )
         pGlyph = iFind->second;
     return pGlyph;
@@ -545,7 +589,7 @@ void GlyphView::CmdSelectAll()
     {
         ASSERT( m_pActiveTool );
         SelectionSet selection;
-        for( ItemMap::const_iterator i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
+        for( auto i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
         {
             if( Selectable* pSelectable = Selection::glyphToSelectable( i->second ) )
             {

@@ -80,13 +80,7 @@ std::string Feature_Point::getStatement() const
 {
     std::ostringstream os;
     {
-        THROW_RTE( "TODO" );
-        /*Ed::Shorthand sh;
-        {
-            Ed::OShorthandStream ossh( sh );
-            ossh << m_ptOrigin;
-        }
-        os << sh;*/
+        os << "Feature_Point: " << getName();
     }
     return os.str();
 }
@@ -140,14 +134,7 @@ std::string Feature_Contour::getStatement() const
 {
     std::ostringstream os;
     {
-        THROW_RTE( "TODO" );
-        /*
-        Ed::Shorthand sh;
-        {
-            Ed::OShorthandStream ossh( sh );
-            ossh << m_polygon;
-        }
-        os << sh;*/
+        os << "Feature Contour: " << getName();
     }
     return os.str();
 }

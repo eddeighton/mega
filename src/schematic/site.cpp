@@ -100,13 +100,7 @@ std::string Site::getStatement() const
 {
     std::ostringstream os;
     {
-        THROW_RTE( "TODO" );
-        /*Ed::Shorthand sh;
-        {
-            Ed::OShorthandStream ossh( sh );
-            ossh << m_transform;
-        }
-        os << sh;*/
+        os << "Site: " << getName();
     }
     return os.str();
 }

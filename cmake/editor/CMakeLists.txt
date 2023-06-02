@@ -50,6 +50,8 @@ set( EDITOR_HEADERS
     ${EDITOR_SRC_DIR}/toolboxPanel.hpp
     ${EDITOR_SRC_DIR}/tools.hpp
     ${EDITOR_SRC_DIR}/voronoi.hpp
+    ${EDITOR_SRC_DIR}/item_model.hpp
+    ${EDITOR_SRC_DIR}/selection_model.hpp
 
 )
 
@@ -67,6 +69,8 @@ set( EDITOR_SOURCE
     ${EDITOR_SRC_DIR}/toolbox.cpp
     ${EDITOR_SRC_DIR}/toolboxPanel.cpp
     ${EDITOR_SRC_DIR}/tools.cpp
+    ${EDITOR_SRC_DIR}/item_model.cpp
+    ${EDITOR_SRC_DIR}/selection_model.cpp
 )
 
 add_executable( editor

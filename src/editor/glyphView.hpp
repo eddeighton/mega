@@ -3,6 +3,8 @@
 #define GLYPH_VIEW_03_FEB_2021
 
 #include "gridView.hpp"
+#include "selection_model.hpp"
+#include "item_model.hpp"
 
 #include <QGraphicsView>
 #include <QWheelEvent>
@@ -125,8 +127,16 @@ private slots:
     void CmdDrawTool();
     void CmdEditTool();
 
+    void OnCurrentSelectionItemChanged( const QModelIndex& current, const QModelIndex& previous );
+    void OnSelectionChanged( const QItemSelection& selected, const QItemSelection& deselected );
+
+private:
+    Selectable* selectableFromNode( schematic::Node::PtrCst pNode ) const;
+
 protected:
     Document::Ptr            m_pDocument;
+    ItemModel                m_itemModel;
+    SelectionModel           m_selectionModel;
     schematic::IEditContext* m_pActiveContext = nullptr;
 
     SelectTool            m_selectTool;
