@@ -121,19 +121,20 @@ void GlyphView::onViewUnfocussed()
 
 void GlyphView::onZoomed()
 {
-    const QVector2D currentZoomLevel = getZoomLevel();
-    for( ItemMap::const_iterator i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
+    const float currentZoomLevel = getZoomLevel();
+    for( auto i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
     {
-        if( ZoomDependent* pZoomItem = dynamic_cast< ZoomDependent* >( i->second ) )
-            pZoomItem->OnNewZoomLevel( currentZoomLevel.y() );
+        if( auto pZoomItem = dynamic_cast< ZoomDependent* >( i->second ) )
+            pZoomItem->OnNewZoomLevel( currentZoomLevel );
     }
 }
 
 // glyph factory interface
-schematic::IGlyph::Ptr GlyphView::createControlPoint( schematic::ControlPoint* pControlPoint, schematic::IGlyph::Ptr pParent )
+schematic::IGlyph::Ptr GlyphView::createControlPoint( schematic::ControlPoint* pControlPoint,
+                                                      schematic::IGlyph::Ptr   pParent )
 {
     schematic::IGlyph::Ptr pNewGlyph( new GlyphControlPoint(
-        pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pControlPoint, getZoomLevel().y(), getToolbox() ) );
+        pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pControlPoint, getZoomLevel(), getToolbox() ) );
     CalculateOversizedSceneRect();
     return pNewGlyph;
 }
@@ -146,10 +147,10 @@ schematic::IGlyph::Ptr GlyphView::createOrigin( schematic::Origin* pOrigin, sche
 }
 
 schematic::IGlyph::Ptr GlyphView::createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup,
-                                                      schematic::IGlyph::Ptr         pParent )
+                                                            schematic::IGlyph::Ptr         pParent )
 {
     schematic::IGlyph::Ptr pNewGlyph( new GlyphPolygonGroup(
-        pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pMarkupPolygonGroup, getZoomLevel().y(), getToolbox() ) );
+        pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pMarkupPolygonGroup, getZoomLevel(), getToolbox() ) );
     return pNewGlyph;
 }
 
@@ -170,7 +171,7 @@ void GlyphView::onDocumentUpdate()
     m_pActiveTool->onUpdate();
 }
 
-void GlyphView::updateVisibility( const GlyphVisibilityConfig&        glyphVisibilityConfig,
+void GlyphView::updateVisibility( const GlyphVisibilityConfig&              glyphVisibilityConfig,
                                   const schematic::File::CompilationConfig& config )
 {
     const bool bShowText        = glyphVisibilityConfig[ eGlyphVis_Text ];
@@ -280,7 +281,7 @@ void GlyphView::selectContext( schematic::IEditContext* pNewContext )
     setSelected( SelectionSet() );
 
     schematic::IEditContext* pOldContext = m_pActiveContext;
-    m_pActiveContext               = pNewContext;
+    m_pActiveContext                     = pNewContext;
 
     if( pOldContext )
     {
@@ -429,7 +430,7 @@ void GlyphView::setSelected( const SelectionSet& selection )
 
 schematic::IGlyph* GlyphView::findGlyph( QGraphicsItem* pItem ) const
 {
-    schematic::IGlyph*            pGlyph = 0u;
+    schematic::IGlyph*      pGlyph = 0u;
     ItemMap::const_iterator iFind  = m_itemMap.find( pItem );
     if( iFind != m_itemMap.end() )
         pGlyph = iFind->second;
@@ -470,7 +471,7 @@ void GlyphView::mouseDoubleClickEvent( QMouseEvent* event )
     ASSERT( m_pActiveContext );
     if( event->button() == Qt::LeftButton )
     {
-        QList< QGraphicsItem* >     stack = items( event->pos() );
+        QList< QGraphicsItem* >           stack = items( event->pos() );
         std::vector< schematic::IGlyph* > glyphStack;
         for( QList< QGraphicsItem* >::iterator i = stack.begin(), iEnd = stack.end(); i != iEnd; ++i )
         {

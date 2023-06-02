@@ -27,6 +27,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get cgal
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/cgal/cgal_include.cmake )
 
+#get flatbuffers
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/flatbuffers/flatbuffers_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -127,6 +130,8 @@ ENDIF( ${WIN32} )
 
 target_link_libraries( schematic mega_interface )
 
+add_dependencies( schematic map_format )
+
 link_boost( schematic system )
 link_boost( schematic filesystem )
 link_boost( schematic iostreams )
@@ -134,6 +139,7 @@ link_boost( schematic serialization )
 
 link_cgal( schematic )
 link_common( schematic )
+link_flatbuffers( schematic )
 
 install( FILES ${SCHEMATIC_HEADERS} DESTINATION include/schematic )
 install( TARGETS schematic EXPORT schematic DESTINATION bin)

@@ -29,6 +29,8 @@
 #include "common/task.hpp"
 #include "common/scheduler.hpp"
 
+#include "boost/filesystem/path.hpp"
+
 namespace schematic
 {
 
@@ -64,6 +66,8 @@ public:
     void task_contours();
     void task_extrusions();
     void task_compilation();
+
+    void compileMap( const boost::filesystem::path& filePath );
 
     // GlyphSpecProducer
     virtual void getMarkupPolygonGroups( MarkupPolygonGroup::List& polyGroups )

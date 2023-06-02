@@ -25,6 +25,8 @@
 #include "schematic/connection.hpp"
 #include "schematic/factory.hpp"
 
+#include "map/map_format.h"
+
 namespace schematic
 {
 
@@ -123,6 +125,48 @@ void Schematic::task_compilation()
     }
 
     m_pCompilationMarkup->set( edges );
+}
+
+void recurseSites( flatbuffers::FlatBufferBuilder& builder, Site::Ptr pSite )
+{
+    // Mega::AreaBuilder::
+    {
+        Mega::AreaBuilder areaBuilder( builder );
+
+        Mega::Type type( 1 );
+
+        areaBuilder.add_type( &type );
+
+        flatbuffers::Offset< Mega::Area > pAreaPtr = areaBuilder.Finish();
+    }
+
+
+    for( Site::Ptr pChildSite : pSite->getSites() )
+    {
+        recurseSites( builder, pChildSite );
+    }
+
+}
+
+
+void Schematic::compileMap( const boost::filesystem::path& filePath )
+{
+    flatbuffers::FlatBufferBuilder builder;
+
+    const auto sites = getSites();
+    VERIFY_RTE_MSG( sites.size() < 2, "More than one root site in schematic" );
+    if( !sites.empty() )
+    {
+        recurseSites( builder, sites.front() );
+    }
+
+
+
+    builder.Finished();
+
+    const auto size = builder.GetSize();
+
+    const auto* pBuffer = builder.GetBufferPointer();
 }
 
 } // namespace schematic

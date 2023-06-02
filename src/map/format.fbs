@@ -20,16 +20,141 @@
 
 namespace Mega;
 
-struct Vec3 {
-  x:float;
-  y:float;
-  z:float;
-}
+// Indicate intention to use this flat buffer schema as file type
+file_identifier "MEGA";
 
-table Test
+// Set the default extension to .map
+file_extension "map";
+
+struct Type
 {
-    pos:Vec3;
-    name:string;
+    mangle:short;
 }
 
-root_type Test;
+// Type name table - map all full type names to type id mangle used within map file
+table TypeName
+{
+    name:string;
+    type:Type;
+}
+
+// Value Types
+struct F2
+{
+    x:float;
+    y:float;
+}
+
+struct F3
+{
+    x:float;
+    y:float;
+    z:float;
+}
+
+struct F4
+{
+    x:float;
+    y:float;
+    z:float;
+    w:float;
+}
+
+struct Quat
+{
+    x:float;
+    y:float;
+    z:float;
+    w:float;
+}
+
+struct F33
+{
+    m:[F3:3];
+}
+
+// Property Types
+table FloatProperty
+{
+    value:float;
+}
+table LongProperty
+{
+    value:long;
+}
+table StringProperty
+{
+    value:string;
+}
+table F2Property
+{
+    value:F2;
+}
+table F3Property
+{
+    value:F3;
+}
+table F4Property
+{
+    value:F4;
+}
+table QuatProperty
+{
+    value:Quat;
+}
+table F33Property
+{
+    value:F33;
+}
+
+union Variant
+{
+    FloatProperty,
+    LongProperty,
+    StringProperty,
+    F2Property,
+    F3Property,
+    F4Property,
+    QuatProperty,
+    F33Property
+}
+
+// Data Tables
+table Properties
+{
+    type:Type;
+    variant:Variant;
+}
+
+table Area
+{
+    type:Type;
+    properties:[Properties];
+    areas:[Area];
+}
+
+table Section
+{
+    type:Type;
+    properties:[Properties];
+}
+
+table Partition
+{
+    parent:Area;
+    sections:[Section];
+}
+
+table Object
+{
+    type:Type;
+    parent:Partition;
+    children:[Object];
+    properties:[Properties];
+}
+
+table PartitionGraph
+{
+   first:Partition;
+   second:Partition;
+}

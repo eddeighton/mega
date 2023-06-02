@@ -2,7 +2,6 @@
 #ifndef GRID_VIEW_01_FEB_2021
 #define GRID_VIEW_01_FEB_2021
 
-
 #include <QGraphicsView>
 #include <QWheelEvent>
 #include <QGraphicsScene>
@@ -28,7 +27,7 @@ class GridView : public QGraphicsView
     Q_OBJECT
 
 public:
-    explicit GridView( QWidget *parent, MainWindow* pMainWindow );
+    explicit GridView( QWidget* parent, MainWindow* pMainWindow );
     ~GridView();
 
     virtual void postCreate( Document::Ptr pDocument );
@@ -39,11 +38,12 @@ public:
 
     bool isPanning() const { return m_pScrollData.get() ? true : false; }
 
-    QVector2D getZoomLevel() const;
+    float     getZoomLevel() const { return fabs( getZoomVector().x() ); }
+    QVector2D getZoomVector() const;
     QVector2D getQuantisationLevel() const;
-    void SetZoom( QVector2D v2NewZoomLevel );
-    void DoZoom( float fAmt );
-    
+    void      SetZoom( QVector2D v2NewZoomLevel );
+    void      DoZoom( float fAmt );
+
 private slots:
     void CmdZoomToAll();
 
@@ -52,9 +52,9 @@ protected:
     void CalculateRulerItems();
 
 protected:
-    void drawBackground( QPainter *painter, const QRectF &rect );
+    void drawBackground( QPainter* painter, const QRectF& rect );
     void resizeEvent( QResizeEvent* pEvent );
-    
+
     void mousePressEvent( QMouseEvent* pEvent );
     void mouseMoveEvent( QMouseEvent* pEvent );
     void mouseReleaseEvent( QMouseEvent* pEvent );
@@ -62,27 +62,29 @@ protected:
     void wheelEvent( QWheelEvent* pEvent );
 
 protected:
-    MainWindow* m_pMainWindow;
+    MainWindow*     m_pMainWindow;
     QGraphicsScene* m_pScene;
 
-private:    
+private:
     struct ScrollData
     {
         QPointF m_downPos, m_downScrollPos;
         ScrollData( const QPointF& downPos, const QPointF& downScrollPos )
-            : m_downPos( downPos ), m_downScrollPos( downScrollPos )
-        {}
+            : m_downPos( downPos )
+            , m_downScrollPos( downScrollPos )
+        {
+        }
     };
     std::unique_ptr< ScrollData > m_pScrollData;
-    
+
     using TextItemVector = std::vector< QGraphicsSimpleTextItem* >;
     TextItemVector m_rulerVertItems, m_rulerHoriItems;
-    
-    float m_fDefaultZoom = 256.0f;
-    bool m_bInitialising = true;
-    int m_iQuantisation = 16;
+
+    float m_fDefaultZoom  = 256.0f;
+    bool  m_bInitialising = true;
+    int   m_iQuantisation = 16;
 };
 
-}
+} // namespace editor
 
-#endif //GRID_VIEW_01_FEB_2021
+#endif // GRID_VIEW_01_FEB_2021

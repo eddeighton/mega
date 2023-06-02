@@ -24,6 +24,12 @@
 namespace
 {
 
+template< typename TCGALValueType >
+double toSVG( const TCGALValueType& value )
+{
+    return -CGAL::to_double( value );
+}
+
 static const std::vector< const char* > SVG_COLOURS
     = { "blue", "green", "red", "yellow", "orange", "purple", "brown", "black" };
 
@@ -33,10 +39,10 @@ void svgLine( const schematic::SVGStyle& style, exact::Arrangement::Halfedge_con
     if( h->target()->point() == h->curve().source() )
         h = h->twin();
 
-    const double startX = ( CGAL::to_double( h->source()->point().x() ) - minX ) * scale;
-    const double startY = ( -CGAL::to_double( h->source()->point().y() ) - minY ) * scale;
-    const double endX   = ( CGAL::to_double( h->target()->point().x() ) - minX ) * scale;
-    const double endY   = ( -CGAL::to_double( h->target()->point().y() ) - minY ) * scale;
+    const double startX = ( toSVG( h->source()->point().x() ) - minX ) * scale;
+    const double startY = ( toSVG( h->source()->point().y() ) - minY ) * scale;
+    const double endX   = ( toSVG( h->target()->point().x() ) - minX ) * scale;
+    const double endY   = ( toSVG( h->target()->point().y() ) - minY ) * scale;
 
     std::ostringstream osEdge;
     osEdge << startX << "," << startY << " " << ( startX + ( endX - startX ) / 2.0 ) << ","
@@ -79,8 +85,8 @@ void generateHTML( const boost::filesystem::path& filepath,
     for( auto i = arr.edges_begin(); i != arr.edges_end(); ++i )
     {
         {
-            const double x = CGAL::to_double( i->source()->point().x() );
-            const double y = -CGAL::to_double( i->source()->point().y() );
+            const double x = toSVG( i->source()->point().x() );
+            const double y = toSVG( i->source()->point().y() );
             if( x < minX )
                 minX = x;
             if( y < minY )
@@ -92,8 +98,8 @@ void generateHTML( const boost::filesystem::path& filepath,
         }
 
         {
-            const double x = CGAL::to_double( i->target()->point().x() );
-            const double y = -CGAL::to_double( i->target()->point().y() );
+            const double x = toSVG( i->target()->point().x() );
+            const double y = toSVG( i->target()->point().y() );
             if( x < minX )
                 minX = x;
             if( y < minY )
@@ -142,10 +148,10 @@ void generateHTML( const boost::filesystem::path& filepath,
             svgLine( style, h, minX, minY, scale, pszColour, *os );
 
             {
-                const double startX = ( CGAL::to_double( h->source()->point().x() ) - minX ) * scale;
-                const double startY = ( -CGAL::to_double( h->source()->point().y() ) - minY ) * scale;
-                const double endX   = ( CGAL::to_double( h->target()->point().x() ) - minX ) * scale;
-                const double endY   = ( -CGAL::to_double( h->target()->point().y() ) - minY ) * scale;
+                const double startX = ( toSVG( h->source()->point().x() ) - minX ) * scale;
+                const double startY = ( toSVG( h->source()->point().y() ) - minY ) * scale;
+                const double endX   = ( toSVG( h->target()->point().x() ) - minX ) * scale;
+                const double endY   = ( toSVG( h->target()->point().y() ) - minY ) * scale;
 
                 std::ostringstream osText;
                 {

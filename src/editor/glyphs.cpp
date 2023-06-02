@@ -32,7 +32,7 @@ GlyphControlPoint::GlyphControlPoint( schematic::IGlyph::Ptr pParent, QGraphicsS
         Selectable( calculateDepth( pControlPoint ) ),
         
         m_fSizeScaling( 12.0f ),
-        m_fSize( m_fSizeScaling / fZoom ),
+        m_fSize( fabs( m_fSizeScaling / fZoom ) ),
         
         m_pScene( pScene ),
         m_map( map ),
@@ -91,7 +91,7 @@ void GlyphControlPoint::update()
 
 void GlyphControlPoint::OnNewZoomLevel( float fZoom )
 {
-    m_fSize = m_fSizeScaling / fZoom;
+    m_fSize = fabs( m_fSizeScaling / fZoom );
     update();
     updateColours();
 }
@@ -129,7 +129,7 @@ GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsS
         m_pToolBoxPtr->getConfigValue( ".glyphs.polygons.width", g_polygonWidth );
     }
     
-    m_fSize = g_polygonWidth / fZoom;
+    m_fSize = fabs( g_polygonWidth / fZoom );
     
     //convert to painter path
     getMarkupPolygonGroup()->paint( m_pathPainter );
@@ -158,7 +158,7 @@ GlyphPolygonGroup::~GlyphPolygonGroup()
 
 void GlyphPolygonGroup::OnNewZoomLevel( float fZoom )
 {
-    m_fSize = g_polygonWidth / fZoom;
+    m_fSize = fabs( g_polygonWidth / fZoom );
     m_pItem->setPen( QPen( QBrush( g_pathColor ), m_fSize, Qt::SolidLine ) );
 }
 

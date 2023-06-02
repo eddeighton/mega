@@ -235,7 +235,7 @@ void SelectTool::mousePressEvent(QMouseEvent *event)
         m_pSelection.reset( new Selection_Path( 
             m_view,
             Selection::getSelectionMode( event ), 
-            m_view.getZoomLevel().y(), 
+            m_view.getZoomLevel(), 
             m_view.mapToScene( event->pos() ) ) );
     }
     else */
@@ -282,7 +282,7 @@ void SelectTool::mousePressEvent(QMouseEvent *event)
             m_pSelection.reset( new Selection_Rect( 
                 m_view, 
                 Selection::getSelectionMode( event ), 
-                m_view.getZoomLevel().y(),
+                m_view.getZoomLevel(),
                 m_view.mapToScene( event->pos() ) ) );
         }
     }
@@ -416,7 +416,7 @@ void LassoTool::mousePressEvent(QMouseEvent *event)
             m_pSelection.reset( new Selection_Path( 
                 m_view,
                 Selection::getSelectionMode( event ), 
-                m_view.getZoomLevel().y(), 
+                m_view.getZoomLevel(), 
                 m_view.mapToScene( event->pos() ) ) );
         }
     }
@@ -553,7 +553,7 @@ void PenTool::mousePressEvent( QMouseEvent* event )
     {
         m_view.setCursor( Qt::ArrowCursor );
         m_toolMode = eDelete;
-        m_pSelection.reset( new Selection_Rect( m_view, Selection::getSelectionMode( event ), m_view.getZoomLevel().y(),
+        m_pSelection.reset( new Selection_Rect( m_view, Selection::getSelectionMode( event ), m_view.getZoomLevel(),
             m_view.mapToScene( event->pos() ), QColor( 200, 0, 0, 100) ) );
         m_bMoved = false;
     }*/
@@ -671,7 +671,7 @@ EditTool::EditTool( GlyphView& view )
         m_toolMode( eDraw )
 {
     m_segmentPen.setStyle(        Qt::SolidLine);
-    m_segmentPen.setWidth(        1.0f / m_view.getZoomLevel().y() );
+    m_segmentPen.setWidth(        1.0f / m_view.getZoomLevel() );
     m_segmentPen.setBrush(        QColor( 125, 0, 0 ) );
     m_segmentPen.setCapStyle(     Qt::RoundCap );
     m_segmentPen.setJoinStyle(    Qt::RoundJoin );
@@ -762,7 +762,7 @@ void EditTool::mousePressEvent( QMouseEvent* pEvent )
     {
         m_view.setCursor( Qt::ArrowCursor );
         m_toolMode = eDelete;
-        m_pSelection.reset( new Selection_Rect( m_view, Selection::getSelectionMode( event ), m_view.getZoomLevel().y(),
+        m_pSelection.reset( new Selection_Rect( m_view, Selection::getSelectionMode( event ), m_view.getZoomLevel(),
             m_view.mapToScene( event->pos() ), QColor( 200, 0, 0, 100) ) );
         m_bMoved = false;
     }*/
@@ -787,8 +787,8 @@ void EditTool::mouseMoveEvent( QMouseEvent* pEvent )
                     schematic::IGlyph* pHit2 = nullptr;
                     if( m_view.getActiveContext()->interaction_hover( pos.x(), pos.y(), pHit1, pHit2 ) )
                     {
-                        const schematic::ControlPoint* pCtrl1 = dynamic_cast< const schematic::ControlPoint* >( pHit1->getGlyphSpec() );
-                        const schematic::ControlPoint* pCtrl2 = dynamic_cast< const schematic::ControlPoint* >( pHit2->getGlyphSpec() );
+                        const auto* pCtrl1 = dynamic_cast< const schematic::ControlPoint* >( pHit1->getGlyphSpec() );
+                        const auto* pCtrl2 = dynamic_cast< const schematic::ControlPoint* >( pHit2->getGlyphSpec() );
                         
                         schematic::Transform absTransform =
                             m_view.getActiveContext()->getOrigin()->getAbsoluteTransform() * 

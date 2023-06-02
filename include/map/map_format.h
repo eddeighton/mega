@@ -15,24 +15,206 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
 
 namespace Mega {
 
-struct Vec3;
+struct Type;
 
-struct Test;
-struct TestBuilder;
+struct TypeName;
+struct TypeNameBuilder;
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
+struct F2;
+
+struct F3;
+
+struct F4;
+
+struct Quat;
+
+struct F33;
+
+struct FloatProperty;
+struct FloatPropertyBuilder;
+
+struct LongProperty;
+struct LongPropertyBuilder;
+
+struct StringProperty;
+struct StringPropertyBuilder;
+
+struct F2Property;
+struct F2PropertyBuilder;
+
+struct F3Property;
+struct F3PropertyBuilder;
+
+struct F4Property;
+struct F4PropertyBuilder;
+
+struct QuatProperty;
+struct QuatPropertyBuilder;
+
+struct F33Property;
+struct F33PropertyBuilder;
+
+struct Properties;
+struct PropertiesBuilder;
+
+struct Area;
+struct AreaBuilder;
+
+struct Section;
+struct SectionBuilder;
+
+struct Partition;
+struct PartitionBuilder;
+
+struct Object;
+struct ObjectBuilder;
+
+struct PartitionGraph;
+struct PartitionGraphBuilder;
+
+enum Variant : uint8_t {
+  Variant_NONE = 0,
+  Variant_FloatProperty = 1,
+  Variant_LongProperty = 2,
+  Variant_StringProperty = 3,
+  Variant_F2Property = 4,
+  Variant_F3Property = 5,
+  Variant_F4Property = 6,
+  Variant_QuatProperty = 7,
+  Variant_F33Property = 8,
+  Variant_MIN = Variant_NONE,
+  Variant_MAX = Variant_F33Property
+};
+
+inline const Variant (&EnumValuesVariant())[9] {
+  static const Variant values[] = {
+    Variant_NONE,
+    Variant_FloatProperty,
+    Variant_LongProperty,
+    Variant_StringProperty,
+    Variant_F2Property,
+    Variant_F3Property,
+    Variant_F4Property,
+    Variant_QuatProperty,
+    Variant_F33Property
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesVariant() {
+  static const char * const names[10] = {
+    "NONE",
+    "FloatProperty",
+    "LongProperty",
+    "StringProperty",
+    "F2Property",
+    "F3Property",
+    "F4Property",
+    "QuatProperty",
+    "F33Property",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameVariant(Variant e) {
+  if (::flatbuffers::IsOutRange(e, Variant_NONE, Variant_F33Property)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesVariant()[index];
+}
+
+template<typename T> struct VariantTraits {
+  static const Variant enum_value = Variant_NONE;
+};
+
+template<> struct VariantTraits<Mega::FloatProperty> {
+  static const Variant enum_value = Variant_FloatProperty;
+};
+
+template<> struct VariantTraits<Mega::LongProperty> {
+  static const Variant enum_value = Variant_LongProperty;
+};
+
+template<> struct VariantTraits<Mega::StringProperty> {
+  static const Variant enum_value = Variant_StringProperty;
+};
+
+template<> struct VariantTraits<Mega::F2Property> {
+  static const Variant enum_value = Variant_F2Property;
+};
+
+template<> struct VariantTraits<Mega::F3Property> {
+  static const Variant enum_value = Variant_F3Property;
+};
+
+template<> struct VariantTraits<Mega::F4Property> {
+  static const Variant enum_value = Variant_F4Property;
+};
+
+template<> struct VariantTraits<Mega::QuatProperty> {
+  static const Variant enum_value = Variant_QuatProperty;
+};
+
+template<> struct VariantTraits<Mega::F33Property> {
+  static const Variant enum_value = Variant_F33Property;
+};
+
+bool VerifyVariant(::flatbuffers::Verifier &verifier, const void *obj, Variant type);
+bool VerifyVariantVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Type FLATBUFFERS_FINAL_CLASS {
+ private:
+  int16_t mangle_;
+
+ public:
+  Type()
+      : mangle_(0) {
+  }
+  Type(int16_t _mangle)
+      : mangle_(::flatbuffers::EndianScalar(_mangle)) {
+  }
+  int16_t mangle() const {
+    return ::flatbuffers::EndianScalar(mangle_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Type, 2);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) F2 FLATBUFFERS_FINAL_CLASS {
+ private:
+  float x_;
+  float y_;
+
+ public:
+  F2()
+      : x_(0),
+        y_(0) {
+  }
+  F2(float _x, float _y)
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)) {
+  }
+  float x() const {
+    return ::flatbuffers::EndianScalar(x_);
+  }
+  float y() const {
+    return ::flatbuffers::EndianScalar(y_);
+  }
+};
+FLATBUFFERS_STRUCT_END(F2, 8);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) F3 FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;
   float y_;
   float z_;
 
  public:
-  Vec3()
+  F3()
       : x_(0),
         y_(0),
         z_(0) {
   }
-  Vec3(float _x, float _y, float _z)
+  F3(float _x, float _y, float _z)
       : x_(::flatbuffers::EndianScalar(_x)),
         y_(::flatbuffers::EndianScalar(_y)),
         z_(::flatbuffers::EndianScalar(_z)) {
@@ -47,99 +229,1019 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
     return ::flatbuffers::EndianScalar(z_);
   }
 };
-FLATBUFFERS_STRUCT_END(Vec3, 12);
+FLATBUFFERS_STRUCT_END(F3, 12);
 
-struct Test FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef TestBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_POS = 4,
-    VT_NAME = 6
-  };
-  const Mega::Vec3 *pos() const {
-    return GetStruct<const Mega::Vec3 *>(VT_POS);
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) F4 FLATBUFFERS_FINAL_CLASS {
+ private:
+  float x_;
+  float y_;
+  float z_;
+  float w_;
+
+ public:
+  F4()
+      : x_(0),
+        y_(0),
+        z_(0),
+        w_(0) {
   }
+  F4(float _x, float _y, float _z, float _w)
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)),
+        z_(::flatbuffers::EndianScalar(_z)),
+        w_(::flatbuffers::EndianScalar(_w)) {
+  }
+  float x() const {
+    return ::flatbuffers::EndianScalar(x_);
+  }
+  float y() const {
+    return ::flatbuffers::EndianScalar(y_);
+  }
+  float z() const {
+    return ::flatbuffers::EndianScalar(z_);
+  }
+  float w() const {
+    return ::flatbuffers::EndianScalar(w_);
+  }
+};
+FLATBUFFERS_STRUCT_END(F4, 16);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Quat FLATBUFFERS_FINAL_CLASS {
+ private:
+  float x_;
+  float y_;
+  float z_;
+  float w_;
+
+ public:
+  Quat()
+      : x_(0),
+        y_(0),
+        z_(0),
+        w_(0) {
+  }
+  Quat(float _x, float _y, float _z, float _w)
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)),
+        z_(::flatbuffers::EndianScalar(_z)),
+        w_(::flatbuffers::EndianScalar(_w)) {
+  }
+  float x() const {
+    return ::flatbuffers::EndianScalar(x_);
+  }
+  float y() const {
+    return ::flatbuffers::EndianScalar(y_);
+  }
+  float z() const {
+    return ::flatbuffers::EndianScalar(z_);
+  }
+  float w() const {
+    return ::flatbuffers::EndianScalar(w_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Quat, 16);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) F33 FLATBUFFERS_FINAL_CLASS {
+ private:
+  Mega::F3 m_[3];
+
+ public:
+  F33()
+      : m_() {
+  }
+  F33(::flatbuffers::span<const Mega::F3, 3> _m) {
+    ::flatbuffers::CastToArray(m_).CopyFromSpan(_m);
+  }
+  const ::flatbuffers::Array<Mega::F3, 3> *m() const {
+    return &::flatbuffers::CastToArray(m_);
+  }
+};
+FLATBUFFERS_STRUCT_END(F33, 36);
+
+struct TypeName FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TypeNameBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_TYPE = 6
+  };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
+  const Mega::Type *type() const {
+    return GetStruct<const Mega::Type *>(VT_TYPE);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<Mega::Vec3>(verifier, VT_POS, 4) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
+           VerifyField<Mega::Type>(verifier, VT_TYPE, 2) &&
            verifier.EndTable();
   }
 };
 
-struct TestBuilder {
-  typedef Test Table;
+struct TypeNameBuilder {
+  typedef TypeName Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_pos(const Mega::Vec3 *pos) {
-    fbb_.AddStruct(Test::VT_POS, pos);
-  }
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
-    fbb_.AddOffset(Test::VT_NAME, name);
+    fbb_.AddOffset(TypeName::VT_NAME, name);
   }
-  explicit TestBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  void add_type(const Mega::Type *type) {
+    fbb_.AddStruct(TypeName::VT_TYPE, type);
+  }
+  explicit TypeNameBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<Test> Finish() {
+  ::flatbuffers::Offset<TypeName> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<Test>(end);
+    auto o = ::flatbuffers::Offset<TypeName>(end);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<Test> CreateTest(
+inline ::flatbuffers::Offset<TypeName> CreateTypeName(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const Mega::Vec3 *pos = nullptr,
-    ::flatbuffers::Offset<::flatbuffers::String> name = 0) {
-  TestBuilder builder_(_fbb);
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    const Mega::Type *type = nullptr) {
+  TypeNameBuilder builder_(_fbb);
+  builder_.add_type(type);
   builder_.add_name(name);
-  builder_.add_pos(pos);
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<Test> CreateTestDirect(
+inline ::flatbuffers::Offset<TypeName> CreateTypeNameDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const Mega::Vec3 *pos = nullptr,
-    const char *name = nullptr) {
+    const char *name = nullptr,
+    const Mega::Type *type = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  return Mega::CreateTest(
+  return Mega::CreateTypeName(
       _fbb,
-      pos,
-      name__);
+      name__,
+      type);
 }
 
-inline const Mega::Test *GetTest(const void *buf) {
-  return ::flatbuffers::GetRoot<Mega::Test>(buf);
+struct FloatProperty FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef FloatPropertyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VALUE = 4
+  };
+  float value() const {
+    return GetField<float>(VT_VALUE, 0.0f);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<float>(verifier, VT_VALUE, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct FloatPropertyBuilder {
+  typedef FloatProperty Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_value(float value) {
+    fbb_.AddElement<float>(FloatProperty::VT_VALUE, value, 0.0f);
+  }
+  explicit FloatPropertyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<FloatProperty> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<FloatProperty>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<FloatProperty> CreateFloatProperty(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    float value = 0.0f) {
+  FloatPropertyBuilder builder_(_fbb);
+  builder_.add_value(value);
+  return builder_.Finish();
 }
 
-inline const Mega::Test *GetSizePrefixedTest(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<Mega::Test>(buf);
+struct LongProperty FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef LongPropertyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VALUE = 4
+  };
+  int64_t value() const {
+    return GetField<int64_t>(VT_VALUE, 0);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int64_t>(verifier, VT_VALUE, 8) &&
+           verifier.EndTable();
+  }
+};
+
+struct LongPropertyBuilder {
+  typedef LongProperty Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_value(int64_t value) {
+    fbb_.AddElement<int64_t>(LongProperty::VT_VALUE, value, 0);
+  }
+  explicit LongPropertyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<LongProperty> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<LongProperty>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<LongProperty> CreateLongProperty(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    int64_t value = 0) {
+  LongPropertyBuilder builder_(_fbb);
+  builder_.add_value(value);
+  return builder_.Finish();
 }
 
-inline bool VerifyTestBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<Mega::Test>(nullptr);
+struct StringProperty FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StringPropertyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VALUE = 4
+  };
+  const ::flatbuffers::String *value() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VALUE);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VALUE) &&
+           verifier.VerifyString(value()) &&
+           verifier.EndTable();
+  }
+};
+
+struct StringPropertyBuilder {
+  typedef StringProperty Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_value(::flatbuffers::Offset<::flatbuffers::String> value) {
+    fbb_.AddOffset(StringProperty::VT_VALUE, value);
+  }
+  explicit StringPropertyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<StringProperty> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<StringProperty>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<StringProperty> CreateStringProperty(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> value = 0) {
+  StringPropertyBuilder builder_(_fbb);
+  builder_.add_value(value);
+  return builder_.Finish();
 }
 
-inline bool VerifySizePrefixedTestBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<Mega::Test>(nullptr);
+inline ::flatbuffers::Offset<StringProperty> CreateStringPropertyDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *value = nullptr) {
+  auto value__ = value ? _fbb.CreateString(value) : 0;
+  return Mega::CreateStringProperty(
+      _fbb,
+      value__);
 }
 
-inline void FinishTestBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<Mega::Test> root) {
-  fbb.Finish(root);
+struct F2Property FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef F2PropertyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VALUE = 4
+  };
+  const Mega::F2 *value() const {
+    return GetStruct<const Mega::F2 *>(VT_VALUE);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::F2>(verifier, VT_VALUE, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct F2PropertyBuilder {
+  typedef F2Property Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_value(const Mega::F2 *value) {
+    fbb_.AddStruct(F2Property::VT_VALUE, value);
+  }
+  explicit F2PropertyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<F2Property> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<F2Property>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<F2Property> CreateF2Property(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::F2 *value = nullptr) {
+  F2PropertyBuilder builder_(_fbb);
+  builder_.add_value(value);
+  return builder_.Finish();
 }
 
-inline void FinishSizePrefixedTestBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<Mega::Test> root) {
-  fbb.FinishSizePrefixed(root);
+struct F3Property FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef F3PropertyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VALUE = 4
+  };
+  const Mega::F3 *value() const {
+    return GetStruct<const Mega::F3 *>(VT_VALUE);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::F3>(verifier, VT_VALUE, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct F3PropertyBuilder {
+  typedef F3Property Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_value(const Mega::F3 *value) {
+    fbb_.AddStruct(F3Property::VT_VALUE, value);
+  }
+  explicit F3PropertyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<F3Property> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<F3Property>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<F3Property> CreateF3Property(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::F3 *value = nullptr) {
+  F3PropertyBuilder builder_(_fbb);
+  builder_.add_value(value);
+  return builder_.Finish();
+}
+
+struct F4Property FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef F4PropertyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VALUE = 4
+  };
+  const Mega::F4 *value() const {
+    return GetStruct<const Mega::F4 *>(VT_VALUE);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::F4>(verifier, VT_VALUE, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct F4PropertyBuilder {
+  typedef F4Property Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_value(const Mega::F4 *value) {
+    fbb_.AddStruct(F4Property::VT_VALUE, value);
+  }
+  explicit F4PropertyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<F4Property> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<F4Property>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<F4Property> CreateF4Property(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::F4 *value = nullptr) {
+  F4PropertyBuilder builder_(_fbb);
+  builder_.add_value(value);
+  return builder_.Finish();
+}
+
+struct QuatProperty FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef QuatPropertyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VALUE = 4
+  };
+  const Mega::Quat *value() const {
+    return GetStruct<const Mega::Quat *>(VT_VALUE);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::Quat>(verifier, VT_VALUE, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct QuatPropertyBuilder {
+  typedef QuatProperty Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_value(const Mega::Quat *value) {
+    fbb_.AddStruct(QuatProperty::VT_VALUE, value);
+  }
+  explicit QuatPropertyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<QuatProperty> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<QuatProperty>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<QuatProperty> CreateQuatProperty(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Quat *value = nullptr) {
+  QuatPropertyBuilder builder_(_fbb);
+  builder_.add_value(value);
+  return builder_.Finish();
+}
+
+struct F33Property FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef F33PropertyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VALUE = 4
+  };
+  const Mega::F33 *value() const {
+    return GetStruct<const Mega::F33 *>(VT_VALUE);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::F33>(verifier, VT_VALUE, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct F33PropertyBuilder {
+  typedef F33Property Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_value(const Mega::F33 *value) {
+    fbb_.AddStruct(F33Property::VT_VALUE, value);
+  }
+  explicit F33PropertyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<F33Property> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<F33Property>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<F33Property> CreateF33Property(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::F33 *value = nullptr) {
+  F33PropertyBuilder builder_(_fbb);
+  builder_.add_value(value);
+  return builder_.Finish();
+}
+
+struct Properties FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef PropertiesBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TYPE = 4,
+    VT_VARIANT_TYPE = 6,
+    VT_VARIANT = 8
+  };
+  const Mega::Type *type() const {
+    return GetStruct<const Mega::Type *>(VT_TYPE);
+  }
+  Mega::Variant variant_type() const {
+    return static_cast<Mega::Variant>(GetField<uint8_t>(VT_VARIANT_TYPE, 0));
+  }
+  const void *variant() const {
+    return GetPointer<const void *>(VT_VARIANT);
+  }
+  template<typename T> const T *variant_as() const;
+  const Mega::FloatProperty *variant_as_FloatProperty() const {
+    return variant_type() == Mega::Variant_FloatProperty ? static_cast<const Mega::FloatProperty *>(variant()) : nullptr;
+  }
+  const Mega::LongProperty *variant_as_LongProperty() const {
+    return variant_type() == Mega::Variant_LongProperty ? static_cast<const Mega::LongProperty *>(variant()) : nullptr;
+  }
+  const Mega::StringProperty *variant_as_StringProperty() const {
+    return variant_type() == Mega::Variant_StringProperty ? static_cast<const Mega::StringProperty *>(variant()) : nullptr;
+  }
+  const Mega::F2Property *variant_as_F2Property() const {
+    return variant_type() == Mega::Variant_F2Property ? static_cast<const Mega::F2Property *>(variant()) : nullptr;
+  }
+  const Mega::F3Property *variant_as_F3Property() const {
+    return variant_type() == Mega::Variant_F3Property ? static_cast<const Mega::F3Property *>(variant()) : nullptr;
+  }
+  const Mega::F4Property *variant_as_F4Property() const {
+    return variant_type() == Mega::Variant_F4Property ? static_cast<const Mega::F4Property *>(variant()) : nullptr;
+  }
+  const Mega::QuatProperty *variant_as_QuatProperty() const {
+    return variant_type() == Mega::Variant_QuatProperty ? static_cast<const Mega::QuatProperty *>(variant()) : nullptr;
+  }
+  const Mega::F33Property *variant_as_F33Property() const {
+    return variant_type() == Mega::Variant_F33Property ? static_cast<const Mega::F33Property *>(variant()) : nullptr;
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::Type>(verifier, VT_TYPE, 2) &&
+           VerifyField<uint8_t>(verifier, VT_VARIANT_TYPE, 1) &&
+           VerifyOffset(verifier, VT_VARIANT) &&
+           VerifyVariant(verifier, variant(), variant_type()) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const Mega::FloatProperty *Properties::variant_as<Mega::FloatProperty>() const {
+  return variant_as_FloatProperty();
+}
+
+template<> inline const Mega::LongProperty *Properties::variant_as<Mega::LongProperty>() const {
+  return variant_as_LongProperty();
+}
+
+template<> inline const Mega::StringProperty *Properties::variant_as<Mega::StringProperty>() const {
+  return variant_as_StringProperty();
+}
+
+template<> inline const Mega::F2Property *Properties::variant_as<Mega::F2Property>() const {
+  return variant_as_F2Property();
+}
+
+template<> inline const Mega::F3Property *Properties::variant_as<Mega::F3Property>() const {
+  return variant_as_F3Property();
+}
+
+template<> inline const Mega::F4Property *Properties::variant_as<Mega::F4Property>() const {
+  return variant_as_F4Property();
+}
+
+template<> inline const Mega::QuatProperty *Properties::variant_as<Mega::QuatProperty>() const {
+  return variant_as_QuatProperty();
+}
+
+template<> inline const Mega::F33Property *Properties::variant_as<Mega::F33Property>() const {
+  return variant_as_F33Property();
+}
+
+struct PropertiesBuilder {
+  typedef Properties Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_type(const Mega::Type *type) {
+    fbb_.AddStruct(Properties::VT_TYPE, type);
+  }
+  void add_variant_type(Mega::Variant variant_type) {
+    fbb_.AddElement<uint8_t>(Properties::VT_VARIANT_TYPE, static_cast<uint8_t>(variant_type), 0);
+  }
+  void add_variant(::flatbuffers::Offset<void> variant) {
+    fbb_.AddOffset(Properties::VT_VARIANT, variant);
+  }
+  explicit PropertiesBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Properties> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Properties>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Properties> CreateProperties(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Type *type = nullptr,
+    Mega::Variant variant_type = Mega::Variant_NONE,
+    ::flatbuffers::Offset<void> variant = 0) {
+  PropertiesBuilder builder_(_fbb);
+  builder_.add_variant(variant);
+  builder_.add_type(type);
+  builder_.add_variant_type(variant_type);
+  return builder_.Finish();
+}
+
+struct Area FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef AreaBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TYPE = 4,
+    VT_PROPERTIES = 6,
+    VT_AREAS = 8
+  };
+  const Mega::Type *type() const {
+    return GetStruct<const Mega::Type *>(VT_TYPE);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *properties() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *>(VT_PROPERTIES);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Area>> *areas() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Area>> *>(VT_AREAS);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::Type>(verifier, VT_TYPE, 2) &&
+           VerifyOffset(verifier, VT_PROPERTIES) &&
+           verifier.VerifyVector(properties()) &&
+           verifier.VerifyVectorOfTables(properties()) &&
+           VerifyOffset(verifier, VT_AREAS) &&
+           verifier.VerifyVector(areas()) &&
+           verifier.VerifyVectorOfTables(areas()) &&
+           verifier.EndTable();
+  }
+};
+
+struct AreaBuilder {
+  typedef Area Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_type(const Mega::Type *type) {
+    fbb_.AddStruct(Area::VT_TYPE, type);
+  }
+  void add_properties(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties) {
+    fbb_.AddOffset(Area::VT_PROPERTIES, properties);
+  }
+  void add_areas(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Area>>> areas) {
+    fbb_.AddOffset(Area::VT_AREAS, areas);
+  }
+  explicit AreaBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Area> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Area>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Area> CreateArea(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Type *type = nullptr,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Area>>> areas = 0) {
+  AreaBuilder builder_(_fbb);
+  builder_.add_areas(areas);
+  builder_.add_properties(properties);
+  builder_.add_type(type);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<Area> CreateAreaDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Type *type = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Properties>> *properties = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Area>> *areas = nullptr) {
+  auto properties__ = properties ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Properties>>(*properties) : 0;
+  auto areas__ = areas ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Area>>(*areas) : 0;
+  return Mega::CreateArea(
+      _fbb,
+      type,
+      properties__,
+      areas__);
+}
+
+struct Section FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef SectionBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TYPE = 4,
+    VT_PROPERTIES = 6
+  };
+  const Mega::Type *type() const {
+    return GetStruct<const Mega::Type *>(VT_TYPE);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *properties() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *>(VT_PROPERTIES);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::Type>(verifier, VT_TYPE, 2) &&
+           VerifyOffset(verifier, VT_PROPERTIES) &&
+           verifier.VerifyVector(properties()) &&
+           verifier.VerifyVectorOfTables(properties()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SectionBuilder {
+  typedef Section Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_type(const Mega::Type *type) {
+    fbb_.AddStruct(Section::VT_TYPE, type);
+  }
+  void add_properties(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties) {
+    fbb_.AddOffset(Section::VT_PROPERTIES, properties);
+  }
+  explicit SectionBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Section> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Section>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Section> CreateSection(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Type *type = nullptr,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties = 0) {
+  SectionBuilder builder_(_fbb);
+  builder_.add_properties(properties);
+  builder_.add_type(type);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<Section> CreateSectionDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Type *type = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Properties>> *properties = nullptr) {
+  auto properties__ = properties ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Properties>>(*properties) : 0;
+  return Mega::CreateSection(
+      _fbb,
+      type,
+      properties__);
+}
+
+struct Partition FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef PartitionBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_PARENT = 4,
+    VT_SECTIONS = 6
+  };
+  const Mega::Area *parent() const {
+    return GetPointer<const Mega::Area *>(VT_PARENT);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Section>> *sections() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Section>> *>(VT_SECTIONS);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_PARENT) &&
+           verifier.VerifyTable(parent()) &&
+           VerifyOffset(verifier, VT_SECTIONS) &&
+           verifier.VerifyVector(sections()) &&
+           verifier.VerifyVectorOfTables(sections()) &&
+           verifier.EndTable();
+  }
+};
+
+struct PartitionBuilder {
+  typedef Partition Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_parent(::flatbuffers::Offset<Mega::Area> parent) {
+    fbb_.AddOffset(Partition::VT_PARENT, parent);
+  }
+  void add_sections(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Section>>> sections) {
+    fbb_.AddOffset(Partition::VT_SECTIONS, sections);
+  }
+  explicit PartitionBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Partition> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Partition>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Partition> CreatePartition(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<Mega::Area> parent = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Section>>> sections = 0) {
+  PartitionBuilder builder_(_fbb);
+  builder_.add_sections(sections);
+  builder_.add_parent(parent);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<Partition> CreatePartitionDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<Mega::Area> parent = 0,
+    const std::vector<::flatbuffers::Offset<Mega::Section>> *sections = nullptr) {
+  auto sections__ = sections ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Section>>(*sections) : 0;
+  return Mega::CreatePartition(
+      _fbb,
+      parent,
+      sections__);
+}
+
+struct Object FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ObjectBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TYPE = 4,
+    VT_PARENT = 6,
+    VT_CHILDREN = 8,
+    VT_PROPERTIES = 10
+  };
+  const Mega::Type *type() const {
+    return GetStruct<const Mega::Type *>(VT_TYPE);
+  }
+  const Mega::Partition *parent() const {
+    return GetPointer<const Mega::Partition *>(VT_PARENT);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Object>> *children() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Object>> *>(VT_CHILDREN);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *properties() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *>(VT_PROPERTIES);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::Type>(verifier, VT_TYPE, 2) &&
+           VerifyOffset(verifier, VT_PARENT) &&
+           verifier.VerifyTable(parent()) &&
+           VerifyOffset(verifier, VT_CHILDREN) &&
+           verifier.VerifyVector(children()) &&
+           verifier.VerifyVectorOfTables(children()) &&
+           VerifyOffset(verifier, VT_PROPERTIES) &&
+           verifier.VerifyVector(properties()) &&
+           verifier.VerifyVectorOfTables(properties()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ObjectBuilder {
+  typedef Object Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_type(const Mega::Type *type) {
+    fbb_.AddStruct(Object::VT_TYPE, type);
+  }
+  void add_parent(::flatbuffers::Offset<Mega::Partition> parent) {
+    fbb_.AddOffset(Object::VT_PARENT, parent);
+  }
+  void add_children(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Object>>> children) {
+    fbb_.AddOffset(Object::VT_CHILDREN, children);
+  }
+  void add_properties(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties) {
+    fbb_.AddOffset(Object::VT_PROPERTIES, properties);
+  }
+  explicit ObjectBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Object> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Object>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Object> CreateObject(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Type *type = nullptr,
+    ::flatbuffers::Offset<Mega::Partition> parent = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Object>>> children = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties = 0) {
+  ObjectBuilder builder_(_fbb);
+  builder_.add_properties(properties);
+  builder_.add_children(children);
+  builder_.add_parent(parent);
+  builder_.add_type(type);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<Object> CreateObjectDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Type *type = nullptr,
+    ::flatbuffers::Offset<Mega::Partition> parent = 0,
+    const std::vector<::flatbuffers::Offset<Mega::Object>> *children = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Properties>> *properties = nullptr) {
+  auto children__ = children ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Object>>(*children) : 0;
+  auto properties__ = properties ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Properties>>(*properties) : 0;
+  return Mega::CreateObject(
+      _fbb,
+      type,
+      parent,
+      children__,
+      properties__);
+}
+
+struct PartitionGraph FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef PartitionGraphBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_FIRST = 4,
+    VT_SECOND = 6
+  };
+  const Mega::Partition *first() const {
+    return GetPointer<const Mega::Partition *>(VT_FIRST);
+  }
+  const Mega::Partition *second() const {
+    return GetPointer<const Mega::Partition *>(VT_SECOND);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_FIRST) &&
+           verifier.VerifyTable(first()) &&
+           VerifyOffset(verifier, VT_SECOND) &&
+           verifier.VerifyTable(second()) &&
+           verifier.EndTable();
+  }
+};
+
+struct PartitionGraphBuilder {
+  typedef PartitionGraph Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_first(::flatbuffers::Offset<Mega::Partition> first) {
+    fbb_.AddOffset(PartitionGraph::VT_FIRST, first);
+  }
+  void add_second(::flatbuffers::Offset<Mega::Partition> second) {
+    fbb_.AddOffset(PartitionGraph::VT_SECOND, second);
+  }
+  explicit PartitionGraphBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<PartitionGraph> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<PartitionGraph>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<PartitionGraph> CreatePartitionGraph(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<Mega::Partition> first = 0,
+    ::flatbuffers::Offset<Mega::Partition> second = 0) {
+  PartitionGraphBuilder builder_(_fbb);
+  builder_.add_second(second);
+  builder_.add_first(first);
+  return builder_.Finish();
+}
+
+inline bool VerifyVariant(::flatbuffers::Verifier &verifier, const void *obj, Variant type) {
+  switch (type) {
+    case Variant_NONE: {
+      return true;
+    }
+    case Variant_FloatProperty: {
+      auto ptr = reinterpret_cast<const Mega::FloatProperty *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Variant_LongProperty: {
+      auto ptr = reinterpret_cast<const Mega::LongProperty *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Variant_StringProperty: {
+      auto ptr = reinterpret_cast<const Mega::StringProperty *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Variant_F2Property: {
+      auto ptr = reinterpret_cast<const Mega::F2Property *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Variant_F3Property: {
+      auto ptr = reinterpret_cast<const Mega::F3Property *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Variant_F4Property: {
+      auto ptr = reinterpret_cast<const Mega::F4Property *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Variant_QuatProperty: {
+      auto ptr = reinterpret_cast<const Mega::QuatProperty *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Variant_F33Property: {
+      auto ptr = reinterpret_cast<const Mega::F33Property *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return true;
+  }
+}
+
+inline bool VerifyVariantVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyVariant(
+        verifier,  values->Get(i), types->GetEnum<Variant>(i))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace Mega
