@@ -26,6 +26,7 @@
 #include "schematic/space.hpp"
 #include "schematic/wall.hpp"
 #include "schematic/connection.hpp"
+#include "schematic/cut.hpp"
 #include "schematic/object.hpp"
 #include "schematic/cgalUtils.hpp"
 #include "schematic/property.hpp"
@@ -291,6 +292,8 @@ bool EditBase::canEdit( IGlyph* pGlyph, ToolType toolType, ToolMode toolMode, bo
             {
                 if( dynamic_cast< const Connection* >( pGlyphPrd ) )
                     return false;
+                if( dynamic_cast< const Cut* >( pGlyphPrd ) )
+                    return false;
             }
         }
         break;
@@ -318,6 +321,8 @@ bool EditBase::canEdit( IGlyph* pGlyph, ToolType toolType, ToolMode toolMode, bo
                 if( !bAllowConnections )
                 {
                     if( dynamic_cast< const Connection* >( pGlyphPrd ) )
+                        return false;
+                    if( dynamic_cast< const Cut* >( pGlyphPrd ) )
                         return false;
                 }
             }

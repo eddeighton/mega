@@ -42,6 +42,7 @@ set( SCHEMATIC_HEADERS
     ${SCHEMATIC_API_DIR}/compilation.hpp
     ${SCHEMATIC_API_DIR}/connection.hpp
     ${SCHEMATIC_API_DIR}/container.hpp
+    ${SCHEMATIC_API_DIR}/cut.hpp
     ${SCHEMATIC_API_DIR}/dataBitmap.hpp
     ${SCHEMATIC_API_DIR}/editBase.hpp
     ${SCHEMATIC_API_DIR}/editInteractions.hpp
@@ -76,6 +77,7 @@ set( SCHEMATIC_SOURCE
     ${SCHEMATIC_SRC_DIR}/compilation.cpp
     ${SCHEMATIC_SRC_DIR}/compilationGetPolyInfo.cpp
     ${SCHEMATIC_SRC_DIR}/connection.cpp
+    ${SCHEMATIC_SRC_DIR}/cut.cpp
     ${SCHEMATIC_SRC_DIR}/dataBitmap.cpp
     ${SCHEMATIC_SRC_DIR}/editBase.cpp
     ${SCHEMATIC_SRC_DIR}/editInteractions.cpp

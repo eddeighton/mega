@@ -176,15 +176,15 @@ public:
 
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
-class Feature_Cut : public Feature
+class Feature_LineSegment : public Feature
 {
 public:
-    using Ptr    = boost::shared_ptr< Feature_Cut >;
-    using PtrCst = boost::shared_ptr< const Feature_Cut >;
+    using Ptr    = boost::shared_ptr< Feature_LineSegment >;
+    using PtrCst = boost::shared_ptr< const Feature_LineSegment >;
 
     static const std::string& TypeName();
-    Feature_Cut( Node::Ptr pParent, const std::string& strName );
-    Feature_Cut( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName );
+    Feature_LineSegment( Node::Ptr pParent, const std::string& strName );
+    Feature_LineSegment( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName );
     virtual Node::Ptr   copy( Node::Ptr pParent, const std::string& strName ) const;
     virtual void        init();
     virtual void        load( const format::Node& node );
@@ -193,7 +193,7 @@ public:
 
     // ControlPointCallback
     const GlyphSpec* getParent( ControlPoint::Index id ) const;
-    const Point&     getPoint( ControlPoint::Index index ) const
+    inline const Point&     getPoint( ControlPoint::Index index ) const
     {
         switch( index )
         {
@@ -213,7 +213,7 @@ public:
             }
         }
     }
-    void setPoint( ControlPoint::Index index, const Point& point )
+    inline void setPoint( ControlPoint::Index index, const Point& point )
     {
         switch( index )
         {
@@ -242,10 +242,12 @@ public:
         }
     }
 
-    Point                               m_ptStart;
-    Point                               m_ptEnd;
-    ControlPointCallback< Feature_Cut > m_start;
-    ControlPointCallback< Feature_Cut > m_end;
+    inline Segment getSegment() const { return Segment{ m_ptStart, m_ptEnd }; }
+
+    Point                                       m_ptStart;
+    Point                                       m_ptEnd;
+    ControlPointCallback< Feature_LineSegment > m_start;
+    ControlPointCallback< Feature_LineSegment > m_end;
 };
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////

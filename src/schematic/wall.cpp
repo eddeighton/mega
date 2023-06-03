@@ -50,19 +50,13 @@ void Wall::load( const format::Node& node )
     Site::load( node );
     VERIFY_RTE( node.has_site() && node.site().has_wall() );
     const format::Node::Site::Wall& wall = node.site().wall();
-    if( m_pContour = get< Feature_Contour >( "contour" ); m_pContour )
-    {
-        m_pContour->set( formatPolygonFromPath( wall.contour ) );
-    }
+    m_pContour = get< Feature_Contour >( "contour" );
+    VERIFY_RTE_MSG( m_pContour, "Wall contour not found" );
 }
 
 void Wall::save( format::Node& node ) const
 {
     format::Node::Site::Wall& wall = *node.mutable_site()->mutable_wall();
-    if( m_pContour )
-    {
-        formatPolygonToPath( m_pContour->getPolygon(), wall.contour );
-    }
     Site::save( node );
 }
 

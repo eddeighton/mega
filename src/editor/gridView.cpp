@@ -325,7 +325,8 @@ void GridView::CalculateRulerItems()
 
 void GridView::mousePressEvent( QMouseEvent* pEvent )
 {
-    if( pEvent->button() == Qt::MiddleButton )
+    if( pEvent->button() == Qt::MiddleButton || pEvent->button() == Qt::ForwardButton
+        || pEvent->button() == Qt::ExtraButton1 || pEvent->button() == Qt::BackButton )
     {
         setCursor( Qt::ClosedHandCursor );
         QPointF scrollPositions( horizontalScrollBar()->value(), verticalScrollBar()->value() );

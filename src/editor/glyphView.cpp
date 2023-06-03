@@ -11,6 +11,7 @@
 #include "qtUtils.hpp"
 
 #include "schematic/connection.hpp"
+#include "schematic/cut.hpp"
 #include "schematic/space.hpp"
 #include "schematic/wall.hpp"
 #include "schematic/object.hpp"
@@ -234,6 +235,11 @@ void GlyphView::updateVisibility( const GlyphVisibilityConfig&              glyp
     {
         const schematic::Origin* pOriginSpec = pOrigin->getOrigin();
         if( dynamic_cast< const schematic::Connection* >( pOriginSpec ) )
+        {
+            if( !bShowConnections )
+                return false;
+        }
+        else if( dynamic_cast< const schematic::Cut* >( pOriginSpec ) )
         {
             if( !bShowConnections )
                 return false;

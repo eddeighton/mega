@@ -35,7 +35,7 @@ void      save( File::PtrCst pFile, const boost::filesystem::path& filePath );
 
 Node::Ptr construct( Node::Ptr pParent, const format::Node& node );
 
-Polygon formatPolygonFromPath( const format::Path& path );
+//Polygon formatPolygonFromPath( const format::Path& path );
 void    formatPolygonToPath( const Polygon& polygon, format::Path& path );
 
 } // namespace schematic

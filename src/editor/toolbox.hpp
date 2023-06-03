@@ -57,10 +57,10 @@ public:
 
     void reload();
 
-    schematic::Schematic::Ptr    getCurrentItem() const;
-    const Palette::PtrMap& get() const { return m_palettes; }
-    Palette::Ptr           getPalette( const std::string& strName ) const;
-    void                   selectPalette( Palette::Ptr pPalette );
+    schematic::Schematic::Ptr getCurrentItem() const;
+    const Palette::PtrMap&    get() const { return m_palettes; }
+    Palette::Ptr              getPalette( const std::string& strName ) const;
+    void                      selectPalette( Palette::Ptr pPalette );
 
     void add( const std::string& strName, schematic::Schematic::Ptr pNode, bool bSelect = false );
 

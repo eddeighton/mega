@@ -54,19 +54,14 @@ void Space::load( const format::Node& node )
     Site::load( node );
     VERIFY_RTE( node.has_site() && node.site().has_space() );
     const format::Node::Site::Space& space = node.site().space();
-    if( m_pContour = get< Feature_Contour >( "contour" ); m_pContour )
-    {
-        m_pContour->set( formatPolygonFromPath( space.contour ) );
-    }
+
+    m_pContour = get< Feature_Contour >( "contour" );
+    VERIFY_RTE_MSG( m_pContour, "Space contour not found" );
 }
 
 void Space::save( format::Node& node ) const
 {
     format::Node::Site::Space& space = *node.mutable_site()->mutable_space();
-    if( m_pContour )
-    {
-        formatPolygonToPath( m_pContour->getPolygon(), space.contour );
-    }
     Site::save( node );
 }
 

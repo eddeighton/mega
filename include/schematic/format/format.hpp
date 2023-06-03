@@ -136,7 +136,7 @@ struct Node
             }
         };
 
-        struct Cut
+        struct LineSegment
         {
             F2 start;
             F2 end;
@@ -149,12 +149,12 @@ struct Node
             }
         };
 
-        boost::variant< Point, Contour, Pin, Cut > type;
+        boost::variant< Point, Contour, Pin, LineSegment > type;
 
         VARIANT_MEMBER( Point, point, 0, type );
         VARIANT_MEMBER( Contour, contour, 1, type );
         VARIANT_MEMBER( Pin, pin, 2, type );
-        VARIANT_MEMBER( Cut, cut, 3, type );
+        VARIANT_MEMBER( LineSegment, lineSegment, 3, type );
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
@@ -180,57 +180,47 @@ struct Node
 
         struct Space
         {
-            Path contour;
-            int  width;
-
             template < class Archive >
             inline void serialize( Archive& archive, const unsigned int version )
             {
-                archive& boost::serialization::make_nvp( "contour", contour );
-                archive& boost::serialization::make_nvp( "width", width );
             }
         };
         struct Wall
         {
-            Path contour;
-            int  width;
-
             template < class Archive >
             inline void serialize( Archive& archive, const unsigned int version )
             {
-                archive& boost::serialization::make_nvp( "contour", contour );
-                archive& boost::serialization::make_nvp( "width", width );
             }
         };
         struct Object
         {
-            Path contour;
-
             template < class Archive >
             inline void serialize( Archive& archive, const unsigned int version )
             {
-                archive& boost::serialization::make_nvp( "contour", contour );
             }
         };
         struct Connection
         {
-            double width;
-            double half_height;
-
             template < class Archive >
             inline void serialize( Archive& archive, const unsigned int version )
             {
-                archive& boost::serialization::make_nvp( "width", width );
-                archive& boost::serialization::make_nvp( "half_height", half_height );
+            }
+        };
+        struct Cut
+        {
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
             }
         };
 
-        boost::variant< Space, Wall, Object, Connection > type;
+        boost::variant< Space, Wall, Object, Connection, Cut > type;
 
         VARIANT_MEMBER( Space, space, 0, type );
         VARIANT_MEMBER( Wall, wall, 1, type );
         VARIANT_MEMBER( Object, object, 2, type );
         VARIANT_MEMBER( Connection, connection, 3, type );
+        VARIANT_MEMBER( Cut, cut, 4, type );
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )

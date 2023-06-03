@@ -31,6 +31,32 @@
 
 namespace schematic
 {
+namespace
+{
+const GlyphSpec* getParentGlyphSpecFromParentNode( Node::PtrWeak pParentNode )
+{
+    auto pParentNodeStrong = pParentNode.lock();
+    if( Feature_Point::Ptr pParentPoint = boost::dynamic_pointer_cast< Feature_Point >( pParentNodeStrong ) )
+    {
+        return &pParentPoint->m_point;
+    }
+    else if( Site::Ptr pParentSite = boost::dynamic_pointer_cast< Site >( pParentNodeStrong ) )
+    {
+        return pParentSite.get();
+    }
+    else if( Feature_Contour::Ptr pParentContour = boost::dynamic_pointer_cast< Feature_Contour >( pParentNodeStrong ) )
+    {
+        return nullptr;
+        // const GlyphSpec* pParentRoot = pParentContour->getRootControlPoint();
+        // ASSERT( pParentRoot );
+        // return pParentRoot;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+} // namespace
 
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
@@ -115,12 +141,7 @@ std::string Feature_Point::getStatement() const
 
 const GlyphSpec* Feature_Point::getParent( ControlPoint::Index id ) const
 {
-    if( Feature_Point::Ptr pParent = boost::dynamic_pointer_cast< Feature_Point >( m_pParent.lock() ) )
-        return &pParent->m_point;
-    else if( Site::Ptr pParent = boost::dynamic_pointer_cast< Site >( m_pParent.lock() ) )
-        return pParent.get();
-    else
-        return nullptr;
+    return getParentGlyphSpecFromParentNode( m_pParent );
 }
 
 /////////////////////////////////////////////////////////////////
@@ -198,12 +219,7 @@ std::string Feature_Contour::getStatement() const
 
 const GlyphSpec* Feature_Contour::getParent( ControlPoint::Index id ) const
 {
-    if( Feature_Point::Ptr pParent = boost::dynamic_pointer_cast< Feature_Point >( m_pParent.lock() ) )
-        return &pParent->m_point;
-    else if( Site::Ptr pParent = boost::dynamic_pointer_cast< Site >( m_pParent.lock() ) )
-        return pParent.get();
-    else
-        return 0u;
+    return getParentGlyphSpecFromParentNode( m_pParent );
 }
 
 const Point& Feature_Contour::getPoint( ControlPoint::Index id ) const
@@ -362,23 +378,17 @@ std::string Feature_Pin::getStatement() const
 
 const GlyphSpec* Feature_Pin::getParent( ControlPoint::Index id ) const
 {
-    THROW_RTE( "Unexpected getPareant in Feature_Pin" );
-    /*if( Feature_Pin::Ptr pParent = boost::dynamic_pointer_cast< Feature_Pin >( m_pParent.lock() ) )
-        return &pParent->m_point;
-    else if( Site::Ptr pParent = boost::dynamic_pointer_cast< Site >( m_pParent.lock() ) )
-        return pParent.get();
-    else
-        return nullptr;*/
+    return getParentGlyphSpecFromParentNode( m_pParent );
 }
 
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
-const std::string& Feature_Cut::TypeName()
+const std::string& Feature_LineSegment::TypeName()
 {
     static const std::string strTypeName( "cut" );
     return strTypeName;
 }
-Feature_Cut::Feature_Cut( Node::Ptr pParent, const std::string& strName )
+Feature_LineSegment::Feature_LineSegment( Node::Ptr pParent, const std::string& strName )
     : Feature( pParent, strName )
     , m_start( *this, 0, Schematic::eStage_SiteContour )
     , m_end( *this, 1, Schematic::eStage_SiteContour )
@@ -388,78 +398,54 @@ Feature_Cut::Feature_Cut( Node::Ptr pParent, const std::string& strName )
     m_controlPointSet.insert( &m_start );
     m_controlPointSet.insert( &m_end );
 }
-Feature_Cut::Feature_Cut( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
+Feature_LineSegment::Feature_LineSegment( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
     : Feature( pOriginal, pParent, strName )
     , m_start( *this, 0, Schematic::eStage_SiteContour )
     , m_end( *this, 1, Schematic::eStage_SiteContour )
-    , m_ptStart( 0.0f, 0.0f )
-    , m_ptEnd( 0.0f, 0.0f )
+    , m_ptStart( pOriginal->m_ptStart )
+    , m_ptEnd( pOriginal->m_ptEnd )
 {
     m_controlPointSet.insert( &m_start );
     m_controlPointSet.insert( &m_end );
 }
 
-Node::Ptr Feature_Cut::copy( Node::Ptr pParent, const std::string& strName ) const
+Node::Ptr Feature_LineSegment::copy( Node::Ptr pParent, const std::string& strName ) const
 {
-    return Node::copy< Feature_Cut >(
-        boost::dynamic_pointer_cast< const Feature_Cut >( shared_from_this() ), pParent, strName );
+    return Node::copy< Feature_LineSegment >(
+        boost::dynamic_pointer_cast< const Feature_LineSegment >( shared_from_this() ), pParent, strName );
 }
-void Feature_Cut::init()
+void Feature_LineSegment::init()
 {
     Feature::init();
 }
-void Feature_Cut::load( const format::Node& node )
+void Feature_LineSegment::load( const format::Node& node )
 {
     VERIFY_RTE( node.has_feature() && node.feature().has_pin() );
-    const format::Node::Feature::Cut& cut = node.feature().cut();
-    m_ptStart                             = Point( cut.start.x, cut.start.y );
-    m_ptEnd                               = Point( cut.end.x, cut.end.y );
+    const format::Node::Feature::LineSegment& lineSegment = node.feature().lineSegment();
+    m_ptStart                                             = Point( lineSegment.start.x, lineSegment.start.y );
+    m_ptEnd                                               = Point( lineSegment.end.x, lineSegment.end.y );
     Feature::load( node );
 }
-void Feature_Cut::save( format::Node& node ) const
+void Feature_LineSegment::save( format::Node& node ) const
 {
-    auto& cut = *node.mutable_feature()->mutable_cut();
-    cut.start = { CGAL::to_double( m_ptStart.x() ), CGAL::to_double( m_ptStart.y() ) };
-    cut.end   = { CGAL::to_double( m_ptEnd.x() ), CGAL::to_double( m_ptEnd.y() ) };
+    auto& lineSegment = *node.mutable_feature()->mutable_lineSegment();
+    lineSegment.start = { CGAL::to_double( m_ptStart.x() ), CGAL::to_double( m_ptStart.y() ) };
+    lineSegment.end   = { CGAL::to_double( m_ptEnd.x() ), CGAL::to_double( m_ptEnd.y() ) };
     Feature::save( node );
 }
 
-std::string Feature_Cut::getStatement() const
+std::string Feature_LineSegment::getStatement() const
 {
     std::ostringstream os;
     {
-        os << "Feature_Cut: " << getName();
+        os << "Feature_LineSegment: " << getName();
     }
     return os.str();
 }
 
-const GlyphSpec* Feature_Cut::getParent( ControlPoint::Index id ) const
+const GlyphSpec* Feature_LineSegment::getParent( ControlPoint::Index id ) const
 {
-    THROW_RTE( "Unexpected getPareant in Feature_Cut" );
-    /*if( Feature_Cut::Ptr pParent = boost::dynamic_pointer_cast< Feature_Cut >( m_pParent.lock() ) )
-    {
-        switch( id )
-        {
-            case 0:
-            {
-                return &pParent->m_ptStart;
-            }
-            break;
-            case 1:
-            {
-                return &pParent->m_ptEnd;
-            }
-            break;
-            default:
-            {
-                THROW_RTE( "Invalid control point index" );
-            }
-        }
-    }
-    else if( Site::Ptr pParent = boost::dynamic_pointer_cast< Site >( m_pParent.lock() ) )
-        return pParent.get();
-    else
-        return nullptr;*/
+    return getParentGlyphSpecFromParentNode( m_pParent );
 }
 
 /////////////////////////////////////////////////////////////////
@@ -546,17 +532,6 @@ std::string Feature_ContourPoint::getStatement() const
 
 const GlyphSpec* Feature_ContourPoint::getParent( int id ) const
 {
-    if( Feature_Contour::Ptr pParent = boost::dynamic_pointer_cast< Feature_Contour >( m_pParent.lock() ) )
-    {
-        const GlyphSpec* pParentRoot = pParent->getRootControlPoint();
-        ASSERT( pParentRoot );
-        return pParentRoot;
-    }
-    else
-    {
-        ASSERT( false );
-        return 0u;
-    }
 }
 
 Float Feature_ContourPoint::getX( int id ) const

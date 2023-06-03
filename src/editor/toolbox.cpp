@@ -8,7 +8,9 @@
 #include "schematic/space.hpp"
 #include "schematic/wall.hpp"
 #include "schematic/connection.hpp"
+#include "schematic/cut.hpp"
 #include "schematic/object.hpp"
+#include "schematic/feature.hpp"
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
@@ -199,6 +201,18 @@ void Toolbox::reload()
         pDefaultSpace->init();
         for( auto i = 0; i != schematic::QuarterTurn; ++i )
             pDefaultSpace->cmd_rotateLeft( pDefaultSpace->getAABB() );
+        pDefaultClip->add( pDefaultSpace );
+        add( "basic", pDefaultClip, false );
+    }
+    {
+        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "cut" ) );
+        schematic::Cut::Ptr pDefaultSpace( new schematic::Cut( pDefaultClip, "cut" ) );
+        pDefaultClip->add( pDefaultSpace );
+        add( "basic", pDefaultClip, false );
+    }
+    {
+        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "pin" ) );
+        schematic::Feature_Pin::Ptr pDefaultSpace( new schematic::Feature_Pin( pDefaultClip, "pin" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }

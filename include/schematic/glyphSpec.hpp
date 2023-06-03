@@ -52,7 +52,7 @@ class GlyphSpecProducer;
 class GlyphSpec
 {
 public:
-    virtual ~GlyphSpec() {}
+    virtual ~GlyphSpec()                                         = default;
     virtual const GlyphSpec*         getParent() const           = 0;
     virtual bool                     canEdit() const             = 0;
     virtual CompilationStage         getCompilationStage() const = 0;
@@ -62,7 +62,7 @@ public:
 class Painter
 {
 public:
-    virtual ~Painter(){};
+    virtual ~Painter() = default;
 
     virtual bool needsUpdate( const Timing::UpdateTick& updateTick ) = 0;
     virtual void updated()                                           = 0;
@@ -77,7 +77,7 @@ public:
 class MarkupPolygonGroup : public GlyphSpec
 {
 public:
-    typedef std::list< MarkupPolygonGroup* > List;
+    using List = std::list< MarkupPolygonGroup* >;
 
     virtual bool isPolygonsFilled() const        = 0;
     virtual bool paint( Painter& painter ) const = 0;
@@ -88,7 +88,7 @@ public:
 class MarkupText : public GlyphSpec
 {
 public:
-    typedef std::list< MarkupText* > List;
+    using List = std::list< MarkupText* >;
     enum TextType
     {
         eImportant,
@@ -103,7 +103,7 @@ public:
 class ControlPoint : public GlyphSpec
 {
 public:
-    typedef std::set< ControlPoint* > Set;
+    using Set   = std::set< ControlPoint* >;
     using Index = std::size_t;
 
     virtual Index        getIndex() const               = 0;

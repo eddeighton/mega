@@ -23,6 +23,7 @@
 #include "schematic/space.hpp"
 #include "schematic/wall.hpp"
 #include "schematic/connection.hpp"
+#include "schematic/cut.hpp"
 #include "schematic/object.hpp"
 #include "schematic/feature.hpp"
 #include "schematic/schematic.hpp"
@@ -109,7 +110,7 @@ File::Ptr load( const boost::filesystem::path& filePath )
     VERIFY_RTE_MSG( pFile, "Failed to load: " << strFilePath );
 
     pFile->load( rootNode );
-    
+
     pFile->init();
 
     return pFile;
@@ -152,6 +153,10 @@ Node::Ptr construct( Node::Ptr pParent, const format::Node& node )
         {
             pNewNode = Connection::Ptr( new Connection( pParent, node.name ) );
         }
+        else if( site.has_cut() )
+        {
+            pNewNode = Cut::Ptr( new Cut( pParent, node.name ) );
+        }
         else if( site.has_wall() )
         {
             pNewNode = Wall::Ptr( new Wall( pParent, node.name ) );
@@ -176,9 +181,9 @@ Node::Ptr construct( Node::Ptr pParent, const format::Node& node )
         {
             pNewNode = Feature_Contour::Ptr( new Feature_Contour( pParent, node.name ) );
         }
-        else if( feature.has_cut() )
+        else if( feature.has_lineSegment() )
         {
-            pNewNode = Feature_Cut::Ptr( new Feature_Cut( pParent, node.name ) );
+            pNewNode = Feature_LineSegment::Ptr( new Feature_LineSegment( pParent, node.name ) );
         }
         else if( feature.has_pin() )
         {
@@ -202,7 +207,7 @@ Node::Ptr construct( Node::Ptr pParent, const format::Node& node )
 
     return pNewNode;
 }
-
+/*
 Polygon formatPolygonFromPath( const format::Path& path )
 {
     Polygon polygon;
@@ -214,7 +219,7 @@ Polygon formatPolygonFromPath( const format::Path& path )
         polygon[ uiIndex ]        = Point( point.x, point.y );
     }
     return polygon;
-}
+}*/
 
 void formatPolygonToPath( const Polygon& polygon, format::Path& path )
 {
