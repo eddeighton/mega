@@ -22,7 +22,7 @@
 #include "schematic/editNested.hpp"
 #include "schematic/editRoot.hpp"
 #include "schematic/file.hpp"
-#include "schematic/clip.hpp"
+#include "schematic/schematic.hpp"
 #include "schematic/space.hpp"
 #include "schematic/wall.hpp"
 #include "schematic/connection.hpp"
@@ -454,7 +454,7 @@ Node::Ptr EditBase::cmd_cut( const std::set< IGlyph* >& selection )
 
         if( !nodes.empty() )
         {
-            Clip::Ptr pClip( new Clip( "clip" ) );
+            Schematic::Ptr pClip( new Schematic( "clip" ) );
             for( Node::PtrSet::iterator i = nodes.begin(), iEnd = nodes.end(); i != iEnd; ++i )
             {
                 VERIFY_RTE( pClip->add( ( *i )->copy( pClip, ( *i )->Node::getName() ) ) );
@@ -492,7 +492,7 @@ Node::Ptr EditBase::cmd_copy( const std::set< IGlyph* >& selection )
 
         if( !nodes.empty() )
         {
-            Clip::Ptr pClip( new Clip( "copy" ) );
+            Schematic::Ptr pClip( new Schematic( "copy" ) );
             for( Node::PtrSet::iterator i = nodes.begin(), iEnd = nodes.end(); i != iEnd; ++i )
             {
                 bool bResult = pClip->add( ( *i )->copy( pClip, ( *i )->Node::getName() ) );

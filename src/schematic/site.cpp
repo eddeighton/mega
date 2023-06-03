@@ -53,47 +53,19 @@ Site::Site( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
     m_transform = pOriginal->m_transform;
 }
 
-void Site::load( const format::Site& site )
+void Site::load( const format::Node& node )
 {
-    VERIFY_RTE( site.name == getName() );
-
-    m_transform = fromFormat( site.transform );
-
-    {
-        // ensure the sites are restored to their original order using
-        // the map index
-        using NewSite = std::pair< Site::Ptr, const format::Site* >;
-        std::vector< NewSite > newSites( site.children.size() );
-
-        for( const auto& child : site.children )
-        {
-            int                 szIndex   = child.first;
-            const format::Site& childSite = child.second;
-            newSites[ szIndex ]           = std::make_pair( schematic::construct( getPtr(), childSite ), &childSite );
-        }
-
-        for( const NewSite& newSite : newSites )
-        {
-            add( newSite.first );
-            newSite.first->init();
-            newSite.first->load( *newSite.second );
-        }
-    }
+    Node::load( node );
+    VERIFY_RTE( node.has_site() );
+    const format::Node::Site& size = node.site();
+    m_transform = fromFormat( size.transform );
 }
 
-void Site::save( format::Site& site ) const
+void Site::save( format::Node& node ) const
 {
-    site.name = getName();
+    format::Node::Site& site = *node.mutable_site();
     toFormat( getTransform(), site.transform );
-
-    int szIndex = 0U;
-    for( Site::Ptr pChildSite : BaseType::getElements() )
-    {
-        format::Site childSite;
-        pChildSite->save( childSite );
-        site.children.insert( { szIndex, childSite } );
-        ++szIndex;
-    }
+    Node::save( node );
 }
 
 std::string Site::getStatement() const
@@ -107,10 +79,6 @@ std::string Site::getStatement() const
 
 void Site::init()
 {
-    // m_sites.clear();
-    // for_each( generics::collectIfConvert( m_sites, Node::ConvertPtrType< Site >(), Node::ConvertPtrType< Site >() )
-    // );
-
     if( !m_pMarkupContour.get() )
     {
         m_pMarkupContour.reset(
@@ -124,7 +92,7 @@ void Site::init()
     }
 
     m_strLabelText.clear();
-    m_properties.clear();
+    /*m_properties.clear();
     {
         std::ostringstream os;
         os << Node::getName();
@@ -140,7 +108,7 @@ void Site::init()
             }
         }
         m_strLabelText = os.str();
-    }
+    }*/
 
     if( !m_pLabel.get() )
     {

@@ -45,25 +45,25 @@ Node::Ptr Wall::copy( Node::Ptr pParent, const std::string& strName ) const
     return Node::copy< Wall >( boost::dynamic_pointer_cast< const Wall >( shared_from_this() ), pParent, strName );
 }
 
-void Wall::load( const format::Site& site )
+void Wall::load( const format::Node& node )
 {
-    Site::load( site );
-
-    VERIFY_RTE( site.has_wall() );
-    const format::Site::Wall& wall = site.wall();
-
-    // site contour
-    m_pContour->set( formatPolygonFromPath( wall.contour ) );
+    Site::load( node );
+    VERIFY_RTE( node.has_site() && node.site().has_wall() );
+    const format::Node::Site::Wall& wall = node.site().wall();
+    if( m_pContour = get< Feature_Contour >( "contour" ); m_pContour )
+    {
+        m_pContour->set( formatPolygonFromPath( wall.contour ) );
+    }
 }
 
-void Wall::save( format::Site& site ) const
+void Wall::save( format::Node& node ) const
 {
-    format::Site::Wall& wall = *site.mutable_wall();
-
-    // site contour
-    formatPolygonToPath( m_pContour->getPolygon(), wall.contour );
-
-    Site::save( site );
+    format::Node::Site::Wall& wall = *node.mutable_site()->mutable_wall();
+    if( m_pContour )
+    {
+        formatPolygonToPath( m_pContour->getPolygon(), wall.contour );
+    }
+    Site::save( node );
 }
 
 std::string Wall::getStatement() const
@@ -146,10 +146,8 @@ void Wall::task_extrusions()
         // calculate exterior
         {
             PolygonPtrVector outer_offset_polygons
-                = CGAL::create_exterior_skeleton_and_offset_polygons_2< exact::Kernel::FT,
-                                                                        exact::Polygon,
-                                                                        exact::Kernel,
-                                                                        exact::Kernel >(
+                = CGAL::create_exterior_skeleton_and_offset_polygons_2< exact::Kernel::FT, exact::Polygon,
+                                                                        exact::Kernel, exact::Kernel >(
                     wallWidth, m_sitePolygon, ( exact::Kernel() ), ( exact::Kernel() ) );
             if( !outer_offset_polygons.empty() )
             {

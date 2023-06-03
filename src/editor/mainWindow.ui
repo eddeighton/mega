@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Mission Editor</string>
+   <string>Schematic Editor</string>
   </property>
   <widget class="QWidget" name="dockContainer">
    <property name="sizePolicy">
@@ -34,8 +34,7 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionNewBase"/>
-    <addaction name="actionNewShip"/>
+    <addaction name="actionNewSchematic"/>
     <addaction name="separator"/>
     <addaction name="actionLoad"/>
     <addaction name="actionSave"/>
@@ -107,8 +106,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionNewBase"/>
-   <addaction name="actionNewShip"/>
+   <addaction name="actionNewSchematic"/>
    <addaction name="separator"/>
    <addaction name="actionLoad"/>
    <addaction name="actionSave"/>
@@ -223,22 +221,13 @@
     </layout>
    </widget>
   </widget>
-  <action name="actionNewBase">
+  <action name="actionNewSchematic">
    <property name="icon">
     <iconset>
      <normaloff>:/art/blueprint.png</normaloff>:/art/blueprint.png</iconset>
    </property>
    <property name="text">
-    <string>New Base</string>
-   </property>
-  </action>
-  <action name="actionNewShip">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/art/blueprint.png</normaloff>:/art/blueprint.png</iconset>
-   </property>
-   <property name="text">
-    <string>New Ship</string>
+    <string>New Schematic</string>
    </property>
   </action>
   <action name="actionSave">

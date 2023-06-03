@@ -10,7 +10,6 @@
 
 #include "qtUtils.hpp"
 
-#include "schematic/readerWriter.hpp"
 #include "schematic/connection.hpp"
 #include "schematic/space.hpp"
 #include "schematic/wall.hpp"

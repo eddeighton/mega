@@ -34,7 +34,7 @@
 namespace schematic
 {
 
-class Schematic : public Container< Site, File >
+class Schematic : public Container< Site, File >, public boost::enable_shared_from_this< Schematic >
 {
 public:
     using BaseType = Container< Site, File >;
@@ -48,10 +48,14 @@ public:
     Schematic( const std::string& strName );
     Schematic( Schematic::PtrCst pOriginal, Node::Ptr pNewParent, const std::string& strName );
 
-    virtual void init();
+    virtual Node::PtrCst getPtr() const { return shared_from_this(); }
+    virtual Node::Ptr    getPtr() { return shared_from_this(); }
+    virtual void         init();
+    virtual Node::Ptr    copy( Node::Ptr pParent, const std::string& strName ) const;
+    virtual void         load( const format::Node& node );
+    virtual void         save( format::Node& node ) const;
 
-    void load( const format::File::Schematic& schematic );
-    void save( format::File::Schematic& schematic ) const;
+    virtual std::string getStatement() const { return getName(); }
 
     const Site::PtrVector& getSites() const { return BaseType::getElements(); }
 
@@ -83,40 +87,6 @@ private:
     std::unique_ptr< MultiPathMarkup > m_pCompilationMarkup;
 };
 
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-/*
-class SiteContourTask : public task::Task
-{
-    Schematic::WeakPtr m_pSchematic;
-
-public:
-    SiteContourTask( Schematic::Ptr pSchematic, const task::Task::RawPtrSet& dependencies );
-    virtual void run( task::Progress& taskProgress );
-};
-
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-class SiteExtrusionTask : public task::Task
-{
-    Schematic::WeakPtr m_pSchematic;
-
-public:
-    SiteExtrusionTask( Schematic::Ptr pSchematic, const task::Task::RawPtrSet& dependencies );
-    virtual void run( task::Progress& taskProgress );
-};
-
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-class CompilationTask : public task::Task
-{
-    Schematic::WeakPtr m_pSchematic;
-
-public:
-    CompilationTask( Schematic::Ptr pSchematic, const task::Task::RawPtrSet& dependencies );
-    virtual void run( task::Progress& taskProgress );
-};
-*/
 } // namespace schematic
 
 #endif // SCHEMATIC_API_28_JAN_2021

@@ -27,7 +27,7 @@
 #include "schematic/glyphSpec.hpp"
 #include "schematic/glyphSpecProducer.hpp"
 #include "schematic/markup.hpp"
-#include "schematic/basicFeature.hpp"
+#include "schematic/feature.hpp"
 #include "schematic/container.hpp"
 
 #include <boost/shared_ptr.hpp>
@@ -66,8 +66,8 @@ public:
     Site( Node::Ptr pParent, const std::string& strName );
     Site( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName );
 
-    virtual void load( const format::Site& site );
-    virtual void save( format::Site& site ) const;
+    virtual void load( const format::Node& node );
+    virtual void save( format::Node& node ) const;
 
     virtual std::string getStatement() const;
 
@@ -125,10 +125,10 @@ public:
 protected:
     exact::Transform m_transformCache;
 
-    using PropertyVector = std::vector< Property::Ptr >;
+    //using PropertyVector = std::vector< Property::Ptr >;
 
     Node::WeakPtr  m_pSiteParent;
-    PropertyVector m_properties;
+    //PropertyVector m_properties;
 
     std::string m_strLabelText;
 

@@ -23,7 +23,6 @@
 #include "schematic/cgalSettings.hpp"
 #include "schematic/geometry.hpp"
 #include "schematic/glyphSpec.hpp"
-#include "schematic/readerWriter.hpp"
 
 namespace schematic
 {

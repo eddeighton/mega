@@ -59,8 +59,9 @@ public:
     virtual Node::Ptr    getPtr() { return shared_from_this(); }
     virtual void         init();
     virtual Node::Ptr    copy( Node::Ptr pParent, const std::string& strName ) const;
-    // virtual void load( Loader& loader );
-    // virtual void save( Storer& storer ) const;
+    virtual void         load( const format::Node& node );
+    virtual void         save( format::Node& node ) const;
+
     virtual std::string getStatement() const;
     void                setStatement( const std::string& strStatement );
     const std::string&  getValue() const { return m_strValue; }
@@ -168,7 +169,7 @@ static bool calculateReference( Node::Ptr pSource, Node::Ptr pTarget, Ed::Refere
     return bSuccess;
 }
 */
-
+/*
 class Reference : public Node, public boost::enable_shared_from_this< Reference >
 {
 public:
@@ -192,6 +193,7 @@ public:
 private:
     // Ed::Reference m_reference;
 };
+*/
 
 } // namespace schematic
 

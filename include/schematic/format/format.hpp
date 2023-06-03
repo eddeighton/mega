@@ -95,136 +95,187 @@ struct Path
     }
 };
 
-struct Site
+struct Node
 {
     std::string           name;
-    Transform             transform;
-    std::map< int, Site > children;
+    std::size_t           index;
+    std::map< int, Node > children;
 
-    struct Space
+    struct Feature
     {
-        Path contour;
-        int  width;
-
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
+        struct Point
         {
-            archive& boost::serialization::make_nvp( "contour", contour );
-            archive& boost::serialization::make_nvp( "width", width );
-        }
-    };
-    struct Wall
-    {
-        Path contour;
-        int  width;
+            F2 position;
 
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
-        {
-            archive& boost::serialization::make_nvp( "contour", contour );
-            archive& boost::serialization::make_nvp( "width", width );
-        }
-    };
-    struct Object
-    {
-        Path contour;
-
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
-        {
-            archive& boost::serialization::make_nvp( "contour", contour );
-        }
-    };
-    struct Connection
-    {
-        double width;
-        double half_height;
-
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
-        {
-            archive& boost::serialization::make_nvp( "width", width );
-            archive& boost::serialization::make_nvp( "half_height", half_height );
-        }
-    };
-
-    boost::variant< Space, Wall, Object, Connection > type;
-
-    VARIANT_MEMBER( Space, space, 0, type );
-    VARIANT_MEMBER( Wall, wall, 1, type );
-    VARIANT_MEMBER( Object, object, 2, type );
-    VARIANT_MEMBER( Connection, connection, 3, type );
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& boost::serialization::make_nvp( "name", name );
-        archive& boost::serialization::make_nvp( "transform", transform );
-        archive& boost::serialization::make_nvp( "type", type );
-        archive& boost::serialization::make_nvp( "children", children );
-    }
-};
-
-struct File
-{
-    struct Schematic
-    {
-        struct Clip
-        {
             template < class Archive >
             inline void serialize( Archive& archive, const unsigned int version )
             {
+                archive& boost::serialization::make_nvp( "position", position );
             }
         };
-        struct Ship
+
+        struct Contour
         {
+            Path path;
+
             template < class Archive >
             inline void serialize( Archive& archive, const unsigned int version )
             {
+                archive& boost::serialization::make_nvp( "path", path );
             }
         };
-        struct Base
+
+        struct Pin
         {
+            F2 position;
+
             template < class Archive >
             inline void serialize( Archive& archive, const unsigned int version )
             {
+                archive& boost::serialization::make_nvp( "position", position );
             }
         };
-        boost::variant< Clip, Ship, Base > type;
 
-        VARIANT_MEMBER( Clip, clip, 0, type );
-        VARIANT_MEMBER( Ship, ship, 1, type );
-        VARIANT_MEMBER( Base, base, 2, type );
+        struct Cut
+        {
+            F2 start;
+            F2 end;
 
-        std::map< int, Site > children;
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& boost::serialization::make_nvp( "start", start );
+                archive& boost::serialization::make_nvp( "end", end );
+            }
+        };
+
+        boost::variant< Point, Contour, Pin, Cut > type;
+
+        VARIANT_MEMBER( Point, point, 0, type );
+        VARIANT_MEMBER( Contour, contour, 1, type );
+        VARIANT_MEMBER( Pin, pin, 2, type );
+        VARIANT_MEMBER( Cut, cut, 3, type );
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
             archive& boost::serialization::make_nvp( "type", type );
-            archive& boost::serialization::make_nvp( "children", children );
         }
     };
 
-    struct Script
+    struct Property
     {
+        std::string value;
+
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
+            archive& boost::serialization::make_nvp( "value", value );
         }
     };
 
-    boost::variant< Schematic, Script > type;
+    struct Site
+    {
+        Transform transform;
 
-    VARIANT_MEMBER( Schematic, schematic, 0, type );
-    VARIANT_MEMBER( Script, script, 1, type );
+        struct Space
+        {
+            Path contour;
+            int  width;
+
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& boost::serialization::make_nvp( "contour", contour );
+                archive& boost::serialization::make_nvp( "width", width );
+            }
+        };
+        struct Wall
+        {
+            Path contour;
+            int  width;
+
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& boost::serialization::make_nvp( "contour", contour );
+                archive& boost::serialization::make_nvp( "width", width );
+            }
+        };
+        struct Object
+        {
+            Path contour;
+
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& boost::serialization::make_nvp( "contour", contour );
+            }
+        };
+        struct Connection
+        {
+            double width;
+            double half_height;
+
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& boost::serialization::make_nvp( "width", width );
+                archive& boost::serialization::make_nvp( "half_height", half_height );
+            }
+        };
+
+        boost::variant< Space, Wall, Object, Connection > type;
+
+        VARIANT_MEMBER( Space, space, 0, type );
+        VARIANT_MEMBER( Wall, wall, 1, type );
+        VARIANT_MEMBER( Object, object, 2, type );
+        VARIANT_MEMBER( Connection, connection, 3, type );
+
+        template < class Archive >
+        inline void serialize( Archive& archive, const unsigned int version )
+        {
+            archive& boost::serialization::make_nvp( "type", type );
+            archive& boost::serialization::make_nvp( "transform", transform );
+        }
+    };
+
+    struct File
+    {
+        struct Schematic
+        {
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+            }
+        };
+
+        boost::variant< Schematic > type;
+
+        VARIANT_MEMBER( Schematic, schematic, 0, type );
+
+        template < class Archive >
+        inline void serialize( Archive& archive, const unsigned int version )
+        {
+            archive& boost::serialization::make_nvp( "type", type );
+        }
+    };
+
+    boost::variant< Feature, Property, Site, File > type;
+    VARIANT_MEMBER( Feature, feature, 0, type );
+    VARIANT_MEMBER( Property, property, 1, type );
+    VARIANT_MEMBER( Site, site, 2, type );
+    VARIANT_MEMBER( File, file, 3, type );
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
         archive& boost::serialization::make_nvp( "type", type );
+        archive& boost::serialization::make_nvp( "name", name );
+        archive& boost::serialization::make_nvp( "children", children );
     }
 };
+
 } // namespace schematic::format
 
 #endif // MAP_FORMAT_21_FEB_2023

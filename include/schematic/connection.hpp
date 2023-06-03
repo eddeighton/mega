@@ -41,8 +41,8 @@ public:
     virtual Node::PtrCst getPtr() const { return shared_from_this(); }
     virtual Node::Ptr    getPtr() { return shared_from_this(); }
 
-    virtual void load( const format::Site& site );
-    void         save( format::Site& site ) const;
+    virtual void load( const format::Node& node );
+    virtual void save( format::Node& node ) const;
 
     virtual std::string getStatement() const;
     virtual void        init();

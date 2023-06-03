@@ -80,8 +80,7 @@ public slots:
         */
     void OnFocusedDockWidgetChanged( ads::CDockWidget* pOld, ads::CDockWidget* pNew );
 
-    void OnNewBase();
-    void OnNewShip();
+    void OnNewSchematic();
     void OnLoadSchematic( ClipboardMsg msg );
     void OnLoad();
     void OnSaveAll();

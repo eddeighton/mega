@@ -54,6 +54,7 @@ set( MEGA_UNIT_TESTS
 	${MEGA_UNIT_TESTS_DIR}/schema_grammar_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/sim_state_machine_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/xml_tag_parser_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/schematic_tests.cpp
 	)
 
 set( MEGA_UNIT_TESTS_DATA
@@ -96,6 +97,7 @@ target_link_libraries( mega_tests pipeline)
 target_link_libraries( mega_tests executorLib)
 target_link_libraries( mega_tests log)
 target_link_libraries( mega_tests mega_mangle)
+target_link_libraries( mega_tests schematic)
 
 gtest_add_tests( TARGET mega_tests SOURCES ${MEGA_UNIT_TESTS} )
 

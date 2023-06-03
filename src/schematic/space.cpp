@@ -49,25 +49,25 @@ Node::Ptr Space::copy( Node::Ptr pParent, const std::string& strName ) const
     return Node::copy< Space >( boost::dynamic_pointer_cast< const Space >( shared_from_this() ), pParent, strName );
 }
 
-void Space::load( const format::Site& site )
+void Space::load( const format::Node& node )
 {
-    Site::load( site );
-
-    VERIFY_RTE( site.has_space() );
-    const format::Site::Space& space = site.space();
-
-    // site contour
-    m_pContour->set( formatPolygonFromPath( space.contour ) );
+    Site::load( node );
+    VERIFY_RTE( node.has_site() && node.site().has_space() );
+    const format::Node::Site::Space& space = node.site().space();
+    if( m_pContour = get< Feature_Contour >( "contour" ); m_pContour )
+    {
+        m_pContour->set( formatPolygonFromPath( space.contour ) );
+    }
 }
 
-void Space::save( format::Site& site ) const
+void Space::save( format::Node& node ) const
 {
-    format::Site::Space& space = *site.mutable_space();
-
-    // site contour
-    formatPolygonToPath( m_pContour->getPolygon(), space.contour );
-
-    Site::save( site );
+    format::Node::Site::Space& space = *node.mutable_site()->mutable_space();
+    if( m_pContour )
+    {
+        formatPolygonToPath( m_pContour->getPolygon(), space.contour );
+    }
+    Site::save( node );
 }
 
 std::string Space::getStatement() const
@@ -85,8 +85,7 @@ void Space::init()
 {
     if( !m_pInteriorPolygonMarkup.get() )
     {
-        m_pInteriorPolygonMarkup.reset( new SimplePolygonMarkup(
-            *this, this, false, Schematic::eStage_Extrusion ) );
+        m_pInteriorPolygonMarkup.reset( new SimplePolygonMarkup( *this, this, false, Schematic::eStage_Extrusion ) );
     }
     if( !m_pInnerExteriorPolygonsMarkup.get() )
     {

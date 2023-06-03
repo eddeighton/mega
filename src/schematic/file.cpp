@@ -41,4 +41,16 @@ File::CompilationConfig File::getDefaultCompilationConfig()
     config.set( Schematic::eStage_SiteContour );
     return config;
 }
+void File::load( const format::Node& node )
+{
+    Node::load( node );
+    VERIFY_RTE( node.has_file() );
+}
+
+void File::save( format::Node& node ) const
+{
+    format::Node::File& file = *node.mutable_file();
+    Node::save( node );
+}
+
 } // namespace schematic

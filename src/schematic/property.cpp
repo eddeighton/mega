@@ -53,53 +53,24 @@ Node::Ptr Property::copy( Node::Ptr pParent, const std::string& strName ) const
 {
     return Node::copy< Property >( shared_from_this(), pParent, strName );
 }
-/*
-void Property::load( Loader& loader )
+void Property::load( const format::Node& node )
 {
-    Node::load( getPtr(), loader );
-    THROW_RTE( "TODO" );
+    Node::load( node );
+    VERIFY_RTE( node.has_property() );
+    const format::Node::Property& property = node.property();
+    m_strValue                             = property.value;
 }
-
-void Property::save( Storer& storer ) const
+void Property::save( format::Node& node ) const
 {
-    Node::save( storer );
-    THROW_RTE( "TODO" );
-}*/
-/*
-void Property::load( Factory& factory, const Ed::Node& node )
-{
-    Node::load( shared_from_this(), factory, node );
-
-    if( boost::optional< const Ed::Shorthand& > shOpt = node.getShorty() )
-    {
-        Ed::IShorthandStream is( shOpt.get() );
-        is >> m_strValue;
-    }
-}
-
-void Property::save( Ed::Node& node ) const
-{
-    node.statement.addTag( Ed::Identifier( TypeName() ) );
-
+    format::Node::Property& property = *node.mutable_property();
+    property.value                   = m_strValue;
     Node::save( node );
-
-    if( !node.statement.shorthand ) node.statement.shorthand = Ed::Shorthand();
-    Ed::OShorthandStream os( node.statement.shorthand.get() );
-    os << m_strValue;
-}*/
+}
 
 std::string Property::getStatement() const
 {
     std::ostringstream os;
-    {
-        THROW_RTE( "TODO" );
-        /*Ed::Shorthand sh;
-        {
-            Ed::OShorthandStream ossh( sh );
-            ossh << m_strValue;
-        }
-        os << sh;*/
-    }
+    os << m_strValue;
     return os.str();
 }
 
@@ -114,6 +85,7 @@ void Property::setStatement( const std::string& strStatement )
 
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
+/*
 const std::string& Reference::TypeName()
 {
     static const std::string strTypeName( "reference" );
@@ -136,65 +108,14 @@ Node::Ptr Reference::copy( Node::Ptr pParent, const std::string& strName ) const
 {
     return Node::copy< Reference >( shared_from_this(), pParent, strName );
 }
-/*
-void Reference::load( Loader& loader )
-{
-    Node::load( getPtr(), loader );
-    THROW_RTE( "TODO" );
-}
 
-void Reference::save( Storer& storer ) const
-{
-    Node::save( storer );
-    THROW_RTE( "TODO" );
-}*/
-/*
-void Reference::load( Factory& factory, const Ed::Node& node )
-{
-    Node::load( shared_from_this(), factory, node );
-
-    if( boost::optional< const Ed::Shorthand& > shOpt = node.getShorty() )
-    {
-        Ed::IShorthandStream is( shOpt.get() );
-        Ed::Ref ref;
-        is >> ref;
-        m_reference = ref.front();
-        m_reference.erase( m_reference.begin() );
-    }
-}
-void Reference::save( Ed::Node& node ) const
-{
-    node.statement.addTag( Ed::Identifier( TypeName() ) );
-
-    Node::save( node );
-
-    if( !node.statement.shorthand ) node.statement.shorthand = Ed::Shorthand();
-    Ed::OShorthandStream os( node.statement.shorthand.get() );
-    Ed::Ref ref;
-    ref.push_back( m_reference );
-    ref.back().insert( ref.back().begin(), Ed::eRefUp );
-    os << ref;
-}*/
 std::string Reference::getStatement() const
 {
     std::ostringstream os;
     {
         THROW_RTE( "TODO" );
-        /*Ed::Shorthand sh;
-        {
-            Ed::OShorthandStream ossh( sh );
-            Ed::Ref ref;
-            ref.push_back( m_reference );
-            ossh << ref;
-        }
-        os << sh;*/
     }
     return os.str();
-}
-/*
-const Ed::Reference& Reference::getValue() const
-{
-    return m_reference;
-}
-*/
+}*/
+
 } // namespace schematic

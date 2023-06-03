@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "schematic/basicFeature.hpp"
+#include "schematic/feature.hpp"
 
 #include "schematic/factory.hpp"
 #include "schematic/site.hpp"
@@ -48,6 +48,17 @@ Node::Ptr Feature::copy( Node::Ptr pParent, const std::string& strName ) const
     return Node::copy< Feature >( shared_from_this(), pParent, strName );
 }
 
+void Feature::load( const format::Node& node )
+{
+    Node::load( node );
+}
+
+void Feature::save( format::Node& node ) const
+{
+    node.mutable_feature();
+    Node::save( node );
+}
+
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 const std::string& Feature_Point::TypeName()
@@ -74,6 +85,23 @@ Node::Ptr Feature_Point::copy( Node::Ptr pParent, const std::string& strName ) c
 {
     return Node::copy< Feature_Point >(
         boost::dynamic_pointer_cast< const Feature_Point >( shared_from_this() ), pParent, strName );
+}
+void Feature_Point::init()
+{
+    Feature::init();
+}
+void Feature_Point::load( const format::Node& node )
+{
+    VERIFY_RTE( node.has_feature() && node.feature().has_point() );
+    const format::Node::Feature::Point& point = node.feature().point();
+    m_ptOrigin                                = Point( point.position.x, point.position.y );
+    Feature::load( node );
+}
+void Feature_Point::save( format::Node& node ) const
+{
+    auto& point    = *node.mutable_feature()->mutable_point();
+    point.position = { CGAL::to_double( m_ptOrigin.x() ), CGAL::to_double( m_ptOrigin.y() ) };
+    Feature::save( node );
 }
 
 std::string Feature_Point::getStatement() const
@@ -117,6 +145,35 @@ Feature_Contour::Feature_Contour( PtrCst pOriginal, Node::Ptr pParent, const std
 void Feature_Contour::init()
 {
     Feature::init();
+}
+void Feature_Contour::load( const format::Node& node )
+{
+    VERIFY_RTE( node.has_feature() && node.feature().has_contour() );
+    const format::Node::Feature::Contour& contour = node.feature().contour();
+
+    //  std::map< int, F2 > points;
+    m_polygon.clear();
+    for( const auto& [ _, pt ] : contour.path.points )
+    {
+        m_polygon.push_back( Point( pt.x, pt.y ) );
+    }
+
+    recalculateControlPoints();
+
+    Feature::load( node );
+}
+void Feature_Contour::save( format::Node& node ) const
+{
+    format::Node::Feature::Contour& contour = *node.mutable_feature()->mutable_contour();
+
+    int count = 0;
+    for( auto i = m_polygon.begin(), iEnd = m_polygon.end(); i != iEnd; ++i )
+    {
+        contour.path.points.insert( { count++, format::F2{ Map_FloorAverage()( CGAL::to_double( i->x() ) ),
+                                                           Map_FloorAverage()( CGAL::to_double( i->y() ) ) } } );
+    }
+
+    Feature::save( node );
 }
 
 Node::Ptr Feature_Contour::copy( Node::Ptr pParent, const std::string& strName ) const
@@ -248,6 +305,163 @@ bool Feature_Contour::cmd_delete( const std::vector< const GlyphSpec* >& selecti
 
     return !removals.empty();
 }
+
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+const std::string& Feature_Pin::TypeName()
+{
+    static const std::string strTypeName( "pin" );
+    return strTypeName;
+}
+Feature_Pin::Feature_Pin( Node::Ptr pParent, const std::string& strName )
+    : Feature( pParent, strName )
+    , m_point( *this, 0, Schematic::eStage_SiteContour )
+    , m_ptOrigin( 0.0f, 0.0f )
+{
+    m_controlPointSet.insert( &m_point );
+}
+Feature_Pin::Feature_Pin( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
+    : Feature( pOriginal, pParent, strName )
+    , m_point( *this, 0, Schematic::eStage_SiteContour )
+    , m_ptOrigin( pOriginal->m_ptOrigin )
+{
+    m_controlPointSet.insert( &m_point );
+}
+
+Node::Ptr Feature_Pin::copy( Node::Ptr pParent, const std::string& strName ) const
+{
+    return Node::copy< Feature_Pin >(
+        boost::dynamic_pointer_cast< const Feature_Pin >( shared_from_this() ), pParent, strName );
+}
+void Feature_Pin::init()
+{
+    Feature::init();
+}
+void Feature_Pin::load( const format::Node& node )
+{
+    VERIFY_RTE( node.has_feature() && node.feature().has_pin() );
+    const format::Node::Feature::Pin& pin = node.feature().pin();
+    m_ptOrigin                            = Point( pin.position.x, pin.position.y );
+    Feature::load( node );
+}
+void Feature_Pin::save( format::Node& node ) const
+{
+    auto& pin    = *node.mutable_feature()->mutable_pin();
+    pin.position = { CGAL::to_double( m_ptOrigin.x() ), CGAL::to_double( m_ptOrigin.y() ) };
+    Feature::save( node );
+}
+
+std::string Feature_Pin::getStatement() const
+{
+    std::ostringstream os;
+    {
+        os << "Feature_Pin: " << getName();
+    }
+    return os.str();
+}
+
+const GlyphSpec* Feature_Pin::getParent( ControlPoint::Index id ) const
+{
+    THROW_RTE( "Unexpected getPareant in Feature_Pin" );
+    /*if( Feature_Pin::Ptr pParent = boost::dynamic_pointer_cast< Feature_Pin >( m_pParent.lock() ) )
+        return &pParent->m_point;
+    else if( Site::Ptr pParent = boost::dynamic_pointer_cast< Site >( m_pParent.lock() ) )
+        return pParent.get();
+    else
+        return nullptr;*/
+}
+
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+const std::string& Feature_Cut::TypeName()
+{
+    static const std::string strTypeName( "cut" );
+    return strTypeName;
+}
+Feature_Cut::Feature_Cut( Node::Ptr pParent, const std::string& strName )
+    : Feature( pParent, strName )
+    , m_start( *this, 0, Schematic::eStage_SiteContour )
+    , m_end( *this, 1, Schematic::eStage_SiteContour )
+    , m_ptStart( 0.0f, 0.0f )
+    , m_ptEnd( 0.0f, 0.0f )
+{
+    m_controlPointSet.insert( &m_start );
+    m_controlPointSet.insert( &m_end );
+}
+Feature_Cut::Feature_Cut( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
+    : Feature( pOriginal, pParent, strName )
+    , m_start( *this, 0, Schematic::eStage_SiteContour )
+    , m_end( *this, 1, Schematic::eStage_SiteContour )
+    , m_ptStart( 0.0f, 0.0f )
+    , m_ptEnd( 0.0f, 0.0f )
+{
+    m_controlPointSet.insert( &m_start );
+    m_controlPointSet.insert( &m_end );
+}
+
+Node::Ptr Feature_Cut::copy( Node::Ptr pParent, const std::string& strName ) const
+{
+    return Node::copy< Feature_Cut >(
+        boost::dynamic_pointer_cast< const Feature_Cut >( shared_from_this() ), pParent, strName );
+}
+void Feature_Cut::init()
+{
+    Feature::init();
+}
+void Feature_Cut::load( const format::Node& node )
+{
+    VERIFY_RTE( node.has_feature() && node.feature().has_pin() );
+    const format::Node::Feature::Cut& cut = node.feature().cut();
+    m_ptStart                             = Point( cut.start.x, cut.start.y );
+    m_ptEnd                               = Point( cut.end.x, cut.end.y );
+    Feature::load( node );
+}
+void Feature_Cut::save( format::Node& node ) const
+{
+    auto& cut = *node.mutable_feature()->mutable_cut();
+    cut.start = { CGAL::to_double( m_ptStart.x() ), CGAL::to_double( m_ptStart.y() ) };
+    cut.end   = { CGAL::to_double( m_ptEnd.x() ), CGAL::to_double( m_ptEnd.y() ) };
+    Feature::save( node );
+}
+
+std::string Feature_Cut::getStatement() const
+{
+    std::ostringstream os;
+    {
+        os << "Feature_Cut: " << getName();
+    }
+    return os.str();
+}
+
+const GlyphSpec* Feature_Cut::getParent( ControlPoint::Index id ) const
+{
+    THROW_RTE( "Unexpected getPareant in Feature_Cut" );
+    /*if( Feature_Cut::Ptr pParent = boost::dynamic_pointer_cast< Feature_Cut >( m_pParent.lock() ) )
+    {
+        switch( id )
+        {
+            case 0:
+            {
+                return &pParent->m_ptStart;
+            }
+            break;
+            case 1:
+            {
+                return &pParent->m_ptEnd;
+            }
+            break;
+            default:
+            {
+                THROW_RTE( "Invalid control point index" );
+            }
+        }
+    }
+    else if( Site::Ptr pParent = boost::dynamic_pointer_cast< Site >( m_pParent.lock() ) )
+        return pParent.get();
+    else
+        return nullptr;*/
+}
+
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 /*

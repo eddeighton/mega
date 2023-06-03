@@ -20,15 +20,12 @@
 #include "schematic/factory.hpp"
 #include "schematic/property.hpp"
 
-#include "schematic/mission.hpp"
-#include "schematic/ship.hpp"
-#include "schematic/base.hpp"
-#include "schematic/clip.hpp"
 #include "schematic/space.hpp"
 #include "schematic/wall.hpp"
 #include "schematic/connection.hpp"
 #include "schematic/object.hpp"
-#include "schematic/basicFeature.hpp"
+#include "schematic/feature.hpp"
+#include "schematic/schematic.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/variant_utils.hpp"
@@ -46,16 +43,16 @@ namespace schematic
 namespace
 {
 static constexpr auto boostXMLArchiveFlags = boost::archive::no_header | boost::archive::no_codecvt
-                                              | boost::archive::no_tracking; // | boost::archive::no_xml_tag_checking
+                                             | boost::archive::no_tracking; // | boost::archive::no_xml_tag_checking
 
-format::File loadFile( const std::string& strFilePath )
+format::Node loadFile( const std::string& strFilePath )
 {
-    format::File file;
+    format::Node file;
     try
     {
         auto                         inFile = boost::filesystem::loadFileStream( strFilePath );
         boost::archive::xml_iarchive ia( *inFile, boostXMLArchiveFlags );
-        ia&                          boost::serialization::make_nvp( "file", file );
+        ia&                          boost::serialization::make_nvp( "root", file );
     }
     catch( std::exception& ex )
     {
@@ -64,13 +61,13 @@ format::File loadFile( const std::string& strFilePath )
     return file;
 }
 
-void saveFile( const std::string& strFilePath, const format::File& file )
+void saveFile( const std::string& strFilePath, const format::Node& file )
 {
     try
     {
         auto                         outFile = boost::filesystem::createNewFileStream( strFilePath );
         boost::archive::xml_oarchive oa( *outFile, boostXMLArchiveFlags );
-        oa&                          boost::serialization::make_nvp( "file", file );
+        oa&                          boost::serialization::make_nvp( "root", file );
     }
     catch( std::exception& ex )
     {
@@ -85,134 +82,125 @@ File::Ptr load( const boost::filesystem::path& filePath )
 
     const std::string strFilePath = filePath.string();
 
-    const format::File file = loadFile( strFilePath );
+    const format::Node rootNode = loadFile( strFilePath );
 
     File::Ptr pFile;
+
+    if( rootNode.has_file() )
     {
+        const format::Node::File& file = rootNode.file();
+
         // dispatch to the concrete type and instantiate it
         if( file.has_schematic() )
         {
-            const format::File::Schematic& schematic = file.schematic();
-
-            if( schematic.has_clip() )
-            {
-                pFile.reset( new Clip( strFilePath ) );
-            }
-            else if( schematic.has_ship() )
-            {
-                pFile.reset( new Ship( strFilePath ) );
-            }
-            else if( schematic.has_base() )
-            {
-                pFile.reset( new Base( strFilePath ) );
-            }
-            else
-            {
-                THROW_RTE( "Unrecognised schematic file type: " << strFilePath );
-            }
-        }
-        else if( file.has_script() )
-        {
-            THROW_RTE( "TODO" );
+            const format::Node::File::Schematic& schematic = file.schematic();
+            pFile.reset( new schematic::Schematic( strFilePath ) );
         }
         else
         {
             THROW_RTE( "Unrecognised format use in file: " << strFilePath );
         }
     }
+    else
+    {
+        THROW_RTE( "Invalid root node type" );
+    }
 
     VERIFY_RTE_MSG( pFile, "Failed to load: " << strFilePath );
 
+    pFile->load( rootNode );
+    
     pFile->init();
-
-    pFile->load( file );
 
     return pFile;
 }
-
+/*
 void load( File::Ptr pFile, const boost::filesystem::path& filePath )
 {
     VERIFY_RTE_MSG( boost::filesystem::exists( filePath ), "Could not find file: " << filePath.string() );
 
     const std::string  strFilePath = filePath.string();
-    const format::File file        = loadFile( strFilePath );
-
-    {
-        // check correct type
-        if( file.has_schematic() )
-        {
-            const format::File::Schematic& schematic = file.schematic();
-            if( schematic.has_clip() )
-            {
-                Clip::Ptr pClip = boost::dynamic_pointer_cast< Clip >( pFile );
-                VERIFY_RTE( pClip );
-            }
-            else if( schematic.has_ship() )
-            {
-                Ship::Ptr pShip = boost::dynamic_pointer_cast< Ship >( pFile );
-                VERIFY_RTE( pShip );
-            }
-            else if( schematic.has_base() )
-            {
-                Base::Ptr pBase = boost::dynamic_pointer_cast< Base >( pFile );
-                VERIFY_RTE( pBase );
-            }
-            else
-            {
-                THROW_RTE( "Unrecognised schematic file type: " << strFilePath );
-            }
-        }
-        else if( file.has_script() )
-        {
-            THROW_RTE( "TODO" );
-        }
-        else
-        {
-            THROW_RTE( "Unrecognised format use in file: " << strFilePath );
-        }
-    }
+    const format::Node rootNode    = loadFile( strFilePath );
 
     pFile->init();
 
-    pFile->load( file );
+    pFile->load( rootNode );
 }
-
+*/
 void save( File::PtrCst pFile, const boost::filesystem::path& filePath )
 {
-    format::File file;
+    format::Node file;
     pFile->save( file );
     saveFile( filePath.string(), file );
 }
 
-Site::Ptr construct( Node::Ptr pParent, const format::Site& site )
+Node::Ptr construct( Node::Ptr pParent, const format::Node& node )
 {
-    Site::Ptr pNewSite;
+    Node::Ptr pNewNode;
 
-    // dispatch to deriving site type
-    if( site.has_space() )
+    // dispatch to deriving type
+
+    if( node.has_site() )
     {
-        pNewSite = Space::Ptr( new Space( pParent, site.name ) );
+        const format::Node::Site& site = node.site();
+
+        if( site.has_space() )
+        {
+            pNewNode = Space::Ptr( new Space( pParent, node.name ) );
+        }
+        else if( site.has_connection() )
+        {
+            pNewNode = Connection::Ptr( new Connection( pParent, node.name ) );
+        }
+        else if( site.has_wall() )
+        {
+            pNewNode = Wall::Ptr( new Wall( pParent, node.name ) );
+        }
+        else if( site.has_object() )
+        {
+            pNewNode = Object::Ptr( new Object( pParent, node.name ) );
+        }
+        else
+        {
+            THROW_RTE( "Unrecognised site type" );
+        }
     }
-    else if( site.has_connection() )
+    else if( node.has_feature() )
     {
-        pNewSite = Connection::Ptr( new Connection( pParent, site.name ) );
+        const format::Node::Feature& feature = node.feature();
+        if( feature.has_point() )
+        {
+            pNewNode = Feature_Point::Ptr( new Feature_Point( pParent, node.name ) );
+        }
+        else if( feature.has_contour() )
+        {
+            pNewNode = Feature_Contour::Ptr( new Feature_Contour( pParent, node.name ) );
+        }
+        else if( feature.has_cut() )
+        {
+            pNewNode = Feature_Cut::Ptr( new Feature_Cut( pParent, node.name ) );
+        }
+        else if( feature.has_pin() )
+        {
+            pNewNode = Feature_Pin::Ptr( new Feature_Pin( pParent, node.name ) );
+        }
+        else
+        {
+            THROW_RTE( "Unrecognised site type" );
+        }
     }
-    else if( site.has_wall() )
+    else if( node.has_property() )
     {
-        pNewSite = Wall::Ptr( new Wall( pParent, site.name ) );
-    }
-    else if( site.has_object() )
-    {
-        pNewSite = Object::Ptr( new Object( pParent, site.name ) );
+        pNewNode = Property::Ptr( new Property( pParent, node.name ) );
     }
     else
     {
-        THROW_RTE( "Unrecognised site type" );
+        THROW_RTE( "Unrecognised node type" );
     }
 
-    VERIFY_RTE( pNewSite );
+    VERIFY_RTE( pNewNode );
 
-    return pNewSite;
+    return pNewNode;
 }
 
 Polygon formatPolygonFromPath( const format::Path& path )

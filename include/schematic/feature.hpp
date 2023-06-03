@@ -25,7 +25,6 @@
 #include "schematic/glyphSpec.hpp"
 #include "schematic/glyphSpecProducer.hpp"
 #include "schematic/markup.hpp"
-#include "schematic/readerWriter.hpp"
 
 #include <boost/shared_ptr.hpp>
 
@@ -62,6 +61,8 @@ public:
     virtual Node::Ptr    getPtr() { return shared_from_this(); }
     virtual Node::Ptr    copy( Node::Ptr pParent, const std::string& strName ) const;
     virtual void         init();
+    virtual void         load( const format::Node& node );
+    virtual void         save( format::Node& node ) const;
     virtual std::string  getStatement() const { return ""; }
 };
 
@@ -77,6 +78,9 @@ public:
     Feature_Point( Node::Ptr pParent, const std::string& strName );
     Feature_Point( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName );
     virtual Node::Ptr   copy( Node::Ptr pParent, const std::string& strName ) const;
+    virtual void        init();
+    virtual void        load( const format::Node& node );
+    virtual void        save( format::Node& node ) const;
     virtual std::string getStatement() const;
 
     // ControlPointCallback
@@ -115,6 +119,8 @@ public:
 
     // node
     virtual void        init();
+    virtual void        load( const format::Node& node );
+    virtual void        save( format::Node& node ) const;
     virtual Node::Ptr   copy( Node::Ptr pParent, const std::string& strName ) const;
     virtual std::string getStatement() const;
 
@@ -135,6 +141,112 @@ private:
     PointVector m_points;
 };
 
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+class Feature_Pin : public Feature
+{
+public:
+    using Ptr    = boost::shared_ptr< Feature_Pin >;
+    using PtrCst = boost::shared_ptr< const Feature_Pin >;
+
+    static const std::string& TypeName();
+    Feature_Pin( Node::Ptr pParent, const std::string& strName );
+    Feature_Pin( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName );
+    virtual Node::Ptr   copy( Node::Ptr pParent, const std::string& strName ) const;
+    virtual void        init();
+    virtual void        load( const format::Node& node );
+    virtual void        save( format::Node& node ) const;
+    virtual std::string getStatement() const;
+
+    // ControlPointCallback
+    const GlyphSpec* getParent( ControlPoint::Index id ) const;
+    const Point&     getPoint( ControlPoint::Index ) const { return m_ptOrigin; }
+    void             setPoint( ControlPoint::Index, const Point& point )
+    {
+        if( m_ptOrigin != point )
+        {
+            m_ptOrigin = point;
+            setModified();
+        }
+    }
+
+    Point                               m_ptOrigin;
+    ControlPointCallback< Feature_Pin > m_point;
+};
+
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+class Feature_Cut : public Feature
+{
+public:
+    using Ptr    = boost::shared_ptr< Feature_Cut >;
+    using PtrCst = boost::shared_ptr< const Feature_Cut >;
+
+    static const std::string& TypeName();
+    Feature_Cut( Node::Ptr pParent, const std::string& strName );
+    Feature_Cut( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName );
+    virtual Node::Ptr   copy( Node::Ptr pParent, const std::string& strName ) const;
+    virtual void        init();
+    virtual void        load( const format::Node& node );
+    virtual void        save( format::Node& node ) const;
+    virtual std::string getStatement() const;
+
+    // ControlPointCallback
+    const GlyphSpec* getParent( ControlPoint::Index id ) const;
+    const Point&     getPoint( ControlPoint::Index index ) const
+    {
+        switch( index )
+        {
+            case 0:
+            {
+                return m_ptStart;
+            }
+            break;
+            case 1:
+            {
+                return m_ptEnd;
+            }
+            break;
+            default:
+            {
+                THROW_RTE( "Invalid control point index" );
+            }
+        }
+    }
+    void setPoint( ControlPoint::Index index, const Point& point )
+    {
+        switch( index )
+        {
+            case 0:
+            {
+                if( m_ptStart != point )
+                {
+                    m_ptStart = point;
+                    setModified();
+                }
+            }
+            break;
+            case 1:
+            {
+                if( m_ptEnd != point )
+                {
+                    m_ptEnd = point;
+                    setModified();
+                }
+            }
+            break;
+            default:
+            {
+                THROW_RTE( "Invalid control point index" );
+            }
+        }
+    }
+
+    Point                               m_ptStart;
+    Point                               m_ptEnd;
+    ControlPointCallback< Feature_Cut > m_start;
+    ControlPointCallback< Feature_Cut > m_end;
+};
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 /*

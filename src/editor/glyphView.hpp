@@ -21,7 +21,6 @@
 #include "document.hpp"
 
 #include "schematic/editInteractions.hpp"
-#include "schematic/clip.hpp"
 
 #include <memory>
 #include <vector>

@@ -48,25 +48,31 @@ Node::Ptr Connection::copy( Node::Ptr pParent, const std::string& strName ) cons
         boost::dynamic_pointer_cast< const Connection >( shared_from_this() ), pParent, strName );
 }
 
-void Connection::load( const format::Site& site )
+void Connection::load( const format::Node& node )
 {
-    Site::load( site );
+    Site::load( node );
 
-    VERIFY_RTE( site.has_connection() );
-    const format::Site::Connection& connection = site.connection();
+    VERIFY_RTE( node.has_site() && node.site().has_connection() );
+    const format::Node::Site::Connection& connection = node.site().connection();
 
-    m_pControlPoint->setPoint( 0, Point( connection.width, connection.half_height ) );
+    if( m_pControlPoint = get< Feature_Point >( "width" ); m_pControlPoint )
+    {
+        m_pControlPoint->setPoint( 0, Point( connection.width, connection.half_height ) );
+    }
 }
 
-void Connection::save( format::Site& site ) const
+void Connection::save( format::Node& node ) const
 {
-    format::Site::Connection& connection = *site.mutable_connection();
+    format::Node::Site::Connection& connection = *node.mutable_site()->mutable_connection();
 
-    const Point& pt        = m_pControlPoint->getPoint( 0U );
-    connection.width       = pt.x();
-    connection.half_height = pt.y();
+    if( m_pControlPoint )
+    {
+        const Point& pt        = m_pControlPoint->getPoint( 0U );
+        connection.width       = pt.x();
+        connection.half_height = pt.y();
+    }
 
-    Site::save( site );
+    Site::save( node );
 }
 
 std::string Connection::getStatement() const

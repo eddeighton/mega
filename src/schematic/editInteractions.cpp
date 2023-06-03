@@ -20,7 +20,6 @@
 #include "schematic/editInteractions.hpp"
 #include "schematic/editBase.hpp"
 #include "schematic/cgalUtils.hpp"
-#include "schematic/readerWriter.hpp"
 #include "schematic/file.hpp"
 
 namespace schematic

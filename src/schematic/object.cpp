@@ -47,25 +47,25 @@ Node::Ptr Object::copy( Node::Ptr pParent, const std::string& strName ) const
     return Node::copy< Object >( boost::dynamic_pointer_cast< const Object >( shared_from_this() ), pParent, strName );
 }
 
-void Object::load( const format::Site& site )
+void Object::load( const format::Node& node )
 {
-    Site::load( site );
-
-    VERIFY_RTE( site.has_object() );
-    const format::Site::Object& object = site.object();
-
-    // site contour
-    m_pContour->set( formatPolygonFromPath( object.contour ) );
+    Site::load( node );
+    VERIFY_RTE( node.has_site() && node.site().has_object() );
+    const format::Node::Site::Object& object = node.site().object();
+    if( m_pContour = get< Feature_Contour >( "contour" ); m_pContour )
+    {
+        m_pContour->set( formatPolygonFromPath( object.contour ) );
+    }
 }
 
-void Object::save( format::Site& site ) const
+void Object::save( format::Node& node ) const
 {
-    format::Site::Object& object = *site.mutable_object();
-
-    // site contour
-    formatPolygonToPath( m_pContour->getPolygon(), object.contour );
-
-    Site::save( site );
+    format::Node::Site::Object& object = *node.mutable_site()->mutable_object();
+    if( m_pContour )
+    {
+        formatPolygonToPath( m_pContour->getPolygon(), object.contour );
+    }
+    Site::save( node );
 }
 
 std::string Object::getStatement() const

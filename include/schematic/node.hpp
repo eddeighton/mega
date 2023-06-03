@@ -109,6 +109,9 @@ public:
     virtual void init();
     virtual Ptr  copy( Node::Ptr pParent, const std::string& strName ) const = 0;
 
+    virtual void load( const format::Node& node );
+    virtual void save( format::Node& node ) const;
+
     virtual bool add( Ptr pNewNode );
     virtual void remove( Ptr pNode );
 

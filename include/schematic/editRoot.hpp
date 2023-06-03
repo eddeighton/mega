@@ -21,7 +21,6 @@
 #define EDIT_05_FEB_2021
 
 #include "schematic/editBase.hpp"
-#include "schematic/readerWriter.hpp"
 
 namespace schematic
 {

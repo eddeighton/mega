@@ -36,38 +36,31 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( SCHEMATIC_API_DIR ${MEGA_API_DIR}/schematic )
 
 set( SCHEMATIC_HEADERS
-    ${SCHEMATIC_API_DIR}/base.hpp
-    ${SCHEMATIC_API_DIR}/basicFeature.hpp
     ${SCHEMATIC_API_DIR}/buffer.hpp
     ${SCHEMATIC_API_DIR}/cgalSettings.hpp
     ${SCHEMATIC_API_DIR}/cgalUtils.hpp
-    ${SCHEMATIC_API_DIR}/clip.hpp
     ${SCHEMATIC_API_DIR}/compilation.hpp
     ${SCHEMATIC_API_DIR}/connection.hpp
     ${SCHEMATIC_API_DIR}/container.hpp
     ${SCHEMATIC_API_DIR}/dataBitmap.hpp
     ${SCHEMATIC_API_DIR}/editBase.hpp
     ${SCHEMATIC_API_DIR}/editInteractions.hpp
-    ${SCHEMATIC_API_DIR}/editSchematic.hpp
     ${SCHEMATIC_API_DIR}/editNested.hpp
     ${SCHEMATIC_API_DIR}/editRoot.hpp
+    ${SCHEMATIC_API_DIR}/editSchematic.hpp
     ${SCHEMATIC_API_DIR}/factory.hpp
+    ${SCHEMATIC_API_DIR}/feature.hpp
     ${SCHEMATIC_API_DIR}/file.hpp
     ${SCHEMATIC_API_DIR}/geometry.hpp
     ${SCHEMATIC_API_DIR}/glyph.hpp
     ${SCHEMATIC_API_DIR}/glyphSpec.hpp
     ${SCHEMATIC_API_DIR}/glyphSpecProducer.hpp
-    ${SCHEMATIC_API_DIR}/location.hpp
     ${SCHEMATIC_API_DIR}/markup.hpp
-    ${SCHEMATIC_API_DIR}/mission.hpp
     ${SCHEMATIC_API_DIR}/node.hpp
     ${SCHEMATIC_API_DIR}/object.hpp
     ${SCHEMATIC_API_DIR}/property.hpp
     ${SCHEMATIC_API_DIR}/rasteriser.hpp
-    ${SCHEMATIC_API_DIR}/readerWriter.hpp
     ${SCHEMATIC_API_DIR}/schematic.hpp
-    ${SCHEMATIC_API_DIR}/sector.hpp
-    ${SCHEMATIC_API_DIR}/ship.hpp
     ${SCHEMATIC_API_DIR}/site.hpp
     ${SCHEMATIC_API_DIR}/space.hpp
     ${SCHEMATIC_API_DIR}/svgUtils.hpp
@@ -79,31 +72,25 @@ set( SCHEMATIC_HEADERS
 set( SCHEMATIC_SRC_DIR ${MEGA_SRC_DIR}/schematic )
 
 set( SCHEMATIC_SOURCE
-    ${SCHEMATIC_SRC_DIR}/base.cpp
-    ${SCHEMATIC_SRC_DIR}/basicFeature.cpp
     ${SCHEMATIC_SRC_DIR}/cgalUtils.cpp
-    ${SCHEMATIC_SRC_DIR}/clip.cpp
     ${SCHEMATIC_SRC_DIR}/compilation.cpp
     ${SCHEMATIC_SRC_DIR}/compilationGetPolyInfo.cpp
     ${SCHEMATIC_SRC_DIR}/connection.cpp
     ${SCHEMATIC_SRC_DIR}/dataBitmap.cpp
     ${SCHEMATIC_SRC_DIR}/editBase.cpp
     ${SCHEMATIC_SRC_DIR}/editInteractions.cpp
-    ${SCHEMATIC_SRC_DIR}/editSchematic.cpp
     ${SCHEMATIC_SRC_DIR}/editNested.cpp
     ${SCHEMATIC_SRC_DIR}/editRoot.cpp
+    ${SCHEMATIC_SRC_DIR}/editSchematic.cpp
     ${SCHEMATIC_SRC_DIR}/factory.cpp
+    ${SCHEMATIC_SRC_DIR}/feature.cpp
     ${SCHEMATIC_SRC_DIR}/file.cpp
     ${SCHEMATIC_SRC_DIR}/glyph.cpp
-    ${SCHEMATIC_SRC_DIR}/location.cpp
     ${SCHEMATIC_SRC_DIR}/markup.cpp
-    ${SCHEMATIC_SRC_DIR}/mission.cpp
     ${SCHEMATIC_SRC_DIR}/node.cpp
     ${SCHEMATIC_SRC_DIR}/object.cpp
     ${SCHEMATIC_SRC_DIR}/property.cpp
     ${SCHEMATIC_SRC_DIR}/schematic.cpp
-    ${SCHEMATIC_SRC_DIR}/sector.cpp
-    ${SCHEMATIC_SRC_DIR}/ship.cpp
     ${SCHEMATIC_SRC_DIR}/site.cpp
     ${SCHEMATIC_SRC_DIR}/space.cpp
     ${SCHEMATIC_SRC_DIR}/svgUtils.cpp

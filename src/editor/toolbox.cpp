@@ -4,7 +4,7 @@
 
 #include "schematic/factory.hpp"
 
-#include "schematic/clip.hpp"
+#include "schematic/schematic.hpp"
 #include "schematic/space.hpp"
 #include "schematic/wall.hpp"
 #include "schematic/connection.hpp"
@@ -176,25 +176,25 @@ void Toolbox::reload()
     
     //generate defaults...
     {
-        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "wall" ) );
+        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "wall" ) );
         schematic::Wall::Ptr pDefaultSpace( new schematic::Wall( pDefaultClip, "wall" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "object" ) );
+        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "object" ) );
         schematic::Object::Ptr pDefaultSpace( new schematic::Object( pDefaultClip, "object" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "connection" ) );
+        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "connection" ) );
         schematic::Connection::Ptr pDefaultSpace( new schematic::Connection( pDefaultClip, "connection" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "connection" ) );
+        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "connection" ) );
         schematic::Connection::Ptr pDefaultSpace( new schematic::Connection( pDefaultClip, "connection" ) );
         pDefaultSpace->init();
         for( auto i = 0; i != schematic::QuarterTurn; ++i )
@@ -203,7 +203,7 @@ void Toolbox::reload()
         add( "basic", pDefaultClip, false );
     }
     {
-        schematic::Clip::Ptr pDefaultClip( new schematic::Clip( "space" ) );
+        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "space" ) );
         schematic::Space::Ptr pDefaultSpace( new schematic::Space( pDefaultClip, "space" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, true ); //ensure space is the default one

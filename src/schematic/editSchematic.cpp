@@ -21,7 +21,6 @@
 
 #include "schematic/editNested.hpp"
 #include "schematic/editRoot.hpp"
-#include "schematic/clip.hpp"
 #include "schematic/space.hpp"
 #include "schematic/schematic.hpp"
 

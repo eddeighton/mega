@@ -78,6 +78,43 @@ void Node::init()
     for_each( []( Ptr pNode ) { pNode->init(); } );
     setModified();
 }
+
+void Node::load( const format::Node& node )
+{
+    // ensure the sites are restored to their original order using
+    // the map index
+    using NewSite = std::pair< Node::Ptr, const format::Node* >;
+    std::vector< NewSite > newNodes( node.children.size() );
+
+    for( const auto& child : node.children )
+    {
+        int                 szIndex   = child.first;
+        const format::Node& childSite = child.second;
+
+        Node::Ptr pNewNode = schematic::construct( getPtr(), childSite );
+        pNewNode->load( childSite );
+
+        newNodes[ szIndex ] = std::make_pair( pNewNode, &childSite );
+    }
+
+    for( const NewSite& newNode : newNodes )
+    {
+        add( newNode.first );
+        newNode.first->init();
+    }
+}
+
+void Node::save( format::Node& node ) const
+{
+    node.name = m_strName;
+    node.index = m_iIndex;
+    for( Node::Ptr pChildNode : m_childrenOrdered )
+    {
+        format::Node childNode;
+        pChildNode->save( childNode );
+        node.children.insert( { childNode.index, childNode } );
+    }
+}
 /*
 void Node::load( Node::Ptr pThis, Loader& loader )
 {

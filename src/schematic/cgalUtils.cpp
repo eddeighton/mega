@@ -18,7 +18,6 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "schematic/cgalUtils.hpp"
-#include "schematic/readerWriter.hpp"
 
 #include <limits>
 

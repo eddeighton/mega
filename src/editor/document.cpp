@@ -6,8 +6,7 @@
 
 #ifndef Q_MOC_RUN
 
-#include "schematic/base.hpp"
-#include "schematic/ship.hpp"
+#include "schematic/schematic.hpp"
 #include "schematic/factory.hpp"
 
 #include "common/file.hpp"

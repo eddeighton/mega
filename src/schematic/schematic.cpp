@@ -52,40 +52,23 @@ void Schematic::init()
     }
 }
 
-void Schematic::load( const format::File::Schematic& schematic )
+Node::Ptr Schematic::copy( Node::Ptr pParent, const std::string& strName ) const
 {
-    {
-        // ensure the sites are restored to their original order using
-        // the map index
-        using NewSite = std::pair< Site::Ptr, const format::Site* >;
-        std::vector< NewSite > newSites( schematic.children.size() );
-
-        for( const auto& child : schematic.children )
-        {
-            int                 szIndex   = child.first;
-            const format::Site& childSite = child.second;
-            newSites[ szIndex ]           = std::make_pair( schematic::construct( getPtr(), childSite ), &childSite );
-        }
-
-        for( const NewSite& newSite : newSites )
-        {
-            add( newSite.first );
-            newSite.first->init();
-            newSite.first->load( *newSite.second );
-        }
-    }
+    VERIFY_RTE( !pParent );
+    return Node::copy< Schematic >(
+        boost::dynamic_pointer_cast< const Schematic >( shared_from_this() ), pParent, strName );
 }
 
-void Schematic::save( format::File::Schematic& schematic ) const
+void Schematic::load( const format::Node& node )
 {
-    int szIndex = 0U;
-    for( Site::Ptr pSite : getSites() )
-    {
-        format::Site childSite;
-        pSite->save( childSite );
-        schematic.children.insert( { szIndex, childSite } );
-        ++szIndex;
-    }
+    File::load( node );
+    VERIFY_RTE( node.has_file() && node.file().has_schematic() );
+}
+
+void Schematic::save( format::Node& node ) const
+{
+    format::Node::File::Schematic& schematic = *node.mutable_file()->mutable_schematic();
+    File::save( node );
 }
 
 void Schematic::task_contours()
@@ -140,14 +123,11 @@ void recurseSites( flatbuffers::FlatBufferBuilder& builder, Site::Ptr pSite )
         flatbuffers::Offset< Mega::Area > pAreaPtr = areaBuilder.Finish();
     }
 
-
     for( Site::Ptr pChildSite : pSite->getSites() )
     {
         recurseSites( builder, pChildSite );
     }
-
 }
-
 
 void Schematic::compileMap( const boost::filesystem::path& filePath )
 {
@@ -159,8 +139,6 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
     {
         recurseSites( builder, sites.front() );
     }
-
-
 
     builder.Finished();
 

@@ -15,10 +15,8 @@
 #ifndef Q_MOC_RUN
 
 #include "schematic/space.hpp"
-#include "schematic/base.hpp"
-#include "schematic/ship.hpp"
+#include "schematic/schematic.hpp"
 #include "schematic/factory.hpp"
-#include "schematic/mission.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -97,13 +95,9 @@ MainWindow::MainWindow( QWidget* pParent )
         QObject::connect( m_pMainWindowImpl->actionLoad, SIGNAL( triggered() ), this, SLOT( OnLoad() ) );
     }
 
-    // actionNewBase
+    // actionNewSchematic
     {
-        QObject::connect( m_pMainWindowImpl->actionNewBase, SIGNAL( triggered() ), this, SLOT( OnNewBase() ) );
-    }
-    // actionNewShip
-    {
-        QObject::connect( m_pMainWindowImpl->actionNewShip, SIGNAL( triggered() ), this, SLOT( OnNewShip() ) );
+        QObject::connect( m_pMainWindowImpl->actionNewSchematic, SIGNAL( triggered() ), this, SLOT( OnNewSchematic() ) );
     }
 
     ads::CDockManager::setConfigFlag( ads::CDockManager::FocusHighlighting, true );
@@ -479,27 +473,15 @@ void MainWindow::OnNewSchematic( SchematicDocument::Ptr pNewSchematic )
     pNewView->postCreate( pNewSchematic );
 }
 
-void MainWindow::OnNewBase()
+void MainWindow::OnNewSchematic()
 {
-    schematic::Base::Ptr pNewBase( new schematic::Base( "Untitled Base" ) );
+    schematic::Schematic::Ptr pNewBase( new schematic::Schematic( "Untitled Base" ) );
     {
         pNewBase->init();
     }
 
     SchematicDocument::Ptr pNewSchematic(
         new SchematicDocument( *this, pNewBase, schematic::File::getDefaultCompilationConfig() ) );
-    OnNewSchematic( pNewSchematic );
-}
-
-void MainWindow::OnNewShip()
-{
-    schematic::Ship::Ptr pNewShip( new schematic::Ship( "Untitled Ship" ) );
-    {
-        pNewShip->init();
-    }
-
-    SchematicDocument::Ptr pNewSchematic(
-        new SchematicDocument( *this, pNewShip, schematic::File::getDefaultCompilationConfig() ) );
     OnNewSchematic( pNewSchematic );
 }
 
@@ -547,10 +529,6 @@ void MainWindow::OnLoad()
                 SchematicDocument::Ptr pNewSchematic( new SchematicDocument(
                     *this, pSchematic, schematic::File::getDefaultCompilationConfig(), filePath ) );
                 OnNewSchematic( pNewSchematic );
-            }
-            else if( schematic::Mission::Ptr pMission = boost::dynamic_pointer_cast< schematic::Mission >( pFile ) )
-            {
-                THROW_RTE( "TODO" );
             }
             else
             {

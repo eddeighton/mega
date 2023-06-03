@@ -22,7 +22,6 @@
 
 #include "schematic/node.hpp"
 #include "schematic/container.hpp"
-#include "schematic/readerWriter.hpp"
 #include "schematic/glyphSpecProducer.hpp"
 
 #include "common/scheduler.hpp"
@@ -43,8 +42,8 @@ public:
     File( const std::string& strName );
     File( File::PtrCst pOriginal, Node::Ptr pNewParent, const std::string& strName );
 
-    virtual void load( const format::File& file ) = 0;
-    virtual void save( format::File& file ) const = 0;
+    virtual void load( const format::Node& node );
+    virtual void save( format::Node& node ) const;
 
     using CompilationConfig = std::bitset< 16 >;
 
