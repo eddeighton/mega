@@ -26,6 +26,7 @@
 // #include <CGAL/Simple_cartesian.h>
 // #include <CGAL/Exact_rational.h>
 #include <CGAL/ch_graham_andrew.h>
+#include <CGAL/minkowski_sum_2.h>
 
 #include <CGAL/Cartesian.h>
 #include <CGAL/Bbox_2.h>

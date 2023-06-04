@@ -105,8 +105,26 @@ Polygon Cut::calculateContour()
 
     Polygon siteContour;
     {
-        siteContour.push_back( segment[ 0 ] );
-        siteContour.push_back( segment[ 1 ] );
+        Vector v    = segment[ 0 ] - segment[ 1 ];
+        v           = v.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
+        double size = CGAL::approximate_sqrt( v.squared_length() );
+        if( size > 0 )
+        {
+            v = v / size;
+
+            siteContour.push_back( segment[ 0 ] - v * 0.25 );
+            siteContour.push_back( segment[ 0 ] + v * 0.25 );
+            siteContour.push_back( segment[ 1 ] + v * 0.25 );
+            siteContour.push_back( segment[ 1 ] - v * 0.25 );
+        }
+        else
+        {
+            siteContour.clear();
+        }
+    }
+    if( !siteContour.is_empty() && !siteContour.is_counterclockwise_oriented() )
+    {
+        std::reverse( siteContour.begin(), siteContour.end() );
     }
 
     return siteContour;
