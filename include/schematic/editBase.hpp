@@ -45,8 +45,8 @@ public:
     using Ptr = boost::shared_ptr< EditBase >;
 
 protected:
-    using NodeMap  = std::map< Node::Ptr, boost::shared_ptr< EditNested > >;
-    using GlyphMap = std::map< const GlyphSpec*, IGlyph::Ptr >;
+    using NodeToEditNestedMap = std::map< Node::Ptr, boost::shared_ptr< EditNested > >;
+    using GlyphMap            = std::map< const GlyphSpec*, IGlyph::Ptr >;
 
     EditBase( EditRoot& editRoot, GlyphFactory& glyphFactory, Node::Ptr pNode );
 
@@ -118,12 +118,14 @@ protected:
     IInteraction::Ptr cmd_paste( Node::PtrVector nodes, Float x, Float y, Float qX, Float qY );
     void              cmd_union_impl( const std::vector< Site* >& sites, bool bCreateWallsForHoles );
 
+    virtual IGlyph::Ptr getControlPointGlyph( ControlPoint* pControlPoint ) { return {}; };
+
     EditRoot&     m_editRoot;
     GlyphFactory& m_glyphFactory;
     Node::Ptr     m_pNode;
     IInteraction* m_pActiveInteraction;
 
-    NodeMap m_glyphMap;
+    NodeToEditNestedMap m_glyphMap;
 
     GlyphMap m_markup;
 };

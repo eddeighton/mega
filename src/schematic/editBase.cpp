@@ -79,8 +79,8 @@ IInteraction::Ptr EditBase::interaction_start( ToolMode toolMode, Float x, Float
     return make_interaction_ptr( this, m_pActiveInteraction );
 }
 
-IInteraction::Ptr EditBase::interaction_draw_point( Float x, Float y, Float qX, Float qY, IGlyph* pHit1,
-                                                    IGlyph* pHit2, SiteType siteType )
+IInteraction::Ptr EditBase::interaction_draw_point( Float x, Float y, Float qX, Float qY, IGlyph* pHit1, IGlyph* pHit2,
+                                                    SiteType siteType )
 {
     ASSERT( !m_pActiveInteraction );
 
@@ -138,7 +138,7 @@ IInteraction::Ptr EditBase::interaction_draw_point( Float x, Float y, Float qX, 
         {
             EditBase* pNewEdit = dynamic_cast< EditBase* >( getNodeContext( pNewNode ) );
             VERIFY_RTE( pNewEdit );
-            
+
             IInteraction::Ptr pToolInteraction( new Polygon_Interaction( *pNewNode, x, y, qX, qY, 0U ) );
             pNewEdit->m_pActiveInteraction = new InteractionToolWrapper( *pNewEdit, pToolInteraction );
             pNewEdit->onEditted( false );
@@ -184,6 +184,10 @@ IInteraction::Ptr EditBase::interaction_draw_clip( Float x, Float y, Float qX, F
                 {
                     pSiteCopy->setTransform( drawTransform * pSiteCopy->getTransform() );
                 }
+                else if( Feature_Pin::Ptr pPin = boost::dynamic_pointer_cast< Feature_Pin >( pClipSiteCopy ) )
+                {
+                    pPin->setPoint( 0, drawTransform.transform( Point( 0, 0 ) ) );
+                }
             }
         }
         else if( Site::Ptr pSite = boost::dynamic_pointer_cast< Site >( pNode ) )
@@ -209,15 +213,42 @@ IInteraction::Ptr EditBase::interaction_draw_clip( Float x, Float y, Float qX, F
     update();
 
     {
-        IGlyph::PtrSet selection;
+        bool           bContainsSite = false;
+        IGlyph::PtrSet siteMainGlyphs;
+        IGlyph::PtrSet featureGlyphs;
         for( Node::PtrSet::iterator i = newNodes.begin(), iEnd = newNodes.end(); i != iEnd; ++i )
         {
-            NodeMap::iterator iFind = m_glyphMap.find( *i );
+            if( boost::dynamic_pointer_cast< Site >( *i ) )
+            {
+                bContainsSite = true;
+            }
+            else if( Feature_Pin::Ptr pPin = boost::dynamic_pointer_cast< Feature_Pin >( *i ) )
+            {
+                const auto& ctrlPoints = pPin->getControlPoints();
+                ASSERT( ctrlPoints.size() == 1U );
+                if( auto pGlyph = getControlPointGlyph( *ctrlPoints.begin() ) )
+                    featureGlyphs.insert( pGlyph );
+            }
+            NodeToEditNestedMap::iterator iFind = m_glyphMap.find( *i );
             if( iFind != m_glyphMap.end() )
-                selection.insert( iFind->second->getMainGlyph() );
+                siteMainGlyphs.insert( iFind->second->getMainGlyph() );
         }
 
-        m_pActiveInteraction = new Interaction( *this, eArea, x, y, qX, qY, IGlyph::Ptr(), selection );
+        // if does not contain site then only contains features i.e. drawing a pin
+        if( bContainsSite )
+        {
+            m_pActiveInteraction = new Interaction( *this, eArea, x, y, qX, qY, IGlyph::Ptr(), siteMainGlyphs );
+        }
+        else
+        {
+            ASSERT( siteMainGlyphs.empty() );
+            IGlyph::Ptr pHit;
+            if( !featureGlyphs.empty() )
+            {
+                pHit = *featureGlyphs.begin();
+            }
+            m_pActiveInteraction = new Interaction( *this, eFeature, x, y, qX, qY, pHit, featureGlyphs );
+        }
     }
 
     m_pActiveInteraction->OnMove( x, y );
@@ -230,10 +261,9 @@ IEditContext* EditBase::getNestedContext( const std::vector< IGlyph* >& candidat
     IEditContext* pEditContext = 0u;
 
     for( std::vector< IGlyph* >::const_iterator i = candidates.begin(), iEnd = candidates.end();
-         i != iEnd && !pEditContext;
-         ++i )
+         i != iEnd && !pEditContext; ++i )
     {
-        for( NodeMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
+        for( NodeToEditNestedMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
         {
             if( j->second->owns( *i ) )
             {
@@ -248,7 +278,7 @@ IEditContext* EditBase::getNestedContext( const std::vector< IGlyph* >& candidat
 
 IEditContext* EditBase::getNodeContext( Node::Ptr pNode )
 {
-    NodeMap::const_iterator iFind = m_glyphMap.find( pNode );
+    NodeToEditNestedMap::const_iterator iFind = m_glyphMap.find( pNode );
     if( iFind != m_glyphMap.end() )
     {
         return iFind->second.get();
@@ -297,7 +327,7 @@ bool EditBase::canEdit( IGlyph* pGlyph, ToolType toolType, ToolMode toolMode, bo
             }
         }
         break;
-        case eContour:
+        case eFeature:
         {
             if( bAllowPoints )
             {
@@ -367,15 +397,15 @@ void EditBase::updateGlyphs()
             nodes.insert( pChildNode );
     }
 
-    NodeMap         removals;
-    Node::PtrVector additions;
+    NodeToEditNestedMap removals;
+    Node::PtrVector     additions;
     generics::match( m_glyphMap.begin(), m_glyphMap.end(), nodes.begin(), nodes.end(),
-                     generics::lessthan( generics::first< NodeMap::const_iterator >(),
+                     generics::lessthan( generics::first< NodeToEditNestedMap::const_iterator >(),
                                          generics::deref< Node::PtrSet::const_iterator >() ),
-                     generics::collect( removals, generics::deref< NodeMap::const_iterator >() ),
+                     generics::collect( removals, generics::deref< NodeToEditNestedMap::const_iterator >() ),
                      generics::collect( additions, generics::deref< Node::PtrSet::const_iterator >() ) );
 
-    for( NodeMap::iterator i = removals.begin(), iEnd = removals.end(); i != iEnd; ++i )
+    for( NodeToEditNestedMap::iterator i = removals.begin(), iEnd = removals.end(); i != iEnd; ++i )
     {
         m_glyphMap.erase( i->first );
     }
@@ -421,7 +451,7 @@ void EditBase::cmd_delete_impl( const std::set< IGlyph* >& selection )
     {
         IGlyph* pGlyph = *i;
 
-        for( NodeMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
+        for( NodeToEditNestedMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
         {
             Node::Ptr pNode = j->first;
             if( dynamic_cast< const GlyphSpec* >( pNode.get() ) == pGlyph->getGlyphSpec() )
@@ -444,7 +474,7 @@ Node::Ptr EditBase::cmd_cut( const std::set< IGlyph* >& selection )
         {
             IGlyph* pGlyph = *i;
 
-            for( NodeMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
+            for( NodeToEditNestedMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
             {
                 Node::Ptr pNode = j->first;
                 if( dynamic_cast< const GlyphSpec* >( pNode.get() ) == pGlyph->getGlyphSpec() )
@@ -484,7 +514,7 @@ Node::Ptr EditBase::cmd_copy( const std::set< IGlyph* >& selection )
         {
             IGlyph* pGlyph = *i;
 
-            for( NodeMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
+            for( NodeToEditNestedMap::const_iterator j = m_glyphMap.begin(), jEnd = m_glyphMap.end(); j != jEnd; ++j )
             {
                 Node::Ptr pNode = j->first;
                 if( dynamic_cast< const GlyphSpec* >( pNode.get() ) == pGlyph->getGlyphSpec() )
@@ -518,8 +548,7 @@ IInteraction::Ptr EditBase::cmd_paste( Node::Ptr pPaste, Float x, Float y, Float
     if( Schematic::Ptr pClip = boost::dynamic_pointer_cast< Schematic >( pPaste ) )
     {
         for( Node::PtrVector::const_iterator i = pClip->getChildren().begin(), iEnd = pClip->getChildren().end();
-             i != iEnd;
-             ++i )
+             i != iEnd; ++i )
         {
             if( Node::Ptr pSite = boost::dynamic_pointer_cast< Node >( *i ) )
                 nodes.push_back( pSite );

@@ -61,7 +61,7 @@ public:
     enum ToolMode
     {
         eArea,
-        eContour
+        eFeature
     };
 
     enum SiteType

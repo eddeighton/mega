@@ -84,6 +84,14 @@ IGlyph::Ptr EditNested::createControlPointGlyph( ControlPoint* pControlPoint )
     return pNewGlyph;
 }
 
+IGlyph::Ptr EditNested::getControlPointGlyph( ControlPoint* pControlPoint )
+{
+    auto iFind = m_glyphs.find( pControlPoint );
+    if( iFind != m_glyphs.end() )
+        return iFind->second;
+    return {};
+}
+
 void EditNested::matchFeatures()
 {
     Feature::PtrSet features;
@@ -148,8 +156,7 @@ void EditNested::matchFeatures()
 
         {
             for( std::vector< ControlPoint::Set::iterator >::iterator i = additions.begin(), iEnd = additions.end();
-                 i != iEnd;
-                 ++i )
+                 i != iEnd; ++i )
             {
                 ControlPoint* pControlPoint = **i;
                 IGlyph::Ptr   pGlyph        = createControlPointGlyph( pControlPoint );

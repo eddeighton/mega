@@ -158,7 +158,7 @@ public:
     virtual void onUpdate();
     
     virtual schematic::IEditContext::ToolType getToolType() const { return schematic::IEditContext::eSelect; }
-    virtual schematic::IEditContext::ToolMode getToolMode() const { return schematic::IEditContext::eContour; }
+    virtual schematic::IEditContext::ToolMode getToolMode() const { return schematic::IEditContext::eFeature; }
 
 private:
     ToolMode m_toolMode;
@@ -221,7 +221,7 @@ public:
     virtual void onUpdate();
     
     virtual schematic::IEditContext::ToolType getToolType() const { return schematic::IEditContext::eDraw; }
-    virtual schematic::IEditContext::ToolMode getToolMode() const { return schematic::IEditContext::eContour; }
+    virtual schematic::IEditContext::ToolMode getToolMode() const { return schematic::IEditContext::eFeature; }
     
 protected:
     ToolMode m_toolMode;

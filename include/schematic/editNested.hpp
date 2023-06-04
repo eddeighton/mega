@@ -70,6 +70,7 @@ public:
 protected:
     virtual void cmd_delete_impl( const std::set< IGlyph* >& selection );
     IGlyph::Ptr  createControlPointGlyph( ControlPoint* pControlPoint );
+    virtual IGlyph::Ptr  getControlPointGlyph( ControlPoint* pControlPoint );
 
     Site::Ptr       m_pSite;
     IEditContext&   m_parent;
