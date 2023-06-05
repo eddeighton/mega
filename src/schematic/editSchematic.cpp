@@ -27,7 +27,6 @@
 #include "schematic/property.hpp"
 #include "schematic/dataBitmap.hpp"
 #include "schematic/factory.hpp"
-#include "schematic/visibility.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/rounding.hpp"

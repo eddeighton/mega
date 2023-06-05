@@ -22,7 +22,6 @@
 #include "schematic/space.hpp"
 #include "schematic/connection.hpp"
 #include "schematic/transform.hpp"
-#include "schematic/compilation.hpp"
 
 #include <vector>
 

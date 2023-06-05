@@ -58,8 +58,8 @@ public:
 
     using FaceHandle    = Arrangement::Face_const_handle;
     using FaceHandleSet = std::set< FaceHandle >;
+    
     void getFaces( FaceHandleSet& floorFaces, FaceHandleSet& fillerFaces );
-
     void getEdges( std::vector< schematic::Segment >& edges );
 
     // html svg utilities

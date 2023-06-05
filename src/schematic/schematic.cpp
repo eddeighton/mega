@@ -46,9 +46,9 @@ void Schematic::init()
 {
     File::init();
 
-    if( !m_pCompilationMarkup.get() )
+    if( !m_pAnalysisMarkup.get() )
     {
-        m_pCompilationMarkup.reset( new MultiPathMarkup( *this, nullptr, Schematic::eStage_Compilation ) );
+        m_pAnalysisMarkup.reset( new MultiPathMarkup( *this, nullptr, Schematic::eStage_Compilation ) );
     }
 }
 
@@ -96,18 +96,17 @@ void Schematic::task_compilation()
     {
         Schematic::Ptr pThis = boost::dynamic_pointer_cast< Schematic >( getPtr() );
 
-        m_pCompilation.reset();
-        m_pCompilation.reset( new analysis::Compilation( pThis ) );
-
-        m_pCompilation->getEdges( edges );
+        m_pAnalysis.reset();
+        m_pAnalysis.reset( new exact::Analysis( pThis ) );
+        m_pAnalysis->getEdges( edges );
     }
     catch( std::exception& )
     {
-        m_pCompilation.reset();
+        m_pAnalysis.reset();
         edges.clear();
     }
 
-    m_pCompilationMarkup->set( edges );
+    m_pAnalysisMarkup->set( edges );
 }
 
 void recurseSites( flatbuffers::FlatBufferBuilder& builder, Site::Ptr pSite )

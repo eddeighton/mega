@@ -24,7 +24,7 @@
 namespace
 {
 
-template< typename TCGALValueType >
+template < typename TCGALValueType >
 double toSVG( const TCGALValueType& value )
 {
     return -CGAL::to_double( value );
@@ -33,8 +33,8 @@ double toSVG( const TCGALValueType& value )
 static const std::vector< const char* > SVG_COLOURS
     = { "blue", "green", "red", "yellow", "orange", "purple", "brown", "black" };
 
-void svgLine( const schematic::SVGStyle& style, exact::Arrangement::Halfedge_const_handle h, double minX, double minY,
-              double scale, const char* pszColour, std::ostream& os )
+void svgLine( const schematic::SVGStyle& style, exact::Analysis::Arrangement::Halfedge_const_handle h, double minX,
+              double minY, double scale, const char* pszColour, std::ostream& os )
 {
     if( h->target()->point() == h->curve().source() )
         h = h->twin();
@@ -72,10 +72,10 @@ void svgLine( const schematic::SVGStyle& style, exact::Arrangement::Halfedge_con
 
 namespace schematic
 {
-void generateHTML( const boost::filesystem::path& filepath,
-                   const exact::Arrangement&      arr,
-                   const EdgeVectorVector&        edgeGroups,
-                   const SVGStyle&                style )
+void generateHTML( const boost::filesystem::path&      filepath,
+                   const exact::Analysis::Arrangement& arr,
+                   const EdgeVectorVector&             edgeGroups,
+                   const SVGStyle&                     style )
 {
     std::unique_ptr< boost::filesystem::ofstream > os = createNewFileStream( filepath );
 
@@ -140,7 +140,7 @@ void generateHTML( const boost::filesystem::path& filepath,
     {
         const char* pszColour = SVG_COLOURS[ iColour ];
         iColour               = ( iColour + 1 ) % SVG_COLOURS.size();
-        for( exact::Arrangement::Halfedge_const_handle h : edges )
+        for( exact::Analysis::Arrangement::Halfedge_const_handle h : edges )
         {
             if( h->target()->point() == h->curve().source() )
                 h = h->twin();

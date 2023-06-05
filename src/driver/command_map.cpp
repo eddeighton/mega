@@ -31,8 +31,6 @@
 #ifndef _WIN32
 #include "schematic/factory.hpp"
 #include "schematic/schematic.hpp"
-#include "schematic/compilation.hpp"
-#include "schematic/visibility.hpp"
 #endif
 
 #include "common/assert_verify.hpp"
@@ -99,12 +97,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
             pSchematic->task_extrusions();
             pSchematic->task_compilation();
 
-            analysis::Compilation::Ptr pCompilation = pSchematic->getCompilation();
-            VERIFY_RTE_MSG( pCompilation, "Failed to acquire schematic compilation" );
-
-            analysis::FloorAnalysis floorAnalysis( *pCompilation, pSchematic );
-
-            floorAnalysis.render( outputFilePath );
+            // analysis::Compilation::Ptr pCompilation = pSchematic->getCompilation();
+            // VERIFY_RTE_MSG( pCompilation, "Failed to acquire schematic compilation" );
+            // analysis::FloorAnalysis floorAnalysis( *pCompilation, pSchematic );
+            // floorAnalysis.render( outputFilePath );
 
             // pCompilation->getFaces(int &floorFaces, int &fillerFaces)
         }

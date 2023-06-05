@@ -36,10 +36,11 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( SCHEMATIC_API_DIR ${MEGA_API_DIR}/schematic )
 
 set( SCHEMATIC_HEADERS
+    ${SCHEMATIC_API_DIR}/analysis/analysis.hpp
+
     ${SCHEMATIC_API_DIR}/buffer.hpp
     ${SCHEMATIC_API_DIR}/cgalSettings.hpp
     ${SCHEMATIC_API_DIR}/cgalUtils.hpp
-    ${SCHEMATIC_API_DIR}/compilation.hpp
     ${SCHEMATIC_API_DIR}/connection.hpp
     ${SCHEMATIC_API_DIR}/container.hpp
     ${SCHEMATIC_API_DIR}/cut.hpp
@@ -66,15 +67,15 @@ set( SCHEMATIC_HEADERS
     ${SCHEMATIC_API_DIR}/space.hpp
     ${SCHEMATIC_API_DIR}/svgUtils.hpp
     ${SCHEMATIC_API_DIR}/transform.hpp
-    ${SCHEMATIC_API_DIR}/visibility.hpp
     ${SCHEMATIC_API_DIR}/wall.hpp
 )
 
 set( SCHEMATIC_SRC_DIR ${MEGA_SRC_DIR}/schematic )
 
 set( SCHEMATIC_SOURCE
+    ${SCHEMATIC_SRC_DIR}/analysis/analysis.cpp
+
     ${SCHEMATIC_SRC_DIR}/cgalUtils.cpp
-    ${SCHEMATIC_SRC_DIR}/compilation.cpp
     ${SCHEMATIC_SRC_DIR}/compilationGetPolyInfo.cpp
     ${SCHEMATIC_SRC_DIR}/connection.cpp
     ${SCHEMATIC_SRC_DIR}/cut.cpp
@@ -96,7 +97,6 @@ set( SCHEMATIC_SOURCE
     ${SCHEMATIC_SRC_DIR}/site.cpp
     ${SCHEMATIC_SRC_DIR}/space.cpp
     ${SCHEMATIC_SRC_DIR}/svgUtils.cpp
-    ${SCHEMATIC_SRC_DIR}/visibility.cpp
     ${SCHEMATIC_SRC_DIR}/wall.cpp
 )
 

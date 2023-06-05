@@ -23,8 +23,8 @@
 #include "schematic/file.hpp"
 #include "schematic/site.hpp"
 #include "schematic/container.hpp"
-#include "schematic/compilation.hpp"
 #include "schematic/markup.hpp"
+#include "schematic/analysis/analysis.hpp"
 
 #include "common/task.hpp"
 #include "common/scheduler.hpp"
@@ -76,15 +76,15 @@ public:
     // GlyphSpecProducer
     virtual void getMarkupPolygonGroups( MarkupPolygonGroup::List& polyGroups )
     {
-        if( m_pCompilationMarkup.get() )
-            polyGroups.push_back( m_pCompilationMarkup.get() );
+        if( m_pAnalysisMarkup.get() )
+            polyGroups.push_back( m_pAnalysisMarkup.get() );
     }
 
-    analysis::Compilation::Ptr getCompilation() const { return m_pCompilation; }
+    exact::Analysis::Ptr getAnalysis() const { return m_pAnalysis; }
 
 private:
-    analysis::Compilation::Ptr         m_pCompilation;
-    std::unique_ptr< MultiPathMarkup > m_pCompilationMarkup;
+    exact::Analysis::Ptr               m_pAnalysis;
+    std::unique_ptr< MultiPathMarkup > m_pAnalysisMarkup;
 };
 
 } // namespace schematic

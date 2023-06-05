@@ -21,7 +21,6 @@
 #define VISIBILITY_15_DEC_2020
 
 #include "schematic/cgalSettings.hpp"
-#include "schematic/compilation.hpp"
 #include "schematic/schematic.hpp"
 
 #include <memory>

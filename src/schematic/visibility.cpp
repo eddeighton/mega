@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "schematic/visibility.hpp"
 #include "schematic/svgUtils.hpp"
 #include "schematic/object.hpp"
 #include "schematic/cgalUtils.hpp"

@@ -21,13 +21,15 @@
 #define SVG_UTILS_15_DEC_2020
 
 #include "cgalSettings.hpp"
+#include "analysis/analysis.hpp"
 
 #include "boost/filesystem/path.hpp"
 
 namespace schematic
 {
 
-using EdgeVector       = std::vector< exact::Arrangement::Halfedge_const_handle >;
+using EdgeHandle       = exact::Analysis::Arrangement::Halfedge_const_handle;
+using EdgeVector       = std::vector< EdgeHandle >;
 using EdgeVectorVector = std::vector< EdgeVector >;
 
 struct SVGStyle
@@ -36,10 +38,10 @@ struct SVGStyle
     bool bArrows = true;
 };
 
-void generateHTML( const boost::filesystem::path& filepath,
-                   const exact::Arrangement&      arr,
-                   const EdgeVectorVector&        edgeGroups,
-                   const SVGStyle&                style );
+void generateHTML( const boost::filesystem::path&      filepath,
+                   const exact::Analysis::Arrangement& arr,
+                   const EdgeVectorVector&             edgeGroups,
+                   const SVGStyle&                     style );
 
 } // namespace schematic
 

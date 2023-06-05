@@ -151,12 +151,6 @@ using Polygon_with_holes = CGAL::Polygon_with_holes_2< Kernel >;
 using Traits             = CGAL::Arr_segment_traits_2< Kernel >;
 using Curve              = Traits::X_monotone_curve_2;
 
-using Dcel           = CGAL::Arr_extended_dcel< Traits, DefaultedBool, DefaultedBool, DefaultedBool >;
-using Arrangement    = CGAL::Arrangement_with_history_2< Traits, Dcel >;
-using Curve_handle   = Arrangement::Curve_handle;
-using Point_location = CGAL::Arr_simple_point_location< Arrangement >;
-using Formatter      = CGAL::Arr_extended_dcel_text_formatter< Arrangement >;
-
 using InexactToExact = CGAL::Cartesian_converter< ::schematic::Kernel, Kernel >;
 using ExactToInexact = CGAL::Cartesian_converter< Kernel, ::schematic::Kernel >;
 

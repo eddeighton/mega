@@ -22,6 +22,7 @@
 #include <gtest/gtest-param-test.h>
 
 #include "schematic/schematic.hpp"
+#include "schematic/analysis/analysis.hpp"
 
 TEST( Schematic, Basic )
 {
@@ -30,8 +31,154 @@ TEST( Schematic, Basic )
     Schematic test( "test" );
 
     ASSERT_EQ( test.getName(), "test" );
+}
 
+TEST( Schematic, Arrangement_BasicInsertSegment )
+{
+    using namespace exact;
+
+    Analysis::Arrangement arr;
+
+    Point   p1( 1, 1 ), p2( 1, 2 ), p3( 2, 1 );
+    Segment cv[] = { Segment( p1, p2 ), Segment( p2, p3 ), Segment( p3, p1 ) };
+
+    CGAL::insert( arr, &cv[ 0 ], &cv[ sizeof( cv ) / sizeof( Segment ) ] );
+    ASSERT_EQ( arr.number_of_faces(), 2 );
+}
+
+TEST( Schematic, Arrangement_InsertCurveAndGetInducedEdges )
+{
+    using namespace exact;
+
+    using Arrangement = Analysis::Arrangement;
+    Arrangement arr;
+
+    const Point p1( 1, 1 ), p2( 1, 2 ), p3( 1, 3 );
+
+    {
+        Arrangement::Curve_handle firstCurve = CGAL::insert( arr, Curve( p1, p2 ) );
+
+        int iCounter = 0;
+        for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
+        {
+            Arrangement::Halfedge_handle h = *i;
+            ++iCounter;
+        }
+
+        ASSERT_EQ( iCounter, 1 );
+    }
+
+    {
+        Arrangement::Curve_handle firstCurve = CGAL::insert( arr, Curve( p1, p3 ) );
+
+        int iCounter = 0;
+        for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
+        {
+            Arrangement::Halfedge_handle h = *i;
+            ++iCounter;
+        }
+
+        ASSERT_EQ( iCounter, 2 );
+    }
+
+    {
+        // ASSERT_TRUE( CGAL::do_intersect( arr, Curve( p2, p3 ) ) );
+    } 
     
+    {
+        std::vector< CGAL::Object >  objects;
+        Arrangement::Face_handle     face;
+        Arrangement::Halfedge_handle halfedge;
+        Arrangement::Vertex_handle   vertex;
+        CGAL::zone( arr, Curve( p1, p3 ), std::back_inserter( objects ) );
 
+        int iFaces = 0, iHalfEdges = 0, iVertices = 0;
+        for( auto& obj : objects )
+        {
+            if( CGAL::assign( face, obj ) )
+            {
+                iFaces++;
+            }
+            if( CGAL::assign( halfedge, obj ) )
+            {
+                iHalfEdges++;
+            }
+            if( CGAL::assign( vertex, obj ) )
+            {
+                iVertices++;
+            }
+        }
+        ASSERT_EQ( iFaces, 0 );
+        ASSERT_EQ( iHalfEdges, 2 );
+        ASSERT_EQ( iVertices, 3 );
+    }
+}
 
+TEST( Schematic, Arrangement_DataIntersect )
+{
+    using namespace exact;
+
+    using Arrangement = Analysis::Arrangement;
+    Arrangement arr;
+    Analysis::Observer observer( arr );
+
+    const Point p1( 1, 1 ), p2( 3, 1 );
+    const Point p3( 2, 0 ), p4( 2, 2 );
+
+    {
+        Arrangement::Curve_handle firstCurve = CGAL::insert( arr, Curve( p1, p2 ) );
+
+        int iCounter = 0;
+        for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
+        {
+            Arrangement::Halfedge_handle h = *i;
+            h->set_data( Analysis::HalfEdgeData{ 1 } );
+            h->twin()->set_data( Analysis::HalfEdgeData{ 1 } );
+            ++iCounter;
+        }
+        ASSERT_EQ( iCounter, 1 );
+    }
+
+    {
+        Arrangement::Curve_handle firstCurve = CGAL::insert( arr, Curve( p3, p4 ) );
+        int iCounter = 0;
+        for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
+        {
+            Arrangement::Halfedge_handle h = *i;
+            h->set_data( Analysis::HalfEdgeData{ 2 } );
+            h->twin()->set_data( Analysis::HalfEdgeData{ 2 } );
+            ++iCounter;
+        }
+        ASSERT_EQ( iCounter, 2 );
+
+    }
+
+    {
+        std::vector< CGAL::Object >  objects;
+        Arrangement::Face_handle     face;
+        Arrangement::Halfedge_handle halfedge;
+        Arrangement::Vertex_handle   vertex;
+        CGAL::zone( arr, Curve( p1, p2 ), std::back_inserter( objects ) );
+
+        int iFaces = 0, iHalfEdges = 0, iVertices = 0;
+        for( auto& obj : objects )
+        {
+            if( CGAL::assign( face, obj ) )
+            {
+                iFaces++;
+            }
+            else if( CGAL::assign( halfedge, obj ) )
+            {
+                iHalfEdges++;
+                ASSERT_EQ( halfedge->data().y, 1 );
+            }
+            else if( CGAL::assign( vertex, obj ) )
+            {
+                iVertices++;
+            }
+        }
+        ASSERT_EQ( iFaces, 0 );
+        ASSERT_EQ( iHalfEdges, 2 );
+        ASSERT_EQ( iVertices, 3 );
+    }
 }
