@@ -27,6 +27,7 @@ namespace exact
 {
 Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
     : m_pSchematic( pSchematic )
+    , m_observer( m_arr )
 {
     for( schematic::Site::Ptr pSite : pSchematic->getSites() )
     {
@@ -38,30 +39,37 @@ Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
     }
 
     // record ALL doorsteps
-    std::vector< Arrangement::Halfedge_handle > doorStepHalfEdges;
+    /*std::vector< Arrangement::Halfedge_handle > doorStepHalfEdges;
     for( auto i = m_arr.edges_begin(); i != m_arr.edges_end(); ++i )
     {
-        //if( i->data().get() )
+        // if( i->data().get() )
         //{
-        //    edges.push_back( i );
-        //}
-    }
+        //     edges.push_back( i );
+        // }
+    }*/
 
     for( schematic::Site::Ptr pSite : pSchematic->getSites() )
     {
         recursePost( pSite );
     }
 
-    for( Arrangement::Halfedge_handle i : doorStepHalfEdges )
+    /*for( Arrangement::Halfedge_handle i : doorStepHalfEdges )
     {
-        //if( !i->data().get() )
+        // if( !i->data().get() )
         //{
-        //    THROW_RTE( "Doorstep edge lost after recursePost" );
-        //}
-    }
+        //     THROW_RTE( "Doorstep edge lost after recursePost" );
+        // }
+    }*/
 }
 
-void Analysis::renderContour( const exact::Transform& transform, const exact::Polygon& polyOriginal )
+void Analysis::classify( Arrangement::Halfedge_handle h, EdgeMask mask )
+{
+    auto data = h->data();
+    data.flags.set( mask );
+    h->set_data( data );
+}
+
+void Analysis::renderContour( const exact::Transform& transform, const exact::Polygon& polyOriginal, EdgeMask mask )
 {
     // transform to absolute coordinates
     exact::Polygon exactPoly;
@@ -76,7 +84,14 @@ void Analysis::renderContour( const exact::Transform& transform, const exact::Po
         ++iNext;
         if( iNext == iEnd )
             iNext = exactPoly.begin();
-        CGAL::insert( m_arr, exact::Curve( *i, *iNext ) );
+
+        Arrangement::Curve_handle firstCurve = CGAL::insert( m_arr, exact::Curve( *i, *iNext ) );
+        for( auto i = m_arr.induced_edges_begin( firstCurve ); i != m_arr.induced_edges_end( firstCurve ); ++i )
+        {
+            Arrangement::Halfedge_handle h = *i;
+            classify( h, mask );
+            classify( h->twin(), mask );
+        }
     }
 }
 
@@ -88,14 +103,14 @@ void Analysis::recurse( schematic::Site::Ptr pSite )
 
         // render the interior polygon
         {
-            renderContour( transform, pSpace->getInteriorPolygon() );
+            renderContour( transform, pSpace->getInteriorPolygon(), eInterior );
         }
 
         // render the exterior polygons
         {
             for( const exact::Polygon& p : pSpace->getInnerExteriorUnions() )
             {
-                renderContour( transform, p );
+                renderContour( transform, p, eInnerExterior );
             }
         }
     }
@@ -113,7 +128,7 @@ void Analysis::recursePost( schematic::Site::Ptr pSite )
         const exact::Transform transform = pSpace->getAbsoluteExactTransform();
 
         // render the site polygon
-        renderContour( transform, pSpace->getSitePolygon() );
+        renderContour( transform, pSpace->getSitePolygon(), eSite );
     }
 
     for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
@@ -139,20 +154,23 @@ void Analysis::constructConnectionEdges( schematic::Connection::Ptr   pConnectio
     const Point ptSecondMid   = ptSecondStart + ( ptSecondEnd - ptSecondStart ) / 2.0;
 
     Arrangement::Halfedge_handle hFirstStartToMid = m_arr.split_edge( firstBisectorEdge, ptFirstMid );
-    Arrangement::Vertex_handle   vFirstMid        = hFirstStartToMid->target();
+    classify( hFirstStartToMid, eConnectionBisector );
+    classify( hFirstStartToMid->twin(), eConnectionBisector );
+    Arrangement::Vertex_handle vFirstMid = hFirstStartToMid->target();
 
     Arrangement::Halfedge_handle hSecondStartToMid = m_arr.split_edge( secondBisectorEdge, ptSecondMid );
-    Arrangement::Vertex_handle   vSecondMid        = hSecondStartToMid->target();
+    classify( hSecondStartToMid, eConnectionBisector );
+    classify( hSecondStartToMid->twin(), eConnectionBisector );
+    Arrangement::Vertex_handle vSecondMid = hSecondStartToMid->target();
 
     // create edge between mid points
     Arrangement::Halfedge_handle m_hDoorStep;
     {
         const ::exact::Curve segDoorStep( ptFirstMid, ptSecondMid );
         m_hDoorStep = m_arr.insert_at_vertices( segDoorStep, vFirstMid, vSecondMid );
+        classify( m_hDoorStep, eDoorStep );
+        classify( m_hDoorStep->twin(), eDoorStep );
     }
-
-    //m_hDoorStep->set_data( ( ::exact::DefaultedBool( true ) ) );
-    //m_hDoorStep->twin()->set_data( ( ::exact::DefaultedBool( true ) ) );
 
     {
         bool                                           bFound = false;
@@ -162,7 +180,8 @@ void Analysis::constructConnectionEdges( schematic::Connection::Ptr   pConnectio
         {
             if( ( iter->source() == vSecondStart ) || ( iter->source() == vSecondEnd ) )
             {
-                m_arr.remove_edge( iter );
+                classify( iter, eConnectionBreak );
+                classify( iter->twin(), eConnectionBreak );
                 bFound = true;
                 break;
             }
@@ -182,7 +201,8 @@ void Analysis::constructConnectionEdges( schematic::Connection::Ptr   pConnectio
         {
             if( ( iter->source() == vSecondStart ) || ( iter->source() == vSecondEnd ) )
             {
-                m_arr.remove_edge( iter );
+                classify( iter, eConnectionBreak );
+                classify( iter->twin(), eConnectionBreak );
                 bFound = true;
                 break;
             }
@@ -227,6 +247,8 @@ void Analysis::connect( schematic::Site::Ptr pSite )
                 else
                 {
                     firstBisectorEdge = h;
+                    classify( firstBisectorEdge, eConnectionBisector );
+                    classify( firstBisectorEdge->twin(), eConnectionBisector );
                     if( bFoundFirst )
                         throw std::runtime_error( "Failed in connect" );
                     VERIFY_RTE( !bFoundFirst );
@@ -254,6 +276,8 @@ void Analysis::connect( schematic::Site::Ptr pSite )
                 else
                 {
                     secondBisectorEdge = h;
+                    classify( secondBisectorEdge, eConnectionBisector );
+                    classify( secondBisectorEdge->twin(), eConnectionBisector );
                     if( bFoundSecond )
                         throw std::runtime_error( "Failed in connect" );
                     VERIFY_RTE( !bFoundSecond );
@@ -274,10 +298,10 @@ void Analysis::connect( schematic::Site::Ptr pSite )
         constructConnectionEdges( pConnection, firstBisectorEdge, secondBisectorEdge );
 
         // VERIFY_RTE_MSG( toRemove.size() == 4, "Bad connection" );
-        for( Arrangement::Halfedge_handle h : toRemove )
+        /*for( Arrangement::Halfedge_handle h : toRemove )
         {
             m_arr.remove_edge( h );
-        }
+        }*/
     }
 
     for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
@@ -316,7 +340,15 @@ void Analysis::getEdges( std::vector< schematic::Segment >& edges )
     exact::ExactToInexact convert;
     for( auto i = m_arr.edges_begin(); i != m_arr.edges_end(); ++i )
     {
-        edges.emplace_back( convert( i->source()->point() ), convert( i->target()->point() ) );
+        const auto& data = i->data();
+        if( data.flags.test( eInterior ) || data.flags.test( eInnerExterior ) || data.flags.test( eDoorStep )
+            || data.flags.test( eConnectionBisector ) )
+        {
+            if( !data.flags.test( eConnectionBreak ) )
+            {
+                edges.emplace_back( convert( i->source()->point() ), convert( i->target()->point() ) );
+            }
+        }
     }
 }
 } // namespace exact

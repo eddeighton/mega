@@ -83,8 +83,8 @@ TEST( Schematic, Arrangement_InsertCurveAndGetInducedEdges )
 
     {
         // ASSERT_TRUE( CGAL::do_intersect( arr, Curve( p2, p3 ) ) );
-    } 
-    
+    }
+
     {
         std::vector< CGAL::Object >  objects;
         Arrangement::Face_handle     face;
@@ -119,7 +119,7 @@ TEST( Schematic, Arrangement_DataIntersect )
     using namespace exact;
 
     using Arrangement = Analysis::Arrangement;
-    Arrangement arr;
+    Arrangement        arr;
     Analysis::Observer observer( arr );
 
     const Point p1( 1, 1 ), p2( 3, 1 );
@@ -132,8 +132,8 @@ TEST( Schematic, Arrangement_DataIntersect )
         for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
         {
             Arrangement::Halfedge_handle h = *i;
-            h->set_data( Analysis::HalfEdgeData{ 1 } );
-            h->twin()->set_data( Analysis::HalfEdgeData{ 1 } );
+            h->set_data( Analysis::HalfEdgeData( Analysis::eInterior ) );
+            h->twin()->set_data( Analysis::HalfEdgeData( Analysis::eInterior ) );
             ++iCounter;
         }
         ASSERT_EQ( iCounter, 1 );
@@ -141,16 +141,15 @@ TEST( Schematic, Arrangement_DataIntersect )
 
     {
         Arrangement::Curve_handle firstCurve = CGAL::insert( arr, Curve( p3, p4 ) );
-        int iCounter = 0;
+        int                       iCounter   = 0;
         for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
         {
             Arrangement::Halfedge_handle h = *i;
-            h->set_data( Analysis::HalfEdgeData{ 2 } );
-            h->twin()->set_data( Analysis::HalfEdgeData{ 2 } );
+            h->set_data( Analysis::HalfEdgeData( Analysis::eSite ) );
+            h->twin()->set_data( Analysis::HalfEdgeData( Analysis::eSite ) );
             ++iCounter;
         }
         ASSERT_EQ( iCounter, 2 );
-
     }
 
     {
@@ -170,7 +169,8 @@ TEST( Schematic, Arrangement_DataIntersect )
             else if( CGAL::assign( halfedge, obj ) )
             {
                 iHalfEdges++;
-                ASSERT_EQ( halfedge->data().y, 1 );
+                ASSERT_TRUE( halfedge->data().flags.test( Analysis::eInterior ) );
+                ASSERT_FALSE( halfedge->data().flags.test( Analysis::eSite ) );
             }
             else if( CGAL::assign( vertex, obj ) )
             {

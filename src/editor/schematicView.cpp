@@ -66,9 +66,7 @@ void SchematicView::onViewFocussed()
     CMD_CONNECT( actionView_Site         , CmdViewSite        );
     CMD_CONNECT( actionView_SiteContour  , CmdViewSiteContour );
     CMD_CONNECT( actionView_Walls        , CmdViewWalls       );
-    CMD_CONNECT( actionView_Compilation  , CmdViewCompilation );
-    CMD_CONNECT( actionView_Floor        , CmdViewFloor       );
-    CMD_CONNECT( actionView_Sections     , CmdViewSections    );
+    CMD_CONNECT( actionView_Analysis     , CmdViewAnalysis    );
     CMD_CONNECT( actionView_Visibility   , CmdViewVisibility  );
 
     
@@ -78,9 +76,7 @@ void SchematicView::onViewFocussed()
     m_pMainWindow->getUI()->actionView_Site         ->setChecked( m_visibilityConfig[ eGlyphVis_Sites ]         && m_compilationConfig[ schematic::Schematic::eStage_Site ] );
     m_pMainWindow->getUI()->actionView_SiteContour  ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_SiteContour ] );
     m_pMainWindow->getUI()->actionView_Walls        ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Extrusion ] );
-    m_pMainWindow->getUI()->actionView_Compilation  ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Compilation ] );
-    m_pMainWindow->getUI()->actionView_Floor        ->setChecked( false );
-    m_pMainWindow->getUI()->actionView_Sections     ->setChecked( false );
+    m_pMainWindow->getUI()->actionView_Analysis     ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Compilation ] );
     m_pMainWindow->getUI()->actionView_Visibility   ->setChecked( false );
     // clang-format on
 
@@ -105,9 +101,7 @@ void SchematicView::onViewUnfocussed()
     CMD_DISCONNECT( actionView_Site, CmdViewSite );
     CMD_DISCONNECT( actionView_SiteContour, CmdViewSiteContour );
     CMD_DISCONNECT( actionView_Walls, CmdViewWalls );
-    CMD_DISCONNECT( actionView_Compilation, CmdViewCompilation );
-    CMD_DISCONNECT( actionView_Floor, CmdViewFloor );
-    CMD_DISCONNECT( actionView_Sections, CmdViewSections );
+    CMD_DISCONNECT( actionView_Analysis, CmdViewAnalysis );
     CMD_DISCONNECT( actionView_Visibility, CmdViewVisibility );
 }
 
@@ -276,9 +270,7 @@ void SchematicView::configureCompilationStage( schematic::Schematic::Compilation
 // actionView_Site
 // actionView_SiteContour
 // actionView_Walls
-// actionView_Compilation
-// actionView_Floor
-// actionView_Sections
+// actionView_Analysis
 // actionView_Visibility
 
 void SchematicView::CmdViewText()
@@ -355,18 +347,10 @@ void SchematicView::CmdViewWalls()
         schematic::Schematic::eStage_Extrusion, m_pMainWindow->getUI()->actionView_Walls->isChecked() );
 }
 
-void SchematicView::CmdViewCompilation()
+void SchematicView::CmdViewAnalysis()
 {
     configureCompilationStage(
-        schematic::Schematic::eStage_Compilation, m_pMainWindow->getUI()->actionView_Compilation->isChecked() );
-}
-
-void SchematicView::CmdViewFloor()
-{
-}
-
-void SchematicView::CmdViewSections()
-{
+        schematic::Schematic::eStage_Compilation, m_pMainWindow->getUI()->actionView_Analysis->isChecked() );
 }
 
 void SchematicView::CmdViewVisibility()

@@ -27,6 +27,8 @@
 
 #include <CGAL/Arr_observer.h>
 
+#include <bitset>
+
 namespace schematic
 {
 class Schematic;
@@ -39,12 +41,30 @@ class Analysis
 public:
     using Ptr = boost::shared_ptr< Analysis >;
 
+    enum EdgeMask
+    {
+        eInterior,
+        eInnerExterior,
+        eSite,
+        eConnection,
+        eConnectionBisector,
+        eConnectionBreak,
+        eDoorStep,
+        eCut,
+        eCutBreak,
+        TOTAL_FLAGS
+    };
+
     struct VertexData
     {
     };
     struct HalfEdgeData
     {
-        int y = -1;
+        using Flags    = std::bitset< TOTAL_FLAGS >;
+        HalfEdgeData() = default;
+        HalfEdgeData( EdgeMask flag ) { flags.set( flag ); }
+        Flags                flags;
+        schematic::Site::Ptr pSite = schematic::Site::Ptr{};
     };
     struct FaceData
     {
@@ -98,11 +118,12 @@ public:
     using FaceHandle    = Arrangement::Face_const_handle;
     using FaceHandleSet = std::set< FaceHandle >;
 
-    //void getFaces( FaceHandleSet& floorFaces, FaceHandleSet& fillerFaces );
+    // void getFaces( FaceHandleSet& floorFaces, FaceHandleSet& fillerFaces );
     void getEdges( std::vector< schematic::Segment >& edges );
 
 private:
-    void renderContour( const exact::Transform& transform, const exact::Polygon& poly );
+    void classify( Arrangement::Halfedge_handle h, EdgeMask mask );
+    void renderContour( const exact::Transform& transform, const exact::Polygon& poly, EdgeMask mask );
     void recurse( schematic::Site::Ptr pSpace );
     void recursePost( schematic::Site::Ptr pSpace );
     void connect( schematic::Site::Ptr pConnection );
@@ -112,7 +133,9 @@ private:
                                    Arrangement::Halfedge_handle secondBisectorEdge );
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
-    Arrangement                               m_arr;
+
+    Arrangement m_arr;
+    Observer    m_observer;
 };
 } // namespace exact
 

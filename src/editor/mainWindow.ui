@@ -89,9 +89,7 @@
     <addaction name="actionView_Site"/>
     <addaction name="actionView_SiteContour"/>
     <addaction name="actionView_Walls"/>
-    <addaction name="actionView_Compilation"/>
-    <addaction name="actionView_Floor"/>
-    <addaction name="actionView_Sections"/>
+    <addaction name="actionView_Analysis"/>
     <addaction name="actionView_Visibility"/>
     <addaction name="separator"/>
    </widget>
@@ -160,9 +158,7 @@
    <addaction name="actionView_Site"/>
    <addaction name="actionView_SiteContour"/>
    <addaction name="actionView_Walls"/>
-   <addaction name="actionView_Compilation"/>
-   <addaction name="actionView_Floor"/>
-   <addaction name="actionView_Sections"/>
+   <addaction name="actionView_Analysis"/>
    <addaction name="actionView_Visibility"/>
    <addaction name="separator"/>
    <attribute name="toolBarBreak">
@@ -597,34 +593,12 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="actionView_Compilation">
+  <action name="actionView_Analysis">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Compilation</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
-   </property>
-  </action>
-  <action name="actionView_Floor">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Floor</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
-   </property>
-  </action>
-  <action name="actionView_Sections">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Sections</string>
+    <string>Analysis</string>
    </property>
    <property name="visible">
     <bool>false</bool>
