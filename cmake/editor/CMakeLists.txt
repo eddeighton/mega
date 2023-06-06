@@ -55,6 +55,7 @@ set( EDITOR_HEADERS
     ${EDITOR_SRC_DIR}/voronoi.hpp
     ${EDITOR_SRC_DIR}/item_model.hpp
     ${EDITOR_SRC_DIR}/selection_model.hpp
+    ${EDITOR_SRC_DIR}/viewConfigPanel.hpp
 
 )
 
@@ -74,6 +75,7 @@ set( EDITOR_SOURCE
     ${EDITOR_SRC_DIR}/tools.cpp
     ${EDITOR_SRC_DIR}/item_model.cpp
     ${EDITOR_SRC_DIR}/selection_model.cpp
+    ${EDITOR_SRC_DIR}/viewConfigPanel.cpp
 )
 
 add_executable( editor

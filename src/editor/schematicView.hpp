@@ -43,10 +43,10 @@ public slots:
     void CmdUndo();
     void CmdRedo();
 
-    void CmdViewText();
+    /*void CmdViewText();
     void CmdViewPoints();
     void CmdViewConnections();
-    void CmdViewSite();
+    void CmdViewSite();*/
     void CmdViewSiteContour();
     void CmdViewWalls();
     void CmdViewAnalysis();

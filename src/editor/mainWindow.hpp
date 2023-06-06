@@ -43,10 +43,15 @@ class MainWindow : public QMainWindow, public DocumentChangeObserver
 
     using ActionMap = std::map< QAction*, int >;
 
-    // void fifoMonitor();
 public:
-    explicit MainWindow( QWidget* parent = 0 );
+    explicit MainWindow( QWidget* parent = nullptr );
     virtual ~MainWindow();
+
+    static MainWindow* getSingleton()
+    {
+        ASSERT( m_pThis );
+        return m_pThis;
+    }
 
     Ui::MainWindow* getUI() { return m_pMainWindowImpl; }
     Toolbox::Ptr    getToolbox() const { return m_pToolbox; }
@@ -64,7 +69,6 @@ protected:
 protected:
     // DocumentChangeObserver
     virtual void OnDocumentChanged( Document* pDocument );
-
 
 public:
 public slots:
@@ -86,11 +90,12 @@ public slots:
     void OnSaveAll();
 
 protected:
-    Ui::MainWindow*                    m_pMainWindowImpl;
-    ads::CDockManager*                 m_pDockManager;
-    DocumentViewMap                    m_docViewMap;
-    ActionMap                          m_actionRefCountMap;
-    Toolbox::Ptr                       m_pToolbox;
+    static MainWindow* m_pThis;
+    Ui::MainWindow*    m_pMainWindowImpl;
+    ads::CDockManager* m_pDockManager;
+    DocumentViewMap    m_docViewMap;
+    ActionMap          m_actionRefCountMap;
+    Toolbox::Ptr       m_pToolbox;
 };
 
 } // namespace editor

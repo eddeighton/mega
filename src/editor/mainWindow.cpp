@@ -31,25 +31,19 @@
 
 namespace editor
 {
+MainWindow* MainWindow::m_pThis = nullptr;
 
 MainWindow::MainWindow( QWidget* pParent )
     : QMainWindow( pParent )
     , m_pMainWindowImpl( new Ui::MainWindow )
+    , m_pToolbox( new Toolbox( boost::filesystem::current_path().string() ) )
 {
+    VERIFY_RTE( m_pThis == nullptr );
+    m_pThis = this;
+
     m_pMainWindowImpl->setupUi( this );
 
     {
-        // delete undo history from prior execution
-        const boost::filesystem::path tempFolder( boost::filesystem::current_path() / "history" );
-        if( boost::filesystem::exists( tempFolder ) )
-        {
-            boost::filesystem::remove_all( tempFolder );
-        }
-    }
-
-    {
-        m_pMainWindowImpl->toolBox->setMainWindow( this );
-
         // toolbox
         QObject::connect( m_pMainWindowImpl->toolBox, SIGNAL( currentChanged( int ) ), m_pMainWindowImpl->toolBox,
                           SLOT( onCurrentPaletteChanged( int ) ) );
@@ -68,18 +62,31 @@ MainWindow::MainWindow( QWidget* pParent )
             THROW_RTE( "Missing BLUEPRINT_TOOLBOX_PATH environment variable" );//: " << osMsg.str() );
         }
         m_pToolbox.reset( new Toolbox( strToolBoxPath.toLocal8Bit().constData() ) );*/
-
-        m_pToolbox.reset( new Toolbox( boost::filesystem::current_path().string() ) );
-
-        m_pMainWindowImpl->toolBox->setToolbox( m_pToolbox );
     }
 
-    // dockProperties->toggleViewAction()
     {
-        m_pMainWindowImpl->toolbarView->addAction( m_pMainWindowImpl->dockProperties->toggleViewAction() );
-        m_pMainWindowImpl->dockProperties->toggleViewAction()->setIcon( QIcon( ":/art/dialog.png" ) );
-        m_pMainWindowImpl->menuView->addAction( m_pMainWindowImpl->dockProperties->toggleViewAction() );
-        m_pMainWindowImpl->dockProperties->toggleViewAction()->setShortcut( Qt::Key_F1 );
+        // delete undo history from prior execution
+        const boost::filesystem::path tempFolder( boost::filesystem::current_path() / "history" );
+        if( boost::filesystem::exists( tempFolder ) )
+        {
+            boost::filesystem::remove_all( tempFolder );
+        }
+    }
+
+    // dockStructure->toggleViewAction()
+    {
+        m_pMainWindowImpl->toolbarView->addAction( m_pMainWindowImpl->dockStructure->toggleViewAction() );
+        m_pMainWindowImpl->dockStructure->toggleViewAction()->setIcon( QIcon( ":/art/dialog.png" ) );
+        m_pMainWindowImpl->menuView->addAction( m_pMainWindowImpl->dockStructure->toggleViewAction() );
+        m_pMainWindowImpl->dockStructure->toggleViewAction()->setShortcut( Qt::Key_F1 );
+    }
+
+    // dockViewConfig
+    {
+        m_pMainWindowImpl->toolbarView->addAction( m_pMainWindowImpl->dockViewConfig->toggleViewAction() );
+        m_pMainWindowImpl->dockViewConfig->toggleViewAction()->setIcon( QIcon( ":/art/notepad.png" ) );
+        m_pMainWindowImpl->menuView->addAction( m_pMainWindowImpl->dockViewConfig->toggleViewAction() );
+        m_pMainWindowImpl->dockViewConfig->toggleViewAction()->setShortcut( Qt::Key_F3 );
     }
 
     // dockToolbox->toggleViewAction()
@@ -97,7 +104,8 @@ MainWindow::MainWindow( QWidget* pParent )
 
     // actionNewSchematic
     {
-        QObject::connect( m_pMainWindowImpl->actionNewSchematic, SIGNAL( triggered() ), this, SLOT( OnNewSchematic() ) );
+        QObject::connect(
+            m_pMainWindowImpl->actionNewSchematic, SIGNAL( triggered() ), this, SLOT( OnNewSchematic() ) );
     }
 
     ads::CDockManager::setConfigFlag( ads::CDockManager::FocusHighlighting, true );

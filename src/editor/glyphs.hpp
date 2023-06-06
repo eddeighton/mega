@@ -13,6 +13,7 @@
 #ifndef Q_MOC_RUN
 
 #include "toolbox.hpp"
+#include "viewConfig.hpp"
 
 #include "schematic/site.hpp"
 #include "schematic/glyph.hpp"
@@ -28,18 +29,17 @@
 namespace editor
 {
 
-typedef std::map< QGraphicsItem*, schematic::IGlyph* > ItemMap;
-typedef std::map< const schematic::GlyphSpec*, QGraphicsItem* > SpecMap;
+using ItemMap = std::map< QGraphicsItem*, schematic::IGlyph* >;
+using SpecMap = std::map< const schematic::GlyphSpec*, QGraphicsItem* >;
 
 struct GlyphMap
 {
     ItemMap& itemMap;
     SpecMap& specMap;
     GlyphMap( ItemMap& _itemMap, SpecMap& _specMap )
-        : itemMap( _itemMap ),
-          specMap( _specMap )
+        : itemMap( _itemMap )
+        , specMap( _specMap )
     {
-
     }
 
     QGraphicsItem* findItem( const schematic::GlyphSpec* pSpec ) const
@@ -50,7 +50,7 @@ struct GlyphMap
             SpecMap::const_iterator iFind = specMap.find( pSpec );
             if( iFind != specMap.end() )
                 pItem = iFind->second;
-            //only the root can have no graphics item
+            // only the root can have no graphics item
             if( pSpec->getParent() )
             {
                 ASSERT_MSG( pItem, "Failed to locate QGraphicsItem*" );
@@ -59,7 +59,7 @@ struct GlyphMap
         return pItem;
     }
 
-    void insert( QGraphicsItem* pGraphicsItem, const schematic::GlyphSpec* pSpec, schematic::IGlyph* pGlyph)
+    void insert( QGraphicsItem* pGraphicsItem, const schematic::GlyphSpec* pSpec, schematic::IGlyph* pGlyph )
     {
         itemMap.insert( std::make_pair( pGraphicsItem, pGlyph ) );
         specMap.insert( std::make_pair( pSpec, pGraphicsItem ) );
@@ -75,23 +75,24 @@ class Selectable
 {
 public:
     Selectable( unsigned int uiDepth )
-        :   m_bSelected( false ),
-            m_uiDepth( uiDepth )
+        : m_bSelected( false )
+        , m_uiDepth( uiDepth )
     {
     }
-    bool isSelected() const { return m_bSelected; }
+    bool         isSelected() const { return m_bSelected; }
     unsigned int getDepth() const { return m_uiDepth; }
     virtual void setSelected( bool bSelected );
     virtual bool isImage() const = 0;
+
 private:
-    bool m_bSelected;
+    bool               m_bSelected;
     const unsigned int m_uiDepth;
 };
 
 class Renderable
 {
 public:
-    virtual void setShouldRender( bool bShouldRender )=0;
+    virtual void setShouldRender( bool bShouldRender ) = 0;
 };
 
 class ZoomDependent
@@ -111,48 +112,79 @@ static unsigned int calculateDepth( const schematic::GlyphSpec* pGlyphSpec )
     return uiDepth;
 }
 
-
 class PainterImpl : public schematic::Painter
 {
+    const ViewConfig*               m_pViewConfig = nullptr;
     std::shared_ptr< QPainterPath > m_pPath, m_pOldPath;
-    Timing::UpdateTick m_updateTick;
-    bool m_bInitialising = true;
+    Timing::UpdateTick              m_updateTick;
+    bool                            m_bInitialising = true;
+
 public:
     const QPainterPath& getPath() const { return *m_pPath; }
 
     PainterImpl()
-        :   m_pPath( std::make_shared< QPainterPath >() )
+        : m_pPath( std::make_shared< QPainterPath >() )
     {
     }
-    
+
+    PainterImpl( const ViewConfig* pViewConfig )
+        : m_pViewConfig( pViewConfig )
+        , m_pPath( std::make_shared< QPainterPath >() )
+    {
+    }
+
     virtual bool needsUpdate( const Timing::UpdateTick& updateTick )
     {
         return m_bInitialising || ( updateTick > m_updateTick );
     }
-    
+
     virtual void updated()
     {
         m_bInitialising = false;
         m_updateTick.update();
     }
-    
+
     virtual void reset()
     {
         m_pOldPath = m_pPath;
         m_pPath.reset( new QPainterPath );
     }
-    virtual void moveTo( const schematic::Point& pt )
+    virtual void moveTo( const schematic::Point& pt ) { m_pPath->moveTo( pt.x(), pt.y() ); }
+    virtual void lineTo( const schematic::Point& pt ) { m_pPath->lineTo( pt.x(), pt.y() ); }
+    virtual void closePath() { m_pPath->closeSubpath(); }
+
+    virtual void segment( const schematic::Segment& segment, exact::EdgeMask::Set mask )
     {
-        m_pPath->moveTo( pt.x(), pt.y() );
+        auto showType = ViewConfig::eNormal;
+        if( m_pViewConfig )
+        {
+            showType = m_pViewConfig->showSegment( mask );
+        }
+        switch( showType )
+        {
+            case ViewConfig::eNone:
+            {
+            }
+            break;
+            case ViewConfig::eNormal:
+            {
+                moveTo( segment[0] );
+                lineTo( segment[1] );
+            }
+            break;
+            case ViewConfig::eHighlight:
+            {
+                moveTo( segment[0] );
+                lineTo( segment[1] );
+            }
+            break;
+            case ViewConfig::TOTAL_SHOW_TYPES:
+            {
+            }
+            break;
+        }
     }
-    virtual void lineTo( const schematic::Point& pt )
-    {
-        m_pPath->lineTo( pt.x(), pt.y() );
-    }
-    virtual void closePath()
-    {
-        m_pPath->closeSubpath();
-    }
+
     virtual void polygon( const schematic::Polygon& polygon )
     {
         std::size_t sz = 0, szTotal = polygon.size();
@@ -178,37 +210,39 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-class GlyphControlPoint : public schematic::GlyphControlPoint, public Selectable, public ZoomDependent, public Renderable
+class GlyphControlPoint : public schematic::GlyphControlPoint,
+                          public Selectable,
+                          public ZoomDependent,
+                          public Renderable
 {
 public:
-    GlyphControlPoint( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                       GlyphMap map, schematic::ControlPoint* pControlPoint, float fZoom,
-                       Toolbox::Ptr pToolboxPtr );
+    GlyphControlPoint( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
+                       schematic::ControlPoint* pControlPoint, float fZoom, Toolbox::Ptr pToolboxPtr );
     ~GlyphControlPoint();
 
-    //Selectable
+    // Selectable
     virtual void setSelected( bool bSelected );
     virtual bool isImage() const { return false; }
 
-    //ZoomDependent
+    // ZoomDependent
     virtual void OnNewZoomLevel( float fZoom );
 
-    //Renderable
+    // Renderable
     virtual void setShouldRender( bool bShouldRender );
 
-    //schematic::GlyphControlPoint
+    // schematic::GlyphControlPoint
     virtual void update();
 
-    void updateColours();
+    void                  updateColours();
     QGraphicsEllipseItem* getItem() const;
 
 private:
-    float m_fSizeScaling;
-    float m_fSize;
-    QGraphicsScene* m_pScene;
-    GlyphMap m_map;
+    float                 m_fSizeScaling;
+    float                 m_fSize;
+    QGraphicsScene*       m_pScene;
+    GlyphMap              m_map;
     QGraphicsEllipseItem* m_pItem;
-    Toolbox::Ptr m_pToolBoxPtr;
+    Toolbox::Ptr          m_pToolBoxPtr;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -216,27 +250,28 @@ private:
 class GlyphPolygonGroup : public schematic::GlyphPolygonGroup, public ZoomDependent, public Renderable
 {
 public:
-    GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-               GlyphMap map, schematic::MarkupPolygonGroup* pPolygonGroup, float fZoom,
-               Toolbox::Ptr pToolBoxPtr );
+    GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
+                       schematic::MarkupPolygonGroup* pPolygonGroup, const ViewConfig* pViewConfig, float fZoom,
+                       Toolbox::Ptr pToolBoxPtr );
     ~GlyphPolygonGroup();
 
-    //ZoomDependent
+    // ZoomDependent
     virtual void OnNewZoomLevel( float fZoom );
 
-    //Renderable
+    // Renderable
     virtual void setShouldRender( bool bShouldRender );
 
-    //schematic::GlyphPath
+    // schematic::GlyphPath
     virtual void update();
 
 private:
-    float m_fSize;
-    PainterImpl m_pathPainter;
-    QGraphicsScene* m_pScene;
-    GlyphMap m_map;
+    float              m_fSize;
+    QGraphicsScene*    m_pScene;
+    const ViewConfig*  m_pViewConfig;
+    PainterImpl        m_pathPainter;
+    GlyphMap           m_map;
     QGraphicsPathItem* m_pItem;
-    Toolbox::Ptr m_pToolBoxPtr;
+    Toolbox::Ptr       m_pToolBoxPtr;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -244,40 +279,40 @@ private:
 class GlyphOrigin : public schematic::GlyphOrigin, public Selectable, public Renderable
 {
 public:
-    GlyphOrigin( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                GlyphMap map, schematic::Origin* pOrigin, 
-                schematic::IEditContext*& pActiveContext,
-                Toolbox::Ptr pToolBoxPtr );
+    GlyphOrigin( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map, schematic::Origin* pOrigin,
+                 schematic::IEditContext*& pActiveContext, Toolbox::Ptr pToolBoxPtr );
     ~GlyphOrigin();
 
-    //Selectable
+    // Selectable
     virtual void setSelected( bool bSelected );
     virtual bool isImage() const { return true; }
 
-    //Renderable
+    // Renderable
     virtual void setShouldRender( bool bShouldRender );
 
     bool isActiveContext() const;
 
-    //schematic::GlyphOrigin
+    // schematic::GlyphOrigin
     virtual void update();
 
     void updateColours();
+
 private:
     void setOrCreateImageItem();
+
 private:
     QGraphicsScene* m_pScene;
-    GlyphMap m_map;
-    
-    PainterImpl m_pathPainter;
+    GlyphMap        m_map;
+
+    PainterImpl        m_pathPainter;
     QGraphicsPathItem* m_pPathItem;
     QGraphicsLineItem* m_pItemX;
     QGraphicsLineItem* m_pItemY;
-    
+
     schematic::IEditContext*& m_pActiveContext;
-    bool m_bActiveContext;
-    Toolbox::Ptr m_pToolBoxPtr;
-    bool m_bShouldRender = true;
+    bool                      m_bActiveContext;
+    Toolbox::Ptr              m_pToolBoxPtr;
+    bool                      m_bShouldRender = true;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -285,24 +320,23 @@ private:
 class GlyphText : public schematic::GlyphText, public Renderable
 {
 public:
-    GlyphText( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-               GlyphMap map, schematic::MarkupText* pText,
+    GlyphText( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map, schematic::MarkupText* pText,
                Toolbox::Ptr pToolBoxPtr );
     ~GlyphText();
 
-    //Renderable
+    // Renderable
     virtual void setShouldRender( bool bShouldRender );
 
-    //schematic::GlyphText
+    // schematic::GlyphText
     virtual void update();
 
 private:
-    QGraphicsScene* m_pScene;
-    GlyphMap m_map;
+    QGraphicsScene*          m_pScene;
+    GlyphMap                 m_map;
     QGraphicsSimpleTextItem* m_pItem;
-    Toolbox::Ptr m_pToolBoxPtr;
+    Toolbox::Ptr             m_pToolBoxPtr;
 };
 
-}
+} // namespace editor
 
 #endif // GLYPHS_H

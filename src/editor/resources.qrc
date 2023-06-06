@@ -68,5 +68,12 @@
         <file>art/extrude.png</file>
         <file>art/shrink.png</file>
         <file>art/union.png</file>
+        <file>art/selection.png</file>
+        <file>art/lasso-tool.png</file>
+        <file>art/polygon.png</file>
+        <file>art/broom.png</file>
+        <file>art/undo.png</file>
+        <file>art/redo.png</file>
+        <file>art/delete.png</file>
     </qresource>
 </RCC>

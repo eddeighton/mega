@@ -29,6 +29,7 @@ GlyphView::GlyphView( QWidget* pParent, MainWindow* pMainWindow )
     , m_penTool( *this )
     , m_editTool( *this )
     , m_pActiveTool( &m_selectTool )
+    , m_pViewConfig( new ViewConfig{} )
 {
     QObject::connect(
         &m_selectionModel, &SelectionModel::currentChanged, this, &GlyphView::OnCurrentSelectionItemChanged );
@@ -39,7 +40,6 @@ GlyphView::~GlyphView() = default;
 
 void GlyphView::OnCurrentSelectionItemChanged( const QModelIndex&, const QModelIndex& )
 {
-    qDebug() << "GlyphView::OnCurrentSelectionItemChanged";
 }
 
 Selectable* GlyphView::selectableFromNode( schematic::Node::PtrCst pNode ) const
@@ -66,8 +66,6 @@ Selectable* GlyphView::selectableFromNode( schematic::Node::PtrCst pNode ) const
 
 void GlyphView::OnSelectionChanged( const QItemSelection& selected, const QItemSelection& deselected )
 {
-    qDebug() << "GlyphView::OnSelectionChanged";
-
     const QModelIndexList selectedIndices = selected.indexes();
     for( QModelIndexList::const_iterator i = selectedIndices.begin(), iEnd = selectedIndices.end(); i != iEnd; ++i )
     {
@@ -118,6 +116,7 @@ void GlyphView::onViewFocussed()
 
     m_pMainWindow->getUI()->treeView->setModel( &m_itemModel );
     m_pMainWindow->getUI()->treeView->setSelectionModel( &m_selectionModel );
+    m_pMainWindow->getUI()->config->setViewConfig( m_pViewConfig );
 
     if( m_pMainWindow->getUI()->actionSelect->isChecked() )
     {
@@ -167,6 +166,10 @@ void GlyphView::onViewUnfocussed()
     CMD_DISCONNECT( actionLasso, CmdLassoTool );
     CMD_DISCONNECT( actionDraw, CmdDrawTool );
     CMD_DISCONNECT( actionEdit, CmdEditTool );
+
+    m_pMainWindow->getUI()->treeView->setModel( nullptr );
+    m_pMainWindow->getUI()->treeView->setSelectionModel( nullptr );
+    m_pMainWindow->getUI()->config->setViewConfig( {} );
 }
 
 void GlyphView::onZoomed()
@@ -199,8 +202,9 @@ schematic::IGlyph::Ptr GlyphView::createOrigin( schematic::Origin* pOrigin, sche
 schematic::IGlyph::Ptr GlyphView::createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup,
                                                             schematic::IGlyph::Ptr         pParent )
 {
-    schematic::IGlyph::Ptr pNewGlyph( new GlyphPolygonGroup(
-        pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pMarkupPolygonGroup, getZoomLevel(), getToolbox() ) );
+    schematic::IGlyph::Ptr pNewGlyph( new GlyphPolygonGroup( pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ),
+                                                             pMarkupPolygonGroup, m_pViewConfig.get(), getZoomLevel(),
+                                                             getToolbox() ) );
     return pNewGlyph;
 }
 
@@ -223,13 +227,12 @@ void GlyphView::onDocumentUpdate()
     m_pActiveTool->onUpdate();
 }
 
-void GlyphView::updateVisibility( const GlyphVisibilityConfig&              glyphVisibilityConfig,
-                                  const schematic::File::CompilationConfig& config )
+void GlyphView::updateVisibility( const schematic::File::CompilationConfig& compilationConfig )
 {
-    const bool bShowText        = glyphVisibilityConfig[ eGlyphVis_Text ];
-    const bool bShowPoints      = glyphVisibilityConfig[ eGlyphVis_Points ];
-    const bool bShowSites       = glyphVisibilityConfig[ eGlyphVis_Sites ];
-    const bool bShowConnections = glyphVisibilityConfig[ eGlyphVis_Connections ];
+    const bool bShowText        = true; // glyphVisibilityConfig[ eGlyphVis_Text ];
+    const bool bShowPoints      = true; // glyphVisibilityConfig[ eGlyphVis_Points ];
+    const bool bShowSites       = true; // glyphVisibilityConfig[ eGlyphVis_Sites ];
+    const bool bShowConnections = true; // glyphVisibilityConfig[ eGlyphVis_Connections ];
 
     auto testGlyphOrigin = [ bShowSites, bShowConnections ]( const GlyphOrigin* pOrigin ) -> bool
     {
@@ -322,9 +325,9 @@ void GlyphView::updateVisibility( const GlyphVisibilityConfig&              glyp
             if( auto pSpec = pGlyph->getGlyphSpec() )
             {
                 const auto compilationStage = pSpec->getCompilationStage();
-                if( compilationStage >= 0 && compilationStage < config.size() )
+                if( compilationStage >= 0 && compilationStage < compilationConfig.size() )
                 {
-                    bShow = config[ compilationStage ];
+                    bShow = compilationConfig[ compilationStage ];
                 }
             }
             pRenderable->setShouldRender( bShow && bShowType );
@@ -363,8 +366,6 @@ void GlyphView::selectContext( schematic::IEditContext* pNewContext )
     }
 
     m_pActiveTool->onUpdate();
-
-    // OnEditContextChanged( BlueprintContext( m_pActiveContext ) );
 }
 
 // selection handling
@@ -401,12 +402,13 @@ SelectionSet GlyphView::getSelectedByRect( const QRectF& rect ) const
     {
         if( schematic::IGlyph* pTest = findGlyph( *i ) )
         {
-            if( m_pActiveContext->canEdit( pTest,
-                                           m_pActiveTool->getToolType(),
-                                           m_pActiveTool->getToolMode(),
-                                           m_visibilityConfig[ eGlyphVis_Points ],
-                                           m_visibilityConfig[ eGlyphVis_Sites ],
-                                           m_visibilityConfig[ eGlyphVis_Connections ] ) )
+            if( m_pActiveContext->canEdit(
+                    pTest, m_pActiveTool->getToolType(), m_pActiveTool->getToolMode(), true, true, true
+                    // m_visibilityConfig[ eGlyphVis_Points ],
+                    // m_visibilityConfig[ eGlyphVis_Sites ],
+                    // m_visibilityConfig[ eGlyphVis_Connections ]
+
+                    ) )
             {
                 if( Selectable* pSelectable = Selection::glyphToSelectable( pTest ) )
                 {
@@ -431,12 +433,14 @@ SelectionSet GlyphView::getSelectedByPath( const QPainterPath& path ) const
     {
         if( schematic::IGlyph* pTest = findGlyph( *i ) )
         {
-            if( m_pActiveContext->canEdit( pTest,
-                                           m_pActiveTool->getToolType(),
-                                           m_pActiveTool->getToolMode(),
-                                           m_visibilityConfig[ eGlyphVis_Points ],
-                                           m_visibilityConfig[ eGlyphVis_Sites ],
-                                           m_visibilityConfig[ eGlyphVis_Connections ] ) )
+            if( m_pActiveContext->canEdit(
+                    pTest, m_pActiveTool->getToolType(), m_pActiveTool->getToolMode(), true, true, true
+
+                    // m_visibilityConfig[ eGlyphVis_Points ],
+                    // m_visibilityConfig[ eGlyphVis_Sites ],
+                    // m_visibilityConfig[ eGlyphVis_Connections ]
+
+                    ) )
             {
                 if( Selectable* pSelectable = Selection::glyphToSelectable( pTest ) )
                 {
@@ -496,12 +500,14 @@ schematic::IGlyph* GlyphView::findSelectableTopmostGlyph( const QPointF& pos ) c
         {
             if( schematic::IGlyph* pTest = findGlyph( *i ) )
             {
-                if( m_pActiveContext->canEdit( pTest,
-                                               m_pActiveTool->getToolType(),
-                                               m_pActiveTool->getToolMode(),
-                                               m_visibilityConfig[ eGlyphVis_Points ],
-                                               m_visibilityConfig[ eGlyphVis_Sites ],
-                                               m_visibilityConfig[ eGlyphVis_Connections ] ) )
+                if( m_pActiveContext->canEdit( pTest, m_pActiveTool->getToolType(), m_pActiveTool->getToolMode(),
+
+                                               true, true, true
+
+                                               // m_visibilityConfig[ eGlyphVis_Points ],
+                                               // m_visibilityConfig[ eGlyphVis_Sites ],
+                                               // m_visibilityConfig[ eGlyphVis_Connections ]
+                                               ) )
                 {
                     if( Selection::glyphToSelectable( pTest ) )
                     {
@@ -599,12 +605,14 @@ void GlyphView::CmdSelectAll()
             if( Selectable* pSelectable = Selection::glyphToSelectable( i->second ) )
             {
                 if( pSelectable->isImage()
-                    && m_pActiveContext->canEdit( i->second,
-                                                  m_pActiveTool->getToolType(),
-                                                  m_pActiveTool->getToolMode(),
-                                                  m_visibilityConfig[ eGlyphVis_Points ],
-                                                  m_visibilityConfig[ eGlyphVis_Sites ],
-                                                  m_visibilityConfig[ eGlyphVis_Connections ] ) )
+                    && m_pActiveContext->canEdit( i->second, m_pActiveTool->getToolType(), m_pActiveTool->getToolMode(),
+
+                                                  true, true, true
+                                                  // m_visibilityConfig[ eGlyphVis_Points ],
+                                                  // m_visibilityConfig[ eGlyphVis_Sites ],
+                                                  // m_visibilityConfig[ eGlyphVis_Connections ]
+
+                                                  ) )
                 {
                     selection.insert( i->second );
                 }

@@ -5,6 +5,7 @@
 #include "gridView.hpp"
 #include "selection_model.hpp"
 #include "item_model.hpp"
+#include "viewConfig.hpp"
 
 #include <QGraphicsView>
 #include <QWheelEvent>
@@ -58,20 +59,7 @@ public:
 public:
     virtual void onDocumentUpdate();
 
-    // visibility handling
-    using GlyphVisibilityConfig = std::bitset< 16 >;
-    enum GlyphVisibility
-    {
-        eGlyphVis_Text,
-        eGlyphVis_Points,
-        eGlyphVis_Sites,
-        eGlyphVis_Connections
-    };
-
-    const GlyphVisibilityConfig& getGlyphVisibilityConfig() const { return m_visibilityConfig; }
-
-    void updateVisibility( const GlyphVisibilityConfig&              glyphVisibilityConfig,
-                           const schematic::File::CompilationConfig& config );
+    void updateVisibility( const schematic::File::CompilationConfig& compilationConfig );
 
 public:
     // context handling
@@ -138,12 +126,12 @@ protected:
     SelectionModel           m_selectionModel;
     schematic::IEditContext* m_pActiveContext = nullptr;
 
-    SelectTool            m_selectTool;
-    LassoTool             m_lassoTool;
-    PenTool               m_penTool;
-    EditTool              m_editTool;
-    Tool*                 m_pActiveTool;
-    GlyphVisibilityConfig m_visibilityConfig;
+    SelectTool      m_selectTool;
+    LassoTool       m_lassoTool;
+    PenTool         m_penTool;
+    EditTool        m_editTool;
+    Tool*           m_pActiveTool;
+    ViewConfig::Ptr m_pViewConfig;
 
 private:
     ItemMap m_itemMap;

@@ -154,9 +154,9 @@ private:
 class MultiPathMarkup : public MarkupPolygonGroup
 {
 public:
-    MultiPathMarkup( const GlyphSpecProducer& producer,
-                     const GlyphSpec*         pParent,
-                     CompilationStage         compilationStage );
+    using SegmentMask = std::pair< Segment, exact::EdgeMask::Set >;
+
+    MultiPathMarkup( const GlyphSpecProducer& producer, const GlyphSpec* pParent, CompilationStage compilationStage );
 
     virtual const GlyphSpec*         getParent() const;
     virtual const GlyphSpecProducer* getProducer() const { return &m_producer; }
@@ -164,14 +164,14 @@ public:
     virtual bool                     isPolygonsFilled() const;
     virtual bool                     paint( Painter& painter ) const;
     void                             reset();
-    void                             set( const std::vector< Segment >& segments );
+    void                             set( const std::vector< SegmentMask >& segments );
 
 private:
-    const GlyphSpecProducer& m_producer;
-    const GlyphSpec*         m_pParent;
-    Timing::UpdateTick       m_updateTick;
-    std::vector< Segment >   m_segments;
-    CompilationStage         m_compilationStage;
+    const GlyphSpecProducer&   m_producer;
+    const GlyphSpec*           m_pParent;
+    Timing::UpdateTick         m_updateTick;
+    std::vector< SegmentMask > m_segments;
+    CompilationStage           m_compilationStage;
 };
 
 } // namespace schematic

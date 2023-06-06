@@ -103,7 +103,7 @@ public:
     using FaceHandle    = Arrangement::Face_const_handle;
     using FaceHandleSet = std::set< FaceHandle >;
 
-    void getEdges( std::vector< schematic::Segment >& edges, EdgeMask::Set include, EdgeMask::Set exclude );
+    void getEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges );
 
 private:
     void classify( Arrangement::Halfedge_handle h, EdgeMask::Type mask );

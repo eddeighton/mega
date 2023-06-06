@@ -26,6 +26,16 @@ GridView::GridView( QWidget* pParentWidget, MainWindow* pMainWindow )
     m_pScene = new QGraphicsScene;
     setScene( m_pScene );
     CalculateOversizedSceneRect();
+
+    if( auto pToolBox = pMainWindow->getToolbox() )
+    {
+        pToolBox->getConfigValue( ".background.colour", m_bkgrnd );
+        pToolBox->getConfigValue( ".background.step", m_iMainLineStep );
+        pToolBox->getConfigValue( ".background.lines.width", m_lineWidth );
+        pToolBox->getConfigValue( ".background.lines.main.colour", m_mainLineColour );
+        pToolBox->getConfigValue( ".background.lines.other.colour", m_otherLineColour );
+        pToolBox->getConfigValue( ".background.text.colour", m_textColor );
+    }
 }
 
 GridView::~GridView() = default;
@@ -137,44 +147,29 @@ void GridView::resizeEvent( QResizeEvent* pEvent )
 
 void GridView::drawBackground( QPainter* painter, const QRectF& rect )
 {
-    const QVector2D currentZoomLevel = getZoomVector();
-
-    float fXStep = 1.0f;
-    while( fXStep / 16.0f < fabs( 1 / currentZoomLevel.x() ) )
-        fXStep *= 2.0f;
-    float fYStep = 1.0f;
-    while( fYStep / 16.0f < fabs( 1 / currentZoomLevel.y() ) )
-        fYStep *= 2.0f;
-
-    QColor mainLineColour( 100, 100, 100, 125 );
-    QColor otherLineColour( 200, 200, 200, 125 );
-    QColor bkgrnd( 255, 255, 255 );
-
-    int   iMainLineStep = 4;
-    float lineWidth     = 0.5f;
-    // if( m_pToolBox )
-    //{
-    //     m_pToolBox->getConfigValue( ".background.colour", bkgrnd );
-    //     m_pToolBox->getConfigValue( ".background.step", iMainLineStep );
-    //     m_pToolBox->getConfigValue( ".background.lines.width", lineWidth );
-    //     m_pToolBox->getConfigValue( ".background.lines.main.colour", mainLineColour );
-    //     m_pToolBox->getConfigValue( ".background.lines.other.colour", otherLineColour );
-    // }
-
-    painter->fillRect( rect, bkgrnd );
+    painter->fillRect( rect, m_bkgrnd );
 
     // grid lines
     QPen oldPen = painter->pen();
     {
+        const QVector2D currentZoomLevel = getZoomVector();
+
+        float fXStep = 1.0f;
+        while( fXStep / 16.0f < fabs( 1 / currentZoomLevel.x() ) )
+            fXStep *= 2.0f;
+        float fYStep = 1.0f;
+        while( fYStep / 16.0f < fabs( 1 / currentZoomLevel.y() ) )
+            fYStep *= 2.0f;
+
         QPen gridPen;
         gridPen.setStyle( Qt::DotLine );
-        gridPen.setWidth( lineWidth );
+        gridPen.setWidth( m_lineWidth );
         painter->setPen( gridPen );
 
-        const float fQuantLeft   = Math::quantize< float >( rect.left(), fXStep * iMainLineStep );
-        const float fQuantRight  = Math::quantize< float >( rect.right(), fXStep ) + fXStep * iMainLineStep;
-        const float fQuantTop    = Math::quantize< float >( rect.top(), fYStep * iMainLineStep );
-        const float fQuantBottom = Math::quantize< float >( rect.bottom(), fYStep ) + fYStep * iMainLineStep;
+        const float fQuantLeft   = Math::quantize< float >( rect.left(), fXStep * m_iMainLineStep );
+        const float fQuantRight  = Math::quantize< float >( rect.right(), fXStep ) + fXStep * m_iMainLineStep;
+        const float fQuantTop    = Math::quantize< float >( rect.top(), fYStep * m_iMainLineStep );
+        const float fQuantBottom = Math::quantize< float >( rect.bottom(), fYStep ) + fYStep * m_iMainLineStep;
 
         unsigned int uiX = 0u;
         for( float x = fQuantLeft; x <= fQuantRight; x += fXStep, ++uiX )
@@ -182,18 +177,18 @@ void GridView::drawBackground( QPainter* painter, const QRectF& rect )
             if( x == 0 )
             {
                 gridPen.setStyle( Qt::SolidLine );
-                gridPen.setColor( mainLineColour );
+                gridPen.setColor( m_mainLineColour );
             }
             else
             {
                 gridPen.setStyle( Qt::DotLine );
-                if( uiX % iMainLineStep )
+                if( uiX % m_iMainLineStep )
                 {
-                    gridPen.setColor( otherLineColour );
+                    gridPen.setColor( m_otherLineColour );
                 }
                 else
                 {
-                    gridPen.setColor( mainLineColour );
+                    gridPen.setColor( m_mainLineColour );
                 }
             }
             painter->setPen( gridPen );
@@ -205,15 +200,15 @@ void GridView::drawBackground( QPainter* painter, const QRectF& rect )
             if( y == 0 )
             {
                 gridPen.setStyle( Qt::SolidLine );
-                gridPen.setColor( mainLineColour );
+                gridPen.setColor( m_mainLineColour );
             }
             else
             {
                 gridPen.setStyle( Qt::DotLine );
-                if( uiY % iMainLineStep )
-                    gridPen.setColor( otherLineColour );
+                if( uiY % m_iMainLineStep )
+                    gridPen.setColor( m_otherLineColour );
                 else
-                    gridPen.setColor( mainLineColour );
+                    gridPen.setColor( m_mainLineColour );
             }
             painter->setPen( gridPen );
             painter->drawLine( QPoint( fQuantLeft, y ), QPoint( fQuantRight, y ) );
@@ -228,28 +223,20 @@ void GridView::CalculateRulerItems()
     const QRect     viewportRect     = viewport()->rect();
     const QRectF    rect( mapToScene( viewportRect.topLeft() ), mapToScene( viewportRect.bottomRight() ) );
 
-    int iMainLineStep = 4;
     // if( m_pToolBox )
     //{
-    //     m_pToolBox->getConfigValue( ".background.step", iMainLineStep );
+    //     m_pToolBox->getConfigValue( ".background.step", m_iMainLineStep );
     // }
 
     float fXStep = 1.0f;
-    while( fXStep / 16.0f < fabs( iMainLineStep / currentZoomLevel.x() ) )
+    while( fXStep / 16.0f < fabs( m_iMainLineStep / currentZoomLevel.x() ) )
         fXStep *= 2.0f;
     float fYStep = 1.0f;
-    while( fYStep / 16.0f < fabs( iMainLineStep / currentZoomLevel.y() ) )
+    while( fYStep / 16.0f < fabs( m_iMainLineStep / currentZoomLevel.y() ) )
         fYStep *= 2.0f;
 
     const float fOffsetX = 8.0f / currentZoomLevel.x();
     const float fOffsetY = 8.0f / currentZoomLevel.y();
-
-    QColor textColor( 0, 0, 0, 255 );
-
-    // if( m_pToolBox )
-    //{
-    //     m_pToolBox->getConfigValue( ".background.text.colour", textColor );
-    // }
 
     const float fQuantLeft   = Math::quantize< float >( rect.left(), fXStep );
     const float fQuantRight  = Math::quantize< float >( rect.right(), fXStep ) + fXStep;
@@ -278,7 +265,7 @@ void GridView::CalculateRulerItems()
                 xIter = m_rulerVertItems.end();
             }
             pItem->setText( os.str().c_str() );
-            pItem->setBrush( QBrush( textColor ) );
+            pItem->setBrush( QBrush( m_textColor ) );
             pItem->setPos( x, rect.bottom() - fOffsetY * 2.0f );
         }
         for( TextItemVector::iterator x = xIter; x != m_rulerVertItems.end(); ++x )
@@ -311,7 +298,7 @@ void GridView::CalculateRulerItems()
                 yIter = m_rulerHoriItems.end();
             }
             pItem->setText( os.str().c_str() );
-            pItem->setBrush( QBrush( textColor ) );
+            pItem->setBrush( QBrush( m_textColor ) );
             pItem->setPos( rect.left() + fOffsetX, y - fOffsetY );
         }
         for( TextItemVector::iterator y = yIter; y != m_rulerHoriItems.end(); ++y )

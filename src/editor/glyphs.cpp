@@ -113,12 +113,14 @@ static QColor g_polygonColor( 155, 155, 155, 200 );
 static float  g_polygonWidth( 4.0f );
 
 GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
-                                      schematic::MarkupPolygonGroup* pPolygonGroup, float fZoom,
+                                      schematic::MarkupPolygonGroup* pPolygonGroup, const ViewConfig* pViewConfig, float fZoom,
                                       Toolbox::Ptr pToolBoxPtr )
     : schematic::GlyphPolygonGroup( pPolygonGroup, pParent )
     , m_pScene( pScene )
+    , m_pViewConfig( pViewConfig )
+    , m_pathPainter( m_pViewConfig )
     , m_map( map )
-    , m_pItem( 0u )
+    , m_pItem( nullptr )
     , m_pToolBoxPtr( pToolBoxPtr )
 {
     if( m_pToolBoxPtr )

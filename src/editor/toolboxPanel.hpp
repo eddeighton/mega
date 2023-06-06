@@ -1,7 +1,6 @@
 #ifndef TOOLBOX_PANEL_05_FEB_2021_H
 #define TOOLBOX_PANEL_05_FEB_2021_H
 
-
 #include "messages.hpp"
 
 #include "glyphView.hpp"
@@ -26,7 +25,6 @@
 
 #endif
 
-
 namespace editor
 {
 
@@ -37,34 +35,36 @@ class ClipScene : public QGraphicsScene, public schematic::GlyphFactory
     Q_OBJECT
 
 public:
-    explicit ClipScene(QWidget *parent = 0);
+    explicit ClipScene( QWidget* parent = nullptr );
 
     void setClip( schematic::Schematic::Ptr pSchematic, Toolbox::Ptr pToolBox );
     void calculateSceneRect();
 
-    //glyph factory interface
-    virtual schematic::IGlyph::Ptr createControlPoint( schematic::ControlPoint* pControlPoint, schematic::IGlyph::Ptr pParent );
+    // glyph factory interface
+    virtual schematic::IGlyph::Ptr createControlPoint( schematic::ControlPoint* pControlPoint,
+                                                       schematic::IGlyph::Ptr   pParent );
     virtual schematic::IGlyph::Ptr createOrigin( schematic::Origin* pOrigin, schematic::IGlyph::Ptr pParent );
-    //virtual schematic::IGlyph::Ptr createMarkupPath( schematic::MarkupPath* pMarkupPath, schematic::IGlyph::Ptr pParent );
-    virtual schematic::IGlyph::Ptr createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup, schematic::IGlyph::Ptr pParent );
-    virtual schematic::IGlyph::Ptr createMarkupText( schematic::MarkupText* pMarkupText, schematic::IGlyph::Ptr pParent );
-    virtual void onEditted( bool bCommandCompleted );
+    virtual schematic::IGlyph::Ptr createMarkupPolygonGroup( schematic::MarkupPolygonGroup* pMarkupPolygonGroup,
+                                                             schematic::IGlyph::Ptr         pParent );
+    virtual schematic::IGlyph::Ptr createMarkupText( schematic::MarkupText* pMarkupText,
+                                                     schematic::IGlyph::Ptr pParent );
+    virtual void                   onEditted( bool bCommandCompleted );
 
 signals:
 
 public slots:
 
 protected:
-    virtual void drawBackground(QPainter *painter, const QRectF &rect);
+    virtual void drawBackground( QPainter* painter, const QRectF& rect );
 
 private:
-    ItemMap m_itemMap;
-    SpecMap m_specMap;
+    ItemMap                       m_itemMap;
+    SpecMap                       m_specMap;
     schematic::EditSchematic::Ptr m_pEdit;
-    schematic::Schematic::Ptr m_pSchematic;
-    schematic::IEditContext* m_pNullContext;
-    Toolbox::Ptr m_pToolBox;
-    
+    schematic::Schematic::Ptr     m_pSchematic;
+    schematic::IEditContext*      m_pNullContext;
+    Toolbox::Ptr                  m_pToolBox;
+
     float m_fDeviceWidth;
 };
 
@@ -78,8 +78,8 @@ class FlowView : public QGraphicsView
     class FlowItem
     {
     public:
-        typedef boost::shared_ptr< FlowItem > Ptr;
-        typedef std::vector< Ptr > PtrVector;
+        using Ptr       = boost::shared_ptr< FlowItem >;
+        using PtrVector = std::vector< Ptr >;
         FlowItem( FlowView& view, schematic::Schematic::Ptr pSchematic, Toolbox::Palette::Ptr pPalette );
         ~FlowItem()
         {
@@ -90,47 +90,50 @@ class FlowView : public QGraphicsView
             }
         }
         schematic::Schematic::Ptr getClip() const { return m_pSchematic; }
-        QRectF getRect() const { return m_pImageItem->sceneBoundingRect(); }
-        bool onHit( QGraphicsItem* pItem );
-        void updatePosition( int x, int y, float fWidth, float fHeight, float fSpacing );
+        QRectF                    getRect() const { return m_pImageItem->sceneBoundingRect(); }
+        bool                      onHit( QGraphicsItem* pItem );
+        void                      updatePosition( int x, int y, float fWidth, float fHeight, float fSpacing );
+
     private:
-        FlowView& m_view;
+        FlowView&                 m_view;
         schematic::Schematic::Ptr m_pSchematic;
-        QGraphicsItem* m_pImageItem;
-        Toolbox::Palette::Ptr m_pPalette;
+        QGraphicsItem*            m_pImageItem;
+        Toolbox::Palette::Ptr     m_pPalette;
     };
-    typedef std::map< schematic::Schematic::Ptr, FlowItem::Ptr > ItemMap;
+    using ItemMap = std::map< schematic::Schematic::Ptr, FlowItem::Ptr >;
 
 public:
     explicit FlowView( MissionToolbox& toolbox, Toolbox::Palette::Ptr pPalette );
     ~FlowView();
 
-    Toolbox::Ptr getToolbox() const;
+    Toolbox::Ptr          getToolbox() const;
     Toolbox::Palette::Ptr getPalette() const { return m_pPalette; }
 
     void updateClips();
     void calculateLayout();
     void clear();
-    
+
 signals:
     void OnClipboardAction();
     void OnMenu( ClipboardMsg msg );
     void OnQuickLoad( ClipboardMsg msg );
 
 protected:
-    void mouseDoubleClickEvent(QMouseEvent * event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    virtual void resizeEvent(QResizeEvent * event);
+    void         mouseDoubleClickEvent( QMouseEvent* event );
+    void         mousePressEvent( QMouseEvent* event );
+    void         mouseMoveEvent( QMouseEvent* event );
+    void         mouseReleaseEvent( QMouseEvent* event );
+    virtual void resizeEvent( QResizeEvent* event );
+
 private:
-    int findIndex( schematic::Schematic::Ptr pSchematic );
+    int                       findIndex( schematic::Schematic::Ptr pSchematic );
     schematic::Schematic::Ptr getClickedSchematic( QMouseEvent* event );
+
 private:
-    MissionToolbox& m_toolBox;
+    MissionToolbox&       m_toolBox;
     Toolbox::Palette::Ptr m_pPalette;
-    ItemMap m_items;
-    QGraphicsRectItem* m_pSelectionRectItem;
+    ItemMap               m_items;
+    QGraphicsRectItem*    m_pSelectionRectItem;
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -143,30 +146,27 @@ private:
     class ToolboxPanel
     {
     public:
-        typedef boost::shared_ptr< ToolboxPanel > Ptr;
+        using Ptr = boost::shared_ptr< ToolboxPanel >;
 
-        ToolboxPanel( MissionToolbox& toolbox, 
-            Toolbox::Palette::Ptr pPalette, unsigned int uiIndex );
+        ToolboxPanel( MissionToolbox& toolbox, Toolbox::Palette::Ptr pPalette, unsigned int uiIndex );
         ~ToolboxPanel();
-        void updateClips();
+        void                      updateClips();
         const Timing::UpdateTick& getUpdateTick() const { return m_updateTick; }
-    private:
-        std::string m_strName;
-        MissionToolbox& m_toolbox;
-        Toolbox::Palette::Ptr m_pPalette;
-        FlowView* m_pView;
-        Timing::UpdateTick m_updateTick;
-    };
-    typedef std::map< std::string, ToolboxPanel::Ptr > PanelMap;
-    
-public:
-    explicit MissionToolbox( QWidget *parent = 0 );
 
-    void setToolbox( Toolbox::Ptr pToolbox );
-    void setMainWindow( MainWindow* pMainWindow ) { m_pMainWindow = pMainWindow; }
-    
+    private:
+        std::string           m_strName;
+        MissionToolbox&       m_toolbox;
+        Toolbox::Palette::Ptr m_pPalette;
+        FlowView*             m_pView;
+        Timing::UpdateTick    m_updateTick;
+    };
+    using PanelMap = std::map< std::string, ToolboxPanel::Ptr >;
+
+public:
+    explicit MissionToolbox( QWidget* parent = nullptr );
+
     Toolbox::Ptr getToolbox() const { return m_pToolBox; }
-    
+
 public slots:
     void updateToolbox();
     void onCurrentPaletteChanged( int index );
@@ -177,11 +177,11 @@ public slots:
     void On_RescanToolBoxDir();
 
 private:
+    MainWindow*  m_pMainWindow = nullptr;
     Toolbox::Ptr m_pToolBox;
-    MainWindow* m_pMainWindow = nullptr;
-    PanelMap m_panels;
+    PanelMap     m_panels;
 };
 
-}//namespace editor
+} // namespace editor
 
 #endif // TOOLBOX_PANEL_05_FEB_2021_H

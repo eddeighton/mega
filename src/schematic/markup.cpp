@@ -148,10 +148,9 @@ bool MultiPathMarkup::paint( Painter& painter ) const
     {
         painter.reset();
 
-        for( const Segment& segment : m_segments )
+        for( const auto& segment : m_segments )
         {
-            painter.moveTo( segment[ 0 ] );
-            painter.lineTo( segment[ 1 ] );
+            painter.segment( segment.first, segment.second );
         }
 
         painter.updated();
@@ -168,7 +167,7 @@ void MultiPathMarkup::reset()
     m_updateTick.update();
 }
 
-void MultiPathMarkup::set( const std::vector< Segment >& segments )
+void MultiPathMarkup::set( const std::vector< SegmentMask >& segments )
 {
     m_segments = segments;
     m_updateTick.update();

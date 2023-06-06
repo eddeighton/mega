@@ -290,28 +290,13 @@ void Analysis::connect( schematic::Site::Ptr pSite )
     }
 }
 
-void Analysis::getEdges( std::vector< schematic::Segment >& edges, EdgeMask::Set include, EdgeMask::Set exclude )
+void Analysis::getEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges )
 {
     exact::ExactToInexact convert;
     for( auto i = m_arr.halfedges_begin(); i != m_arr.halfedges_end(); ++i )
     {
-        const auto& data = i->data();
-
-        auto inclusive = data.flags & include;
-        auto exclusive = data.flags & exclude;
-
-        if( inclusive.any() && exclusive.none() )
-        {
-            edges.emplace_back( convert( i->source()->point() ), convert( i->target()->point() ) );
-        }
-
-        /*if( data.flags.test( eInterior ) || data.flags.test( eExterior ) || data.flags.test( eDoorStep )
-            || data.flags.test( eConnectionBisector ) )
-        {
-            if( !data.flags.test( eConnectionBreak ) )
-            {
-            }
-        }*/
+        edges.emplace_back(
+            schematic::Segment{ convert( i->source()->point() ), convert( i->target()->point() ) }, i->data().flags );
     }
 }
 } // namespace exact

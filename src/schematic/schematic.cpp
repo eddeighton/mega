@@ -91,14 +91,14 @@ void Schematic::task_extrusions()
 }
 void Schematic::task_compilation()
 {
-    std::vector< Segment > edges;
+    std::vector< MultiPathMarkup::SegmentMask > edges;
     try
     {
         Schematic::Ptr pThis = boost::dynamic_pointer_cast< Schematic >( getPtr() );
 
         m_pAnalysis.reset();
         m_pAnalysis.reset( new exact::Analysis( pThis ) );
-        // m_pAnalysis->getEdges( edges );
+        m_pAnalysis->getEdges( edges );
     }
     catch( std::exception& )
     {

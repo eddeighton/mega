@@ -24,6 +24,8 @@
 #include "schematic/buffer.hpp"
 #include "schematic/cgalSettings.hpp"
 
+#include "schematic/analysis/edge_mask.hpp"
+
 #include "common/tick.hpp"
 
 #include <boost/shared_ptr.hpp>
@@ -67,11 +69,12 @@ public:
     virtual bool needsUpdate( const Timing::UpdateTick& updateTick ) = 0;
     virtual void updated()                                           = 0;
 
-    virtual void reset()                           = 0;
-    virtual void moveTo( const Point& pt )         = 0;
-    virtual void lineTo( const Point& pt )         = 0;
-    virtual void closePath()                       = 0;
-    virtual void polygon( const Polygon& polygon ) = 0;
+    virtual void reset()                                                   = 0;
+    virtual void moveTo( const Point& pt )                                 = 0;
+    virtual void lineTo( const Point& pt )                                 = 0;
+    virtual void closePath()                                               = 0;
+    virtual void polygon( const Polygon& polygon )                         = 0;
+    virtual void segment( const Segment& from, exact::EdgeMask::Set mask ) = 0;
 };
 
 class MarkupPolygonGroup : public GlyphSpec
@@ -81,7 +84,6 @@ public:
 
     virtual bool isPolygonsFilled() const        = 0;
     virtual bool paint( Painter& painter ) const = 0;
-
     virtual bool canEdit() const { return false; }
 };
 
