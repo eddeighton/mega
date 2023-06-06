@@ -26,10 +26,15 @@
 #include <QGraphicsView>
 #include <QWheelEvent>
 #include <QGraphicsScene>
+#include <QGraphicsSimpleTextItem>
+#include <QGraphicsRectItem>
+#include <QFont>
 
 #ifndef Q_MOC_RUN
 #include "toolbox.hpp"
 #include "viewConfig.hpp"
+
+#include <optional>
 #endif
 
 namespace editor
@@ -38,11 +43,21 @@ class ViewConfigPanel : public QGraphicsView
 {
     Q_OBJECT
 private:
+    struct Row
+    {
+        QGraphicsSimpleTextItem* pLabel;
+        QGraphicsRectItem*       pSetting;
+    };
+    using RowVector = std::vector< Row >;
+
 public:
     explicit ViewConfigPanel( QWidget* parent = nullptr );
 
     void setToolbox( Toolbox::Ptr pToolbox );
     void setViewConfig( editor::ViewConfig::Ptr pViewConfig );
+
+signals:
+    void OnViewConfigModified();
 
 protected:
     void drawBackground( QPainter* painter, const QRectF& rect );
@@ -53,17 +68,28 @@ protected:
     void mouseReleaseEvent( QMouseEvent* pEvent );
 
 private:
+    bool setConfig( int iRow, int iCol );
+
+private:
     editor::MainWindow*     m_pMainWindow = nullptr;
     Toolbox::Ptr            m_pToolBox;
     QGraphicsScene*         m_pScene;
     editor::ViewConfig::Ptr m_pConfig;
-    
-    QColor m_mainLineColour  = QColor( 100, 100, 100, 125 );
-    QColor m_otherLineColour = QColor( 200, 200, 200, 125 );
-    QColor m_bkgrnd          = QColor( 255, 255, 255 );
-    QColor m_textColor       = QColor( 0, 0, 0, 255 );
-    int    m_iMainLineStep   = 4;
-    float  m_lineWidth       = 0.5f;
+    RowVector               m_glyphRows;
+    RowVector               m_maskRows;
+
+    QColor      m_selectionColour = QColor( 125, 0, 0, 55 );
+    QColor      m_bkgrnd          = QColor( 255, 255, 255, 255 );
+    QColor      m_textColour      = QColor( 0, 0, 0 );
+    std::string m_strFont         = "Times";
+    int         m_fontSize        = 8;
+    float       m_fSize           = 100.0f;
+    QColor      m_gridColour      = QColor( 125, 125, 125, 255 );
+    int         m_gridWidth       = 1;
+
+    QFont m_font;
+
+    std::optional< int > m_mouseDownColumn;
 };
 
 } // namespace editor

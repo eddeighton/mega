@@ -43,10 +43,6 @@ public slots:
     void CmdUndo();
     void CmdRedo();
 
-    /*void CmdViewText();
-    void CmdViewPoints();
-    void CmdViewConnections();
-    void CmdViewSite();*/
     void CmdViewSiteContour();
     void CmdViewWalls();
     void CmdViewAnalysis();
@@ -58,7 +54,6 @@ private:
 private:
     SchematicDocument::Ptr             m_pSchematicDocument;
     schematic::EditSchematic::Ptr      m_pEdit;
-    schematic::File::CompilationConfig m_compilationConfig;
 };
 
 } // namespace editor

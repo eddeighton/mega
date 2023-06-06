@@ -58,8 +58,7 @@ public:
 
 public:
     virtual void onDocumentUpdate();
-
-    void updateVisibility( const schematic::File::CompilationConfig& compilationConfig );
+    void         updateGlyphVisibility();
 
 public:
     // context handling
@@ -117,6 +116,9 @@ private slots:
     void OnCurrentSelectionItemChanged( const QModelIndex& current, const QModelIndex& previous );
     void OnSelectionChanged( const QItemSelection& selected, const QItemSelection& deselected );
 
+protected slots:
+    void OnViewConfigChanged();
+
 private:
     Selectable* selectableFromNode( schematic::Node::PtrCst pNode ) const;
 
@@ -126,12 +128,13 @@ protected:
     SelectionModel           m_selectionModel;
     schematic::IEditContext* m_pActiveContext = nullptr;
 
-    SelectTool      m_selectTool;
-    LassoTool       m_lassoTool;
-    PenTool         m_penTool;
-    EditTool        m_editTool;
-    Tool*           m_pActiveTool;
-    ViewConfig::Ptr m_pViewConfig;
+    SelectTool                         m_selectTool;
+    LassoTool                          m_lassoTool;
+    PenTool                            m_penTool;
+    EditTool                           m_editTool;
+    Tool*                              m_pActiveTool;
+    ViewConfig::Ptr                    m_pViewConfig;
+    schematic::File::CompilationConfig m_compilationConfig;
 
 private:
     ItemMap m_itemMap;

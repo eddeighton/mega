@@ -185,6 +185,12 @@ void GlyphPolygonGroup::setShouldRender( bool bShouldRender )
     m_pItem->setVisible( bShouldRender );
 }
 
+void GlyphPolygonGroup::forceUpdate()
+{
+    m_pathPainter.forceUpdate();
+    update();
+}
+
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 static QColor g_axisColorX( 255, 0, 0, 55 );

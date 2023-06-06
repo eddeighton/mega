@@ -80,7 +80,7 @@ schematic::Node::PtrCst ItemModel::getIndexNode( const QModelIndex& index ) cons
     return pNode;
 }
 
-void ItemModel::OnBlueprintUpdate()
+void ItemModel::OnSchematicUpdate()
 {
     if( m_pRoot.get() )
         doTreeItemUpdate( m_pRoot.get(), *this );

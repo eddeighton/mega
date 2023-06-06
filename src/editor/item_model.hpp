@@ -141,7 +141,7 @@ public:
 
     //////////////////////////////////////////////////////////////////////////////
     // Update routines
-    void OnBlueprintUpdate();
+    void OnSchematicUpdate();
     void OnSchematicFocussed( schematic::Schematic::Ptr pSchematic );
 
 private:

@@ -39,6 +39,28 @@ visibility
         width( 0.5 )
     }
 }
+config
+{
+    scene
+    {
+        size( 250 )
+    }
+    selection
+    {
+        colour( 0,0,125,55 )
+    }
+    grid
+    {
+        colour( 0,0,255,55 )
+        width( 2 )
+    }
+    text
+    {
+        colour( 0,0,255,255 )
+        font(Courier;)
+        fontsize(14)
+    }
+}
 glyphs
 {
     points

@@ -101,6 +101,12 @@ public:
     virtual void OnNewZoomLevel( float fZoom ) = 0;
 };
 
+class Configurable
+{
+public:
+    virtual void forceUpdate() = 0;
+};
+
 static unsigned int calculateDepth( const schematic::GlyphSpec* pGlyphSpec )
 {
     unsigned int uiDepth = 0u;
@@ -117,7 +123,7 @@ class PainterImpl : public schematic::Painter
     const ViewConfig*               m_pViewConfig = nullptr;
     std::shared_ptr< QPainterPath > m_pPath, m_pOldPath;
     Timing::UpdateTick              m_updateTick;
-    bool                            m_bInitialising = true;
+    bool m_bForceUpdate = true;
 
 public:
     const QPainterPath& getPath() const { return *m_pPath; }
@@ -133,14 +139,19 @@ public:
     {
     }
 
+    void forceUpdate()
+    {
+        m_bForceUpdate = true;
+    }
+
     virtual bool needsUpdate( const Timing::UpdateTick& updateTick )
     {
-        return m_bInitialising || ( updateTick > m_updateTick );
+        return m_bForceUpdate || ( updateTick > m_updateTick );
     }
 
     virtual void updated()
     {
-        m_bInitialising = false;
+        m_bForceUpdate = false;
         m_updateTick.update();
     }
 
@@ -155,27 +166,27 @@ public:
 
     virtual void segment( const schematic::Segment& segment, exact::EdgeMask::Set mask )
     {
-        auto showType = ViewConfig::eNormal;
+        auto showType = ViewConfig::eShowNormal;
         if( m_pViewConfig )
         {
             showType = m_pViewConfig->showSegment( mask );
         }
         switch( showType )
         {
-            case ViewConfig::eNone:
+            case ViewConfig::eShowNone:
             {
             }
             break;
-            case ViewConfig::eNormal:
+            case ViewConfig::eShowNormal:
             {
-                moveTo( segment[0] );
-                lineTo( segment[1] );
+                moveTo( segment[ 0 ] );
+                lineTo( segment[ 1 ] );
             }
             break;
-            case ViewConfig::eHighlight:
+            case ViewConfig::eShowHighlight:
             {
-                moveTo( segment[0] );
-                lineTo( segment[1] );
+                moveTo( segment[ 0 ] );
+                lineTo( segment[ 1 ] );
             }
             break;
             case ViewConfig::TOTAL_SHOW_TYPES:
@@ -247,7 +258,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-class GlyphPolygonGroup : public schematic::GlyphPolygonGroup, public ZoomDependent, public Renderable
+class GlyphPolygonGroup : public schematic::GlyphPolygonGroup, public ZoomDependent, public Renderable, public Configurable
 {
 public:
     GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
@@ -261,6 +272,9 @@ public:
     // Renderable
     virtual void setShouldRender( bool bShouldRender );
 
+    // Configurable
+    virtual void forceUpdate();
+    
     // schematic::GlyphPath
     virtual void update();
 
