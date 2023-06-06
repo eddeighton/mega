@@ -36,6 +36,7 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( SCHEMATIC_API_DIR ${MEGA_API_DIR}/schematic )
 
 set( SCHEMATIC_HEADERS
+    ${SCHEMATIC_API_DIR}/analysis/edge_mask.hpp
     ${SCHEMATIC_API_DIR}/analysis/analysis.hpp
 
     ${SCHEMATIC_API_DIR}/buffer.hpp
@@ -73,6 +74,7 @@ set( SCHEMATIC_HEADERS
 set( SCHEMATIC_SRC_DIR ${MEGA_SRC_DIR}/schematic )
 
 set( SCHEMATIC_SOURCE
+    ${SCHEMATIC_SRC_DIR}/analysis/edge_mask.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/analysis.cpp
 
     ${SCHEMATIC_SRC_DIR}/cgalUtils.cpp

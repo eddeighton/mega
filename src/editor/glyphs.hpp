@@ -282,45 +282,6 @@ private:
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-/*
-class GlyphImage : public schematic::GlyphImage, public Selectable, public Renderable
-{
-public:
-    GlyphImage( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                GlyphMap map, schematic::ImageSpec* pImage, 
-                schematic::IEditContext*& pActiveContext,
-                Toolbox::Ptr pToolBoxPtr );
-    ~GlyphImage();
-
-    //Selectable
-    virtual void setSelected( bool bSelected );
-    virtual bool isImage() const { return true; }
-
-    //Renderable
-    virtual void setShouldRender( bool bShouldRender );
-
-    bool isActiveContext() const;
-
-    //schematic::GlyphImage
-    virtual void update();
-
-private:
-    void setOrCreateImageItem();
-private:
-    static QVector< QRgb > m_coloursNormal, m_coloursSelected, m_coloursActiveContext;
-    QPixmap m_pixelMap;
-    QGraphicsScene* m_pScene;
-    GlyphMap m_map;
-    QGraphicsPixmapItem* m_pItem;
-    schematic::IEditContext*& m_pActiveContext;
-    Timing::UpdateTick m_lastUpdateTick;
-    bool m_bActiveContext;
-    Toolbox::Ptr m_pToolBoxPtr;
-};
-*/
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
 class GlyphText : public schematic::GlyphText, public Renderable
 {
 public:

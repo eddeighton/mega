@@ -31,6 +31,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/qtdock2/qtdock2_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#get ed
+include( ${WORKSPACE_ROOT_PATH}/src/ed/ed_include.cmake )
+
 find_package(Qt6 COMPONENTS Core Widgets Gui REQUIRED )
 
 set( EDITOR_API_DIR ${MEGA_API_DIR}/editor )
@@ -110,8 +113,7 @@ target_link_libraries( editor schematic )
 link_cgal( editor )
 link_qtdock2( editor )
 link_common( editor )
-#link_boost( editor serialization )
-
+link_ed( editor )
 
 install( FILES ${EDITOR_HEADERS} DESTINATION include/editor )
 install( FILES ${EDITOR_SRC_DIR}/config.ed DESTINATION bin )

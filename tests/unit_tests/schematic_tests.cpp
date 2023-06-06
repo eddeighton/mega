@@ -132,8 +132,8 @@ TEST( Schematic, Arrangement_DataIntersect )
         for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
         {
             Arrangement::Halfedge_handle h = *i;
-            h->set_data( Analysis::HalfEdgeData( Analysis::eInterior ) );
-            h->twin()->set_data( Analysis::HalfEdgeData( Analysis::eInterior ) );
+            h->set_data( Analysis::HalfEdgeData( exact::EdgeMask::eInterior ) );
+            h->twin()->set_data( Analysis::HalfEdgeData( exact::EdgeMask::eInterior ) );
             ++iCounter;
         }
         ASSERT_EQ( iCounter, 1 );
@@ -145,8 +145,8 @@ TEST( Schematic, Arrangement_DataIntersect )
         for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
         {
             Arrangement::Halfedge_handle h = *i;
-            h->set_data( Analysis::HalfEdgeData( Analysis::eSite ) );
-            h->twin()->set_data( Analysis::HalfEdgeData( Analysis::eSite ) );
+            h->set_data( Analysis::HalfEdgeData( exact::EdgeMask::eSite ) );
+            h->twin()->set_data( Analysis::HalfEdgeData( exact::EdgeMask::eSite ) );
             ++iCounter;
         }
         ASSERT_EQ( iCounter, 2 );
@@ -169,8 +169,8 @@ TEST( Schematic, Arrangement_DataIntersect )
             else if( CGAL::assign( halfedge, obj ) )
             {
                 iHalfEdges++;
-                ASSERT_TRUE( halfedge->data().flags.test( Analysis::eInterior ) );
-                ASSERT_FALSE( halfedge->data().flags.test( Analysis::eSite ) );
+                ASSERT_TRUE( halfedge->data().flags.test( exact::EdgeMask::eInterior ) );
+                ASSERT_FALSE( halfedge->data().flags.test( exact::EdgeMask::eSite ) );
             }
             else if( CGAL::assign( vertex, obj ) )
             {

@@ -3,7 +3,6 @@
 #include <QGraphicsOpacityEffect>
 #include <QBitmap>
 
-
 namespace editor
 {
 
@@ -12,7 +11,7 @@ void Selectable::setSelected( bool bSelected )
     m_bSelected = bSelected;
 }
 
-void cleanUpItem( QGraphicsItem* pItem, GlyphMap& map, const schematic::GlyphSpec* pSpec, QGraphicsScene*  )
+void cleanUpItem( QGraphicsItem* pItem, GlyphMap& map, const schematic::GlyphSpec* pSpec, QGraphicsScene* )
 {
     if( pItem )
     {
@@ -24,38 +23,39 @@ void cleanUpItem( QGraphicsItem* pItem, GlyphMap& map, const schematic::GlyphSpe
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-GlyphControlPoint::GlyphControlPoint( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                                      GlyphMap map, schematic::ControlPoint* pControlPoint, 
-                                      float fZoom,
-                                      Toolbox::Ptr pToolboxPtr )
-    :   schematic::GlyphControlPoint( pControlPoint, pParent ),
-        Selectable( calculateDepth( pControlPoint ) ),
-        
-        m_fSizeScaling( 12.0f ),
-        m_fSize( fabs( m_fSizeScaling / fZoom ) ),
-        
-        m_pScene( pScene ),
-        m_map( map ),
-        m_pItem( nullptr ),
-        m_pToolBoxPtr( pToolboxPtr )
-{    
+GlyphControlPoint::GlyphControlPoint( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
+                                      schematic::ControlPoint* pControlPoint, float fZoom, Toolbox::Ptr pToolboxPtr )
+    : schematic::GlyphControlPoint( pControlPoint, pParent )
+    , Selectable( calculateDepth( pControlPoint ) )
+    ,
+
+    m_fSizeScaling( 12.0f )
+    , m_fSize( fabs( m_fSizeScaling / fZoom ) )
+    ,
+
+    m_pScene( pScene )
+    , m_map( map )
+    , m_pItem( nullptr )
+    , m_pToolBoxPtr( pToolboxPtr )
+{
     QColor pointColour( 255, 255, 255 );
     if( m_pToolBoxPtr )
     {
         m_pToolBoxPtr->getConfigValue( ".glyphs.points.colour", pointColour );
         m_pToolBoxPtr->getConfigValue( ".glyphs.points.width", m_fSizeScaling );
     }
-    
+
     QGraphicsItem* pParentItem = m_map.findItem( getControlPoint()->getParent() );
     m_pItem = new QGraphicsEllipseItem( -( m_fSize / 2.0f ), -( m_fSize / 2.0f ), m_fSize, m_fSize, pParentItem );
-    if( !pParentItem ) m_pScene->addItem( m_pItem );
+    if( !pParentItem )
+        m_pScene->addItem( m_pItem );
     m_pItem->setPos( getControlPoint()->getPoint().x(), getControlPoint()->getPoint().y() );
     m_pItem->setPen( QPen( Qt::NoPen ) );
     m_pItem->setBrush( QBrush( pointColour ) );
     m_pItem->setZValue( 2.0f );
     updateColours();
     m_map.insert( m_pItem, getControlPoint(), this );
-    
+
     OnNewZoomLevel( fZoom );
 }
 
@@ -66,8 +66,7 @@ GlyphControlPoint::~GlyphControlPoint()
 
 void GlyphControlPoint::updateColours()
 {
-    m_pItem->setBrush( isSelected() ?    QBrush( Qt::green ) :
-                                        QBrush( Qt::black ) );
+    m_pItem->setBrush( isSelected() ? QBrush( Qt::green ) : QBrush( Qt::black ) );
 }
 
 void GlyphControlPoint::setSelected( bool bSelected )
@@ -108,37 +107,37 @@ void GlyphControlPoint::setShouldRender( bool bShouldRender )
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-static QColor g_pathColor( 155,155,155,125 );
-static float g_pathWidth( 4.0f );
-static QColor g_polygonColor( 155,155,155,200 );
-static float g_polygonWidth( 4.0f );
+static QColor g_pathColor( 155, 155, 155, 125 );
+static float  g_pathWidth( 4.0f );
+static QColor g_polygonColor( 155, 155, 155, 200 );
+static float  g_polygonWidth( 4.0f );
 
-GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                      GlyphMap map, schematic::MarkupPolygonGroup* pPolygonGroup, 
-                      float fZoom, 
-                      Toolbox::Ptr pToolBoxPtr )
-    :   schematic::GlyphPolygonGroup( pPolygonGroup, pParent ),
-        m_pScene( pScene ),
-        m_map( map ),
-        m_pItem( 0u ),
-        m_pToolBoxPtr( pToolBoxPtr )
+GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
+                                      schematic::MarkupPolygonGroup* pPolygonGroup, float fZoom,
+                                      Toolbox::Ptr pToolBoxPtr )
+    : schematic::GlyphPolygonGroup( pPolygonGroup, pParent )
+    , m_pScene( pScene )
+    , m_map( map )
+    , m_pItem( 0u )
+    , m_pToolBoxPtr( pToolBoxPtr )
 {
     if( m_pToolBoxPtr )
     {
         m_pToolBoxPtr->getConfigValue( ".glyphs.polygons.colour", g_polygonColor );
         m_pToolBoxPtr->getConfigValue( ".glyphs.polygons.width", g_polygonWidth );
     }
-    
+
     m_fSize = fabs( g_polygonWidth / fZoom );
-    
-    //convert to painter path
+
+    // convert to painter path
     getMarkupPolygonGroup()->paint( m_pathPainter );
-    
+
     QGraphicsItem* pParentItem = m_map.findItem( getMarkupPolygonGroup()->getParent() );
-    m_pItem = new QGraphicsPathItem( m_pathPainter.getPath(), pParentItem );
-    if( !pParentItem ) m_pScene->addItem( m_pItem );
+    m_pItem                    = new QGraphicsPathItem( m_pathPainter.getPath(), pParentItem );
+    if( !pParentItem )
+        m_pScene->addItem( m_pItem );
     m_pItem->setPen( QPen( QBrush( g_pathColor ), m_fSize, Qt::SolidLine ) );
-    
+
     if( getMarkupPolygonGroup()->isPolygonsFilled() )
     {
         m_pItem->setBrush( QBrush( g_polygonColor ) );
@@ -186,68 +185,69 @@ void GlyphPolygonGroup::setShouldRender( bool bShouldRender )
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-static QColor g_axisColorX( 255,0,0,255 );
-static QColor g_axisColorY( 0,255,0,255 );
+static QColor g_axisColorX( 255, 0, 0, 55 );
+static QColor g_axisColorY( 0, 255, 0, 55 );
 static QColor g_originActive( 100, 0, 0, 25 );
 static QColor g_originSelected( 0, 255, 0, 25 );
-static QColor g_originIdle( 0, 0, 255 , 25 );
+static QColor g_originIdle( 0, 0, 255, 25 );
 static QColor g_originInvisible( 0, 0, 0, 0 );
 
-GlyphOrigin::GlyphOrigin( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                        GlyphMap map, schematic::Origin* pOrigin, 
-                        schematic::IEditContext*& pActiveContext,
-                        Toolbox::Ptr pToolBoxPtr )
-    :   schematic::GlyphOrigin( pOrigin, pParent ),
-        Selectable( calculateDepth( pOrigin ) ),
-        m_pScene( pScene ),
-        m_map( map ),
-        m_pItemX( nullptr ),
-        m_pItemY( nullptr ),
-        m_pPathItem( nullptr ),
-        m_pActiveContext( pActiveContext ),
-        m_bActiveContext( false ),
-        m_pToolBoxPtr( pToolBoxPtr )
+GlyphOrigin::GlyphOrigin( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
+                          schematic::Origin* pOrigin, schematic::IEditContext*& pActiveContext,
+                          Toolbox::Ptr pToolBoxPtr )
+    : schematic::GlyphOrigin( pOrigin, pParent )
+    , Selectable( calculateDepth( pOrigin ) )
+    , m_pScene( pScene )
+    , m_map( map )
+    , m_pItemX( nullptr )
+    , m_pItemY( nullptr )
+    , m_pPathItem( nullptr )
+    , m_pActiveContext( pActiveContext )
+    , m_bActiveContext( false )
+    , m_pToolBoxPtr( pToolBoxPtr )
 {
     float fLength = 4.0f;
-    float fWidth = 1.0f;
+    float fWidth  = 1.0f;
     if( m_pToolBoxPtr )
     {
-        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.colourx",   g_axisColorX );
-        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.coloury",   g_axisColorY );
-        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.length",    fLength );
-        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.width",     fWidth );
-        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.active",    g_originActive );
-        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.selected",  g_originSelected );
-        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.idle",      g_originIdle );
+        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.colourx", g_axisColorX );
+        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.coloury", g_axisColorY );
+        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.length", fLength );
+        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.width", fWidth );
+        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.active", g_originActive );
+        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.selected", g_originSelected );
+        m_pToolBoxPtr->getConfigValue( ".glyphs.origin.idle", g_originIdle );
     }
-    
+
     QGraphicsItem* pParentItem = m_map.findItem( getOrigin()->getParent() );
     {
-        if( const schematic::MarkupPolygonGroup* pMarkupContour = 
-            getOrigin()->getMarkupContour() )
+        if( const schematic::MarkupPolygonGroup* pMarkupContour = getOrigin()->getMarkupContour() )
         {
             pMarkupContour->paint( m_pathPainter );
             m_pPathItem = new QGraphicsPathItem( m_pathPainter.getPath(), pParentItem );
-            if( !pParentItem ) m_pScene->addItem( m_pPathItem );
+            if( !pParentItem )
+                m_pScene->addItem( m_pPathItem );
             m_pPathItem->setPen( QPen( Qt::NoPen ) );
             m_pPathItem->setZValue( 1.5f );
             m_map.insert( m_pPathItem, getOrigin(), this );
         }
     }
-    
+
     {
         m_pItemX = new QGraphicsLineItem( 0.0f, 0.0f, fLength, 0.0f, pParentItem );
-        if( !pParentItem ) m_pScene->addItem( m_pItemX );
+        if( !pParentItem )
+            m_pScene->addItem( m_pItemX );
         m_pItemX->setPen( QPen( QBrush( g_axisColorX ), fWidth, Qt::SolidLine ) );
         m_pItemX->setZValue( 3.0f );
     }
     {
         m_pItemY = new QGraphicsLineItem( 0.0f, 0.0f, 0.0f, fLength, pParentItem );
-        if( !pParentItem ) m_pScene->addItem( m_pItemY );
+        if( !pParentItem )
+            m_pScene->addItem( m_pItemY );
         m_pItemY->setPen( QPen( QBrush( g_axisColorY ), fWidth, Qt::SolidLine ) );
         m_pItemY->setZValue( 3.0f );
     }
-        
+
     updateColours();
 }
 
@@ -265,9 +265,7 @@ bool GlyphOrigin::isActiveContext() const
 
 void GlyphOrigin::setSelected( bool bSelected )
 {
-    const bool bUpdate = 
-        ( isSelected() != bSelected ) || 
-        ( m_bActiveContext != isActiveContext() );
+    const bool bUpdate = ( isSelected() != bSelected ) || ( m_bActiveContext != isActiveContext() );
     Selectable::setSelected( bSelected );
     if( bUpdate )
     {
@@ -277,7 +275,7 @@ void GlyphOrigin::setSelected( bool bSelected )
 }
 
 void GlyphOrigin::updateColours()
-{                               
+{
     if( isActiveContext() )
     {
         if( m_pPathItem )
@@ -326,16 +324,15 @@ void GlyphOrigin::updateColours()
         m_pItemX->setVisible( false );
         m_pItemY->setVisible( false );
     }
-    
+
     const schematic::Transform& originMatrix = getOrigin()->getTransform();
-    const QTransform transform( 
-        CGAL::to_double( originMatrix.m( 0, 0 ) ), 
-        CGAL::to_double( originMatrix.m( 1, 0 ) ),
-        CGAL::to_double( originMatrix.m( 0, 1 ) ),
-        CGAL::to_double( originMatrix.m( 1, 1 ) ),
-        CGAL::to_double( originMatrix.m( 0, 2 ) ),
-        CGAL::to_double( originMatrix.m( 1, 2 ) ) );
-    
+    const QTransform            transform( CGAL::to_double( originMatrix.m( 0, 0 ) ),
+                                           CGAL::to_double( originMatrix.m( 1, 0 ) ),
+                                           CGAL::to_double( originMatrix.m( 0, 1 ) ),
+                                           CGAL::to_double( originMatrix.m( 1, 1 ) ),
+                                           CGAL::to_double( originMatrix.m( 0, 2 ) ),
+                                           CGAL::to_double( originMatrix.m( 1, 2 ) ) );
+
     if( m_pPathItem )
     {
         m_pPathItem->setTransform( transform );
@@ -353,7 +350,7 @@ void GlyphOrigin::update()
             m_pPathItem->setPath( m_pathPainter.getPath() );
         }
     }
-    
+
     updateColours();
 }
 
@@ -361,187 +358,37 @@ void GlyphOrigin::setShouldRender( bool bShouldRender )
 {
     m_bShouldRender = bShouldRender;
     updateColours();
-    
+
     if( m_pPathItem )
     {
-        //m_pPathItem->setVisible( bShouldRender );
+        // m_pPathItem->setVisible( bShouldRender );
     }
-    //m_pItemX->setVisible( bShouldRender );
-    //m_pItemY->setVisible( bShouldRender );
+    // m_pItemX->setVisible( bShouldRender );
+    // m_pItemY->setVisible( bShouldRender );
 }
 
-/*
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-QVector< QRgb > GlyphImage::m_coloursNormal;
-QVector< QRgb > GlyphImage::m_coloursSelected;
-QVector< QRgb > GlyphImage::m_coloursActiveContext;
-
-GlyphImage::GlyphImage( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene,
-                        GlyphMap map, schematic::ImageSpec* pImage, 
-                        schematic::IEditContext*& pActiveContext, 
-                        Toolbox::Ptr pToolBoxPtr )
-    :   schematic::GlyphImage( pImage, pParent ),
-        Selectable( calculateDepth( pImage ) ),
-        m_pScene( pScene ),
-        m_map( map ),
-        m_pItem( 0u ),
-        m_pActiveContext( pActiveContext ),
-        m_bActiveContext( false ),
-        m_pToolboxPtr( pToolBoxPtr )
-{
-    static bool bColourTablesInit = true;
-    if( bColourTablesInit )
-    {
-        bColourTablesInit = false;
-        m_coloursNormal.push_back( 0u );
-        m_coloursNormal.push_back( 0xA03030A0 );
-        m_coloursNormal.push_back( 0xA06F6FA0 );
-
-        m_coloursSelected.push_back( 0u );
-        m_coloursSelected.push_back( 0xA03030FF );
-        m_coloursSelected.push_back( 0xA06F6FFF );
-
-        m_coloursActiveContext.push_back( 0u );
-        m_coloursActiveContext.push_back( 0x30A03000 );
-        m_coloursActiveContext.push_back( 0x30FF6F00 );
-    }
-
-    if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
-    {
-        QImage m_image( pBuffer->get(),pBuffer->getWidth(),pBuffer->getHeight(),pBuffer->getStride(),QImage::Format_Indexed8 );
-        m_image.setColorTable( m_coloursNormal );
-        m_pixelMap = QPixmap::fromImage( m_image, Qt::ColorOnly );
-        setOrCreateImageItem();
-    }
-}
-
-GlyphImage::~GlyphImage()
-{
-    cleanUpItem( m_pItem, m_map, getImageSpec(), m_pScene );
-}
-
-bool GlyphImage::isActiveContext() const
-{
-    return ( m_pActiveContext && m_pActiveContext->getImageSpec() == getImageSpec() ) ? true : false;
-}
-
-void GlyphImage::setSelected( bool bSelected )
-{
-    const bool bUpdate = 
-        ( isSelected() != bSelected ) || 
-        ( m_bActiveContext != isActiveContext() );
-    Selectable::setSelected( bSelected );
-    if( bUpdate )
-    {
-        m_bActiveContext = isActiveContext();
-        if( m_bActiveContext )
-        {
-            if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
-            {
-                QImage m_image( pBuffer->get(),pBuffer->getWidth(),pBuffer->getHeight(),pBuffer->getStride(),QImage::Format_Indexed8 );
-                m_image.setColorTable( m_coloursActiveContext );
-                m_pixelMap = QPixmap::fromImage( m_image, Qt::ColorOnly );
-                setOrCreateImageItem();
-            }
-        }
-        else if( isSelected() )
-        {
-            if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
-            {
-                QImage m_image( pBuffer->get(),pBuffer->getWidth(),pBuffer->getHeight(),pBuffer->getStride(),QImage::Format_Indexed8 );
-                m_image.setColorTable( m_coloursSelected );
-                m_pixelMap = QPixmap::fromImage( m_image, Qt::ColorOnly );
-                setOrCreateImageItem();
-            }
-        }
-        else
-        {
-            if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
-            {
-                QImage m_image( pBuffer->get(),pBuffer->getWidth(),pBuffer->getHeight(),pBuffer->getStride(),QImage::Format_Indexed8 );
-                m_image.setColorTable( m_coloursNormal );
-                m_pixelMap = QPixmap::fromImage( m_image, Qt::ColorOnly );
-                setOrCreateImageItem();
-            }
-        }
-    }
-}
-
-void GlyphImage::setOrCreateImageItem()
-{
-    if( !m_pItem )
-    {
-        QGraphicsItem* pParentItem = m_map.findItem( getImageSpec()->getParent() );
-        m_pItem = new QGraphicsPixmapItem( m_pixelMap, pParentItem );
-        if( !pParentItem ) m_pScene->addItem( m_pItem );
-        m_map.insert( m_pItem, getImageSpec(), this );
-        m_pItem->setZValue( 0.0f );
-        m_pItem->setPos( getImageSpec()->getX(), getImageSpec()->getY() );
-        m_pItem->setOffset( getImageSpec()->getOffsetX(), getImageSpec()->getOffsetY() );
-    }
-    else
-        m_pItem->setPixmap( m_pixelMap );
-}
-
-void GlyphImage::update()
-{
-    if( schematic::NavBitmap::Ptr pBuffer = getImageSpec()->getBuffer() )
-    {
-        if( ( m_lastUpdateTick < pBuffer->getLastUpdateTick() ) || !m_pItem || 
-            ( isActiveContext() != m_bActiveContext ) )
-        {
-            QImage m_image( pBuffer->get(), pBuffer->getWidth(),
-                              pBuffer->getHeight(), pBuffer->getStride(), QImage::Format_Indexed8 );
-            m_bActiveContext = isActiveContext();
-            if( m_bActiveContext )
-                m_image.setColorTable( m_coloursActiveContext );
-            else if( isSelected() )
-                m_image.setColorTable( m_coloursSelected );
-            else
-                m_image.setColorTable( m_coloursNormal );
-
-            m_pixelMap.convertFromImage( m_image, Qt::ColorOnly );
-            setOrCreateImageItem();
-            m_lastUpdateTick.update();
-        }
-        m_pItem->setPos( getImageSpec()->getX(), getImageSpec()->getY() );
-        m_pItem->setOffset( getImageSpec()->getOffsetX(), getImageSpec()->getOffsetY() );
-    }
-    //else if( m_pItem )
-    //{
-    //    cleanUpItem( m_pItem, m_map, getImageSpec(), m_pScene );
-    //    m_pItem = 0u;
-    //}
-}
-
-void GlyphImage::setShouldRender( bool bShouldRender )
-{
-    m_pItem->setVisible( bShouldRender );
-}
-*/
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 static QColor g_textColour( 0, 0, 0 );
 
-GlyphText::GlyphText( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, 
-                     GlyphMap map, schematic::MarkupText* pText,
-                     Toolbox::Ptr pToolBoxPtr )
-    :   schematic::GlyphText( pText, pParent ),
-        m_pScene( pScene ),
-        m_map( map ),
-        m_pItem( nullptr ),
-        m_pToolBoxPtr( pToolBoxPtr )
+GlyphText::GlyphText( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
+                      schematic::MarkupText* pText, Toolbox::Ptr pToolBoxPtr )
+    : schematic::GlyphText( pText, pParent )
+    , m_pScene( pScene )
+    , m_map( map )
+    , m_pItem( nullptr )
+    , m_pToolBoxPtr( pToolBoxPtr )
 {
     if( m_pToolBoxPtr )
     {
         m_pToolBoxPtr->getConfigValue( ".glyphs.text.colour", g_textColour );
     }
-    
-    //convert to painter path
+
+    // convert to painter path
     QGraphicsItem* pParentItem = m_map.findItem( getMarkupText()->getParent() );
-    m_pItem = new QGraphicsSimpleTextItem( getMarkupText()->getText().c_str(), pParentItem );
-    if( !pParentItem ) m_pScene->addItem( m_pItem );
+    m_pItem                    = new QGraphicsSimpleTextItem( getMarkupText()->getText().c_str(), pParentItem );
+    if( !pParentItem )
+        m_pScene->addItem( m_pItem );
     m_pItem->setZValue( 0.9f );
     m_pItem->setFlag( QGraphicsItem::ItemIgnoresTransformations );
     m_pItem->setPos( getMarkupText()->getPoint().x(), getMarkupText()->getPoint().y() );
@@ -565,6 +412,4 @@ void GlyphText::setShouldRender( bool bShouldRender )
     m_pItem->setVisible( bShouldRender );
 }
 
-}
-
-
+} // namespace editor

@@ -21,13 +21,13 @@
 #ifndef GUARD_2023_June_05_analysis
 #define GUARD_2023_June_05_analysis
 
+#include "edge_mask.hpp"
+
 #include "schematic/cgalSettings.hpp"
 #include "schematic/space.hpp"
 #include "schematic/connection.hpp"
 
 #include <CGAL/Arr_observer.h>
-
-#include <bitset>
 
 namespace schematic
 {
@@ -41,29 +41,14 @@ class Analysis
 public:
     using Ptr = boost::shared_ptr< Analysis >;
 
-    enum EdgeMask
-    {
-        eInterior,
-        eInnerExterior,
-        eSite,
-        eConnection,
-        eConnectionBisector,
-        eConnectionBreak,
-        eDoorStep,
-        eCut,
-        eCutBreak,
-        TOTAL_FLAGS
-    };
-
     struct VertexData
     {
     };
     struct HalfEdgeData
     {
-        using Flags    = std::bitset< TOTAL_FLAGS >;
         HalfEdgeData() = default;
-        HalfEdgeData( EdgeMask flag ) { flags.set( flag ); }
-        Flags                flags;
+        HalfEdgeData( EdgeMask::Type flag ) { flags.set( flag ); }
+        EdgeMask::Set        flags;
         schematic::Site::Ptr pSite = schematic::Site::Ptr{};
     };
     struct FaceData
@@ -118,12 +103,14 @@ public:
     using FaceHandle    = Arrangement::Face_const_handle;
     using FaceHandleSet = std::set< FaceHandle >;
 
-    // void getFaces( FaceHandleSet& floorFaces, FaceHandleSet& fillerFaces );
-    void getEdges( std::vector< schematic::Segment >& edges );
+    void getEdges( std::vector< schematic::Segment >& edges, EdgeMask::Set include, EdgeMask::Set exclude );
 
 private:
-    void classify( Arrangement::Halfedge_handle h, EdgeMask mask );
-    void renderContour( const exact::Transform& transform, const exact::Polygon& poly, EdgeMask mask );
+    void classify( Arrangement::Halfedge_handle h, EdgeMask::Type mask );
+    void renderContour( const exact::Transform& transform,
+                        const exact::Polygon&   poly,
+                        EdgeMask::Type          innerMask,
+                        EdgeMask::Type          outerMask );
     void recurse( schematic::Site::Ptr pSpace );
     void recursePost( schematic::Site::Ptr pSpace );
     void connect( schematic::Site::Ptr pConnection );

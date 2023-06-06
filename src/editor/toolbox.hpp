@@ -1,9 +1,14 @@
 #ifndef TOOLBOX_23_09_2013
 #define TOOLBOX_23_09_2013
 
+#include <QColor>
+
 #ifndef Q_MOC_RUN
 
 #include "schematic/schematic.hpp"
+
+#include "ed/node.hpp"
+#include "ed/shorthandio.hpp"
 
 #include "common/tick.hpp"
 
@@ -17,14 +22,22 @@
 namespace editor
 {
 
+inline Ed::IShorthandStream& operator>>( Ed::IShorthandStream& is, QColor& colour )
+{
+    int r, g, b, a;
+    is >> r >> g >> b >> a;
+    colour = QColor( r, g, b, a );
+    return is;
+}
+
 class Toolbox
 {
 public:
     class Palette
     {
     public:
-        typedef boost::shared_ptr< Palette > Ptr;
-        typedef std::map< std::string, Ptr > PtrMap;
+        using Ptr = boost::shared_ptr<Palette>;
+        using PtrMap = std::map<std::string, Ptr>;
 
         using NodeType = schematic::Schematic;
 
@@ -51,7 +64,7 @@ public:
         NodeType::PtrList::iterator m_iterSelection;
         Timing::UpdateTick          m_updateTick;
     };
-    typedef boost::shared_ptr< Toolbox > Ptr;
+    using Ptr = boost::shared_ptr<Toolbox>;
 
     Toolbox( const std::string& strDirectoryPath );
 
@@ -77,13 +90,18 @@ public:
             value = iFind->second;
             return;
         }
-        // THROW_RTE( "TODO" );
-        // boost::optional< const Ed::Node& > findResult ;//=
-        //     //Ed::find( m_config, strKey );
-        // Ed::IShorthandStream is( findResult.get().statement.shorthand.get() );
-        // is >> value;
 
-        cache.insert( std::make_pair( strKey, value ) );
+        try
+        {
+            boost::optional< const Ed::Node& > findResult = Ed::find( m_config, strKey );
+            Ed::IShorthandStream               is( findResult.get().statement.shorthand.get() );
+            is >> value;
+            cache.insert( std::make_pair( strKey, value ) );
+        }
+        catch( std::exception& ex )
+        {
+            THROW_RTE( "Failed to load config value: " << strKey << " with error:" << ex.what() );
+        }
     }
 
     template < typename TValue >
@@ -97,14 +115,17 @@ public:
             values = iFind->second;
             return;
         }
-
-        // THROW_RTE( "TODO" );
-        // boost::optional< const Ed::Node& > findResult;// =
-        //    // Ed::find( m_config, strKey );
-        // Ed::IShorthandStream is( findResult.get().statement.shorthand.get() );
-        // Ed::serialiseIn( is, values );
-
-        cache.insert( std::make_pair( strKey, values ) );
+        try
+        {
+            boost::optional< const Ed::Node& > findResult = Ed::find( m_config, strKey );
+            Ed::IShorthandStream               is( findResult.get().statement.shorthand.get() );
+            Ed::serialiseIn( is, values );
+            cache.insert( std::make_pair( strKey, values ) );
+        }
+        catch( std::exception& ex )
+        {
+            THROW_RTE( "Failed to load config value: " << strKey << " with error:" << ex.what() );
+        }
     }
 
 private:
@@ -116,8 +137,7 @@ private:
     boost::filesystem::path m_rootPath;
     Palette::PtrMap         m_palettes;
     Palette::Ptr            m_pCurrentPalette;
-
-    // Ed::Node m_config;
+    Ed::Node                m_config;
 };
 
 } // namespace editor

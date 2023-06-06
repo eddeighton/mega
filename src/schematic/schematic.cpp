@@ -98,7 +98,7 @@ void Schematic::task_compilation()
 
         m_pAnalysis.reset();
         m_pAnalysis.reset( new exact::Analysis( pThis ) );
-        m_pAnalysis->getEdges( edges );
+        // m_pAnalysis->getEdges( edges );
     }
     catch( std::exception& )
     {

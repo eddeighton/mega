@@ -166,6 +166,16 @@ FlowView::FlowItem::FlowItem( FlowView& view, schematic::Schematic::Ptr pSchemat
                 painter.setFont( newFont );
                 
                 std::string strName = pSchematic->schematic::Node::getName();
+
+                // skip everything up to last '/' or '\'
+                {
+                    auto i = strName.find_last_of( '/');
+                    if( i != std::string::npos )
+                        strName = strName.substr( i );
+                    i = strName.find_last_of( '\\');
+                    if( i != std::string::npos )
+                        strName = strName.substr( i );
+                }
                 for( auto& c : strName )
                 {
                     if( c == '_' )

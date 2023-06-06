@@ -12,6 +12,8 @@
 #include "schematic/object.hpp"
 #include "schematic/feature.hpp"
 
+#include "ed/file.hpp"
+
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
@@ -21,11 +23,11 @@
 
 namespace editor
 {
-    
+
 Toolbox::Palette::Palette( const std::string& strName, int iMaximumSize )
-    :   m_strName( strName ),
-        m_iMaximumSize( iMaximumSize ),
-        m_iterSelection( m_clips.end() )
+    : m_strName( strName )
+    , m_iMaximumSize( iMaximumSize )
+    , m_iterSelection( m_clips.end() )
 {
 }
 
@@ -75,7 +77,7 @@ void Toolbox::Palette::remove( NodeType::Ptr pSchematic )
                 if( iNext != m_clips.end() )
                     m_iterSelection = iNext;
                 else
-                    m_iterSelection = --(m_clips.end());
+                    m_iterSelection = --( m_clips.end() );
             }
             else
                 m_iterSelection = m_clips.end();
@@ -113,33 +115,30 @@ void Toolbox::Palette::select( NodeType::Ptr pSite )
 
 Toolbox::Toolbox( const std::string& strDirectoryPath )
 {
-    //recursively load all missions under the root directory
+    // recursively load all missions under the root directory
     using namespace boost::filesystem;
     VERIFY_RTE_MSG( exists( strDirectoryPath ), "Could not locate toolbox data path at: " << strDirectoryPath );
     m_rootPath = canonical( absolute( strDirectoryPath ) );
     VERIFY_RTE_MSG( exists( m_rootPath ), "Path did not canonicalise properly: " << m_rootPath.string() );
-    
-    //attempt to load the config file if it exists
+
+    // attempt to load the config file if it exists
     const path configFile = m_rootPath / "config.ed";
     if( exists( configFile ) )
     {
-        //THROW_RTE( "TODO" );
-        
-        //Ed::BasicFileSystem filesystem;
-        //Ed::File edConfigFile( filesystem, configFile.string() );
-        //edConfigFile.expandShorthand();
-        //edConfigFile.removeTypes();
-        
-        //edConfigFile.toNode( m_config );
+        Ed::BasicFileSystem filesystem;
+        Ed::File            edConfigFile( filesystem, configFile.string() );
+        edConfigFile.expandShorthand();
+        edConfigFile.removeTypes();
+        edConfigFile.toNode( m_config );
     }
     else
     {
         THROW_RTE( "Failed to locate file: " << configFile.string() );
     }
-    
+
     reload();
 }
-    
+
 schematic::Schematic::Ptr Toolbox::getCurrentItem() const
 {
     schematic::Schematic::Ptr pItem;
@@ -147,10 +146,10 @@ schematic::Schematic::Ptr Toolbox::getCurrentItem() const
         pItem = m_pCurrentPalette->getSelection();
     return pItem;
 }
-    
+
 Toolbox::Palette::Ptr Toolbox::getPalette( const std::string& strName ) const
 {
-    Palette::Ptr pResult;
+    Palette::Ptr                    pResult;
     Palette::PtrMap::const_iterator iFind = m_palettes.find( strName );
     if( iFind != m_palettes.end() )
         pResult = iFind->second;
@@ -165,38 +164,38 @@ void Toolbox::selectPalette( Palette::Ptr pPalette )
 std::string pathToName( const boost::filesystem::path& p )
 {
     return p.string();
-    //return p.leaf().replace_extension().string();
+    // return p.leaf().replace_extension().string();
 }
 
 void Toolbox::reload()
 {
-    //recursively load all missions under the root directory
+    // recursively load all missions under the root directory
     using namespace boost::filesystem;
-    
+
     m_pCurrentPalette.reset();
     m_palettes.clear();
-    
-    //generate defaults...
+
+    // generate defaults...
     {
         schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "wall" ) );
-        schematic::Wall::Ptr pDefaultSpace( new schematic::Wall( pDefaultClip, "wall" ) );
+        schematic::Wall::Ptr      pDefaultSpace( new schematic::Wall( pDefaultClip, "wall" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
         schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "object" ) );
-        schematic::Object::Ptr pDefaultSpace( new schematic::Object( pDefaultClip, "object" ) );
+        schematic::Object::Ptr    pDefaultSpace( new schematic::Object( pDefaultClip, "object" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "connection" ) );
+        schematic::Schematic::Ptr  pDefaultClip( new schematic::Schematic( "connection" ) );
         schematic::Connection::Ptr pDefaultSpace( new schematic::Connection( pDefaultClip, "connection" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "connection" ) );
+        schematic::Schematic::Ptr  pDefaultClip( new schematic::Schematic( "connection" ) );
         schematic::Connection::Ptr pDefaultSpace( new schematic::Connection( pDefaultClip, "connection" ) );
         pDefaultSpace->init();
         for( auto i = 0; i != schematic::QuarterTurn; ++i )
@@ -206,44 +205,44 @@ void Toolbox::reload()
     }
     {
         schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "cut" ) );
-        schematic::Cut::Ptr pDefaultSpace( new schematic::Cut( pDefaultClip, "cut" ) );
+        schematic::Cut::Ptr       pDefaultSpace( new schematic::Cut( pDefaultClip, "cut" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
-        schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "pin" ) );
+        schematic::Schematic::Ptr   pDefaultClip( new schematic::Schematic( "pin" ) );
         schematic::Feature_Pin::Ptr pDefaultSpace( new schematic::Feature_Pin( pDefaultClip, "pin" ) );
         pDefaultClip->add( pDefaultSpace );
         add( "basic", pDefaultClip, false );
     }
     {
         schematic::Schematic::Ptr pDefaultClip( new schematic::Schematic( "space" ) );
-        schematic::Space::Ptr pDefaultSpace( new schematic::Space( pDefaultClip, "space" ) );
+        schematic::Space::Ptr     pDefaultSpace( new schematic::Space( pDefaultClip, "space" ) );
         pDefaultClip->add( pDefaultSpace );
-        add( "basic", pDefaultClip, true ); //ensure space is the default one
+        add( "basic", pDefaultClip, true ); // ensure space is the default one
     }
-    
-    //THROW_RTE( "TODO" );
-    
+
+    // THROW_RTE( "TODO" );
+
     std::vector< std::string > ignoredFolders;
-    //getConfigValueRange( ".toolbox.folders.ignor", ignoredFolders );
+    // getConfigValueRange( ".toolbox.folders.ignor", ignoredFolders );
     //
     std::vector< std::string > location;
     location.push_back( "data" );
-    
+
     recursiveLoad( m_rootPath, location, ignoredFolders );
 }
 
-void Toolbox::recursiveLoad( const boost::filesystem::path& pathIter, 
-        const std::vector< std::string >& currentLocation, 
-        const std::vector< std::string >& ignorFolders )
+void Toolbox::recursiveLoad( const boost::filesystem::path&    pathIter,
+                             const std::vector< std::string >& currentLocation,
+                             const std::vector< std::string >& ignorFolders )
 {
     std::ostringstream os;
     for( const std::string& str : currentLocation )
     {
         os << str << '/';
     }
-    
+
     using namespace boost::filesystem;
     for( directory_iterator iter( pathIter ); iter != directory_iterator(); ++iter )
     {
@@ -254,10 +253,10 @@ void Toolbox::recursiveLoad( const boost::filesystem::path& pathIter,
             {
                 if( schematic::File::Ptr pFile = schematic::load( pth ) )
                 {
-					if( schematic::Schematic::Ptr pSchematic = 
-						boost::dynamic_pointer_cast< schematic::Schematic >( pFile ) )
+                    if( schematic::Schematic::Ptr pSchematic
+                        = boost::dynamic_pointer_cast< schematic::Schematic >( pFile ) )
                     {
-                    	add( os.str(), pSchematic, false );
+                        add( os.str(), pSchematic, false );
                     }
                 }
             }
@@ -273,8 +272,8 @@ void Toolbox::recursiveLoad( const boost::filesystem::path& pathIter,
                 const boost::filesystem::path folderPath = *iter;
                 nestedDirectory.push_back( folderPath.filename().string() );
             }
-            //if( std::find( ignorFolders.begin(), ignorFolders.end(), nestedDirectory )
-            //        == ignorFolders.end() )
+            // if( std::find( ignorFolders.begin(), ignorFolders.end(), nestedDirectory )
+            //         == ignorFolders.end() )
             {
                 recursiveLoad( *iter, nestedDirectory, ignorFolders );
             }
@@ -291,7 +290,8 @@ void Toolbox::add( const std::string& strName, schematic::Schematic::Ptr pNode, 
         m_palettes.insert( std::make_pair( strName, pPalette ) );
     }
     pPalette->add( pNode, bSelect );
-    if( !m_pCurrentPalette ) m_pCurrentPalette = pPalette;
+    if( !m_pCurrentPalette )
+        m_pCurrentPalette = pPalette;
 }
 
 void Toolbox::remove( Palette::Ptr pPalette )
@@ -307,9 +307,9 @@ void Toolbox::remove( Palette::Ptr pPalette )
             else if( m_palettes.empty() )
                 m_pCurrentPalette.reset();
             else
-                m_pCurrentPalette = (--(m_palettes.end()))->second;
+                m_pCurrentPalette = ( --( m_palettes.end() ) )->second;
         }
     }
 }
 
-}
+} // namespace editor

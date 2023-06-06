@@ -92,12 +92,12 @@ void Site::init()
     }
 
     m_strLabelText.clear();
-    /*m_properties.clear();
+    //m_properties.clear();
     {
         std::ostringstream os;
         os << Node::getName();
         {
-            for_each_recursive(
+            /*for_each_recursive(
                 generics::collectIfConvert(
                     m_properties, Node::ConvertPtrType< Property >(), Node::ConvertPtrType< Property >() ),
                 Node::ConvertPtrType< Site >() );
@@ -105,10 +105,10 @@ void Site::init()
             for( Property::Ptr pProperty : m_properties )
             {
                 os << "\n" << pProperty->getName() << ": " << pProperty->getValue();
-            }
+            }*/
         }
         m_strLabelText = os.str();
-    }*/
+    }
 
     if( !m_pLabel.get() )
     {
