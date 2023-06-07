@@ -61,6 +61,11 @@ void Analysis::renderContour( const exact::Transform& transform, const exact::Po
         exactPoly.push_back( transform( pt ) );
     }
 
+    if( !exactPoly.is_counterclockwise_oriented() )
+    {
+        std::reverse( exactPoly.begin(), exactPoly.end() );
+    }
+
     // render the line segments
     for( auto i = exactPoly.begin(), iNext = exactPoly.begin(), iEnd = exactPoly.end(); i != iEnd; ++i )
     {
@@ -69,11 +74,24 @@ void Analysis::renderContour( const exact::Transform& transform, const exact::Po
             iNext = exactPoly.begin();
 
         Arrangement::Curve_handle firstCurve = CGAL::insert( m_arr, exact::Curve( *i, *iNext ) );
-        for( auto i = m_arr.induced_edges_begin( firstCurve ); i != m_arr.induced_edges_end( firstCurve ); ++i )
+        for( auto h = m_arr.induced_edges_begin( firstCurve ); h != m_arr.induced_edges_end( firstCurve ); ++h )
         {
-            Arrangement::Halfedge_handle h = *i;
-            classify( h, innerMask );
-            classify( h->twin(), outerMask );
+            Arrangement::Halfedge_handle edge = *h;
+
+            const bool bSameDir = firstCurve->is_directed_right()
+                                      ? ( edge->direction() == CGAL::Arr_halfedge_direction::ARR_LEFT_TO_RIGHT )
+                                      : ( edge->direction() == CGAL::Arr_halfedge_direction::ARR_RIGHT_TO_LEFT );
+
+            if( bSameDir )
+            {
+                classify( edge, innerMask );
+                classify( edge->twin(), outerMask );
+            }
+            else
+            {
+                classify( edge->twin(), innerMask );
+                classify( edge, outerMask );
+            }
         }
     }
 }
@@ -255,8 +273,8 @@ void Analysis::connect( schematic::Site::Ptr pSite )
                 else
                 {
                     secondBisectorEdge = h;
-                    classify( secondBisectorEdge, EdgeMask::eConnectionBisector );
-                    classify( secondBisectorEdge->twin(), EdgeMask::eConnectionBoundary );
+                    classify( secondBisectorEdge, EdgeMask::eConnectionBoundary );
+                    classify( secondBisectorEdge->twin(), EdgeMask::eConnectionBisector );
                     if( bFoundSecond )
                         throw std::runtime_error( "Failed in connect" );
                     VERIFY_RTE( !bFoundSecond );
