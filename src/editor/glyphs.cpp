@@ -113,8 +113,8 @@ static QColor g_polygonColor( 155, 155, 155, 200 );
 static float  g_polygonWidth( 4.0f );
 
 GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
-                                      schematic::MarkupPolygonGroup* pPolygonGroup, const ViewConfig* pViewConfig, float fZoom,
-                                      Toolbox::Ptr pToolBoxPtr )
+                                      schematic::MarkupPolygonGroup* pPolygonGroup, const ViewConfig* pViewConfig,
+                                      float fZoom, Toolbox::Ptr pToolBoxPtr )
     : schematic::GlyphPolygonGroup( pPolygonGroup, pParent )
     , m_pScene( pScene )
     , m_pViewConfig( pViewConfig )
@@ -127,6 +127,10 @@ GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsS
     {
         m_pToolBoxPtr->getConfigValue( ".glyphs.polygons.colour", g_polygonColor );
         m_pToolBoxPtr->getConfigValue( ".glyphs.polygons.width", g_polygonWidth );
+
+        float fArrowHeadSize = 2.0f;
+        m_pToolBoxPtr->getConfigValue( ".glyphs.polygons.arrow", fArrowHeadSize );
+        m_pathPainter.setArrowHeadSize( fArrowHeadSize );
     }
 
     m_fSize = fabs( g_polygonWidth / fZoom );

@@ -52,6 +52,8 @@ Polygon getConvexHull( const Site::PtrVector& sites );
 
 exact::Polygon filterPolygon( const exact::Polygon& poly );
 
+Segment makeArrowHead( const Segment& segment, double size );
+
 } // namespace schematic::Utils
 
 #endif // SPACEUTILS_15_09_2013

@@ -21,10 +21,7 @@
 
 #include <limits>
 
-namespace schematic
-{
-
-namespace Utils
+namespace schematic::Utils
 {
 
 Polygon getDefaultPolygon()
@@ -137,23 +134,6 @@ void getSelectionBounds( const Site::PtrVector& sites, Rect& transformBounds )
     getSelectionBounds( sites_, transformBounds );
 }
 
-/*
-Polygon getConvexHull( const Site::PtrVector& sites )
-{
-    Polygon result;
-
-    for( Site::Ptr pSite : sites )
-    {
-        if( Feature_Contour::Ptr pContour = pSite->getContour() )
-        {
-            const Polygon& poly = pContour->getPolygon();
-
-        }
-    }
-
-    return result;
-}*/
-
 exact::Polygon filterPolygon( const exact::Polygon& poly )
 {
     if( poly.size() > 2U )
@@ -198,5 +178,18 @@ exact::Polygon filterPolygon( const exact::Polygon& poly )
         return poly;
     }
 }
-} // namespace Utils
-} // namespace schematic
+
+Segment makeArrowHead( const Segment& segment, double size )
+{
+    static Transform rotation = rotate( AngleTraits::eEastSouthEast );
+
+    if( segment.is_degenerate() ) return segment;
+
+    const Vector v = rotation.transform( -segment.to_vector() );
+
+    const double length = CGAL::approximate_sqrt( v.squared_length() );
+
+    return Segment( segment[ 1 ], segment[ 1 ] + ( v * size / length ) );
+}
+
+} // namespace schematic::Utils

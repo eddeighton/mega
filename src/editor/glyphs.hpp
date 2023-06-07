@@ -17,6 +17,7 @@
 
 #include "schematic/site.hpp"
 #include "schematic/glyph.hpp"
+#include "schematic/cgalUtils.hpp"
 #include "schematic/editInteractions.hpp"
 
 #include "common/assert_verify.hpp"
@@ -123,12 +124,13 @@ class PainterImpl : public schematic::Painter
     const ViewConfig*               m_pViewConfig = nullptr;
     std::shared_ptr< QPainterPath > m_pPath, m_pOldPath;
     Timing::UpdateTick              m_updateTick;
-    bool m_bForceUpdate = true;
+    bool                            m_bForceUpdate = true;
+    float                           m_fArrowSize   = 2.0f;
 
 public:
     const QPainterPath& getPath() const { return *m_pPath; }
 
-    PainterImpl()
+    PainterImpl( )
         : m_pPath( std::make_shared< QPainterPath >() )
     {
     }
@@ -139,10 +141,9 @@ public:
     {
     }
 
-    void forceUpdate()
-    {
-        m_bForceUpdate = true;
-    }
+    void setArrowHeadSize( float fSize ) { m_fArrowSize = fSize; }
+
+    void forceUpdate() { m_bForceUpdate = true; }
 
     virtual bool needsUpdate( const Timing::UpdateTick& updateTick )
     {
@@ -181,6 +182,10 @@ public:
             {
                 moveTo( segment[ 0 ] );
                 lineTo( segment[ 1 ] );
+
+                schematic::Segment arrow = schematic::Utils::makeArrowHead( segment, m_fArrowSize );
+                moveTo( arrow[ 0 ] );
+                lineTo( arrow[ 1 ] );
             }
             break;
             case ViewConfig::eShowHighlight:
@@ -258,7 +263,10 @@ private:
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-class GlyphPolygonGroup : public schematic::GlyphPolygonGroup, public ZoomDependent, public Renderable, public Configurable
+class GlyphPolygonGroup : public schematic::GlyphPolygonGroup,
+                          public ZoomDependent,
+                          public Renderable,
+                          public Configurable
 {
 public:
     GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
@@ -274,7 +282,7 @@ public:
 
     // Configurable
     virtual void forceUpdate();
-    
+
     // schematic::GlyphPath
     virtual void update();
 
