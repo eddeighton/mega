@@ -100,13 +100,17 @@ public:
 
     Analysis( boost::shared_ptr< schematic::Schematic > pSchematic );
 
-    using FaceHandle    = Arrangement::Face_const_handle;
-    using FaceHandleSet = std::set< FaceHandle >;
-
     void getEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges );
 
 private:
-    void classify( Arrangement::Halfedge_handle h, EdgeMask::Type mask );
+    template < typename TEdgeType >
+    inline void classify( TEdgeType h, EdgeMask::Type mask )
+    {
+        auto data = h->data();
+        data.flags.set( mask );
+        h->set_data( data );
+    }
+
     void renderContour( const exact::Transform& transform,
                         const exact::Polygon&   poly,
                         EdgeMask::Type          innerMask,
@@ -114,10 +118,11 @@ private:
     void recurse( schematic::Site::Ptr pSpace );
     void recursePost( schematic::Site::Ptr pSpace );
     void connect( schematic::Site::Ptr pConnection );
-    void findSpaceFaces( schematic::Space::Ptr pSpace, FaceHandleSet& faces, FaceHandleSet& spaceFaces );
     void constructConnectionEdges( schematic::Connection::Ptr   pConnection,
                                    Arrangement::Halfedge_handle firstBisectorEdge,
                                    Arrangement::Halfedge_handle secondBisectorEdge );
+    bool doesFaceContainEdgeType( Arrangement::Face_const_handle hFace, EdgeMask::Type type ) const;
+    void partition();
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 

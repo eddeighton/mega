@@ -42,13 +42,8 @@ Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
     {
         recursePost( pSite );
     }
-}
 
-void Analysis::classify( Arrangement::Halfedge_handle h, EdgeMask::Type mask )
-{
-    auto data = h->data();
-    data.flags.set( mask );
-    h->set_data( data );
+    partition();
 }
 
 void Analysis::renderContour( const exact::Transform& transform, const exact::Polygon& polyOriginal,
@@ -305,6 +300,126 @@ void Analysis::connect( schematic::Site::Ptr pSite )
     for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
     {
         connect( pNestedSite );
+    }
+}
+
+bool Analysis::doesFaceContainEdgeType( Arrangement::Face_const_handle hFace, EdgeMask::Type type ) const
+{
+    if( !hFace->is_unbounded() )
+    {
+        Arrangement::Ccb_halfedge_const_circulator iter  = hFace->outer_ccb();
+        Arrangement::Ccb_halfedge_const_circulator start = iter;
+        do
+        {
+            if( iter->data().flags.test( type ) )
+            {
+                return true;
+            }
+            ++iter;
+        } while( iter != start );
+    }
+
+    // search through all holes
+    for( Arrangement::Hole_const_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
+         holeIter != holeIterEnd; ++holeIter )
+    {
+        Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
+        Arrangement::Ccb_halfedge_const_circulator start = iter;
+        do
+        {
+            if( iter->data().flags.test( type ) )
+            {
+                return true;
+            }
+            ++iter;
+        } while( iter != start );
+    }
+    return false;
+}
+
+void Analysis::partition()
+{
+    using FaceHandle    = Arrangement::Face_handle;
+    using FaceHandleSet = std::set< FaceHandle >;
+
+    FaceHandleSet floorFaces;
+    FaceHandleSet fillerFaces;
+    for( auto i = m_arr.faces_begin(), iEnd = m_arr.faces_end(); i != iEnd; ++i )
+    {
+        Arrangement::Face_handle hFace = i;
+        if( doesFaceContainEdgeType( hFace, EdgeMask::eDoorStep )
+            || doesFaceContainEdgeType( hFace, EdgeMask::eConnectionBreak ) )
+        {
+            floorFaces.insert( hFace );
+        }
+        else
+        {
+            // fillers cannot have holes
+            if( hFace->holes_begin() == hFace->holes_end() )
+            {
+                fillerFaces.insert( hFace );
+            }
+        }
+    }
+
+    // classify all floor face halfedges as ePartitionFloor
+    for( auto& hFace : floorFaces )
+    {
+        if( !hFace->is_unbounded() )
+        {
+            Arrangement::Ccb_halfedge_circulator iter  = hFace->outer_ccb();
+            Arrangement::Ccb_halfedge_circulator start = iter;
+            do
+            {
+                if( !iter->data().flags.test( EdgeMask::eConnectionBreak )
+                    && !iter->data().flags.test( EdgeMask::eConnectionEnd ) )
+                {
+                    classify( iter, EdgeMask::ePartitionFloor );
+                }
+                ++iter;
+            } while( iter != start );
+        }
+
+        // search through all holes
+        for( Arrangement::Hole_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
+             holeIter != holeIterEnd; ++holeIter )
+        {
+            Arrangement::Ccb_halfedge_circulator iter  = *holeIter;
+            Arrangement::Ccb_halfedge_circulator start = iter;
+            do
+            {
+                auto hTwin = iter;
+                if( !hTwin->data().flags.test( EdgeMask::eConnectionBreak )
+                    && !hTwin->data().flags.test( EdgeMask::eConnectionEnd ) )
+                {
+                    classify( hTwin, EdgeMask::ePartitionFloor );
+                }
+                ++iter;
+            } while( iter != start );
+        }
+    }
+
+    // boundary edges MUST be opposite of a floor edge
+    // NOTE floor edge can be opposite of floor edge i.e. doorstep
+    for( auto i = m_arr.halfedges_begin(); i != m_arr.halfedges_end(); ++i )
+    {
+        if( i->data().flags.test( EdgeMask::ePartitionFloor ) )
+        {
+            if( !i->twin()->data().flags.test( EdgeMask::ePartitionFloor ) )
+            {
+                classify( i->twin(), EdgeMask::ePartitionBoundary );
+            }
+        }
+    }
+
+    // all other edges are NOT parition edges
+    for( auto i = m_arr.halfedges_begin(); i != m_arr.halfedges_end(); ++i )
+    {
+        if( !i->data().flags.test( EdgeMask::ePartitionFloor )
+            && !i->data().flags.test( EdgeMask::ePartitionBoundary ) )
+        {
+            classify( i->twin(), EdgeMask::ePartitionNone );
+        }
     }
 }
 
