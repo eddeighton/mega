@@ -1349,15 +1349,22 @@ inline ::flatbuffers::Offset<PartitionGraph> CreatePartitionGraph(
 struct Map FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MapBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_CONTOUR = 4
+    VT_CONTOUR = 4,
+    VT_PARTITIONS = 6
   };
   const Mega::Polygon *contour() const {
     return GetPointer<const Mega::Polygon *>(VT_CONTOUR);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Partition>> *partitions() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Partition>> *>(VT_PARTITIONS);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_CONTOUR) &&
            verifier.VerifyTable(contour()) &&
+           VerifyOffset(verifier, VT_PARTITIONS) &&
+           verifier.VerifyVector(partitions()) &&
+           verifier.VerifyVectorOfTables(partitions()) &&
            verifier.EndTable();
   }
 };
@@ -1368,6 +1375,9 @@ struct MapBuilder {
   ::flatbuffers::uoffset_t start_;
   void add_contour(::flatbuffers::Offset<Mega::Polygon> contour) {
     fbb_.AddOffset(Map::VT_CONTOUR, contour);
+  }
+  void add_partitions(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Partition>>> partitions) {
+    fbb_.AddOffset(Map::VT_PARTITIONS, partitions);
   }
   explicit MapBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1382,10 +1392,23 @@ struct MapBuilder {
 
 inline ::flatbuffers::Offset<Map> CreateMap(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<Mega::Polygon> contour = 0) {
+    ::flatbuffers::Offset<Mega::Polygon> contour = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Partition>>> partitions = 0) {
   MapBuilder builder_(_fbb);
+  builder_.add_partitions(partitions);
   builder_.add_contour(contour);
   return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<Map> CreateMapDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<Mega::Polygon> contour = 0,
+    const std::vector<::flatbuffers::Offset<Mega::Partition>> *partitions = nullptr) {
+  auto partitions__ = partitions ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Partition>>(*partitions) : 0;
+  return Mega::CreateMap(
+      _fbb,
+      contour,
+      partitions__);
 }
 
 inline bool VerifyVariant(::flatbuffers::Verifier &verifier, const void *obj, Variant type) {

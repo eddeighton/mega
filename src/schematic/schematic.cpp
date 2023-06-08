@@ -219,20 +219,25 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
     }
 
     // partitions
+    std::vector< flatbuffers::Offset< Mega::Partition > > mapPartitions;
     {
         for( const auto& partition : partitions )
         {
             Mega::PartitionBuilder partitionBuilder( builder );
             partitionBuilder.add_contour( partition.pPolygon );
-            partitionBuilder.Finish();
+            auto pPartition = partitionBuilder.Finish();
+            mapPartitions.push_back( pPartition );
         }
     }
 
     // map
     flatbuffers::Offset< Mega::Map > pMap;
     {
+        auto pPartitionsVector = builder.CreateVector( mapPartitions );
+
         Mega::MapBuilder mapBuilder( builder );
         mapBuilder.add_contour( mapPolygon );
+        mapBuilder.add_partitions( pPartitionsVector );
         pMap = mapBuilder.Finish();
     }
 

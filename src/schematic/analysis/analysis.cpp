@@ -453,11 +453,15 @@ void Analysis::getPerimeterPolygon( HalfEdgeVector& polygon ) const
 
 void Analysis::getBoundaryPolygons( HalfEdgeVectorVector& polygons ) const
 {
-    HalfEdgeSet perimeterEdges;
-    getEdges( perimeterEdges, []( Arrangement::Halfedge_const_handle edge )
-              { return edge->data().flags.test( EdgeMask::ePartitionBoundary ); } );
+    HalfEdgeSet partitionEdges;
+    getEdges( partitionEdges,
+              []( Arrangement::Halfedge_const_handle edge )
+              {
+                  return edge->data().flags.test( EdgeMask::ePartitionBoundary )
+                         && !edge->twin()->data().flags.test( EdgeMask::ePerimeter );
+              } );
 
-    getPolygons( perimeterEdges, polygons );
+    getPolygons( partitionEdges, polygons );
 }
 
 } // namespace exact

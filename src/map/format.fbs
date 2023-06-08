@@ -177,6 +177,7 @@ table PartitionGraph
 table Map
 {
     contour:Polygon;
+    partitions:[Partition];
 }
 
 root_type Map;
