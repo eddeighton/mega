@@ -30,6 +30,12 @@ struct Quat;
 
 struct F33;
 
+struct Vertex;
+struct VertexBuilder;
+
+struct Polygon;
+struct PolygonBuilder;
+
 struct FloatProperty;
 struct FloatPropertyBuilder;
 
@@ -71,6 +77,9 @@ struct ObjectBuilder;
 
 struct PartitionGraph;
 struct PartitionGraphBuilder;
+
+struct Map;
+struct MapBuilder;
 
 enum Variant : uint8_t {
   Variant_NONE = 0,
@@ -379,6 +388,99 @@ inline ::flatbuffers::Offset<TypeName> CreateTypeNameDirect(
       _fbb,
       name__,
       type);
+}
+
+struct Vertex FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef VertexBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_POSITION = 4
+  };
+  const Mega::F2 *position() const {
+    return GetStruct<const Mega::F2 *>(VT_POSITION);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<Mega::F2>(verifier, VT_POSITION, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct VertexBuilder {
+  typedef Vertex Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_position(const Mega::F2 *position) {
+    fbb_.AddStruct(Vertex::VT_POSITION, position);
+  }
+  explicit VertexBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Vertex> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Vertex>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Vertex> CreateVertex(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::F2 *position = nullptr) {
+  VertexBuilder builder_(_fbb);
+  builder_.add_position(position);
+  return builder_.Finish();
+}
+
+struct Polygon FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef PolygonBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VERTICES = 4
+  };
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Vertex>> *vertices() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Vertex>> *>(VT_VERTICES);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VERTICES) &&
+           verifier.VerifyVector(vertices()) &&
+           verifier.VerifyVectorOfTables(vertices()) &&
+           verifier.EndTable();
+  }
+};
+
+struct PolygonBuilder {
+  typedef Polygon Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_vertices(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Vertex>>> vertices) {
+    fbb_.AddOffset(Polygon::VT_VERTICES, vertices);
+  }
+  explicit PolygonBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Polygon> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Polygon>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Polygon> CreatePolygon(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Vertex>>> vertices = 0) {
+  PolygonBuilder builder_(_fbb);
+  builder_.add_vertices(vertices);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<Polygon> CreatePolygonDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<Mega::Vertex>> *vertices = nullptr) {
+  auto vertices__ = vertices ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Vertex>>(*vertices) : 0;
+  return Mega::CreatePolygon(
+      _fbb,
+      vertices__);
 }
 
 struct FloatProperty FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -921,7 +1023,8 @@ struct Section FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SectionBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
-    VT_PROPERTIES = 6
+    VT_PROPERTIES = 6,
+    VT_CONTOUR = 8
   };
   const Mega::Type *type() const {
     return GetStruct<const Mega::Type *>(VT_TYPE);
@@ -929,12 +1032,17 @@ struct Section FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *properties() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *>(VT_PROPERTIES);
   }
+  const Mega::Polygon *contour() const {
+    return GetPointer<const Mega::Polygon *>(VT_CONTOUR);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Mega::Type>(verifier, VT_TYPE, 2) &&
            VerifyOffset(verifier, VT_PROPERTIES) &&
            verifier.VerifyVector(properties()) &&
            verifier.VerifyVectorOfTables(properties()) &&
+           VerifyOffset(verifier, VT_CONTOUR) &&
+           verifier.VerifyTable(contour()) &&
            verifier.EndTable();
   }
 };
@@ -948,6 +1056,9 @@ struct SectionBuilder {
   }
   void add_properties(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties) {
     fbb_.AddOffset(Section::VT_PROPERTIES, properties);
+  }
+  void add_contour(::flatbuffers::Offset<Mega::Polygon> contour) {
+    fbb_.AddOffset(Section::VT_CONTOUR, contour);
   }
   explicit SectionBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -963,8 +1074,10 @@ struct SectionBuilder {
 inline ::flatbuffers::Offset<Section> CreateSection(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const Mega::Type *type = nullptr,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties = 0,
+    ::flatbuffers::Offset<Mega::Polygon> contour = 0) {
   SectionBuilder builder_(_fbb);
+  builder_.add_contour(contour);
   builder_.add_properties(properties);
   builder_.add_type(type);
   return builder_.Finish();
@@ -973,33 +1086,53 @@ inline ::flatbuffers::Offset<Section> CreateSection(
 inline ::flatbuffers::Offset<Section> CreateSectionDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const Mega::Type *type = nullptr,
-    const std::vector<::flatbuffers::Offset<Mega::Properties>> *properties = nullptr) {
+    const std::vector<::flatbuffers::Offset<Mega::Properties>> *properties = nullptr,
+    ::flatbuffers::Offset<Mega::Polygon> contour = 0) {
   auto properties__ = properties ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Properties>>(*properties) : 0;
   return Mega::CreateSection(
       _fbb,
       type,
-      properties__);
+      properties__,
+      contour);
 }
 
 struct Partition FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef PartitionBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_PARENT = 4,
-    VT_SECTIONS = 6
+    VT_TYPE = 4,
+    VT_PROPERTIES = 6,
+    VT_PARENT = 8,
+    VT_SECTIONS = 10,
+    VT_CONTOUR = 12
   };
+  const Mega::Type *type() const {
+    return GetStruct<const Mega::Type *>(VT_TYPE);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *properties() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>> *>(VT_PROPERTIES);
+  }
   const Mega::Area *parent() const {
     return GetPointer<const Mega::Area *>(VT_PARENT);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Section>> *sections() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Section>> *>(VT_SECTIONS);
   }
+  const Mega::Polygon *contour() const {
+    return GetPointer<const Mega::Polygon *>(VT_CONTOUR);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<Mega::Type>(verifier, VT_TYPE, 2) &&
+           VerifyOffset(verifier, VT_PROPERTIES) &&
+           verifier.VerifyVector(properties()) &&
+           verifier.VerifyVectorOfTables(properties()) &&
            VerifyOffset(verifier, VT_PARENT) &&
            verifier.VerifyTable(parent()) &&
            VerifyOffset(verifier, VT_SECTIONS) &&
            verifier.VerifyVector(sections()) &&
            verifier.VerifyVectorOfTables(sections()) &&
+           VerifyOffset(verifier, VT_CONTOUR) &&
+           verifier.VerifyTable(contour()) &&
            verifier.EndTable();
   }
 };
@@ -1008,11 +1141,20 @@ struct PartitionBuilder {
   typedef Partition Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_type(const Mega::Type *type) {
+    fbb_.AddStruct(Partition::VT_TYPE, type);
+  }
+  void add_properties(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties) {
+    fbb_.AddOffset(Partition::VT_PROPERTIES, properties);
+  }
   void add_parent(::flatbuffers::Offset<Mega::Area> parent) {
     fbb_.AddOffset(Partition::VT_PARENT, parent);
   }
   void add_sections(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Section>>> sections) {
     fbb_.AddOffset(Partition::VT_SECTIONS, sections);
+  }
+  void add_contour(::flatbuffers::Offset<Mega::Polygon> contour) {
+    fbb_.AddOffset(Partition::VT_CONTOUR, contour);
   }
   explicit PartitionBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1027,23 +1169,36 @@ struct PartitionBuilder {
 
 inline ::flatbuffers::Offset<Partition> CreatePartition(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Type *type = nullptr,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties = 0,
     ::flatbuffers::Offset<Mega::Area> parent = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Section>>> sections = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Section>>> sections = 0,
+    ::flatbuffers::Offset<Mega::Polygon> contour = 0) {
   PartitionBuilder builder_(_fbb);
+  builder_.add_contour(contour);
   builder_.add_sections(sections);
   builder_.add_parent(parent);
+  builder_.add_properties(properties);
+  builder_.add_type(type);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<Partition> CreatePartitionDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Mega::Type *type = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Properties>> *properties = nullptr,
     ::flatbuffers::Offset<Mega::Area> parent = 0,
-    const std::vector<::flatbuffers::Offset<Mega::Section>> *sections = nullptr) {
+    const std::vector<::flatbuffers::Offset<Mega::Section>> *sections = nullptr,
+    ::flatbuffers::Offset<Mega::Polygon> contour = 0) {
+  auto properties__ = properties ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Properties>>(*properties) : 0;
   auto sections__ = sections ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Section>>(*sections) : 0;
   return Mega::CreatePartition(
       _fbb,
+      type,
+      properties__,
       parent,
-      sections__);
+      sections__,
+      contour);
 }
 
 struct Object FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -1191,6 +1346,48 @@ inline ::flatbuffers::Offset<PartitionGraph> CreatePartitionGraph(
   return builder_.Finish();
 }
 
+struct Map FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef MapBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_CONTOUR = 4
+  };
+  const Mega::Polygon *contour() const {
+    return GetPointer<const Mega::Polygon *>(VT_CONTOUR);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_CONTOUR) &&
+           verifier.VerifyTable(contour()) &&
+           verifier.EndTable();
+  }
+};
+
+struct MapBuilder {
+  typedef Map Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_contour(::flatbuffers::Offset<Mega::Polygon> contour) {
+    fbb_.AddOffset(Map::VT_CONTOUR, contour);
+  }
+  explicit MapBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Map> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Map>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Map> CreateMap(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<Mega::Polygon> contour = 0) {
+  MapBuilder builder_(_fbb);
+  builder_.add_contour(contour);
+  return builder_.Finish();
+}
+
 inline bool VerifyVariant(::flatbuffers::Verifier &verifier, const void *obj, Variant type) {
   switch (type) {
     case Variant_NONE: {
@@ -1242,6 +1439,54 @@ inline bool VerifyVariantVector(::flatbuffers::Verifier &verifier, const ::flatb
     }
   }
   return true;
+}
+
+inline const Mega::Map *GetMap(const void *buf) {
+  return ::flatbuffers::GetRoot<Mega::Map>(buf);
+}
+
+inline const Mega::Map *GetSizePrefixedMap(const void *buf) {
+  return ::flatbuffers::GetSizePrefixedRoot<Mega::Map>(buf);
+}
+
+inline const char *MapIdentifier() {
+  return "MEGA";
+}
+
+inline bool MapBufferHasIdentifier(const void *buf) {
+  return ::flatbuffers::BufferHasIdentifier(
+      buf, MapIdentifier());
+}
+
+inline bool SizePrefixedMapBufferHasIdentifier(const void *buf) {
+  return ::flatbuffers::BufferHasIdentifier(
+      buf, MapIdentifier(), true);
+}
+
+inline bool VerifyMapBuffer(
+    ::flatbuffers::Verifier &verifier) {
+  return verifier.VerifyBuffer<Mega::Map>(MapIdentifier());
+}
+
+inline bool VerifySizePrefixedMapBuffer(
+    ::flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<Mega::Map>(MapIdentifier());
+}
+
+inline const char *MapExtension() {
+  return "map";
+}
+
+inline void FinishMapBuffer(
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<Mega::Map> root) {
+  fbb.Finish(root, MapIdentifier());
+}
+
+inline void FinishSizePrefixedMapBuffer(
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<Mega::Map> root) {
+  fbb.FinishSizePrefixed(root, MapIdentifier());
 }
 
 }  // namespace Mega

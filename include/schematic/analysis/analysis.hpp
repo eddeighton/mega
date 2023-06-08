@@ -100,7 +100,17 @@ public:
 
     Analysis( boost::shared_ptr< schematic::Schematic > pSchematic );
 
+    // query used by editor for edge visualisation
     void getEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges );
+
+    // queries used by map format
+    using VertexVector         = std::vector< Arrangement::Vertex_const_handle >;
+    using HalfEdgeVector       = std::vector< Arrangement::Halfedge_const_handle >;
+    using HalfEdgeVectorVector = std::vector< HalfEdgeVector >;
+
+    void getVertices( VertexVector& vertices ) const;
+    void getPerimeterPolygon( HalfEdgeVector& polygon ) const;
+    void getBoundaryPolygons( HalfEdgeVectorVector& polygons ) const;
 
 private:
     template < typename TEdgeType >
@@ -111,6 +121,7 @@ private:
         h->set_data( data );
     }
 
+    // internal analysis routines
     void renderContour( const exact::Transform& transform,
                         const exact::Polygon&   poly,
                         EdgeMask::Type          innerMask,
@@ -123,6 +134,58 @@ private:
                                    Arrangement::Halfedge_handle secondBisectorEdge );
     bool doesFaceContainEdgeType( Arrangement::Face_const_handle hFace, EdgeMask::Type type ) const;
     void partition();
+
+    // internal query implementation helper functions
+    using HalfEdge    = Arrangement::Halfedge_const_handle;
+    using HalfEdgeSet = std::set< HalfEdge >;
+
+    template < typename Predicate >
+    inline void getEdges( HalfEdgeSet& edges, Predicate&& predicate ) const
+    {
+        for( auto i = m_arr.halfedges_begin(); i != m_arr.halfedges_end(); ++i )
+        {
+            if( predicate( i ) )
+            {
+                edges.insert( i );
+            }
+        }
+    }
+
+    inline void getPolygons( const HalfEdgeSet& edges, HalfEdgeVectorVector& polygons ) const
+    {
+        HalfEdgeSet open = edges;
+
+        while( !open.empty() )
+        {
+            HalfEdge currentEdge = *open.begin();
+
+            HalfEdgeVector polygon;
+            while( currentEdge != HalfEdge{} )
+            {
+                polygon.push_back( currentEdge );
+                open.erase( currentEdge );
+
+                HalfEdge nextEdge = {};
+                {
+                    using EdgeIter    = Arrangement::Halfedge_around_vertex_const_circulator;
+                    EdgeIter edgeIter = currentEdge->target()->incident_halfedges(), edgeIterEnd = edgeIter;
+                    do
+                    {
+                        HalfEdge outEdge = edgeIter->twin();
+                        if( ( currentEdge != outEdge ) && open.contains( outEdge ) )
+                        {
+                            VERIFY_RTE_MSG( nextEdge == HalfEdge{}, "Duplicate next edge found" );
+                            nextEdge = outEdge;
+                        }
+                        ++edgeIter;
+                    } while( edgeIter != edgeIterEnd );
+                }
+                currentEdge = nextEdge;
+            }
+            VERIFY_RTE_MSG( polygon.size() >= 3, "Invalid polygon found with less than three edges" );
+            polygons.push_back( polygon );
+        }
+    }
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 

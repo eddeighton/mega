@@ -22,6 +22,12 @@
 
 namespace editor
 {
+namespace
+{
+
+static const std::size_t TOTAL_ROWS = static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS )
+                                      + static_cast< std::size_t >( exact::EdgeMask::TOTAL_MASK_TYPES );
+}
 
 ViewConfigPanel::ViewConfigPanel( QWidget* pParentWidget )
     : QGraphicsView( pParentWidget )
@@ -77,13 +83,12 @@ void ViewConfigPanel::setViewConfig( editor::ViewConfig::Ptr pViewConfig )
 
     const QRectF rect = m_pScene->sceneRect();
 
-    static const std::size_t szTotalItems = ViewConfig::TOTAL_GLYPH_SETTINGS + exact::EdgeMask::TOTAL_MASK_TYPES;
-    float                    fRectHeight  = rect.height() / szTotalItems;
-    float                    fRectWidth   = rect.width() / 4;
+    float fRectHeight = rect.height() / TOTAL_ROWS;
+    float fRectWidth  = rect.width() / 4;
 
     if( m_pConfig )
     {
-        for( auto i = 0U; i != ViewConfig::TOTAL_GLYPH_SETTINGS; ++i )
+        for( auto i = 0U; i != static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS ); ++i )
         {
             const bool bVisible = m_pConfig->isGlyphVisible( static_cast< ViewConfig::GlyphVisibility >( i ) );
 
@@ -113,12 +118,15 @@ void ViewConfigPanel::setViewConfig( editor::ViewConfig::Ptr pViewConfig )
             pLabel->setFont( m_font );
             pLabel->setBrush( QBrush( m_textColour ) );
             pLabel->setFlag( QGraphicsItem::ItemIgnoresTransformations );
-            pLabel->setPos( rect.left(), rect.top() + fRectHeight * ( i + ViewConfig::TOTAL_GLYPH_SETTINGS ) );
+            pLabel->setPos(
+                rect.left(),
+                rect.top() + fRectHeight * ( i + static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS ) ) );
 
             int column = m_pConfig->getMaskSetting( edgeMask );
 
             auto pRect = new QGraphicsRectItem( QRectF(
-                rect.left() + column * fRectWidth, rect.top() + fRectHeight * ( i + ViewConfig::TOTAL_GLYPH_SETTINGS ),
+                rect.left() + column * fRectWidth,
+                rect.top() + fRectHeight * ( i + static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS ) ),
                 fRectWidth, fRectHeight ) );
             pRect->setPen( Qt::NoPen );
             pRect->setBrush( QBrush( m_selectionColour ) );
@@ -137,9 +145,8 @@ void ViewConfigPanel::drawBackground( QPainter* painter, const QRectF& rect )
     {
         const QRectF rect = m_pScene->sceneRect();
 
-        static const std::size_t szTotalItems = ViewConfig::TOTAL_GLYPH_SETTINGS + exact::EdgeMask::TOTAL_MASK_TYPES;
-        float                    fRectHeight  = rect.height() / szTotalItems;
-        float                    fRectWidth   = rect.width() / 4;
+        float fRectHeight = rect.height() / TOTAL_ROWS;
+        float fRectWidth  = rect.width() / 4;
 
         QPen gridPen;
         gridPen.setStyle( Qt::DotLine );
@@ -168,14 +175,13 @@ void ViewConfigPanel::resizeEvent( QResizeEvent* pEvent )
 
 bool ViewConfigPanel::setConfig( int iRow, int iCol )
 {
-    const QRectF             rect         = m_pScene->sceneRect();
-    static const std::size_t szTotalItems = ViewConfig::TOTAL_GLYPH_SETTINGS + exact::EdgeMask::TOTAL_MASK_TYPES;
-    float                    fRectHeight  = rect.height() / szTotalItems;
-    float                    fRectWidth   = rect.width() / 4;
+    const QRectF rect        = m_pScene->sceneRect();
+    float        fRectHeight = rect.height() / TOTAL_ROWS;
+    float        fRectWidth  = rect.width() / 4;
 
     if( iCol >= 0 && iCol < 4 )
     {
-        if( iRow < ViewConfig::TOTAL_GLYPH_SETTINGS )
+        if( iRow < static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS ) )
         {
             const auto setting   = static_cast< ViewConfig::GlyphVisibility >( iRow );
             bool       bNewValue = iCol >= 2;
@@ -199,9 +205,11 @@ bool ViewConfigPanel::setConfig( int iRow, int iCol )
                 }
             }
         }
-        else if( ( iRow - ViewConfig::TOTAL_GLYPH_SETTINGS ) < exact::EdgeMask::TOTAL_MASK_TYPES )
+        else if( ( iRow - static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS ) )
+                 < static_cast< std::size_t >( exact::EdgeMask::TOTAL_MASK_TYPES ) )
         {
-            const auto maskType = static_cast< exact::EdgeMask::Type >( iRow - ViewConfig::TOTAL_GLYPH_SETTINGS );
+            const auto maskType = static_cast< exact::EdgeMask::Type >(
+                iRow - static_cast< std::size_t >( ViewConfig::TOTAL_GLYPH_SETTINGS ) );
             if( m_maskRows.size() > maskType )
             {
                 if( m_pConfig->getMaskSetting( maskType ) != iCol )
@@ -231,9 +239,7 @@ void ViewConfigPanel::mousePressEvent( QMouseEvent* pEvent )
             const QRectF  rect = m_pScene->sceneRect();
             const QPointF pos  = mapToScene( pEvent->pos() );
 
-            static const std::size_t szTotalItems
-                = ViewConfig::TOTAL_GLYPH_SETTINGS + exact::EdgeMask::TOTAL_MASK_TYPES;
-            float fRectHeight = rect.height() / szTotalItems;
+            float fRectHeight = rect.height() / TOTAL_ROWS;
             float fRectWidth  = rect.width() / 4;
 
             const int iRow = ( pos.y() - rect.top() ) / fRectHeight;
@@ -257,9 +263,8 @@ void ViewConfigPanel::mouseMoveEvent( QMouseEvent* pEvent )
         const QRectF  rect = m_pScene->sceneRect();
         const QPointF pos  = mapToScene( pEvent->pos() );
 
-        static const std::size_t szTotalItems = ViewConfig::TOTAL_GLYPH_SETTINGS + exact::EdgeMask::TOTAL_MASK_TYPES;
-        float                    fRectHeight  = rect.height() / szTotalItems;
-        const int                iRow         = ( pos.y() - rect.top() ) / fRectHeight;
+        float     fRectHeight = rect.height() / TOTAL_ROWS;
+        const int iRow        = ( pos.y() - rect.top() ) / fRectHeight;
 
         if( setConfig( iRow, m_mouseDownColumn.value() ) )
         {

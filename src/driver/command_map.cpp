@@ -93,25 +93,16 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             using namespace schematic;
 
-            pSchematic->task_contours();
-            pSchematic->task_extrusions();
-            pSchematic->task_compilation();
+            pSchematic->compileMap( outputFilePath );
 
-            // analysis::Compilation::Ptr pCompilation = pSchematic->getCompilation();
-            // VERIFY_RTE_MSG( pCompilation, "Failed to acquire schematic compilation" );
-            // analysis::FloorAnalysis floorAnalysis( *pCompilation, pSchematic );
-            // floorAnalysis.render( outputFilePath );
-
-            // pCompilation->getFaces(int &floorFaces, int &fillerFaces)
+            std::cout << "Map: " << schematicFilePath.string() << " compiled to: " << outputFilePath.string()
+                      << std::endl;
         }
 
         // const mega::Project project( projectPath );
-
         // VERIFY_RTE_MSG( boost::filesystem::exists( project.getProjectDatabase() ),
         //                 "Failed to locate project database at: " << project.getProjectDatabase().string() );
-
         // mega::io::ArchiveEnvironment environment( project.getProjectDatabase() );
-
         // using namespace FinalStage;
         // Database database( environment, environment.project_manifest() );
     }

@@ -27,6 +27,8 @@
 
 #include "map/map_format.h"
 
+#include "common/file.hpp"
+
 namespace schematic
 {
 
@@ -114,11 +116,8 @@ void recurseSites( flatbuffers::FlatBufferBuilder& builder, Site::Ptr pSite )
     // Mega::AreaBuilder::
     {
         Mega::AreaBuilder areaBuilder( builder );
-
-        Mega::Type type( 1 );
-
+        Mega::Type        type( 1 );
         areaBuilder.add_type( &type );
-
         flatbuffers::Offset< Mega::Area > pAreaPtr = areaBuilder.Finish();
     }
 
@@ -130,20 +129,123 @@ void recurseSites( flatbuffers::FlatBufferBuilder& builder, Site::Ptr pSite )
 
 void Schematic::compileMap( const boost::filesystem::path& filePath )
 {
+    exact::ExactToInexact convert;
+
+    if( !m_pAnalysis )
+    {
+        task_contours();
+        task_extrusions();
+        task_compilation();
+    }
+    VERIFY_RTE_MSG( m_pAnalysis, "Schematic analysis failed" );
+
     flatbuffers::FlatBufferBuilder builder;
 
-    const auto sites = getSites();
-    VERIFY_RTE_MSG( sites.size() < 2, "More than one root site in schematic" );
-    if( !sites.empty() )
+    // write the site tree
+    /*{
+        const auto sites = getSites();
+        VERIFY_RTE_MSG( sites.size() < 2, "More than one root site in schematic" );
+        if( !sites.empty() )
+        {
+            recurseSites( builder, sites.front() );
+        }
+    }*/
+
+    using AnalysisVert = exact::Analysis::Arrangement::Vertex_const_handle;
+    using MapVert      = flatbuffers::Offset< Mega::Vertex >;
+    using VertexMap    = std::map< AnalysisVert, MapVert >;
+    VertexMap vertexMap;
+
+    struct Partition
     {
-        recurseSites( builder, sites.front() );
+        flatbuffers::Offset< Mega::Polygon > pPolygon;
+    };
+    std::vector< Partition > partitions;
+
+    auto buildPolygon = [ & ]( const exact::Analysis::HalfEdgeVector& contour ) -> flatbuffers::Offset< Mega::Polygon >
+    {
+        std::vector< MapVert > vertices;
+        {
+            for( auto pEdge : contour )
+            {
+                auto iFind = vertexMap.find( pEdge->source() );
+                VERIFY_RTE_MSG( iFind != vertexMap.end(), "Failed to find vertex" );
+                vertices.push_back( iFind->second );
+            }
+        }
+        auto pVerts = builder.CreateVector( vertices );
+
+        Mega::PolygonBuilder polyBuilder( builder );
+        polyBuilder.add_vertices( pVerts );
+        return polyBuilder.Finish();
+    };
+
+    using namespace exact;
+
+    // record all vertices
+    {
+        exact::Analysis::VertexVector vertices;
+        m_pAnalysis->getVertices( vertices );
+
+        for( auto pVert : vertices )
+        {
+            const schematic::Point pt = convert( pVert->point() );
+            const Mega::F2         f2( pt.x(), pt.y() );
+
+            Mega::VertexBuilder vertBuilder( builder );
+            vertBuilder.add_position( &f2 );
+            flatbuffers::Offset< Mega::Vertex > pVertex = vertBuilder.Finish();
+            vertexMap.insert( { pVert, pVertex } );
+        }
     }
 
-    builder.Finished();
+    flatbuffers::Offset< Mega::Polygon > mapPolygon;
+    // polygons
+    {
+        exact::Analysis::HalfEdgeVector perimeter;
+        m_pAnalysis->getPerimeterPolygon( perimeter );
+        mapPolygon = buildPolygon( perimeter );
+    }
+    {
+        exact::Analysis::HalfEdgeVectorVector boundaries;
+        m_pAnalysis->getBoundaryPolygons( boundaries );
 
-    const auto size = builder.GetSize();
+        for( const auto& boundary : boundaries )
+        {
+            flatbuffers::Offset< Mega::Polygon > pPolygon  = buildPolygon( boundary );
+            Partition                            partition = { pPolygon };
+            partitions.push_back( partition );
+        }
+    }
 
-    const auto* pBuffer = builder.GetBufferPointer();
+    // partitions
+    {
+        for( const auto& partition : partitions )
+        {
+            Mega::PartitionBuilder partitionBuilder( builder );
+            partitionBuilder.add_contour( partition.pPolygon );
+            partitionBuilder.Finish();
+        }
+    }
+
+    // map
+    flatbuffers::Offset< Mega::Map > pMap;
+    {
+        Mega::MapBuilder mapBuilder( builder );
+        mapBuilder.add_contour( mapPolygon );
+        pMap = mapBuilder.Finish();
+    }
+
+    builder.Finish( pMap );
+
+    // write the file
+    {
+        const auto                                     size    = builder.GetSize();
+        const uint8_t*                                 pBuffer = builder.GetBufferPointer();
+        std::unique_ptr< boost::filesystem::ofstream > pFileStream
+            = boost::filesystem::createBinaryOutputFileStream( filePath );
+        pFileStream->write( reinterpret_cast< const char* >( pBuffer ), size );
+    }
 }
 
 } // namespace schematic

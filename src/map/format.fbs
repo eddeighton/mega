@@ -73,6 +73,17 @@ struct F33
     m:[F3:3];
 }
 
+// Vertices
+table Vertex
+{
+    position:F2;
+}
+
+table Polygon
+{
+    vertices:[Vertex];
+}
+
 // Property Types
 table FloatProperty
 {
@@ -137,12 +148,16 @@ table Section
 {
     type:Type;
     properties:[Properties];
+    contour:Polygon;
 }
 
 table Partition
 {
+    type:Type;
+    properties:[Properties];
     parent:Area;
     sections:[Section];
+    contour:Polygon;
 }
 
 table Object
@@ -158,3 +173,10 @@ table PartitionGraph
    first:Partition;
    second:Partition;
 }
+
+table Map
+{
+    contour:Polygon;
+}
+
+root_type Map;

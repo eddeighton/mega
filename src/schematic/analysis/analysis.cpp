@@ -29,20 +29,18 @@ Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
     : m_pSchematic( pSchematic )
     , m_observer( m_arr )
 {
-    for( schematic::Site::Ptr pSite : pSchematic->getSites() )
-    {
-        recurse( pSite );
-    }
-    for( schematic::Site::Ptr pSite : pSchematic->getSites() )
-    {
-        connect( pSite );
-    }
+    auto sites = pSchematic->getSites();
+    VERIFY_RTE_MSG( sites.size() < 2, "Schematic contains more than one root site" );
+    VERIFY_RTE_MSG( sites.size() == 1, "Schematic missing root site" );
 
-    for( schematic::Site::Ptr pSite : pSchematic->getSites() )
-    {
-        recursePost( pSite );
-    }
+    schematic::Space::Ptr pRootSpace = boost::dynamic_pointer_cast< schematic::Space >( sites.front() );
+    VERIFY_RTE_MSG( pRootSpace, "Root site is not a space" );
+    renderContour( pRootSpace->getAbsoluteExactTransform(), pRootSpace->getInteriorPolygon(), EdgeMask::ePerimeter,
+                   EdgeMask::ePerimeterBoundary );
 
+    recurse( pRootSpace );
+    connect( pRootSpace );
+    recursePost( pRootSpace );
     partition();
 }
 
@@ -388,11 +386,10 @@ void Analysis::partition()
             Arrangement::Ccb_halfedge_circulator start = iter;
             do
             {
-                auto hTwin = iter;
-                if( !hTwin->data().flags.test( EdgeMask::eConnectionBreak )
-                    && !hTwin->data().flags.test( EdgeMask::eConnectionEnd ) )
+                if( !iter->data().flags.test( EdgeMask::eConnectionBreak )
+                    && !iter->data().flags.test( EdgeMask::eConnectionEnd ) )
                 {
-                    classify( hTwin, EdgeMask::ePartitionFloor );
+                    classify( iter, EdgeMask::ePartitionFloor );
                 }
                 ++iter;
             } while( iter != start );
@@ -432,4 +429,35 @@ void Analysis::getEdges( std::vector< std::pair< schematic::Segment, EdgeMask::S
             schematic::Segment{ convert( i->source()->point() ), convert( i->target()->point() ) }, i->data().flags );
     }
 }
+
+void Analysis::getVertices( VertexVector& vertices ) const
+{
+    for( auto i = m_arr.vertices_begin(); i != m_arr.vertices_end(); ++i )
+    {
+        vertices.push_back( i );
+    }
+}
+
+void Analysis::getPerimeterPolygon( HalfEdgeVector& polygon ) const
+{
+    HalfEdgeSet perimeterEdges;
+    getEdges( perimeterEdges, []( Arrangement::Halfedge_const_handle edge )
+              { return edge->data().flags.test( EdgeMask::ePerimeter ); } );
+
+    HalfEdgeVectorVector polygons;
+    getPolygons( perimeterEdges, polygons );
+
+    VERIFY_RTE_MSG( polygons.size() == 1, "Did not find single perimeter polygon" );
+    polygon = polygons.front();
+}
+
+void Analysis::getBoundaryPolygons( HalfEdgeVectorVector& polygons ) const
+{
+    HalfEdgeSet perimeterEdges;
+    getEdges( perimeterEdges, []( Arrangement::Halfedge_const_handle edge )
+              { return edge->data().flags.test( EdgeMask::ePartitionBoundary ); } );
+
+    getPolygons( perimeterEdges, polygons );
+}
+
 } // namespace exact
