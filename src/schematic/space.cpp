@@ -96,6 +96,14 @@ void Space::init()
         add( m_pContour );
     }
 
+    if( !( m_pWidthProperty = get< Property >( "width" ) ) )
+    {
+        m_pWidthProperty = Property::Ptr( new Property( getPtr(), "width" ) );
+        m_pWidthProperty->init();
+        m_pWidthProperty->setStatement("0.5f");
+        add( m_pWidthProperty );
+    }
+
     Site::init();
 
     m_pMarkupContour->setPolygon( m_pContour->getPolygon() );
@@ -108,6 +116,10 @@ void Space::init( const Transform& transform )
     m_pContour = Feature_Contour::Ptr( new Feature_Contour( shared_from_this(), "contour" ) );
     m_pContour->init();
     add( m_pContour );
+
+    m_pWidthProperty = Property::Ptr( new Property( shared_from_this(), "width" ) );
+    m_pWidthProperty->init();
+    add( m_pWidthProperty );
 
     Space::init();
 
@@ -143,7 +155,12 @@ bool Space::task_contour()
 
 void Space::task_extrusions()
 {
-    const Kernel::FT wallWidth = 2;
+    Kernel::FT wallWidth = 2;
+    if( m_pWidthProperty )
+    {
+        std::istringstream is( m_pWidthProperty->getStatement() );
+        is >> wallWidth;
+    }
 
     if( !m_sitePolygon.is_empty() )
         return;

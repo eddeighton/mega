@@ -69,6 +69,8 @@ public:
 private:
     std::string m_strValue;
 };
+
+
 /*
 class RefPtr
 {

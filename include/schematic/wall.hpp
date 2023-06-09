@@ -56,6 +56,7 @@ public:
 
 private:
     Feature_Contour::Ptr m_pContour;
+    Property::Ptr        m_pWidthProperty;
 
     Polygon            m_siteContourCache;
     Timing::UpdateTick m_siteContourTick;

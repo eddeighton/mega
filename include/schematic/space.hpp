@@ -76,6 +76,7 @@ protected:
     const exact::Polygon& getExteriorPolygon() const { return m_exteriorPolygon; }
 
     Feature_Contour::Ptr m_pContour;
+    Property::Ptr        m_pWidthProperty;
 
     Polygon            m_siteContourCache;
     Timing::UpdateTick m_siteContourTick;
