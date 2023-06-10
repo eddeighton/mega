@@ -20,6 +20,7 @@
 
 #include "schematic/analysis/analysis.hpp"
 #include "schematic/schematic.hpp"
+#include "schematic/analysis/invariant.hpp"
 
 #include <vector>
 
@@ -30,13 +31,13 @@ Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
     , m_observer( m_arr )
 {
     auto sites = pSchematic->getSites();
-    VERIFY_RTE_MSG( sites.size() < 2, "Schematic contains more than one root site" );
-    VERIFY_RTE_MSG( sites.size() == 1, "Schematic missing root site" );
+    INVARIANT( sites.size() < 2, "Schematic contains more than one root site" );
+    INVARIANT( sites.size() == 1, "Schematic missing root site" );
 
     schematic::Space::Ptr pRootSpace = boost::dynamic_pointer_cast< schematic::Space >( sites.front() );
-    VERIFY_RTE_MSG( pRootSpace, "Root site is not a space" );
+    INVARIANT( pRootSpace, "Root site is not a space" );
     renderContour( pRootSpace->getAbsoluteExactTransform(), pRootSpace->getInteriorPolygon(), EdgeMask::ePerimeter,
-                   EdgeMask::ePerimeterBoundary );
+                   EdgeMask::ePerimeterBoundary, pRootSpace, {} );
 
     recurse( pRootSpace );
     connect( pRootSpace );
@@ -45,7 +46,8 @@ Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
 }
 
 void Analysis::renderContour( const exact::Transform& transform, const exact::Polygon& polyOriginal,
-                              EdgeMask::Type innerMask, EdgeMask::Type outerMask )
+                              EdgeMask::Type innerMask, EdgeMask::Type outerMask, schematic::Site::PtrCst pInnerSite,
+                              schematic::Site::PtrCst pOuterSite )
 {
     // transform to absolute coordinates
     exact::Polygon exactPoly;
@@ -77,11 +79,19 @@ void Analysis::renderContour( const exact::Transform& transform, const exact::Po
 
             if( bSameDir )
             {
+                if( pInnerSite )
+                    edge->data().appendSiteUnique( pInnerSite );
+                if( pOuterSite )
+                    edge->twin()->data().appendSiteUnique( pOuterSite );
                 classify( edge, innerMask );
                 classify( edge->twin(), outerMask );
             }
             else
             {
+                if( pInnerSite )
+                    edge->twin()->data().appendSiteUnique( pInnerSite );
+                if( pOuterSite )
+                    edge->data().appendSiteUnique( pOuterSite );
                 classify( edge->twin(), innerMask );
                 classify( edge, outerMask );
             }
@@ -97,14 +107,15 @@ void Analysis::recurse( schematic::Site::Ptr pSite )
 
         // render the interior polygon
         {
-            renderContour( transform, pSpace->getInteriorPolygon(), EdgeMask::eInterior, EdgeMask::eInteriorBoundary );
+            renderContour(
+                transform, pSpace->getInteriorPolygon(), EdgeMask::eInterior, EdgeMask::eInteriorBoundary, pSpace, {} );
         }
 
         // render the exterior polygons
         {
             for( const exact::Polygon& p : pSpace->getInnerExteriorUnions() )
             {
-                renderContour( transform, p, EdgeMask::eExterior, EdgeMask::eExteriorBoundary );
+                renderContour( transform, p, EdgeMask::eExterior, EdgeMask::eExteriorBoundary, {}, pSpace );
             }
         }
     }
@@ -122,7 +133,7 @@ void Analysis::recursePost( schematic::Site::Ptr pSite )
         const exact::Transform transform = pSpace->getAbsoluteExactTransform();
 
         // render the site polygon
-        renderContour( transform, pSpace->getSitePolygon(), EdgeMask::eSite, EdgeMask::eSite );
+        renderContour( transform, pSpace->getSitePolygon(), EdgeMask::eSite, EdgeMask::eSite, pSpace, {} );
     }
 
     for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
@@ -181,7 +192,7 @@ void Analysis::constructConnectionEdges( schematic::Connection::Ptr   pConnectio
         {
             throw std::runtime_error( "Failed in constructConnectionEdges" );
         }
-        VERIFY_RTE( bFound );
+        INVARIANT( bFound, "Connection failed" );
     }
     {
         bool                                           bFound = false;
@@ -202,7 +213,7 @@ void Analysis::constructConnectionEdges( schematic::Connection::Ptr   pConnectio
         {
             throw std::runtime_error( "Failed in constructConnectionEdges" );
         }
-        VERIFY_RTE( bFound );
+        INVARIANT( bFound, "Connection failed" );
     }
 }
 
@@ -238,10 +249,10 @@ void Analysis::connect( schematic::Site::Ptr pSite )
                 {
                     firstBisectorEdge = h;
                     classify( firstBisectorEdge, EdgeMask::eConnectionBisector );
-                    classify( firstBisectorEdge->twin(), EdgeMask::eConnectionBoundary );
+                    classify( firstBisectorEdge->twin(), EdgeMask::eConnectionBisectorBoundary );
                     if( bFoundFirst )
                         throw std::runtime_error( "Failed in connect" );
-                    VERIFY_RTE( !bFoundFirst );
+                    INVARIANT( !bFoundFirst, "Connect failed" );
                     bFoundFirst = true;
                 }
             }
@@ -266,11 +277,11 @@ void Analysis::connect( schematic::Site::Ptr pSite )
                 else
                 {
                     secondBisectorEdge = h;
-                    classify( secondBisectorEdge, EdgeMask::eConnectionBoundary );
+                    classify( secondBisectorEdge, EdgeMask::eConnectionBisectorBoundary );
                     classify( secondBisectorEdge->twin(), EdgeMask::eConnectionBisector );
                     if( bFoundSecond )
                         throw std::runtime_error( "Failed in connect" );
-                    VERIFY_RTE( !bFoundSecond );
+                    INVARIANT( !bFoundSecond, "Connect failed" );
                     bFoundSecond = true;
                 }
             }
@@ -283,11 +294,10 @@ void Analysis::connect( schematic::Site::Ptr pSite )
             throw std::runtime_error( os.str() );
         }
 
-        VERIFY_RTE_MSG(
-            bFoundFirst && bFoundSecond, "Failed to construct connection: " << pConnection->Node::getName() );
+        INVARIANT( bFoundFirst && bFoundSecond, "Failed to construct connection: " << pConnection->Node::getName() );
         constructConnectionEdges( pConnection, firstBisectorEdge, secondBisectorEdge );
 
-        // VERIFY_RTE_MSG( toRemove.size() == 4, "Bad connection" );
+        // INVARIANT( toRemove.size() == 4, "Bad connection" );
         for( Arrangement::Halfedge_handle h : toRemove )
         {
             classify( h, EdgeMask::eConnectionEnd );
@@ -301,15 +311,30 @@ void Analysis::connect( schematic::Site::Ptr pSite )
     }
 }
 
-bool Analysis::doesFaceContainEdgeType( Arrangement::Face_const_handle hFace, EdgeMask::Type type ) const
+bool Analysis::areFacesAdjacent( Arrangement::Face_const_handle hFace1, Arrangement::Face_const_handle hFace2 ) const
 {
-    if( !hFace->is_unbounded() )
+    INVARIANT( !hFace1->is_unbounded(), "Invalid face passed to areFacesAdjacent" );
+
+    Arrangement::Ccb_halfedge_const_circulator iter  = hFace1->outer_ccb();
+    Arrangement::Ccb_halfedge_const_circulator start = iter;
+    do
     {
-        Arrangement::Ccb_halfedge_const_circulator iter  = hFace->outer_ccb();
+        if( iter->twin()->face() == hFace2 )
+        {
+            return true;
+        }
+        ++iter;
+    } while( iter != start );
+
+    // search through all holes
+    for( Arrangement::Hole_const_iterator holeIter = hFace1->holes_begin(), holeIterEnd = hFace1->holes_end();
+         holeIter != holeIterEnd; ++holeIter )
+    {
+        Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
         Arrangement::Ccb_halfedge_const_circulator start = iter;
         do
         {
-            if( iter->data().flags.test( type ) )
+            if( iter->twin()->face() == hFace2 )
             {
                 return true;
             }
@@ -317,21 +342,6 @@ bool Analysis::doesFaceContainEdgeType( Arrangement::Face_const_handle hFace, Ed
         } while( iter != start );
     }
 
-    // search through all holes
-    for( Arrangement::Hole_const_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
-         holeIter != holeIterEnd; ++holeIter )
-    {
-        Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
-        Arrangement::Ccb_halfedge_const_circulator start = iter;
-        do
-        {
-            if( iter->data().flags.test( type ) )
-            {
-                return true;
-            }
-            ++iter;
-        } while( iter != start );
-    }
     return false;
 }
 
@@ -340,43 +350,62 @@ void Analysis::partition()
     using FaceHandle    = Arrangement::Face_handle;
     using FaceHandleSet = std::set< FaceHandle >;
 
-    FaceHandleSet floorFaces;
-    FaceHandleSet fillerFaces;
+    FaceHandleSet floorFaces, doorStepFloorFaces, otherFloorFaces;
+    FaceHandleSet boundaryFaces;
+    int           iUnboundedCount = 0;
     for( auto i = m_arr.faces_begin(), iEnd = m_arr.faces_end(); i != iEnd; ++i )
     {
         Arrangement::Face_handle hFace = i;
-        if( doesFaceContainEdgeType( hFace, EdgeMask::eDoorStep )
-            || doesFaceContainEdgeType( hFace, EdgeMask::eConnectionBreak ) )
+        if( !hFace->is_unbounded() )
         {
-            floorFaces.insert( hFace );
+            // if face contains a doorstep then it is ALWAYS a floor
+            if( anyFaceEdge(
+                    hFace, []( const HalfEdgeData& edge ) { return edge.flags.test( EdgeMask::eDoorStep ); } ) )
+            {
+                doorStepFloorFaces.insert( hFace );
+                floorFaces.insert( hFace );
+            }
+            // if the face contains an interior edge WHICH IS NOT also and exterior boundary edge
+            // then it must be a floor
+            else if( allFaceEdges( hFace,
+                                   []( const HalfEdgeData& edge )
+                                   {
+                                       return edge.flags.test( EdgeMask::eInterior )
+                                              || edge.flags.test( EdgeMask::eExteriorBoundary )
+                                              || edge.flags.test( EdgeMask::eConnectionEnd );
+                                   } ) )
+            {
+                otherFloorFaces.insert( hFace );
+                floorFaces.insert( hFace );
+            }
+            else
+            {
+                boundaryFaces.insert( hFace );
+            }
         }
         else
         {
-            // fillers cannot have holes
-            if( hFace->holes_begin() == hFace->holes_end() )
-            {
-                fillerFaces.insert( hFace );
-            }
+            ++iUnboundedCount;
         }
     }
+    INVARIANT( iUnboundedCount == 1, "Unbounded faces count not one: " << iUnboundedCount );
 
     // classify all floor face halfedges as ePartitionFloor
     for( auto& hFace : floorFaces )
     {
-        if( !hFace->is_unbounded() )
+        INVARIANT( !hFace->is_unbounded(), "Unbounded floor face" );
+
+        Arrangement::Ccb_halfedge_circulator iter  = hFace->outer_ccb();
+        Arrangement::Ccb_halfedge_circulator start = iter;
+        do
         {
-            Arrangement::Ccb_halfedge_circulator iter  = hFace->outer_ccb();
-            Arrangement::Ccb_halfedge_circulator start = iter;
-            do
+            if( !iter->data().flags.test( EdgeMask::eConnectionBreak )
+                && !iter->data().flags.test( EdgeMask::eConnectionEnd ) )
             {
-                if( !iter->data().flags.test( EdgeMask::eConnectionBreak )
-                    && !iter->data().flags.test( EdgeMask::eConnectionEnd ) )
-                {
-                    classify( iter, EdgeMask::ePartitionFloor );
-                }
-                ++iter;
-            } while( iter != start );
-        }
+                classify( iter, EdgeMask::ePartitionFloor );
+            }
+            ++iter;
+        } while( iter != start );
 
         // search through all holes
         for( Arrangement::Hole_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
@@ -418,6 +447,102 @@ void Analysis::partition()
             classify( i->twin(), EdgeMask::ePartitionNone );
         }
     }
+
+    // solve the face connected components that consistutute the floor and boundary partitions
+    FaceHandleSet foundDoorStepFaces;
+
+    using FloorToDoorStepFaceMap = std::multimap< FaceHandle, FaceHandle >;
+    FloorToDoorStepFaceMap floorPartitions;
+
+    for( auto hFloorFace : otherFloorFaces )
+    {
+        for( auto hDoorStepFace : doorStepFloorFaces )
+        {
+            if( areFacesAdjacent( hFloorFace, hDoorStepFace ) )
+            {
+                INVARIANT(
+                    !foundDoorStepFaces.contains( hDoorStepFace ), "Door step face found adjacent to two floor faces" );
+                foundDoorStepFaces.insert( hDoorStepFace );
+                floorPartitions.insert( { hFloorFace, hDoorStepFace } );
+            }
+        }
+    }
+
+    using BoundaryDisjointSets = std::list< FaceHandleSet >;
+    BoundaryDisjointSets boundaries;
+    for( auto hBoundaryFace : boundaryFaces )
+    {
+        bool bFound = false;
+
+        FaceHandleSet newSet;
+        newSet.insert( hBoundaryFace );
+
+        std::vector< BoundaryDisjointSets::iterator > connections;
+        for( auto i = boundaries.begin(), iEnd = boundaries.end(); i != iEnd; ++i )
+        {
+            for( auto hExisting : *i )
+            {
+                if( areFacesAdjacent( hBoundaryFace, hExisting ) )
+                {
+                    newSet.insert( i->begin(), i->end() );
+                    connections.push_back( i );
+                    break;
+                }
+            }
+        }
+        for( auto i : connections )
+            boundaries.erase( i );
+        boundaries.push_back( newSet );
+    }
+
+    // FaceHandleSet floorFaces, doorStepFloorFaces, otherFloorFaces;
+    // FaceHandleSet boundaryFaces;
+
+    /*
+        HalfEdgeVectorVector boundaryPolygons;
+        {
+            HalfEdgeSet partitionEdges;
+            getEdges( partitionEdges,
+                    []( Arrangement::Halfedge_const_handle edge )
+                    {
+                        return edge->data().flags.test( EdgeMask::ePartitionBoundary )
+                                && !edge->twin()->data().flags.test( EdgeMask::ePerimeter );
+                    } );
+
+            getPolygons( partitionEdges, boundaryPolygons );
+        }
+    */
+    // extrapolate the partitions
+
+    /*
+
+            Partition::Ptr pPartition = std::make_unique< Partition >();
+            iter->data().pPartition = pPartition.get();
+
+            // INVARIANT( !iter->data().sites.empty(), "No site for floor edge" );
+            if( !iter->data().sites.empty() )
+            {
+                auto p = iter->data().sites.back();
+                INVARIANT(
+                    !pPartition->pSite || ( pPartition->pSite == p ), "Differing site detected for partition" );
+                if( !pPartition->pSite )
+                    pPartition->pSite = p;
+            }
+        iter->data().pPartition = pPartition.get();
+
+        // INVARIANT( !iter->data().sites.empty(), "No site for floor edge" );
+        if( !iter->data().sites.empty() )
+        {
+            auto p = iter->data().sites.back();
+            INVARIANT(
+                !pPartition->pSite || ( pPartition->pSite == p ), "Differing site detected for partition" );
+            if( !pPartition->pSite )
+                pPartition->pSite = p;
+            hFace->data().pPartition = pPartition.get();
+
+            m_partitions.emplace_back( std::move( pPartition ) );
+
+        }*/
 }
 
 void Analysis::getEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges )
@@ -447,7 +572,7 @@ void Analysis::getPerimeterPolygon( HalfEdgeVector& polygon ) const
     HalfEdgeVectorVector polygons;
     getPolygons( perimeterEdges, polygons );
 
-    VERIFY_RTE_MSG( polygons.size() == 1, "Did not find single perimeter polygon" );
+    INVARIANT( polygons.size() == 1, "Did not find single perimeter polygon" );
     polygon = polygons.front();
 }
 

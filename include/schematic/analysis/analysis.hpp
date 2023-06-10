@@ -41,18 +41,35 @@ class Analysis
 public:
     using Ptr = boost::shared_ptr< Analysis >;
 
+    struct Partition
+    {
+        using Ptr       = std::unique_ptr< Partition >;
+        using PtrVector = std::vector< Ptr >;
+
+        schematic::Site::PtrCst              pSite;
+        schematic::Feature_Pin::PtrCstVector pins;
+    };
+
     struct VertexData
     {
     };
     struct HalfEdgeData
     {
-        HalfEdgeData() = default;
-        HalfEdgeData( EdgeMask::Type flag ) { flags.set( flag ); }
-        EdgeMask::Set        flags;
-        schematic::Site::Ptr pSite = schematic::Site::Ptr{};
+        EdgeMask::Set                 flags;
+        schematic::Site::PtrCstVector sites;
+        Partition*                    pPartition = nullptr;
+
+        void appendSiteUnique( schematic::Site::PtrCst pSite )
+        {
+            if( sites.empty() || sites.back() != pSite )
+            {
+                sites.push_back( pSite );
+            }
+        }
     };
     struct FaceData
     {
+        Partition* pPartition = nullptr;
     };
 
     using Dcel           = CGAL::Arr_extended_dcel< Traits, VertexData, HalfEdgeData, FaceData >;
@@ -63,7 +80,8 @@ public:
 
     class Observer : public CGAL::Arr_observer< Arrangement >
     {
-        std::optional< HalfEdgeData > m_data, m_dataTwin;
+        std::optional< HalfEdgeData > m_edgeData, m_edgeDataTwin;
+        std::optional< FaceData >     m_faceData;
 
     public:
         Observer( Arrangement& arr )
@@ -78,23 +96,38 @@ public:
                                         const X_monotone_curve_2& c1,
                                         const X_monotone_curve_2& c2 )
         {
-            VERIFY_RTE_MSG(
-                !m_data.has_value() && !m_dataTwin.has_value(), "before_split_edge when already have halfedge data" );
-            m_data     = e->data();
-            m_dataTwin = e->twin()->data();
+            VERIFY_RTE_MSG( !m_edgeData.has_value() && !m_edgeDataTwin.has_value(),
+                            "before_split_edge when already have halfedge data" );
+            m_edgeData     = e->data();
+            m_edgeDataTwin = e->twin()->data();
         }
 
         // Set the captured data to both new edges - ON BOTH SIDES
         virtual void after_split_edge( Halfedge_handle e1, Halfedge_handle e2 )
         {
-            VERIFY_RTE_MSG( m_data.has_value() && m_dataTwin.has_value(), "after_split_edge when no halfedge data" );
+            VERIFY_RTE_MSG(
+                m_edgeData.has_value() && m_edgeDataTwin.has_value(), "after_split_edge when no halfedge data" );
 
-            e1->set_data( m_data.value() );
-            e2->set_data( m_data.value() );
-            e1->twin()->set_data( m_dataTwin.value() );
-            e2->twin()->set_data( m_dataTwin.value() );
-            m_data.reset();
-            m_dataTwin.reset();
+            e1->set_data( m_edgeData.value() );
+            e2->set_data( m_edgeData.value() );
+            e1->twin()->set_data( m_edgeDataTwin.value() );
+            e2->twin()->set_data( m_edgeDataTwin.value() );
+            m_edgeData.reset();
+            m_edgeDataTwin.reset();
+        }
+
+        virtual void before_split_face( Face_handle f, Halfedge_handle e )
+        {
+            VERIFY_RTE_MSG( !m_faceData.has_value(), "before_split_face when already have face data" );
+            m_faceData = f->data();
+        }
+
+        virtual void after_split_face( Face_handle f1, Face_handle f2, bool is_hole )
+        {
+            VERIFY_RTE_MSG( m_faceData.has_value(), "after_split_face when no face data" );
+            f1->set_data( m_faceData.value() );
+            f2->set_data( m_faceData.value() );
+            m_faceData.reset();
         }
     };
 
@@ -116,23 +149,93 @@ private:
     template < typename TEdgeType >
     inline void classify( TEdgeType h, EdgeMask::Type mask )
     {
-        auto data = h->data();
-        data.flags.set( mask );
-        h->set_data( data );
+        h->data().flags.set( mask );
     }
 
     // internal analysis routines
     void renderContour( const exact::Transform& transform,
                         const exact::Polygon&   poly,
                         EdgeMask::Type          innerMask,
-                        EdgeMask::Type          outerMask );
+                        EdgeMask::Type          outerMask,
+                        schematic::Site::PtrCst pInnerSite,
+                        schematic::Site::PtrCst pOuterSite );
     void recurse( schematic::Site::Ptr pSpace );
     void recursePost( schematic::Site::Ptr pSpace );
     void connect( schematic::Site::Ptr pConnection );
     void constructConnectionEdges( schematic::Connection::Ptr   pConnection,
                                    Arrangement::Halfedge_handle firstBisectorEdge,
                                    Arrangement::Halfedge_handle secondBisectorEdge );
-    bool doesFaceContainEdgeType( Arrangement::Face_const_handle hFace, EdgeMask::Type type ) const;
+                                   
+    template< typename TFunctor >
+    inline bool anyFaceEdge( Arrangement::Face_const_handle hFace, TFunctor&& predicate ) const
+    {
+        if( !hFace->is_unbounded() )
+        {
+            Arrangement::Ccb_halfedge_const_circulator iter  = hFace->outer_ccb();
+            Arrangement::Ccb_halfedge_const_circulator start = iter;
+            do
+            {
+                if( predicate( iter->data() ) )
+                {
+                    return true;
+                }
+                ++iter;
+            } while( iter != start );
+        }
+
+        // search through all holes
+        for( Arrangement::Hole_const_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
+            holeIter != holeIterEnd; ++holeIter )
+        {
+            Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
+            Arrangement::Ccb_halfedge_const_circulator start = iter;
+            do
+            {
+                if( predicate( iter->data() ) )
+                {
+                    return true;
+                }
+                ++iter;
+            } while( iter != start );
+        }
+        return false;
+    }          
+    template< typename TFunctor >
+    inline bool allFaceEdges( Arrangement::Face_const_handle hFace, TFunctor&& predicate ) const
+    {
+        if( !hFace->is_unbounded() )
+        {
+            Arrangement::Ccb_halfedge_const_circulator iter  = hFace->outer_ccb();
+            Arrangement::Ccb_halfedge_const_circulator start = iter;
+            do
+            {
+                if( !predicate( iter->data() ) )
+                {
+                    return false;
+                }
+                ++iter;
+            } while( iter != start );
+        }
+
+        // search through all holes
+        for( Arrangement::Hole_const_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
+            holeIter != holeIterEnd; ++holeIter )
+        {
+            Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
+            Arrangement::Ccb_halfedge_const_circulator start = iter;
+            do
+            {
+                if( !predicate( iter->data() ) )
+                {
+                    return false;
+                }
+                ++iter;
+            } while( iter != start );
+        }
+        return true;
+    }
+
+    bool areFacesAdjacent( Arrangement::Face_const_handle hFace1, Arrangement::Face_const_handle hFace2 ) const;
     void partition();
 
     // internal query implementation helper functions
@@ -189,8 +292,9 @@ private:
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 
-    Arrangement m_arr;
-    Observer    m_observer;
+    Partition::PtrVector m_partitions;
+    Arrangement          m_arr;
+    Observer             m_observer;
 };
 } // namespace exact
 

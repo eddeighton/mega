@@ -69,6 +69,7 @@ protected:
 protected:
     // DocumentChangeObserver
     virtual void OnDocumentChanged( Document* pDocument );
+    virtual void OnDocumentError( Document* pDocument, const std::string& strErrorMsg );
 
 public:
 public slots:

@@ -91,7 +91,8 @@ void Schematic::task_extrusions()
         }
     }
 }
-void Schematic::task_compilation()
+
+bool Schematic::task_compilation( std::ostream& os )
 {
     std::vector< MultiPathMarkup::SegmentMask > edges;
     try
@@ -102,13 +103,17 @@ void Schematic::task_compilation()
         m_pAnalysis.reset( new exact::Analysis( pThis ) );
         m_pAnalysis->getEdges( edges );
     }
-    catch( std::exception& )
+    catch( std::exception& ex )
     {
         m_pAnalysis.reset();
         edges.clear();
+
+        os << ex.what();
+        return false;
     }
 
     m_pAnalysisMarkup->set( edges );
+    return true;
 }
 
 void recurseSites( flatbuffers::FlatBufferBuilder& builder, Site::Ptr pSite )
@@ -135,7 +140,11 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
     {
         task_contours();
         task_extrusions();
-        task_compilation();
+        std::ostringstream osError;
+        if( !task_compilation( osError ) )
+        {
+            throw std::runtime_error( osError.str() );
+        }
     }
     VERIFY_RTE_MSG( m_pAnalysis, "Schematic analysis failed" );
 

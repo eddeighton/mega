@@ -114,7 +114,14 @@ TEST( Schematic, Arrangement_InsertCurveAndGetInducedEdges )
     }
 }
 
-TEST( Schematic, Arrangement_DataIntersect )
+static exact::Analysis::HalfEdgeData makeEdgeData( exact::EdgeMask::Type edgeMaskType )
+{
+    exact::Analysis::HalfEdgeData data;
+    data.flags.set( edgeMaskType );
+    return data;
+}
+
+TEST( Schematic, Arrangement_EdgeIntersect )
 {
     using namespace exact;
 
@@ -132,8 +139,8 @@ TEST( Schematic, Arrangement_DataIntersect )
         for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
         {
             Arrangement::Halfedge_handle h = *i;
-            h->set_data( Analysis::HalfEdgeData( exact::EdgeMask::eInterior ) );
-            h->twin()->set_data( Analysis::HalfEdgeData( exact::EdgeMask::eInterior ) );
+            h->set_data( makeEdgeData( exact::EdgeMask::eInterior ) );
+            h->twin()->set_data( makeEdgeData( exact::EdgeMask::eInterior ) );
             ++iCounter;
         }
         ASSERT_EQ( iCounter, 1 );
@@ -145,8 +152,8 @@ TEST( Schematic, Arrangement_DataIntersect )
         for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
         {
             Arrangement::Halfedge_handle h = *i;
-            h->set_data( Analysis::HalfEdgeData( exact::EdgeMask::eSite ) );
-            h->twin()->set_data( Analysis::HalfEdgeData( exact::EdgeMask::eSite ) );
+            h->set_data( makeEdgeData( exact::EdgeMask::eSite ) );
+            h->twin()->set_data( makeEdgeData( exact::EdgeMask::eSite ) );
             ++iCounter;
         }
         ASSERT_EQ( iCounter, 2 );
@@ -182,3 +189,70 @@ TEST( Schematic, Arrangement_DataIntersect )
         ASSERT_EQ( iVertices, 3 );
     }
 }
+
+TEST( Schematic, Arrangement_FaceIntersect )
+{
+    using namespace exact;
+
+    using Arrangement = Analysis::Arrangement;
+    Arrangement        arr;
+    Analysis::Observer observer( arr );
+
+    Analysis::Partition partition;
+
+    // create triangle
+    {
+        const Point p1( 0, 0 ), p2( 3, 0 ), p3( 3, 3 );
+
+        Arrangement::Curve_handle firstCurve  = CGAL::insert( arr, Curve( p1, p2 ) );
+        Arrangement::Curve_handle secondCurve = CGAL::insert( arr, Curve( p2, p3 ) );
+        Arrangement::Curve_handle thirdCurve  = CGAL::insert( arr, Curve( p3, p1 ) );
+
+        for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
+        {
+            Arrangement::Halfedge_handle h = *i;
+            h->face()->set_data( Analysis::FaceData{ &partition } );
+            break;
+        }
+    }
+    ASSERT_EQ( arr.number_of_faces(), 2 );
+    
+    {
+        int iCounter = 0;
+        for( auto i = arr.faces_begin(), iEnd = arr.faces_end(); i != iEnd; ++i )
+        {
+            auto& data = i->data();
+            if( data.pPartition == &partition )
+            {
+                ++iCounter;
+            }
+        }
+        ASSERT_EQ( iCounter, 1 );
+    }
+
+    // now split the face
+
+    {
+        const Point p1( 1, -1 ), p2( 1, 4 );
+        Arrangement::Curve_handle firstCurve  = CGAL::insert( arr, Curve( p1, p2 ) );
+    }
+
+
+    ASSERT_EQ( arr.number_of_faces(), 3 );
+
+    // test that the partition pointer has been propagated to the two new faces from the old one
+    {
+        int iCounter = 0;
+        for( auto i = arr.faces_begin(), iEnd = arr.faces_end(); i != iEnd; ++i )
+        {
+            auto& data = i->data();
+            if( data.pPartition == &partition )
+            {
+                ++iCounter;
+            }
+        }
+        ASSERT_EQ( iCounter, 2 );
+    }
+}
+
+

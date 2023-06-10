@@ -54,14 +54,15 @@ class Site : public Container< Site, GlyphSpecProducer >, public Origin
 public:
     using BaseType = Container< Site, GlyphSpecProducer >;
 
-    using Ptr         = boost::shared_ptr< Site >;
-    using PtrCst      = boost::shared_ptr< const Site >;
-    using WeakPtr     = boost::weak_ptr< Site >;
-    using PtrSet      = std::set< Ptr >;
-    using PtrList     = std::list< Ptr >;
-    using PtrVector   = std::vector< Ptr >;
-    using WeakPtrList = std::list< WeakPtr >;
-    using PtrMap      = std::map< Ptr, Ptr >;
+    using Ptr          = boost::shared_ptr< Site >;
+    using PtrCst       = boost::shared_ptr< const Site >;
+    using WeakPtr      = boost::weak_ptr< Site >;
+    using PtrSet       = std::set< Ptr >;
+    using PtrList      = std::list< Ptr >;
+    using PtrVector    = std::vector< Ptr >;
+    using PtrCstVector = std::vector< PtrCst >;
+    using WeakPtrList  = std::list< WeakPtr >;
+    using PtrMap       = std::map< Ptr, Ptr >;
 
     Site( Node::Ptr pParent, const std::string& strName );
     Site( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName );
@@ -125,10 +126,10 @@ public:
 protected:
     exact::Transform m_transformCache;
 
-    //using PropertyVector = std::vector< Property::Ptr >;
+    // using PropertyVector = std::vector< Property::Ptr >;
 
-    Node::WeakPtr  m_pSiteParent;
-    //PropertyVector m_properties;
+    Node::WeakPtr m_pSiteParent;
+    // PropertyVector m_properties;
 
     std::string m_strLabelText;
 

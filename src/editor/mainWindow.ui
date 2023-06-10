@@ -228,6 +228,24 @@
         </layout>
       </widget>
     </widget>
+
+    <widget class="QDockWidget" name="dockLog">
+      <property name="windowTitle">
+        <string>Log</string>
+      </property>
+      <attribute name="dockWidgetArea">
+        <number>8</number>
+      </attribute>
+      <widget class="QWidget" name="dockWidgetContents">
+        <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+            <widget class="QPlainTextEdit" name="logView">
+            </widget>
+          </item>
+        </layout>
+      </widget>
+    </widget>
+
     <action name="actionNewSchematic">
       <property name="icon">
         <iconset>

@@ -71,7 +71,13 @@ public:
 
             pSchematic->task_contours();
             pSchematic->task_extrusions();
-            pSchematic->task_compilation();
+
+            std::ostringstream osError;
+            if( !pSchematic->task_compilation( osError ) )
+            {
+                msg( taskProgress, osError.str() );
+                failed( taskProcess );
+            }
 
             Compilation::Ptr pCompilation = pSchematic->getCompilation();
             VERIFY_RTE_MSG( pCompilation, "Failed to acquire schematic compilation" );

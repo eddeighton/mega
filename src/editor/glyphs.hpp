@@ -125,7 +125,7 @@ class PainterImpl : public schematic::Painter
     std::shared_ptr< QPainterPath > m_pPath, m_pOldPath;
     Timing::UpdateTick              m_updateTick;
     bool                            m_bForceUpdate = true;
-    float                           m_fArrowSize   = 2.0f;
+    float                           m_fArrowSize   = 1.0f;
 
 public:
     const QPainterPath& getPath() const { return *m_pPath; }

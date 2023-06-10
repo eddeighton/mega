@@ -69,7 +69,7 @@ public:
 
     void task_contours();
     void task_extrusions();
-    void task_compilation();
+    bool task_compilation( std::ostream& os );
 
     void compileMap( const boost::filesystem::path& filePath );
 

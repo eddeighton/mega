@@ -77,7 +77,7 @@ glyphs
     {
         colour( 125,125,125,255 )
         width( 4 )
-        arrow( 1.25 )
+        arrow( 0.5 )
     }
     origin
     {

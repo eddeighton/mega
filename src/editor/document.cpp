@@ -277,7 +277,11 @@ void SchematicDocument::calculateDerived( const schematic::File::CompilationConf
         }
         if( config[ schematic::Schematic::eStage_Compilation ] )
         {
-            m_pSchematic->task_compilation();
+            std::ostringstream osError;
+            if( !m_pSchematic->task_compilation( osError ) )
+            {
+                m_documentChangeObserver.OnDocumentError( this, osError.str() );
+            }
         }
     }
 }

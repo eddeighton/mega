@@ -97,6 +97,14 @@ MainWindow::MainWindow( QWidget* pParent )
         m_pMainWindowImpl->dockToolbox->toggleViewAction()->setShortcut( Qt::Key_F2 );
     }
 
+    // dockLog
+    {
+        m_pMainWindowImpl->toolbarView->addAction( m_pMainWindowImpl->dockLog->toggleViewAction() );
+        m_pMainWindowImpl->dockLog->toggleViewAction()->setIcon( QIcon( ":/art/zoomdocument.png" ) );
+        m_pMainWindowImpl->menuView->addAction( m_pMainWindowImpl->dockLog->toggleViewAction() );
+        m_pMainWindowImpl->dockLog->toggleViewAction()->setShortcut( Qt::Key_F4 );
+    }
+
     // actionLoad
     {
         QObject::connect( m_pMainWindowImpl->actionLoad, SIGNAL( triggered() ), this, SLOT( OnLoad() ) );
@@ -158,6 +166,16 @@ void MainWindow::OnDocumentChanged( Document* pDocument )
             }
         }
     }
+}
+
+void MainWindow::OnDocumentError( Document* pDocument, const std::string& strErrorMsg )
+{
+    if( pDocument->getFilePath().has_value() )
+    {
+
+    }
+
+    m_pMainWindowImpl->logView->appendPlainText( QString::fromUtf8( strErrorMsg ) );
 }
 
 void MainWindow::addActionRef( QAction* pAction )
