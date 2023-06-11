@@ -80,6 +80,7 @@ public:
     using Formatter      = CGAL::Arr_extended_dcel_text_formatter< Arrangement >;
 
     Analysis( boost::shared_ptr< schematic::Schematic > pSchematic );
+    void partition();
     void skeleton();
 
     // query used by editor for edge visualisation
@@ -182,7 +183,6 @@ private:
     void constructConnectionEdges( schematic::Connection::Ptr   pConnection,
                                    Arrangement::Halfedge_handle firstBisectorEdge,
                                    Arrangement::Halfedge_handle secondBisectorEdge );
-    void partition();
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 

@@ -116,6 +116,30 @@ bool Schematic::task_compilation( std::ostream& os )
     return true;
 }
 
+bool Schematic::task_partition( std::ostream& os )
+{
+    std::vector< MultiPathMarkup::SegmentMask > edges;
+    try
+    {
+        if( m_pAnalysis )
+        {
+            m_pAnalysis->partition();
+            m_pAnalysis->getAllEdges( edges );
+            m_pAnalysisMarkup->set( edges );
+        }
+    }
+    catch( std::exception& ex )
+    {
+        os << ex.what();
+        m_pAnalysis.reset();
+        edges.clear();
+        m_pAnalysisMarkup->set( edges );
+        return false;
+    }
+
+    return true;
+}
+
 bool Schematic::task_skeleton( std::ostream& os )
 {
     std::vector< MultiPathMarkup::SegmentMask > edges;

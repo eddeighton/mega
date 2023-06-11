@@ -86,6 +86,7 @@
         <addaction name="actionView_SiteContour" />
         <addaction name="actionView_Walls" />
         <addaction name="actionView_Analysis" />
+        <addaction name="actionView_Partition" />
         <addaction name="actionView_Skeleton" />
         <addaction name="separator" />
       </widget>
@@ -151,6 +152,7 @@
       <addaction name="actionView_SiteContour" />
       <addaction name="actionView_Walls" />
       <addaction name="actionView_Analysis" />
+      <addaction name="actionView_Partition" />
       <addaction name="actionView_Skeleton" />
       <addaction name="separator" />
       <attribute name="toolBarBreak">
@@ -600,6 +602,17 @@
       </property>
       <property name="text">
         <string>Analysis</string>
+      </property>
+      <property name="visible">
+        <bool>false</bool>
+      </property>
+    </action>
+    <action name="actionView_Partition">
+      <property name="checkable">
+        <bool>true</bool>
+      </property>
+      <property name="text">
+        <string>Partition</string>
       </property>
       <property name="visible">
         <bool>false</bool>

@@ -285,6 +285,15 @@ void SchematicDocument::calculateDerived( const schematic::File::CompilationConf
                 bWasError = true;
             }
         }
+        if( !bWasError && config[ schematic::Schematic::eStage_Partition ] )
+        {
+            std::ostringstream osError;
+            if( !m_pSchematic->task_partition( osError ) )
+            {
+                m_documentChangeObserver.OnDocumentError( this, osError.str() );
+                bWasError = true;
+            }
+        }
         if( !bWasError && config[ schematic::Schematic::eStage_Skeleton ] )
         {
             std::ostringstream osError;

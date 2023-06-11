@@ -65,12 +65,14 @@ public:
         eStage_SiteContour,
         eStage_Extrusion,
         eStage_Compilation,
+        eStage_Partition,
         eStage_Skeleton
     };
 
     void task_contours();
     void task_extrusions();
     bool task_compilation( std::ostream& os );
+    bool task_partition( std::ostream& os );
     bool task_skeleton( std::ostream& os );
 
     void compileMap( const boost::filesystem::path& filePath );

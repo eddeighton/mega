@@ -46,6 +46,7 @@ public slots:
     void CmdViewSiteContour();
     void CmdViewWalls();
     void CmdViewAnalysis();
+    void CmdViewPartition();
     void CmdViewSkeleton();
 
 private:

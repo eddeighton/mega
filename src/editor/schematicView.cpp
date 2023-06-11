@@ -57,11 +57,13 @@ void SchematicView::onViewFocussed()
     CMD_CONNECT( actionView_SiteContour  , CmdViewSiteContour );
     CMD_CONNECT( actionView_Walls        , CmdViewWalls       );
     CMD_CONNECT( actionView_Analysis     , CmdViewAnalysis    );
+    CMD_CONNECT( actionView_Partition    , CmdViewPartition  );
     CMD_CONNECT( actionView_Skeleton     , CmdViewSkeleton  );
     
     m_pMainWindow->getUI()->actionView_SiteContour  ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_SiteContour ] );
     m_pMainWindow->getUI()->actionView_Walls        ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Extrusion ] );
     m_pMainWindow->getUI()->actionView_Analysis     ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Compilation ] );
+    m_pMainWindow->getUI()->actionView_Partition    ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Partition ] );
     m_pMainWindow->getUI()->actionView_Skeleton     ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Skeleton ] );
     // clang-format on
 
@@ -83,6 +85,7 @@ void SchematicView::onViewUnfocussed()
     CMD_DISCONNECT( actionView_SiteContour, CmdViewSiteContour );
     CMD_DISCONNECT( actionView_Walls, CmdViewWalls );
     CMD_DISCONNECT( actionView_Analysis, CmdViewAnalysis );
+    CMD_DISCONNECT( actionView_Partition, CmdViewPartition );
     CMD_DISCONNECT( actionView_Skeleton, CmdViewSkeleton );
 }
 
@@ -258,6 +261,12 @@ void SchematicView::CmdViewAnalysis()
 {
     configureCompilationStage(
         schematic::Schematic::eStage_Compilation, m_pMainWindow->getUI()->actionView_Analysis->isChecked() );
+}
+
+void SchematicView::CmdViewPartition()
+{
+    configureCompilationStage(
+        schematic::Schematic::eStage_Partition, m_pMainWindow->getUI()->actionView_Partition->isChecked() );
 }
 
 void SchematicView::CmdViewSkeleton()

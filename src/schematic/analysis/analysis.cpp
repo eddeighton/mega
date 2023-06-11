@@ -532,7 +532,6 @@ Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
     recurse( pRootSpace );
     connect( pRootSpace );
     recursePost( pRootSpace );
-    partition();
 }
 
 void Analysis::renderCurve( const exact::Curve& curve, EdgeMask::Type mask )
@@ -744,15 +743,19 @@ void Analysis::connect( schematic::Site::Ptr pSite )
     {
         const exact::Transform transform = pConnection->getAbsoluteExactTransform();
 
+        const schematic::Segment& firstSeg  = pConnection->getFirstSegment();
+        const schematic::Segment& secondSeg = pConnection->getSecondSegment();
+        const exact::Point        ptFirstStart( transform( converter( firstSeg[ 0 ] ) ) );
+        const exact::Point        ptFirstEnd( transform( converter( firstSeg[ 1 ] ) ) );
+        const exact::Point        ptSecondStart( transform( converter( secondSeg[ 1 ] ) ) );
+        const exact::Point        ptSecondEnd( transform( converter( secondSeg[ 0 ] ) ) );
+        const exact::Direction    edgeDir( ptFirstStart - ptSecondEnd );
+
         // attempt to find the four connection vertices
         std::vector< Arrangement::Halfedge_handle > toRemove;
         Arrangement::Halfedge_handle                firstBisectorEdge, secondBisectorEdge;
         bool                                        bFoundFirst = false, bFoundSecond = false;
         {
-            const schematic::Segment& firstSeg = pConnection->getFirstSegment();
-            const exact::Point        ptFirstStart( transform( converter( firstSeg[ 0 ] ) ) );
-            const exact::Point        ptFirstEnd( transform( converter( firstSeg[ 1 ] ) ) );
-
             Curve_handle firstCurve = CGAL::insert( m_arr, Curve( ptFirstStart, ptFirstEnd ) );
 
             for( auto i = m_arr.induced_edges_begin( firstCurve ); i != m_arr.induced_edges_end( firstCurve ); ++i )
@@ -767,8 +770,23 @@ void Analysis::connect( schematic::Site::Ptr pSite )
                 else
                 {
                     firstBisectorEdge = h;
-                    classify( firstBisectorEdge, EdgeMask::eConnectionBisectorBoundary );
-                    classify( firstBisectorEdge->twin(), EdgeMask::eConnectionBisector );
+
+                    const exact::Direction halfEdgeDir( firstBisectorEdge->target()->point()
+                                                        - firstBisectorEdge->source()->point() );
+                    const exact::Direction halfEdgeOrthoDir
+                        = halfEdgeDir.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
+
+                    if( halfEdgeOrthoDir == edgeDir )
+                    {
+                        classify( firstBisectorEdge->twin(), EdgeMask::eConnectionBisector );
+                        classify( firstBisectorEdge, EdgeMask::eConnectionBisectorBoundary );
+                    }
+                    else
+                    {
+                        classify( firstBisectorEdge, EdgeMask::eConnectionBisector );
+                        classify( firstBisectorEdge->twin(), EdgeMask::eConnectionBisectorBoundary );
+                    }
+
                     if( bFoundFirst )
                         throw std::runtime_error( "Failed in connect" );
                     INVARIANT( !bFoundFirst, "Connect failed" );
@@ -778,10 +796,6 @@ void Analysis::connect( schematic::Site::Ptr pSite )
         }
 
         {
-            const schematic::Segment& secondSeg = pConnection->getSecondSegment();
-            const exact::Point        ptSecondStart( transform( converter( secondSeg[ 1 ] ) ) );
-            const exact::Point        ptSecondEnd( transform( converter( secondSeg[ 0 ] ) ) );
-
             Curve_handle secondCurve = CGAL::insert( m_arr, Curve( ptSecondStart, ptSecondEnd ) );
 
             for( auto i = m_arr.induced_edges_begin( secondCurve ); i != m_arr.induced_edges_end( secondCurve ); ++i )
@@ -796,8 +810,23 @@ void Analysis::connect( schematic::Site::Ptr pSite )
                 else
                 {
                     secondBisectorEdge = h;
-                    classify( secondBisectorEdge, EdgeMask::eConnectionBisector );
-                    classify( secondBisectorEdge->twin(), EdgeMask::eConnectionBisectorBoundary );
+
+                    const exact::Direction halfEdgeDir( secondBisectorEdge->target()->point()
+                                                        - secondBisectorEdge->source()->point() );
+                    const exact::Direction halfEdgeOrthoDir
+                        = halfEdgeDir.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
+
+                    if( halfEdgeOrthoDir == edgeDir )
+                    {
+                        classify( secondBisectorEdge, EdgeMask::eConnectionBisector );
+                        classify( secondBisectorEdge->twin(), EdgeMask::eConnectionBisectorBoundary );
+                    }
+                    else
+                    {
+                        classify( secondBisectorEdge->twin(), EdgeMask::eConnectionBisector );
+                        classify( secondBisectorEdge, EdgeMask::eConnectionBisectorBoundary );
+                    }
+
                     if( bFoundSecond )
                         throw std::runtime_error( "Failed in connect" );
                     INVARIANT( !bFoundSecond, "Connect failed" );
@@ -859,10 +888,23 @@ void Analysis::partition()
 
         for( auto b : floorPolygons )
         {
+            Partition::Ptr                      pPartition = std::make_unique< Partition >();
+            std::set< schematic::Site::PtrCst > sites;
             for( auto e : b )
             {
+                if( e->data().flags.test( EdgeMask::eInterior ) || e->data().flags.test( EdgeMask::eExterior ) )
+                {
+                    INVARIANT( !e->data().sites.empty(), "Interior or exterior edge missing site" );
+                    sites.insert( e->data().sites.back() );
+                }
+                e->data().pPartition = pPartition.get();
+
                 classify( e, EdgeMask::ePartitionFloor );
             }
+            INVARIANT( sites.size() != 0, "Floor has no sites" );
+            INVARIANT( sites.size() == 1, "Floor has multiple sites" );
+            pPartition->pSite = *sites.begin();
+            m_floors.emplace_back( std::move( pPartition ) );
         }
     }
 
@@ -883,115 +925,15 @@ void Analysis::partition()
 
         for( auto b : boundaryPolygons )
         {
+            Partition::Ptr pPartition = std::make_unique< Partition >();
             for( auto e : b )
             {
                 classify( e, EdgeMask::ePartitionBoundary );
-            }
-        }
-    }
-
-    // solve the face connected components that consistutute the floor and boundary partitions
-    /*{
-        FaceHandleSet foundDoorStepFaces;
-
-        using FloorToDoorStepFaceMap = std::multimap< FaceHandle, FaceHandle >;
-        FloorToDoorStepFaceMap floorPartitions;
-
-        for( auto hFloorFace : otherFloorFaces )
-        {
-            floorPartitions.insert( { hFloorFace, hFloorFace } );
-            for( auto hDoorStepFace : doorStepFloorFaces )
-            {
-                if( areFacesAdjacent( hFloorFace, hDoorStepFace ) )
-                {
-                    INVARIANT( !foundDoorStepFaces.contains( hDoorStepFace ),
-                               "Door step face found adjacent to two floor faces" );
-                    foundDoorStepFaces.insert( hDoorStepFace );
-                    floorPartitions.insert( { hFloorFace, hDoorStepFace } );
-                }
-            }
-        }
-
-        // construct all floor partitions
-        for( auto i = floorPartitions.begin(), iEnd = floorPartitions.end(); i != iEnd; )
-        {
-            Partition::Ptr pPartition = std::make_unique< Partition >();
-
-            std::set< schematic::Site::PtrCst > sites;
-
-            auto iRange = floorPartitions.upper_bound( i->first );
-            for( ; i != iRange; ++i )
-            {
-                visit( i->second,
-                       [ &sites, &pPartition ]( HalfEdgeData& edge )
-                       {
-                           if( edge.flags.test( EdgeMask::ePartitionFloor ) )
-                           {
-                               if( edge.flags.test( EdgeMask::eInterior ) || edge.flags.test( EdgeMask::eExterior ) )
-                               {
-                                   INVARIANT( !edge.sites.empty(), "Interior or exterior edge missing site" );
-                                   sites.insert( edge.sites.back() );
-                               }
-                               edge.pPartition = pPartition.get();
-                           }
-                       } );
-                i->second->data().pPartition = pPartition.get();
-            }
-            INVARIANT( sites.size() != 0, "Floor has no sites" );
-            INVARIANT( sites.size() == 1, "Floor has multiple sites" );
-            pPartition->pSite = *sites.begin();
-
-            m_floors.emplace_back( std::move( pPartition ) );
-        }
-    }*/
-
-    // construct all boundary partitions
-    /*{
-        using BoundaryDisjointSets = std::list< FaceHandleSet >;
-        BoundaryDisjointSets boundaries;
-        for( auto hBoundaryFace : boundaryFaces )
-        {
-            bool bFound = false;
-
-            FaceHandleSet newSet;
-            newSet.insert( hBoundaryFace );
-
-            std::vector< BoundaryDisjointSets::iterator > connections;
-            for( auto i = boundaries.begin(), iEnd = boundaries.end(); i != iEnd; ++i )
-            {
-                for( auto hExisting : *i )
-                {
-                    if( areFacesAdjacent( hBoundaryFace, hExisting ) )
-                    {
-                        newSet.insert( i->begin(), i->end() );
-                        connections.push_back( i );
-                        break;
-                    }
-                }
-            }
-            for( auto i : connections )
-                boundaries.erase( i );
-            boundaries.push_back( newSet );
-        }
-
-        for( auto& boundarySet : boundaries )
-        {
-            Partition::Ptr pPartition = std::make_unique< Partition >();
-            for( auto f : boundarySet )
-            {
-                visit( f,
-                       [ &pPartition ]( HalfEdgeData& edge )
-                       {
-                           if( edge.flags.test( EdgeMask::ePartitionBoundary ) )
-                           {
-                               edge.pPartition = pPartition.get();
-                           }
-                       } );
-                f->data().pPartition = pPartition.get();
+                e->data().pPartition = pPartition.get();
             }
             m_boundaries.emplace_back( std::move( pPartition ) );
         }
-    }*/
+    }
 }
 
 void Analysis::skeleton()
