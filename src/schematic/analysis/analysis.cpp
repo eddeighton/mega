@@ -118,22 +118,16 @@ inline bool allFaceEdges( Analysis::Arrangement::Face_const_handle hFace, TFunct
     return bSuccess;
 }
 
-inline void getFaces( const Analysis::HalfEdgeVector& polygon, Analysis::FaceVector& result )
+template < typename HalfEdgeType, typename FaceType, typename EdgePredicate >
+inline void getFaces( std::set< FaceType >& startFaces, const std::vector< HalfEdgeType >& polygon,
+                      std::vector< FaceType >& result, EdgePredicate&& predicate )
 {
-    Analysis::FaceSet faces, open, temp;
+    std::set< FaceType > faces = startFaces, open = startFaces, temp;
 
     INVARIANT( !polygon.empty(), "Polygon empty" );
 
     // determine the edge boundary as lookup set
-    const Analysis::HalfEdgeSet boundary( polygon.begin(), polygon.end() );
-
-    // get all faces adjacent to the boundary
-    // and add them all as open
-    for( auto e : polygon )
-    {
-        faces.insert( e->face() );
-        open.insert( e->face() );
-    }
+    const std::set< HalfEdgeType > boundary( polygon.begin(), polygon.end() );
 
     // greedy algorithm to exaust open set until no new faces found
     while( !open.empty() )
@@ -141,13 +135,13 @@ inline void getFaces( const Analysis::HalfEdgeVector& polygon, Analysis::FaceVec
         for( auto f : open )
         {
             // go through all edges inside face
-            Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = f->outer_ccb();
-            Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
+            auto iter  = f->outer_ccb();
+            auto start = iter;
             do
             {
                 // if the edge IS NOT on the polygon boundary then
                 // it MUST connect to another face WITHIN the polygon
-                if( !boundary.contains( iter ) )
+                if( !boundary.contains( iter ) && predicate( iter ) )
                 {
                     auto newFace = iter->twin()->face();
                     if( !faces.contains( newFace ) )
@@ -160,14 +154,13 @@ inline void getFaces( const Analysis::HalfEdgeVector& polygon, Analysis::FaceVec
             } while( iter != start );
 
             // search through all holes
-            for( Analysis::Arrangement::Hole_const_iterator holeIter = f->holes_begin(), holeIterEnd = f->holes_end();
-                 holeIter != holeIterEnd; ++holeIter )
+            for( auto holeIter = f->holes_begin(), holeIterEnd = f->holes_end(); holeIter != holeIterEnd; ++holeIter )
             {
-                Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
-                Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
+                auto iter  = *holeIter;
+                auto start = iter;
                 do
                 {
-                    if( !boundary.contains( iter ) )
+                    if( !boundary.contains( iter ) && predicate( iter ) )
                     {
                         auto newFace = iter->twin()->face();
                         if( !faces.contains( newFace ) )
@@ -184,6 +177,47 @@ inline void getFaces( const Analysis::HalfEdgeVector& polygon, Analysis::FaceVec
         open.swap( temp );
     }
     result.assign( faces.begin(), faces.end() );
+}
+
+inline void getFaces( const Analysis::HalfEdgeVector& polygon, Analysis::FaceVector& result )
+{
+    Analysis::FaceSet startFaces;
+    for( auto e : polygon )
+    {
+        startFaces.insert( e->face() );
+    }
+    getFaces( startFaces, polygon, result, []( Analysis::HalfEdge ) { return true; } );
+}
+
+inline void locateFloorFacesFromDoorStep( Analysis::Arrangement::Halfedge_handle                       doorStep,
+                                          const std::vector< Analysis::Arrangement::Halfedge_handle >& boundary,
+                                          std::set< Analysis::Arrangement::Halfedge_handle >&          innerBoundaries )
+{
+    std::vector< Analysis::Arrangement::Face_handle > result;
+    std::set< Analysis::Arrangement::Face_handle >    startFaces;
+    startFaces.insert( doorStep->face() );
+    getFaces< Analysis::Arrangement::Halfedge_handle, Analysis::Arrangement::Face_handle >(
+        startFaces, boundary, result,
+        [ &boundary, &innerBoundaries ]( Analysis::Arrangement::Halfedge_handle edge )
+        {
+            auto& flags = edge->data().flags;
+
+            const bool bIsEdgeNextToBoundary
+                = ( ( flags.test( EdgeMask::eInterior ) || flags.test( EdgeMask::eExterior )
+                      || flags.test( EdgeMask::eConnectionBisector ) || flags.test( EdgeMask::eDoorStep ) )
+
+                    && !flags.test( EdgeMask::eConnectionBreak ) );
+
+            if( bIsEdgeNextToBoundary )
+            {
+                if( std::find( boundary.begin(), boundary.end(), edge ) == boundary.end() )
+                {
+                    innerBoundaries.insert( edge );
+                }
+            }
+
+            return !bIsEdgeNextToBoundary;
+        } );
 }
 
 bool areFacesAdjacent( Analysis::Arrangement::Face_const_handle hFace1,
@@ -308,6 +342,7 @@ inline void searchPolygons( const VertexVector& startVertices, const HalfEdgeSet
 
                 while( e->target() != startVertex )
                 {
+                    INVARIANT( !open.empty(), "Failed to find polygon" );
                     // https://doc.cgal.org/latest/Arrangement_on_surface_2/index.html
                     // The call v->incident_halfedges() returns a circulator of the nested type
                     // Halfedge_around_vertex_circulator that enables the traversal of this circular list around a given
@@ -861,9 +896,9 @@ void Analysis::connect( schematic::Site::Ptr pSite )
 
 void Analysis::partition()
 {
-    std::vector< Arrangement::Vertex_handle > startVertices;
+    std::vector< Arrangement::Vertex_handle >          startVertices;
+    std::set< Analysis::Arrangement::Halfedge_handle > doorSteps;
     {
-        std::set< Analysis::Arrangement::Halfedge_handle > doorSteps;
         getEdges( m_arr, doorSteps,
                   []( Arrangement::Halfedge_handle edge ) { return edge->data().flags.test( EdgeMask::eDoorStep ); } );
         for( auto d : doorSteps )
@@ -871,6 +906,7 @@ void Analysis::partition()
             startVertices.push_back( d->source() );
         }
     }
+
     std::vector< std::vector< Arrangement::Halfedge_handle > > floorPolygons;
     {
         std::set< Analysis::Arrangement::Halfedge_handle > floorEdges;
@@ -886,11 +922,11 @@ void Analysis::partition()
 
         searchPolygons( startVertices, floorEdges, true, floorPolygons );
 
-        for( auto b : floorPolygons )
+        for( auto floorBoundary : floorPolygons )
         {
             Partition::Ptr                      pPartition = std::make_unique< Partition >();
             std::set< schematic::Site::PtrCst > sites;
-            for( auto e : b )
+            for( auto e : floorBoundary )
             {
                 if( e->data().flags.test( EdgeMask::eInterior ) || e->data().flags.test( EdgeMask::eExterior ) )
                 {
@@ -900,6 +936,43 @@ void Analysis::partition()
                 e->data().pPartition = pPartition.get();
 
                 classify( e, EdgeMask::ePartitionFloor );
+
+                // need to search for inner walls
+                if( e->data().flags.test( EdgeMask::eDoorStep ) )
+                {
+                    std::set< Analysis::Arrangement::Halfedge_handle > innerBoundaries;
+                    locateFloorFacesFromDoorStep( e, floorBoundary, innerBoundaries );
+                    while( !innerBoundaries.empty() )
+                    {
+                        std::vector< std::vector< Arrangement::Halfedge_handle > > innerWallPolygons;
+                        std::vector< Arrangement::Vertex_handle >                  innerStartVerts
+                            = { ( *innerBoundaries.begin() )->source() };
+                        innerBoundaries.erase( *innerBoundaries.begin() );
+                        searchPolygons( innerStartVerts, floorEdges, false, innerWallPolygons );
+
+                        bool bMadeProgress = false;
+                        for( auto innerWallBoundary : innerWallPolygons )
+                        {
+                            for( auto innerWallEdge : innerWallBoundary )
+                            {
+                                if( innerWallEdge->data().flags.test( EdgeMask::eInterior )
+                                    || innerWallEdge->data().flags.test( EdgeMask::eExterior ) )
+                                {
+                                    INVARIANT( !innerWallEdge->data().sites.empty(),
+                                               "Interior or exterior edge missing site" );
+                                    sites.insert( innerWallEdge->data().sites.back() );
+                                }
+                                innerWallEdge->data().pPartition = pPartition.get();
+                                classify( innerWallEdge, EdgeMask::ePartitionFloor );
+                                classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
+
+                                innerBoundaries.erase( innerWallEdge );
+                                bMadeProgress = true;
+                            }
+                        }
+                        INVARIANT( bMadeProgress, "Failed to make progress on inner walL" );
+                    }
+                }
             }
             INVARIANT( sites.size() != 0, "Floor has no sites" );
             INVARIANT( sites.size() == 1, "Floor has multiple sites" );

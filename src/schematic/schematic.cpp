@@ -107,7 +107,6 @@ bool Schematic::task_compilation( std::ostream& os )
     catch( std::exception& ex )
     {
         os << ex.what();
-        m_pAnalysis.reset();
         edges.clear();
         m_pAnalysisMarkup->set( edges );
         return false;

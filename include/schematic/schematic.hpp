@@ -66,7 +66,8 @@ public:
         eStage_Extrusion,
         eStage_Compilation,
         eStage_Partition,
-        eStage_Skeleton
+        eStage_Skeleton,
+        TOTAL_COMPILAION_STAGES
     };
 
     void task_contours();

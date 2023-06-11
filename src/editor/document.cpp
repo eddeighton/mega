@@ -267,40 +267,59 @@ void SchematicDocument::calculateDerived( const schematic::File::CompilationConf
 {
     if( m_pSchematic )
     {
-        bool bWasError = false;
-        if( !bWasError && config[ schematic::Schematic::eStage_SiteContour ] )
+        schematic::Schematic::CompilationStage targetStage = schematic::Schematic::eStage_Site;
+
+        if( config[ schematic::Schematic::eStage_Skeleton ] )
         {
-            m_pSchematic->task_contours();
+            targetStage = schematic::Schematic::eStage_Skeleton;
         }
-        if( !bWasError && config[ schematic::Schematic::eStage_Extrusion ] )
+        else if( config[ schematic::Schematic::eStage_Partition ] )
         {
-            m_pSchematic->task_extrusions();
+            targetStage = schematic::Schematic::eStage_Partition;
         }
-        if( !bWasError && config[ schematic::Schematic::eStage_Compilation ] )
+        else if( config[ schematic::Schematic::eStage_Compilation ] )
         {
-            std::ostringstream osError;
-            if( !m_pSchematic->task_compilation( osError ) )
+            targetStage = schematic::Schematic::eStage_Compilation;
+        }
+        else if( config[ schematic::Schematic::eStage_Extrusion ] )
+        {
+            targetStage = schematic::Schematic::eStage_Extrusion;
+        }
+        else if( config[ schematic::Schematic::eStage_SiteContour ] )
+        {
+            targetStage = schematic::Schematic::eStage_SiteContour;
+        }
+
+        bool               bWasError = false;
+        std::ostringstream osError;
+        for( int iter = schematic::Schematic::eStage_Site; iter <= targetStage; ++iter )
+        {
+            switch( static_cast< schematic::Schematic::CompilationStage >( iter ) )
             {
-                m_documentChangeObserver.OnDocumentError( this, osError.str() );
-                bWasError = true;
+                case schematic::Schematic::eStage_Site:
+                    break;
+                case schematic::Schematic::eStage_SiteContour:
+                    m_pSchematic->task_contours();
+                    break;
+                case schematic::Schematic::eStage_Extrusion:
+                    m_pSchematic->task_extrusions();
+                    break;
+                case schematic::Schematic::eStage_Compilation:
+                    bWasError = !m_pSchematic->task_compilation( osError );
+                    break;
+                case schematic::Schematic::eStage_Partition:
+                    bWasError = !m_pSchematic->task_partition( osError );
+                    break;
+                case schematic::Schematic::eStage_Skeleton:
+                    bWasError = !m_pSchematic->task_skeleton( osError );
+                    break;
+                default:
+                    break;
             }
-        }
-        if( !bWasError && config[ schematic::Schematic::eStage_Partition ] )
-        {
-            std::ostringstream osError;
-            if( !m_pSchematic->task_partition( osError ) )
+            if( bWasError )
             {
                 m_documentChangeObserver.OnDocumentError( this, osError.str() );
-                bWasError = true;
-            }
-        }
-        if( !bWasError && config[ schematic::Schematic::eStage_Skeleton ] )
-        {
-            std::ostringstream osError;
-            if( !m_pSchematic->task_skeleton( osError ) )
-            {
-                m_documentChangeObserver.OnDocumentError( this, osError.str() );
-                bWasError = true;
+                break;
             }
         }
     }
