@@ -49,20 +49,20 @@ void SchematicView::onViewFocussed()
     GlyphView::onViewFocussed();
 
     // clang-format off
-    CMD_CONNECT( actionSave, CmdSave );
+    CMD_CONNECT( actionSave,    CmdSave );
     CMD_CONNECT( actionSave_As, CmdSaveAs );
-    CMD_CONNECT( actionUndo, CmdUndo );
-    CMD_CONNECT( actionRedo, CmdRedo );
+    CMD_CONNECT( actionUndo,    CmdUndo );
+    CMD_CONNECT( actionRedo,    CmdRedo );
     
     CMD_CONNECT( actionView_SiteContour  , CmdViewSiteContour );
     CMD_CONNECT( actionView_Walls        , CmdViewWalls       );
     CMD_CONNECT( actionView_Analysis     , CmdViewAnalysis    );
-    CMD_CONNECT( actionView_Visibility   , CmdViewVisibility  );
+    CMD_CONNECT( actionView_Skeleton     , CmdViewSkeleton  );
     
     m_pMainWindow->getUI()->actionView_SiteContour  ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_SiteContour ] );
     m_pMainWindow->getUI()->actionView_Walls        ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Extrusion ] );
     m_pMainWindow->getUI()->actionView_Analysis     ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Compilation ] );
-    m_pMainWindow->getUI()->actionView_Visibility   ->setChecked( false );
+    m_pMainWindow->getUI()->actionView_Skeleton     ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Skeleton ] );
     // clang-format on
 
     if( m_pSchematicDocument )
@@ -83,7 +83,7 @@ void SchematicView::onViewUnfocussed()
     CMD_DISCONNECT( actionView_SiteContour, CmdViewSiteContour );
     CMD_DISCONNECT( actionView_Walls, CmdViewWalls );
     CMD_DISCONNECT( actionView_Analysis, CmdViewAnalysis );
-    CMD_DISCONNECT( actionView_Visibility, CmdViewVisibility );
+    CMD_DISCONNECT( actionView_Skeleton, CmdViewSkeleton );
 }
 
 void SchematicView::onDocumentUpdate()
@@ -260,8 +260,10 @@ void SchematicView::CmdViewAnalysis()
         schematic::Schematic::eStage_Compilation, m_pMainWindow->getUI()->actionView_Analysis->isChecked() );
 }
 
-void SchematicView::CmdViewVisibility()
+void SchematicView::CmdViewSkeleton()
 {
+    configureCompilationStage(
+        schematic::Schematic::eStage_Skeleton, m_pMainWindow->getUI()->actionView_Skeleton->isChecked() );
 }
 
 } // namespace editor

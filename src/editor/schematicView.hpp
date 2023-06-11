@@ -46,7 +46,7 @@ public slots:
     void CmdViewSiteContour();
     void CmdViewWalls();
     void CmdViewAnalysis();
-    void CmdViewVisibility();
+    void CmdViewSkeleton();
 
 private:
     void configureCompilationStage( schematic::Schematic::CompilationStage stage, bool bEnable );

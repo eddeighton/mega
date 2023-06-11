@@ -89,7 +89,7 @@ void Connection::init()
     {
         m_pControlPoint.reset( new Feature_Point( getPtr(), "width" ) );
         m_pControlPoint->init();
-        m_pControlPoint->setPoint( 0, Point( 3.0f, 8.0f ) );
+        m_pControlPoint->setPoint( 0, Point( 1.5f, 3.0f ) );
         add( m_pControlPoint );
     }
 

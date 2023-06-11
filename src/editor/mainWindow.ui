@@ -86,7 +86,7 @@
         <addaction name="actionView_SiteContour" />
         <addaction name="actionView_Walls" />
         <addaction name="actionView_Analysis" />
-        <addaction name="actionView_Visibility" />
+        <addaction name="actionView_Skeleton" />
         <addaction name="separator" />
       </widget>
       <addaction name="menuFile" />
@@ -151,7 +151,7 @@
       <addaction name="actionView_SiteContour" />
       <addaction name="actionView_Walls" />
       <addaction name="actionView_Analysis" />
-      <addaction name="actionView_Visibility" />
+      <addaction name="actionView_Skeleton" />
       <addaction name="separator" />
       <attribute name="toolBarBreak">
         <bool>false</bool>
@@ -605,12 +605,12 @@
         <bool>false</bool>
       </property>
     </action>
-    <action name="actionView_Visibility">
+    <action name="actionView_Skeleton">
       <property name="checkable">
         <bool>true</bool>
       </property>
       <property name="text">
-        <string>Visibility</string>
+        <string>Skeleton</string>
       </property>
       <property name="visible">
         <bool>false</bool>

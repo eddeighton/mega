@@ -22,6 +22,7 @@
 #define GUARD_2023_June_05_analysis
 
 #include "edge_mask.hpp"
+#include "invariant.hpp"
 
 #include "schematic/cgalSettings.hpp"
 #include "schematic/space.hpp"
@@ -78,6 +79,33 @@ public:
     using Point_location = CGAL::Arr_simple_point_location< Arrangement >;
     using Formatter      = CGAL::Arr_extended_dcel_text_formatter< Arrangement >;
 
+    Analysis( boost::shared_ptr< schematic::Schematic > pSchematic );
+    void skeleton();
+
+    // query used by editor for edge visualisation
+    void getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges ) const;
+
+    // queries used by map format
+    using VertexVector         = std::vector< Arrangement::Vertex_const_handle >;
+    using HalfEdge             = Arrangement::Halfedge_const_handle;
+    using HalfEdgeSet          = std::set< HalfEdge >;
+    using HalfEdgeVector       = std::vector< HalfEdge >;
+    using HalfEdgeVectorVector = std::vector< HalfEdgeVector >;
+    using Face                 = Arrangement::Face_const_handle;
+    using FaceVector           = std::vector< Face >;
+    using FaceSet              = std::set< Face >;
+
+    void getVertices( VertexVector& vertices ) const;
+    void getPerimeterPolygon( HalfEdgeVector& polygon ) const;
+    void getBoundaryPolygons( HalfEdgeVectorVector& polygons ) const;
+
+    struct PolygonWithHoles
+    {
+        HalfEdgeVector       outer;
+        HalfEdgeVectorVector holes;
+    };
+    using PolygonWithHolesVector = std::vector< PolygonWithHoles >;
+
     class Observer : public CGAL::Arr_observer< Arrangement >
     {
         std::optional< HalfEdgeData > m_edgeData, m_edgeDataTwin;
@@ -131,20 +159,6 @@ public:
         }
     };
 
-    Analysis( boost::shared_ptr< schematic::Schematic > pSchematic );
-
-    // query used by editor for edge visualisation
-    void getEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges );
-
-    // queries used by map format
-    using VertexVector         = std::vector< Arrangement::Vertex_const_handle >;
-    using HalfEdgeVector       = std::vector< Arrangement::Halfedge_const_handle >;
-    using HalfEdgeVectorVector = std::vector< HalfEdgeVector >;
-
-    void getVertices( VertexVector& vertices ) const;
-    void getPerimeterPolygon( HalfEdgeVector& polygon ) const;
-    void getBoundaryPolygons( HalfEdgeVectorVector& polygons ) const;
-
 private:
     template < typename TEdgeType >
     inline void classify( TEdgeType h, EdgeMask::Type mask )
@@ -153,6 +167,9 @@ private:
     }
 
     // internal analysis routines
+    void renderCurve( const exact::Curve& curve, EdgeMask::Type mask );
+    void renderCurve( const exact::Curve& curve, EdgeMask::Type innerMask, EdgeMask::Type outerMask,
+                      schematic::Site::PtrCst pInnerSite, schematic::Site::PtrCst pOuterSite );
     void renderContour( const exact::Transform& transform,
                         const exact::Polygon&   poly,
                         EdgeMask::Type          innerMask,
@@ -165,134 +182,11 @@ private:
     void constructConnectionEdges( schematic::Connection::Ptr   pConnection,
                                    Arrangement::Halfedge_handle firstBisectorEdge,
                                    Arrangement::Halfedge_handle secondBisectorEdge );
-                                   
-    template< typename TFunctor >
-    inline bool anyFaceEdge( Arrangement::Face_const_handle hFace, TFunctor&& predicate ) const
-    {
-        if( !hFace->is_unbounded() )
-        {
-            Arrangement::Ccb_halfedge_const_circulator iter  = hFace->outer_ccb();
-            Arrangement::Ccb_halfedge_const_circulator start = iter;
-            do
-            {
-                if( predicate( iter->data() ) )
-                {
-                    return true;
-                }
-                ++iter;
-            } while( iter != start );
-        }
-
-        // search through all holes
-        for( Arrangement::Hole_const_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
-            holeIter != holeIterEnd; ++holeIter )
-        {
-            Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
-            Arrangement::Ccb_halfedge_const_circulator start = iter;
-            do
-            {
-                if( predicate( iter->data() ) )
-                {
-                    return true;
-                }
-                ++iter;
-            } while( iter != start );
-        }
-        return false;
-    }          
-    template< typename TFunctor >
-    inline bool allFaceEdges( Arrangement::Face_const_handle hFace, TFunctor&& predicate ) const
-    {
-        if( !hFace->is_unbounded() )
-        {
-            Arrangement::Ccb_halfedge_const_circulator iter  = hFace->outer_ccb();
-            Arrangement::Ccb_halfedge_const_circulator start = iter;
-            do
-            {
-                if( !predicate( iter->data() ) )
-                {
-                    return false;
-                }
-                ++iter;
-            } while( iter != start );
-        }
-
-        // search through all holes
-        for( Arrangement::Hole_const_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
-            holeIter != holeIterEnd; ++holeIter )
-        {
-            Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
-            Arrangement::Ccb_halfedge_const_circulator start = iter;
-            do
-            {
-                if( !predicate( iter->data() ) )
-                {
-                    return false;
-                }
-                ++iter;
-            } while( iter != start );
-        }
-        return true;
-    }
-
-    bool areFacesAdjacent( Arrangement::Face_const_handle hFace1, Arrangement::Face_const_handle hFace2 ) const;
     void partition();
-
-    // internal query implementation helper functions
-    using HalfEdge    = Arrangement::Halfedge_const_handle;
-    using HalfEdgeSet = std::set< HalfEdge >;
-
-    template < typename Predicate >
-    inline void getEdges( HalfEdgeSet& edges, Predicate&& predicate ) const
-    {
-        for( auto i = m_arr.halfedges_begin(); i != m_arr.halfedges_end(); ++i )
-        {
-            if( predicate( i ) )
-            {
-                edges.insert( i );
-            }
-        }
-    }
-
-    inline void getPolygons( const HalfEdgeSet& edges, HalfEdgeVectorVector& polygons ) const
-    {
-        HalfEdgeSet open = edges;
-
-        while( !open.empty() )
-        {
-            HalfEdge currentEdge = *open.begin();
-
-            HalfEdgeVector polygon;
-            while( currentEdge != HalfEdge{} )
-            {
-                polygon.push_back( currentEdge );
-                open.erase( currentEdge );
-
-                HalfEdge nextEdge = {};
-                {
-                    using EdgeIter    = Arrangement::Halfedge_around_vertex_const_circulator;
-                    EdgeIter edgeIter = currentEdge->target()->incident_halfedges(), edgeIterEnd = edgeIter;
-                    do
-                    {
-                        HalfEdge outEdge = edgeIter->twin();
-                        if( ( currentEdge != outEdge ) && open.contains( outEdge ) )
-                        {
-                            VERIFY_RTE_MSG( nextEdge == HalfEdge{}, "Duplicate next edge found" );
-                            nextEdge = outEdge;
-                        }
-                        ++edgeIter;
-                    } while( edgeIter != edgeIterEnd );
-                }
-                currentEdge = nextEdge;
-            }
-            VERIFY_RTE_MSG( polygon.size() >= 3, "Invalid polygon found with less than three edges" );
-            polygons.push_back( polygon );
-        }
-    }
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 
-    Partition::PtrVector m_partitions;
+    Partition::PtrVector m_floors, m_boundaries;
     Arrangement          m_arr;
     Observer             m_observer;
 };

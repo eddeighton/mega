@@ -267,20 +267,31 @@ void SchematicDocument::calculateDerived( const schematic::File::CompilationConf
 {
     if( m_pSchematic )
     {
-        if( config[ schematic::Schematic::eStage_SiteContour ] )
+        bool bWasError = false;
+        if( !bWasError && config[ schematic::Schematic::eStage_SiteContour ] )
         {
             m_pSchematic->task_contours();
         }
-        if( config[ schematic::Schematic::eStage_Extrusion ] )
+        if( !bWasError && config[ schematic::Schematic::eStage_Extrusion ] )
         {
             m_pSchematic->task_extrusions();
         }
-        if( config[ schematic::Schematic::eStage_Compilation ] )
+        if( !bWasError && config[ schematic::Schematic::eStage_Compilation ] )
         {
             std::ostringstream osError;
             if( !m_pSchematic->task_compilation( osError ) )
             {
                 m_documentChangeObserver.OnDocumentError( this, osError.str() );
+                bWasError = true;
+            }
+        }
+        if( !bWasError && config[ schematic::Schematic::eStage_Skeleton ] )
+        {
+            std::ostringstream osError;
+            if( !m_pSchematic->task_skeleton( osError ) )
+            {
+                m_documentChangeObserver.OnDocumentError( this, osError.str() );
+                bWasError = true;
             }
         }
     }
