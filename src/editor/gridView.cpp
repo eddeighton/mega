@@ -149,6 +149,8 @@ void GridView::drawBackground( QPainter* painter, const QRectF& rect )
 {
     painter->fillRect( rect, m_bkgrnd );
 
+    // m_bkgrndContext
+
     // grid lines
     QPen oldPen = painter->pen();
     {

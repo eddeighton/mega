@@ -148,7 +148,7 @@ void GlyphView::onViewFocussed()
 void GlyphView::onViewUnfocussed()
 {
     GridView::onViewUnfocussed();
-    
+
     QObject::disconnect(
         m_pMainWindow->getUI()->config, &ViewConfigPanel::OnViewConfigModified, this, &GlyphView::OnViewConfigChanged );
 
@@ -175,12 +175,11 @@ void GlyphView::onViewUnfocussed()
     CMD_DISCONNECT( actionEdit, CmdEditTool );
 
     m_pMainWindow->getUI()->treeView->setModel( nullptr );
-    
+
     // following crashes the treeCtrl?
-    //m_pMainWindow->getUI()->treeView->setSelectionModel( nullptr );
+    // m_pMainWindow->getUI()->treeView->setSelectionModel( nullptr );
 
     m_pMainWindow->getUI()->config->setViewConfig( {} );
-
 }
 
 void GlyphView::onZoomed()
@@ -263,9 +262,33 @@ void GlyphView::updateGlyphVisibility()
     const bool bShowSites       = m_pViewConfig->isGlyphVisible( ViewConfig::eGlyphVis_Sites );
     const bool bShowConnections = m_pViewConfig->isGlyphVisible( ViewConfig::eGlyphVis_Connections );
 
-    auto testGlyphOrigin = [ bShowSites, bShowConnections ]( const GlyphOrigin* pOrigin ) -> bool
+    VERIFY_RTE( m_pActiveContext );
+    const schematic::Origin* pEditContextOrigin = m_pActiveContext->getOrigin();
+    auto                     testGlyphOrigin    = [ bShowSites, bShowConnections, pEditContextOrigin ](
+                               const GlyphOrigin* pOrigin, bool onlyLines = false ) -> bool
     {
         const schematic::Origin* pOriginSpec = pOrigin->getOrigin();
+
+        // if the site is not within the active edit context then do not display it
+        if( pEditContextOrigin && !onlyLines )
+        {
+            bool                        bIsChildOfActiveContext = false;
+            const schematic::GlyphSpec* pIter                   = pOriginSpec;
+            while( pIter )
+            {
+                if( pIter == pEditContextOrigin )
+                {
+                    bIsChildOfActiveContext = true;
+                    break;
+                }
+                pIter = pIter->getParent();
+            }
+            if( !bIsChildOfActiveContext )
+            {
+                return false;
+            }
+        }
+
         if( dynamic_cast< const schematic::Connection* >( pOriginSpec ) )
         {
             if( !bShowConnections )
@@ -345,21 +368,22 @@ void GlyphView::updateGlyphVisibility()
             {
                 if( auto pOrigin = dynamic_cast< const GlyphOrigin* >( pGlyph->getParent().get() ) )
                 {
-                    if( !testGlyphOrigin( pOrigin ) )
+                    if( !testGlyphOrigin( pOrigin, true ) )
                         bShowType = false;
                 }
             }
 
-            bool bShow = false;
+            bool bIsCompiled = false;
             if( auto pSpec = pGlyph->getGlyphSpec() )
             {
                 const auto compilationStage = pSpec->getCompilationStage();
                 if( compilationStage >= 0 && compilationStage < m_compilationConfig.size() )
                 {
-                    bShow = m_compilationConfig[ compilationStage ];
+                    bIsCompiled = m_compilationConfig[ compilationStage ];
                 }
             }
-            pRenderable->setShouldRender( bShow && bShowType );
+
+            pRenderable->setShouldRender( bIsCompiled && bShowType );
         }
     }
 }
@@ -372,7 +396,7 @@ void GlyphView::selectContext( schematic::IEditContext* pNewContext )
     schematic::IEditContext* pOldContext = m_pActiveContext;
     m_pActiveContext                     = pNewContext;
 
-    if( pOldContext )
+    /*if( pOldContext )
     {
         auto iFind = m_specMap.find( pOldContext->getOrigin() );
         if( iFind != m_specMap.end() )
@@ -392,6 +416,14 @@ void GlyphView::selectContext( schematic::IEditContext* pNewContext )
             if( iFind2 != m_itemMap.end() )
                 iFind2->second->update();
         }
+    }*/
+
+    updateGlyphVisibility();
+
+    // just update everything
+    for( auto& [ pItem, pGlyph ] : m_itemMap )
+    {
+        pGlyph->update();
     }
 
     m_pActiveTool->onUpdate();

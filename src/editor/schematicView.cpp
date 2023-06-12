@@ -37,7 +37,7 @@ void SchematicView::postCreate( SchematicDocument::Ptr pDocument )
 
     m_pEdit.reset( new schematic::EditSchematic( *pGlyphView, m_pSchematicDocument->getSchematic() ) );
 
-    m_pActiveContext = m_pEdit.get();
+    selectContext( m_pEdit.get() );
 
     m_pSchematicDocument->setCompilationConfig( m_compilationConfig );
 

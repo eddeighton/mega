@@ -23,6 +23,8 @@
 
 #include <CGAL/Polygon_with_holes_2.h>
 #include <CGAL/create_straight_skeleton_from_polygon_with_holes_2.h>
+#include <CGAL/create_offset_polygons_from_polygon_with_holes_2.h>
+#include <CGAL/create_offset_polygons_2.h>
 
 #include <vector>
 
@@ -955,16 +957,19 @@ void Analysis::partition()
                         {
                             for( auto innerWallEdge : innerWallBoundary )
                             {
-                                if( innerWallEdge->data().flags.test( EdgeMask::eInterior )
-                                    || innerWallEdge->data().flags.test( EdgeMask::eExterior ) )
-                                {
-                                    INVARIANT( !innerWallEdge->data().sites.empty(),
-                                               "Interior or exterior edge missing site" );
-                                    sites.insert( innerWallEdge->data().sites.back() );
-                                }
+                                //if( innerWallEdge->data().flags.test( EdgeMask::eInterior )
+                                //    || innerWallEdge->data().flags.test( EdgeMask::eExterior ) )
+                                //{
+                                //    INVARIANT( !innerWallEdge->data().sites.empty(),
+                                //               "Interior or exterior edge missing site" );
+                                //    sites.insert( innerWallEdge->data().sites.back() );
+                                //}
                                 innerWallEdge->data().pPartition = pPartition.get();
                                 classify( innerWallEdge, EdgeMask::ePartitionFloor );
-                                classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
+                                if( !innerWallEdge->data().flags.test( EdgeMask::eDoorStep ) )
+                                {
+                                    classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
+                                }
 
                                 innerBoundaries.erase( innerWallEdge );
                                 bMadeProgress = true;
@@ -1078,6 +1083,30 @@ void Analysis::skeleton()
         else if( h->is_bisector() )
         {
             renderCurve( Curve( h->vertex()->point(), h->next()->vertex()->point() ), EdgeMask::eSkeletonBisector );
+        }
+    }
+
+    static constexpr std::array< std::pair< double, EdgeMask::Type >, 4 > extrusions =
+    {
+        std::pair< double, EdgeMask::Type >{ 1.0, EdgeMask::eExtrusionOne },
+        std::pair< double, EdgeMask::Type >{ 2.0, EdgeMask::eExtrusionTwo },
+        std::pair< double, EdgeMask::Type >{ 3.0, EdgeMask::eExtrusionThree },
+        std::pair< double, EdgeMask::Type >{ 4.0, EdgeMask::eExtrusionFour }
+    };
+    for( const auto& [ fOffset, mask ] : extrusions )
+    {
+        auto   result  = CGAL::create_offset_polygons_2( fOffset, *pStraightSkeleton );
+        for( const auto poly : result )
+        {
+            auto i = poly->begin(), iNext = poly->begin(), iEnd = poly->end();
+            for( ; i != iEnd; ++i )
+            {
+                ++iNext;
+                if( iNext == iEnd )
+                    iNext = poly->begin();
+                renderCurve(
+                    Curve( Point( i->x(), i->y() ), Point( iNext->x(), iNext->y() ) ), mask );
+            }
         }
     }
 }

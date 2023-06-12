@@ -119,6 +119,7 @@ void Space::init( const Transform& transform )
 
     m_pWidthProperty = Property::Ptr( new Property( shared_from_this(), "width" ) );
     m_pWidthProperty->init();
+    m_pWidthProperty->setStatement("0.5f");
     add( m_pWidthProperty );
 
     Space::init();

@@ -19,7 +19,6 @@ void filterSelectionByDepth( SelectionSet& selection, unsigned int uiDepth )
         i = selection.begin(),
         iEnd = selection.end(); i!=iEnd; )
     {
-        //if( Selection::glyphToSelectable( *i )->getDepth() != uiDepth )
         if( Selection::glyphToSelectable( *i )->getDepth() < uiDepth )
             i = selection.erase( i );
         else
