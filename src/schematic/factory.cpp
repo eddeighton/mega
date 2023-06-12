@@ -28,6 +28,8 @@
 #include "schematic/feature.hpp"
 #include "schematic/schematic.hpp"
 
+#include "ed/file.hpp"
+
 #include "common/assert_verify.hpp"
 #include "common/variant_utils.hpp"
 #include "common/file.hpp"
@@ -43,17 +45,27 @@ namespace schematic
 
 namespace
 {
-static constexpr auto boostXMLArchiveFlags = boost::archive::no_header | boost::archive::no_codecvt
-                                             | boost::archive::no_tracking; // | boost::archive::no_xml_tag_checking
 
 format::Node loadFile( const std::string& strFilePath )
 {
     format::Node file;
     try
     {
-        auto                         inFile = boost::filesystem::loadFileStream( strFilePath );
-        boost::archive::xml_iarchive ia( *inFile, boostXMLArchiveFlags );
-        ia&                          boost::serialization::make_nvp( "root", file );
+        Ed::Node rootNode;
+        {
+            Ed::BasicFileSystem fileSystem;
+            Ed::File            file( fileSystem, strFilePath );
+
+            file.expandShorthand();
+            file.removeTypes();
+
+            file.toNode( rootNode );
+        }
+
+        for( const auto& n : rootNode )
+        {
+            file.load( n );
+        }
     }
     catch( std::exception& ex )
     {
@@ -66,9 +78,12 @@ void saveFile( const std::string& strFilePath, const format::Node& file )
 {
     try
     {
-        auto                         outFile = boost::filesystem::createNewFileStream( strFilePath );
-        boost::archive::xml_oarchive oa( *outFile, boostXMLArchiveFlags );
-        oa&                          boost::serialization::make_nvp( "root", file );
+        Ed::Node rootNode;
+        file.save( rootNode );
+
+        Ed::Node parentNode;
+        parentNode.children.emplace_back( rootNode );
+        Ed::saveNodeToFile( strFilePath, parentNode );
     }
     catch( std::exception& ex )
     {
@@ -115,19 +130,7 @@ File::Ptr load( const boost::filesystem::path& filePath )
 
     return pFile;
 }
-/*
-void load( File::Ptr pFile, const boost::filesystem::path& filePath )
-{
-    VERIFY_RTE_MSG( boost::filesystem::exists( filePath ), "Could not find file: " << filePath.string() );
 
-    const std::string  strFilePath = filePath.string();
-    const format::Node rootNode    = loadFile( strFilePath );
-
-    pFile->init();
-
-    pFile->load( rootNode );
-}
-*/
 void save( File::PtrCst pFile, const boost::filesystem::path& filePath )
 {
     format::Node file;
@@ -207,27 +210,12 @@ Node::Ptr construct( Node::Ptr pParent, const format::Node& node )
 
     return pNewNode;
 }
-/*
-Polygon formatPolygonFromPath( const format::Path& path )
-{
-    Polygon polygon;
-    polygon.resize( path.points.size() );
-    for( const auto& element : path.points )
-    {
-        const int         uiIndex = element.first;
-        const format::F2& point   = element.second;
-        polygon[ uiIndex ]        = Point( point.x, point.y );
-    }
-    return polygon;
-}*/
 
 void formatPolygonToPath( const Polygon& polygon, format::Path& path )
 {
-    int szIndex = 0;
     for( const Point& pt : polygon )
     {
-        path.points.insert( { szIndex, format::F2{ pt.x(), pt.y() } } );
-        ++szIndex;
+        path.points.push_back( format::F2{ pt.x(), pt.y() } );
     }
 }
 

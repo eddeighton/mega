@@ -20,9 +20,14 @@
 #ifndef MAP_FORMAT_21_FEB_2023
 #define MAP_FORMAT_21_FEB_2023
 
+#include "ed/node.hpp"
+#include "ed/nodeio.hpp"
+#include "ed/shorthandio.hpp"
+#include "ed/stlio.hpp"
+/*
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
-
+*/
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/utility.hpp>
@@ -50,18 +55,21 @@
 
 namespace schematic::format
 {
+
 struct F2
 {
     double x;
     double y;
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& boost::serialization::make_nvp( "x", x );
-        archive& boost::serialization::make_nvp( "y", y );
-    }
 };
+
+inline Ed::IShorthandStream& operator>>( Ed::IShorthandStream& is, F2& f2 )
+{
+    return is >> f2.x >> f2.y;
+}
+inline Ed::OShorthandStream& operator<<( Ed::OShorthandStream& os, const F2& f2 )
+{
+    return os << f2.x << f2.y;
+}
 
 struct Transform
 {
@@ -71,29 +79,48 @@ struct Transform
     double m10;
     double m11;
     double m12;
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& boost::serialization::make_nvp( "m00", m00 );
-        archive& boost::serialization::make_nvp( "m01", m01 );
-        archive& boost::serialization::make_nvp( "m02", m02 );
-        archive& boost::serialization::make_nvp( "m10", m10 );
-        archive& boost::serialization::make_nvp( "m11", m11 );
-        archive& boost::serialization::make_nvp( "m12", m12 );
-    }
 };
+
+inline Ed::IShorthandStream& operator>>( Ed::IShorthandStream& is, Transform& data )
+{
+    // clang-format off
+    return is
+    >> data.m00
+    >> data.m01
+    >> data.m02
+    >> data.m10
+    >> data.m11
+    >> data.m12
+    ;
+    // clang-format on
+}
+inline Ed::OShorthandStream& operator<<( Ed::OShorthandStream& os, const Transform& data )
+{
+    // clang-format off
+    return os
+    << data.m00
+    << data.m01
+    << data.m02
+    << data.m10
+    << data.m11
+    << data.m12
+    ;
+    // clang-format on
+}
 
 struct Path
 {
-    std::map< int, F2 > points;
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& boost::serialization::make_nvp( "points", points );
-    }
+    std::vector< F2 > points;
 };
+
+inline Ed::IShorthandStream& operator>>( Ed::IShorthandStream& is, Path& data )
+{
+    return Ed::serialiseIn( is, data.points );
+}
+inline Ed::OShorthandStream& operator<<( Ed::OShorthandStream& os, const Path& data )
+{
+    return Ed::serialiseOut( os, data.points );
+}
 
 struct Node
 {
@@ -105,48 +132,39 @@ struct Node
     {
         struct Point
         {
-            F2 position;
+            static const std::string TYPE;
+            F2                       position;
 
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-                archive& boost::serialization::make_nvp( "position", position );
-            }
+            void load( Ed::IShorthandStream& is );
+            void save( Ed::OShorthandStream& os ) const;
         };
 
         struct Contour
         {
-            Path path;
+            static const std::string TYPE;
+            Path                     path;
 
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-                archive& boost::serialization::make_nvp( "path", path );
-            }
+            void load( Ed::IShorthandStream& is );
+            void save( Ed::OShorthandStream& os ) const;
         };
 
         struct Pin
         {
-            F2 position;
+            static const std::string TYPE;
+            F2                       position;
 
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-                archive& boost::serialization::make_nvp( "position", position );
-            }
+            void load( Ed::IShorthandStream& is );
+            void save( Ed::OShorthandStream& os ) const;
         };
 
         struct LineSegment
         {
-            F2 start;
-            F2 end;
+            static const std::string TYPE;
+            F2                       start;
+            F2                       end;
 
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-                archive& boost::serialization::make_nvp( "start", start );
-                archive& boost::serialization::make_nvp( "end", end );
-            }
+            void load( Ed::IShorthandStream& is );
+            void save( Ed::OShorthandStream& os ) const;
         };
 
         boost::variant< Point, Contour, Pin, LineSegment > type;
@@ -156,22 +174,17 @@ struct Node
         VARIANT_MEMBER( Pin, pin, 2, type );
         VARIANT_MEMBER( LineSegment, lineSegment, 3, type );
 
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
-        {
-            archive& boost::serialization::make_nvp( "type", type );
-        }
+        void load( Ed::IShorthandStream& is );
+        void save( Ed::OShorthandStream& os );
     };
 
     struct Property
     {
-        std::string value;
+        static const std::string TYPE;
+        std::string              value;
 
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
-        {
-            archive& boost::serialization::make_nvp( "value", value );
-        }
+        void load( Ed::IShorthandStream& is );
+        void save( Ed::OShorthandStream& os ) const;
     };
 
     struct Site
@@ -180,38 +193,33 @@ struct Node
 
         struct Space
         {
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-            }
+            static const std::string TYPE;
+            void                     load( Ed::IShorthandStream& is );
+            void                     save( Ed::OShorthandStream& os ) const;
         };
         struct Wall
         {
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-            }
+            static const std::string TYPE;
+            void                     load( Ed::IShorthandStream& is );
+            void                     save( Ed::OShorthandStream& os ) const;
         };
         struct Object
         {
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-            }
+            static const std::string TYPE;
+            void                     load( Ed::IShorthandStream& is );
+            void                     save( Ed::OShorthandStream& os ) const;
         };
         struct Connection
         {
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-            }
+            static const std::string TYPE;
+            void                     load( Ed::IShorthandStream& is );
+            void                     save( Ed::OShorthandStream& os ) const;
         };
         struct Cut
         {
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-            }
+            static const std::string TYPE;
+            void                     load( Ed::IShorthandStream& is );
+            void                     save( Ed::OShorthandStream& os ) const;
         };
 
         boost::variant< Space, Wall, Object, Connection, Cut > type;
@@ -222,33 +230,25 @@ struct Node
         VARIANT_MEMBER( Connection, connection, 3, type );
         VARIANT_MEMBER( Cut, cut, 4, type );
 
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
-        {
-            archive& boost::serialization::make_nvp( "type", type );
-            archive& boost::serialization::make_nvp( "transform", transform );
-        }
+        void load( Ed::IShorthandStream& is );
+        void save( Ed::OShorthandStream& os ) const;
     };
 
     struct File
     {
         struct Schematic
         {
-            template < class Archive >
-            inline void serialize( Archive& archive, const unsigned int version )
-            {
-            }
+            static const std::string TYPE;
+            void                     load( Ed::IShorthandStream& is );
+            void                     save( Ed::OShorthandStream& os ) const;
         };
 
         boost::variant< Schematic > type;
 
         VARIANT_MEMBER( Schematic, schematic, 0, type );
 
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
-        {
-            archive& boost::serialization::make_nvp( "type", type );
-        }
+        void load( Ed::IShorthandStream& is );
+        void save( Ed::OShorthandStream& os ) const;
     };
 
     boost::variant< Feature, Property, Site, File > type;
@@ -257,13 +257,11 @@ struct Node
     VARIANT_MEMBER( Site, site, 2, type );
     VARIANT_MEMBER( File, file, 3, type );
 
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& boost::serialization::make_nvp( "type", type );
-        archive& boost::serialization::make_nvp( "name", name );
-        archive& boost::serialization::make_nvp( "children", children );
-    }
+    void load( Ed::IShorthandStream& is );
+    void save( Ed::OShorthandStream& os ) const;
+
+    void load( const Ed::Node& edNode );
+    void save( Ed::Node& edNode ) const;
 };
 
 } // namespace schematic::format

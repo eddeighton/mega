@@ -33,11 +33,16 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/flatbuffers/flatbuffers_include.cmake
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#get ed
+include( ${WORKSPACE_ROOT_PATH}/src/ed/ed_include.cmake )
+
 set( SCHEMATIC_API_DIR ${MEGA_API_DIR}/schematic )
 
 set( SCHEMATIC_HEADERS
     ${SCHEMATIC_API_DIR}/analysis/edge_mask.hpp
     ${SCHEMATIC_API_DIR}/analysis/analysis.hpp
+    
+    ${SCHEMATIC_API_DIR}/format/format.hpp
 
     ${SCHEMATIC_API_DIR}/buffer.hpp
     ${SCHEMATIC_API_DIR}/cgalSettings.hpp
@@ -76,6 +81,8 @@ set( SCHEMATIC_SRC_DIR ${MEGA_SRC_DIR}/schematic )
 set( SCHEMATIC_SOURCE
     ${SCHEMATIC_SRC_DIR}/analysis/edge_mask.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/analysis.cpp
+
+    ${SCHEMATIC_SRC_DIR}/format/format.cpp
 
     ${SCHEMATIC_SRC_DIR}/cgalUtils.cpp
     ${SCHEMATIC_SRC_DIR}/compilationGetPolyInfo.cpp
@@ -126,10 +133,11 @@ add_dependencies( schematic map_format )
 link_boost( schematic system )
 link_boost( schematic filesystem )
 link_boost( schematic iostreams )
-link_boost( schematic serialization )
+#link_boost( schematic serialization )
 
 link_cgal( schematic )
 link_common( schematic )
+link_ed( schematic )
 link_flatbuffers( schematic )
 
 install( FILES ${SCHEMATIC_HEADERS} DESTINATION include/schematic )

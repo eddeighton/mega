@@ -20,6 +20,7 @@
 
 #include "schematic/analysis/analysis.hpp"
 #include "schematic/schematic.hpp"
+#include "schematic/cut.hpp"
 
 #include <CGAL/Polygon_with_holes_2.h>
 #include <CGAL/create_straight_skeleton_from_polygon_with_holes_2.h>
@@ -569,6 +570,7 @@ Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
     recurse( pRootSpace );
     connect( pRootSpace );
     recursePost( pRootSpace );
+    cut( pRootSpace );
 }
 
 void Analysis::renderCurve( const exact::Curve& curve, EdgeMask::Type mask )
@@ -885,14 +887,60 @@ void Analysis::connect( schematic::Site::Ptr pSite )
         // INVARIANT( toRemove.size() == 4, "Bad connection" );
         for( Arrangement::Halfedge_handle h : toRemove )
         {
-            classify( h, EdgeMask::eConnectionEnd );
-            classify( h->twin(), EdgeMask::eConnectionEnd );
+            // classify( h, EdgeMask::eConnectionEnd );
+            // classify( h->twin(), EdgeMask::eConnectionEnd );
+            CGAL::remove_edge( m_arr, h );
         }
     }
 
     for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
     {
         connect( pNestedSite );
+    }
+}
+
+void Analysis::cut( schematic::Site::Ptr pSite )
+{
+    static ::exact::InexactToExact converter;
+    
+    if( schematic::Cut::Ptr pCut = boost::dynamic_pointer_cast< schematic::Cut >( pSite ) )
+    {
+        const exact::Transform transform = pCut->getAbsoluteExactTransform();
+        const exact::Point     ptStart( transform( converter( pCut->getSegment()[ 0 ] ) ) );
+        const exact::Point     ptEnd( transform( converter( pCut->getSegment()[ 1 ] ) ) );
+
+        Curve_handle curve = CGAL::insert( m_arr, Curve( ptStart, ptEnd ) );
+
+        std::vector< Arrangement::Halfedge_handle > toRemove;
+        for( auto i = m_arr.induced_edges_begin( curve ); i != m_arr.induced_edges_end( curve ); ++i )
+        {
+            Arrangement::Halfedge_handle h = *i;
+
+            // cut must be inside boundary face
+
+            //if( h->data().flags.test( EdgeMask::eInterior
+
+            /*if( ( h->source()->point() == ptStart ) || ( h->source()->point() == ptEnd )
+                || ( h->target()->point() == ptStart ) || ( h->target()->point() == ptEnd ) )
+            {
+                toRemove.push_back( h );
+            }
+            else*/
+            {
+                classify( h, EdgeMask::eCut );
+                classify( h->twin(), EdgeMask::eCut );
+            }
+        }
+
+        for( Arrangement::Halfedge_handle h : toRemove )
+        {
+            CGAL::remove_edge( m_arr, h );
+        }
+    }
+
+    for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
+    {
+        cut( pNestedSite );
     }
 }
 
@@ -957,13 +1005,13 @@ void Analysis::partition()
                         {
                             for( auto innerWallEdge : innerWallBoundary )
                             {
-                                //if( innerWallEdge->data().flags.test( EdgeMask::eInterior )
-                                //    || innerWallEdge->data().flags.test( EdgeMask::eExterior ) )
+                                // if( innerWallEdge->data().flags.test( EdgeMask::eInterior )
+                                //     || innerWallEdge->data().flags.test( EdgeMask::eExterior ) )
                                 //{
-                                //    INVARIANT( !innerWallEdge->data().sites.empty(),
-                                //               "Interior or exterior edge missing site" );
-                                //    sites.insert( innerWallEdge->data().sites.back() );
-                                //}
+                                //     INVARIANT( !innerWallEdge->data().sites.empty(),
+                                //                "Interior or exterior edge missing site" );
+                                //     sites.insert( innerWallEdge->data().sites.back() );
+                                // }
                                 innerWallEdge->data().pPartition = pPartition.get();
                                 classify( innerWallEdge, EdgeMask::ePartitionFloor );
                                 if( !innerWallEdge->data().flags.test( EdgeMask::eDoorStep ) )
@@ -1086,16 +1134,14 @@ void Analysis::skeleton()
         }
     }
 
-    static constexpr std::array< std::pair< double, EdgeMask::Type >, 4 > extrusions =
-    {
-        std::pair< double, EdgeMask::Type >{ 1.0, EdgeMask::eExtrusionOne },
-        std::pair< double, EdgeMask::Type >{ 2.0, EdgeMask::eExtrusionTwo },
-        std::pair< double, EdgeMask::Type >{ 3.0, EdgeMask::eExtrusionThree },
-        std::pair< double, EdgeMask::Type >{ 4.0, EdgeMask::eExtrusionFour }
-    };
+    static constexpr std::array< std::pair< double, EdgeMask::Type >, 4 > extrusions
+        = { std::pair< double, EdgeMask::Type >{ 1.0, EdgeMask::eExtrusionOne },
+            std::pair< double, EdgeMask::Type >{ 2.0, EdgeMask::eExtrusionTwo },
+            std::pair< double, EdgeMask::Type >{ 3.0, EdgeMask::eExtrusionThree },
+            std::pair< double, EdgeMask::Type >{ 4.0, EdgeMask::eExtrusionFour } };
     for( const auto& [ fOffset, mask ] : extrusions )
     {
-        auto   result  = CGAL::create_offset_polygons_2( fOffset, *pStraightSkeleton );
+        auto result = CGAL::create_offset_polygons_2( fOffset, *pStraightSkeleton );
         for( const auto poly : result )
         {
             auto i = poly->begin(), iNext = poly->begin(), iEnd = poly->end();
@@ -1104,8 +1150,7 @@ void Analysis::skeleton()
                 ++iNext;
                 if( iNext == iEnd )
                     iNext = poly->begin();
-                renderCurve(
-                    Curve( Point( i->x(), i->y() ), Point( iNext->x(), iNext->y() ) ), mask );
+                renderCurve( Curve( Point( i->x(), i->y() ), Point( iNext->x(), iNext->y() ) ), mask );
             }
         }
     }

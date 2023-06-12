@@ -31,6 +31,8 @@
 #ifndef _WIN32
 #include "schematic/factory.hpp"
 #include "schematic/schematic.hpp"
+#include "schematic/format/format.hpp"
+#include "ed/file.hpp"
 #endif
 
 #include "common/assert_verify.hpp"
@@ -40,11 +42,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
-#include <boost/dll/import.hpp>
-#include <boost/dll/shared_library.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-
-#include <boost/serialization/serialization.hpp>
 
 #include <iostream>
 #include <string>
@@ -56,6 +53,7 @@ namespace driver::map
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path schematicFilePath, projectPath, outputFilePath;
+    bool bTest = false;
 
     namespace po = boost::program_options;
 
@@ -70,6 +68,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             ( "input",             po::value< boost::filesystem::path >( &schematicFilePath ),  "Schematic Input File" )
             ( "project_install",   po::value< boost::filesystem::path >( &projectPath ),        "Path to Megastructure Project" )
             ( "output",            po::value< boost::filesystem::path >( &outputFilePath ),     "Output svg file" )
+            ( "test",              po::bool_switch( &bTest ),                                   "Generate a test schematic file" )
             ;
         // clang-format on
     }
@@ -81,6 +80,36 @@ void command( bool bHelp, const std::vector< std::string >& args )
     if( bHelp )
     {
         std::cout << commandOptions << "\n";
+    }
+    else if( bTest )
+    {
+#ifndef _WIN32
+        std::cout << "Constructing test schematic file" << std::endl;
+
+        schematic::format::Node root;
+        root.name = "testing";
+
+        for( int i = 0; i != 3; ++i )
+        {
+            schematic::format::Node c;
+            c.name = "child";
+            schematic::format::Node::Site* pSite = c.mutable_site();
+
+            root.children.insert( { i, c } );
+        }
+
+
+        Ed::Node rootNode;
+        root.save( rootNode );
+
+        auto fullPath = boost::filesystem::edsCannonicalise( outputFilePath );
+
+        
+        Ed::saveNodeToFile( fullPath.string(), rootNode );
+
+        std::cout << "Generated file: " << fullPath.string() << std::endl;
+
+#endif
     }
     else
     {

@@ -109,7 +109,7 @@ boost::filesystem::path Document::UndoHistory::getUndoFileName() const
 
 void Document::UndoHistory::onNewVersion()
 {
-    schematic::File::Ptr pFile = m_document.getFile();
+    /*schematic::File::Ptr pFile = m_document.getFile();
     VERIFY_RTE( pFile );
 
     if( m_current.has_value() )
@@ -124,7 +124,7 @@ void Document::UndoHistory::onNewVersion()
 
     schematic::save( pFile, m_tempFolder / m_current.value() );
 
-    m_lastRecord.update();
+    m_lastRecord.update();*/
 }
 
 schematic::File::Ptr Document::UndoHistory::onUndo()
@@ -132,7 +132,7 @@ schematic::File::Ptr Document::UndoHistory::onUndo()
     schematic::File::Ptr pOldFile = m_document.getFile();
     VERIFY_RTE( pOldFile );
 
-    if( !m_history.empty() )
+    /*if( !m_history.empty() )
     {
         if( m_current.has_value() )
         {
@@ -146,7 +146,7 @@ schematic::File::Ptr Document::UndoHistory::onUndo()
 
         return schematic::load( m_tempFolder / m_current.value() );
     }
-    else
+    else*/
     {
         return pOldFile;
     }

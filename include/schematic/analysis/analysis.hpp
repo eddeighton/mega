@@ -179,10 +179,11 @@ private:
                         schematic::Site::PtrCst pOuterSite );
     void recurse( schematic::Site::Ptr pSpace );
     void recursePost( schematic::Site::Ptr pSpace );
-    void connect( schematic::Site::Ptr pConnection );
+    void connect( schematic::Site::Ptr pSite );
     void constructConnectionEdges( schematic::Connection::Ptr   pConnection,
                                    Arrangement::Halfedge_handle firstBisectorEdge,
                                    Arrangement::Halfedge_handle secondBisectorEdge );
+    void cut( schematic::Site::Ptr pSite );
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 

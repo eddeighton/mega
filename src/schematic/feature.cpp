@@ -172,9 +172,8 @@ void Feature_Contour::load( const format::Node& node )
     VERIFY_RTE( node.has_feature() && node.feature().has_contour() );
     const format::Node::Feature::Contour& contour = node.feature().contour();
 
-    //  std::map< int, F2 > points;
     m_polygon.clear();
-    for( const auto& [ _, pt ] : contour.path.points )
+    for( const auto& pt : contour.path.points )
     {
         m_polygon.push_back( Point( pt.x, pt.y ) );
     }
@@ -187,11 +186,10 @@ void Feature_Contour::save( format::Node& node ) const
 {
     format::Node::Feature::Contour& contour = *node.mutable_feature()->mutable_contour();
 
-    int count = 0;
     for( auto i = m_polygon.begin(), iEnd = m_polygon.end(); i != iEnd; ++i )
     {
-        contour.path.points.insert( { count++, format::F2{ Map_FloorAverage()( CGAL::to_double( i->x() ) ),
-                                                           Map_FloorAverage()( CGAL::to_double( i->y() ) ) } } );
+        contour.path.points.push_back( format::F2{
+            Map_FloorAverage()( CGAL::to_double( i->x() ) ), Map_FloorAverage()( CGAL::to_double( i->y() ) ) } );
     }
 
     Feature::save( node );
@@ -420,7 +418,7 @@ void Feature_LineSegment::init()
 }
 void Feature_LineSegment::load( const format::Node& node )
 {
-    VERIFY_RTE( node.has_feature() && node.feature().has_pin() );
+    VERIFY_RTE( node.has_feature() && node.feature().has_lineSegment() );
     const format::Node::Feature::LineSegment& lineSegment = node.feature().lineSegment();
     m_ptStart                                             = Point( lineSegment.start.x, lineSegment.start.y );
     m_ptEnd                                               = Point( lineSegment.end.x, lineSegment.end.y );

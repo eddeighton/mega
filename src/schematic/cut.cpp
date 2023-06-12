@@ -101,21 +101,21 @@ void Cut::init( const Transform& transform )
 
 Polygon Cut::calculateContour()
 {
-    const Segment segment = m_pLineSegment->getSegment();
+    m_segment = m_pLineSegment->getSegment();
 
     Polygon siteContour;
     {
-        Vector v    = segment[ 0 ] - segment[ 1 ];
+        Vector v    = m_segment[ 0 ] - m_segment[ 1 ];
         v           = v.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
         double size = CGAL::approximate_sqrt( v.squared_length() );
         if( size > 0 )
         {
             v = v / size;
 
-            siteContour.push_back( segment[ 0 ] - v * 0.25 );
-            siteContour.push_back( segment[ 0 ] + v * 0.25 );
-            siteContour.push_back( segment[ 1 ] + v * 0.25 );
-            siteContour.push_back( segment[ 1 ] - v * 0.25 );
+            siteContour.push_back( m_segment[ 0 ] - v * 0.25 );
+            siteContour.push_back( m_segment[ 0 ] + v * 0.25 );
+            siteContour.push_back( m_segment[ 1 ] + v * 0.25 );
+            siteContour.push_back( m_segment[ 1 ] - v * 0.25 );
         }
         else
         {
