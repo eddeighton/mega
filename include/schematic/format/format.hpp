@@ -21,16 +21,7 @@
 #define MAP_FORMAT_21_FEB_2023
 
 #include "ed/node.hpp"
-#include "ed/nodeio.hpp"
 #include "ed/shorthandio.hpp"
-#include "ed/stlio.hpp"
-/*
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-*/
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/variant.hpp>
-#include <boost/serialization/utility.hpp>
 
 #include <boost/variant.hpp>
 
@@ -134,27 +125,18 @@ struct Node
         {
             static const std::string TYPE;
             F2                       position;
-
-            void load( Ed::IShorthandStream& is );
-            void save( Ed::OShorthandStream& os ) const;
         };
 
         struct Contour
         {
             static const std::string TYPE;
             Path                     path;
-
-            void load( Ed::IShorthandStream& is );
-            void save( Ed::OShorthandStream& os ) const;
         };
 
         struct Pin
         {
             static const std::string TYPE;
             F2                       position;
-
-            void load( Ed::IShorthandStream& is );
-            void save( Ed::OShorthandStream& os ) const;
         };
 
         struct LineSegment
@@ -162,9 +144,6 @@ struct Node
             static const std::string TYPE;
             F2                       start;
             F2                       end;
-
-            void load( Ed::IShorthandStream& is );
-            void save( Ed::OShorthandStream& os ) const;
         };
 
         boost::variant< Point, Contour, Pin, LineSegment > type;
@@ -173,18 +152,12 @@ struct Node
         VARIANT_MEMBER( Contour, contour, 1, type );
         VARIANT_MEMBER( Pin, pin, 2, type );
         VARIANT_MEMBER( LineSegment, lineSegment, 3, type );
-
-        void load( Ed::IShorthandStream& is );
-        void save( Ed::OShorthandStream& os );
     };
 
     struct Property
     {
         static const std::string TYPE;
         std::string              value;
-
-        void load( Ed::IShorthandStream& is );
-        void save( Ed::OShorthandStream& os ) const;
     };
 
     struct Site
@@ -194,32 +167,22 @@ struct Node
         struct Space
         {
             static const std::string TYPE;
-            void                     load( Ed::IShorthandStream& is );
-            void                     save( Ed::OShorthandStream& os ) const;
         };
         struct Wall
         {
             static const std::string TYPE;
-            void                     load( Ed::IShorthandStream& is );
-            void                     save( Ed::OShorthandStream& os ) const;
         };
         struct Object
         {
             static const std::string TYPE;
-            void                     load( Ed::IShorthandStream& is );
-            void                     save( Ed::OShorthandStream& os ) const;
         };
         struct Connection
         {
             static const std::string TYPE;
-            void                     load( Ed::IShorthandStream& is );
-            void                     save( Ed::OShorthandStream& os ) const;
         };
         struct Cut
         {
             static const std::string TYPE;
-            void                     load( Ed::IShorthandStream& is );
-            void                     save( Ed::OShorthandStream& os ) const;
         };
 
         boost::variant< Space, Wall, Object, Connection, Cut > type;
@@ -229,9 +192,6 @@ struct Node
         VARIANT_MEMBER( Object, object, 2, type );
         VARIANT_MEMBER( Connection, connection, 3, type );
         VARIANT_MEMBER( Cut, cut, 4, type );
-
-        void load( Ed::IShorthandStream& is );
-        void save( Ed::OShorthandStream& os ) const;
     };
 
     struct File
@@ -239,16 +199,11 @@ struct Node
         struct Schematic
         {
             static const std::string TYPE;
-            void                     load( Ed::IShorthandStream& is );
-            void                     save( Ed::OShorthandStream& os ) const;
         };
 
         boost::variant< Schematic > type;
 
         VARIANT_MEMBER( Schematic, schematic, 0, type );
-
-        void load( Ed::IShorthandStream& is );
-        void save( Ed::OShorthandStream& os ) const;
     };
 
     boost::variant< Feature, Property, Site, File > type;
@@ -256,9 +211,6 @@ struct Node
     VARIANT_MEMBER( Property, property, 1, type );
     VARIANT_MEMBER( Site, site, 2, type );
     VARIANT_MEMBER( File, file, 3, type );
-
-    void load( Ed::IShorthandStream& is );
-    void save( Ed::OShorthandStream& os ) const;
 
     void load( const Ed::Node& edNode );
     void save( Ed::Node& edNode ) const;

@@ -19,142 +19,27 @@
 
 #include "schematic/format/format.hpp"
 
+#include "ed/nodeio.hpp"
+#include "ed/stlio.hpp"
+
 #include "common/assert_verify.hpp"
 
 namespace schematic::format
 {
+
 using namespace std::string_literals;
 
-const std::string Node::Feature::Point::TYPE = "Point"s;
-
-void Node::Feature::Point::load( Ed::IShorthandStream& is )
-{
-    is >> position;
-}
-void Node::Feature::Point::save( Ed::OShorthandStream& os ) const
-{
-    os << position;
-}
-
-const std::string Node::Feature::Contour::TYPE = "Contour"s;
-void              Node::Feature::Contour::load( Ed::IShorthandStream& is )
-{
-    is >> path;
-}
-void Node::Feature::Contour::save( Ed::OShorthandStream& os ) const
-{
-    os << path;
-}
-
-const std::string Node::Feature::Pin::TYPE = "Pin"s;
-void              Node::Feature::Pin::load( Ed::IShorthandStream& is )
-{
-    is >> position;
-}
-void Node::Feature::Pin::save( Ed::OShorthandStream& os ) const
-{
-    os << position;
-}
-
+const std::string Node::Feature::Point::TYPE       = "Point"s;
+const std::string Node::Feature::Contour::TYPE     = "Contour"s;
+const std::string Node::Feature::Pin::TYPE         = "Pin"s;
 const std::string Node::Feature::LineSegment::TYPE = "LineSegment"s;
-void              Node::Feature::LineSegment::load( Ed::IShorthandStream& is )
-{
-    is >> start >> end;
-}
-void Node::Feature::LineSegment::save( Ed::OShorthandStream& os ) const
-{
-    os << start << end;
-}
-
-void Node::Feature::load( Ed::IShorthandStream& is )
-{
-}
-void Node::Feature::save( Ed::OShorthandStream& os )
-{
-}
-
-const std::string Node::Property::TYPE = "Property"s;
-void              Node::Property::load( Ed::IShorthandStream& is )
-{
-    is >> value;
-}
-void Node::Property::save( Ed::OShorthandStream& os ) const
-{
-    os << value;
-}
-
-const std::string Node::Site::Space::TYPE = "Space"s;
-void              Node::Site::Space::load( Ed::IShorthandStream& is )
-{
-}
-void Node::Site::Space::save( Ed::OShorthandStream& os ) const
-{
-}
-
-const std::string Node::Site::Wall::TYPE = "Wall"s;
-void              Node::Site::Wall::load( Ed::IShorthandStream& is )
-{
-}
-void Node::Site::Wall::save( Ed::OShorthandStream& os ) const
-{
-}
-
-const std::string Node::Site::Object::TYPE = "Object"s;
-void              Node::Site::Object::load( Ed::IShorthandStream& is )
-{
-}
-void Node::Site::Object::save( Ed::OShorthandStream& os ) const
-{
-}
-
-const std::string Node::Site::Connection::TYPE = "Connection"s;
-void              Node::Site::Connection::load( Ed::IShorthandStream& is )
-{
-}
-void Node::Site::Connection::save( Ed::OShorthandStream& os ) const
-{
-}
-
-const std::string Node::Site::Cut::TYPE = "Cut"s;
-void              Node::Site::Cut::load( Ed::IShorthandStream& is )
-{
-}
-void Node::Site::Cut::save( Ed::OShorthandStream& os ) const
-{
-}
-
-void Node::Site::load( Ed::IShorthandStream& is )
-{
-    is >> transform;
-}
-void Node::Site::save( Ed::OShorthandStream& os ) const
-{
-    os << transform;
-}
-
-const std::string Node::File::Schematic::TYPE = "Schematic"s;
-void              Node::File::Schematic::load( Ed::IShorthandStream& is )
-{
-}
-void Node::File::Schematic::save( Ed::OShorthandStream& os ) const
-{
-}
-
-void Node::File::load( Ed::IShorthandStream& is )
-{
-}
-void Node::File::save( Ed::OShorthandStream& os ) const
-{
-}
-
-void Node::load( Ed::IShorthandStream& is )
-{
-    is >> name;
-}
-void Node::save( Ed::OShorthandStream& os ) const
-{
-    os << name;
-}
+const std::string Node::Property::TYPE             = "Property"s;
+const std::string Node::Site::Space::TYPE          = "Space"s;
+const std::string Node::Site::Wall::TYPE           = "Wall"s;
+const std::string Node::Site::Object::TYPE         = "Object"s;
+const std::string Node::Site::Connection::TYPE     = "Connection"s;
+const std::string Node::Site::Cut::TYPE            = "Cut"s;
+const std::string Node::File::Schematic::TYPE      = "Schematic"s;
 
 namespace
 {
@@ -182,13 +67,18 @@ void Node::load( const Ed::Node& edNode )
 
         Ed::IShorthandStream is( shorthandOpt.value() );
 
-        const Ed::ArgumentVariant&               arg = is.read();
-        boost::optional< const Ed::Expression& > opt
-            = boost::apply_visitor( boost::TypeAccessor< const Ed::Expression >(), arg );
-        VERIFY_RTE_MSG( opt.has_value(), "Type name has incorrect value: " << type );
-        if( opt.has_value() )
         {
+            const Ed::ArgumentVariant&               arg = is.read();
+            boost::optional< const Ed::Expression& > opt
+                = boost::apply_visitor( boost::TypeAccessor< const Ed::Expression >(), arg );
+            VERIFY_RTE_MSG( opt.has_value(), "Type name has incorrect value: " << type );
             name = opt.value().string();
+        }
+        {
+            const Ed::ArgumentVariant&       arg = is.read();
+            boost::optional< const double& > opt = boost::apply_visitor( boost::TypeAccessor< const double >(), arg );
+            VERIFY_RTE_MSG( opt.has_value(), "Type name has incorrect index: " << type );
+            index = static_cast< int >( opt.value() );
         }
     }
 
@@ -267,18 +157,19 @@ void Node::load( const Ed::Node& edNode )
         {
             Node n;
             n.load( child );
-            children.insert( { i++, n } );
+            auto ib = children.insert( { n.index, n } );
+            VERIFY_RTE_MSG( ib.second, "Node has duplicate index: " << n.name );
         }
     }
 }
 
 namespace
 {
-void saveTypeName( Ed::Node& node, const std::string& strType, const std::string& strName )
+void saveTypeName( Ed::Node& node, const std::string& strType, const std::string& strName, int index )
 {
     node.statement = Ed::Statement{ Ed::Declarator{ strType } };
-    Ed::OShorthandStream os( node.getShorty() );
-    os << Ed::Expression{ strName };
+    node.getShorty().push_back( Ed::Expression{ strName } );
+    node.getShorty().push_back( static_cast< double >( index ) );
 }
 
 template < typename T >
@@ -301,26 +192,26 @@ void Node::save( Ed::Node& edNode ) const
         if( f.has_contour() )
         {
             const Feature::Contour& c = f.contour();
-            saveTypeName( edNode, Node::Feature::Contour::TYPE, name );
+            saveTypeName( edNode, Node::Feature::Contour::TYPE, name, index );
             saveProperty( edNode, "path"s, c.path );
         }
         else if( f.has_lineSegment() )
         {
             const Feature::LineSegment& c = f.lineSegment();
-            saveTypeName( edNode, Node::Feature::LineSegment::TYPE, name );
+            saveTypeName( edNode, Node::Feature::LineSegment::TYPE, name, index );
             saveProperty( edNode, "start"s, c.start );
             saveProperty( edNode, "end"s, c.end );
         }
         else if( f.has_pin() )
         {
             const Feature::Pin& c = f.pin();
-            saveTypeName( edNode, Node::Feature::Pin::TYPE, name );
+            saveTypeName( edNode, Node::Feature::Pin::TYPE, name, index );
             saveProperty( edNode, "position"s, c.position );
         }
         else if( f.has_point() )
         {
             const Feature::Point& c = f.point();
-            saveTypeName( edNode, Node::Feature::Point::TYPE, name );
+            saveTypeName( edNode, Node::Feature::Point::TYPE, name, index );
             saveProperty( edNode, "position"s, c.position );
         }
         else
@@ -335,7 +226,7 @@ void Node::save( Ed::Node& edNode ) const
         {
             const File::Schematic& s = f.schematic();
             // NOTE - not saving name due to issues with file paths in ed
-            saveTypeName( edNode, Node::File::Schematic::TYPE, "base" );
+            saveTypeName( edNode, Node::File::Schematic::TYPE, "base", index );
         }
         else
         {
@@ -345,7 +236,7 @@ void Node::save( Ed::Node& edNode ) const
     else if( has_property() )
     {
         const Property& p = property();
-        saveTypeName( edNode, Node::Property::TYPE, name );
+        saveTypeName( edNode, Node::Property::TYPE, name, index );
         saveProperty( edNode, "value"s, Ed::Expression{ p.value } );
     }
     else if( has_site() )
@@ -354,27 +245,27 @@ void Node::save( Ed::Node& edNode ) const
         if( s.has_connection() )
         {
             const Site::Connection& c = s.connection();
-            saveTypeName( edNode, Node::Site::Connection::TYPE, name );
+            saveTypeName( edNode, Node::Site::Connection::TYPE, name, index );
         }
         else if( s.has_cut() )
         {
             const Site::Cut& c = s.cut();
-            saveTypeName( edNode, Node::Site::Cut::TYPE, name );
+            saveTypeName( edNode, Node::Site::Cut::TYPE, name, index );
         }
         else if( s.has_object() )
         {
             const Site::Object& o = s.object();
-            saveTypeName( edNode, Node::Site::Object::TYPE, name );
+            saveTypeName( edNode, Node::Site::Object::TYPE, name, index );
         }
         else if( s.has_space() )
         {
             const Site::Space& o = s.space();
-            saveTypeName( edNode, Node::Site::Space::TYPE, name );
+            saveTypeName( edNode, Node::Site::Space::TYPE, name, index );
         }
         else if( s.has_wall() )
         {
             const Site::Wall& o = s.wall();
-            saveTypeName( edNode, Node::Site::Wall::TYPE, name );
+            saveTypeName( edNode, Node::Site::Wall::TYPE, name, index );
         }
         else
         {

@@ -902,7 +902,7 @@ void Analysis::connect( schematic::Site::Ptr pSite )
 void Analysis::cut( schematic::Site::Ptr pSite )
 {
     static ::exact::InexactToExact converter;
-    
+
     if( schematic::Cut::Ptr pCut = boost::dynamic_pointer_cast< schematic::Cut >( pSite ) )
     {
         const exact::Transform transform = pCut->getAbsoluteExactTransform();
@@ -918,7 +918,7 @@ void Analysis::cut( schematic::Site::Ptr pSite )
 
             // cut must be inside boundary face
 
-            //if( h->data().flags.test( EdgeMask::eInterior
+            // if( h->data().flags.test( EdgeMask::eInterior
 
             /*if( ( h->source()->point() == ptStart ) || ( h->source()->point() == ptEnd )
                 || ( h->target()->point() == ptStart ) || ( h->target()->point() == ptEnd ) )
@@ -946,20 +946,20 @@ void Analysis::cut( schematic::Site::Ptr pSite )
 
 void Analysis::partition()
 {
-    std::vector< Arrangement::Vertex_handle >          startVertices;
+    std::vector< Arrangement::Vertex_handle >          doorStepVertices;
     std::set< Analysis::Arrangement::Halfedge_handle > doorSteps;
     {
         getEdges( m_arr, doorSteps,
                   []( Arrangement::Halfedge_handle edge ) { return edge->data().flags.test( EdgeMask::eDoorStep ); } );
         for( auto d : doorSteps )
         {
-            startVertices.push_back( d->source() );
+            doorStepVertices.push_back( d->source() );
         }
     }
 
-    std::vector< std::vector< Arrangement::Halfedge_handle > > floorPolygons;
     {
-        std::set< Analysis::Arrangement::Halfedge_handle > floorEdges;
+        using HalfEdgeSet = std::set< Analysis::Arrangement::Halfedge_handle >;
+        HalfEdgeSet floorEdges;
         getEdges( m_arr, floorEdges,
                   []( Arrangement::Halfedge_handle edge )
                   {
@@ -970,12 +970,16 @@ void Analysis::partition()
                              && !flags.test( EdgeMask::eConnectionBreak );
                   } );
 
-        searchPolygons( startVertices, floorEdges, true, floorPolygons );
+        std::vector< std::vector< Arrangement::Halfedge_handle > > floorPolygons;
+        searchPolygons( doorStepVertices, floorEdges, true, floorPolygons );
 
         for( auto floorBoundary : floorPolygons )
         {
             Partition::Ptr                      pPartition = std::make_unique< Partition >();
             std::set< schematic::Site::PtrCst > sites;
+
+            // classify the outer floor boundary that has been reachable from the doorstep
+            HalfEdgeSet floorDoorSteps;
             for( auto e : floorBoundary )
             {
                 if( e->data().flags.test( EdgeMask::eInterior ) || e->data().flags.test( EdgeMask::eExterior ) )
@@ -984,49 +988,54 @@ void Analysis::partition()
                     sites.insert( e->data().sites.back() );
                 }
                 e->data().pPartition = pPartition.get();
-
                 classify( e, EdgeMask::ePartitionFloor );
 
-                // need to search for inner walls
                 if( e->data().flags.test( EdgeMask::eDoorStep ) )
                 {
-                    std::set< Analysis::Arrangement::Halfedge_handle > innerBoundaries;
-                    locateFloorFacesFromDoorStep( e, floorBoundary, innerBoundaries );
-                    while( !innerBoundaries.empty() )
-                    {
-                        std::vector< std::vector< Arrangement::Halfedge_handle > > innerWallPolygons;
-                        std::vector< Arrangement::Vertex_handle >                  innerStartVerts
-                            = { ( *innerBoundaries.begin() )->source() };
-                        innerBoundaries.erase( *innerBoundaries.begin() );
-                        searchPolygons( innerStartVerts, floorEdges, false, innerWallPolygons );
-
-                        bool bMadeProgress = false;
-                        for( auto innerWallBoundary : innerWallPolygons )
-                        {
-                            for( auto innerWallEdge : innerWallBoundary )
-                            {
-                                // if( innerWallEdge->data().flags.test( EdgeMask::eInterior )
-                                //     || innerWallEdge->data().flags.test( EdgeMask::eExterior ) )
-                                //{
-                                //     INVARIANT( !innerWallEdge->data().sites.empty(),
-                                //                "Interior or exterior edge missing site" );
-                                //     sites.insert( innerWallEdge->data().sites.back() );
-                                // }
-                                innerWallEdge->data().pPartition = pPartition.get();
-                                classify( innerWallEdge, EdgeMask::ePartitionFloor );
-                                if( !innerWallEdge->data().flags.test( EdgeMask::eDoorStep ) )
-                                {
-                                    classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
-                                }
-
-                                innerBoundaries.erase( innerWallEdge );
-                                bMadeProgress = true;
-                            }
-                        }
-                        INVARIANT( bMadeProgress, "Failed to make progress on inner walL" );
-                    }
+                    floorDoorSteps.insert( e );
                 }
             }
+
+            // now search WITHIN the door steps of the floor boundary
+            for( auto e : floorDoorSteps )
+            {
+                std::set< Analysis::Arrangement::Halfedge_handle > innerBoundaries;
+                // first locate all reachable faces from the door step that are contained in the floor boundary
+                locateFloorFacesFromDoorStep( e, floorBoundary, innerBoundaries );
+                // the algorithm returns the set of halfedges in innerBoundaries that
+                // are reachable through the faces but are NOT in floorBoundary
+
+                while( !innerBoundaries.empty() )
+                {
+                    // can now select an arbitrary vertex from the innerBoundary halfedges
+                    // and search from that vertex for a closed polygon within the floorEdges
+                    std::vector< std::vector< Arrangement::Halfedge_handle > > innerWallPolygons;
+                    std::vector< Arrangement::Vertex_handle >                  innerStartVerts
+                        = { ( *innerBoundaries.begin() )->source() };
+                    innerBoundaries.erase( *innerBoundaries.begin() );
+                    searchPolygons( innerStartVerts, floorEdges, false, innerWallPolygons );
+
+                    bool bMadeProgress = false;
+                    for( auto innerWallBoundary : innerWallPolygons )
+                    {
+                        for( auto innerWallEdge : innerWallBoundary )
+                        {
+                            innerWallEdge->data().pPartition = pPartition.get();
+                            classify( innerWallEdge, EdgeMask::ePartitionFloor );
+                            if( !innerWallEdge->data().flags.test( EdgeMask::eDoorStep ) )
+                            {
+                                classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
+                            }
+
+                            // can remove each encountered edge from the innerBoundary set as we use it
+                            innerBoundaries.erase( innerWallEdge );
+                            bMadeProgress = true;
+                        }
+                    }
+                    INVARIANT( bMadeProgress, "Failed to make progress on inner walL" );
+                }
+            }
+
             INVARIANT( sites.size() != 0, "Floor has no sites" );
             INVARIANT( sites.size() == 1, "Floor has multiple sites" );
             pPartition->pSite = *sites.begin();
@@ -1034,7 +1043,7 @@ void Analysis::partition()
         }
     }
 
-    std::vector< std::vector< Arrangement::Halfedge_handle > > boundaryPolygons;
+    // use similar algorithm to determine the boundary polygons which CANNOT have holes
     {
         std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
         getEdges( m_arr, boundaryEdges,
@@ -1047,7 +1056,8 @@ void Analysis::partition()
                              && !flags.test( EdgeMask::eConnectionBreak );
                   } );
 
-        searchPolygons( startVertices, boundaryEdges, false, boundaryPolygons );
+        std::vector< std::vector< Arrangement::Halfedge_handle > > boundaryPolygons;
+        searchPolygons( doorStepVertices, boundaryEdges, false, boundaryPolygons );
 
         for( auto b : boundaryPolygons )
         {
@@ -1058,6 +1068,82 @@ void Analysis::partition()
                 e->data().pPartition = pPartition.get();
             }
             m_boundaries.emplace_back( std::move( pPartition ) );
+        }
+    }
+
+    // now determine all boundary segments
+    {
+        // Get all boundary edges COMBINED with the cut edges
+        // NOTE that cut edges are on both sides of the cut curve
+        std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
+        getEdges( m_arr, boundaryEdges,
+                  []( Arrangement::Halfedge_handle edge )
+                  {
+                      auto& flags = edge->data().flags;
+                      return flags.test( EdgeMask::ePartitionBoundary );
+                  } );
+
+        std::set< Analysis::Arrangement::Halfedge_handle > cutEdges;
+        getEdges( m_arr, cutEdges,
+                  []( Arrangement::Halfedge_handle edge )
+                  {
+                      auto& flags = edge->data().flags;
+                      return flags.test( EdgeMask::eCut );
+                  } );
+
+        /*std::set< Arrangement::Vertex_handle > cutVertices;
+        {
+            for( auto e : cutEdges )
+            {
+                cutVertices.insert( e->source() );
+            }
+        }*/
+
+        // just add ALL vertices from the boundary as start vertices
+        std::vector< Arrangement::Vertex_handle > boundarySegmentStartVertices;
+        {
+            for( auto e : boundaryEdges )
+            {
+                //if( !cutVertices.contains( e->source() ) )
+                {
+                    boundarySegmentStartVertices.push_back( e->source() );
+                }
+            }
+        }
+
+        std::set< Analysis::Arrangement::Halfedge_handle > boundaryAndCutEdges = boundaryEdges;
+        boundaryAndCutEdges.insert( cutEdges.begin(), cutEdges.end() );
+
+        std::vector< std::vector< Arrangement::Halfedge_handle > > boundarySegmentPolygons;
+        searchPolygons( boundarySegmentStartVertices, boundaryAndCutEdges, true, boundarySegmentPolygons );
+
+        for( auto b : boundarySegmentPolygons )
+        {
+            // only admit boundary segments that have atleast three edges AND
+            // ALWAYS contain atleast one partition boundary edge
+            if( b.size() > 2 )
+            {
+                bool bContainsBoundaryEdge = false;
+                for( auto e : b )
+                {
+                    if( e->data().flags.test( EdgeMask::ePartitionBoundary ) )
+                    {
+                        bContainsBoundaryEdge = true;
+                        break;
+                    }
+                }
+                if( bContainsBoundaryEdge )
+                {
+                    PartitionSegment::Ptr pPartitionSegment = std::make_unique< PartitionSegment >();
+                    for( auto e : b )
+                    {
+                        classify( e, EdgeMask::ePartitionBoundarySegment );
+                        e->data().pPartitionSegment         = pPartitionSegment.get();
+                        e->face()->data().pPartitionSegment = pPartitionSegment.get();
+                    }
+                    m_boundarySegments.emplace_back( std::move( pPartitionSegment ) );
+                }
+            }
         }
     }
 }

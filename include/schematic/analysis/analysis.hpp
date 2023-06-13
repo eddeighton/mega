@@ -50,6 +50,11 @@ public:
         schematic::Site::PtrCst              pSite;
         schematic::Feature_Pin::PtrCstVector pins;
     };
+    struct PartitionSegment
+    {
+        using Ptr       = std::unique_ptr< PartitionSegment >;
+        using PtrVector = std::vector< Ptr >;
+    };
 
     struct VertexData
     {
@@ -58,7 +63,8 @@ public:
     {
         EdgeMask::Set                 flags;
         schematic::Site::PtrCstVector sites;
-        Partition*                    pPartition = nullptr;
+        Partition*                    pPartition        = nullptr;
+        PartitionSegment*             pPartitionSegment = nullptr;
 
         void appendSiteUnique( schematic::Site::PtrCst pSite )
         {
@@ -70,7 +76,8 @@ public:
     };
     struct FaceData
     {
-        Partition* pPartition = nullptr;
+        Partition*        pPartition        = nullptr;
+        PartitionSegment* pPartitionSegment = nullptr;
     };
 
     using Dcel           = CGAL::Arr_extended_dcel< Traits, VertexData, HalfEdgeData, FaceData >;
@@ -187,9 +194,10 @@ private:
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 
-    Partition::PtrVector m_floors, m_boundaries;
-    Arrangement          m_arr;
-    Observer             m_observer;
+    Partition::PtrVector        m_floors, m_boundaries;
+    PartitionSegment::PtrVector m_boundarySegments;
+    Arrangement                 m_arr;
+    Observer                    m_observer;
 };
 } // namespace exact
 

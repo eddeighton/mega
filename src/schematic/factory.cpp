@@ -56,15 +56,19 @@ format::Node loadFile( const std::string& strFilePath )
             Ed::BasicFileSystem fileSystem;
             Ed::File            file( fileSystem, strFilePath );
 
-            file.expandShorthand();
-            file.removeTypes();
+            //file.expandShorthand();
+            //file.removeTypes();
 
             file.toNode( rootNode );
         }
 
+        VERIFY_RTE_MSG( rootNode.children.size() == 1,
+            "File has more than one root node: " << strFilePath );
+
         for( const auto& n : rootNode )
         {
             file.load( n );
+            break;
         }
     }
     catch( std::exception& ex )
