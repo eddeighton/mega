@@ -51,8 +51,8 @@ config
     }
     grid
     {
-        colour( 0,0,255,55 )
-        width( 2 )
+        colour( 0,0,125, 55 )
+        width( 0.5 )
     }
     text
     {

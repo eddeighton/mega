@@ -103,17 +103,6 @@ public:
     using FaceVector           = std::vector< Face >;
     using FaceSet              = std::set< Face >;
 
-    void getVertices( VertexVector& vertices ) const;
-    void getPerimeterPolygon( HalfEdgeVector& polygon ) const;
-    void getBoundaryPolygons( HalfEdgeVectorVector& polygons ) const;
-
-    struct PolygonWithHoles
-    {
-        HalfEdgeVector       outer;
-        HalfEdgeVectorVector holes;
-    };
-    using PolygonWithHolesVector = std::vector< PolygonWithHoles >;
-
     class Observer : public CGAL::Arr_observer< Arrangement >
     {
         std::optional< HalfEdgeData > m_edgeData, m_edgeDataTwin;
@@ -166,6 +155,75 @@ public:
             m_faceData.reset();
         }
     };
+
+    // query functions used by map compilation
+    void getVertices( VertexVector& vertices ) const;
+    void getPerimeterPolygon( HalfEdgeVector& polygon ) const;
+
+    struct HalfEdgePolygonWithHoles
+    {
+        HalfEdgeVector       outer;
+        HalfEdgeVectorVector holes;
+        using Vector = std::vector< HalfEdgePolygonWithHoles >;
+    };
+
+    static inline exact::Polygon_with_holes fromHalfEdgePolygonWithHoles( const HalfEdgePolygonWithHoles& poly )
+    {
+        exact::Polygon outer;
+        for( auto& e : poly.outer )
+        {
+            outer.push_back( e->source()->point() );
+        }
+        // ensure it is a not a hole
+        if( !outer.is_counterclockwise_oriented() )
+        {
+            std::reverse( outer.begin(), outer.end() );
+        }
+        exact::Polygon_with_holes polygonWithHoles( outer );
+
+        for( auto& h : poly.holes )
+        {
+            Polygon hole;
+            for( auto& e : h )
+            {
+                hole.push_back( e->source()->point() );
+            }
+            // ensure it is a hole
+            if( !hole.is_clockwise_oriented() )
+            {
+                std::reverse( hole.begin(), hole.end() );
+            }
+            polygonWithHoles.add_hole( hole );
+        }
+        return polygonWithHoles;
+    }
+
+    struct Floor
+    {
+        Partition*                       pPartition;
+        HalfEdgePolygonWithHoles         floor;
+        HalfEdgePolygonWithHoles::Vector ex1;
+        HalfEdgePolygonWithHoles::Vector ex2;
+        HalfEdgePolygonWithHoles::Vector ex3;
+        HalfEdgePolygonWithHoles::Vector ex4;
+        using Vector = std::vector< Floor >;
+    };
+    Floor::Vector getFloors();
+
+    struct Boundary
+    {
+        Partition*     pPartition;
+        HalfEdgeVector contour;
+        struct Segment
+        {
+            PartitionSegment* pSegment;
+            HalfEdgeVector    contour;
+        };
+        using SegmentVector = std::vector< Segment >;
+        SegmentVector segments;
+        using Vector = std::vector< Boundary >;
+    };
+    Boundary::Vector getBoundaries();
 
 private:
     template < typename TEdgeType >

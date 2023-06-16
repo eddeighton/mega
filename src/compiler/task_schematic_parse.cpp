@@ -81,8 +81,6 @@ public:
 
             Compilation::Ptr pCompilation = pSchematic->getCompilation();
             VERIFY_RTE_MSG( pCompilation, "Failed to acquire schematic compilation" );
-
-            // pCompilation->getFaces(int &floorFaces, int &fillerFaces)
         }
 
         //pSchematicFile->

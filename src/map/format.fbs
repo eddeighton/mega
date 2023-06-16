@@ -84,6 +84,28 @@ table Polygon
     vertices:[Vertex];
 }
 
+enum Plane : short
+{
+    eLower,
+    eMid,
+    eUpper
+}
+
+table Vertex3D
+{
+    vertex:Vertex;
+    plane:Plane;
+    normal:F3;
+    uv:F2;
+    tangent:F4;
+}
+
+table Mesh
+{
+    vertices:[Vertex3D];
+    indices:[int];
+}
+
 // Property Types
 table FloatProperty
 {
@@ -149,35 +171,62 @@ table Section
     type:Type;
     properties:[Properties];
     contour:Polygon;
+
+    walls:[Mesh];
+    sills:[Mesh];
+    ceilings:[Mesh];
 }
 
-table Partition
+table Boundary
 {
     type:Type;
     properties:[Properties];
     parent:Area;
-    sections:[Section];
     contour:Polygon;
+    sections:[Section];
+}
+
+table Floor
+{
+    type:Type;
+    properties:[Properties];
+    parent:Area;
+    contour:Polygon;
+
+    floor:Mesh;
+    ground_one:[Mesh];
+    ground_two:[Mesh];
+    ground_three:[Mesh];
+    ground_four:[Mesh];
 }
 
 table Object
 {
     type:Type;
-    parent:Partition;
+    parent:Floor;
     children:[Object];
     properties:[Properties];
 }
 
-table PartitionGraph
+table Lane
 {
-   first:Partition;
-   second:Partition;
+    walls:[Mesh];
+    floors:[Mesh];
+    roofs:[Mesh];
 }
 
 table Map
 {
     contour:Polygon;
-    partitions:[Partition];
+    root_area:Area;
+    floors:[Floor];
+    boundaries:[Boundary];
+
+    lane_network_exterior:Lane;
+    lane_network_interior:Lane;
+    lane_large_track:Lane;
+    lane_small_track:Lane;
+    lane_systems:Lane;
 }
 
 root_type Map;

@@ -85,7 +85,6 @@ set( SCHEMATIC_SOURCE
     ${SCHEMATIC_SRC_DIR}/format/format.cpp
 
     ${SCHEMATIC_SRC_DIR}/cgalUtils.cpp
-    ${SCHEMATIC_SRC_DIR}/compilationGetPolyInfo.cpp
     ${SCHEMATIC_SRC_DIR}/connection.cpp
     ${SCHEMATIC_SRC_DIR}/cut.cpp
     ${SCHEMATIC_SRC_DIR}/dataBitmap.cpp

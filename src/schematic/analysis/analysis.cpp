@@ -18,6 +18,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "algorithms.hpp"
+#include "polygon_with_holes.hpp"
+
 #include "schematic/analysis/analysis.hpp"
 #include "schematic/schematic.hpp"
 #include "schematic/cut.hpp"
@@ -28,531 +31,10 @@
 #include <CGAL/create_offset_polygons_2.h>
 
 #include <vector>
+#include <tuple>
 
 namespace exact
 {
-
-namespace
-{
-
-template < typename TFunctor >
-inline void visit( Analysis::Arrangement::Face_const_handle hFace, TFunctor&& visitor )
-{
-    if( !hFace->is_unbounded() )
-    {
-        Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = hFace->outer_ccb();
-        Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
-        do
-        {
-            visitor( iter->data() );
-            ++iter;
-        } while( iter != start );
-    }
-
-    // search through all holes
-    for( Analysis::Arrangement::Hole_const_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
-         holeIter != holeIterEnd; ++holeIter )
-    {
-        Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
-        Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
-        do
-        {
-            visitor( iter->data() );
-            ++iter;
-        } while( iter != start );
-    }
-}
-
-template < typename TFunctor >
-inline void visit( Analysis::Arrangement::Face_handle hFace, TFunctor&& visitor )
-{
-    if( !hFace->is_unbounded() )
-    {
-        Analysis::Arrangement::Ccb_halfedge_circulator iter  = hFace->outer_ccb();
-        Analysis::Arrangement::Ccb_halfedge_circulator start = iter;
-        do
-        {
-            visitor( iter->data() );
-            ++iter;
-        } while( iter != start );
-    }
-
-    // search through all holes
-    for( Analysis::Arrangement::Hole_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
-         holeIter != holeIterEnd; ++holeIter )
-    {
-        Analysis::Arrangement::Ccb_halfedge_circulator iter  = *holeIter;
-        Analysis::Arrangement::Ccb_halfedge_circulator start = iter;
-        do
-        {
-            visitor( iter->data() );
-            ++iter;
-        } while( iter != start );
-    }
-}
-
-template < typename TFunctor >
-inline bool anyFaceEdge( Analysis::Arrangement::Face_const_handle hFace, TFunctor&& predicate )
-{
-    bool bSuccess = false;
-    visit( hFace,
-           [ &bSuccess, &predicate ]( const Analysis::HalfEdgeData& edge )
-           {
-               if( predicate( edge ) )
-               {
-                   bSuccess = true;
-               };
-           } );
-    return bSuccess;
-}
-
-template < typename TFunctor >
-inline bool allFaceEdges( Analysis::Arrangement::Face_const_handle hFace, TFunctor&& predicate )
-{
-    bool bSuccess = true;
-    visit( hFace,
-           [ &bSuccess, &predicate ]( const Analysis::HalfEdgeData& edge )
-           {
-               if( !predicate( edge ) )
-               {
-                   bSuccess = false;
-               };
-           } );
-    return bSuccess;
-}
-
-template < typename HalfEdgeType, typename FaceType, typename EdgePredicate >
-inline void getFaces( std::set< FaceType >& startFaces, const std::vector< HalfEdgeType >& polygon,
-                      std::vector< FaceType >& result, EdgePredicate&& predicate )
-{
-    std::set< FaceType > faces = startFaces, open = startFaces, temp;
-
-    INVARIANT( !polygon.empty(), "Polygon empty" );
-
-    // determine the edge boundary as lookup set
-    const std::set< HalfEdgeType > boundary( polygon.begin(), polygon.end() );
-
-    // greedy algorithm to exaust open set until no new faces found
-    while( !open.empty() )
-    {
-        for( auto f : open )
-        {
-            // go through all edges inside face
-            auto iter  = f->outer_ccb();
-            auto start = iter;
-            do
-            {
-                // if the edge IS NOT on the polygon boundary then
-                // it MUST connect to another face WITHIN the polygon
-                if( !boundary.contains( iter ) && predicate( iter ) )
-                {
-                    auto newFace = iter->twin()->face();
-                    if( !faces.contains( newFace ) )
-                    {
-                        temp.insert( newFace );
-                        faces.insert( newFace );
-                    }
-                }
-                ++iter;
-            } while( iter != start );
-
-            // search through all holes
-            for( auto holeIter = f->holes_begin(), holeIterEnd = f->holes_end(); holeIter != holeIterEnd; ++holeIter )
-            {
-                auto iter  = *holeIter;
-                auto start = iter;
-                do
-                {
-                    if( !boundary.contains( iter ) && predicate( iter ) )
-                    {
-                        auto newFace = iter->twin()->face();
-                        if( !faces.contains( newFace ) )
-                        {
-                            temp.insert( newFace );
-                            faces.insert( newFace );
-                        }
-                    }
-                    ++iter;
-                } while( iter != start );
-            }
-        }
-        open.clear();
-        open.swap( temp );
-    }
-    result.assign( faces.begin(), faces.end() );
-}
-
-inline void getFaces( const Analysis::HalfEdgeVector& polygon, Analysis::FaceVector& result )
-{
-    Analysis::FaceSet startFaces;
-    for( auto e : polygon )
-    {
-        startFaces.insert( e->face() );
-    }
-    getFaces( startFaces, polygon, result, []( Analysis::HalfEdge ) { return true; } );
-}
-
-inline void locateFloorFacesFromDoorStep( Analysis::Arrangement::Halfedge_handle                       doorStep,
-                                          const std::vector< Analysis::Arrangement::Halfedge_handle >& boundary,
-                                          std::set< Analysis::Arrangement::Halfedge_handle >&          innerBoundaries )
-{
-    std::vector< Analysis::Arrangement::Face_handle > result;
-    std::set< Analysis::Arrangement::Face_handle >    startFaces;
-    startFaces.insert( doorStep->face() );
-    getFaces< Analysis::Arrangement::Halfedge_handle, Analysis::Arrangement::Face_handle >(
-        startFaces, boundary, result,
-        [ &boundary, &innerBoundaries ]( Analysis::Arrangement::Halfedge_handle edge )
-        {
-            auto& flags = edge->data().flags;
-
-            const bool bIsEdgeNextToBoundary
-                = ( ( flags.test( EdgeMask::eInterior ) || flags.test( EdgeMask::eExterior )
-                      || flags.test( EdgeMask::eConnectionBisector ) || flags.test( EdgeMask::eDoorStep ) )
-
-                    && !flags.test( EdgeMask::eConnectionBreak ) );
-
-            if( bIsEdgeNextToBoundary )
-            {
-                if( std::find( boundary.begin(), boundary.end(), edge ) == boundary.end() )
-                {
-                    innerBoundaries.insert( edge );
-                }
-            }
-
-            return !bIsEdgeNextToBoundary;
-        } );
-}
-
-bool areFacesAdjacent( Analysis::Arrangement::Face_const_handle hFace1,
-                       Analysis::Arrangement::Face_const_handle hFace2 )
-{
-    INVARIANT( !hFace1->is_unbounded(), "Invalid face passed to areFacesAdjacent" );
-
-    Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = hFace1->outer_ccb();
-    Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
-    do
-    {
-        if( iter->twin()->face() == hFace2 )
-        {
-            return true;
-        }
-        ++iter;
-    } while( iter != start );
-
-    // search through all holes
-    for( Analysis::Arrangement::Hole_const_iterator holeIter = hFace1->holes_begin(), holeIterEnd = hFace1->holes_end();
-         holeIter != holeIterEnd; ++holeIter )
-    {
-        Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
-        Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
-        do
-        {
-            if( iter->twin()->face() == hFace2 )
-            {
-                return true;
-            }
-            ++iter;
-        } while( iter != start );
-    }
-
-    return false;
-}
-
-// internal query implementation helper functions
-
-template < typename Predicate >
-inline void getEdges( const Analysis::Arrangement& arr, Analysis::HalfEdgeSet& edges, Predicate&& predicate )
-{
-    for( auto i = arr.halfedges_begin(); i != arr.halfedges_end(); ++i )
-    {
-        if( predicate( i ) )
-        {
-            edges.insert( i );
-        }
-    }
-}
-
-template < typename Predicate >
-inline void getEdges( Analysis::Arrangement& arr, std::set< Analysis::Arrangement::Halfedge_handle >& edges,
-                      Predicate&& predicate )
-{
-    for( auto i = arr.halfedges_begin(); i != arr.halfedges_end(); ++i )
-    {
-        if( predicate( i ) )
-        {
-            edges.insert( i );
-        }
-    }
-}
-
-template < typename HalfEdgeSetType >
-inline void getPolygons( const HalfEdgeSetType& edges, Analysis::HalfEdgeVectorVector& polygons )
-{
-    HalfEdgeSetType open = edges;
-
-    using HalfEdge = typename HalfEdgeSetType::value_type;
-
-    while( !open.empty() )
-    {
-        HalfEdge currentEdge = *open.begin();
-
-        Analysis::HalfEdgeVector polygon;
-        while( currentEdge != HalfEdge{} )
-        {
-            polygon.push_back( currentEdge );
-            open.erase( currentEdge );
-
-            HalfEdge nextEdge = {};
-            {
-                auto edgeIter = currentEdge->target()->incident_halfedges(), edgeIterEnd = edgeIter;
-                do
-                {
-                    HalfEdge outEdge = edgeIter->twin();
-                    if( ( currentEdge != outEdge ) && open.contains( outEdge ) )
-                    {
-                        INVARIANT( nextEdge == HalfEdge{}, "Duplicate next edge found" );
-                        nextEdge = outEdge;
-                    }
-                    ++edgeIter;
-                } while( edgeIter != edgeIterEnd );
-            }
-            currentEdge = nextEdge;
-        }
-        INVARIANT( polygon.size() >= 3, "Invalid polygon found with less than three edges" );
-        polygons.push_back( polygon );
-    }
-}
-
-template < typename VertexVector, typename HalfEdgeSetType >
-inline void searchPolygons( const VertexVector& startVertices, const HalfEdgeSetType& edges, bool bDir,
-                            std::vector< std::vector< Analysis::Arrangement::Halfedge_handle > >& polygons )
-{
-    using HalfEdge = typename HalfEdgeSetType::value_type;
-
-    HalfEdgeSetType open = edges;
-
-    for( auto startVertex : startVertices )
-    {
-        for( auto e : open )
-        {
-            if( e->source() == startVertex )
-            {
-                // attempt to solve polygon from here
-                std::vector< Analysis::Arrangement::Halfedge_handle > polygon;
-
-                open.erase( e );
-                polygon.push_back( e );
-
-                while( e->target() != startVertex )
-                {
-                    INVARIANT( !open.empty(), "Failed to find polygon" );
-                    // https://doc.cgal.org/latest/Arrangement_on_surface_2/index.html
-                    // The call v->incident_halfedges() returns a circulator of the nested type
-                    // Halfedge_around_vertex_circulator that enables the traversal of this circular list around a given
-                    // vertex v in a clockwise order.
-
-                    // So - the most acute angle first - so take the last one
-                    bool bFoundNextVertex = false;
-                    auto edgeIter         = e->target()->incident_halfedges();
-                    while( edgeIter != e )
-                        ++edgeIter;
-                    auto edgeIterEnd = edgeIter;
-                    do
-                    {
-                        if( bDir )
-                            ++edgeIter;
-                        else
-                            --edgeIter;
-                        HalfEdge nextEdge = edgeIter->twin();
-                        if( open.contains( nextEdge ) )
-                        {
-                            e                = nextEdge;
-                            bFoundNextVertex = true;
-                            break;
-                        }
-                    } while( edgeIter != edgeIterEnd );
-
-                    INVARIANT( bFoundNextVertex, "Failed to find next vertex" );
-
-                    open.erase( e );
-                    polygon.push_back( e );
-                }
-                polygons.push_back( polygon );
-                break;
-            }
-        }
-    }
-}
-
-template < typename OuterEdgePredicate, typename HoleEdgePredicate >
-inline void getPolyonsWithHoles( Analysis::Arrangement& arr, OuterEdgePredicate&& outerEdgePredicate,
-                                 HoleEdgePredicate&&               holeEdgePredicate,
-                                 Analysis::PolygonWithHolesVector& polygonsWithHoles )
-{
-    struct PolygonNode
-    {
-        using Ptr    = std::shared_ptr< PolygonNode >;
-        using PtrSet = std::set< Ptr >;
-
-        bool                     hole = false;
-        Analysis::HalfEdgeVector polygon;
-        Analysis::FaceVector     faces;
-        PtrSet                   contained;
-
-        enum ContainmentResult
-        {
-            eContained,
-            eContainsThis,
-            eDisjoint
-        };
-
-        PolygonNode( bool isHole, const Analysis::HalfEdgeVector& polygon )
-            : hole( isHole )
-            , polygon( polygon )
-        {
-            getFaces( polygon, faces );
-        }
-
-        void collate( Analysis::PolygonWithHolesVector& polygonsWithHoles ) const
-        {
-            INVARIANT( !hole, "Found hole when expecting contour" );
-            Analysis::PolygonWithHoles p;
-            p.outer = polygon;
-            for( auto pHole : contained )
-            {
-                pHole->collateHole( polygonsWithHoles, p );
-            }
-            polygonsWithHoles.push_back( p );
-        }
-
-        void collateHole( Analysis::PolygonWithHolesVector& polygonsWithHoles, Analysis::PolygonWithHoles& p ) const
-        {
-            INVARIANT( hole, "Found contour when expecting hole" );
-            p.holes.push_back( polygon );
-            for( auto pContour : contained )
-            {
-                pContour->collate( polygonsWithHoles );
-            }
-        }
-
-        ContainmentResult tryContain( Ptr pPolygon )
-        {
-            if( std::includes( faces.begin(), faces.end(), pPolygon->faces.begin(), pPolygon->faces.end() ) )
-            {
-                ContainmentResult nestedResult = eDisjoint;
-                for( auto pChild : contained )
-                {
-                    switch( pChild->tryContain( pPolygon ) )
-                    {
-                        case eContained:
-                        {
-                            nestedResult = eContained;
-                        }
-                        break;
-                        case eContainsThis:
-                        {
-                            contained.erase( pChild );
-                            pPolygon->contained.insert( pChild );
-                        }
-                        break;
-                        case eDisjoint:
-                            break;
-                    }
-                    if( nestedResult == eContained )
-                        break;
-                }
-                if( nestedResult == eDisjoint )
-                {
-                    contained.insert( pPolygon );
-                }
-                return eContained;
-            }
-            else if( std::includes( pPolygon->faces.begin(), pPolygon->faces.end(), faces.begin(), faces.end() ) )
-            {
-                return eContainsThis;
-            }
-            else
-            {
-                Analysis::FaceVector intersection;
-                std::set_intersection( faces.begin(), faces.end(), pPolygon->faces.begin(), pPolygon->faces.end(),
-                                       std::back_inserter( intersection ) );
-                INVARIANT( intersection.empty(), "Non superset face set intersects" );
-                return eDisjoint;
-            }
-        }
-    };
-
-    // construct a node for all polygons collecting their faces
-    std::vector< typename PolygonNode::Ptr > nodes;
-    {
-        Analysis::HalfEdgeVectorVector outerPolygons;
-        {
-            Analysis::HalfEdgeSet outerEdges;
-            getEdges( arr, outerEdges, outerEdgePredicate );
-            getPolygons( outerEdges, outerPolygons );
-        }
-
-        Analysis::HalfEdgeVectorVector holePolygons;
-        {
-            Analysis::HalfEdgeSet holeEdges;
-            getEdges( arr, holeEdges, holeEdgePredicate );
-            getPolygons( holeEdges, holePolygons );
-        }
-
-        for( auto& poly : outerPolygons )
-        {
-            nodes.push_back( std::make_shared< PolygonNode >( false, poly ) );
-        }
-        for( auto& poly : holePolygons )
-        {
-            nodes.push_back( std::make_shared< PolygonNode >( true, poly ) );
-        }
-    }
-
-    // determine the tree of polygons based on the rule that
-    // 1. Either polygons have completely disjoint set of faces
-    // 2. Or a polygon contains another where it has a super set of faces
-    using NodeVector = std::set< typename PolygonNode::Ptr >;
-    NodeVector rootNodes;
-
-    for( auto pNode : nodes )
-    {
-        typename PolygonNode::ContainmentResult result = PolygonNode::eDisjoint;
-        {
-            NodeVector roots = rootNodes;
-            for( auto pRoot : roots )
-            {
-                switch( pRoot->tryContain( pNode ) )
-                {
-                    case PolygonNode::eContained:
-                    {
-                        result = PolygonNode::eContained;
-                    }
-                    break;
-                    case PolygonNode::eContainsThis:
-                    {
-                        // make pNode a root containing Root
-                        rootNodes.erase( pRoot );
-                        pNode->contained.insert( pRoot );
-                    }
-                    break;
-                    case PolygonNode::eDisjoint:
-                        break;
-                }
-            }
-        }
-        if( result == PolygonNode::eDisjoint )
-        {
-            rootNodes.insert( pNode );
-        }
-    }
-
-    for( auto pNode : rootNodes )
-    {
-        pNode->collate( polygonsWithHoles );
-    }
-}
-} // namespace
 
 Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
     : m_pSchematic( pSchematic )
@@ -999,40 +481,28 @@ void Analysis::partition()
             // now search WITHIN the door steps of the floor boundary
             for( auto e : floorDoorSteps )
             {
-                std::set< Analysis::Arrangement::Halfedge_handle > innerBoundaries;
+                std::set< Analysis::Arrangement::Halfedge_handle > holeBoundaries;
                 // first locate all reachable faces from the door step that are contained in the floor boundary
-                locateFloorFacesFromDoorStep( e, floorBoundary, innerBoundaries );
-                // the algorithm returns the set of halfedges in innerBoundaries that
+                // the algorithm returns the set of halfedges in holeBoundaries that
                 // are reachable through the faces but are NOT in floorBoundary
 
-                while( !innerBoundaries.empty() )
+                // NOTE: MUST pass ALL floorEdges here not just the floorBoundary
+                locateHoleBoundariesFromDoorStep( e, floorEdges, floorBoundary, holeBoundaries );
+
+                std::vector< std::vector< Arrangement::Halfedge_handle > > floorHoles;
+                getPolygons( holeBoundaries, floorHoles );
+
+                for( auto innerWallBoundary : floorHoles )
                 {
-                    // can now select an arbitrary vertex from the innerBoundary halfedges
-                    // and search from that vertex for a closed polygon within the floorEdges
-                    std::vector< std::vector< Arrangement::Halfedge_handle > > innerWallPolygons;
-                    std::vector< Arrangement::Vertex_handle >                  innerStartVerts
-                        = { ( *innerBoundaries.begin() )->source() };
-                    innerBoundaries.erase( *innerBoundaries.begin() );
-                    searchPolygons( innerStartVerts, floorEdges, false, innerWallPolygons );
-
-                    bool bMadeProgress = false;
-                    for( auto innerWallBoundary : innerWallPolygons )
+                    for( auto innerWallEdge : innerWallBoundary )
                     {
-                        for( auto innerWallEdge : innerWallBoundary )
+                        innerWallEdge->data().pPartition = pPartition.get();
+                        classify( innerWallEdge, EdgeMask::ePartitionFloor );
+                        if( !innerWallEdge->data().flags.test( EdgeMask::eDoorStep ) )
                         {
-                            innerWallEdge->data().pPartition = pPartition.get();
-                            classify( innerWallEdge, EdgeMask::ePartitionFloor );
-                            if( !innerWallEdge->data().flags.test( EdgeMask::eDoorStep ) )
-                            {
-                                classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
-                            }
-
-                            // can remove each encountered edge from the innerBoundary set as we use it
-                            innerBoundaries.erase( innerWallEdge );
-                            bMadeProgress = true;
+                            classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
                         }
                     }
-                    INVARIANT( bMadeProgress, "Failed to make progress on inner walL" );
                 }
             }
 
@@ -1078,36 +548,18 @@ void Analysis::partition()
         std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
         getEdges( m_arr, boundaryEdges,
                   []( Arrangement::Halfedge_handle edge )
-                  {
-                      auto& flags = edge->data().flags;
-                      return flags.test( EdgeMask::ePartitionBoundary );
-                  } );
+                  { return edge->data().flags.test( EdgeMask::ePartitionBoundary ); } );
 
         std::set< Analysis::Arrangement::Halfedge_handle > cutEdges;
         getEdges( m_arr, cutEdges,
-                  []( Arrangement::Halfedge_handle edge )
-                  {
-                      auto& flags = edge->data().flags;
-                      return flags.test( EdgeMask::eCut );
-                  } );
-
-        /*std::set< Arrangement::Vertex_handle > cutVertices;
-        {
-            for( auto e : cutEdges )
-            {
-                cutVertices.insert( e->source() );
-            }
-        }*/
+                  []( Arrangement::Halfedge_handle edge ) { return edge->data().flags.test( EdgeMask::eCut ); } );
 
         // just add ALL vertices from the boundary as start vertices
         std::vector< Arrangement::Vertex_handle > boundarySegmentStartVertices;
         {
             for( auto e : boundaryEdges )
             {
-                //if( !cutVertices.contains( e->source() ) )
-                {
-                    boundarySegmentStartVertices.push_back( e->source() );
-                }
+                boundarySegmentStartVertices.push_back( e->source() );
             }
         }
 
@@ -1150,13 +602,13 @@ void Analysis::partition()
 
 void Analysis::skeleton()
 {
-    PolygonWithHolesVector floors;
+    HalfEdgePolygonWithHoles::Vector floors;
 
     getPolyonsWithHoles(
         m_arr,
         // OuterEdgePredicate
         []( Arrangement::Halfedge_const_handle edge ) { return edge->data().flags.test( EdgeMask::ePerimeter ); },
-        // HoleEdgePredicate
+        // InnerEdgePredicate
         []( Arrangement::Halfedge_const_handle edge )
         {
             return edge->data().flags.test( EdgeMask::ePartitionBoundary )
@@ -1165,40 +617,13 @@ void Analysis::skeleton()
         floors );
 
     INVARIANT( floors.size() == 1, "Failed to locate single floor" );
-    const PolygonWithHoles& floor = floors.front();
+    const exact::Polygon_with_holes polygonWithHoles = fromHalfEdgePolygonWithHoles( floors.front() );
 
-    using Point               = exact::Point;
-    using Polygon             = exact::Polygon;
-    using PolygonWithHoles    = exact::Polygon_with_holes;
     using StraightSkeleton    = CGAL::Straight_skeleton_2< exact::Kernel >;
     using StraightSkeletonPtr = boost::shared_ptr< StraightSkeleton >;
 
-    Polygon outer;
-    for( auto& e : floor.outer )
-    {
-        outer.push_back( e->source()->point() );
-    }
-    // ensure it is a not a hole
-    if( !outer.is_counterclockwise_oriented() )
-    {
-        std::reverse( outer.begin(), outer.end() );
-    }
-    PolygonWithHoles polygonWithHoles( outer );
-
-    for( auto& h : floor.holes )
-    {
-        Polygon hole;
-        for( auto& e : h )
-        {
-            hole.push_back( e->source()->point() );
-        }
-        // ensure it is a hole
-        if( !hole.is_clockwise_oriented() )
-        {
-            std::reverse( hole.begin(), hole.end() );
-        }
-        polygonWithHoles.add_hole( hole );
-    }
+    // for( auto& h : polygonWithHoles.holes() )
+    //     std::reverse( h.begin(), h.end() );
 
     StraightSkeletonPtr pStraightSkeleton = CGAL::create_interior_straight_skeleton_2(
         polygonWithHoles.outer_boundary().begin(), polygonWithHoles.outer_boundary().end(),
@@ -1207,8 +632,6 @@ void Analysis::skeleton()
     for( auto i = pStraightSkeleton->halfedges_begin(), iEnd = pStraightSkeleton->halfedges_end(); i != iEnd; ++i )
     {
         StraightSkeleton::Halfedge_handle h = i;
-        // h->defining_contour_edge()
-
         if( h->is_inner_bisector() )
         {
             renderCurve(
@@ -1220,12 +643,13 @@ void Analysis::skeleton()
         }
     }
 
-    static constexpr std::array< std::pair< double, EdgeMask::Type >, 4 > extrusions
-        = { std::pair< double, EdgeMask::Type >{ 1.0, EdgeMask::eExtrusionOne },
-            std::pair< double, EdgeMask::Type >{ 2.0, EdgeMask::eExtrusionTwo },
-            std::pair< double, EdgeMask::Type >{ 3.0, EdgeMask::eExtrusionThree },
-            std::pair< double, EdgeMask::Type >{ 4.0, EdgeMask::eExtrusionFour } };
-    for( const auto& [ fOffset, mask ] : extrusions )
+    using ExtrusionSpec = std::tuple< double, EdgeMask::Type, EdgeMask::Type >;
+    static constexpr std::array< ExtrusionSpec, 4 > extrusions
+        = { ExtrusionSpec{ 1.0, EdgeMask::eExtrusionOne, EdgeMask::eExtrusionOneBoundary },
+            ExtrusionSpec{ 2.0, EdgeMask::eExtrusionTwo, EdgeMask::eExtrusionTwoBoundary },
+            ExtrusionSpec{ 3.0, EdgeMask::eExtrusionThree, EdgeMask::eExtrusionThreeBoundary },
+            ExtrusionSpec{ 4.0, EdgeMask::eExtrusionFour, EdgeMask::eExtrusionFourBoundary } };
+    for( const auto& [ fOffset, mask, maskBoundary ] : extrusions )
     {
         auto result = CGAL::create_offset_polygons_2( fOffset, *pStraightSkeleton );
         for( const auto poly : result )
@@ -1236,7 +660,8 @@ void Analysis::skeleton()
                 ++iNext;
                 if( iNext == iEnd )
                     iNext = poly->begin();
-                renderCurve( Curve( Point( i->x(), i->y() ), Point( iNext->x(), iNext->y() ) ), mask );
+                renderCurve(
+                    Curve( Point( i->x(), i->y() ), Point( iNext->x(), iNext->y() ) ), mask, maskBoundary, {}, {} );
             }
         }
     }
@@ -1274,17 +699,208 @@ void Analysis::getPerimeterPolygon( HalfEdgeVector& polygon ) const
     polygon = polygons.front();
 }
 
-void Analysis::getBoundaryPolygons( HalfEdgeVectorVector& polygons ) const
+Analysis::Floor::Vector Analysis::getFloors()
 {
-    HalfEdgeSet partitionEdges;
-    getEdges( m_arr, partitionEdges,
-              []( Arrangement::Halfedge_const_handle edge )
-              {
-                  return edge->data().flags.test( EdgeMask::ePartitionBoundary )
-                         && !edge->twin()->data().flags.test( EdgeMask::ePerimeter );
-              } );
+    Floor::Vector floors;
 
-    getPolygons( partitionEdges, polygons );
+    struct Visitor
+    {
+        Floor::Vector& floors;
+
+        void floor( PolygonNode& node ) const
+        {
+            INVARIANT( node.outer(), "Found hole when expecting contour" );
+
+            Floor theFloor;
+            auto  f              = node.faces().front();
+            theFloor.pPartition  = f->data().pPartition;
+            theFloor.floor.outer = node.polygon();
+
+            for( auto pHole : node.contained() )
+            {
+                floorInner( *pHole, theFloor, theFloor.floor );
+            }
+
+            floors.emplace_back( theFloor );
+        }
+
+        void floorOrHole( PolygonNode& node, Floor& theFloor, HalfEdgePolygonWithHoles& polyWithHoles ) const
+        {
+            for( auto pContour : node.contained() )
+            {
+                if( pContour->polygon().front()->data().flags.test( EdgeMask::ePartitionFloor ) )
+                {
+                    floor( *pContour );
+                }
+                else if( pContour->polygon().front()->data().flags.test( EdgeMask::ePartitionBoundary )
+                        || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionOneBoundary )
+                        || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
+                        || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
+                        || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionFourBoundary ) )
+                {
+                    floorInner( *pContour, theFloor, polyWithHoles );
+                }
+                else
+                {
+                    INVARIANT( false, "Unexpected edge type in polygon" );
+                }
+            }
+        }
+
+        void floorEx1( PolygonNode& node, Floor& theFloor ) const
+        {
+            INVARIANT( node.outer(), "Found hole when expecting contour" );
+            HalfEdgePolygonWithHoles polyWithHoles;
+            polyWithHoles.outer = node.polygon();
+            floorOrHole( node, theFloor, polyWithHoles );
+            theFloor.ex1.push_back( polyWithHoles );
+        }
+
+        void floorEx2( PolygonNode& node, Floor& theFloor ) const
+        {
+            INVARIANT( node.outer(), "Found hole when expecting contour" );
+            HalfEdgePolygonWithHoles polyWithHoles;
+            polyWithHoles.outer = node.polygon();
+            floorOrHole( node, theFloor, polyWithHoles );
+            theFloor.ex2.push_back( polyWithHoles );
+        }
+
+        void floorEx3( PolygonNode& node, Floor& theFloor ) const
+        {
+            INVARIANT( node.outer(), "Found hole when expecting contour" );
+            HalfEdgePolygonWithHoles polyWithHoles;
+            polyWithHoles.outer = node.polygon();
+            floorOrHole( node, theFloor, polyWithHoles );
+            theFloor.ex3.push_back( polyWithHoles );
+        }
+
+        void floorEx4( PolygonNode& node, Floor& theFloor ) const
+        {
+            INVARIANT( node.outer(), "Found hole when expecting contour" );
+            HalfEdgePolygonWithHoles polyWithHoles;
+            polyWithHoles.outer = node.polygon();
+            floorOrHole( node, theFloor, polyWithHoles );
+            theFloor.ex4.push_back( polyWithHoles );
+        }
+
+        void floorInner( PolygonNode& node, Floor& theFloor, HalfEdgePolygonWithHoles& poly ) const
+        {
+            INVARIANT( node.inner(), "Found contour when expecting hole" );
+
+            poly.holes.push_back( node.polygon() );
+
+            for( auto pContour : node.contained() )
+            {
+                // classify the outer 
+                INVARIANT( pContour->outer(), "Inner within inner" );
+
+                if( pContour->face() )
+                {
+                    auto e = pContour->polygon().front();
+                    if( e->data().flags.test( EdgeMask::ePartitionFloor ) )
+                    {
+                        floor( *pContour );
+                    }
+                    else if( e->data().flags.test( EdgeMask::eExtrusionOne ) )
+                    {
+                        floorEx1( *pContour, theFloor );
+                    }
+                    else if( e->data().flags.test( EdgeMask::eExtrusionTwo ) )
+                    {
+                        floorEx2( *pContour, theFloor );
+                    }
+                    else if( e->data().flags.test( EdgeMask::eExtrusionThree ) )
+                    {
+                        floorEx3( *pContour, theFloor );
+                    }
+                    else if( e->data().flags.test( EdgeMask::eExtrusionFour ) )
+                    {
+                        floorEx4( *pContour, theFloor );
+                    }
+                    else
+                    {
+                        INVARIANT( false, "Unexpected edge type in polygon" );
+                    }
+                }
+                else
+                {
+                    auto e = pContour->polygon().front();
+                    if( e->data().flags.test( EdgeMask::ePartitionFloor ) )
+                    {
+                        // ignore
+                    }
+                    else if( e->data().flags.test( EdgeMask::eExtrusionOne ) )
+                    {
+                        floor( *pContour );
+                    }
+                    else if( e->data().flags.test( EdgeMask::eExtrusionTwo ) )
+                    {
+                        floorEx1( *pContour, theFloor );
+                    }
+                    else if( e->data().flags.test( EdgeMask::eExtrusionThree ) )
+                    {
+                        floorEx2( *pContour, theFloor );
+                    }
+                    else if( e->data().flags.test( EdgeMask::eExtrusionFour ) )
+                    {
+                        floorEx3( *pContour, theFloor );
+                    }
+                    else
+                    {
+                        INVARIANT( false, "Unexpected edge type in polygon" );
+                    }
+                }
+
+
+            }
+        }
+    };
+
+    auto rootNodes = getPolygonNodes(
+        m_arr,
+
+        // OuterEdgePredicate
+        []( Arrangement::Halfedge_const_handle edge )
+        {
+            //
+            return !edge->data().flags.test( EdgeMask::eDoorStep )
+                   && ( 
+                            edge->data().flags.test( EdgeMask::ePerimeter )
+                        || edge->data().flags.test( EdgeMask::ePartitionFloor )
+
+                        || edge->data().flags.test( EdgeMask::eExtrusionOne )
+                        || edge->data().flags.test( EdgeMask::eExtrusionTwo )
+                        || edge->data().flags.test( EdgeMask::eExtrusionThree )
+                        || edge->data().flags.test( EdgeMask::eExtrusionFour )
+
+                        //
+                   );
+        },
+        // InnerEdgePredicate
+        []( Arrangement::Halfedge_const_handle edge )
+        {
+            //
+            return edge->data().flags.test( EdgeMask::ePartitionBoundary )
+                     || edge->data().flags.test( EdgeMask::eExtrusionOneBoundary )
+                     || edge->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
+                     || edge->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
+                     || edge->data().flags.test( EdgeMask::eExtrusionFourBoundary );
+        } );
+
+    Visitor visitor{ floors };
+    for( auto pNode : rootNodes )
+    {
+        visitor.floor( *pNode );
+    }
+
+    return floors;
+}
+
+Analysis::Boundary::Vector Analysis::getBoundaries()
+{
+    Boundary::Vector boundaries;
+
+    return boundaries;
 }
 
 } // namespace exact

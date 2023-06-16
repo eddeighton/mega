@@ -130,6 +130,7 @@ MainWindow::MainWindow( QWidget* pParent )
 
     QObject::connect( m_pMainWindowImpl->actionSave_All, SIGNAL( triggered() ), this, SLOT( OnSaveAll() ) );
 
+
     /*
     QObject::connect(
         m_pDockManager, &ads::CDockManager::dockWidgetRemoved,
@@ -145,6 +146,13 @@ MainWindow::MainWindow( QWidget* pParent )
 
     QObject::connect(
         m_pDockManager, &ads::CDockManager::focusedDockWidgetChanged, this, &MainWindow::OnFocusedDockWidgetChanged );
+        
+
+    // customize layout a bit because dont know how to do it in mainWindow.ui
+    {
+        m_pMainWindowImpl->dockLog->hide();
+        m_pMainWindowImpl->dockStructure->hide();
+    }
 }
 
 MainWindow::~MainWindow()
