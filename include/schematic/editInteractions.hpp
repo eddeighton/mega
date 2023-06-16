@@ -24,6 +24,7 @@
 #include "schematic/buffer.hpp"
 #include "schematic/site.hpp"
 #include "schematic/glyph.hpp"
+#include "schematic/property.hpp"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -75,6 +76,8 @@ public:
 
     virtual void update() = 0;
 
+    virtual void setProperty( Property::PtrCst pProperty, const std::string& strValue ) = 0;
+
     virtual bool              interaction_hover( Float x, Float y, IGlyph*& pPoint1, IGlyph*& pPoint2 ) = 0;
     virtual IInteraction::Ptr interaction_start( ToolMode toolMode, Float x, Float y, Float qX, Float qY,
                                                  IGlyph* pHitGlyph, const std::set< IGlyph* >& selection )
@@ -89,8 +92,9 @@ public:
     virtual IEditContext* getNestedContext( const std::vector< IGlyph* >& candidates ) = 0;
     virtual IEditContext* getParent()                                                  = 0;
 
-    virtual bool          isNodeContext( Node::Ptr pNode ) const = 0;
-    virtual IEditContext* getNodeContext( Node::Ptr pNode )      = 0;
+    virtual bool          isNodeContext( Node::PtrCst pNode ) const = 0;
+    virtual bool          isNodeContext( Node::Ptr pNode ) const    = 0;
+    virtual IEditContext* getNodeContext( Node::Ptr pNode )         = 0;
 
     virtual const Origin* getOrigin() const = 0;
     virtual bool canEdit( IGlyph* pGlyph, ToolType toolType, ToolMode toolMode, bool bAllowPoints, bool bAllowSites,

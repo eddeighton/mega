@@ -118,7 +118,13 @@ bool Wall::task_contour()
 
     const Polygon& siteContour = m_pContour->getPolygon();
 
-    if( bSubTreeModified || ( siteContour != m_siteContourCache ) || ( m_siteContourTick < getLastModifiedTick() ) )
+    // clang-format off
+    if( bSubTreeModified || 
+        ( siteContour != m_siteContourCache ) || 
+        ( m_siteContourTick < getLastModifiedTick() ) || 
+        ( m_pWidthProperty && ( m_siteContourTick < m_pWidthProperty->getLastModifiedTick() ) )
+        // clang-format on
+    )
     {
         m_siteContourTick.update();
         m_siteContourCache = siteContour;
@@ -139,8 +145,7 @@ void Wall::task_extrusions()
     Kernel::FT wallWidth = 2;
     if( m_pWidthProperty )
     {
-        std::istringstream is( m_pWidthProperty->getStatement() );
-        is >> wallWidth;
+        wallWidth = m_pWidthProperty->getValue( 2.0 );
     }
 
     if( !m_sitePolygon.is_empty() )

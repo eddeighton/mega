@@ -20,6 +20,7 @@ namespace editor
 SchematicView::SchematicView( QWidget* pParent, MainWindow* pMainWindow )
     : GlyphView( pParent, pMainWindow )
 {
+    QObject::connect( &m_itemModel, &ItemModel::dataChanged, this, &SchematicView::OnItemModelDataChanged );
 }
 
 SchematicView::~SchematicView() = default;
@@ -41,6 +42,13 @@ void SchematicView::postCreate( SchematicDocument::Ptr pDocument )
 
     m_pSchematicDocument->setCompilationConfig( m_compilationConfig );
 
+    onDocumentUpdate();
+}
+
+
+void SchematicView::OnItemModelDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight,
+                                        const QList< int >& roles )
+{
     onDocumentUpdate();
 }
 
@@ -114,6 +122,7 @@ void SchematicView::mouseReleaseEvent( QMouseEvent* pEvent )
         // show context menu
         QMenu menu( this );
 
+        menu.addAction( m_pMainWindow->getUI()->actionEditContext );
         menu.addAction( m_pMainWindow->getUI()->actionTabOut );
         menu.addAction( m_pMainWindow->getUI()->actionSelectAll );
         menu.addSeparator();

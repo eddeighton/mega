@@ -69,9 +69,7 @@ void Property::save( format::Node& node ) const
 
 std::string Property::getStatement() const
 {
-    std::ostringstream os;
-    os << m_strValue;
-    return os.str();
+    return m_strValue;
 }
 
 void Property::setStatement( const std::string& strStatement )

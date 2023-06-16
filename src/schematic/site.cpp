@@ -70,11 +70,7 @@ void Site::save( format::Node& node ) const
 
 std::string Site::getStatement() const
 {
-    std::ostringstream os;
-    {
-        os << "Site: " << getName();
-    }
-    return os.str();
+    return "";//getName();
 }
 
 void Site::init()

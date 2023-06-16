@@ -21,6 +21,8 @@
 #include "item_model.hpp"
 
 #include <QDebug>
+#include <QColor>
+#include <QBrush>
 
 #ifndef Q_MOC_RUN
 
@@ -44,9 +46,9 @@ void doTreeItemUpdate( ItemModel::TreeItem* pRootItem, ItemModel& model )
     pRootItem->update( model );
     // LOG_PROFILE_END( tree_update );
 }
-ItemModel::TreeItem* createRootTreeItem( schematic::Node::PtrCst pNode )
+ItemModel::TreeItem* createRootTreeItem( schematic::IEditContext*& pEditContext, schematic::Node::PtrCst pNode )
 {
-    return new ItemModel::TreeItem( pNode );
+    return new ItemModel::TreeItem( pEditContext, pNode );
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -80,15 +82,17 @@ schematic::Node::PtrCst ItemModel::getIndexNode( const QModelIndex& index ) cons
     return pNode;
 }
 
-void ItemModel::OnSchematicUpdate()
+void ItemModel::OnSchematicUpdate( schematic::IEditContext* pNewContext )
 {
+    m_pEditContext = pNewContext;
     if( m_pRoot.get() )
+    {
         doTreeItemUpdate( m_pRoot.get(), *this );
+    }
 }
 
 void ItemModel::OnSchematicFocussed( schematic::Schematic::Ptr pSchematic )
 {
-    qDebug() << "ItemModel::OnBlueprintSelected: " << pSchematic->getName().c_str();
     if( m_pRoot.get() )
     {
         beginRemoveRows( QModelIndex(), 0, m_pRoot->rowCount() );
@@ -100,7 +104,7 @@ void ItemModel::OnSchematicFocussed( schematic::Schematic::Ptr pSchematic )
 
     if( pSchematic )
     {
-        m_pRoot.reset( createRootTreeItem( pSchematic ) );
+        m_pRoot.reset( createRootTreeItem( m_pEditContext, pSchematic ) );
         doTreeItemUpdate( m_pRoot.get(), *this );
     }
 }
@@ -110,7 +114,58 @@ Qt::ItemFlags ItemModel::flags( const QModelIndex& index ) const
     // qDebug() << "ItemModel::flags " << index;
     if( !index.isValid() )
         return {};
+
+    if( schematic::Property::PtrCst pProperty
+        = boost::dynamic_pointer_cast< const schematic::Property >( getIndexNode( index ) ) )
+    {
+        return Qt::ItemIsEditable | QAbstractItemModel::flags( index );
+    }
+
     return QAbstractItemModel::flags( index );
+}
+bool ItemModel::setData( const QModelIndex& modelIndex, const QVariant& value, int role )
+{
+    if( modelIndex.isValid() )
+    {
+        if( role == Qt::EditRole )
+        {
+            if( schematic::Property::PtrCst pPropertyCst
+                = boost::dynamic_pointer_cast< const schematic::Property >( getIndexNode( modelIndex ) ) )
+            {
+                if( m_pEditContext )
+                {
+                    m_pEditContext->setProperty( pPropertyCst, value.toString().toStdString() );
+                    emit dataChanged( index( modelIndex.row(), 0, modelIndex ), index( modelIndex.row(), 2, modelIndex ) );
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool ItemModel::setItemData( const QModelIndex& modelIndex, const QMap< int, QVariant >& roles )
+{
+    bool bSet = false;
+    if( modelIndex.isValid() )
+    {
+        auto iFind = roles.find( Qt::EditRole );
+        if( iFind != roles.end() )
+        {
+            const auto& value = *iFind;
+            if( schematic::Property::PtrCst pPropertyCst
+                = boost::dynamic_pointer_cast< const schematic::Property >( getIndexNode( modelIndex ) ) )
+            {
+                if( m_pEditContext )
+                {
+                    m_pEditContext->setProperty( pPropertyCst, value.toString().toStdString() );
+                    emit dataChanged( index( modelIndex.row(), 0, modelIndex ), index( modelIndex.row(), 2, modelIndex ) );
+                    return true;
+                }
+            }
+        }
+    }
+    return bSet;
 }
 
 QModelIndex ItemModel::index( int row, int column, const QModelIndex& parentIndex ) const
@@ -171,13 +226,32 @@ QVariant ItemModel::data( const QModelIndex& index, int role ) const
     if( !index.isValid() )
         return {};
 
-    if( role != Qt::DisplayRole )
+    if( ( role != Qt::DisplayRole ) ) //&& ( role != Qt::ForegroundRole ) )
         return {};
 
     if( TreeItem* pItem = static_cast< TreeItem* >( index.internalPointer() ) )
-        return pItem->getData( index.column() );
+    {
+        if( role == Qt::DisplayRole )
+        {
+            return pItem->getData( index.column() );
+        }
+        // THIS does not work??
+        /*else if( role == Qt::ForegroundRole )
+        {
+            if( m_pEditContext && m_pEditContext->isNodeContext( m_pNode.lock() ) )
+            {
+                return QBrush( QColor( 0, 0, 0, 255 ) );
+            }
+            else
+            {
+                return QBrush( QColor( 0, 0, 0, 255 ) );
+            }
+        }*/
+    }
     else
+    {
         return {};
+    }
 }
 
 QVariant ItemModel::headerData( int section, Qt::Orientation orientation, int role ) const
@@ -267,7 +341,7 @@ void ItemModel::TreeItem::update( ItemModel& model, const QModelIndex& parentMod
         if( additions.find( pIter ) != additions.end() )
         {
             // node needs to be added at this position
-            TreeItem* pNewTreeItem = new TreeItem( pIter, this );
+            TreeItem* pNewTreeItem = new TreeItem( m_pEditContext, pIter, this );
             m_nodeMap.insert( std::make_pair( schematic::Node::PtrCstWeak( pIter ), pNewTreeItem ) );
             {
                 model.beginInsertRows( modelIndex, iRow, iRow );

@@ -63,6 +63,16 @@ bool EditBase::interaction_hover( Float x, Float y, IGlyph*& pPoint1, IGlyph*& p
     return false;
 }
 
+void EditBase::setProperty( Property::PtrCst pPropertyCst, const std::string& strValue )
+{
+    if( Property::Ptr pProperty = boost::const_pointer_cast< Property >( pPropertyCst ) )
+    {
+        pProperty->setStatement( strValue );
+
+        onEditted( true );
+    }
+}
+
 IInteraction::Ptr EditBase::interaction_start( ToolMode toolMode, Float x, Float y, Float qX, Float qY,
                                                IGlyph* pHitGlyph, const std::set< IGlyph* >& selection )
 {

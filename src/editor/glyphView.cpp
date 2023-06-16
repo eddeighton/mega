@@ -117,6 +117,8 @@ void GlyphView::onViewFocussed()
 
     m_pMainWindow->getUI()->treeView->setModel( &m_itemModel );
     m_pMainWindow->getUI()->treeView->setSelectionModel( &m_selectionModel );
+    m_pMainWindow->getUI()->treeView->setActiveGlyphView( this );
+
     m_pMainWindow->getUI()->config->setViewConfig( m_pViewConfig );
 
     QObject::connect(
@@ -175,9 +177,7 @@ void GlyphView::onViewUnfocussed()
     CMD_DISCONNECT( actionEdit, CmdEditTool );
 
     m_pMainWindow->getUI()->treeView->setModel( nullptr );
-
-    // following crashes the treeCtrl?
-    // m_pMainWindow->getUI()->treeView->setSelectionModel( nullptr );
+    m_pMainWindow->getUI()->treeView->setActiveGlyphView( nullptr );
 
     m_pMainWindow->getUI()->config->setViewConfig( {} );
 }
@@ -228,7 +228,7 @@ schematic::IGlyph::Ptr GlyphView::createMarkupText( schematic::MarkupText* pMark
 void GlyphView::onEditted( bool bCommandCompleted )
 {
     m_pDocument->onEditted( bCommandCompleted );
-    m_itemModel.OnSchematicUpdate();
+    m_itemModel.OnSchematicUpdate( m_pActiveContext );
 }
 
 void GlyphView::onDocumentUpdate()
@@ -396,28 +396,6 @@ void GlyphView::selectContext( schematic::IEditContext* pNewContext )
     schematic::IEditContext* pOldContext = m_pActiveContext;
     m_pActiveContext                     = pNewContext;
 
-    /*if( pOldContext )
-    {
-        auto iFind = m_specMap.find( pOldContext->getOrigin() );
-        if( iFind != m_specMap.end() )
-        {
-            auto iFind2 = m_itemMap.find( iFind->second );
-            if( iFind2 != m_itemMap.end() )
-                iFind2->second->update();
-        }
-    }
-
-    VERIFY_RTE( m_pActiveContext );
-    {
-        auto iFind = m_specMap.find( m_pActiveContext->getOrigin() );
-        if( iFind != m_specMap.end() )
-        {
-            auto iFind2 = m_itemMap.find( iFind->second );
-            if( iFind2 != m_itemMap.end() )
-                iFind2->second->update();
-        }
-    }*/
-
     updateGlyphVisibility();
 
     // just update everything
@@ -427,6 +405,8 @@ void GlyphView::selectContext( schematic::IEditContext* pNewContext )
     }
 
     m_pActiveTool->onUpdate();
+
+    m_itemModel.OnSchematicUpdate( m_pActiveContext );
 }
 
 // selection handling
@@ -639,7 +619,6 @@ void GlyphView::mouseReleaseEvent( QMouseEvent* pEvent )
 
     GridView::mouseReleaseEvent( pEvent );
 }
-
 void GlyphView::CmdTabOut()
 {
     if( m_pActiveContext && m_pActiveContext->getParent() )

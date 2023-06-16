@@ -37,6 +37,9 @@ signals:
     void OnDocumentSaved( const void* );
 
 public slots:
+    void OnItemModelDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight,
+                                 const QList< int >& roles = QList< int >() );
+
     // commands
     bool CmdSave();
     bool CmdSaveAs();
@@ -53,8 +56,8 @@ private:
     void configureCompilationStage( schematic::Schematic::CompilationStage stage, bool bEnable );
 
 private:
-    SchematicDocument::Ptr             m_pSchematicDocument;
-    schematic::EditSchematic::Ptr      m_pEdit;
+    SchematicDocument::Ptr        m_pSchematicDocument;
+    schematic::EditSchematic::Ptr m_pEdit;
 };
 
 } // namespace editor

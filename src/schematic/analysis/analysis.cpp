@@ -489,6 +489,10 @@ void Analysis::partition()
                 // NOTE: MUST pass ALL floorEdges here not just the floorBoundary
                 locateHoleBoundariesFromDoorStep( e, floorEdges, floorBoundary, holeBoundaries );
 
+                // Because searching from all door steps - if there are no obstacles will get the 
+                // same result each time - i.e. the algorithm must be correct if setting the same
+                // result multiple times
+
                 std::vector< std::vector< Arrangement::Halfedge_handle > > floorHoles;
                 getPolygons( holeBoundaries, floorHoles );
 
@@ -863,8 +867,8 @@ Analysis::Floor::Vector Analysis::getFloors()
         []( Arrangement::Halfedge_const_handle edge )
         {
             //
-            return !edge->data().flags.test( EdgeMask::eDoorStep )
-                   && ( 
+            return !edge->data().flags.test( EdgeMask::eDoorStep )&&
+                    ( 
                             edge->data().flags.test( EdgeMask::ePerimeter )
                         || edge->data().flags.test( EdgeMask::ePartitionFloor )
 
@@ -880,7 +884,8 @@ Analysis::Floor::Vector Analysis::getFloors()
         []( Arrangement::Halfedge_const_handle edge )
         {
             //
-            return edge->data().flags.test( EdgeMask::ePartitionBoundary )
+            return //edge->data().flags.test( EdgeMask::eDoorStep ) || 
+                    edge->data().flags.test( EdgeMask::ePartitionBoundary )
                      || edge->data().flags.test( EdgeMask::eExtrusionOneBoundary )
                      || edge->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
                      || edge->data().flags.test( EdgeMask::eExtrusionThreeBoundary )

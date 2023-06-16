@@ -31,6 +31,7 @@
 
 #include "schematic/node.hpp"
 #include "schematic/schematic.hpp"
+#include "schematic/editInteractions.hpp"
 
 #include "common/tick.hpp"
 
@@ -55,7 +56,7 @@ public:
     struct TreeItem
     {
         friend void      doTreeItemUpdate( TreeItem*, ItemModel& );
-        friend TreeItem* createRootTreeItem( schematic::Node::PtrCst );
+        friend TreeItem* createRootTreeItem( schematic::IEditContext*& pEditContext, schematic::Node::PtrCst );
 
     private:
         using Vector         = std::vector< TreeItem* >;
@@ -63,8 +64,9 @@ public:
         using StringItemMap  = std::map< std::string, TreeItem* >;
         using PtrTreeItemMap = std::map< schematic::Node::PtrCstWeak, TreeItem* >;
 
-        TreeItem( schematic::Node::PtrCst pNode, TreeItem* pParent = 0u )
-            : m_pNode( pNode )
+        TreeItem( schematic::IEditContext*& pEditContext, schematic::Node::PtrCst pNode, TreeItem* pParent = nullptr )
+            : m_pEditContext( pEditContext )
+            , m_pNode( pNode )
             , m_pParent( pParent )
             , m_qName( QVariant( pNode->getName().c_str() ) )
             , m_qValue( QVariant( pNode->getStatement().c_str() ) )
@@ -84,11 +86,11 @@ public:
                 case 1:
                     return m_qValue;
             }
-            return QVariant();
+            return {};
         }
         inline TreeItem* getChildAt( int iRow ) const
         {
-            return ( iRow < static_cast< int >( m_children.size() ) ) ? m_children[ iRow ] : 0u;
+            return ( iRow < static_cast< int >( m_children.size() ) ) ? m_children[ iRow ] : nullptr;
         }
         inline TreeItem* getParent() const { return m_pParent; }
         inline int       columnCount() const { return 2; }
@@ -116,9 +118,10 @@ public:
         void update( ItemModel& model, const QModelIndex& parentModelIndex = QModelIndex() );
 
     private:
-        TreeItem* m_pParent;
-        Vector    m_children;
-        QVariant  m_qName, m_qValue;
+        schematic::IEditContext*& m_pEditContext;
+        TreeItem*                 m_pParent;
+        Vector                    m_children;
+        QVariant                  m_qName, m_qValue;
 
         Timing::UpdateTick          m_lastUpdateTick;
         schematic::Node::PtrCstWeak m_pNode;
@@ -126,12 +129,14 @@ public:
     };
 
     //////////////////////////////////////////////////////////////////////////////
-    explicit ItemModel( QObject* parent = 0 );
+    explicit ItemModel( QObject* parent = nullptr );
 
     QModelIndex             getNodeIndex( schematic::Node::PtrCst pNode ) const;
     schematic::Node::PtrCst getIndexNode( const QModelIndex& index ) const;
 
     virtual Qt::ItemFlags flags( const QModelIndex& index ) const;
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+    virtual bool setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles);
     virtual QModelIndex   index( int row, int column, const QModelIndex& parent = QModelIndex() ) const;
     virtual QModelIndex   parent( const QModelIndex& child ) const;
     virtual int           rowCount( const QModelIndex& parent = QModelIndex() ) const;
@@ -141,10 +146,11 @@ public:
 
     //////////////////////////////////////////////////////////////////////////////
     // Update routines
-    void OnSchematicUpdate();
+    void OnSchematicUpdate( schematic::IEditContext* pNewContext );
     void OnSchematicFocussed( schematic::Schematic::Ptr pSchematic );
 
 private:
+    schematic::IEditContext*    m_pEditContext = nullptr;
     schematic::Node::PtrCstWeak m_pNode;
     std::unique_ptr< TreeItem > m_pRoot;
 };

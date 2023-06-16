@@ -118,25 +118,6 @@ public:
     std::string generateNewNodeName( const std::string& strPrefix ) const;
     std::string generateNewNodeName( Node::Ptr pCopiedNode ) const;
 
-    /*
-    template< class T >
-    boost::optional< T > getProperty( const std::string& strKey ) const
-    {
-        boost::optional< T > result;
-        typename PtrMap::const_iterator iFind = m_children.find( strKey );
-        if( iFind != m_children.end() )
-        {
-            if( typename Property::Ptr pProperty = boost::dynamic_pointer_cast< Property >( iFind->second ) )
-            {
-                std::istringstream is( pProperty->getValue() );
-                T value = T();
-                is >> value;
-                result = value;
-            }
-        }
-        return result;
-    }*/
-
     boost::optional< std::string > getPropertyString( const std::string& strKey ) const;
 
     template < class T >

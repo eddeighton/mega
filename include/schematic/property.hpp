@@ -66,8 +66,31 @@ public:
     void                setStatement( const std::string& strStatement );
     const std::string&  getValue() const { return m_strValue; }
 
+    template< typename ValueType >
+    const ValueType& getValue( const ValueType& defaultValue ) const
+    {
+        static std::optional< ValueType > last;
+        if( getLastModifiedTick() > m_lastRead )
+        {
+            m_lastRead.update();
+            try
+            {
+                std::istringstream is( m_strValue );
+                ValueType value;
+                is >> value;
+                last = value;
+            }
+            catch( std::exception& )
+            {
+                last = defaultValue;
+            }
+        }
+        return last.has_value() ? last.value() : defaultValue;
+    }
+
 private:
     std::string m_strValue;
+    mutable Timing::UpdateTick m_lastRead;
 };
 
 

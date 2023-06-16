@@ -100,7 +100,7 @@ void Space::init()
     {
         m_pWidthProperty = Property::Ptr( new Property( getPtr(), "width" ) );
         m_pWidthProperty->init();
-        m_pWidthProperty->setStatement("0.5f");
+        m_pWidthProperty->setStatement( "0.5f" );
         add( m_pWidthProperty );
     }
 
@@ -119,7 +119,7 @@ void Space::init( const Transform& transform )
 
     m_pWidthProperty = Property::Ptr( new Property( shared_from_this(), "width" ) );
     m_pWidthProperty->init();
-    m_pWidthProperty->setStatement("0.5f");
+    m_pWidthProperty->setStatement( "0.5f" );
     add( m_pWidthProperty );
 
     Space::init();
@@ -135,7 +135,13 @@ bool Space::task_contour()
 
     const Polygon& siteContour = m_pContour->getPolygon();
 
-    if( bSubTreeModified || ( siteContour != m_siteContourCache ) || ( m_siteContourTick < getLastModifiedTick() ) )
+    // clang-format off
+    if( bSubTreeModified || 
+        ( siteContour != m_siteContourCache ) || 
+        ( m_siteContourTick < getLastModifiedTick() ) || 
+        ( m_pWidthProperty && ( m_siteContourTick < m_pWidthProperty->getLastModifiedTick() ) )
+        // clang-format on
+    )
     {
         m_siteContourTick.update();
         m_siteContourCache = siteContour;
@@ -159,8 +165,7 @@ void Space::task_extrusions()
     Kernel::FT wallWidth = 2;
     if( m_pWidthProperty )
     {
-        std::istringstream is( m_pWidthProperty->getStatement() );
-        is >> wallWidth;
+        wallWidth = m_pWidthProperty->getValue( 2.0 );
     }
 
     if( !m_sitePolygon.is_empty() )
@@ -177,8 +182,10 @@ void Space::task_extrusions()
         // calculate interior
         {
             PolygonPtrVector inner_offset_polygons
-                = CGAL::create_interior_skeleton_and_offset_polygons_2< exact::Kernel::FT, exact::Polygon,
-                                                                        exact::Kernel, exact::Kernel >(
+                = CGAL::create_interior_skeleton_and_offset_polygons_2< exact::Kernel::FT,
+                                                                        exact::Polygon,
+                                                                        exact::Kernel,
+                                                                        exact::Kernel >(
                     wallWidth, m_sitePolygon, ( exact::Kernel() ), ( exact::Kernel() ) );
             if( !inner_offset_polygons.empty() )
             {
@@ -189,8 +196,10 @@ void Space::task_extrusions()
         // calculate exterior
         {
             PolygonPtrVector outer_offset_polygons
-                = CGAL::create_exterior_skeleton_and_offset_polygons_2< exact::Kernel::FT, exact::Polygon,
-                                                                        exact::Kernel, exact::Kernel >(
+                = CGAL::create_exterior_skeleton_and_offset_polygons_2< exact::Kernel::FT,
+                                                                        exact::Polygon,
+                                                                        exact::Kernel,
+                                                                        exact::Kernel >(
                     wallWidth, m_sitePolygon, ( exact::Kernel() ), ( exact::Kernel() ) );
             if( !outer_offset_polygons.empty() )
             {

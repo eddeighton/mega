@@ -58,6 +58,8 @@ public:
     // IEditContext
     virtual void update();
     virtual void updateGlyphs();
+    
+    virtual void setProperty( Property::PtrCst pProperty, const std::string& strValue );
 
     virtual bool              interaction_hover( Float x, Float y, IGlyph*& pPoint1, IGlyph*& pPoint2 );
     virtual IInteraction::Ptr interaction_start( ToolMode toolMode, Float x, Float y, Float qX, Float qY,
@@ -68,15 +70,16 @@ public:
     virtual void              interaction_end( IInteraction* pInteraction );
 
     virtual IEditContext* getNestedContext( const std::vector< IGlyph* >& candidates );
-    virtual IEditContext* getParent() { return 0u; }
+    virtual IEditContext* getParent() { return nullptr; }
 
+    virtual bool          isNodeContext( Node::PtrCst pNode ) const { return pNode == m_pNode; }
     virtual bool          isNodeContext( Node::Ptr pNode ) const { return pNode == m_pNode; }
     virtual IEditContext* getNodeContext( Node::Ptr pNode );
 
     virtual bool canEdit( IGlyph* pGlyph, ToolType toolType, ToolMode toolMode, bool bAllowPoints, bool bAllowSites,
                           bool bAllowConnections ) const;
 
-    virtual const Origin* getOrigin() const { return 0u; }
+    virtual const Origin* getOrigin() const { return nullptr; }
 
     // command handling
     virtual void              cmd_delete( const std::set< IGlyph* >& selection );

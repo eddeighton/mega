@@ -45,17 +45,18 @@ set( EDITOR_HEADERS
     ${EDITOR_SRC_DIR}/glyphs.hpp
     ${EDITOR_SRC_DIR}/glyphView.hpp
     ${EDITOR_SRC_DIR}/gridView.hpp
+    ${EDITOR_SRC_DIR}/item_model.hpp
     ${EDITOR_SRC_DIR}/mainWindow.hpp
     ${EDITOR_SRC_DIR}/messages.hpp
     ${EDITOR_SRC_DIR}/qtUtils.hpp
     ${EDITOR_SRC_DIR}/schematicView.hpp
+    ${EDITOR_SRC_DIR}/selection_model.hpp
     ${EDITOR_SRC_DIR}/toolbox.hpp
     ${EDITOR_SRC_DIR}/toolboxPanel.hpp
     ${EDITOR_SRC_DIR}/tools.hpp
-    ${EDITOR_SRC_DIR}/voronoi.hpp
-    ${EDITOR_SRC_DIR}/item_model.hpp
-    ${EDITOR_SRC_DIR}/selection_model.hpp
+    ${EDITOR_SRC_DIR}/treeView.hpp
     ${EDITOR_SRC_DIR}/viewConfigPanel.hpp
+    ${EDITOR_SRC_DIR}/voronoi.hpp
 
 )
 
@@ -65,16 +66,17 @@ set( EDITOR_SOURCE
     ${EDITOR_SRC_DIR}/glyphs.cpp
     ${EDITOR_SRC_DIR}/glyphView.cpp
     ${EDITOR_SRC_DIR}/gridView.cpp
+    ${EDITOR_SRC_DIR}/item_model.cpp
     ${EDITOR_SRC_DIR}/main.cpp 
     ${EDITOR_SRC_DIR}/mainWindow.cpp
     ${EDITOR_SRC_DIR}/mainWindow.ui
     ${EDITOR_SRC_DIR}/resources.qrc
     ${EDITOR_SRC_DIR}/schematicView.cpp
+    ${EDITOR_SRC_DIR}/selection_model.cpp
     ${EDITOR_SRC_DIR}/toolbox.cpp
     ${EDITOR_SRC_DIR}/toolboxPanel.cpp
     ${EDITOR_SRC_DIR}/tools.cpp
-    ${EDITOR_SRC_DIR}/item_model.cpp
-    ${EDITOR_SRC_DIR}/selection_model.cpp
+    ${EDITOR_SRC_DIR}/treeView.cpp
     ${EDITOR_SRC_DIR}/viewConfigPanel.cpp
 )
 

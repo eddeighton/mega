@@ -134,7 +134,7 @@ std::string Feature_Point::getStatement() const
 {
     std::ostringstream os;
     {
-        os << "Feature_Point: " << getName();
+        os << CGAL::to_double( m_ptOrigin.x() ) << "," << CGAL::to_double( m_ptOrigin.y() );
     }
     return os.str();
 }
@@ -208,11 +208,7 @@ Feature_Contour::~Feature_Contour()
 
 std::string Feature_Contour::getStatement() const
 {
-    std::ostringstream os;
-    {
-        os << "Feature Contour: " << getName();
-    }
-    return os.str();
+    return "";
 }
 
 const GlyphSpec* Feature_Contour::getParent( ControlPoint::Index id ) const
@@ -367,11 +363,7 @@ void Feature_Pin::save( format::Node& node ) const
 
 std::string Feature_Pin::getStatement() const
 {
-    std::ostringstream os;
-    {
-        os << "Feature_Pin: " << getName();
-    }
-    return os.str();
+    return "";
 }
 
 const GlyphSpec* Feature_Pin::getParent( ControlPoint::Index id ) const
@@ -434,11 +426,7 @@ void Feature_LineSegment::save( format::Node& node ) const
 
 std::string Feature_LineSegment::getStatement() const
 {
-    std::ostringstream os;
-    {
-        os << "Feature_LineSegment: " << getName();
-    }
-    return os.str();
+    return "";
 }
 
 const GlyphSpec* Feature_LineSegment::getParent( ControlPoint::Index id ) const

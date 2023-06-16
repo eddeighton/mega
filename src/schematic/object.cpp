@@ -116,12 +116,6 @@ bool Object::task_contour()
         m_pMarkupContour->setPolygon( siteContour );
         m_pMarkupContourOutline->setPolygon( siteContour );
 
-        // m_sitePolygon.clear();
-        // m_interiorPolygon.clear();
-        // m_exteriorPolygon.clear();
-        // m_innerExteriors.clear();
-        // m_innerExteriorUnions.clear();
-
         bModified = true;
     }
 

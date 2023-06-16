@@ -47,6 +47,7 @@
         <property name="title">
           <string>Edit</string>
         </property>
+        <addaction name="actionEditContext" />
         <addaction name="actionTabOut" />
         <addaction name="actionZoomToAll" />
         <addaction name="actionSelectAll" />
@@ -115,6 +116,7 @@
       <attribute name="toolBarBreak">
         <bool>false</bool>
       </attribute>
+      <addaction name="actionEditContext" />
       <addaction name="actionTabOut" />
       <addaction name="separator" />
       <addaction name="actionUndo" />
@@ -171,7 +173,7 @@
       <widget class="QWidget" name="dockWidgetContents">
         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-            <widget class="QTreeView" name="treeView">
+            <widget class="editor::TreeView" name="treeView">
               <property name="selectionMode">
                 <enum>QAbstractItemView::MultiSelection</enum>
               </property>
@@ -313,6 +315,21 @@
       <property name="icon">
         <iconset>
           <normaloff>:/art/magnifier.png</normaloff>:/art/magnifier.png</iconset>
+      </property>
+    </action>
+    <action name="actionEditContext">
+      <property name="text">
+        <string>Edit</string>
+      </property>
+      <property name="shortcut">
+        <string>Space</string>
+      </property>
+      <property name="visible">
+        <bool>false</bool>
+      </property>
+      <property name="icon">
+        <iconset>
+          <normaloff>:/art/arrow_power.png</normaloff>:/art/arrow_power.png</iconset>
       </property>
     </action>
     <action name="actionTabOut">
@@ -636,7 +653,7 @@
           <bool>true</bool>
         </property>
         <property name="text">
-          <string>Select</string>
+          <string>Select Tool</string>
         </property>
         <property name="shortcut">
           <string>S</string>
@@ -654,7 +671,7 @@
           <bool>true</bool>
         </property>
         <property name="text">
-          <string>Lasso</string>
+          <string>Lasso Tool</string>
         </property>
         <property name="shortcut">
           <string>W</string>
@@ -672,7 +689,7 @@
           <bool>true</bool>
         </property>
         <property name="text">
-          <string>Draw</string>
+          <string>Draw Tool</string>
         </property>
         <property name="shortcut">
           <string>D</string>
@@ -690,7 +707,7 @@
           <bool>true</bool>
         </property>
         <property name="text">
-          <string>Edit</string>
+          <string>Edit Tool</string>
         </property>
         <property name="shortcut">
           <string>E</string>
@@ -715,8 +732,14 @@
     </customwidget>
     <customwidget>
       <class>editor::ViewConfigPanel</class>
-      <extends>QWidget</extends>
+      <extends>QGraphicsView</extends>
       <header>viewConfigPanel.hpp</header>
+      <container>1</container>
+    </customwidget>
+    <customwidget>
+      <class>editor::TreeView</class>
+      <extends>QTreeView</extends>
+      <header>treeView.hpp</header>
       <container>1</container>
     </customwidget>
   </customwidgets>
