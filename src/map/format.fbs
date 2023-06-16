@@ -167,24 +167,37 @@ table Area
     areas:[Area];
 }
 
-table Section
+table Pane
 {
     type:Type;
     properties:[Properties];
-    contour:Polygon;
+    quad:Mesh;
+}
 
-    walls:[Mesh];
-    sills:[Mesh];
-    ceilings:[Mesh];
+table WallSection
+{
+    type:Type;
+    properties:[Properties];
+    mesh:Mesh;
 }
 
 table Boundary
 {
     type:Type;
     properties:[Properties];
-    parent:Area;
     contour:Polygon;
-    sections:[Section];
+
+    hori_holes:[Mesh];
+    hori_floors:[Mesh];
+    hori_mids:[Mesh];
+    hori_ceilings:[Mesh];
+
+    vert_panes:[Pane];
+
+    wall_hole:[WallSection];
+    wall_ground:[WallSection];
+    wall_lower:[WallSection];
+    wall_upper:[WallSection];
 }
 
 table Floor

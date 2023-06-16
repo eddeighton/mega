@@ -36,90 +36,32 @@
 namespace exact
 {
 
-template < typename TFunctor >
-inline void visit( Analysis::Arrangement::Face_const_handle hFace, TFunctor&& visitor )
+template < typename TFace, typename TFunctor >
+inline void visitEdgesOfFace( TFace hFace, TFunctor&& visitor )
 {
     if( !hFace->is_unbounded() )
     {
-        Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = hFace->outer_ccb();
-        Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
+        auto iter  = hFace->outer_ccb();
+        auto start = iter;
         do
         {
-            visitor( iter->data() );
+            visitor( iter );
             ++iter;
         } while( iter != start );
     }
 
     // search through all holes
-    for( Analysis::Arrangement::Hole_const_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
+    for( auto holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
          holeIter != holeIterEnd; ++holeIter )
     {
-        Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
-        Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
+        auto iter  = *holeIter;
+        auto start = iter;
         do
         {
-            visitor( iter->data() );
+            visitor( iter );
             ++iter;
         } while( iter != start );
     }
-}
-
-template < typename TFunctor >
-inline void visit( Analysis::Arrangement::Face_handle hFace, TFunctor&& visitor )
-{
-    if( !hFace->is_unbounded() )
-    {
-        Analysis::Arrangement::Ccb_halfedge_circulator iter  = hFace->outer_ccb();
-        Analysis::Arrangement::Ccb_halfedge_circulator start = iter;
-        do
-        {
-            visitor( iter->data() );
-            ++iter;
-        } while( iter != start );
-    }
-
-    // search through all holes
-    for( Analysis::Arrangement::Hole_iterator holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
-         holeIter != holeIterEnd; ++holeIter )
-    {
-        Analysis::Arrangement::Ccb_halfedge_circulator iter  = *holeIter;
-        Analysis::Arrangement::Ccb_halfedge_circulator start = iter;
-        do
-        {
-            visitor( iter->data() );
-            ++iter;
-        } while( iter != start );
-    }
-}
-
-template < typename TFunctor >
-inline bool anyFaceEdge( Analysis::Arrangement::Face_const_handle hFace, TFunctor&& predicate )
-{
-    bool bSuccess = false;
-    visit( hFace,
-           [ &bSuccess, &predicate ]( const Analysis::HalfEdgeData& edge )
-           {
-               if( predicate( edge ) )
-               {
-                   bSuccess = true;
-               };
-           } );
-    return bSuccess;
-}
-
-template < typename TFunctor >
-inline bool allFaceEdges( Analysis::Arrangement::Face_const_handle hFace, TFunctor&& predicate )
-{
-    bool bSuccess = true;
-    visit( hFace,
-           [ &bSuccess, &predicate ]( const Analysis::HalfEdgeData& edge )
-           {
-               if( !predicate( edge ) )
-               {
-                   bSuccess = false;
-               };
-           } );
-    return bSuccess;
 }
 
 // Search for reachable faces from the input startFaces set such that the polygon boundary is NEVER exceeded and
@@ -236,83 +178,6 @@ inline bool getSortedFacesInsidePolygon( const Analysis::HalfEdgeVector& polygon
 
     return bIsCounterClockwise;
 }
-
-inline void locateHoleBoundariesFromDoorStep( Analysis::Arrangement::Halfedge_handle                    doorStep,
-                                              const std::set< Analysis::Arrangement::Halfedge_handle >& boundaryEdges,
-                                              const std::vector< Analysis::Arrangement::Halfedge_handle >& floorEdges,
-                                              std::set< Analysis::Arrangement::Halfedge_handle >& innerBoundaries )
-{
-    std::vector< Analysis::Arrangement::Face_handle > result;
-    std::set< Analysis::Arrangement::Face_handle >    startFaces;
-    startFaces.insert( doorStep->face() );
-    getSortedFaces< Analysis::Arrangement::Halfedge_handle, Analysis::Arrangement::Face_handle >(
-        startFaces, result,
-
-        // if predicate returns TRUE then getSortedFaces will cross edge to get adjacent face
-        // NOTE: getSortedFaces will ALSO ONLY cross edges NOT within 'boundary' variable
-        [ &boundaryEdges, &floorEdges, &innerBoundaries ]( Analysis::Arrangement::Halfedge_handle edge )
-        {
-            const auto& flags = edge->data().flags;
-
-            const bool bIsBoundaryEdge = ( boundaryEdges.find( edge ) != boundaryEdges.end() );
-            const bool bIsFloorEdge = std::find( floorEdges.begin(), floorEdges.end(), edge ) != floorEdges.end();
-
-            // A hole within a floor partition MUST ALWAYS be a polygon of EXTERIOR edges or stuff around connection
-            // NOTE: exterior edges occur at the connection break edge which IS NOT in the floor partition
-            //const bool bIsHoleEdge = flags.test( EdgeMask::eExterior ) && !flags.test( EdgeMask::eConnectionBreak );
-
-            const bool bIsHoleEdge =  ( flags.test( EdgeMask::eExterior )
-                               || flags.test( EdgeMask::eConnectionBisector ) || flags.test( EdgeMask::eDoorStep ) )
-
-                             && !flags.test( EdgeMask::eConnectionBreak );
-
-            if( !bIsFloorEdge && bIsHoleEdge )
-            {
-                // collect discovered edges NOT within outer boundary
-                innerBoundaries.insert( edge );
-            }
-
-            // Prevent searching to the unbounded edge by not allowing EdgeMask::ePerimeter
-            return !bIsBoundaryEdge && !bIsHoleEdge && !flags.test( EdgeMask::ePerimeter );
-        } );
-}
-
-bool areFacesAdjacent( Analysis::Arrangement::Face_const_handle hFace1,
-                       Analysis::Arrangement::Face_const_handle hFace2 )
-{
-    INVARIANT( !hFace1->is_unbounded(), "Invalid face passed to areFacesAdjacent" );
-
-    Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = hFace1->outer_ccb();
-    Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
-    do
-    {
-        if( iter->twin()->face() == hFace2 )
-        {
-            return true;
-        }
-        ++iter;
-    } while( iter != start );
-
-    // search through all holes
-    for( Analysis::Arrangement::Hole_const_iterator holeIter = hFace1->holes_begin(), holeIterEnd = hFace1->holes_end();
-         holeIter != holeIterEnd; ++holeIter )
-    {
-        Analysis::Arrangement::Ccb_halfedge_const_circulator iter  = *holeIter;
-        Analysis::Arrangement::Ccb_halfedge_const_circulator start = iter;
-        do
-        {
-            if( iter->twin()->face() == hFace2 )
-            {
-                return true;
-            }
-            ++iter;
-        } while( iter != start );
-    }
-
-    return false;
-}
-
-// internal query implementation helper functions
 
 template < typename Predicate >
 inline void getEdges( const Analysis::Arrangement& arr, Analysis::HalfEdgeSet& edges, Predicate&& predicate )

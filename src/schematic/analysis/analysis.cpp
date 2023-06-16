@@ -426,6 +426,46 @@ void Analysis::cut( schematic::Site::Ptr pSite )
     }
 }
 
+inline void locateHoleBoundariesFromDoorStep( Analysis::Arrangement::Halfedge_handle                    doorStep,
+                                              const std::set< Analysis::Arrangement::Halfedge_handle >& boundaryEdges,
+                                              const std::vector< Analysis::Arrangement::Halfedge_handle >& floorEdges,
+                                              std::set< Analysis::Arrangement::Halfedge_handle >& innerBoundaries )
+{
+    std::vector< Analysis::Arrangement::Face_handle > result;
+    std::set< Analysis::Arrangement::Face_handle >    startFaces;
+    startFaces.insert( doorStep->face() );
+    getSortedFaces< Analysis::Arrangement::Halfedge_handle, Analysis::Arrangement::Face_handle >(
+        startFaces, result,
+
+        // if predicate returns TRUE then getSortedFaces will cross edge to get adjacent face
+        // NOTE: getSortedFaces will ALSO ONLY cross edges NOT within 'boundary' variable
+        [ &boundaryEdges, &floorEdges, &innerBoundaries ]( Analysis::Arrangement::Halfedge_handle edge )
+        {
+            const auto& flags = edge->data().flags;
+
+            const bool bIsBoundaryEdge = ( boundaryEdges.find( edge ) != boundaryEdges.end() );
+            const bool bIsFloorEdge    = std::find( floorEdges.begin(), floorEdges.end(), edge ) != floorEdges.end();
+
+            // A hole within a floor partition MUST ALWAYS be a polygon of EXTERIOR edges or stuff around connection
+            // NOTE: exterior edges occur at the connection break edge which IS NOT in the floor partition
+            // const bool bIsHoleEdge = flags.test( EdgeMask::eExterior ) && !flags.test( EdgeMask::eConnectionBreak );
+
+            const bool bIsHoleEdge = ( flags.test( EdgeMask::eExterior ) || flags.test( EdgeMask::eConnectionBisector )
+                                       || flags.test( EdgeMask::eDoorStep ) )
+
+                                     && !flags.test( EdgeMask::eConnectionBreak );
+
+            if( !bIsFloorEdge && bIsHoleEdge )
+            {
+                // collect discovered edges NOT within outer boundary
+                innerBoundaries.insert( edge );
+            }
+
+            // Prevent searching to the unbounded edge by not allowing EdgeMask::ePerimeter
+            return !bIsBoundaryEdge && !bIsHoleEdge && !flags.test( EdgeMask::ePerimeter );
+        } );
+}
+
 void Analysis::partition()
 {
     std::vector< Arrangement::Vertex_handle >          doorStepVertices;
@@ -593,8 +633,10 @@ void Analysis::partition()
                     PartitionSegment::Ptr pPartitionSegment = std::make_unique< PartitionSegment >();
                     for( auto e : b )
                     {
+                        INVARIANT( e->data().pPartition, "Edge missing partition" );
                         classify( e, EdgeMask::ePartitionBoundarySegment );
-                        e->data().pPartitionSegment         = pPartitionSegment.get();
+                        e->data().pPartitionSegment = pPartitionSegment.get();
+                        e->data().pPartition->segments.push_back( pPartitionSegment.get() );
                         e->face()->data().pPartitionSegment = pPartitionSegment.get();
                     }
                     m_boundarySegments.emplace_back( std::move( pPartitionSegment ) );
@@ -902,8 +944,6 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
 {
     using Edge = Arrangement::Halfedge_const_handle;
 
-    Boundary::Vector boundaries;
-
     HalfEdgeSet boundaryEdges;
     getEdges(
         m_arr, boundaryEdges, []( Edge edge ) { return edge->data().flags.test( EdgeMask::ePartitionBoundary ); } );
@@ -921,42 +961,229 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
     // Partition::PtrVector        m_floors, m_boundaries;
     // PartitionSegment::PtrVector m_boundarySegments;
 
-    using BoundaryEdgeMap = std::map< Partition::Ptr, HalfEdgeVector >;
-    using SegmentEdgeMap  = std::map< PartitionSegment::Ptr, HalfEdgeVector >;
+    using SegmentEdgeMap = std::map< PartitionSegment*, HalfEdgeVector >;
+    SegmentEdgeMap segmentMap;
+
+    for( const auto& segmentPoly : boundarySegmentPolygons )
+    {
+        segmentMap.insert( { segmentPoly.front()->data().pPartitionSegment, segmentPoly } );
+    }
 
     struct Sequence
     {
-        using Vector       = std::vector< Sequence >;
-        using EdgeSequence = std::list< Edge >;
-        EdgeSequence                   edges;
-        Partition*                     pFloor = nullptr;
-        std::list< PartitionSegment* > segments;
-        Boundary::Plane                plane = Boundary::eGround;
+        using Vector                               = std::vector< Sequence >;
+        using EdgeSequence                         = std::list< Edge >;
+        Partition*                     m_pBoundary = nullptr;
+        Partition*                     m_pFloor    = nullptr;
+        std::list< PartitionSegment* > m_segments;
+        EdgeSequence                   m_edges;
+        enum Plane
+        {
+            eHole,
+            eGround,
+            eMid,
+            eCeiling
+        } m_plane
+            = eCeiling;
+
+        bool pushBack( Edge edge )
+        {
+            Partition*        pBoundary         = edge->data().pPartition;
+            PartitionSegment* pPartitionSegment = edge->data().pPartitionSegment;
+            Partition*        pFloor            = edge->twin()->data().pPartition;
+            INVARIANT( pBoundary, "Boundary edge with no boundary" );
+            INVARIANT( pPartitionSegment, "Boundary edge with no boundary segment" );
+            INVARIANT( pFloor, "Floor missing from boundary" );
+            INVARIANT( m_pBoundary == pBoundary, "Inconsistent boundary" );
+
+            if( pFloor == m_pFloor )
+            {
+                if( pPartitionSegment == m_segments.back() )
+                {
+                    m_edges.push_back( edge );
+                    return true;
+                }
+                else
+                {
+                    // TODO
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+        bool pushFront( Edge edge )
+        {
+            Partition*        pBoundary         = edge->data().pPartition;
+            PartitionSegment* pPartitionSegment = edge->data().pPartitionSegment;
+            Partition*        pFloor            = edge->twin()->data().pPartition;
+            INVARIANT( pBoundary, "Boundary edge with no boundary" );
+            INVARIANT( pPartitionSegment, "Boundary edge with no boundary segment" );
+            INVARIANT( pFloor, "Floor missing from boundary" );
+            INVARIANT( m_pBoundary == pBoundary, "Inconsistent boundary" );
+
+            if( m_edges.front()->source() == edge->target() )
+            {
+                if( pFloor == m_pFloor )
+                {
+                    if( pPartitionSegment == m_segments.front() )
+                    {
+                        m_edges.push_front( edge );
+                        return true;
+                    }
+                    else
+                    {
+                        // TODO
+                    }
+                }
+            }
+            return false;
+        }
     };
+
+    Boundary::Vector result;
 
     for( const auto& boundaryPolygon : boundaryPolygons )
     {
         Sequence::Vector sequences;
 
-        Sequence sequence;
+        Partition* pBoundary = nullptr;
+
         for( const auto& edge : boundaryPolygon )
         {
-            Partition*        pBoundary         = edge->data().pPartition;
+            INVARIANT( pBoundary == nullptr || pBoundary == edge->data().pPartition, "Inconsistent boundary" );
+            pBoundary                           = edge->data().pPartition;
             PartitionSegment* pPartitionSegment = edge->data().pPartitionSegment;
+            INVARIANT( std::find( pBoundary->segments.begin(), pBoundary->segments.end(), pPartitionSegment )
+                           != pBoundary->segments.end(),
+                       "Boundary does not contain segment" );
+            Partition* pFloor = edge->twin()->data().pPartition;
             INVARIANT( pBoundary, "Boundary edge with no boundary" );
             INVARIANT( pPartitionSegment, "Boundary edge with no boundary segment" );
+            INVARIANT( pFloor, "Floor missing from boundary" );
 
-            Partition* pFloor = edge->twin()->data().pPartition;
-
-
-
-
-
-
+            if( !sequences.empty() && sequences.back().pushBack( edge ) )
+            {
+                continue;
+            }
+            else if( !sequences.empty() && sequences.front().pushFront( edge ) )
+            {
+                continue;
+            }
+            else
+            {
+                Sequence seq;
+                seq.m_pBoundary = pBoundary;
+                seq.m_pFloor    = pFloor;
+                seq.m_segments.push_back( pPartitionSegment );
+                seq.m_edges.push_back( edge );
+                sequences.emplace_back( seq );
+            }
         }
+
+        // construct the boundary
+        Boundary boundary;
+
+        boundary.contour = boundaryPolygon;
+
+        for( const auto& seq : sequences )
+        {
+            for( PartitionSegment* pSegment : seq.m_segments )
+            {
+                auto iFind = segmentMap.find( pSegment );
+                INVARIANT( iFind != segmentMap.end(), "Could not find segment" );
+
+                auto findSiteContours
+                    = [ pSegment ]( const Analysis::HalfEdgeVector& boundary, Analysis::HalfEdgeSet& siteEdges )
+                {
+                    Analysis::FaceVector facesWithinSegment;
+                    getSortedFacesInsidePolygon( boundary, facesWithinSegment );
+                    for( auto f : facesWithinSegment )
+                    {
+                        visitEdgesOfFace( f,
+                                          [ &siteEdges ]( Analysis::HalfEdge edge )
+                                          {
+                                              if( !siteEdges.contains( edge ) && !siteEdges.contains( edge->twin() ) )
+                                              {
+                                                  siteEdges.insert( edge );
+                                              }
+                                              return true;
+                                          } );
+                    }
+                };
+
+                switch( seq.m_plane )
+                {
+                    case Sequence::eHole:
+                    {
+                        Boundary::Pane pane;
+                        findSiteContours( iFind->second, pane.edges );
+                        boundary.panes.push_back( pane );
+                        boundary.hori_holes.push_back( iFind->second );
+                    }
+                    break;
+                    case Sequence::eGround:
+                    {
+                        Boundary::Pane pane;
+                        findSiteContours( iFind->second, pane.edges );
+                        boundary.panes.push_back( pane );
+                        boundary.hori_floors.push_back( iFind->second );
+                    }
+                    break;
+                    case Sequence::eMid:
+                    {
+                        Boundary::Pane pane;
+                        findSiteContours( iFind->second, pane.edges );
+                        boundary.panes.push_back( pane );
+                        boundary.hori_mids.push_back( iFind->second );
+                    }
+                    break;
+                    case Sequence::eCeiling:
+                    {
+                        boundary.hori_ceilings.push_back( iFind->second );
+                    }
+                    break;
+                }
+            }
+
+            switch( seq.m_plane )
+            {
+                case Sequence::eHole:
+                {
+                    Boundary::WallSection wall;
+                    wall.edges.assign( seq.m_edges.begin(), seq.m_edges.end() );
+                    boundary.wall_hole.emplace_back( wall );
+                }
+                break;
+                case Sequence::eGround:
+                {
+                    Boundary::WallSection wall;
+                    wall.edges.assign( seq.m_edges.begin(), seq.m_edges.end() );
+                    boundary.wall_ground.emplace_back( wall );
+                }
+                break;
+                case Sequence::eMid:
+                {
+                    Boundary::WallSection wall;
+                    wall.edges.assign( seq.m_edges.begin(), seq.m_edges.end() );
+                    boundary.wall_lower.emplace_back( wall );
+                }
+                break;
+                case Sequence::eCeiling:
+                {
+                    Boundary::WallSection wall;
+                    wall.edges.assign( seq.m_edges.begin(), seq.m_edges.end() );
+                    boundary.wall_upper.emplace_back( wall );
+                }
+                break;
+            }
+        }
+
+        result.emplace_back( boundary );
     }
 
-    return boundaries;
+    return result;
 }
 
 } // namespace exact

@@ -42,6 +42,11 @@ class Analysis
 public:
     using Ptr = boost::shared_ptr< Analysis >;
 
+    struct PartitionSegment
+    {
+        using Ptr       = std::unique_ptr< PartitionSegment >;
+        using PtrVector = std::vector< Ptr >;
+    };
     struct Partition
     {
         using Ptr       = std::unique_ptr< Partition >;
@@ -49,11 +54,7 @@ public:
 
         schematic::Site::PtrCst              pSite;
         schematic::Feature_Pin::PtrCstVector pins;
-    };
-    struct PartitionSegment
-    {
-        using Ptr       = std::unique_ptr< PartitionSegment >;
-        using PtrVector = std::vector< Ptr >;
+        std::vector< PartitionSegment* >     segments;
     };
 
     struct VertexData
@@ -212,24 +213,36 @@ public:
 
     struct Boundary
     {
-        enum Plane
+        using Vector = std::vector< Boundary >;
+
+        struct Pane
         {
-            eHole,
-            eGround,
-            eMid,
-            eCeiling
+            // type:Type;
+            // properties:[Properties];
+            HalfEdgeSet edges;
         };
 
-        Partition*     pPartition;
-        HalfEdgeVector contour;
-        struct Segment
+        struct WallSection
         {
-            PartitionSegment* pSegment;
-            HalfEdgeVector    contour;
+            // type:Type;
+            // properties:[Properties];
+            HalfEdgeVector edges;
         };
-        using SegmentVector = std::vector< Segment >;
-        SegmentVector segments;
-        using Vector = std::vector< Boundary >;
+
+        // type:Type;
+        // properties:[Properties];
+        HalfEdgeVector contour;
+
+        HalfEdgeVectorVector hori_holes;
+        HalfEdgeVectorVector hori_floors;
+        HalfEdgeVectorVector hori_mids;
+        HalfEdgeVectorVector hori_ceilings;
+
+        std::vector< Pane >        panes;
+        std::vector< WallSection > wall_hole;
+        std::vector< WallSection > wall_ground;
+        std::vector< WallSection > wall_lower;
+        std::vector< WallSection > wall_upper;
     };
     Boundary::Vector getBoundaries();
 
