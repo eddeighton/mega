@@ -11,6 +11,7 @@
 #include <QMessageBox>
 #include <QProcessEnvironment>
 #include <QFileDialog>
+#include <QScrollBar>
 
 #ifndef Q_MOC_RUN
 
@@ -130,7 +131,6 @@ MainWindow::MainWindow( QWidget* pParent )
 
     QObject::connect( m_pMainWindowImpl->actionSave_All, SIGNAL( triggered() ), this, SLOT( OnSaveAll() ) );
 
-
     /*
     QObject::connect(
         m_pDockManager, &ads::CDockManager::dockWidgetRemoved,
@@ -146,10 +146,10 @@ MainWindow::MainWindow( QWidget* pParent )
 
     QObject::connect(
         m_pDockManager, &ads::CDockManager::focusedDockWidgetChanged, this, &MainWindow::OnFocusedDockWidgetChanged );
-        
 
     // customize layout a bit because dont know how to do it in mainWindow.ui
     {
+        //m_pDockManager->addDockWidgetTab( ads::LeftDockWidgetArea, m_pMainWindowImpl->dockStructure );
         m_pMainWindowImpl->dockLog->hide();
         m_pMainWindowImpl->dockStructure->hide();
     }
@@ -178,12 +178,13 @@ void MainWindow::OnDocumentChanged( Document* pDocument )
 
 void MainWindow::OnDocumentError( Document* pDocument, const std::string& strErrorMsg )
 {
-    if( pDocument->getFilePath().has_value() )
-    {
-
-    }
+    // if( pDocument->getFilePath().has_value() )
+    // {
+    // }
 
     m_pMainWindowImpl->logView->appendPlainText( QString::fromUtf8( strErrorMsg ) );
+    m_pMainWindowImpl->logView->verticalScrollBar()->setValue(
+        m_pMainWindowImpl->logView->verticalScrollBar()->maximum() );
 }
 
 void MainWindow::addActionRef( QAction* pAction )

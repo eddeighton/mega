@@ -408,7 +408,7 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
                 Mega::Vertex3DBuilder vertBuilder( builder );
                 vertBuilder.add_vertex( fbVert );
                 vertBuilder.add_normal( &normal );
-                vertBuilder.add_plane( Mega::Plane::Plane_eLower );
+                vertBuilder.add_plane( Mega::Plane::Plane_eGround );
                 vertBuilder.add_tangent( &tangent );
                 vertBuilder.add_uv( &uv );
                 auto fbVert3d = vertBuilder.Finish();
@@ -528,6 +528,18 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
 
     auto fbFloors = builder.CreateVector( fbFloorsVec );
 
+    // boundaries
+    
+    std::vector< fb::Offset< Mega::Section > > fbSectionVec;
+    std::vector< fb::Offset< Mega::Boundary > > fbBoundaryVec;
+    {
+        Analysis::Boundary::Vector boundaries = m_pAnalysis->getBoundaries();
+
+    }
+
+    auto fbSections = builder.CreateVector( fbSectionVec );
+    auto fbBoundaries = builder.CreateVector( fbBoundaryVec );
+
     // map
     fb::Offset< Mega::Map > fbMap;
     {
@@ -537,6 +549,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
         mapBuilder.add_contour( fbMapPolygon );
         mapBuilder.add_root_area( fbRootArea );
         mapBuilder.add_floors( fbFloors );
+        mapBuilder.add_boundaries( fbBoundaries );
         fbMap = mapBuilder.Finish();
     }
 

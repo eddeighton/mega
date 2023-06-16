@@ -489,7 +489,7 @@ void Analysis::partition()
                 // NOTE: MUST pass ALL floorEdges here not just the floorBoundary
                 locateHoleBoundariesFromDoorStep( e, floorEdges, floorBoundary, holeBoundaries );
 
-                // Because searching from all door steps - if there are no obstacles will get the 
+                // Because searching from all door steps - if there are no obstacles will get the
                 // same result each time - i.e. the algorithm must be correct if setting the same
                 // result multiple times
 
@@ -737,10 +737,10 @@ Analysis::Floor::Vector Analysis::getFloors()
                     floor( *pContour );
                 }
                 else if( pContour->polygon().front()->data().flags.test( EdgeMask::ePartitionBoundary )
-                        || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionOneBoundary )
-                        || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
-                        || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
-                        || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionFourBoundary ) )
+                         || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionOneBoundary )
+                         || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
+                         || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
+                         || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionFourBoundary ) )
                 {
                     floorInner( *pContour, theFloor, polyWithHoles );
                 }
@@ -795,7 +795,7 @@ Analysis::Floor::Vector Analysis::getFloors()
 
             for( auto pContour : node.contained() )
             {
-                // classify the outer 
+                // classify the outer
                 INVARIANT( pContour->outer(), "Inner within inner" );
 
                 if( pContour->face() )
@@ -854,8 +854,6 @@ Analysis::Floor::Vector Analysis::getFloors()
                         INVARIANT( false, "Unexpected edge type in polygon" );
                     }
                 }
-
-
             }
         }
     };
@@ -867,9 +865,8 @@ Analysis::Floor::Vector Analysis::getFloors()
         []( Arrangement::Halfedge_const_handle edge )
         {
             //
-            return !edge->data().flags.test( EdgeMask::eDoorStep )&&
-                    ( 
-                            edge->data().flags.test( EdgeMask::ePerimeter )
+            return !edge->data().flags.test( EdgeMask::eDoorStep )
+                   && ( edge->data().flags.test( EdgeMask::ePerimeter )
                         || edge->data().flags.test( EdgeMask::ePartitionFloor )
 
                         || edge->data().flags.test( EdgeMask::eExtrusionOne )
@@ -884,12 +881,12 @@ Analysis::Floor::Vector Analysis::getFloors()
         []( Arrangement::Halfedge_const_handle edge )
         {
             //
-            return //edge->data().flags.test( EdgeMask::eDoorStep ) || 
-                    edge->data().flags.test( EdgeMask::ePartitionBoundary )
-                     || edge->data().flags.test( EdgeMask::eExtrusionOneBoundary )
-                     || edge->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
-                     || edge->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
-                     || edge->data().flags.test( EdgeMask::eExtrusionFourBoundary );
+            return // edge->data().flags.test( EdgeMask::eDoorStep ) ||
+                edge->data().flags.test( EdgeMask::ePartitionBoundary )
+                || edge->data().flags.test( EdgeMask::eExtrusionOneBoundary )
+                || edge->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
+                || edge->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
+                || edge->data().flags.test( EdgeMask::eExtrusionFourBoundary );
         } );
 
     Visitor visitor{ floors };
@@ -903,7 +900,61 @@ Analysis::Floor::Vector Analysis::getFloors()
 
 Analysis::Boundary::Vector Analysis::getBoundaries()
 {
+    using Edge = Arrangement::Halfedge_const_handle;
+
     Boundary::Vector boundaries;
+
+    HalfEdgeSet boundaryEdges;
+    getEdges(
+        m_arr, boundaryEdges, []( Edge edge ) { return edge->data().flags.test( EdgeMask::ePartitionBoundary ); } );
+
+    HalfEdgeVectorVector boundaryPolygons;
+    getPolygons( boundaryEdges, boundaryPolygons );
+
+    HalfEdgeSet boundarySegmentEdges;
+    getEdges( m_arr, boundarySegmentEdges,
+              []( Edge edge ) { return edge->data().flags.test( EdgeMask::ePartitionBoundarySegment ); } );
+
+    HalfEdgeVectorVector boundarySegmentPolygons;
+    getPolygons( boundarySegmentEdges, boundarySegmentPolygons );
+
+    // Partition::PtrVector        m_floors, m_boundaries;
+    // PartitionSegment::PtrVector m_boundarySegments;
+
+    using BoundaryEdgeMap = std::map< Partition::Ptr, HalfEdgeVector >;
+    using SegmentEdgeMap  = std::map< PartitionSegment::Ptr, HalfEdgeVector >;
+
+    struct Sequence
+    {
+        using Vector       = std::vector< Sequence >;
+        using EdgeSequence = std::list< Edge >;
+        EdgeSequence                   edges;
+        Partition*                     pFloor = nullptr;
+        std::list< PartitionSegment* > segments;
+        Boundary::Plane                plane = Boundary::eGround;
+    };
+
+    for( const auto& boundaryPolygon : boundaryPolygons )
+    {
+        Sequence::Vector sequences;
+
+        Sequence sequence;
+        for( const auto& edge : boundaryPolygon )
+        {
+            Partition*        pBoundary         = edge->data().pPartition;
+            PartitionSegment* pPartitionSegment = edge->data().pPartitionSegment;
+            INVARIANT( pBoundary, "Boundary edge with no boundary" );
+            INVARIANT( pPartitionSegment, "Boundary edge with no boundary segment" );
+
+            Partition* pFloor = edge->twin()->data().pPartition;
+
+
+
+
+
+
+        }
+    }
 
     return boundaries;
 }

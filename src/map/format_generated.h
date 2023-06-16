@@ -91,34 +91,37 @@ struct Map;
 struct MapBuilder;
 
 enum Plane : int16_t {
-  Plane_eLower = 0,
-  Plane_eMid = 1,
-  Plane_eUpper = 2,
-  Plane_MIN = Plane_eLower,
-  Plane_MAX = Plane_eUpper
+  Plane_eHole = 0,
+  Plane_eGround = 1,
+  Plane_eMid = 2,
+  Plane_eCeiling = 3,
+  Plane_MIN = Plane_eHole,
+  Plane_MAX = Plane_eCeiling
 };
 
-inline const Plane (&EnumValuesPlane())[3] {
+inline const Plane (&EnumValuesPlane())[4] {
   static const Plane values[] = {
-    Plane_eLower,
+    Plane_eHole,
+    Plane_eGround,
     Plane_eMid,
-    Plane_eUpper
+    Plane_eCeiling
   };
   return values;
 }
 
 inline const char * const *EnumNamesPlane() {
-  static const char * const names[4] = {
-    "eLower",
+  static const char * const names[5] = {
+    "eHole",
+    "eGround",
     "eMid",
-    "eUpper",
+    "eCeiling",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNamePlane(Plane e) {
-  if (::flatbuffers::IsOutRange(e, Plane_eLower, Plane_eUpper)) return "";
+  if (::flatbuffers::IsOutRange(e, Plane_eHole, Plane_eCeiling)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesPlane()[index];
 }
@@ -594,7 +597,7 @@ struct Vertex3DBuilder {
 inline ::flatbuffers::Offset<Vertex3D> CreateVertex3D(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<Mega::Vertex> vertex = 0,
-    Mega::Plane plane = Mega::Plane_eLower,
+    Mega::Plane plane = Mega::Plane_eHole,
     const Mega::F3 *normal = nullptr,
     const Mega::F2 *uv = nullptr,
     const Mega::F4 *tangent = nullptr) {

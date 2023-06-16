@@ -212,6 +212,14 @@ public:
 
     struct Boundary
     {
+        enum Plane
+        {
+            eHole,
+            eGround,
+            eMid,
+            eCeiling
+        };
+
         Partition*     pPartition;
         HalfEdgeVector contour;
         struct Segment
