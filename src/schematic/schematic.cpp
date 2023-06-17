@@ -521,22 +521,23 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
         const Mega::F2 sF2( sValue.x(), sValue.y() );
         const Mega::F2 tF2( tValue.x(), tValue.y() );
 
-        const Mega::F2 tPerp( -tF2.y() - sF2.y(), tF2.x() - sF2.x() );
+        const Mega::F2 tDist( tF2.x() - sF2.x(), tF2.y() - sF2.y() );
+        const Mega::F2 tPerp( -tDist.y(), tDist.x() );
 
-        const float mag = std::sqrt( tPerp.x() * tPerp.x() + tPerp.y() * tPerp.y() );
+        const float mag = std::sqrt( tDist.x() * tDist.x() + tDist.y() * tDist.y() );
 
         const Mega::F3 normal( tPerp.x() / mag, tPerp.y() / mag, 0.0f );
         const Mega::F4 tangent( tPerp.x() / mag, tPerp.y() / mag, 0.0f, 0.0f );
 
         auto sLower
             = buildVertex( builder, vertices, Mega::F2( fUVDist, 0 ), normal, tangent, sVert, lower );
-        auto tLower
-            = buildVertex( builder, vertices, Mega::F2( fUVDist, 1 ), normal, tangent, tVert, lower );
-
-        fUVDist += tPerp.x() / mag;
-
         auto sUpper
-            = buildVertex( builder, vertices, Mega::F2( fUVDist, 0 ), normal, tangent, sVert, upper );
+            = buildVertex( builder, vertices, Mega::F2( fUVDist, 1 ), normal, tangent, sVert, upper );
+
+        fUVDist += mag;
+
+        auto tLower
+            = buildVertex( builder, vertices, Mega::F2( fUVDist, 0 ), normal, tangent, tVert, lower );
         auto tUpper
             = buildVertex( builder, vertices, Mega::F2( fUVDist, 1 ), normal, tangent, tVert, upper );
 

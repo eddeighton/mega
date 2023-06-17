@@ -511,6 +511,10 @@ void Analysis::partition()
                 }
                 e->data().pPartition = pPartition.get();
                 classify( e, EdgeMask::ePartitionFloor );
+                if( !e->data().flags.test( EdgeMask::eDoorStep ) )
+                {
+                    classify( e->twin(), EdgeMask::ePartitionBoundary );
+                }
 
                 if( e->data().flags.test( EdgeMask::eDoorStep ) )
                 {
@@ -558,7 +562,25 @@ void Analysis::partition()
     }
 
     // use similar algorithm to determine the boundary polygons which CANNOT have holes
+    std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
     {
+        getEdges( m_arr, boundaryEdges,
+                  []( Arrangement::Halfedge_handle edge )
+                  { return edge->data().flags.test( EdgeMask::ePartitionBoundary ); } );
+        std::vector< std::vector< Arrangement::Halfedge_handle > > boundaryPolygons;
+        getPolygons( boundaryEdges, boundaryPolygons );
+        for( auto& boundary : boundaryPolygons )
+        {
+            Partition::Ptr pPartition = std::make_unique< Partition >();
+            for( auto e : boundary )
+            {
+                classify( e, EdgeMask::ePartitionBoundary );
+                e->data().pPartition = pPartition.get();
+            }
+            m_boundaries.emplace_back( std::move( pPartition ) );
+        }
+    }
+    /*{
         std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
         getEdges( m_arr, boundaryEdges,
                   []( Arrangement::Halfedge_handle edge )
@@ -583,17 +605,12 @@ void Analysis::partition()
             }
             m_boundaries.emplace_back( std::move( pPartition ) );
         }
-    }
+    }*/
 
     // now determine all boundary segments
     {
         // Get all boundary edges COMBINED with the cut edges
         // NOTE that cut edges are on both sides of the cut curve
-        std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
-        getEdges( m_arr, boundaryEdges,
-                  []( Arrangement::Halfedge_handle edge )
-                  { return edge->data().flags.test( EdgeMask::ePartitionBoundary ); } );
-
         std::set< Analysis::Arrangement::Halfedge_handle > cutEdges;
         getEdges( m_arr, cutEdges,
                   []( Arrangement::Halfedge_handle edge ) { return edge->data().flags.test( EdgeMask::eCut ); } );
@@ -619,24 +636,31 @@ void Analysis::partition()
             // ALWAYS contain atleast one partition boundary edge
             if( b.size() > 2 )
             {
-                bool bContainsBoundaryEdge = false;
+                Partition* pPartition = nullptr;
                 for( auto e : b )
                 {
                     if( e->data().flags.test( EdgeMask::ePartitionBoundary ) )
                     {
-                        bContainsBoundaryEdge = true;
+                        pPartition = e->data().pPartition;
                         break;
                     }
                 }
-                if( bContainsBoundaryEdge )
+                if( pPartition )
                 {
                     PartitionSegment::Ptr pPartitionSegment = std::make_unique< PartitionSegment >();
+                    pPartition->segments.push_back( pPartitionSegment.get() );
                     for( auto e : b )
                     {
-                        INVARIANT( e->data().pPartition, "Edge missing partition" );
                         classify( e, EdgeMask::ePartitionBoundarySegment );
                         e->data().pPartitionSegment = pPartitionSegment.get();
-                        e->data().pPartition->segments.push_back( pPartitionSegment.get() );
+                        if( e->data().pPartition )
+                        {
+                            INVARIANT( e->data().pPartition == pPartition, "Inconstitent partition" );
+                        }
+                        else
+                        {
+                            e->data().pPartition = pPartition;
+                        }
                         e->face()->data().pPartitionSegment = pPartitionSegment.get();
                     }
                     m_boundarySegments.emplace_back( std::move( pPartitionSegment ) );
@@ -966,6 +990,9 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
 
     for( const auto& segmentPoly : boundarySegmentPolygons )
     {
+        INVARIANT( !segmentPoly.empty(), "Empty boundary segment polygon" );
+        const auto& firstEdge = segmentPoly.front();
+        INVARIANT( firstEdge->data().pPartitionSegment, "Boundary segment edge with no partition segment" );
         segmentMap.insert( { segmentPoly.front()->data().pPartitionSegment, segmentPoly } );
     }
 
@@ -1053,14 +1080,14 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
         for( const auto& edge : boundaryPolygon )
         {
             INVARIANT( pBoundary == nullptr || pBoundary == edge->data().pPartition, "Inconsistent boundary" );
-            pBoundary                           = edge->data().pPartition;
+            pBoundary = edge->data().pPartition;
+            INVARIANT( pBoundary, "Boundary edge has no partition" );
             PartitionSegment* pPartitionSegment = edge->data().pPartitionSegment;
+            INVARIANT( pPartitionSegment, "Boundary edge has no partition segment" );
             INVARIANT( std::find( pBoundary->segments.begin(), pBoundary->segments.end(), pPartitionSegment )
                            != pBoundary->segments.end(),
                        "Boundary does not contain segment" );
             Partition* pFloor = edge->twin()->data().pPartition;
-            INVARIANT( pBoundary, "Boundary edge with no boundary" );
-            INVARIANT( pPartitionSegment, "Boundary edge with no boundary segment" );
             INVARIANT( pFloor, "Floor missing from boundary" );
 
             if( !sequences.empty() && sequences.back().pushBack( edge ) )
