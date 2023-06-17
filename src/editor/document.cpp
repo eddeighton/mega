@@ -179,7 +179,7 @@ schematic::File::Ptr Document::UndoHistory::onRedo()
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-Document::Document( DocumentChangeObserver& observer, const schematic::File::CompilationConfig& config )
+Document::Document( DocumentChangeObserver& observer, const schematic::CompilationStage config )
     : m_documentChangeObserver( observer )
     , m_uniqueObjectName( generateUUID() )
     , m_undoHistory( *this )
@@ -187,7 +187,7 @@ Document::Document( DocumentChangeObserver& observer, const schematic::File::Com
 {
 }
 
-Document::Document( DocumentChangeObserver& observer, const schematic::File::CompilationConfig& config,
+Document::Document( DocumentChangeObserver& observer, const schematic::CompilationStage config,
                     const boost::filesystem::path& path )
     : m_documentChangeObserver( observer )
     , m_optPath( path )
@@ -209,7 +209,7 @@ bool Document::isModified() const
     return false;
 }
 
-void Document::setCompilationConfig( const schematic::File::CompilationConfig& config )
+void Document::setCompilationConfig( schematic::CompilationStage config )
 {
     if( config != m_compilationConfig )
     {
@@ -243,7 +243,7 @@ void Document::saved( const boost::filesystem::path& filePath )
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic,
-                                      const schematic::File::CompilationConfig& config )
+                                      const schematic::CompilationStage config )
     : Document( observer, config )
     , m_pSchematic( pSchematic )
 {
@@ -253,8 +253,8 @@ SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schemati
 }
 
 SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic,
-                                      const schematic::File::CompilationConfig& config,
-                                      const boost::filesystem::path&            path )
+                                      const schematic::CompilationStage config,
+                                      const boost::filesystem::path&               path )
     : Document( observer, config, path )
     , m_pSchematic( pSchematic )
 {
@@ -263,54 +263,34 @@ SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schemati
     m_undoHistory.onNewVersion();
 }
 
-void SchematicDocument::calculateDerived( const schematic::File::CompilationConfig& config )
+void SchematicDocument::calculateDerived( const schematic::CompilationStage config )
 {
     if( m_pSchematic )
     {
-        schematic::Schematic::CompilationStage targetStage = schematic::Schematic::eStage_Site;
-
-        if( config[ schematic::Schematic::eStage_Skeleton ] )
-        {
-            targetStage = schematic::Schematic::eStage_Skeleton;
-        }
-        else if( config[ schematic::Schematic::eStage_Partition ] )
-        {
-            targetStage = schematic::Schematic::eStage_Partition;
-        }
-        else if( config[ schematic::Schematic::eStage_Compilation ] )
-        {
-            targetStage = schematic::Schematic::eStage_Compilation;
-        }
-        else if( config[ schematic::Schematic::eStage_Extrusion ] )
-        {
-            targetStage = schematic::Schematic::eStage_Extrusion;
-        }
-        else if( config[ schematic::Schematic::eStage_SiteContour ] )
-        {
-            targetStage = schematic::Schematic::eStage_SiteContour;
-        }
-
         bool               bWasError = false;
         std::ostringstream osError;
-        for( int iter = schematic::Schematic::eStage_Site; iter <= targetStage; ++iter )
+        for( int iter = schematic::eStage_Site; iter <= config; ++iter )
         {
-            switch( static_cast< schematic::Schematic::CompilationStage >( iter ) )
+            switch( static_cast< schematic::CompilationStage >( iter ) )
             {
-                case schematic::Schematic::eStage_Site:
+                case schematic::eStage_Site:
                     break;
-                case schematic::Schematic::eStage_SiteContour:
+                case schematic::eStage_SiteContour:
                     m_pSchematic->task_contours();
                     break;
-                case schematic::Schematic::eStage_Extrusion:
+                case schematic::eStage_Extrusion:
                     m_pSchematic->task_extrusions();
                     break;
-                case schematic::Schematic::eStage_Compilation:
+                case schematic::eStage_Compilation:
                     bWasError = !m_pSchematic->task_compilation( osError );
                     break;
-                case schematic::Schematic::eStage_Partition:
+                case schematic::eStage_Partition:
                     bWasError = !m_pSchematic->task_partition( osError );
                     break;
-                case schematic::Schematic::eStage_Skeleton:
+                case schematic::eStage_Properties:
+                    bWasError = !m_pSchematic->task_properties( osError );
+                    break;
+                case schematic::eStage_Skeleton:
                     bWasError = !m_pSchematic->task_skeleton( osError );
                     break;
                 default:
@@ -329,7 +309,7 @@ void SchematicDocument::calculateDerived()
     calculateDerived( m_compilationConfig );
 }
 
-void SchematicDocument::setCompilationConfig( const schematic::File::CompilationConfig& config )
+void SchematicDocument::setCompilationConfig( schematic::CompilationStage config )
 {
     if( config != m_compilationConfig )
     {

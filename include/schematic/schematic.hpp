@@ -20,14 +20,12 @@
 #ifndef SCHEMATIC_API_28_JAN_2021
 #define SCHEMATIC_API_28_JAN_2021
 
+#include "schematic/compilation_stage.hpp"
 #include "schematic/file.hpp"
 #include "schematic/site.hpp"
 #include "schematic/container.hpp"
 #include "schematic/markup.hpp"
 #include "schematic/analysis/analysis.hpp"
-
-#include "common/task.hpp"
-#include "common/scheduler.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -59,21 +57,11 @@ public:
 
     const Site::PtrVector& getSites() const { return BaseType::getElements(); }
 
-    enum CompilationStage
-    {
-        eStage_Site,
-        eStage_SiteContour,
-        eStage_Extrusion,
-        eStage_Compilation,
-        eStage_Partition,
-        eStage_Skeleton,
-        TOTAL_COMPILAION_STAGES
-    };
-
     void task_contours();
     void task_extrusions();
     bool task_compilation( std::ostream& os );
     bool task_partition( std::ostream& os );
+    bool task_properties( std::ostream& os );
     bool task_skeleton( std::ostream& os );
 
     void compileMap( const boost::filesystem::path& filePath );
@@ -83,13 +71,16 @@ public:
     {
         if( m_pAnalysisMarkup.get() )
             polyGroups.push_back( m_pAnalysisMarkup.get() );
+        if( m_pPropertyMarkup.get() )
+            polyGroups.push_back( m_pPropertyMarkup.get() );
     }
 
     exact::Analysis::Ptr getAnalysis() const { return m_pAnalysis; }
 
 private:
-    exact::Analysis::Ptr               m_pAnalysis;
-    std::unique_ptr< MultiPathMarkup > m_pAnalysisMarkup;
+    exact::Analysis::Ptr                  m_pAnalysis;
+    std::unique_ptr< MultiPathMarkup >    m_pAnalysisMarkup;
+    std::unique_ptr< MultiPolygonMarkup > m_pPropertyMarkup;
 };
 
 } // namespace schematic

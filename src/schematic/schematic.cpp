@@ -54,7 +54,7 @@ void Schematic::init()
 
     if( !m_pAnalysisMarkup.get() )
     {
-        m_pAnalysisMarkup.reset( new MultiPathMarkup( *this, nullptr, Schematic::eStage_Compilation ) );
+        m_pAnalysisMarkup.reset( new MultiPathMarkup( *this, nullptr, eStage_Compilation ) );
     }
 }
 
@@ -105,6 +105,8 @@ bool Schematic::task_compilation( std::ostream& os )
 
         m_pAnalysis.reset();
         m_pAnalysis.reset( new exact::Analysis( pThis ) );
+        m_pAnalysis->contours();
+        m_pAnalysis->connections();
         m_pAnalysis->getAllEdges( edges );
         m_pAnalysisMarkup->set( edges );
     }
@@ -137,6 +139,30 @@ bool Schematic::task_partition( std::ostream& os )
         m_pAnalysis.reset();
         edges.clear();
         m_pAnalysisMarkup->set( edges );
+        return false;
+    }
+
+    return true;
+}
+
+bool Schematic::task_properties( std::ostream& os )
+{
+    //std::vector< MultiPathMarkup::SegmentMask > edges;
+    try
+    {
+        if( m_pAnalysis )
+        {
+            m_pAnalysis->properties();
+            //m_pAnalysis->getPropertyPolygons( edges );
+            //m_pAnalysisMarkup->set( edges );
+        }
+    }
+    catch( std::exception& ex )
+    {
+        os << ex.what();
+        m_pAnalysis.reset();
+        /*edges.clear();
+        m_pPropertyMarkup->set( edges );*/
         return false;
     }
 
@@ -576,6 +602,10 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             throw std::runtime_error( osError.str() );
         }
         if( !task_partition( osError ) )
+        {
+            throw std::runtime_error( osError.str() );
+        }
+        if( !task_properties( osError ) )
         {
             throw std::runtime_error( osError.str() );
         }

@@ -20,15 +20,13 @@
 #ifndef GLYPHSPEC_18_09_2013
 #define GLYPHSPEC_18_09_2013
 
-#include "schematic/transform.hpp"
-#include "schematic/buffer.hpp"
+#include "schematic/compilation_stage.hpp"
 #include "schematic/cgalSettings.hpp"
+#include "schematic/compilation_stage.hpp"
 
 #include "schematic/analysis/edge_mask.hpp"
 
 #include "common/tick.hpp"
-
-#include <boost/shared_ptr.hpp>
 
 #include <list>
 #include <vector>
@@ -36,18 +34,11 @@
 #include <set>
 #include <string>
 
-namespace Parser
-{
-struct EdNode;
-}
-
 namespace schematic
 {
 
 class Factory;
 class Node;
-
-using CompilationStage = int;
 
 class GlyphSpecProducer;
 

@@ -24,6 +24,7 @@
 #include "schematic/node.hpp"
 #include "schematic/glyph.hpp"
 #include "schematic/editInteractions.hpp"
+#include "schematic/transform.hpp"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>

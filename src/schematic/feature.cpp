@@ -92,16 +92,18 @@ const std::string& Feature_Point::TypeName()
     static const std::string strTypeName( "point" );
     return strTypeName;
 }
+
 Feature_Point::Feature_Point( Node::Ptr pParent, const std::string& strName )
     : Feature( pParent, strName )
-    , m_point( *this, 0, Schematic::eStage_SiteContour )
+    , m_point( *this, 0, eStage_Site )
     , m_ptOrigin( 0.0f, 0.0f )
 {
     m_controlPointSet.insert( &m_point );
 }
+
 Feature_Point::Feature_Point( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
     : Feature( pOriginal, pParent, strName )
-    , m_point( *this, 0, Schematic::eStage_SiteContour )
+    , m_point( *this, 0, eStage_Site )
     , m_ptOrigin( pOriginal->m_ptOrigin )
 {
     m_controlPointSet.insert( &m_point );
@@ -264,7 +266,7 @@ void Feature_Contour::recalculateControlPoints()
         ControlPoint::Index id = 0U;
         for( auto i = m_polygon.begin(), iEnd = m_polygon.end(); i != iEnd; ++i, ++id )
         {
-            m_points.push_back( new PointType( *this, id, Schematic::eStage_SiteContour ) );
+            m_points.push_back( new PointType( *this, id, eStage_SiteContour ) );
         }
         m_controlPointSet.clear();
         m_controlPointSet.insert( m_points.begin(), m_points.end() );
@@ -325,14 +327,15 @@ const std::string& Feature_Pin::TypeName()
 }
 Feature_Pin::Feature_Pin( Node::Ptr pParent, const std::string& strName )
     : Feature( pParent, strName )
-    , m_point( *this, 0, Schematic::eStage_SiteContour )
+    , m_point( *this, 0, eStage_Site )
     , m_ptOrigin( 0.0f, 0.0f )
 {
     m_controlPointSet.insert( &m_point );
 }
+
 Feature_Pin::Feature_Pin( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
     : Feature( pOriginal, pParent, strName )
-    , m_point( *this, 0, Schematic::eStage_SiteContour )
+    , m_point( *this, 0, eStage_Site )
     , m_ptOrigin( pOriginal->m_ptOrigin )
 {
     m_controlPointSet.insert( &m_point );
@@ -378,20 +381,22 @@ const std::string& Feature_LineSegment::TypeName()
     static const std::string strTypeName( "cut" );
     return strTypeName;
 }
+
 Feature_LineSegment::Feature_LineSegment( Node::Ptr pParent, const std::string& strName )
     : Feature( pParent, strName )
-    , m_start( *this, 0, Schematic::eStage_SiteContour )
-    , m_end( *this, 1, Schematic::eStage_SiteContour )
+    , m_start( *this, 0, eStage_Site )
+    , m_end( *this, 1, eStage_Site )
     , m_ptStart( 0.0f, 0.0f )
     , m_ptEnd( 0.0f, 0.0f )
 {
     m_controlPointSet.insert( &m_start );
     m_controlPointSet.insert( &m_end );
 }
+
 Feature_LineSegment::Feature_LineSegment( PtrCst pOriginal, Node::Ptr pParent, const std::string& strName )
     : Feature( pOriginal, pParent, strName )
-    , m_start( *this, 0, Schematic::eStage_SiteContour )
-    , m_end( *this, 1, Schematic::eStage_SiteContour )
+    , m_start( *this, 0, eStage_Site )
+    , m_end( *this, 1, eStage_Site )
     , m_ptStart( pOriginal->m_ptStart )
     , m_ptEnd( pOriginal->m_ptEnd )
 {

@@ -7,6 +7,7 @@
 #include "messages.hpp"
 
 #include <QMainWindow>
+#include <QComboBox>
 
 #ifndef Q_MOC_RUN
 
@@ -72,6 +73,8 @@ protected:
     virtual void OnDocumentError( Document* pDocument, const std::string& strErrorMsg );
 
 public:
+    QComboBox* getCompilationModeComboBox() const { return m_pCompilationModeComboBox; }
+
 public slots:
     void OnDocumentSaved( const void* pDocument );
 
@@ -97,6 +100,7 @@ protected:
     DocumentViewMap    m_docViewMap;
     ActionMap          m_actionRefCountMap;
     Toolbox::Ptr       m_pToolbox;
+    QComboBox*         m_pCompilationModeComboBox;
 };
 
 } // namespace editor

@@ -377,9 +377,9 @@ void GlyphView::updateGlyphVisibility()
             if( auto pSpec = pGlyph->getGlyphSpec() )
             {
                 const auto compilationStage = pSpec->getCompilationStage();
-                if( compilationStage >= 0 && compilationStage < m_compilationConfig.size() )
+                if( compilationStage >= 0 && compilationStage <= m_compilationConfig )
                 {
-                    bIsCompiled = m_compilationConfig[ compilationStage ];
+                    bIsCompiled = true;
                 }
             }
 

@@ -45,9 +45,8 @@ void SchematicView::postCreate( SchematicDocument::Ptr pDocument )
     onDocumentUpdate();
 }
 
-
 void SchematicView::OnItemModelDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight,
-                                        const QList< int >& roles )
+                                            const QList< int >& roles )
 {
     onDocumentUpdate();
 }
@@ -66,14 +65,12 @@ void SchematicView::onViewFocussed()
     CMD_CONNECT( actionView_Walls        , CmdViewWalls       );
     CMD_CONNECT( actionView_Analysis     , CmdViewAnalysis    );
     CMD_CONNECT( actionView_Partition    , CmdViewPartition  );
+    CMD_CONNECT( actionView_Properties   , CmdViewProperties  );
     CMD_CONNECT( actionView_Skeleton     , CmdViewSkeleton  );
-    
-    m_pMainWindow->getUI()->actionView_SiteContour  ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_SiteContour ] );
-    m_pMainWindow->getUI()->actionView_Walls        ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Extrusion ] );
-    m_pMainWindow->getUI()->actionView_Analysis     ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Compilation ] );
-    m_pMainWindow->getUI()->actionView_Partition    ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Partition ] );
-    m_pMainWindow->getUI()->actionView_Skeleton     ->setChecked( m_compilationConfig[ schematic::Schematic::eStage_Skeleton ] );
-    // clang-format on
+
+    m_pMainWindow->getCompilationModeComboBox()->setCurrentIndex( m_compilationConfig );
+    QObject::connect( m_pMainWindow->getCompilationModeComboBox(), 
+        SIGNAL( currentIndexChanged( int ) ), this, SLOT( OnCompilationModeChanged( int ) ) );
 
     if( m_pSchematicDocument )
     {
@@ -94,7 +91,11 @@ void SchematicView::onViewUnfocussed()
     CMD_DISCONNECT( actionView_Walls, CmdViewWalls );
     CMD_DISCONNECT( actionView_Analysis, CmdViewAnalysis );
     CMD_DISCONNECT( actionView_Partition, CmdViewPartition );
+    CMD_DISCONNECT( actionView_Properties, CmdViewProperties );
     CMD_DISCONNECT( actionView_Skeleton, CmdViewSkeleton );
+    
+    QObject::disconnect( m_pMainWindow->getCompilationModeComboBox(), 
+        SIGNAL( currentIndexChanged( int ) ), this, SLOT( OnCompilationModeChanged( int ) ) );
 }
 
 void SchematicView::onDocumentUpdate()
@@ -238,50 +239,46 @@ void SchematicView::CmdRedo()
     m_pEdit->update();
 }
 
-void SchematicView::configureCompilationStage( schematic::Schematic::CompilationStage stage, bool bEnable )
+void SchematicView::configureCompilationStage( schematic::CompilationStage stage )
 {
-    if( bEnable )
-    {
-        m_compilationConfig.set( stage );
-    }
-    else
-    {
-        m_compilationConfig.reset( stage );
-    }
-
+    m_compilationConfig = stage;
     m_pSchematicDocument->setCompilationConfig( m_compilationConfig );
-
     onDocumentUpdate();
+}
+
+void SchematicView::OnCompilationModeChanged( int iIndex )
+{
+    configureCompilationStage( static_cast< schematic::CompilationStage >( iIndex ) );
 }
 
 void SchematicView::CmdViewSiteContour()
 {
-    configureCompilationStage(
-        schematic::Schematic::eStage_SiteContour, m_pMainWindow->getUI()->actionView_SiteContour->isChecked() );
+    configureCompilationStage( schematic::eStage_SiteContour );
 }
 
 void SchematicView::CmdViewWalls()
 {
-    configureCompilationStage(
-        schematic::Schematic::eStage_Extrusion, m_pMainWindow->getUI()->actionView_Walls->isChecked() );
+    configureCompilationStage( schematic::eStage_Extrusion );
 }
 
 void SchematicView::CmdViewAnalysis()
 {
-    configureCompilationStage(
-        schematic::Schematic::eStage_Compilation, m_pMainWindow->getUI()->actionView_Analysis->isChecked() );
+    configureCompilationStage( schematic::eStage_Compilation );
 }
 
 void SchematicView::CmdViewPartition()
 {
-    configureCompilationStage(
-        schematic::Schematic::eStage_Partition, m_pMainWindow->getUI()->actionView_Partition->isChecked() );
+    configureCompilationStage( schematic::eStage_Partition );
+}
+
+void SchematicView::CmdViewProperties()
+{
+    configureCompilationStage( schematic::eStage_Properties );
 }
 
 void SchematicView::CmdViewSkeleton()
 {
-    configureCompilationStage(
-        schematic::Schematic::eStage_Skeleton, m_pMainWindow->getUI()->actionView_Skeleton->isChecked() );
+    configureCompilationStage( schematic::eStage_Skeleton );
 }
 
 } // namespace editor

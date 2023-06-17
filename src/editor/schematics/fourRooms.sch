@@ -13,7 +13,7 @@ Schematic(base;,0)
         }
         Space(spac_0004;,2)
         {
-            transform(-1,0,38,0,1,58)
+            transform(-1,0,50,0,1,62)
             Contour(contour;,0)
             {
                 path(-34,-16,16,-16,16,36,-34,36)
@@ -75,73 +75,9 @@ Schematic(base;,0)
                 }
             }
         }
-        Space(spac_0003;,3)
+        Space(spac_0005;,3)
         {
-            transform(-1,0,92,0,1,58)
-            Contour(contour;,0)
-            {
-                path(-34,-16,16,-16,16,36,-34,36)
-            }
-            Property(width;,1)
-            {
-                value(0.5f;)
-            }
-            Wall(wall_0002;,2)
-            {
-                transform(-1,0,8,0,1,24)
-                Contour(contour;,0)
-                {
-                    path(0,-4,16,-4,16,4,0,4)
-                }
-                Property(width;,1)
-                {
-                    value(0.5f;)
-                }
-            }
-            Wall(wall_0003;,3)
-            {
-                transform(-1,0,-7,0,1,9)
-                Contour(contour;,0)
-                {
-                    path(0,-4,16,-4,16,4,0,4)
-                }
-                Property(width;,1)
-                {
-                    value(0.5f;)
-                }
-            }
-            Space(space_0004;,4)
-            {
-                transform(-1,0,-14,0,1,-16)
-                Contour(contour;,0)
-                {
-                    path(0,0,20,0,20,24,0,24)
-                }
-                Property(width;,1)
-                {
-                    value(0.5f;)
-                }
-            }
-            Connection(conn_0005;,5)
-            {
-                transform(2.66454e-15,-1,-14,-1,-2.66454e-15,-4)
-                Point(width;,0)
-                {
-                    position(6.5,2)
-                }
-            }
-            Connection(conn_0006;,6)
-            {
-                transform(2.66454e-15,-1,-34,-1,-2.66454e-15,-4)
-                Point(width;,0)
-                {
-                    position(6.5,2)
-                }
-            }
-        }
-        Space(spac_0005;,4)
-        {
-            transform(-1,0,154,0,1,58)
+            transform(-1,0,122,0,1,62)
             Contour(contour;,0)
             {
                 path(-34,-16,16,-16,16,36,-34,36)
@@ -203,7 +139,7 @@ Schematic(base;,0)
                 }
             }
         }
-        Space(spac_0006;,5)
+        Space(spac_0006;,4)
         {
             transform(-1,0,214,0,1,58)
             Contour(contour;,0)
@@ -267,9 +203,9 @@ Schematic(base;,0)
                 }
             }
         }
-        Wall(wall_0006;,6)
+        Wall(wall_0006;,5)
         {
-            transform(1,0,-2,0,1,110)
+            transform(1,0,6,0,1,102)
             Contour(contour;,0)
             {
                 path(6,-16,16,-16,16,-4,6,-4)
@@ -279,9 +215,69 @@ Schematic(base;,0)
                 value(0.5f;)
             }
         }
-        Wall(wall_0007;,7)
+        Wall(wall_0007;,6)
         {
-            transform(1,0,26,0,1,106)
+            transform(1,0,58,0,1,106)
+            Contour(contour;,0)
+            {
+                path(6,-16,16,-16,16,-4,6,-4)
+            }
+            Property(width;,1)
+            {
+                value(0.5f;)
+            }
+        }
+        Wall(wall_0008;,7)
+        {
+            transform(1,0,142,0,1,106)
+            Contour(contour;,0)
+            {
+                path(6,-16,16,-16,16,-4,6,-4)
+            }
+            Property(width;,1)
+            {
+                value(0.5f;)
+            }
+        }
+        Wall(wall_0009;,8)
+        {
+            transform(1,0,150,0,1,106)
+            Contour(contour;,0)
+            {
+                path(6,-16,16,-16,16,-4,6,-4)
+            }
+            Property(width;,1)
+            {
+                value(0.5f;)
+            }
+        }
+        Wall(wall_0010;,9)
+        {
+            transform(1,0,186,0,1,78)
+            Contour(contour;,0)
+            {
+                path(6,-16,16,-16,16,-4,6,-4)
+            }
+            Property(width;,1)
+            {
+                value(0.5f;)
+            }
+        }
+        Wall(wall_0011;,10)
+        {
+            transform(1,0,178,0,1,78)
+            Contour(contour;,0)
+            {
+                path(6,-16,16,-16,16,-4,6,-4)
+            }
+            Property(width;,1)
+            {
+                value(0.5f;)
+            }
+        }
+        Wall(wall_0012;,11)
+        {
+            transform(1,0,10,0,1,94)
             Contour(contour;,0)
             {
                 path(6,-16,16,-16,16,-4,6,-4)

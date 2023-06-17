@@ -48,9 +48,10 @@ class Factory;
 class Property : public Node, public boost::enable_shared_from_this< Property >
 {
 public:
-    using Ptr    = boost::shared_ptr< Property >;
-    using PtrCst = boost::shared_ptr< const Property >;
-    using PtrMap = std::map< std::string, Ptr >;
+    using Ptr          = boost::shared_ptr< Property >;
+    using PtrCst       = boost::shared_ptr< const Property >;
+    using PtrCstVector = std::vector< PtrCst >;
+    using PtrMap       = std::map< std::string, Ptr >;
 
     static const std::string& TypeName();
     Property( Node::Ptr pParent, const std::string& strName );
@@ -66,7 +67,7 @@ public:
     void                setStatement( const std::string& strStatement );
     const std::string&  getValue() const { return m_strValue; }
 
-    template< typename ValueType >
+    template < typename ValueType >
     const ValueType& getValue( const ValueType& defaultValue ) const
     {
         static std::optional< ValueType > last;
@@ -76,7 +77,7 @@ public:
             try
             {
                 std::istringstream is( m_strValue );
-                ValueType value;
+                ValueType          value;
                 is >> value;
                 last = value;
             }
@@ -89,10 +90,9 @@ public:
     }
 
 private:
-    std::string m_strValue;
+    std::string                m_strValue;
     mutable Timing::UpdateTick m_lastRead;
 };
-
 
 /*
 class RefPtr

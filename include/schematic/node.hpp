@@ -22,6 +22,8 @@
 
 #include "schematic/glyphSpec.hpp"
 
+#include "schematic/format/format.hpp"
+
 #include "common/stl.hpp"
 #include "common/compose.hpp"
 #include "common/assert_verify.hpp"

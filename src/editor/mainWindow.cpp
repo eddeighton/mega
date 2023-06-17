@@ -74,6 +74,20 @@ MainWindow::MainWindow( QWidget* pParent )
         }
     }
 
+    // compilatin toolbar
+    {
+        m_pCompilationModeComboBox = new QComboBox( m_pMainWindowImpl->toolbarCompilation );
+        m_pMainWindowImpl->toolbarCompilation->addWidget( m_pCompilationModeComboBox );
+
+        m_pCompilationModeComboBox->addItem( "Site" );
+        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_SiteContour->text() );
+        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Walls->text() );
+        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Analysis->text() );
+        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Partition->text() );
+        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Properties->text() );
+        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Skeleton->text() );
+    }
+
     // dockStructure->toggleViewAction()
     {
         m_pMainWindowImpl->toolbarView->addAction( m_pMainWindowImpl->dockStructure->toggleViewAction() );
@@ -149,7 +163,7 @@ MainWindow::MainWindow( QWidget* pParent )
 
     // customize layout a bit because dont know how to do it in mainWindow.ui
     {
-        //m_pDockManager->addDockWidgetTab( ads::LeftDockWidgetArea, m_pMainWindowImpl->dockStructure );
+        // m_pDockManager->addDockWidgetTab( ads::LeftDockWidgetArea, m_pMainWindowImpl->dockStructure );
         m_pMainWindowImpl->dockLog->hide();
         m_pMainWindowImpl->dockStructure->hide();
     }

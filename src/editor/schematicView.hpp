@@ -37,6 +37,7 @@ signals:
     void OnDocumentSaved( const void* );
 
 public slots:
+    void OnCompilationModeChanged( int iIndex );
     void OnItemModelDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight,
                                  const QList< int >& roles = QList< int >() );
 
@@ -50,10 +51,11 @@ public slots:
     void CmdViewWalls();
     void CmdViewAnalysis();
     void CmdViewPartition();
+    void CmdViewProperties();
     void CmdViewSkeleton();
 
 private:
-    void configureCompilationStage( schematic::Schematic::CompilationStage stage, bool bEnable );
+    void configureCompilationStage( schematic::CompilationStage stage );
 
 private:
     SchematicDocument::Ptr        m_pSchematicDocument;

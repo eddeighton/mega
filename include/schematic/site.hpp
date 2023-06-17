@@ -22,6 +22,7 @@
 
 #include "format/format.hpp"
 
+#include "schematic/compilation_stage.hpp"
 #include "schematic/cgalSettings.hpp"
 #include "schematic/geometry.hpp"
 #include "schematic/glyphSpec.hpp"

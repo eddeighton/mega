@@ -19,6 +19,8 @@
 
 #include "schematic/cgalUtils.hpp"
 
+#include "schematic/transform.hpp"
+
 #include <limits>
 
 namespace schematic::Utils
@@ -181,7 +183,7 @@ exact::Polygon filterPolygon( const exact::Polygon& poly )
 
 Segment makeArrowHead( const Segment& segment, double size )
 {
-    static Transform rotation = rotate( AngleTraits::eEastSouthEast );
+    static Transform rotation = schematic::rotate( AngleTraits::eEastSouthEast );
 
     if( segment.is_degenerate() ) return segment;
 

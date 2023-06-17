@@ -22,6 +22,7 @@
 
 #include "schematic/node.hpp"
 #include "schematic/container.hpp"
+#include "schematic/compilation_stage.hpp"
 #include "schematic/glyphSpecProducer.hpp"
 
 #include "common/scheduler.hpp"
@@ -45,9 +46,7 @@ public:
     virtual void load( const format::Node& node );
     virtual void save( format::Node& node ) const;
 
-    using CompilationConfig = std::bitset< 16 >;
-
-    static CompilationConfig getDefaultCompilationConfig();
+    static CompilationStage getDefaultCompilationConfig();
 };
 
 } // namespace schematic

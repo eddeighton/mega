@@ -41,12 +41,14 @@ set( SCHEMATIC_API_DIR ${MEGA_API_DIR}/schematic )
 set( SCHEMATIC_HEADERS
     ${SCHEMATIC_API_DIR}/analysis/edge_mask.hpp
     ${SCHEMATIC_API_DIR}/analysis/analysis.hpp
+    ${SCHEMATIC_API_DIR}/analysis/invariant.hpp
     
     ${SCHEMATIC_API_DIR}/format/format.hpp
 
     ${SCHEMATIC_API_DIR}/buffer.hpp
     ${SCHEMATIC_API_DIR}/cgalSettings.hpp
     ${SCHEMATIC_API_DIR}/cgalUtils.hpp
+    ${SCHEMATIC_API_DIR}/compilation_stage.hpp
     ${SCHEMATIC_API_DIR}/connection.hpp
     ${SCHEMATIC_API_DIR}/container.hpp
     ${SCHEMATIC_API_DIR}/cut.hpp
@@ -79,8 +81,17 @@ set( SCHEMATIC_HEADERS
 set( SCHEMATIC_SRC_DIR ${MEGA_SRC_DIR}/schematic )
 
 set( SCHEMATIC_SOURCE
-    ${SCHEMATIC_SRC_DIR}/analysis/edge_mask.cpp
+
+    ${SCHEMATIC_SRC_DIR}/analysis/algorithms.hpp
     ${SCHEMATIC_SRC_DIR}/analysis/analysis.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/constructions.hpp
+    ${SCHEMATIC_SRC_DIR}/analysis/edge_mask.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/polygon_with_holes.hpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_connections.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_contours.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_partitions.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_properties.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_skeleton.cpp
 
     ${SCHEMATIC_SRC_DIR}/format/format.cpp
 

@@ -18,35 +18,22 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_June_06_flags
-#define GUARD_2023_June_06_flags
+#ifndef GUARD_2023_June_17_compilaton_stage
+#define GUARD_2023_June_17_compilaton_stage
 
-#include <bitset>
-
-namespace exact
+namespace schematic
 {
-    class EdgeMask
-    {
-    public:
-        enum Type
-        {
-#define     FLAG(name)e##name,
-#include "schematic/analysis/edge_mask_types.hxx"
-#undef FLAG
-            TOTAL_MASK_TYPES
-        };
-        
-        using Set = std::bitset< TOTAL_MASK_TYPES >;
-
-        static const char* toStr( Type mask );
-        static Type fromStr( const char* pszName );
-    };
-
-    template < typename TEdgeType >
-    inline void classify( TEdgeType h, EdgeMask::Type mask )
-    {
-        h->data().flags.set( mask );
-    }
+enum CompilationStage
+{
+    eStage_Site,
+    eStage_SiteContour,
+    eStage_Extrusion,
+    eStage_Compilation,
+    eStage_Partition,
+    eStage_Properties,
+    eStage_Skeleton,
+    TOTAL_COMPILAION_STAGES
+};
 }
 
-#endif //GUARD_2023_June_06_flags
+#endif // GUARD_2023_June_17_compilaton_stage

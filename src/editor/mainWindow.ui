@@ -1,750 +1,740 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-  <class>MainWindow</class>
-  <widget class="QMainWindow" name="MainWindow">
-    <property name="geometry">
-      <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>2000</width>
-        <height>1600</height>
-      </rect>
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1857</width>
+    <height>1600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Schematic Editor</string>
+  </property>
+  <widget class="QWidget" name="dockContainer">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1857</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
     </property>
-    <property name="windowTitle">
-      <string>Schematic Editor</string>
+    <addaction name="actionNewSchematic"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionSave_As"/>
+    <addaction name="actionSave_All"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
     </property>
-    <widget class="QWidget" name="dockContainer">
-      <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-        </sizepolicy>
-      </property>
-    </widget>
-    <widget class="QMenuBar" name="menuBar">
-      <property name="geometry">
-        <rect>
+    <addaction name="actionEditContext"/>
+    <addaction name="actionTabOut"/>
+    <addaction name="actionZoomToAll"/>
+    <addaction name="actionSelectAll"/>
+    <addaction name="separator"/>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+    <addaction name="separator"/>
+    <addaction name="actionCut"/>
+    <addaction name="actionCopy"/>
+    <addaction name="actionPaste"/>
+    <addaction name="separator"/>
+    <addaction name="actionDelete"/>
+    <addaction name="separator"/>
+    <addaction name="actionRotate_Left"/>
+    <addaction name="actionRotate_Right"/>
+    <addaction name="separator"/>
+    <addaction name="actionFlip_Horizontal"/>
+    <addaction name="actionFlip_Vertical"/>
+    <addaction name="separator"/>
+    <addaction name="actionShrink"/>
+    <addaction name="actionExtrude"/>
+    <addaction name="actionUnion"/>
+    <addaction name="actionFilter"/>
+    <addaction name="actionAABB"/>
+    <addaction name="actionConvexHull"/>
+    <addaction name="actionReparent"/>
+    <addaction name="separator"/>
+    <addaction name="actionSelect"/>
+    <addaction name="actionLasso"/>
+    <addaction name="actionDraw"/>
+    <addaction name="actionEdit"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionView_SiteContour"/>
+    <addaction name="actionView_Walls"/>
+    <addaction name="actionView_Analysis"/>
+    <addaction name="actionView_Partition"/>
+    <addaction name="actionView_Properties"/>
+    <addaction name="actionView_Skeleton"/>
+    <addaction name="separator"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
+  </widget>
+  <widget class="QToolBar" name="toolbarMain">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNewSchematic"/>
+   <addaction name="separator"/>
+   <addaction name="actionLoad"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionSave_All"/>
+   <addaction name="separator"/>
+  </widget>
+
+  <widget class="QToolBar" name="toolbarEdit">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionEditContext"/>
+   <addaction name="actionTabOut"/>
+   <addaction name="separator"/>
+   <addaction name="actionUndo"/>
+   <addaction name="actionRedo"/>
+   <addaction name="separator"/>
+   <addaction name="actionCut"/>
+   <addaction name="actionCopy"/>
+   <addaction name="actionPaste"/>
+   <addaction name="separator"/>
+   <addaction name="actionDelete"/>
+   <addaction name="separator"/>
+   <addaction name="actionRotate_Left"/>
+   <addaction name="actionRotate_Right"/>
+   <addaction name="separator"/>
+   <addaction name="actionFlip_Horizontal"/>
+   <addaction name="actionFlip_Vertical"/>
+   <addaction name="separator"/>
+   <addaction name="actionShrink"/>
+   <addaction name="actionExtrude"/>
+   <addaction name="actionUnion"/>
+   <addaction name="actionFilter"/>
+   <addaction name="actionAABB"/>
+   <addaction name="actionConvexHull"/>
+   <addaction name="actionReparent"/>
+   <addaction name="separator"/>
+   <addaction name="actionSelect"/>
+   <addaction name="actionLasso"/>
+   <addaction name="actionDraw"/>
+   <addaction name="actionEdit"/>
+  </widget>
+
+  <widget class="QToolBar" name="toolbarView">
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextOnly</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+  </widget>
+
+  <widget class="QToolBar" name="toolbarCompilation">
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextOnly</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+  </widget>
+
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QDockWidget" name="dockStructure">
+   <property name="windowTitle">
+    <string>Structure</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="editor::TreeView" name="treeView">
+       <property name="selectionMode">
+        <enum>QAbstractItemView::MultiSelection</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockViewConfig">
+   <property name="windowTitle">
+    <string>View Config</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="editor::ViewConfigPanel" name="config"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockToolbox">
+   <property name="windowTitle">
+    <string>Toolbox</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="editor::MissionToolbox" name="toolBox">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="page">
+        <property name="geometry">
+         <rect>
           <x>0</x>
           <y>0</y>
-          <width>2000</width>
-          <height>18</height>
-        </rect>
-      </property>
-      <widget class="QMenu" name="menuFile">
-        <property name="title">
-          <string>File</string>
+          <width>186</width>
+          <height>1186</height>
+         </rect>
         </property>
-        <addaction name="actionNewSchematic" />
-        <addaction name="separator" />
-        <addaction name="actionLoad" />
-        <addaction name="actionSave" />
-        <addaction name="actionSave_As" />
-        <addaction name="actionSave_All" />
-        <addaction name="separator" />
-        <addaction name="actionExit" />
+        <attribute name="label">
+         <string>Default</string>
+        </attribute>
+       </widget>
       </widget>
-      <widget class="QMenu" name="menuEdit">
-        <property name="title">
-          <string>Edit</string>
-        </property>
-        <addaction name="actionEditContext" />
-        <addaction name="actionTabOut" />
-        <addaction name="actionZoomToAll" />
-        <addaction name="actionSelectAll" />
-        <addaction name="separator" />
-        <addaction name="actionUndo" />
-        <addaction name="actionRedo" />
-        <addaction name="separator" />
-        <addaction name="actionCut" />
-        <addaction name="actionCopy" />
-        <addaction name="actionPaste" />
-        <addaction name="separator" />
-        <addaction name="actionDelete" />
-        <addaction name="separator" />
-        <addaction name="actionRotate_Left" />
-        <addaction name="actionRotate_Right" />
-        <addaction name="separator" />
-        <addaction name="actionFlip_Horizontal" />
-        <addaction name="actionFlip_Vertical" />
-        <addaction name="separator" />
-        <addaction name="actionShrink" />
-        <addaction name="actionExtrude" />
-        <addaction name="actionUnion" />
-        <addaction name="actionFilter" />
-        <addaction name="actionAABB" />
-        <addaction name="actionConvexHull" />
-        <addaction name="actionReparent" />
-        <addaction name="separator" />
-        <addaction name="actionSelect" />
-        <addaction name="actionLasso" />
-        <addaction name="actionDraw" />
-        <addaction name="actionEdit" />
-      </widget>
-      <widget class="QMenu" name="menuView">
-        <property name="title">
-          <string>View</string>
-        </property>
-        <addaction name="actionView_SiteContour" />
-        <addaction name="actionView_Walls" />
-        <addaction name="actionView_Analysis" />
-        <addaction name="actionView_Partition" />
-        <addaction name="actionView_Skeleton" />
-        <addaction name="separator" />
-      </widget>
-      <addaction name="menuFile" />
-      <addaction name="menuEdit" />
-      <addaction name="menuView" />
-    </widget>
-    <widget class="QToolBar" name="toolbarMain">
-      <attribute name="toolBarArea">
-        <enum>TopToolBarArea</enum>
-      </attribute>
-      <attribute name="toolBarBreak">
-        <bool>false</bool>
-      </attribute>
-      <addaction name="actionNewSchematic" />
-      <addaction name="separator" />
-      <addaction name="actionLoad" />
-      <addaction name="actionSave" />
-      <addaction name="actionSave_All" />
-      <addaction name="separator" />
-    </widget>
-    <widget class="QToolBar" name="toolbarEdit">
-      <attribute name="toolBarArea">
-        <enum>TopToolBarArea</enum>
-      </attribute>
-      <attribute name="toolBarBreak">
-        <bool>false</bool>
-      </attribute>
-      <addaction name="actionEditContext" />
-      <addaction name="actionTabOut" />
-      <addaction name="separator" />
-      <addaction name="actionUndo" />
-      <addaction name="actionRedo" />
-      <addaction name="separator" />
-      <addaction name="actionCut" />
-      <addaction name="actionCopy" />
-      <addaction name="actionPaste" />
-      <addaction name="separator" />
-      <addaction name="actionDelete" />
-      <addaction name="separator" />
-      <addaction name="actionRotate_Left" />
-      <addaction name="actionRotate_Right" />
-      <addaction name="separator" />
-      <addaction name="actionFlip_Horizontal" />
-      <addaction name="actionFlip_Vertical" />
-      <addaction name="separator" />
-      <addaction name="actionShrink" />
-      <addaction name="actionExtrude" />
-      <addaction name="actionUnion" />
-      <addaction name="actionFilter" />
-      <addaction name="actionAABB" />
-      <addaction name="actionConvexHull" />
-      <addaction name="actionReparent" />
-      <addaction name="separator" />
-      <addaction name="actionSelect" />
-      <addaction name="actionLasso" />
-      <addaction name="actionDraw" />
-      <addaction name="actionEdit" />
-    </widget>
-    <widget class="QToolBar" name="toolbarView">
-      <attribute name="toolBarArea">
-        <enum>TopToolBarArea</enum>
-      </attribute>
-      <addaction name="actionView_SiteContour" />
-      <addaction name="actionView_Walls" />
-      <addaction name="actionView_Analysis" />
-      <addaction name="actionView_Partition" />
-      <addaction name="actionView_Skeleton" />
-      <addaction name="separator" />
-      <attribute name="toolBarBreak">
-        <bool>false</bool>
-      </attribute>
-    </widget>
-    <widget class="QStatusBar" name="statusBar" />
-
-    <widget class="QDockWidget" name="dockStructure">
-      <property name="windowTitle">
-        <string>Structure</string>
-      </property>
-      <attribute name="dockWidgetArea">
-        <number>1</number>
-      </attribute>
-      <widget class="QWidget" name="dockWidgetContents">
-        <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-            <widget class="editor::TreeView" name="treeView">
-              <property name="selectionMode">
-                <enum>QAbstractItemView::MultiSelection</enum>
-              </property>
-            </widget>
-          </item>
-        </layout>
-      </widget>
-    </widget>
-    
-    <widget class="QDockWidget" name="dockViewConfig">
-      <property name="windowTitle">
-        <string>View Config</string>
-      </property>
-      <attribute name="dockWidgetArea">
-        <number>1</number>
-      </attribute>
-      <widget class="QWidget" name="dockWidgetContents">
-        <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-            <widget class="editor::ViewConfigPanel" name="config">
-            </widget>
-          </item>
-        </layout>
-      </widget>
-    </widget>
-
-    <widget class="QDockWidget" name="dockToolbox">
-      <property name="windowTitle">
-        <string>Toolbox</string>
-      </property>
-      <attribute name="dockWidgetArea">
-        <number>2</number>
-      </attribute>
-      <widget class="QWidget" name="dockWidgetContents">
-        <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-            <widget class="editor::MissionToolbox" name="toolBox">
-              <property name="currentIndex">
-                <number>0</number>
-              </property>
-              <widget class="QWidget" name="page">
-                <property name="geometry">
-                  <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>52</width>
-                    <height>1488</height>
-                  </rect>
-                </property>
-                <attribute name="label">
-                  <string>Default</string>
-                </attribute>
-              </widget>
-            </widget>
-          </item>
-        </layout>
-      </widget>
-    </widget>
-
-    <widget class="QDockWidget" name="dockLog">
-      <property name="windowTitle">
-        <string>Log</string>
-      </property>
-      <attribute name="dockWidgetArea">
-        <number>8</number>
-      </attribute>
-      <widget class="QWidget" name="dockWidgetContents">
-        <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-            <widget class="QPlainTextEdit" name="logView">
-            </widget>
-          </item>
-        </layout>
-      </widget>
-    </widget>
-
-    <action name="actionNewSchematic">
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/blueprint.png</normaloff>:/art/blueprint.png</iconset>
-      </property>
-      <property name="text">
-        <string>New Schematic</string>
-      </property>
-    </action>
-    <action name="actionSave">
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/disk.png</normaloff>:/art/disk.png</iconset>
-      </property>
-      <property name="text">
-        <string>Save</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+S</string>
-      </property>
-    </action>
-    <action name="actionSave_As">
-      <property name="text">
-        <string>Save As</string>
-      </property>
-    </action>
-    <action name="actionSave_All">
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/disk_saveas.png</normaloff>:/art/disk_saveas.png</iconset>
-      </property>
-      <property name="text">
-        <string>Save All</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+Shift+S</string>
-      </property>
-    </action>
-    <action name="actionLoad">
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/folderOpen.png</normaloff>:/art/folderOpen.png</iconset>
-      </property>
-      <property name="text">
-        <string>Load</string>
-      </property>
-    </action>
-    <action name="actionExit">
-      <property name="text">
-        <string>Exit</string>
-      </property>
-    </action>
-    <action name="actionZoomToAll">
-      <property name="text">
-        <string>Zoom To All</string>
-      </property>
-      <property name="shortcut">
-        <string>z</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/magnifier.png</normaloff>:/art/magnifier.png</iconset>
-      </property>
-    </action>
-    <action name="actionEditContext">
-      <property name="text">
-        <string>Edit</string>
-      </property>
-      <property name="shortcut">
-        <string>Space</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/arrow_power.png</normaloff>:/art/arrow_power.png</iconset>
-      </property>
-    </action>
-    <action name="actionTabOut">
-      <property name="text">
-        <string>Tab Out</string>
-      </property>
-      <property name="shortcut">
-        <string>Tab</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/arrow_plus.png</normaloff>:/art/arrow_plus.png</iconset>
-      </property>
-    </action>
-    <action name="actionSelectAll">
-      <property name="text">
-        <string>Select All</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+A</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionUndo">
-      <property name="text">
-        <string>Undo</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+Z</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/undo.png</normaloff>:/art/undo.png</iconset>
-      </property>
-    </action>
-    <action name="actionRedo">
-      <property name="text">
-        <string>Redo</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+R</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/redo.png</normaloff>:/art/redo.png</iconset>
-      </property>
-    </action>
-    <action name="actionCut">
-      <property name="text">
-        <string>Cut</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+X</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/cut.png</normaloff>:/art/cut.png</iconset>
-      </property>
-    </action>
-    <action name="actionCopy">
-      <property name="text">
-        <string>Copy</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+C</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/clipboard_copy.png</normaloff>:/art/clipboard_copy.png</iconset>
-      </property>
-    </action>
-    <action name="actionPaste">
-      <property name="text">
-        <string>Paste</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+V</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/clipboard_paste.png</normaloff>:/art/clipboard_paste.png</iconset>
-      </property>
-    </action>
-    <action name="actionDelete">
-      <property name="text">
-        <string>Delete</string>
-      </property>
-      <property name="shortcut">
-        <string>Del</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/delete.png</normaloff>:/art/delete.png</iconset>
-      </property>
-    </action>
-
-    <action name="actionRotate_Left">
-      <property name="text">
-        <string>Rotate Left</string>
-      </property>
-      <property name="shortcut">
-        <string>Left</string>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/arrow_clockwise.png</normaloff>:/art/arrow_clockwise.png</iconset>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionRotate_Right">
-      <property name="text">
-        <string>Rotate Right</string>
-      </property>
-      <property name="shortcut">
-        <string>Right</string>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/arrow_counter.png</normaloff>:/art/arrow_counter.png</iconset>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionFlip_Horizontal">
-      <property name="text">
-        <string>Flip Horizontally</string>
-      </property>
-      <property name="shortcut">
-        <string>Up</string>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/arrow_left.png</normaloff>:/art/arrow_left.png</iconset>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionFlip_Vertical">
-      <property name="text">
-        <string>Flip Vertically</string>
-      </property>
-      <property name="shortcut">
-        <string>Down</string>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/arrow_down.png</normaloff>:/art/arrow_down.png</iconset>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionShrink">
-      <property name="text">
-        <string>Shrink</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+Shift+E</string>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/shrink.png</normaloff>:/art/shrink.png</iconset>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionExtrude">
-      <property name="text">
-        <string>Extrude</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+E</string>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/extrude.png</normaloff>:/art/extrude.png</iconset>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionUnion">
-      <property name="text">
-        <string>Union</string>
-      </property>
-      <property name="shortcut">
-        <string>Ctrl+U</string>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/union.png</normaloff>:/art/union.png</iconset>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionFilter">
-      <property name="text">
-        <string>Filter</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-      <property name="icon">
-        <iconset>
-          <normaloff>:/art/broom.png</normaloff>:/art/broom.png</iconset>
-      </property>
-    </action>
-    <action name="actionAABB">
-      <property name="text">
-        <string>AABB</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionConvexHull">
-      <property name="text">
-        <string>Convex Hull</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionReparent">
-      <property name="text">
-        <string>Reparent</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-
-    <action name="actionView_SiteContour">
-      <property name="checkable">
-        <bool>true</bool>
-      </property>
-      <property name="text">
-        <string>Contours</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionView_Walls">
-      <property name="checkable">
-        <bool>true</bool>
-      </property>
-      <property name="text">
-        <string>Walls</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionView_Analysis">
-      <property name="checkable">
-        <bool>true</bool>
-      </property>
-      <property name="text">
-        <string>Analysis</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionView_Partition">
-      <property name="checkable">
-        <bool>true</bool>
-      </property>
-      <property name="text">
-        <string>Partition</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-    <action name="actionView_Skeleton">
-      <property name="checkable">
-        <bool>true</bool>
-      </property>
-      <property name="text">
-        <string>Skeleton</string>
-      </property>
-      <property name="visible">
-        <bool>false</bool>
-      </property>
-    </action>
-
-    <actiongroup name="Tools">
-      <action name="actionSelect">
-        <property name="checkable">
-          <bool>true</bool>
-        </property>
-        <property name="text">
-          <string>Select Tool</string>
-        </property>
-        <property name="shortcut">
-          <string>S</string>
-        </property>
-        <property name="icon">
-          <iconset>
-            <normaloff>:/art/selection.png</normaloff>:/art/selection.png</iconset>
-        </property>
-        <property name="visible">
-          <bool>false</bool>
-        </property>
-      </action>
-      <action name="actionLasso">
-        <property name="checkable">
-          <bool>true</bool>
-        </property>
-        <property name="text">
-          <string>Lasso Tool</string>
-        </property>
-        <property name="shortcut">
-          <string>W</string>
-        </property>
-        <property name="icon">
-          <iconset>
-            <normaloff>:/art/lasso-tool.png</normaloff>:/art/lasso-tool.png</iconset>
-        </property>
-        <property name="visible">
-          <bool>false</bool>
-        </property>
-      </action>
-      <action name="actionDraw">
-        <property name="checkable">
-          <bool>true</bool>
-        </property>
-        <property name="text">
-          <string>Draw Tool</string>
-        </property>
-        <property name="shortcut">
-          <string>D</string>
-        </property>
-        <property name="icon">
-          <iconset>
-            <normaloff>:/art/pen.png</normaloff>:/art/pen.png</iconset>
-        </property>
-        <property name="visible">
-          <bool>false</bool>
-        </property>
-      </action>
-      <action name="actionEdit">
-        <property name="checkable">
-          <bool>true</bool>
-        </property>
-        <property name="text">
-          <string>Edit Tool</string>
-        </property>
-        <property name="shortcut">
-          <string>E</string>
-        </property>
-        <property name="icon">
-          <iconset>
-            <normaloff>:/art/polygon.png</normaloff>:/art/polygon.png</iconset>
-        </property>
-        <property name="visible">
-          <bool>false</bool>
-        </property>
-      </action>
-    </actiongroup>
+     </item>
+    </layout>
+   </widget>
   </widget>
-  <layoutdefault spacing="6" margin="11" />
-  <customwidgets>
-    <customwidget>
-      <class>editor::MissionToolbox</class>
-      <extends>QToolBox</extends>
-      <header>toolboxPanel.hpp</header>
-      <container>1</container>
-    </customwidget>
-    <customwidget>
-      <class>editor::ViewConfigPanel</class>
-      <extends>QGraphicsView</extends>
-      <header>viewConfigPanel.hpp</header>
-      <container>1</container>
-    </customwidget>
-    <customwidget>
-      <class>editor::TreeView</class>
-      <extends>QTreeView</extends>
-      <header>treeView.hpp</header>
-      <container>1</container>
-    </customwidget>
-  </customwidgets>
-  <resources>
-    <include location="icons.qrc" />
-  </resources>
-  <connections />
+  <widget class="QDockWidget" name="dockLog">
+   <property name="windowTitle">
+    <string>Log</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QPlainTextEdit" name="logView"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="actionNewSchematic">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/blueprint.png</normaloff>:/art/blueprint.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Schematic</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/disk.png</normaloff>:/art/disk.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSave_As">
+   <property name="text">
+    <string>Save As</string>
+   </property>
+  </action>
+  <action name="actionSave_All">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/disk_saveas.png</normaloff>:/art/disk_saveas.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/folderOpen.png</normaloff>:/art/folderOpen.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionZoomToAll">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/magnifier.png</normaloff>:/art/magnifier.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom To All</string>
+   </property>
+   <property name="shortcut">
+    <string>Z</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEditContext">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/arrow_power.png</normaloff>:/art/arrow_power.png</iconset>
+   </property>
+   <property name="text">
+    <string>Edit</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionTabOut">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/arrow_plus.png</normaloff>:/art/arrow_plus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Tab Out</string>
+   </property>
+   <property name="shortcut">
+    <string>Tab</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSelectAll">
+   <property name="text">
+    <string>Select All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/undo.png</normaloff>:/art/undo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/redo.png</normaloff>:/art/redo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionCut">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/cut.png</normaloff>:/art/cut.png</iconset>
+   </property>
+   <property name="text">
+    <string>Cut</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionCopy">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/clipboard_copy.png</normaloff>:/art/clipboard_copy.png</iconset>
+   </property>
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionPaste">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/clipboard_paste.png</normaloff>:/art/clipboard_paste.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/delete.png</normaloff>:/art/delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionRotate_Left">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/arrow_clockwise.png</normaloff>:/art/arrow_clockwise.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rotate Left</string>
+   </property>
+   <property name="shortcut">
+    <string>Left</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionRotate_Right">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/arrow_counter.png</normaloff>:/art/arrow_counter.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rotate Right</string>
+   </property>
+   <property name="shortcut">
+    <string>Right</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFlip_Horizontal">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/arrow_left.png</normaloff>:/art/arrow_left.png</iconset>
+   </property>
+   <property name="text">
+    <string>Flip Horizontally</string>
+   </property>
+   <property name="shortcut">
+    <string>Up</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFlip_Vertical">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/arrow_down.png</normaloff>:/art/arrow_down.png</iconset>
+   </property>
+   <property name="text">
+    <string>Flip Vertically</string>
+   </property>
+   <property name="shortcut">
+    <string>Down</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionShrink">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/shrink.png</normaloff>:/art/shrink.png</iconset>
+   </property>
+   <property name="text">
+    <string>Shrink</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+E</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionExtrude">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/extrude.png</normaloff>:/art/extrude.png</iconset>
+   </property>
+   <property name="text">
+    <string>Extrude</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionUnion">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/union.png</normaloff>:/art/union.png</iconset>
+   </property>
+   <property name="text">
+    <string>Union</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFilter">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/art/broom.png</normaloff>:/art/broom.png</iconset>
+   </property>
+   <property name="text">
+    <string>Filter</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionAABB">
+   <property name="text">
+    <string>AABB</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionConvexHull">
+   <property name="text">
+    <string>Convex Hull</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionReparent">
+   <property name="text">
+    <string>Reparent</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionView_SiteContour">
+   <property name="text">
+    <string>Contours</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionView_Walls">
+   <property name="text">
+    <string>Walls</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionView_Analysis">
+   <property name="text">
+    <string>Ports</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionView_Partition">
+   <property name="text">
+    <string>Partition</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionView_Properties">
+   <property name="text">
+    <string>Properties</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionView_Skeleton">
+   <property name="text">
+    <string>Skeleton</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <actiongroup name="Tools">
+   <action name="actionSelect">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>:/art/selection.png</normaloff>:/art/selection.png</iconset>
+    </property>
+    <property name="text">
+     <string>Select Tool</string>
+    </property>
+    <property name="shortcut">
+     <string>S</string>
+    </property>
+    <property name="visible">
+     <bool>false</bool>
+    </property>
+   </action>
+   <action name="actionLasso">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>:/art/lasso-tool.png</normaloff>:/art/lasso-tool.png</iconset>
+    </property>
+    <property name="text">
+     <string>Lasso Tool</string>
+    </property>
+    <property name="shortcut">
+     <string>W</string>
+    </property>
+    <property name="visible">
+     <bool>false</bool>
+    </property>
+   </action>
+   <action name="actionDraw">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>:/art/pen.png</normaloff>:/art/pen.png</iconset>
+    </property>
+    <property name="text">
+     <string>Draw Tool</string>
+    </property>
+    <property name="shortcut">
+     <string>D</string>
+    </property>
+    <property name="visible">
+     <bool>false</bool>
+    </property>
+   </action>
+   <action name="actionEdit">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>:/art/polygon.png</normaloff>:/art/polygon.png</iconset>
+    </property>
+    <property name="text">
+     <string>Edit Tool</string>
+    </property>
+    <property name="shortcut">
+     <string>E</string>
+    </property>
+    <property name="visible">
+     <bool>false</bool>
+    </property>
+   </action>
+  </actiongroup>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>editor::MissionToolbox</class>
+   <extends>QToolBox</extends>
+   <header>toolboxPanel.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>editor::ViewConfigPanel</class>
+   <extends>QGraphicsView</extends>
+   <header>viewConfigPanel.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>editor::TreeView</class>
+   <extends>QTreeView</extends>
+   <header>treeView.hpp</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
+ <connections/>
 </ui>

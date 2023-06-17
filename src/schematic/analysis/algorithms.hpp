@@ -51,8 +51,7 @@ inline void visitEdgesOfFace( TFace hFace, TFunctor&& visitor )
     }
 
     // search through all holes
-    for( auto holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end();
-         holeIter != holeIterEnd; ++holeIter )
+    for( auto holeIter = hFace->holes_begin(), holeIterEnd = hFace->holes_end(); holeIter != holeIterEnd; ++holeIter )
     {
         auto iter  = *holeIter;
         auto start = iter;
@@ -145,7 +144,8 @@ inline void getSortedFaces( std::set< FaceType >& startFaces, std::vector< FaceT
         startFaces, result, [ &boundary ]( HalfEdgeType edge ) { return !boundary.contains( edge ); } );
 }
 
-inline bool getSortedFacesInsidePolygon( const Analysis::HalfEdgeVector& polygon, Analysis::FaceVector& result )
+template < typename HalfEdgeType, typename FaceType >
+inline bool getSortedFacesInsidePolygon( const std::vector< HalfEdgeType >& polygon, std::vector< FaceType >& result )
 {
     // determine the edge boundary as lookup set
     bool bIsCounterClockwise = true;
@@ -162,7 +162,7 @@ inline bool getSortedFacesInsidePolygon( const Analysis::HalfEdgeVector& polygon
         bIsCounterClockwise = poly.is_counterclockwise_oriented();
     }
 
-    Analysis::FaceSet startFaces;
+    std::set< FaceType > startFaces;
     for( auto e : polygon )
     {
         if( bIsCounterClockwise )

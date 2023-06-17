@@ -128,13 +128,13 @@ protected:
     SelectionModel           m_selectionModel;
     schematic::IEditContext* m_pActiveContext = nullptr;
 
-    SelectTool                         m_selectTool;
-    LassoTool                          m_lassoTool;
-    PenTool                            m_penTool;
-    EditTool                           m_editTool;
-    Tool*                              m_pActiveTool;
-    ViewConfig::Ptr                    m_pViewConfig;
-    schematic::File::CompilationConfig m_compilationConfig;
+    SelectTool                             m_selectTool;
+    LassoTool                              m_lassoTool;
+    PenTool                                m_penTool;
+    EditTool                               m_editTool;
+    Tool*                                  m_pActiveTool;
+    ViewConfig::Ptr                        m_pViewConfig;
+    schematic::CompilationStage m_compilationConfig;
 
 private:
     ItemMap m_itemMap;

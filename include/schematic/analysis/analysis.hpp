@@ -33,6 +33,8 @@
 namespace schematic
 {
 class Schematic;
+class Feature_Pin;
+class Property;
 }
 
 namespace exact
@@ -46,6 +48,9 @@ public:
     {
         using Ptr       = std::unique_ptr< PartitionSegment >;
         using PtrVector = std::vector< Ptr >;
+
+        schematic::Feature_Pin::PtrCstVector pins;
+        schematic::Property::PtrCstVector    properties;
     };
     struct Partition
     {
@@ -53,8 +58,9 @@ public:
         using PtrVector = std::vector< Ptr >;
 
         schematic::Site::PtrCst              pSite;
-        schematic::Feature_Pin::PtrCstVector pins;
         std::vector< PartitionSegment* >     segments;
+        schematic::Feature_Pin::PtrCstVector pins;
+        schematic::Property::PtrCstVector    properties;
     };
 
     struct VertexData
@@ -88,7 +94,10 @@ public:
     using Formatter      = CGAL::Arr_extended_dcel_text_formatter< Arrangement >;
 
     Analysis( boost::shared_ptr< schematic::Schematic > pSchematic );
+    void contours();
+    void connections();
     void partition();
+    void properties();
     void skeleton();
 
     // query used by editor for edge visualisation
@@ -247,29 +256,17 @@ public:
     Boundary::Vector getBoundaries();
 
 private:
-    template < typename TEdgeType >
-    inline void classify( TEdgeType h, EdgeMask::Type mask )
-    {
-        h->data().flags.set( mask );
-    }
-
     // internal analysis routines
-    void renderCurve( const exact::Curve& curve, EdgeMask::Type mask );
-    void renderCurve( const exact::Curve& curve, EdgeMask::Type innerMask, EdgeMask::Type outerMask,
-                      schematic::Site::PtrCst pInnerSite, schematic::Site::PtrCst pOuterSite );
-    void renderContour( const exact::Transform& transform,
-                        const exact::Polygon&   poly,
-                        EdgeMask::Type          innerMask,
-                        EdgeMask::Type          outerMask,
-                        schematic::Site::PtrCst pInnerSite,
-                        schematic::Site::PtrCst pOuterSite );
-    void recurse( schematic::Site::Ptr pSpace );
-    void recursePost( schematic::Site::Ptr pSpace );
+    void contoursRecurse( schematic::Site::Ptr pSpace );
+    void renderSiteContours( schematic::Site::Ptr pSpace );
     void connect( schematic::Site::Ptr pSite );
     void constructConnectionEdges( schematic::Connection::Ptr   pConnection,
                                    Arrangement::Halfedge_handle firstBisectorEdge,
                                    Arrangement::Halfedge_handle secondBisectorEdge );
     void cut( schematic::Site::Ptr pSite );
+    void propertiesRecurse( schematic::Site::Ptr pSpace,
+        std::vector< schematic::Feature_Pin::Ptr >& pins,
+        std::vector< schematic::Property::Ptr >& properties );
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 

@@ -29,6 +29,7 @@
 #include "schematic/factory.hpp"
 #include "schematic/schematic.hpp"
 #include "schematic/cgalUtils.hpp"
+#include "schematic/transform.hpp"
 
 #include "common/compose.hpp"
 #include "common/assert_verify.hpp"
@@ -58,7 +59,7 @@ void Site::load( const format::Node& node )
     Node::load( node );
     VERIFY_RTE( node.has_site() );
     const format::Node::Site& size = node.site();
-    m_transform = fromFormat( size.transform );
+    m_transform                    = fromFormat( size.transform );
 }
 
 void Site::save( format::Node& node ) const
@@ -70,25 +71,23 @@ void Site::save( format::Node& node ) const
 
 std::string Site::getStatement() const
 {
-    return "";//getName();
+    return ""; // getName();
 }
 
 void Site::init()
 {
     if( !m_pMarkupContour.get() )
     {
-        m_pMarkupContour.reset(
-            new SimplePolygonMarkup( *this, this, true, Schematic::eStage_Site ) );
+        m_pMarkupContour.reset( new SimplePolygonMarkup( *this, this, true, eStage_Site ) );
     }
 
     if( !m_pMarkupContourOutline.get() )
     {
-        m_pMarkupContourOutline.reset( new SimplePolygonMarkup(
-            *this, this, false, Schematic::eStage_SiteContour ) );
+        m_pMarkupContourOutline.reset( new SimplePolygonMarkup( *this, this, false, eStage_SiteContour ) );
     }
 
     m_strLabelText.clear();
-    //m_properties.clear();
+    // m_properties.clear();
     {
         std::ostringstream os;
         os << Node::getName();
@@ -108,7 +107,7 @@ void Site::init()
 
     if( !m_pLabel.get() )
     {
-        m_pLabel.reset( new TextImpl( *this, this, m_strLabelText, Point( 0.0, 0.0 ), Schematic::eStage_Site ) );
+        m_pLabel.reset( new TextImpl( *this, this, m_strLabelText, Point( 0.0, 0.0 ), eStage_Site ) );
     }
 
     BaseType::init();
@@ -143,7 +142,7 @@ const GlyphSpec* Site::getParent() const
 
 CompilationStage Site::getCompilationStage() const
 {
-    return Schematic::eStage_Site;
+    return eStage_Site;
 }
 
 exact::Transform Site::getAbsoluteExactTransform() const
@@ -208,10 +207,8 @@ void Site::cmd_shrink( double dbAmount )
             typedef std::vector< PolygonPtr >           PolygonPtrVector;
 
             PolygonPtrVector extrudedContourPolygons
-                = CGAL::create_interior_skeleton_and_offset_polygons_2< exact::Kernel::FT,
-                                                                        exact::Polygon,
-                                                                        exact::Kernel,
-                                                                        exact::Kernel >(
+                = CGAL::create_interior_skeleton_and_offset_polygons_2< exact::Kernel::FT, exact::Polygon,
+                                                                        exact::Kernel, exact::Kernel >(
                     dbAmount, contour, ( exact::Kernel() ), ( exact::Kernel() ) );
             if( !extrudedContourPolygons.empty() )
             {
@@ -243,10 +240,8 @@ void Site::cmd_extrude( double dbAmount )
             typedef std::vector< PolygonPtr >           PolygonPtrVector;
 
             PolygonPtrVector extrudedContourPolygons
-                = CGAL::create_exterior_skeleton_and_offset_polygons_2< exact::Kernel::FT,
-                                                                        exact::Polygon,
-                                                                        exact::Kernel,
-                                                                        exact::Kernel >(
+                = CGAL::create_exterior_skeleton_and_offset_polygons_2< exact::Kernel::FT, exact::Polygon,
+                                                                        exact::Kernel, exact::Kernel >(
                     dbAmount, contour, ( exact::Kernel() ), ( exact::Kernel() ) );
             if( !extrudedContourPolygons.empty() )
             {
