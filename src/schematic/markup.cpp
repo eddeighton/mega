@@ -92,14 +92,21 @@ bool MultiPolygonMarkup::isPolygonsFilled() const
 {
     return m_bFill;
 }
-
 bool MultiPolygonMarkup::paint( Painter& painter ) const
 {
     if( painter.needsUpdate( m_updateTick ) )
     {
         painter.reset();
+        auto iStyle = m_styles.begin();
         for( const Polygon_with_holes& poly : m_polygons )
+        {
+            if( iStyle != m_styles.end() )
+            {
+                painter.style( *iStyle );
+                ++iStyle;
+            }
             painter.polygonWithHoles( poly );
+        }
         painter.updated();
         return true;
     }
@@ -128,6 +135,12 @@ void MultiPolygonMarkup::setPolygons( const PolygonVector& polygons )
 void MultiPolygonMarkup::setPolygons( const PolygonWithHolesVector& polygons )
 {
     m_polygons = polygons;
+    m_updateTick.update();
+}
+
+void MultiPolygonMarkup::setStyles( const PolygonStyles& styles )
+{
+    m_styles = styles;
     m_updateTick.update();
 }
 

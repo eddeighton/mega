@@ -283,6 +283,7 @@ void SchematicDocument::setCompilationConfig( schematic::CompilationStage config
     if( config != m_compilationConfig )
     {
         calculateDerived( config );
+        m_compilationConfig = config;
     }
     Document::setCompilationConfig( config );
 }

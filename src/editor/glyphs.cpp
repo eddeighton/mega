@@ -120,7 +120,6 @@ GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsS
     , m_pViewConfig( pViewConfig )
     , m_pathPainter( m_pViewConfig )
     , m_map( map )
-    , m_pItem( nullptr )
     , m_pToolBoxPtr( pToolBoxPtr )
 {
     if( m_pToolBoxPtr )
@@ -135,58 +134,150 @@ GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsS
 
     m_fSize = fabs( g_polygonWidth / fZoom );
 
+    QGraphicsItem* pParentItem = m_map.findItem( getMarkupPolygonGroup()->getParent() );
+
     // convert to painter path
     getMarkupPolygonGroup()->paint( m_pathPainter );
 
-    QGraphicsItem* pParentItem = m_map.findItem( getMarkupPolygonGroup()->getParent() );
-    m_pItem                    = new QGraphicsPathItem( m_pathPainter.getPath(), pParentItem );
-    if( !pParentItem )
-        m_pScene->addItem( m_pItem );
-    m_pItem->setPen( QPen( QBrush( g_pathColor ), m_fSize, Qt::SolidLine ) );
+    bool bFirst = true;
+    for( const auto pPath : m_pathPainter.getPaths() )
+    {
+        auto pItem = new QGraphicsPathItem( pPath->path, pParentItem );
+        if( !pParentItem )
+            m_pScene->addItem( pItem );
+        pItem->setPen( QPen( QBrush( g_pathColor ), m_fSize, Qt::SolidLine ) );
+        pItem->setZValue( 1.5f );
 
-    if( getMarkupPolygonGroup()->isPolygonsFilled() )
-    {
-        m_pItem->setBrush( QBrush( g_polygonColor ) );
+        QColor polyColour = g_polygonColor;
+        if( !pPath->style.empty() )
+        {
+            if( m_pViewConfig )
+            {
+                auto colourOpt = m_pViewConfig->getPolyTypeColour( pPath->style );
+                if( colourOpt.has_value() )
+                {
+                    polyColour = colourOpt.value();
+                }
+            }
+        }
+
+        if( getMarkupPolygonGroup()->isPolygonsFilled() )
+        {
+            pItem->setBrush( QBrush( polyColour ) );
+        }
+        else
+        {
+            pItem->setBrush( QBrush( Qt::NoBrush ) );
+        }
+
+        if( bFirst )
+        {
+            m_map.insert( pItem, getMarkupPolygonGroup(), this );
+            bFirst = false;
+        }
+        m_items.push_back( pItem );
     }
-    else
-    {
-        m_pItem->setBrush( QBrush( Qt::NoBrush ) );
-    }
-    m_pItem->setZValue( 1.5f );
-    m_map.insert( m_pItem, getMarkupPolygonGroup(), this );
 }
 
 GlyphPolygonGroup::~GlyphPolygonGroup()
 {
-    cleanUpItem( m_pItem, m_map, getMarkupPolygonGroup(), m_pScene );
+    bool bFirst = true;
+    for( auto pItem : m_items )
+    {
+        if( bFirst )
+        {
+            cleanUpItem( pItem, m_map, getMarkupPolygonGroup(), m_pScene );
+            bFirst = false;
+        }
+        else
+        {
+            delete pItem;
+        }
+    }
+    m_items.clear();
 }
 
 void GlyphPolygonGroup::OnNewZoomLevel( float fZoom )
 {
     m_fSize = fabs( g_polygonWidth / fZoom );
-    m_pItem->setPen( QPen( QBrush( g_pathColor ), m_fSize, Qt::SolidLine ) );
+    for( auto pItem : m_items )
+    {
+        pItem->setPen( QPen( QBrush( g_pathColor ), m_fSize, Qt::SolidLine ) );
+    }
 }
 
 void GlyphPolygonGroup::update()
 {
+    QGraphicsItem* pParentItem = m_map.findItem( getMarkupPolygonGroup()->getParent() );
+
     if( getMarkupPolygonGroup()->paint( m_pathPainter ) )
     {
-        m_pItem->setPath( m_pathPainter.getPath() );
-        m_pItem->setPen( QPen( QBrush( g_pathColor ), m_fSize, Qt::SolidLine ) );
-        if( getMarkupPolygonGroup()->isPolygonsFilled() )
+        auto itemIter = m_items.begin();
+        bool bFirst   = true;
+        for( const auto pPath : m_pathPainter.getPaths() )
         {
-            m_pItem->setBrush( QBrush( g_polygonColor ) );
+            QGraphicsPathItem* pItem = nullptr;
+            if( itemIter != m_items.end() )
+            {
+                pItem = *itemIter;
+                ++itemIter;
+                bFirst = false;
+                pItem->setPath( pPath->path );
+            }
+            else
+            {
+                pItem = new QGraphicsPathItem( pPath->path, pParentItem );
+                if( !pParentItem )
+                    m_pScene->addItem( pItem );
+                if( bFirst )
+                {
+                    m_map.insert( pItem, getMarkupPolygonGroup(), this );
+                    bFirst = false;
+                }
+                m_items.push_back( pItem );
+                itemIter = m_items.end();
+            }
+
+            pItem->setPen( QPen( QBrush( g_pathColor ), m_fSize, Qt::SolidLine ) );
+
+            QColor polyColour = g_polygonColor;
+            if( !pPath->style.empty() )
+            {
+                if( m_pViewConfig )
+                {
+                    auto colourOpt = m_pViewConfig->getPolyTypeColour( pPath->style );
+                    if( colourOpt.has_value() )
+                    {
+                        polyColour = colourOpt.value();
+                    }
+                }
+            }
+
+            if( getMarkupPolygonGroup()->isPolygonsFilled() )
+            {
+                pItem->setBrush( QBrush( polyColour ) );
+            }
+            else
+            {
+                pItem->setBrush( QBrush( Qt::NoBrush ) );
+            }
         }
-        else
+
+        auto iOld = itemIter;
+        for( ; itemIter != m_items.end(); ++itemIter )
         {
-            m_pItem->setBrush( QBrush( Qt::NoBrush ) );
+            delete *itemIter;
         }
+        m_items.erase( iOld, m_items.end() );
     }
 }
 
 void GlyphPolygonGroup::setShouldRender( bool bShouldRender )
 {
-    m_pItem->setVisible( bShouldRender );
+    for( auto pIter : m_items )
+    {
+        pIter->setVisible( bShouldRender );
+    }
 }
 
 void GlyphPolygonGroup::forceUpdate()

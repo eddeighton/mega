@@ -61,6 +61,7 @@ public:
     virtual void updated()                                           = 0;
 
     virtual void reset()                                                   = 0;
+    virtual void style( const std::string& strStyle )                      = 0;
     virtual void moveTo( const Point& pt )                                 = 0;
     virtual void lineTo( const Point& pt )                                 = 0;
     virtual void closePath()                                               = 0;
@@ -74,9 +75,10 @@ class MarkupPolygonGroup : public GlyphSpec
 public:
     using List = std::list< MarkupPolygonGroup* >;
 
-    virtual bool isPolygonsFilled() const        = 0;
-    virtual bool paint( Painter& painter ) const = 0;
-    virtual bool canEdit() const { return false; }
+    virtual bool        isPolygonsFilled() const        = 0;
+    virtual const char* polygonType() const             = 0;
+    virtual bool        paint( Painter& painter ) const = 0;
+    virtual bool        canEdit() const { return false; }
 };
 
 class MarkupText : public GlyphSpec

@@ -65,8 +65,8 @@ public:
     {
         if( m_pAnalysisMarkup.get() )
             polyGroups.push_back( m_pAnalysisMarkup.get() );
-        if( m_pPropertyMarkup.get() )
-            polyGroups.push_back( m_pPropertyMarkup.get() );
+        if( m_pPropertiesMarkup.get() )
+            polyGroups.push_back( m_pPropertiesMarkup.get() );
     }
 
     exact::Analysis::Ptr getAnalysis() const { return m_pAnalysis; }
@@ -74,7 +74,7 @@ public:
 private:
     exact::Analysis::Ptr                  m_pAnalysis;
     std::unique_ptr< MultiPathMarkup >    m_pAnalysisMarkup;
-    std::unique_ptr< MultiPolygonMarkup > m_pPropertyMarkup;
+    std::unique_ptr< MultiPolygonMarkup > m_pPropertiesMarkup;
 };
 
 } // namespace schematic

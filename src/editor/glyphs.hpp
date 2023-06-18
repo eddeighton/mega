@@ -121,28 +121,41 @@ static unsigned int calculateDepth( const schematic::GlyphSpec* pGlyphSpec )
 
 class PainterImpl : public schematic::Painter
 {
-    const ViewConfig*               m_pViewConfig = nullptr;
-    std::shared_ptr< QPainterPath > m_pPath, m_pOldPath;
-    Timing::UpdateTick              m_updateTick;
-    bool                            m_bForceUpdate = true;
-    float                           m_fArrowSize   = 1.0f;
+public:
+    struct Path
+    {
+        QPainterPath path;
+        std::string  style;
+    };
+    using PathPtr    = std::shared_ptr< Path >;
+    using PathVector = std::vector< PathPtr >;
+
+private:
+    const ViewConfig*  m_pViewConfig = nullptr;
+    PathVector         m_paths, m_oldPaths;
+    Timing::UpdateTick m_updateTick;
+    bool               m_bForceUpdate = true;
+    float              m_fArrowSize   = 1.0f;
 
 public:
-    const QPainterPath& getPath() const { return *m_pPath; }
-
-    PainterImpl( )
-        : m_pPath( std::make_shared< QPainterPath >() )
+    const PathVector& getPaths() const { return m_paths; }
+    QPainterPath&     getPath()
     {
+        if( m_paths.empty() )
+        {
+            m_paths.push_back( std::make_shared< Path >() );
+        }
+        return m_paths.back()->path;
     }
+
+    PainterImpl() = default;
 
     PainterImpl( const ViewConfig* pViewConfig )
         : m_pViewConfig( pViewConfig )
-        , m_pPath( std::make_shared< QPainterPath >() )
     {
     }
 
     void setArrowHeadSize( float fSize ) { m_fArrowSize = fSize; }
-
     void forceUpdate() { m_bForceUpdate = true; }
 
     virtual bool needsUpdate( const Timing::UpdateTick& updateTick )
@@ -158,12 +171,22 @@ public:
 
     virtual void reset()
     {
-        m_pOldPath = m_pPath;
-        m_pPath.reset( new QPainterPath );
+        m_oldPaths = m_paths;
+        m_paths.clear();
     }
-    virtual void moveTo( const schematic::Point& pt ) { m_pPath->moveTo( pt.x(), pt.y() ); }
-    virtual void lineTo( const schematic::Point& pt ) { m_pPath->lineTo( pt.x(), pt.y() ); }
-    virtual void closePath() { m_pPath->closeSubpath(); }
+
+    virtual void style( const std::string& strStyle )
+    {
+        if( m_paths.empty() || m_paths.back()->style != strStyle )
+        {
+            m_paths.push_back( std::make_shared< Path >() );
+            m_paths.back()->style = strStyle;
+        }
+    }
+
+    virtual void moveTo( const schematic::Point& pt ) { getPath().moveTo( pt.x(), pt.y() ); }
+    virtual void lineTo( const schematic::Point& pt ) { getPath().lineTo( pt.x(), pt.y() ); }
+    virtual void closePath() { getPath().closeSubpath(); }
 
     virtual void segment( const schematic::Segment& segment, exact::EdgeMask::Set mask )
     {
@@ -296,13 +319,13 @@ public:
     virtual void update();
 
 private:
-    float              m_fSize;
-    QGraphicsScene*    m_pScene;
-    const ViewConfig*  m_pViewConfig;
-    PainterImpl        m_pathPainter;
-    GlyphMap           m_map;
-    QGraphicsPathItem* m_pItem;
-    Toolbox::Ptr       m_pToolBoxPtr;
+    float                             m_fSize;
+    QGraphicsScene*                   m_pScene;
+    const ViewConfig*                 m_pViewConfig;
+    PainterImpl                       m_pathPainter;
+    GlyphMap                          m_map;
+    std::vector< QGraphicsPathItem* > m_items;
+    Toolbox::Ptr                      m_pToolBoxPtr;
 };
 
 //////////////////////////////////////////////////////////////////////

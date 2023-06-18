@@ -85,6 +85,8 @@ void Analysis::getPartitionPolygons(
         {
             auto e          = node.polygon().front();
             auto pPartition = e->data().pPartition;
+            INVARIANT( pPartition, "Floor edge missing partition" );
+            INVARIANT( pPartition->pSite, "Floor partition missing site" );
 
             HalfEdgePolygonWithHoles polyWithHoles;
             polyWithHoles.outer = node.polygon();

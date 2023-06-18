@@ -28,6 +28,60 @@
 
 namespace exact
 {
+namespace
+{
+
+void collectPins( schematic::Node::Ptr pNode, std::vector< schematic::Feature_Pin::Ptr >& pins )
+{
+    if( schematic::Feature_Pin::Ptr pPin = boost::dynamic_pointer_cast< schematic::Feature_Pin >( pNode ) )
+    {
+        pins.push_back( pPin );
+    }
+    for( auto pChild : pNode->getChildren() )
+    {
+        collectPins( pChild, pins );
+    }
+}
+
+void collectProperties( schematic::Node::Ptr pNode, std::vector< schematic::Property::PtrCst >& properties )
+{
+    if( schematic::Property::PtrCst pProperty = boost::dynamic_pointer_cast< const schematic::Property >( pNode ) )
+    {
+        properties.push_back( pProperty );
+    }
+    for( auto pChild : pNode->getChildren() )
+    {
+        collectProperties( pChild, properties );
+    }
+}
+
+void collectPropertiesForSite( schematic::Node::Ptr pNode, std::vector< schematic::Property::Ptr >& properties )
+{
+    if( schematic::Property::Ptr pProperty = boost::dynamic_pointer_cast< schematic::Property >( pNode ) )
+    {
+        properties.push_back( pProperty );
+    }
+
+    for( auto pChild : pNode->getChildren() )
+    {
+        // ignore nested sites
+        if( boost::dynamic_pointer_cast< schematic::Site >( pChild ) )
+        {
+            continue;
+        }
+        else if( boost::dynamic_pointer_cast< schematic::Feature_Pin >( pChild ) )
+        {
+            continue;
+        }
+        else
+        {
+            // collect everything else
+            collectPropertiesForSite( pChild, properties );
+        }
+    }
+}
+
+} // namespace
 
 void Analysis::properties()
 {
@@ -35,28 +89,51 @@ void Analysis::properties()
     INVARIANT( sites.size() < 2, "Schematic contains more than one root site" );
     INVARIANT( sites.size() == 1, "Schematic missing root site" );
 
-    std::vector< schematic::Feature_Pin::Ptr > pins;
-    std::vector< schematic::Property::Ptr >    properties;
-
     schematic::Space::Ptr pRootSpace = boost::dynamic_pointer_cast< schematic::Space >( sites.front() );
-    propertiesRecurse( pRootSpace, pins, properties );
+
+    std::vector< schematic::Property::Ptr > properties;
+    propertiesRecurse( pRootSpace, properties );
 
     Analysis::Point_location pointLocation( m_arr );
 
+    std::vector< schematic::Feature_Pin::Ptr > pins;
+    collectPins( pRootSpace, pins );
+
     for( auto pPin : pins )
     {
-        const schematic::Point& pt = pPin->getPoint( 0 );
-        // locate partition containing point
+        std::optional< exact::Transform > transformOpt;
+        {
+            schematic::Node::Ptr pParent = pPin->schematic::Node::getParent();
+            while( pParent )
+            {
+                if( schematic::Site::Ptr pSite = boost::dynamic_pointer_cast< schematic::Site >( pParent ) )
+                {
+                    transformOpt = pSite->getAbsoluteExactTransform();
+                    break;
+                }
+                pParent = pParent->getParent();
+            }
+        }
 
-        CGAL::Object                 result = pointLocation.locate( exact::Point( pt.x(), pt.y() ) );
-        Arrangement::Face_handle     face;
-        Arrangement::Halfedge_handle halfedge;
-        Arrangement::Vertex_handle   vertex;
+        static const exact::InexactToExact converter;
+        exact::Point                       pt = converter( pPin->getPoint( 0 ) );
+        if( transformOpt.has_value() )
+        {
+            pt = transformOpt.value()( pt );
+        }
+
+        // locate partition containing point
+        CGAL::Object                       result = pointLocation.locate( pt );
+        Arrangement::Face_const_handle     face;
+        Arrangement::Halfedge_const_handle halfedge;
+        Arrangement::Vertex_const_handle   vertex;
         if( CGAL::assign( face, result ) )
         {
             if( auto pPartition = face->data().pPartition )
             {
+                INVARIANT( pPartition->pSite, "Face partition missing site" );
                 pPartition->pins.push_back( pPin );
+                collectProperties( pPin, pPartition->properties );
             }
             else
             {
@@ -65,6 +142,7 @@ void Analysis::properties()
             if( auto pPartitionSegment = face->data().pPartitionSegment )
             {
                 pPartitionSegment->pins.push_back( pPin );
+                collectProperties( pPin, pPartitionSegment->properties );
             }
         }
         else if( CGAL::assign( halfedge, result ) )
@@ -81,42 +159,11 @@ void Analysis::properties()
         }
     }
 }
-
-void collectProperties( schematic::Node::Ptr                        pNode,
-                        std::vector< schematic::Feature_Pin::Ptr >& pins,
-                        std::vector< schematic::Property::Ptr >&    properties )
+void Analysis::propertiesRecurse( schematic::Site::Ptr pSite, std::vector< schematic::Property::Ptr >& properties )
 {
-    if( schematic::Property::Ptr pProperty = boost::dynamic_pointer_cast< schematic::Property >( pNode ) )
-    {
-        properties.push_back( pProperty );
-    }
-    else if( schematic::Feature_Pin::Ptr pPin = boost::dynamic_pointer_cast< schematic::Feature_Pin >( pNode ) )
-    {
-        pins.push_back( pPin );
-    }
+    collectPropertiesForSite( pSite, properties );
 
-    for( auto pChild : pNode->getChildren() )
-    {
-        // ignore nested sites
-        if( schematic::Site::Ptr pNestedSite = boost::dynamic_pointer_cast< schematic::Site >( pChild ) )
-        {
-            continue;
-        }
-        else
-        {
-            // collect everything else
-            collectProperties( pChild, pins, properties );
-        }
-    }
-}
-
-void Analysis::propertiesRecurse( schematic::Site::Ptr                        pSite,
-                                  std::vector< schematic::Feature_Pin::Ptr >& pins,
-                                  std::vector< schematic::Property::Ptr >&    properties )
-{
-    collectProperties( pSite, pins, properties );
-
-    // find all floors of this site
+    // find all partitions of this site
     std::vector< Partition* > sitePartitions;
     for( const auto& pPartition : m_floors )
     {
@@ -126,6 +173,7 @@ void Analysis::propertiesRecurse( schematic::Site::Ptr                        pS
         }
     }
 
+    // propagate all properties to partitions
     for( auto pPartition : sitePartitions )
     {
         for( auto pProperty : properties )
@@ -134,11 +182,11 @@ void Analysis::propertiesRecurse( schematic::Site::Ptr                        pS
         }
     }
 
+    // recurse
     for( schematic::Site::Ptr pNestedSite : pSite->getSites() )
     {
-        std::vector< schematic::Feature_Pin::Ptr > nestedPins       = pins;
-        std::vector< schematic::Property::Ptr >&   nestedProperties = properties;
-        propertiesRecurse( pNestedSite, nestedPins, properties );
+        std::vector< schematic::Property::Ptr > nestedProperties = properties;
+        propertiesRecurse( pNestedSite, nestedProperties );
     }
 }
 } // namespace exact

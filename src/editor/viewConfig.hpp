@@ -23,9 +23,12 @@
 
 #include "schematic/analysis/edge_mask.hpp"
 
+#include <QColor>
+
 #include <bitset>
 #include <memory>
 #include <array>
+#include <optional>
 
 namespace editor
 {
@@ -73,6 +76,22 @@ public:
 
         for( auto& m : m_maskVisibility )
             m = eMaskIgnor;
+    }
+
+    inline std::optional< QColor > getPolyTypeColour( const std::string& strStyle ) const
+    {
+        if( strStyle == "Corridor" )
+        {
+            return QColor( 0, 255, 255, 125 );
+        }
+        else if( strStyle == "Window" )
+        {
+            return QColor( 255, 0, 0, 125 );
+        }
+        else
+        {
+            return {};
+        }
     }
 
     inline bool        isGlyphVisible( GlyphVisibility glyphType ) const { return m_glyphVisibility.test( glyphType ); }

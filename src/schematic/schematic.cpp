@@ -52,9 +52,9 @@ void Schematic::init()
     {
         m_pAnalysisMarkup.reset( new MultiPathMarkup( *this, nullptr, eStage_Port ) );
     }
-    if( !m_pPropertyMarkup.get() )
+    if( !m_pPropertiesMarkup.get() )
     {
-        m_pPropertyMarkup.reset( new MultiPolygonMarkup( *this, nullptr, true, eStage_Properties ) );
+        m_pPropertiesMarkup.reset( new MultiPolygonMarkup( *this, nullptr, true, eStage_Properties ) );
     }
 }
 
@@ -109,7 +109,7 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
             m_pAnalysis.reset();
             m_pAnalysis.reset( new exact::Analysis( pThis ) );
             m_pAnalysis->contours();
-            m_pAnalysis->connections();
+            m_pAnalysis->ports();
 
             std::vector< MultiPathMarkup::SegmentMask > edges;
             m_pAnalysis->getAllEdges( edges );
@@ -132,12 +132,24 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
             std::map< const exact::Analysis::PartitionSegment*, exact::Polygon_with_holes > boundaries;
             m_pAnalysis->getPartitionPolygons( floors, boundaries );
 
-            std::vector< schematic::Polygon_with_holes > polygons;
+            MultiPolygonMarkup::PolygonWithHolesVector polygons;
+            MultiPolygonMarkup::PolygonStyles          styles;
             for( const auto& [ pPartition, poly ] : floors )
             {
                 polygons.push_back( Utils::convert< schematic::Kernel >( poly ) );
+
+                std::string strStyle = "";
+                for( auto pProperty : pPartition->properties )
+                {
+                    if( pProperty->getName() == "type" )
+                    {
+                        strStyle = pProperty->getValue();
+                    }
+                }
+                styles.push_back( strStyle );
             }
-            m_pPropertyMarkup->setPolygons( polygons );
+            m_pPropertiesMarkup->setPolygons( polygons );
+            m_pPropertiesMarkup->setStyles( styles );
         }
 
         if( iStage >= eStage_Skeleton )
@@ -152,15 +164,16 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
     catch( std::exception& ex )
     {
         os << ex.what();
+
         m_pAnalysisMarkup->reset();
-        m_pPropertyMarkup->reset();
+        m_pPropertiesMarkup->reset();
         return false;
     }
     catch( ... )
     {
         os << "Unknown exception compiling schematic";
         m_pAnalysisMarkup->reset();
-        m_pPropertyMarkup->reset();
+        m_pPropertiesMarkup->reset();
         return false;
     }
 

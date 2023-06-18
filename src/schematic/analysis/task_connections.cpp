@@ -30,7 +30,7 @@
 namespace exact
 {
 
-void Analysis::connections()
+void Analysis::ports()
 {
     auto sites = m_pSchematic->getSites();
     INVARIANT( sites.size() < 2, "Schematic contains more than one root site" );

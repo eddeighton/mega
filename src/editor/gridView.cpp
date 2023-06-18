@@ -99,7 +99,7 @@ void GridView::DoZoom( float fAmt )
 
 void GridView::CmdZoomToAll()
 {
-    QRectF rect( -m_fDefaultZoom / 2.0f, -m_fDefaultZoom / 2.0f, m_fDefaultZoom, m_fDefaultZoom );
+    QRectF rect( 0, 0, m_fDefaultZoom, m_fDefaultZoom );
 
     QList< QGraphicsItem* > allItems = items();
     for( QList< QGraphicsItem* >::iterator i = allItems.begin(), iEnd = allItems.end(); i != iEnd; ++i )
@@ -114,8 +114,6 @@ void GridView::CmdZoomToAll()
     // }
 
     fitInView( rect, Qt::KeepAspectRatio );
-    DoZoom( 1.0f );
-
     CalculateRulerItems();
 }
 

@@ -106,6 +106,7 @@ public:
     virtual const GlyphSpecProducer* getProducer() const { return &m_producer; }
     virtual CompilationStage         getCompilationStage() const { return m_compilationStage; }
     virtual bool                     isPolygonsFilled() const;
+    virtual const char*              polygonType() const { return {}; }
     virtual bool                     paint( Painter& painter ) const;
     void                             reset();
     void                             setPolygon( const Polygon& polygon );
@@ -125,8 +126,9 @@ private:
 class MultiPolygonMarkup : public MarkupPolygonGroup
 {
 public:
-    using PolygonVector = std::vector< Polygon >;
+    using PolygonVector          = std::vector< Polygon >;
     using PolygonWithHolesVector = std::vector< Polygon_with_holes >;
+    using PolygonStyles          = std::vector< std::string >;
 
     MultiPolygonMarkup( const GlyphSpecProducer& producer,
                         const GlyphSpec*         pParent,
@@ -137,16 +139,20 @@ public:
     virtual const GlyphSpecProducer* getProducer() const { return &m_producer; }
     virtual CompilationStage         getCompilationStage() const { return m_compilationStage; }
     virtual bool                     isPolygonsFilled() const;
+    virtual const char*              polygonType() const { return m_pszType; }
     virtual bool                     paint( Painter& painter ) const;
     void                             reset();
     void                             setPolygons( const PolygonVector& polygons );
     void                             setPolygons( const PolygonWithHolesVector& polygons );
+    void                             setStyles( const PolygonStyles& styles );
 
 private:
     const GlyphSpecProducer& m_producer;
     const GlyphSpec*         m_pParent;
     Timing::UpdateTick       m_updateTick;
     PolygonWithHolesVector   m_polygons;
+    PolygonStyles            m_styles;
+    const char*              m_pszType = nullptr;
     bool                     m_bFill;
     CompilationStage         m_compilationStage;
 };
@@ -164,6 +170,7 @@ public:
     virtual const GlyphSpecProducer* getProducer() const { return &m_producer; }
     virtual CompilationStage         getCompilationStage() const { return m_compilationStage; }
     virtual bool                     isPolygonsFilled() const;
+    virtual const char*              polygonType() const { return {}; }
     virtual bool                     paint( Painter& painter ) const;
     void                             reset();
     void                             set( const std::vector< SegmentMask >& segments );

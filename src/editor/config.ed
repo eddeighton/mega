@@ -75,7 +75,7 @@ glyphs
     }
     polygons
     {
-        colour( 125,125,125,255 )
+        colour( 125,125,125,125 )
         width( 4 )
         arrow( 0.5 )
     }

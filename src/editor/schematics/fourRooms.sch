@@ -100,14 +100,22 @@ Schematic(base;,0)
             }
             Wall(wall_0003;,3)
             {
-                transform(-1,0,-7,0,1,19)
+                transform(-1,0,2,0,1,20)
                 Contour(contour;,0)
                 {
-                    path(0,-4,16,-4,16,4,0,4)
+                    path(0,-4,4,-7,12,-7,16,-4,16,4,12,6,4,6,0,9)
                 }
                 Property(width;,1)
                 {
                     value(0.5f;)
+                }
+                Pin(pin__0002;,2)
+                {
+                    position(-72,-7)
+                    Property(type;,0)
+                    {
+                        value(Corridor;)
+                    }
                 }
             }
             Space(space_0004;,4)
@@ -202,6 +210,15 @@ Schematic(base;,0)
                     position(6.5,2)
                 }
             }
+            Cut(cut_0007;,7)
+            {
+                transform(-1,0,13,0,1,21)
+                LineSegment(segment;,0)
+                {
+                    start(0,-1)
+                    end(8,11)
+                }
+            }
         }
         Wall(wall_0006;,5)
         {
@@ -285,6 +302,14 @@ Schematic(base;,0)
             Property(width;,1)
             {
                 value(0.5f;)
+            }
+        }
+        Pin(pin__0012;,12)
+        {
+            position(76,40)
+            Property(type;,0)
+            {
+                value(Corridor;)
             }
         }
     }

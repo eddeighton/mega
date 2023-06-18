@@ -77,6 +77,7 @@ inline void locateHoleBoundariesFromDoorStep( Analysis::Arrangement::Halfedge_ha
 void Analysis::partition()
 {
     std::vector< Arrangement::Vertex_handle >          doorStepVertices;
+    std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
     std::set< Analysis::Arrangement::Halfedge_handle > doorSteps;
     {
         getEdges( m_arr, doorSteps,
@@ -105,6 +106,26 @@ void Analysis::partition()
 
         for( auto floorBoundary : floorPolygons )
         {
+            // boundary MAY have already been classified i.e. two areas within parent and search from
+            // one doorstep - will classify other where ALL part of same partition
+            // yet the other floorboundary will be in floorPolygons.
+            int iClassification = 0;
+            for( auto e : floorBoundary )
+            {
+                if( e->data().pPartition )
+                {
+                    INVARIANT( iClassification == 0 || iClassification == 1, "Inconsistent classification" );
+                    iClassification = 1;
+                }
+                else
+                {
+                    INVARIANT( iClassification == 0 || iClassification == 2, "Inconsistent classification" );
+                    iClassification = 2;
+                }
+            }
+            if( iClassification == 1 )
+                continue;
+
             Partition::Ptr                      pPartition = std::make_unique< Partition >();
             std::set< schematic::Site::PtrCst > sites;
 
@@ -121,7 +142,11 @@ void Analysis::partition()
                 classify( e, EdgeMask::ePartitionFloor );
                 if( !e->data().flags.test( EdgeMask::eDoorStep ) )
                 {
-                    classify( e->twin(), EdgeMask::ePartitionBoundary );
+                    if( !e->data().flags.test( EdgeMask::ePerimeter ) )
+                    {
+                        classify( e->twin(), EdgeMask::ePartitionBoundary );
+                        boundaryEdges.insert( e->twin() );
+                    }
                 }
                 else
                 {
@@ -143,6 +168,8 @@ void Analysis::partition()
                     locateHoleBoundariesFromDoorStep( e, floorEdges, floorBoundary, holeBoundaries, faces );
                     for( auto f : faces )
                     {
+                        INVARIANT( ( !f->data().pPartition ) || ( f->data().pPartition == pPartition.get() ),
+                                   "Conflicting face partition" );
                         f->data().pPartition = pPartition.get();
                     }
                 }
@@ -162,7 +189,11 @@ void Analysis::partition()
                         classify( innerWallEdge, EdgeMask::ePartitionFloor );
                         if( !innerWallEdge->data().flags.test( EdgeMask::eDoorStep ) )
                         {
-                            classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
+                            if( !innerWallEdge->data().flags.test( EdgeMask::ePerimeter ) )
+                            {
+                                classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
+                                boundaryEdges.insert( innerWallEdge->twin() );
+                            }
                         }
                     }
                 }
@@ -176,31 +207,60 @@ void Analysis::partition()
     }
 
     // The resultant partition boundary edges can no be used to determine the boundaries
-    std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
     {
-        getEdges( m_arr, boundaryEdges,
-                  []( Arrangement::Halfedge_handle edge )
-                  { return edge->data().flags.test( EdgeMask::ePartitionBoundary ); } );
+        // for starting points just use ALL boundary vertices
+        std::vector< Arrangement::Vertex_handle > boundaryVertices;
+        for( auto e : boundaryEdges )
+        {
+            boundaryVertices.push_back( e->source() );
+        }
+
         std::vector< std::vector< Arrangement::Halfedge_handle > > boundaryPolygons;
-        getPolygons( boundaryEdges, boundaryPolygons );
+        searchPolygons( boundaryVertices, boundaryEdges, false, boundaryPolygons );
+
         for( auto& boundary : boundaryPolygons )
         {
-            Partition::Ptr pPartition = std::make_unique< Partition >();
-            for( auto e : boundary )
+            // determine if there is already a partition - will have two sides to boundary
+            Partition*                                        pPartition = nullptr;
+            std::vector< Analysis::Arrangement::Face_handle > faces;
             {
-                e->data().pPartition = pPartition.get();
-            }
-
-            {
-                std::vector< Analysis::Arrangement::Face_handle > faces;
                 getSortedFacesInsidePolygon( boundary, faces );
                 for( auto f : faces )
                 {
-                    f->data().pPartition = pPartition.get();
+                    if( f->data().pPartition )
+                    {
+                        pPartition = f->data().pPartition;
+                        break;
+                    }
                 }
             }
+            INVARIANT( !pPartition, "Boundary already has partition" );
+            if( !pPartition )
+            {
+                Partition::Ptr p = std::make_unique< Partition >();
+                pPartition       = p.get();
+                m_boundaries.emplace_back( std::move( p ) );
+            }
 
-            m_boundaries.emplace_back( std::move( pPartition ) );
+            for( auto f : faces )
+            {
+                INVARIANT(
+                    ( !f->data().pPartition ) || ( f->data().pPartition == pPartition ), "Face partition already set" );
+                f->data().pPartition = pPartition;
+            }
+
+            for( auto e : boundary )
+            {
+                e->data().pPartition = pPartition;
+            }
+        }
+    }
+
+    // test
+    {
+        for( auto e : boundaryEdges )
+        {
+            INVARIANT( e->data().pPartition, "Boundary edge with no partition" );
         }
     }
 
@@ -245,23 +305,39 @@ void Analysis::partition()
                 }
                 if( pPartition )
                 {
-                    PartitionSegment::Ptr pPartitionSegment = std::make_unique< PartitionSegment >();
-                    pPartition->segments.push_back( pPartitionSegment.get() );
+                    PartitionSegment* pPartitionSegment = nullptr;
+
+                    std::vector< Analysis::Arrangement::Face_handle > faces;
+                    getSortedFacesInsidePolygon( segmentBoundary, faces );
+                    for( auto f : faces )
+                    {
+                        if( f->data().pPartitionSegment )
+                        {
+                            pPartitionSegment = f->data().pPartitionSegment;
+                            break;
+                        }
+                    }
+                    if( !pPartitionSegment )
+                    {
+                        PartitionSegment::Ptr p = std::make_unique< PartitionSegment >();
+                        pPartitionSegment       = p.get();
+                        pPartition->segments.push_back( pPartitionSegment );
+                        m_boundarySegments.emplace_back( std::move( p ) );
+                    }
 
                     // set the faces with partitionSegment
+                    for( auto f : faces )
                     {
-                        std::vector< Analysis::Arrangement::Face_handle > faces;
-                        getSortedFacesInsidePolygon( segmentBoundary, faces );
-                        for( auto f : faces )
-                        {
-                            f->data().pPartitionSegment = pPartitionSegment.get();
-                        }
+                        INVARIANT(
+                            ( !f->data().pPartitionSegment ) || ( f->data().pPartitionSegment == pPartitionSegment ),
+                            "Face partition segment already set" );
+                        f->data().pPartitionSegment = pPartitionSegment;
                     }
 
                     for( auto e : segmentBoundary )
                     {
                         classify( e, EdgeMask::ePartitionBoundarySegment );
-                        e->data().pPartitionSegment = pPartitionSegment.get();
+                        e->data().pPartitionSegment = pPartitionSegment;
                         if( e->data().pPartition )
                         {
                             INVARIANT( e->data().pPartition == pPartition, "Inconstitent partition" );
@@ -271,7 +347,6 @@ void Analysis::partition()
                             e->data().pPartition = pPartition;
                         }
                     }
-                    m_boundarySegments.emplace_back( std::move( pPartitionSegment ) );
                 }
             }
         }

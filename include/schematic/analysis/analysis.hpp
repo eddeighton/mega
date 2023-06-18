@@ -95,7 +95,7 @@ public:
 
     Analysis( boost::shared_ptr< schematic::Schematic > pSchematic );
     void contours();
-    void connections();
+    void ports();
     void partition();
     void properties();
     void skeleton();
@@ -267,9 +267,7 @@ private:
                                    Arrangement::Halfedge_handle firstBisectorEdge,
                                    Arrangement::Halfedge_handle secondBisectorEdge );
     void cut( schematic::Site::Ptr pSite );
-    void propertiesRecurse( schematic::Site::Ptr                        pSpace,
-                            std::vector< schematic::Feature_Pin::Ptr >& pins,
-                            std::vector< schematic::Property::Ptr >&    properties );
+    void propertiesRecurse( schematic::Site::Ptr pSpace, std::vector< schematic::Property::Ptr >& properties );
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 
