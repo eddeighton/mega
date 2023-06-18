@@ -86,7 +86,7 @@
     </property>
     <addaction name="actionView_SiteContour"/>
     <addaction name="actionView_Walls"/>
-    <addaction name="actionView_Analysis"/>
+    <addaction name="actionView_Port"/>
     <addaction name="actionView_Partition"/>
     <addaction name="actionView_Properties"/>
     <addaction name="actionView_Skeleton"/>
@@ -176,8 +176,8 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout">
+   <widget class="QWidget" name="dockWidgetContents1">
+    <layout class="QVBoxLayout" name="verticalLayout1">
      <item>
       <widget class="editor::TreeView" name="treeView">
        <property name="selectionMode">
@@ -195,8 +195,8 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout">
+   <widget class="QWidget" name="dockWidgetContents2">
+    <layout class="QVBoxLayout" name="verticalLayout2">
      <item>
       <widget class="editor::ViewConfigPanel" name="config"/>
      </item>
@@ -210,8 +210,8 @@
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout">
+   <widget class="QWidget" name="dockWidgetContents3">
+    <layout class="QVBoxLayout" name="verticalLayout3">
      <item>
       <widget class="editor::MissionToolbox" name="toolBox">
        <property name="currentIndex">
@@ -242,8 +242,8 @@
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout">
+   <widget class="QWidget" name="dockWidgetContents4">
+    <layout class="QVBoxLayout" name="verticalLayout4">
      <item>
       <widget class="QPlainTextEdit" name="logView"/>
      </item>
@@ -605,7 +605,7 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="actionView_Analysis">
+  <action name="actionView_Port">
    <property name="text">
     <string>Ports</string>
    </property>

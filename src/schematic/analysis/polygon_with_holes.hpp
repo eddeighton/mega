@@ -66,12 +66,21 @@ public:
             case eInner:
                 return eOuter;
             case TOTAL_POLYNODE_TYPES:
+                return TOTAL_POLYNODE_TYPES;
             default:
                 INVARIANT( false, "Unexpected polynode type" );
                 break;
         }
     }
 
+    PolygonNode( const Analysis::HalfEdgeVector& polygon )
+        : m_type( TOTAL_POLYNODE_TYPES )
+        , m_polygon( polygon )
+    {
+        // NOTE: m_faces is sorted based on ptr
+        m_bPolygonIsFace = getSortedFacesInsidePolygon( m_polygon, m_faces );
+        INVARIANT( !m_faces.empty(), "No faces for polygon" );
+    }
     PolygonNode( Type type, const Analysis::HalfEdgeVector& polygon )
         : m_type( type )
         , m_polygon( polygon )
@@ -82,8 +91,8 @@ public:
     }
 
     int                             size() const { return m_faces.size(); }
-    bool                            outer() const { return m_type == eOuter; }
-    bool                            inner() const { return m_type == eInner; }
+    bool                            outer() const { return ( m_type == eOuter ) || ( m_type == TOTAL_POLYNODE_TYPES ); }
+    bool                            inner() const { return ( m_type == eInner ) || ( m_type == TOTAL_POLYNODE_TYPES ); }
     bool                            face() const { return m_bPolygonIsFace; }
     const Analysis::HalfEdgeVector& polygon() const { return m_polygon; }
     const Analysis::FaceVector&     faces() const { return m_faces; }
@@ -91,7 +100,7 @@ public:
     int                             validate( Type type = eOuter ) const
     {
         int count = 1;
-        INVARIANT( type == m_type, "Wrong polynode type" );
+        INVARIANT( ( m_type == TOTAL_POLYNODE_TYPES ) || ( type == m_type ), "Wrong polynode type" );
         for( auto c : m_contained )
         {
             INVARIANT( includes( *this, *c ), "Invalid child poly node" );
@@ -134,12 +143,91 @@ public:
     }
 
 private:
-    Type                     m_type;
+    const Type               m_type;
     bool                     m_bPolygonIsFace;
     Analysis::HalfEdgeVector m_polygon;
     Analysis::FaceVector     m_faces;
     PtrVector                m_contained;
 };
+
+// NOTE: outer and inner DOES NOT imply whether polygon is hole or face
+inline std::vector< PolygonNode::Ptr > getPolygonNodes( std::vector< PolygonNode::Ptr >& nodes )
+{
+    // construct a node for all polygons collecting their faces
+    using NodePtr    = PolygonNode::Ptr;
+    using NodeVector = std::vector< NodePtr >;
+
+    // sort in order of greatest to smallest
+    std::sort(
+        //
+        nodes.begin(), nodes.end(),
+        []( NodePtr pLeft, NodePtr pRight )
+        {
+            if( pLeft->size() == pRight->size() )
+            {
+                // if equal then hole is greater than face
+                if( PolygonNode::equal( *pLeft, *pRight ) )
+                {
+                    // NOTE: ONLY inner can contain outer - so order Inner > Outer
+                    INVARIANT( pLeft->inner() != pRight->inner(), "Equal polygons are same type" );
+                    return pLeft->inner();
+                }
+                // ensure equal face sets are adjacent
+                else
+                {
+                    return pLeft->faces() > pRight->faces();
+                }
+            }
+            // otherwise if intersect then one MUST contain the other
+            else if( PolygonNode::intersects( *pLeft, *pRight ) )
+            {
+                if( PolygonNode::includes( *pLeft, *pRight ) )
+                {
+                    return true;
+                }
+                else if( PolygonNode::includes( *pRight, *pLeft ) )
+                {
+                    return false;
+                }
+                else
+                {
+                    INVARIANT( false, "Polygons overlap but neither contains the other" );
+                }
+            }
+            // if disjoint then order by size
+            else
+            {
+                return pLeft->size() > pRight->size();
+            }
+        } );
+
+    NodeVector rootNodes;
+
+    for( NodePtr pNode : nodes )
+    {
+        bool bFoundParent = false;
+        for( auto pRoot : rootNodes )
+        {
+            if( pRoot->insert( pNode ) )
+            {
+                bFoundParent = true;
+                break;
+            }
+        }
+        if( !bFoundParent )
+            rootNodes.push_back( pNode );
+    }
+
+    int iCount = 0;
+    for( NodePtr r : rootNodes )
+    {
+        INVARIANT( r->outer(), "Root node is not outer node" );
+        iCount += r->validate();
+    }
+    INVARIANT( iCount == nodes.size(), "Poly tree error" );
+
+    return rootNodes;
+}
 
 // NOTE: outer and inner DOES NOT imply whether polygon is hole or face
 template < typename OuterEdgePredicate, typename InnerEdgePredicate >
@@ -176,75 +264,7 @@ inline std::vector< PolygonNode::Ptr > getPolygonNodes( Analysis::Arrangement& a
         }
     }
 
-    // sort in order of greatest to smallest
-    std::sort(
-        //
-        nodes.begin(), nodes.end(),
-        []( NodePtr pLeft, NodePtr pRight )
-        {
-            if( pLeft->size() == pRight->size() )
-            {
-                // if equal then hole is greater than face
-                if( PolygonNode::equal( *pLeft, *pRight ) )
-                {
-                    // NOTE: ONLY inner can contain outer - so order Inner > Outer
-                    INVARIANT( pLeft->inner() != pRight->inner(), "Equal polygons are same type" );
-                    return pLeft->inner();
-                }
-                // ensure equal face sets are adjacent
-                else
-                {
-                    return pLeft->faces() > pRight->faces();
-                }
-            }
-            // otherwise if intersect then one MUST contain the other
-            else if( PolygonNode::intersects( *pLeft, *pRight ) )
-            {
-                if( PolygonNode::includes( *pLeft, *pRight ) )
-                {
-                    return true;
-                }
-                else if( PolygonNode::includes( *pRight, *pLeft ) )
-                {
-                    return false;
-                }
-                else
-                {
-                    INVARIANT( false, "Polygons overlap but neight contains the other" );
-                }
-            }
-            // if disjoint then order by size
-            else
-            {
-                return pLeft->size() > pRight->size();
-            }
-        } );
-
-    NodeVector rootNodes;
-
-    for( NodePtr pNode : nodes )
-    {
-        bool bFoundParent = false;
-        for( auto pRoot : rootNodes )
-        {
-            if( pRoot->insert( pNode ) )
-            {
-                bFoundParent = true;
-                break;
-            }
-        }
-        if( !bFoundParent )
-            rootNodes.push_back( pNode );
-    }
-
-    int iCount = 0;
-    for( NodePtr r : rootNodes )
-    {
-        iCount += r->validate();
-    }
-    INVARIANT( iCount == nodes.size(), "Poly tree error" );
-
-    return rootNodes;
+    return getPolygonNodes( nodes );
 }
 
 template < typename OuterEdgePredicate, typename InnerEdgePredicate >

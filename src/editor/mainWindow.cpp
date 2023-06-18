@@ -82,7 +82,7 @@ MainWindow::MainWindow( QWidget* pParent )
         m_pCompilationModeComboBox->addItem( "Site" );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_SiteContour->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Walls->text() );
-        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Analysis->text() );
+        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Port->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Partition->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Properties->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Skeleton->text() );

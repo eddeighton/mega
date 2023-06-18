@@ -172,10 +172,13 @@ FlowView::FlowItem::FlowItem( FlowView& view, schematic::Schematic::Ptr pSchemat
                 {
                     auto i = strName.find_last_of( '/' );
                     if( i != std::string::npos )
-                        strName = strName.substr( i );
+                        strName = strName.substr( i + 1 );
                     i = strName.find_last_of( '\\' );
                     if( i != std::string::npos )
-                        strName = strName.substr( i );
+                        strName = strName.substr( i + 1 );
+
+                    // remove extension
+                    strName = strName.substr( 0, strName.find_last_of( '.' ) );
                 }
                 for( auto& c : strName )
                 {

@@ -57,13 +57,7 @@ public:
 
     const Site::PtrVector& getSites() const { return BaseType::getElements(); }
 
-    void task_contours();
-    void task_extrusions();
-    bool task_compilation( std::ostream& os );
-    bool task_partition( std::ostream& os );
-    bool task_properties( std::ostream& os );
-    bool task_skeleton( std::ostream& os );
-
+    bool compile( CompilationStage stage, std::ostream& os );
     void compileMap( const boost::filesystem::path& filePath );
 
     // GlyphSpecProducer

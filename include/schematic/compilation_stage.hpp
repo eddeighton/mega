@@ -28,7 +28,7 @@ enum CompilationStage
     eStage_Site,
     eStage_SiteContour,
     eStage_Extrusion,
-    eStage_Compilation,
+    eStage_Port,
     eStage_Partition,
     eStage_Properties,
     eStage_Skeleton,

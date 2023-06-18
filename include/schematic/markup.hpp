@@ -126,6 +126,7 @@ class MultiPolygonMarkup : public MarkupPolygonGroup
 {
 public:
     using PolygonVector = std::vector< Polygon >;
+    using PolygonWithHolesVector = std::vector< Polygon_with_holes >;
 
     MultiPolygonMarkup( const GlyphSpecProducer& producer,
                         const GlyphSpec*         pParent,
@@ -139,12 +140,13 @@ public:
     virtual bool                     paint( Painter& painter ) const;
     void                             reset();
     void                             setPolygons( const PolygonVector& polygons );
+    void                             setPolygons( const PolygonWithHolesVector& polygons );
 
 private:
     const GlyphSpecProducer& m_producer;
     const GlyphSpec*         m_pParent;
     Timing::UpdateTick       m_updateTick;
-    PolygonVector            m_polygons;
+    PolygonWithHolesVector   m_polygons;
     bool                     m_bFill;
     CompilationStage         m_compilationStage;
 };

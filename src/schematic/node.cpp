@@ -86,9 +86,22 @@ void Node::load( const format::Node& node )
     using NewSite = std::pair< Node::Ptr, const format::Node* >;
     std::vector< NewSite > newNodes( node.children.size() );
 
+    std::set< int > used;
     for( const auto& child : node.children )
     {
-        int                 szIndex   = child.first;
+        int szIndex = child.first;
+        if( used.contains( szIndex ) )
+        {
+            for( szIndex = 0; szIndex != node.children.size(); ++szIndex )
+            {
+                if( !used.contains( szIndex ) )
+                    break;
+            }
+        }
+        else
+        {
+            used.insert( szIndex );
+        }
         const format::Node& childSite = child.second;
 
         Node::Ptr pNewNode = schematic::construct( getPtr(), childSite );
@@ -106,7 +119,7 @@ void Node::load( const format::Node& node )
 
 void Node::save( format::Node& node ) const
 {
-    node.name = m_strName;
+    node.name  = m_strName;
     node.index = m_iIndex;
     for( Node::Ptr pChildNode : m_childrenOrdered )
     {

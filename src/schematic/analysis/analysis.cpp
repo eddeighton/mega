@@ -53,6 +53,60 @@ void Analysis::getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask
     }
 }
 
+void Analysis::getPartitionPolygons(
+    std::map< const Analysis::Partition*, exact::Polygon_with_holes >&        floors,
+    std::map< const Analysis::PartitionSegment*, exact::Polygon_with_holes >& boundaries ) // const
+{
+    using NodePtr    = typename PolygonNode::Ptr;
+    using NodeVector = std::vector< NodePtr >;
+    NodeVector nodes;
+    {
+        Analysis::HalfEdgeVectorVector floorPolygons;
+        {
+            Analysis::HalfEdgeSet outerEdges;
+            getEdges( m_arr, outerEdges,
+                      []( Arrangement::Halfedge_const_handle edge )
+                      { return edge->data().flags.test( EdgeMask::ePartitionFloor ); } );
+            getPolygonsDir( outerEdges, floorPolygons, true );
+        }
+        for( auto& poly : floorPolygons )
+        {
+            nodes.push_back( std::make_shared< PolygonNode >( poly ) );
+        }
+    }
+
+    auto rootNodes = getPolygonNodes( nodes );
+
+    struct Visitor
+    {
+        std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors;
+
+        void floor( const PolygonNode& node )
+        {
+            auto e          = node.polygon().front();
+            auto pPartition = e->data().pPartition;
+
+            HalfEdgePolygonWithHoles polyWithHoles;
+            polyWithHoles.outer = node.polygon();
+
+            for( auto pContour : node.contained() )
+            {
+                polyWithHoles.holes.push_back( pContour->polygon() );
+                for( auto pInner : pContour->contained() )
+                {
+                    floor( *pInner );
+                }
+            }
+            floors.insert( { pPartition, fromHalfEdgePolygonWithHoles( polyWithHoles ) } );
+        }
+    } visitor{ floors };
+
+    for( auto pNode : rootNodes )
+    {
+        visitor.floor( *pNode );
+    }
+}
+
 void Analysis::getVertices( VertexVector& vertices ) const
 {
     for( auto i = m_arr.vertices_begin(); i != m_arr.vertices_end(); ++i )
@@ -238,8 +292,7 @@ Analysis::Floor::Vector Analysis::getFloors()
         {
             //
             return !edge->data().flags.test( EdgeMask::eDoorStep )
-                   && ( edge->data().flags.test( EdgeMask::ePerimeter )
-                        || edge->data().flags.test( EdgeMask::ePartitionFloor )
+                   && ( edge->data().flags.test( EdgeMask::ePartitionFloor )
 
                         || edge->data().flags.test( EdgeMask::eExtrusionOne )
                         || edge->data().flags.test( EdgeMask::eExtrusionTwo )
@@ -253,12 +306,12 @@ Analysis::Floor::Vector Analysis::getFloors()
         []( Arrangement::Halfedge_const_handle edge )
         {
             //
-            return // edge->data().flags.test( EdgeMask::eDoorStep ) ||
-                edge->data().flags.test( EdgeMask::ePartitionBoundary )
-                || edge->data().flags.test( EdgeMask::eExtrusionOneBoundary )
-                || edge->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
-                || edge->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
-                || edge->data().flags.test( EdgeMask::eExtrusionFourBoundary );
+            return !edge->data().flags.test( EdgeMask::ePerimeterBoundary )
+                   && ( edge->data().flags.test( EdgeMask::ePartitionBoundary )
+                        || edge->data().flags.test( EdgeMask::eExtrusionOneBoundary )
+                        || edge->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
+                        || edge->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
+                        || edge->data().flags.test( EdgeMask::eExtrusionFourBoundary ) );
         } );
 
     Visitor visitor{ floors };

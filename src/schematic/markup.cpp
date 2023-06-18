@@ -98,8 +98,8 @@ bool MultiPolygonMarkup::paint( Painter& painter ) const
     if( painter.needsUpdate( m_updateTick ) )
     {
         painter.reset();
-        for( const Polygon& poly : m_polygons )
-            painter.polygon( poly );
+        for( const Polygon_with_holes& poly : m_polygons )
+            painter.polygonWithHoles( poly );
         painter.updated();
         return true;
     }
@@ -116,6 +116,16 @@ void MultiPolygonMarkup::reset()
 }
 
 void MultiPolygonMarkup::setPolygons( const PolygonVector& polygons )
+{
+    m_polygons.clear();
+    for( const auto& poly : polygons )
+    {
+        m_polygons.emplace_back( Polygon_with_holes{ poly } );
+    }
+    m_updateTick.update();
+}
+
+void MultiPolygonMarkup::setPolygons( const PolygonWithHolesVector& polygons )
 {
     m_polygons = polygons;
     m_updateTick.update();

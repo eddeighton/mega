@@ -69,18 +69,13 @@ public:
         {
             using namespace schematic;
 
-            pSchematic->task_contours();
-            pSchematic->task_extrusions();
-
             std::ostringstream osError;
-            if( !pSchematic->task_compilation( osError ) )
+            if( ! pSchematic->compile( schematic::TOTAL_COMPILAION_STAGES, osError ) )
             {
                 msg( taskProgress, osError.str() );
                 failed( taskProcess );
             }
 
-            Compilation::Ptr pCompilation = pSchematic->getCompilation();
-            VERIFY_RTE_MSG( pCompilation, "Failed to acquire schematic compilation" );
         }
 
         //pSchematicFile->

@@ -62,6 +62,10 @@ void Analysis::properties()
             {
                 INVARIANT( false, "Pin face has no parition: " << pPin->getName() );
             }
+            if( auto pPartitionSegment = face->data().pPartitionSegment )
+            {
+                pPartitionSegment->pins.push_back( pPin );
+            }
         }
         else if( CGAL::assign( halfedge, result ) )
         {
@@ -98,9 +102,11 @@ void collectProperties( schematic::Node::Ptr                        pNode,
         {
             continue;
         }
-
-        // collect everything else
-        collectProperties( pChild, pins, properties );
+        else
+        {
+            // collect everything else
+            collectProperties( pChild, pins, properties );
+        }
     }
 }
 

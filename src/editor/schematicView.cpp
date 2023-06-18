@@ -63,7 +63,7 @@ void SchematicView::onViewFocussed()
     
     CMD_CONNECT( actionView_SiteContour  , CmdViewSiteContour );
     CMD_CONNECT( actionView_Walls        , CmdViewWalls       );
-    CMD_CONNECT( actionView_Analysis     , CmdViewAnalysis    );
+    CMD_CONNECT( actionView_Port     , CmdViewPort    );
     CMD_CONNECT( actionView_Partition    , CmdViewPartition  );
     CMD_CONNECT( actionView_Properties   , CmdViewProperties  );
     CMD_CONNECT( actionView_Skeleton     , CmdViewSkeleton  );
@@ -89,7 +89,7 @@ void SchematicView::onViewUnfocussed()
 
     CMD_DISCONNECT( actionView_SiteContour, CmdViewSiteContour );
     CMD_DISCONNECT( actionView_Walls, CmdViewWalls );
-    CMD_DISCONNECT( actionView_Analysis, CmdViewAnalysis );
+    CMD_DISCONNECT( actionView_Port, CmdViewPort );
     CMD_DISCONNECT( actionView_Partition, CmdViewPartition );
     CMD_DISCONNECT( actionView_Properties, CmdViewProperties );
     CMD_DISCONNECT( actionView_Skeleton, CmdViewSkeleton );
@@ -261,9 +261,9 @@ void SchematicView::CmdViewWalls()
     configureCompilationStage( schematic::eStage_Extrusion );
 }
 
-void SchematicView::CmdViewAnalysis()
+void SchematicView::CmdViewPort()
 {
-    configureCompilationStage( schematic::eStage_Compilation );
+    configureCompilationStage( schematic::eStage_Port );
 }
 
 void SchematicView::CmdViewPartition()

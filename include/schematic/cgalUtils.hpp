@@ -30,12 +30,22 @@ namespace schematic::Utils
 template < typename KernelTo, typename KernelFrom >
 inline CGAL::Polygon_2< KernelTo > convert( const CGAL::Polygon_2< KernelFrom >& polyFrom )
 {
-    CGAL::Cartesian_converter< KernelFrom, KernelTo > converter;
-
-    CGAL::Polygon_2< KernelTo > result;
+    static CGAL::Cartesian_converter< KernelFrom, KernelTo > converter;
+    CGAL::Polygon_2< KernelTo >                              result;
     for( const typename KernelFrom::Point_2& p : polyFrom )
     {
         result.push_back( converter( p ) );
+    }
+    return result;
+}
+
+template < typename KernelTo, typename KernelFrom >
+inline CGAL::Polygon_with_holes_2< KernelTo > convert( const CGAL::Polygon_with_holes_2< KernelFrom >& polyFrom )
+{
+    CGAL::Polygon_with_holes_2< KernelTo > result( convert< KernelTo, KernelFrom >( polyFrom.outer_boundary() ) );
+    for( const auto& hole : polyFrom.holes() )
+    {
+        result.add_hole( convert< KernelTo, KernelFrom >( hole ) );
     }
     return result;
 }

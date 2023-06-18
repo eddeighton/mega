@@ -253,8 +253,7 @@ SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schemati
 }
 
 SchematicDocument::SchematicDocument( DocumentChangeObserver& observer, schematic::Schematic::Ptr pSchematic,
-                                      const schematic::CompilationStage config,
-                                      const boost::filesystem::path&               path )
+                                      const schematic::CompilationStage config, const boost::filesystem::path& path )
     : Document( observer, config, path )
     , m_pSchematic( pSchematic )
 {
@@ -267,40 +266,10 @@ void SchematicDocument::calculateDerived( const schematic::CompilationStage conf
 {
     if( m_pSchematic )
     {
-        bool               bWasError = false;
         std::ostringstream osError;
-        for( int iter = schematic::eStage_Site; iter <= config; ++iter )
+        if( !m_pSchematic->compile( config, osError ) )
         {
-            switch( static_cast< schematic::CompilationStage >( iter ) )
-            {
-                case schematic::eStage_Site:
-                    break;
-                case schematic::eStage_SiteContour:
-                    m_pSchematic->task_contours();
-                    break;
-                case schematic::eStage_Extrusion:
-                    m_pSchematic->task_extrusions();
-                    break;
-                case schematic::eStage_Compilation:
-                    bWasError = !m_pSchematic->task_compilation( osError );
-                    break;
-                case schematic::eStage_Partition:
-                    bWasError = !m_pSchematic->task_partition( osError );
-                    break;
-                case schematic::eStage_Properties:
-                    bWasError = !m_pSchematic->task_properties( osError );
-                    break;
-                case schematic::eStage_Skeleton:
-                    bWasError = !m_pSchematic->task_skeleton( osError );
-                    break;
-                default:
-                    break;
-            }
-            if( bWasError )
-            {
-                m_documentChangeObserver.OnDocumentError( this, osError.str() );
-                break;
-            }
+            m_documentChangeObserver.OnDocumentError( this, osError.str() );
         }
     }
 }

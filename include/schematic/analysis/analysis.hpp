@@ -35,7 +35,7 @@ namespace schematic
 class Schematic;
 class Feature_Pin;
 class Property;
-}
+} // namespace schematic
 
 namespace exact
 {
@@ -102,6 +102,9 @@ public:
 
     // query used by editor for edge visualisation
     void getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges ) const;
+    void getPartitionPolygons(
+        std::map< const Analysis::Partition*, exact::Polygon_with_holes >&        floors,
+        std::map< const Analysis::PartitionSegment*, exact::Polygon_with_holes >& boundaries ); // const;
 
     // queries used by map format
     using VertexVector         = std::vector< Arrangement::Vertex_const_handle >;
@@ -264,9 +267,9 @@ private:
                                    Arrangement::Halfedge_handle firstBisectorEdge,
                                    Arrangement::Halfedge_handle secondBisectorEdge );
     void cut( schematic::Site::Ptr pSite );
-    void propertiesRecurse( schematic::Site::Ptr pSpace,
-        std::vector< schematic::Feature_Pin::Ptr >& pins,
-        std::vector< schematic::Property::Ptr >& properties );
+    void propertiesRecurse( schematic::Site::Ptr                        pSpace,
+                            std::vector< schematic::Feature_Pin::Ptr >& pins,
+                            std::vector< schematic::Property::Ptr >&    properties );
 
     boost::shared_ptr< schematic::Schematic > m_pSchematic;
 

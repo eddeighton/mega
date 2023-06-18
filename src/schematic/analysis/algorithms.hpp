@@ -204,6 +204,9 @@ inline void getEdges( Analysis::Arrangement& arr, std::set< Analysis::Arrangemen
     }
 }
 
+// Using ALL edges find closed loops of halfedges with at least three edges each.
+// Each vertex found MUST have a single out edge.
+// Each edge MUST occur in a single polygon.
 template < typename HalfEdgeSetType, typename HalfEdgeVectorVectorType >
 inline void getPolygons( const HalfEdgeSetType& edges, HalfEdgeVectorVectorType& polygons )
 {
@@ -213,30 +216,87 @@ inline void getPolygons( const HalfEdgeSetType& edges, HalfEdgeVectorVectorType&
 
     while( !open.empty() )
     {
-        HalfEdge currentEdge = *open.begin();
-
         typename HalfEdgeVectorVectorType::value_type polygon;
-        while( currentEdge != HalfEdge{} )
-        {
-            polygon.push_back( currentEdge );
-            open.erase( currentEdge );
 
-            HalfEdge nextEdge = {};
+        HalfEdge edgeIter = *open.begin();
+        polygon.push_back( edgeIter );
+        open.erase( edgeIter );
+
+        auto startVert = edgeIter->source();
+        while( edgeIter->target() != startVert )
+        {
+            HalfEdge nextEdge     = {};
+            auto     incidentIter = edgeIter->target()->incident_halfedges(), incidentIterEnd = incidentIter;
+            do
             {
-                auto edgeIter = currentEdge->target()->incident_halfedges(), edgeIterEnd = edgeIter;
-                do
+                HalfEdge outEdge = incidentIter->twin();
+                if( open.contains( outEdge ) )
                 {
-                    HalfEdge outEdge = edgeIter->twin();
-                    if( ( currentEdge != outEdge ) && open.contains( outEdge ) )
-                    {
-                        INVARIANT( nextEdge == HalfEdge{}, "Duplicate next edge found" );
-                        nextEdge = outEdge;
-                    }
-                    ++edgeIter;
-                } while( edgeIter != edgeIterEnd );
-            }
-            currentEdge = nextEdge;
+                    INVARIANT( nextEdge == HalfEdge{}, "Duplicate next edge found" );
+                    nextEdge = outEdge;
+                }
+                ++incidentIter;
+            } while( incidentIter != incidentIterEnd );
+            INVARIANT( nextEdge != HalfEdge{}, "Failed to find next edge before polygon complete" );
+            edgeIter = nextEdge;
+
+            polygon.push_back( edgeIter );
+            open.erase( edgeIter );
         }
+
+        INVARIANT( polygon.size() >= 3, "Invalid polygon found with less than three edges" );
+        polygons.push_back( polygon );
+    }
+}
+
+// bDir == true means make the sharpest most acute turn counter clockwise when choosing next edge
+template < typename HalfEdgeSetType, typename HalfEdgeVectorVectorType >
+inline void getPolygonsDir( const HalfEdgeSetType& edges, HalfEdgeVectorVectorType& polygons, bool bDir = true )
+{
+    HalfEdgeSetType open = edges;
+
+    using HalfEdge = typename HalfEdgeSetType::value_type;
+
+    while( !open.empty() )
+    {
+        typename HalfEdgeVectorVectorType::value_type polygon;
+
+        HalfEdge edgeIter = *open.begin();
+        polygon.push_back( edgeIter );
+        open.erase( edgeIter );
+
+        auto startVert = edgeIter->source();
+        while( edgeIter->target() != startVert )
+        {
+            HalfEdge nextEdge     = {};
+            auto     incidentIter = edgeIter->target()->incident_halfedges();
+            while( incidentIter != edgeIter )
+                ++incidentIter;
+            auto incidentIterEnd = incidentIter;
+            do
+            {
+                if( bDir )
+                {
+                    ++incidentIter;
+                }
+                else
+                {
+                    --incidentIter;
+                }
+                HalfEdge outEdge = incidentIter->twin();
+                if( open.contains( outEdge ) )
+                {
+                    nextEdge = outEdge;
+                    break;
+                }
+            } while( incidentIter != incidentIterEnd );
+            INVARIANT( nextEdge != HalfEdge{}, "Failed to find next edge before polygon complete" );
+            edgeIter = nextEdge;
+
+            polygon.push_back( edgeIter );
+            open.erase( edgeIter );
+        }
+
         INVARIANT( polygon.size() >= 3, "Invalid polygon found with less than three edges" );
         polygons.push_back( polygon );
     }

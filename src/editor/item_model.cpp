@@ -248,10 +248,7 @@ QVariant ItemModel::data( const QModelIndex& index, int role ) const
             }
         }*/
     }
-    else
-    {
-        return {};
-    }
+    return {};
 }
 
 QVariant ItemModel::headerData( int section, Qt::Orientation orientation, int role ) const

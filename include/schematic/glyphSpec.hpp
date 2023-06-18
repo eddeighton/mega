@@ -65,6 +65,7 @@ public:
     virtual void lineTo( const Point& pt )                                 = 0;
     virtual void closePath()                                               = 0;
     virtual void polygon( const Polygon& polygon )                         = 0;
+    virtual void polygonWithHoles( const Polygon_with_holes& polygon )     = 0;
     virtual void segment( const Segment& from, exact::EdgeMask::Set mask ) = 0;
 };
 

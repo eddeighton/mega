@@ -222,6 +222,15 @@ public:
             ++sz;
         }
     }
+
+    virtual void polygonWithHoles( const schematic::Polygon_with_holes& polygon )
+    {
+        this->polygon( polygon.outer_boundary() );
+        for( const auto& hole : polygon.holes() )
+        {
+            this->polygon( hole );
+        }
+    }
 };
 
 //////////////////////////////////////////////////////////////////////

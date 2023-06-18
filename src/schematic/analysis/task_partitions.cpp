@@ -46,17 +46,22 @@ inline void locateHoleBoundariesFromDoorStep( Analysis::Arrangement::Halfedge_ha
         {
             const auto& flags = edge->data().flags;
 
-            const bool bIsBoundaryEdge = ( boundaryEdges.find( edge ) != boundaryEdges.end() );
+            // boundary edges are a superset of the floor edges
+            // can have situation where outer room contains multiple inner rooms
+            // where floor edges would only be outer contour
+            const bool bIsBoundaryEdge = boundaryEdges.find( edge ) != boundaryEdges.end();
             const bool bIsFloorEdge    = std::find( floorEdges.begin(), floorEdges.end(), edge ) != floorEdges.end();
 
-            // A hole within a floor partition MUST ALWAYS be a polygon of EXTERIOR edges or stuff around connection
-            // NOTE: exterior edges occur at the connection break edge which IS NOT in the floor partition
-            // const bool bIsHoleEdge = flags.test( EdgeMask::eExterior ) && !flags.test( EdgeMask::eConnectionBreak );
-
-            const bool bIsHoleEdge = ( flags.test( EdgeMask::eExterior ) || flags.test( EdgeMask::eConnectionBisector )
-                                       || flags.test( EdgeMask::eDoorStep ) )
-
-                                     && !flags.test( EdgeMask::eConnectionBreak );
+            // clang-format off
+            const bool bIsHoleEdge
+                = ( 
+                    flags.test( EdgeMask::eInterior ) || 
+                    flags.test( EdgeMask::eExterior ) || 
+                    flags.test( EdgeMask::eConnectionBisector ) || 
+                    flags.test( EdgeMask::eDoorStep ) 
+                 )
+                  && !flags.test( EdgeMask::eConnectionBreak );
+            // clang-format on
 
             if( !bIsFloorEdge && bIsHoleEdge )
             {
@@ -65,7 +70,7 @@ inline void locateHoleBoundariesFromDoorStep( Analysis::Arrangement::Halfedge_ha
             }
 
             // Prevent searching to the unbounded edge by not allowing EdgeMask::ePerimeter
-            return !bIsBoundaryEdge && !bIsHoleEdge && !flags.test( EdgeMask::ePerimeter );
+            return !bIsBoundaryEdge && !flags.test( EdgeMask::ePerimeter );
         } );
 }
 
@@ -118,8 +123,7 @@ void Analysis::partition()
                 {
                     classify( e->twin(), EdgeMask::ePartitionBoundary );
                 }
-
-                if( e->data().flags.test( EdgeMask::eDoorStep ) )
+                else
                 {
                     floorDoorSteps.insert( e );
                 }
@@ -184,7 +188,6 @@ void Analysis::partition()
             Partition::Ptr pPartition = std::make_unique< Partition >();
             for( auto e : boundary )
             {
-                classify( e, EdgeMask::ePartitionBoundary );
                 e->data().pPartition = pPartition.get();
             }
 

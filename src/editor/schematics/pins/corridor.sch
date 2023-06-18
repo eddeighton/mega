@@ -1,0 +1,11 @@
+Schematic(corridor;,0)
+{
+    Pin(pin_0000;,0)
+    {
+        position(0,0)
+        Property(type;,0)
+        {
+            value(Corridor;)
+        }
+    }
+}

@@ -49,7 +49,7 @@ public slots:
 
     void CmdViewSiteContour();
     void CmdViewWalls();
-    void CmdViewAnalysis();
+    void CmdViewPort();
     void CmdViewPartition();
     void CmdViewProperties();
     void CmdViewSkeleton();

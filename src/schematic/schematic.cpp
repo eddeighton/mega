@@ -18,14 +18,10 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "schematic/schematic.hpp"
-#include "schematic/file.hpp"
-#include "schematic/space.hpp"
-#include "schematic/wall.hpp"
-#include "schematic/object.hpp"
-#include "schematic/connection.hpp"
-#include "schematic/factory.hpp"
 
 #include "map/map_format.h"
+
+#include "schematic/cgalUtils.hpp"
 
 #include "CGAL/Constrained_Delaunay_triangulation_2.h"
 #include "CGAL/Triangulation_face_base_with_info_2.h"
@@ -54,7 +50,11 @@ void Schematic::init()
 
     if( !m_pAnalysisMarkup.get() )
     {
-        m_pAnalysisMarkup.reset( new MultiPathMarkup( *this, nullptr, eStage_Compilation ) );
+        m_pAnalysisMarkup.reset( new MultiPathMarkup( *this, nullptr, eStage_Port ) );
+    }
+    if( !m_pPropertyMarkup.get() )
+    {
+        m_pPropertyMarkup.reset( new MultiPolygonMarkup( *this, nullptr, true, eStage_Properties ) );
     }
 }
 
@@ -77,106 +77,74 @@ void Schematic::save( format::Node& node ) const
     File::save( node );
 }
 
-void Schematic::task_contours()
+bool Schematic::compile( CompilationStage stage, std::ostream& os )
 {
-    for( Site::Ptr pSite : getSites() )
-    {
-        pSite->task_contour();
-    }
-}
+    const int iStage = static_cast< int >( stage );
 
-void Schematic::task_extrusions()
-{
-    for( Site::Ptr pSite : getSites() )
+    Schematic::Ptr pThis = boost::dynamic_pointer_cast< Schematic >( getPtr() );
+
+    try
     {
-        if( Space::Ptr pSpace = boost::dynamic_pointer_cast< Space >( pSite ) )
+        if( iStage >= eStage_SiteContour )
         {
-            pSpace->task_extrusions();
+            for( Site::Ptr pSite : getSites() )
+            {
+                pSite->task_contour();
+            }
         }
-    }
-}
 
-bool Schematic::task_compilation( std::ostream& os )
-{
-    std::vector< MultiPathMarkup::SegmentMask > edges;
-    try
-    {
-        Schematic::Ptr pThis = boost::dynamic_pointer_cast< Schematic >( getPtr() );
+        if( iStage >= eStage_Extrusion )
+        {
+            for( Site::Ptr pSite : getSites() )
+            {
+                if( Space::Ptr pSpace = boost::dynamic_pointer_cast< Space >( pSite ) )
+                {
+                    pSpace->task_extrusions();
+                }
+            }
+        }
 
-        m_pAnalysis.reset();
-        m_pAnalysis.reset( new exact::Analysis( pThis ) );
-        m_pAnalysis->contours();
-        m_pAnalysis->connections();
-        m_pAnalysis->getAllEdges( edges );
-        m_pAnalysisMarkup->set( edges );
-    }
-    catch( std::exception& ex )
-    {
-        os << ex.what();
-        edges.clear();
-        m_pAnalysisMarkup->set( edges );
-        return false;
-    }
+        if( iStage >= eStage_Port )
+        {
+            m_pAnalysis.reset();
+            m_pAnalysis.reset( new exact::Analysis( pThis ) );
+            m_pAnalysis->contours();
+            m_pAnalysis->connections();
 
-    return true;
-}
+            std::vector< MultiPathMarkup::SegmentMask > edges;
+            m_pAnalysis->getAllEdges( edges );
+            m_pAnalysisMarkup->set( edges );
+        }
 
-bool Schematic::task_partition( std::ostream& os )
-{
-    std::vector< MultiPathMarkup::SegmentMask > edges;
-    try
-    {
-        if( m_pAnalysis )
+        if( iStage >= eStage_Partition )
         {
             m_pAnalysis->partition();
+
+            std::vector< MultiPathMarkup::SegmentMask > edges;
             m_pAnalysis->getAllEdges( edges );
             m_pAnalysisMarkup->set( edges );
         }
-    }
-    catch( std::exception& ex )
-    {
-        os << ex.what();
-        m_pAnalysis.reset();
-        edges.clear();
-        m_pAnalysisMarkup->set( edges );
-        return false;
-    }
 
-    return true;
-}
-
-bool Schematic::task_properties( std::ostream& os )
-{
-    //std::vector< MultiPathMarkup::SegmentMask > edges;
-    try
-    {
-        if( m_pAnalysis )
+        if( iStage >= eStage_Properties )
         {
             m_pAnalysis->properties();
-            //m_pAnalysis->getPropertyPolygons( edges );
-            //m_pAnalysisMarkup->set( edges );
+            std::map< const exact::Analysis::Partition*, exact::Polygon_with_holes >        floors;
+            std::map< const exact::Analysis::PartitionSegment*, exact::Polygon_with_holes > boundaries;
+            m_pAnalysis->getPartitionPolygons( floors, boundaries );
+
+            std::vector< schematic::Polygon_with_holes > polygons;
+            for( const auto& [ pPartition, poly ] : floors )
+            {
+                polygons.push_back( Utils::convert< schematic::Kernel >( poly ) );
+            }
+            m_pPropertyMarkup->setPolygons( polygons );
         }
-    }
-    catch( std::exception& ex )
-    {
-        os << ex.what();
-        m_pAnalysis.reset();
-        /*edges.clear();
-        m_pPropertyMarkup->set( edges );*/
-        return false;
-    }
 
-    return true;
-}
-
-bool Schematic::task_skeleton( std::ostream& os )
-{
-    std::vector< MultiPathMarkup::SegmentMask > edges;
-    try
-    {
-        if( m_pAnalysis )
+        if( iStage >= eStage_Skeleton )
         {
             m_pAnalysis->skeleton();
+
+            std::vector< MultiPathMarkup::SegmentMask > edges;
             m_pAnalysis->getAllEdges( edges );
             m_pAnalysisMarkup->set( edges );
         }
@@ -184,9 +152,15 @@ bool Schematic::task_skeleton( std::ostream& os )
     catch( std::exception& ex )
     {
         os << ex.what();
-        m_pAnalysis.reset();
-        edges.clear();
-        m_pAnalysisMarkup->set( edges );
+        m_pAnalysisMarkup->reset();
+        m_pPropertyMarkup->reset();
+        return false;
+    }
+    catch( ... )
+    {
+        os << "Unknown exception compiling schematic";
+        m_pAnalysisMarkup->reset();
+        m_pPropertyMarkup->reset();
         return false;
     }
 
@@ -198,6 +172,8 @@ bool Schematic::task_skeleton( std::ostream& os )
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
 // Map compilation routines
+namespace
+{
 namespace fb = flatbuffers;
 
 using AreaMap = std::map< Site::Ptr, fb::Offset< Mega::Area > >;
@@ -555,17 +531,13 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
         const Mega::F3 normal( tPerp.x() / mag, tPerp.y() / mag, 0.0f );
         const Mega::F4 tangent( tPerp.x() / mag, tPerp.y() / mag, 0.0f, 0.0f );
 
-        auto sLower
-            = buildVertex( builder, vertices, Mega::F2( fUVDist, 0 ), normal, tangent, sVert, lower );
-        auto sUpper
-            = buildVertex( builder, vertices, Mega::F2( fUVDist, 1 ), normal, tangent, sVert, upper );
+        auto sLower = buildVertex( builder, vertices, Mega::F2( fUVDist, 0 ), normal, tangent, sVert, lower );
+        auto sUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, 1 ), normal, tangent, sVert, upper );
 
         fUVDist += mag;
 
-        auto tLower
-            = buildVertex( builder, vertices, Mega::F2( fUVDist, 0 ), normal, tangent, tVert, lower );
-        auto tUpper
-            = buildVertex( builder, vertices, Mega::F2( fUVDist, 1 ), normal, tangent, tVert, upper );
+        auto tLower = buildVertex( builder, vertices, Mega::F2( fUVDist, 0 ), normal, tangent, tVert, lower );
+        auto tUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, 1 ), normal, tangent, tVert, upper );
 
         indices.push_back( sLower );
         indices.push_back( tLower );
@@ -586,33 +558,16 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
 
     return meshBuilder.Finish();
 }
+} // namespace
 
 void Schematic::compileMap( const boost::filesystem::path& filePath )
 {
     using PolyWivOwls = exact::Analysis::HalfEdgePolygonWithHoles;
 
-    if( !m_pAnalysis )
+    std::ostringstream osError;
+    if( !compile( schematic::TOTAL_COMPILAION_STAGES, osError ) )
     {
-        std::ostringstream osError;
-
-        task_contours();
-        task_extrusions();
-        if( !task_compilation( osError ) )
-        {
-            throw std::runtime_error( osError.str() );
-        }
-        if( !task_partition( osError ) )
-        {
-            throw std::runtime_error( osError.str() );
-        }
-        if( !task_properties( osError ) )
-        {
-            throw std::runtime_error( osError.str() );
-        }
-        if( !task_skeleton( osError ) )
-        {
-            throw std::runtime_error( osError.str() );
-        }
+        throw std::runtime_error( osError.str() );
     }
     VERIFY_RTE_MSG( m_pAnalysis, "Schematic analysis failed" );
 
