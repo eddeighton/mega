@@ -128,9 +128,12 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
         if( iStage >= eStage_Properties )
         {
             m_pAnalysis->properties();
-            std::map< const exact::Analysis::Partition*, exact::Polygon_with_holes >        floors;
-            std::map< const exact::Analysis::PartitionSegment*, exact::Polygon_with_holes > boundaries;
-            m_pAnalysis->getPartitionPolygons( floors, boundaries );
+
+            std::map< const exact::Analysis::Partition*, exact::Polygon_with_holes > floors;
+            m_pAnalysis->getFloorPartitions( floors );
+
+            std::map< const exact::Analysis::PartitionSegment*, exact::Polygon > boundaries;
+            m_pAnalysis->getBoundaryPartitions( boundaries );
 
             MultiPolygonMarkup::PolygonWithHolesVector polygons;
             MultiPolygonMarkup::PolygonStyles          styles;
@@ -148,6 +151,21 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
                 }
                 styles.push_back( strStyle );
             }
+            for( const auto& [ pPartitionSegment, poly ] : boundaries )
+            {
+                polygons.push_back( Polygon_with_holes{ Utils::convert< schematic::Kernel >( poly ) } );
+
+                std::string strStyle = "";
+                for( auto pProperty : pPartitionSegment->properties )
+                {
+                    if( pProperty->getName() == "type" )
+                    {
+                        strStyle = pProperty->getValue();
+                    }
+                }
+                styles.push_back( strStyle );
+            }
+
             m_pPropertiesMarkup->setPolygons( polygons );
             m_pPropertiesMarkup->setStyles( styles );
         }
@@ -571,6 +589,23 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
 
     return meshBuilder.Finish();
 }
+
+Mega::Plane convert( exact::Analysis::PartitionSegment::Plane plane )
+{
+    switch( plane )
+    {
+        case exact::Analysis::PartitionSegment::eHole:
+            return Mega::Plane_eHole;
+        case exact::Analysis::PartitionSegment::eGround:
+            return Mega::Plane_eGround;
+        case exact::Analysis::PartitionSegment::eMid:
+            return Mega::Plane_eMid;
+        case exact::Analysis::PartitionSegment::eCeiling:
+            return Mega::Plane_eCeiling;
+        default:
+            THROW_RTE( "Unknone plane type" );
+    }
+}
 } // namespace
 
 void Schematic::compileMap( const boost::filesystem::path& filePath )
@@ -699,7 +734,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             for( const auto& pane : boundary.panes )
             {
                 auto pMesh
-                    = buildVerticalMesh( fbVertMap, Mega::Plane_eMid, Mega::Plane_eCeiling, pane.edges, builder );
+                    = buildVerticalMesh( fbVertMap, convert( pane.lower ), convert( pane.upper ), pane.edges, builder );
                 Mega::PaneBuilder paneBuilder( builder );
                 paneBuilder.add_quad( pMesh );
                 fbPaneVec.push_back( paneBuilder.Finish() );
@@ -707,47 +742,17 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
 
             auto fbPanes = builder.CreateVector( fbPaneVec );
 
-            std::vector< fb::Offset< Mega::WallSection > > fbWallHoles;
-            std::vector< fb::Offset< Mega::WallSection > > fbWallGrounds;
-            std::vector< fb::Offset< Mega::WallSection > > fbWallLowers;
-            std::vector< fb::Offset< Mega::WallSection > > fbWallUppers;
-
-            for( const Analysis::Boundary::WallSection& wall : boundary.wall_hole )
+            std::vector< fb::Offset< Mega::WallSection > > fbWalls;
+            for( const Analysis::Boundary::WallSection& wall : boundary.walls )
             {
                 auto pMesh
-                    = buildVerticalMesh( fbVertMap, Mega::Plane_eHole, Mega::Plane_eGround, wall.edges, builder );
+                    = buildVerticalMesh( fbVertMap, convert( wall.lower ), convert( wall.upper ), wall.edges, builder );
                 Mega::WallSection::Builder wallBuilder( builder );
                 wallBuilder.add_mesh( pMesh );
-                fbWallHoles.push_back( wallBuilder.Finish() );
-            }
-            for( const Analysis::Boundary::WallSection& wall : boundary.wall_ground )
-            {
-                auto pMesh
-                    = buildVerticalMesh( fbVertMap, Mega::Plane_eGround, Mega::Plane_eCeiling, wall.edges, builder );
-                Mega::WallSection::Builder wallBuilder( builder );
-                wallBuilder.add_mesh( pMesh );
-                fbWallGrounds.push_back( wallBuilder.Finish() );
-            }
-            for( const Analysis::Boundary::WallSection& wall : boundary.wall_lower )
-            {
-                auto pMesh = buildVerticalMesh( fbVertMap, Mega::Plane_eGround, Mega::Plane_eMid, wall.edges, builder );
-                Mega::WallSection::Builder wallBuilder( builder );
-                wallBuilder.add_mesh( pMesh );
-                fbWallLowers.push_back( wallBuilder.Finish() );
-            }
-            for( const Analysis::Boundary::WallSection& wall : boundary.wall_upper )
-            {
-                auto pMesh
-                    = buildVerticalMesh( fbVertMap, Mega::Plane_eMid, Mega::Plane_eCeiling, wall.edges, builder );
-                Mega::WallSection::Builder wallBuilder( builder );
-                wallBuilder.add_mesh( pMesh );
-                fbWallUppers.push_back( wallBuilder.Finish() );
+                fbWalls.push_back( wallBuilder.Finish() );
             }
 
-            auto fbWallHoleVec   = builder.CreateVector( fbWallHoles );
-            auto fbWallGroundVec = builder.CreateVector( fbWallGrounds );
-            auto fbWallLowerVec  = builder.CreateVector( fbWallLowers );
-            auto fbWallUpperVec  = builder.CreateVector( fbWallUppers );
+            auto fbWallVec = builder.CreateVector( fbWalls );
 
             Mega::Boundary::Builder boundaryBuilder( builder );
 
@@ -758,10 +763,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
 
             boundaryBuilder.add_vert_panes( fbPanes );
 
-            boundaryBuilder.add_wall_hole( fbWallHoleVec );
-            boundaryBuilder.add_wall_ground( fbWallGroundVec );
-            boundaryBuilder.add_wall_lower( fbWallLowerVec );
-            boundaryBuilder.add_wall_upper( fbWallUpperVec );
+            boundaryBuilder.add_walls( fbWallVec );
 
             auto pBoundary = boundaryBuilder.Finish();
             fbBoundaryVec.push_back( pBoundary );

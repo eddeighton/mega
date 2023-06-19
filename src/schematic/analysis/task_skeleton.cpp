@@ -42,13 +42,10 @@ void Analysis::skeleton()
     getPolyonsWithHoles(
         m_arr,
         // OuterEdgePredicate
-        []( Arrangement::Halfedge_const_handle edge ) { return edge->data().flags.test( EdgeMask::ePerimeter ); },
+        []( Arrangement::Halfedge_const_handle edge ) { return test( edge, EdgeMask::ePerimeter ); },
         // InnerEdgePredicate
         []( Arrangement::Halfedge_const_handle edge )
-        {
-            return edge->data().flags.test( EdgeMask::ePartitionBoundary )
-                   && !edge->data().flags.test( EdgeMask::ePerimeterBoundary );
-        },
+        { return test( edge, EdgeMask::ePartitionBoundary ) && !test( edge, EdgeMask::ePerimeterBoundary ); },
         floors );
 
     INVARIANT( floors.size() == 1, "Failed to locate single floor" );
@@ -100,4 +97,4 @@ void Analysis::skeleton()
     }
 }
 
-}
+} // namespace exact

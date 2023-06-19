@@ -114,13 +114,6 @@ TEST( Schematic, Arrangement_InsertCurveAndGetInducedEdges )
     }
 }
 
-static exact::Analysis::HalfEdgeData makeEdgeData( exact::EdgeMask::Type edgeMaskType )
-{
-    exact::Analysis::HalfEdgeData data;
-    data.flags.set( edgeMaskType );
-    return data;
-}
-
 TEST( Schematic, Arrangement_EdgeIntersect )
 {
     using namespace exact;
@@ -139,8 +132,8 @@ TEST( Schematic, Arrangement_EdgeIntersect )
         for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
         {
             Arrangement::Halfedge_handle h = *i;
-            h->set_data( makeEdgeData( exact::EdgeMask::eInterior ) );
-            h->twin()->set_data( makeEdgeData( exact::EdgeMask::eInterior ) );
+            classify( h, exact::EdgeMask::eInterior );
+            classify( h->twin(), exact::EdgeMask::eInterior );
             ++iCounter;
         }
         ASSERT_EQ( iCounter, 1 );
@@ -152,18 +145,18 @@ TEST( Schematic, Arrangement_EdgeIntersect )
         for( auto i = arr.induced_edges_begin( firstCurve ); i != arr.induced_edges_end( firstCurve ); ++i )
         {
             Arrangement::Halfedge_handle h = *i;
-            h->set_data( makeEdgeData( exact::EdgeMask::eSite ) );
-            h->twin()->set_data( makeEdgeData( exact::EdgeMask::eSite ) );
+            classify( h, exact::EdgeMask::eSite );
+            classify( h->twin(), exact::EdgeMask::eSite );
             ++iCounter;
         }
         ASSERT_EQ( iCounter, 2 );
     }
 
     {
-        std::vector< CGAL::Object >  objects;
-        Arrangement::Face_handle     face;
-        Arrangement::Halfedge_handle halfedge;
-        Arrangement::Vertex_handle   vertex;
+        std::vector< CGAL::Object >        objects;
+        Arrangement::Face_handle           face;
+        Arrangement::Halfedge_handle       halfedge;
+        Arrangement::Vertex_handle         vertex;
         CGAL::zone( arr, Curve( p1, p2 ), std::back_inserter( objects ) );
 
         int iFaces = 0, iHalfEdges = 0, iVertices = 0;
@@ -176,8 +169,8 @@ TEST( Schematic, Arrangement_EdgeIntersect )
             else if( CGAL::assign( halfedge, obj ) )
             {
                 iHalfEdges++;
-                ASSERT_TRUE( halfedge->data().flags.test( exact::EdgeMask::eInterior ) );
-                ASSERT_FALSE( halfedge->data().flags.test( exact::EdgeMask::eSite ) );
+                ASSERT_TRUE( test( halfedge, exact::EdgeMask::eInterior ) );
+                ASSERT_FALSE( test( halfedge, exact::EdgeMask::eSite ) );
             }
             else if( CGAL::assign( vertex, obj ) )
             {
@@ -216,7 +209,7 @@ TEST( Schematic, Arrangement_FaceIntersect )
         }
     }
     ASSERT_EQ( arr.number_of_faces(), 2 );
-    
+
     {
         int iCounter = 0;
         for( auto i = arr.faces_begin(), iEnd = arr.faces_end(); i != iEnd; ++i )
@@ -233,10 +226,9 @@ TEST( Schematic, Arrangement_FaceIntersect )
     // now split the face
 
     {
-        const Point p1( 1, -1 ), p2( 1, 4 );
-        Arrangement::Curve_handle firstCurve  = CGAL::insert( arr, Curve( p1, p2 ) );
+        const Point               p1( 1, -1 ), p2( 1, 4 );
+        Arrangement::Curve_handle firstCurve = CGAL::insert( arr, Curve( p1, p2 ) );
     }
-
 
     ASSERT_EQ( arr.number_of_faces(), 3 );
 
@@ -254,5 +246,3 @@ TEST( Schematic, Arrangement_FaceIntersect )
         ASSERT_EQ( iCounter, 2 );
     }
 }
-
-

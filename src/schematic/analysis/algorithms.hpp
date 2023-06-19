@@ -204,6 +204,39 @@ inline void getEdges( Analysis::Arrangement& arr, std::set< Analysis::Arrangemen
     }
 }
 
+template < typename Type, typename Predicate >
+inline void getSubSequences( const std::vector< Type >& sequence, std::vector< std::vector< Type > >& subSequences,
+                             Predicate&& predicate )
+{
+    std::vector< Type > active;
+    const bool          bFirstTrue = sequence.empty() ? false : predicate( sequence.front() );
+    for( auto e : sequence )
+    {
+        if( predicate( e ) )
+        {
+            active.push_back( e );
+        }
+        else if( !active.empty() )
+        {
+            subSequences.push_back( active );
+            active.clear();
+        }
+    }
+    if( !active.empty() )
+    {
+        if( bFirstTrue )
+        {
+            // if the very first element passed predicate then the final sequence should be prepended
+            std::copy( subSequences[ 0 ].begin(), subSequences[ 0 ].end(), std::back_inserter( active ) );
+            subSequences[ 0 ] = active;
+        }
+        else
+        {
+            subSequences.push_back( active );
+        }
+    }
+}
+
 // Using ALL edges find closed loops of halfedges with at least three edges each.
 // Each vertex found MUST have a single out edge.
 // Each edge MUST occur in a single polygon.

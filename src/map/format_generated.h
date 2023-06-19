@@ -1380,10 +1380,7 @@ struct Boundary FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_HORI_MIDS = 14,
     VT_HORI_CEILINGS = 16,
     VT_VERT_PANES = 18,
-    VT_WALL_HOLE = 20,
-    VT_WALL_GROUND = 22,
-    VT_WALL_LOWER = 24,
-    VT_WALL_UPPER = 26
+    VT_WALLS = 20
   };
   const Mega::Type *type() const {
     return GetStruct<const Mega::Type *>(VT_TYPE);
@@ -1409,17 +1406,8 @@ struct Boundary FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Pane>> *vert_panes() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Pane>> *>(VT_VERT_PANES);
   }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *wall_hole() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *>(VT_WALL_HOLE);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *wall_ground() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *>(VT_WALL_GROUND);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *wall_lower() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *>(VT_WALL_LOWER);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *wall_upper() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *>(VT_WALL_UPPER);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *walls() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>> *>(VT_WALLS);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1444,18 +1432,9 @@ struct Boundary FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_VERT_PANES) &&
            verifier.VerifyVector(vert_panes()) &&
            verifier.VerifyVectorOfTables(vert_panes()) &&
-           VerifyOffset(verifier, VT_WALL_HOLE) &&
-           verifier.VerifyVector(wall_hole()) &&
-           verifier.VerifyVectorOfTables(wall_hole()) &&
-           VerifyOffset(verifier, VT_WALL_GROUND) &&
-           verifier.VerifyVector(wall_ground()) &&
-           verifier.VerifyVectorOfTables(wall_ground()) &&
-           VerifyOffset(verifier, VT_WALL_LOWER) &&
-           verifier.VerifyVector(wall_lower()) &&
-           verifier.VerifyVectorOfTables(wall_lower()) &&
-           VerifyOffset(verifier, VT_WALL_UPPER) &&
-           verifier.VerifyVector(wall_upper()) &&
-           verifier.VerifyVectorOfTables(wall_upper()) &&
+           VerifyOffset(verifier, VT_WALLS) &&
+           verifier.VerifyVector(walls()) &&
+           verifier.VerifyVectorOfTables(walls()) &&
            verifier.EndTable();
   }
 };
@@ -1488,17 +1467,8 @@ struct BoundaryBuilder {
   void add_vert_panes(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Pane>>> vert_panes) {
     fbb_.AddOffset(Boundary::VT_VERT_PANES, vert_panes);
   }
-  void add_wall_hole(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> wall_hole) {
-    fbb_.AddOffset(Boundary::VT_WALL_HOLE, wall_hole);
-  }
-  void add_wall_ground(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> wall_ground) {
-    fbb_.AddOffset(Boundary::VT_WALL_GROUND, wall_ground);
-  }
-  void add_wall_lower(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> wall_lower) {
-    fbb_.AddOffset(Boundary::VT_WALL_LOWER, wall_lower);
-  }
-  void add_wall_upper(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> wall_upper) {
-    fbb_.AddOffset(Boundary::VT_WALL_UPPER, wall_upper);
+  void add_walls(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> walls) {
+    fbb_.AddOffset(Boundary::VT_WALLS, walls);
   }
   explicit BoundaryBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1521,15 +1491,9 @@ inline ::flatbuffers::Offset<Boundary> CreateBoundary(
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> hori_mids = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> hori_ceilings = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Pane>>> vert_panes = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> wall_hole = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> wall_ground = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> wall_lower = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> wall_upper = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::WallSection>>> walls = 0) {
   BoundaryBuilder builder_(_fbb);
-  builder_.add_wall_upper(wall_upper);
-  builder_.add_wall_lower(wall_lower);
-  builder_.add_wall_ground(wall_ground);
-  builder_.add_wall_hole(wall_hole);
+  builder_.add_walls(walls);
   builder_.add_vert_panes(vert_panes);
   builder_.add_hori_ceilings(hori_ceilings);
   builder_.add_hori_mids(hori_mids);
@@ -1551,20 +1515,14 @@ inline ::flatbuffers::Offset<Boundary> CreateBoundaryDirect(
     const std::vector<::flatbuffers::Offset<Mega::Mesh>> *hori_mids = nullptr,
     const std::vector<::flatbuffers::Offset<Mega::Mesh>> *hori_ceilings = nullptr,
     const std::vector<::flatbuffers::Offset<Mega::Pane>> *vert_panes = nullptr,
-    const std::vector<::flatbuffers::Offset<Mega::WallSection>> *wall_hole = nullptr,
-    const std::vector<::flatbuffers::Offset<Mega::WallSection>> *wall_ground = nullptr,
-    const std::vector<::flatbuffers::Offset<Mega::WallSection>> *wall_lower = nullptr,
-    const std::vector<::flatbuffers::Offset<Mega::WallSection>> *wall_upper = nullptr) {
+    const std::vector<::flatbuffers::Offset<Mega::WallSection>> *walls = nullptr) {
   auto properties__ = properties ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Properties>>(*properties) : 0;
   auto hori_holes__ = hori_holes ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*hori_holes) : 0;
   auto hori_floors__ = hori_floors ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*hori_floors) : 0;
   auto hori_mids__ = hori_mids ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*hori_mids) : 0;
   auto hori_ceilings__ = hori_ceilings ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*hori_ceilings) : 0;
   auto vert_panes__ = vert_panes ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Pane>>(*vert_panes) : 0;
-  auto wall_hole__ = wall_hole ? _fbb.CreateVector<::flatbuffers::Offset<Mega::WallSection>>(*wall_hole) : 0;
-  auto wall_ground__ = wall_ground ? _fbb.CreateVector<::flatbuffers::Offset<Mega::WallSection>>(*wall_ground) : 0;
-  auto wall_lower__ = wall_lower ? _fbb.CreateVector<::flatbuffers::Offset<Mega::WallSection>>(*wall_lower) : 0;
-  auto wall_upper__ = wall_upper ? _fbb.CreateVector<::flatbuffers::Offset<Mega::WallSection>>(*wall_upper) : 0;
+  auto walls__ = walls ? _fbb.CreateVector<::flatbuffers::Offset<Mega::WallSection>>(*walls) : 0;
   return Mega::CreateBoundary(
       _fbb,
       type,
@@ -1575,10 +1533,7 @@ inline ::flatbuffers::Offset<Boundary> CreateBoundaryDirect(
       hori_mids__,
       hori_ceilings__,
       vert_panes__,
-      wall_hole__,
-      wall_ground__,
-      wall_lower__,
-      wall_upper__);
+      walls__);
 }
 
 struct Floor FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

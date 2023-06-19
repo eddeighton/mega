@@ -131,7 +131,6 @@ void Analysis::properties()
         {
             if( auto pPartition = face->data().pPartition )
             {
-                INVARIANT( pPartition->pSite, "Face partition missing site" );
                 pPartition->pins.push_back( pPin );
                 collectProperties( pPin, pPartition->properties );
             }
@@ -143,6 +142,34 @@ void Analysis::properties()
             {
                 pPartitionSegment->pins.push_back( pPin );
                 collectProperties( pPin, pPartitionSegment->properties );
+
+                // determine the partition segment plane
+                for( const auto pProperty : pPartitionSegment->properties )
+                {
+                    if( pProperty->getName() == "plane" )
+                    {
+                        if( pProperty->getValue() == "Hole" )
+                        {
+                            pPartitionSegment->plane = PartitionSegment::eHole;
+                        }
+                        else if( pProperty->getValue() == "Ground" )
+                        {
+                            pPartitionSegment->plane = PartitionSegment::eGround;
+                        }
+                        else if( pProperty->getValue() == "Mid" )
+                        {
+                            pPartitionSegment->plane = PartitionSegment::eMid;
+                        }
+                        else if( pProperty->getValue() == "Ceiling" )
+                        {
+                            pPartitionSegment->plane = PartitionSegment::eCeiling;
+                        }
+                        else
+                        {
+                            INVARIANT( false, "Unrecognised plane type: " << pProperty->getValue() );
+                        }
+                    }
+                }
             }
         }
         else if( CGAL::assign( halfedge, result ) )

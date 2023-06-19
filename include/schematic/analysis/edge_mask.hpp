@@ -25,28 +25,34 @@
 
 namespace exact
 {
-    class EdgeMask
+class EdgeMask
+{
+public:
+    enum Type
     {
-    public:
-        enum Type
-        {
-#define     FLAG(name)e##name,
+#define FLAG( name ) e##name,
 #include "schematic/analysis/edge_mask_types.hxx"
 #undef FLAG
-            TOTAL_MASK_TYPES
-        };
-        
-        using Set = std::bitset< TOTAL_MASK_TYPES >;
-
-        static const char* toStr( Type mask );
-        static Type fromStr( const char* pszName );
+        TOTAL_MASK_TYPES
     };
 
-    template < typename TEdgeType >
-    inline void classify( TEdgeType h, EdgeMask::Type mask )
-    {
-        h->data().flags.set( mask );
-    }
+    using Set = std::bitset< TOTAL_MASK_TYPES >;
+
+    static const char* toStr( Type mask );
+    static Type        fromStr( const char* pszName );
+};
+
+template < typename TEdgeType >
+inline void classify( TEdgeType e, EdgeMask::Type mask )
+{
+    e->data().flags.set( mask );
 }
 
-#endif //GUARD_2023_June_06_flags
+template < typename TEdgeType >
+inline bool test( TEdgeType e, EdgeMask::Type mask )
+{
+    return e->data().flags.test( mask );
+}
+} // namespace exact
+
+#endif // GUARD_2023_June_06_flags

@@ -80,8 +80,8 @@ void Analysis::partition()
     std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
     std::set< Analysis::Arrangement::Halfedge_handle > doorSteps;
     {
-        getEdges( m_arr, doorSteps,
-                  []( Arrangement::Halfedge_handle edge ) { return edge->data().flags.test( EdgeMask::eDoorStep ); } );
+        getEdges(
+            m_arr, doorSteps, []( Arrangement::Halfedge_handle edge ) { return test( edge, EdgeMask::eDoorStep ); } );
         for( auto d : doorSteps )
         {
             doorStepVertices.push_back( d->source() );
@@ -94,11 +94,10 @@ void Analysis::partition()
         getEdges( m_arr, floorEdges,
                   []( Arrangement::Halfedge_handle edge )
                   {
-                      auto& flags = edge->data().flags;
-                      return ( flags.test( EdgeMask::eInterior ) || flags.test( EdgeMask::eExterior )
-                               || flags.test( EdgeMask::eConnectionBisector ) || flags.test( EdgeMask::eDoorStep ) )
+                      return ( test( edge, EdgeMask::eInterior ) || test( edge, EdgeMask::eExterior )
+                               || test( edge, EdgeMask::eConnectionBisector ) || test( edge, EdgeMask::eDoorStep ) )
 
-                             && !flags.test( EdgeMask::eConnectionBreak );
+                             && !test( edge, EdgeMask::eConnectionBreak );
                   } );
 
         std::vector< std::vector< Arrangement::Halfedge_handle > > floorPolygons;
@@ -133,16 +132,16 @@ void Analysis::partition()
             HalfEdgeSet floorDoorSteps;
             for( auto e : floorBoundary )
             {
-                if( e->data().flags.test( EdgeMask::eInterior ) || e->data().flags.test( EdgeMask::eExterior ) )
+                if( test( e, EdgeMask::eInterior ) || test( e, EdgeMask::eExterior ) )
                 {
                     INVARIANT( !e->data().sites.empty(), "Interior or exterior edge missing site" );
                     sites.insert( e->data().sites.back() );
                 }
                 e->data().pPartition = pPartition.get();
                 classify( e, EdgeMask::ePartitionFloor );
-                if( !e->data().flags.test( EdgeMask::eDoorStep ) )
+                if( !test( e, EdgeMask::eDoorStep ) )
                 {
-                    if( !e->data().flags.test( EdgeMask::ePerimeter ) )
+                    if( !test( e, EdgeMask::ePerimeter ) )
                     {
                         classify( e->twin(), EdgeMask::ePartitionBoundary );
                         boundaryEdges.insert( e->twin() );
@@ -187,9 +186,9 @@ void Analysis::partition()
                     {
                         innerWallEdge->data().pPartition = pPartition.get();
                         classify( innerWallEdge, EdgeMask::ePartitionFloor );
-                        if( !innerWallEdge->data().flags.test( EdgeMask::eDoorStep ) )
+                        if( !test( innerWallEdge, EdgeMask::eDoorStep ) )
                         {
-                            if( !innerWallEdge->data().flags.test( EdgeMask::ePerimeter ) )
+                            if( !test( innerWallEdge, EdgeMask::ePerimeter ) )
                             {
                                 classify( innerWallEdge->twin(), EdgeMask::ePartitionBoundary );
                                 boundaryEdges.insert( innerWallEdge->twin() );
@@ -206,7 +205,7 @@ void Analysis::partition()
         }
     }
 
-    // The resultant partition boundary edges can no be used to determine the boundaries
+    // The resultant partition boundary edges can now be used to determine the boundaries
     {
         // for starting points just use ALL boundary vertices
         std::vector< Arrangement::Vertex_handle > boundaryVertices;
@@ -269,8 +268,7 @@ void Analysis::partition()
         // Get all boundary edges COMBINED with the cut edges
         // NOTE that cut edges are on both sides of the cut curve
         std::set< Analysis::Arrangement::Halfedge_handle > cutEdges;
-        getEdges( m_arr, cutEdges,
-                  []( Arrangement::Halfedge_handle edge ) { return edge->data().flags.test( EdgeMask::eCut ); } );
+        getEdges( m_arr, cutEdges, []( Arrangement::Halfedge_handle edge ) { return test( edge, EdgeMask::eCut ); } );
 
         // just add ALL vertices from the boundary as start vertices
         std::vector< Arrangement::Vertex_handle > boundarySegmentStartVertices;
@@ -296,7 +294,7 @@ void Analysis::partition()
                 Partition* pPartition = nullptr;
                 for( auto e : segmentBoundary )
                 {
-                    if( e->data().flags.test( EdgeMask::ePartitionBoundary ) )
+                    if( test( e, EdgeMask::ePartitionBoundary ) )
                     {
                         pPartition = e->data().pPartition;
                         INVARIANT( pPartition, "Boundary without paritition" );

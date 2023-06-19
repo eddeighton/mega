@@ -272,7 +272,7 @@ void Analysis::cut( schematic::Site::Ptr pSite )
 
         Curve_handle curve = CGAL::insert( m_arr, Curve( ptStart, ptEnd ) );
 
-        //std::vector< Arrangement::Halfedge_handle > toRemove;
+        // std::vector< Arrangement::Halfedge_handle > toRemove;
         for( auto i = m_arr.induced_edges_begin( curve ); i != m_arr.induced_edges_end( curve ); ++i )
         {
             Arrangement::Halfedge_handle h = *i;
@@ -281,7 +281,7 @@ void Analysis::cut( schematic::Site::Ptr pSite )
 
             // cut must be inside boundary face
 
-            // if( h->data().flags.test( EdgeMask::eInterior
+            // if( test( h, EdgeMask::eInterior
 
             /*if( ( h->source()->point() == ptStart ) || ( h->source()->point() == ptEnd )
                 || ( h->target()->point() == ptStart ) || ( h->target()->point() == ptEnd ) )

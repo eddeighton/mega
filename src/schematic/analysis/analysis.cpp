@@ -53,9 +53,7 @@ void Analysis::getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask
     }
 }
 
-void Analysis::getPartitionPolygons(
-    std::map< const Analysis::Partition*, exact::Polygon_with_holes >&        floors,
-    std::map< const Analysis::PartitionSegment*, exact::Polygon_with_holes >& boundaries ) // const
+void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors )
 {
     using NodePtr    = typename PolygonNode::Ptr;
     using NodeVector = std::vector< NodePtr >;
@@ -66,7 +64,7 @@ void Analysis::getPartitionPolygons(
             Analysis::HalfEdgeSet outerEdges;
             getEdges( m_arr, outerEdges,
                       []( Arrangement::Halfedge_const_handle edge )
-                      { return edge->data().flags.test( EdgeMask::ePartitionFloor ); } );
+                      { return test( edge, EdgeMask::ePartitionFloor ); } );
             getPolygonsDir( outerEdges, floorPolygons, true );
         }
         for( auto& poly : floorPolygons )
@@ -109,6 +107,28 @@ void Analysis::getPartitionPolygons(
     }
 }
 
+void Analysis::getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries )
+{
+    Analysis::HalfEdgeSet          edges;
+    Analysis::HalfEdgeVectorVector boundarySegments;
+    getEdges( m_arr, edges,
+              []( Arrangement::Halfedge_const_handle edge )
+              { return test( edge, EdgeMask::ePartitionBoundarySegment ); } );
+    getPolygonsDir( edges, boundarySegments, true );
+
+    for( const auto& boundarySegment : boundarySegments )
+    {
+        auto pSegment = boundarySegment.front()->data().pPartitionSegment;
+        for( auto& e : boundarySegment )
+        {
+            INVARIANT( e->data().pPartitionSegment == pSegment, "Inconsistent partition segment" );
+        }
+
+        INVARIANT( pSegment, "Failed to locate boundary segment" );
+        boundaries.insert( { pSegment, fromHalfEdgePolygon( boundarySegment ) } );
+    }
+}
+
 void Analysis::getVertices( VertexVector& vertices ) const
 {
     for( auto i = m_arr.vertices_begin(); i != m_arr.vertices_end(); ++i )
@@ -121,8 +141,7 @@ void Analysis::getPerimeterPolygon( HalfEdgeVector& polygon ) const
 {
     HalfEdgeSet perimeterEdges;
     getEdges( m_arr, perimeterEdges,
-              []( Arrangement::Halfedge_const_handle edge )
-              { return edge->data().flags.test( EdgeMask::ePerimeter ); } );
+              []( Arrangement::Halfedge_const_handle edge ) { return test( edge, EdgeMask::ePerimeter ); } );
 
     HalfEdgeVectorVector polygons;
     getPolygons( perimeterEdges, polygons );
@@ -160,15 +179,14 @@ Analysis::Floor::Vector Analysis::getFloors()
         {
             for( auto pContour : node.contained() )
             {
-                if( pContour->polygon().front()->data().flags.test( EdgeMask::ePartitionFloor ) )
+                auto e = pContour->polygon().front();
+                if( test( e, EdgeMask::ePartitionFloor ) )
                 {
                     floor( *pContour );
                 }
-                else if( pContour->polygon().front()->data().flags.test( EdgeMask::ePartitionBoundary )
-                         || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionOneBoundary )
-                         || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
-                         || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
-                         || pContour->polygon().front()->data().flags.test( EdgeMask::eExtrusionFourBoundary ) )
+                else if( test( e, EdgeMask::ePartitionBoundary ) || test( e, EdgeMask::eExtrusionOneBoundary )
+                         || test( e, EdgeMask::eExtrusionTwoBoundary ) || test( e, EdgeMask::eExtrusionThreeBoundary )
+                         || test( e, EdgeMask::eExtrusionFourBoundary ) )
                 {
                     floorInner( *pContour, theFloor, polyWithHoles );
                 }
@@ -229,23 +247,23 @@ Analysis::Floor::Vector Analysis::getFloors()
                 if( pContour->face() )
                 {
                     auto e = pContour->polygon().front();
-                    if( e->data().flags.test( EdgeMask::ePartitionFloor ) )
+                    if( test( e, EdgeMask::ePartitionFloor ) )
                     {
                         floor( *pContour );
                     }
-                    else if( e->data().flags.test( EdgeMask::eExtrusionOne ) )
+                    else if( test( e, EdgeMask::eExtrusionOne ) )
                     {
                         floorEx1( *pContour, theFloor );
                     }
-                    else if( e->data().flags.test( EdgeMask::eExtrusionTwo ) )
+                    else if( test( e, EdgeMask::eExtrusionTwo ) )
                     {
                         floorEx2( *pContour, theFloor );
                     }
-                    else if( e->data().flags.test( EdgeMask::eExtrusionThree ) )
+                    else if( test( e, EdgeMask::eExtrusionThree ) )
                     {
                         floorEx3( *pContour, theFloor );
                     }
-                    else if( e->data().flags.test( EdgeMask::eExtrusionFour ) )
+                    else if( test( e, EdgeMask::eExtrusionFour ) )
                     {
                         floorEx4( *pContour, theFloor );
                     }
@@ -257,23 +275,23 @@ Analysis::Floor::Vector Analysis::getFloors()
                 else
                 {
                     auto e = pContour->polygon().front();
-                    if( e->data().flags.test( EdgeMask::ePartitionFloor ) )
+                    if( test( e, EdgeMask::ePartitionFloor ) )
                     {
                         // ignore
                     }
-                    else if( e->data().flags.test( EdgeMask::eExtrusionOne ) )
+                    else if( test( e, EdgeMask::eExtrusionOne ) )
                     {
                         floor( *pContour );
                     }
-                    else if( e->data().flags.test( EdgeMask::eExtrusionTwo ) )
+                    else if( test( e, EdgeMask::eExtrusionTwo ) )
                     {
                         floorEx1( *pContour, theFloor );
                     }
-                    else if( e->data().flags.test( EdgeMask::eExtrusionThree ) )
+                    else if( test( e, EdgeMask::eExtrusionThree ) )
                     {
                         floorEx2( *pContour, theFloor );
                     }
-                    else if( e->data().flags.test( EdgeMask::eExtrusionFour ) )
+                    else if( test( e, EdgeMask::eExtrusionFour ) )
                     {
                         floorEx3( *pContour, theFloor );
                     }
@@ -293,13 +311,11 @@ Analysis::Floor::Vector Analysis::getFloors()
         []( Arrangement::Halfedge_const_handle edge )
         {
             //
-            return !edge->data().flags.test( EdgeMask::eDoorStep )
-                   && ( edge->data().flags.test( EdgeMask::ePartitionFloor )
+            return !test( edge, EdgeMask::eDoorStep )
+                   && ( test( edge, EdgeMask::ePartitionFloor )
 
-                        || edge->data().flags.test( EdgeMask::eExtrusionOne )
-                        || edge->data().flags.test( EdgeMask::eExtrusionTwo )
-                        || edge->data().flags.test( EdgeMask::eExtrusionThree )
-                        || edge->data().flags.test( EdgeMask::eExtrusionFour )
+                        || test( edge, EdgeMask::eExtrusionOne ) || test( edge, EdgeMask::eExtrusionTwo )
+                        || test( edge, EdgeMask::eExtrusionThree ) || test( edge, EdgeMask::eExtrusionFour )
 
                         //
                    );
@@ -308,12 +324,11 @@ Analysis::Floor::Vector Analysis::getFloors()
         []( Arrangement::Halfedge_const_handle edge )
         {
             //
-            return !edge->data().flags.test( EdgeMask::ePerimeterBoundary )
-                   && ( edge->data().flags.test( EdgeMask::ePartitionBoundary )
-                        || edge->data().flags.test( EdgeMask::eExtrusionOneBoundary )
-                        || edge->data().flags.test( EdgeMask::eExtrusionTwoBoundary )
-                        || edge->data().flags.test( EdgeMask::eExtrusionThreeBoundary )
-                        || edge->data().flags.test( EdgeMask::eExtrusionFourBoundary ) );
+            return !test( edge, EdgeMask::ePerimeterBoundary )
+                   && ( test( edge, EdgeMask::ePartitionBoundary ) || test( edge, EdgeMask::eExtrusionOneBoundary )
+                        || test( edge, EdgeMask::eExtrusionTwoBoundary )
+                        || test( edge, EdgeMask::eExtrusionThreeBoundary )
+                        || test( edge, EdgeMask::eExtrusionFourBoundary ) );
         } );
 
     Visitor visitor{ floors };
@@ -330,18 +345,17 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
     using Edge = Arrangement::Halfedge_const_handle;
 
     HalfEdgeSet boundaryEdges;
-    getEdges(
-        m_arr, boundaryEdges, []( Edge edge ) { return edge->data().flags.test( EdgeMask::ePartitionBoundary ); } );
+    getEdges( m_arr, boundaryEdges, []( Edge edge ) { return test( edge, EdgeMask::ePartitionBoundary ); } );
 
     HalfEdgeVectorVector boundaryPolygons;
     getPolygons( boundaryEdges, boundaryPolygons );
 
     HalfEdgeSet boundarySegmentEdges;
-    getEdges( m_arr, boundarySegmentEdges,
-              []( Edge edge ) { return edge->data().flags.test( EdgeMask::ePartitionBoundarySegment ); } );
+    getEdges(
+        m_arr, boundarySegmentEdges, []( Edge edge ) { return test( edge, EdgeMask::ePartitionBoundarySegment ); } );
 
     HalfEdgeVectorVector boundarySegmentPolygons;
-    getPolygons( boundarySegmentEdges, boundarySegmentPolygons );
+    getPolygonsDir( boundarySegmentEdges, boundarySegmentPolygons, true );
 
     // Partition::PtrVector        m_floors, m_boundaries;
     // PartitionSegment::PtrVector m_boundarySegments;
@@ -365,14 +379,7 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
         Partition*                     m_pFloor    = nullptr;
         std::list< PartitionSegment* > m_segments;
         EdgeSequence                   m_edges;
-        enum Plane
-        {
-            eHole,
-            eGround,
-            eMid,
-            eCeiling
-        } m_plane
-            = eCeiling;
+        PartitionSegment::Plane        m_plane = PartitionSegment::eCeiling;
 
         bool pushBack( Edge edge )
         {
@@ -391,16 +398,14 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
                     m_edges.push_back( edge );
                     return true;
                 }
-                else
+                else if( m_plane == pPartitionSegment->plane )
                 {
-                    // TODO
-                    INVARIANT( false, "Not implemented" );
+                    m_edges.push_back( edge );
+                    m_segments.push_back( pPartitionSegment );
+                    return true;
                 }
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         bool pushFront( Edge edge )
@@ -422,10 +427,11 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
                         m_edges.push_front( edge );
                         return true;
                     }
-                    else
+                    else if( m_plane == pPartitionSegment->plane )
                     {
-                        // TODO
-                        INVARIANT( false, "Not implemented" );
+                        m_edges.push_front( edge );
+                        m_segments.push_front( pPartitionSegment );
+                        return true;
                     }
                 }
             }
@@ -467,6 +473,7 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
                 Sequence seq;
                 seq.m_pBoundary = pBoundary;
                 seq.m_pFloor    = pFloor;
+                seq.m_plane     = pPartitionSegment->plane;
                 seq.m_segments.push_back( pPartitionSegment );
                 seq.m_edges.push_back( edge );
                 sequences.emplace_back( seq );
@@ -478,94 +485,244 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
 
         boundary.contour = boundaryPolygon;
 
-        for( const auto& seq : sequences )
+        using CutEdgeSet       = Analysis::HalfEdgeSet;
+        using CutEdgeSeq       = Analysis::HalfEdgeVector;
+        using CutEdgeSeqVector = std::vector< CutEdgeSeq >;
+        using CutEdgeSeqMap    = std::map< PartitionSegment*, CutEdgeSeqVector >;
+        struct CutEdgeSeqInfo
         {
-            for( PartitionSegment* pSegment : seq.m_segments )
+            PartitionSegment*          pSegment;
+            CutEdgeSeq::const_iterator iter, iterEnd;
+        };
+        using CutEdgeIterMap = std::map< Analysis::HalfEdge, CutEdgeSeqInfo >;
+        CutEdgeSet     cutEdges;
+        CutEdgeSeqMap  segmentCutEdges;
+        CutEdgeIterMap cutEdgeIters;
+
+        // add all segment horizontal surfaces and collect cut edges
+        INVARIANT( !pBoundary->segments.empty(), "Boundary contains no segments" );
+        for( PartitionSegment* pSegment : pBoundary->segments )
+        {
+            auto iFind = segmentMap.find( pSegment );
+            INVARIANT( iFind != segmentMap.end(), "Could not find segment" );
+            const Analysis::HalfEdgeVector& boundarySegmentPoly = iFind->second;
+
+            CutEdgeSeqVector cutEdgeSequences;
+            getSubSequences< Analysis::HalfEdge >( boundarySegmentPoly,
+                                                   cutEdgeSequences,
+                                                   [ &cutEdges ]( Analysis::HalfEdge e )
+                                                   {
+                                                       if( test( e, EdgeMask::eCut ) )
+                                                       {
+                                                           cutEdges.insert( e );
+                                                           return true;
+                                                       }
+                                                       return false;
+                                                   } );
+            INVARIANT( !cutEdgeSequences.empty(), "No subsequences" );
+
+            // record the cut edge subsequences
+            auto ib = segmentCutEdges.insert( { pSegment, cutEdgeSequences } );
+            // then record the iterator associated with each cut edge into its associated sequence
+            // along with the end of the sequence - every cut half edge should occur only once
+            for( CutEdgeSeqVector::const_iterator i = ib.first->second.begin(), iEnd = ib.first->second.end();
+                 i != iEnd; ++i )
             {
-                auto iFind = segmentMap.find( pSegment );
-                INVARIANT( iFind != segmentMap.end(), "Could not find segment" );
-
-                auto findSiteContours
-                    = [ pSegment ]( const Analysis::HalfEdgeVector& boundary, Analysis::HalfEdgeSet& siteEdges )
+                for( CutEdgeSeq::const_iterator j = i->begin(), jEnd = i->end(); j != jEnd; ++j )
                 {
-                    Analysis::FaceVector facesWithinSegment;
-                    getSortedFacesInsidePolygon( boundary, facesWithinSegment );
-                    for( auto f : facesWithinSegment )
-                    {
-                        visitEdgesOfFace( f,
-                                          [ &siteEdges ]( Analysis::HalfEdge edge )
-                                          {
-                                              if( !siteEdges.contains( edge ) && !siteEdges.contains( edge->twin() ) )
-                                              {
-                                                  siteEdges.insert( edge );
-                                              }
-                                              return true;
-                                          } );
-                    }
-                };
-
-                switch( seq.m_plane )
-                {
-                    case Sequence::eHole:
-                    {
-                        Boundary::Pane pane;
-                        findSiteContours( iFind->second, pane.edges );
-                        boundary.panes.push_back( pane );
-                        boundary.hori_holes.push_back( iFind->second );
-                    }
-                    break;
-                    case Sequence::eGround:
-                    {
-                        Boundary::Pane pane;
-                        findSiteContours( iFind->second, pane.edges );
-                        boundary.panes.push_back( pane );
-                        boundary.hori_floors.push_back( iFind->second );
-                    }
-                    break;
-                    case Sequence::eMid:
-                    {
-                        Boundary::Pane pane;
-                        findSiteContours( iFind->second, pane.edges );
-                        boundary.panes.push_back( pane );
-                        boundary.hori_mids.push_back( iFind->second );
-                    }
-                    break;
-                    case Sequence::eCeiling:
-                    {
-                        boundary.hori_ceilings.push_back( iFind->second );
-                    }
-                    break;
+                    Analysis::HalfEdge e = *j;
+                    auto               r = cutEdgeIters.insert( { e, CutEdgeSeqInfo{ pSegment, j, jEnd } } );
+                    INVARIANT( r.second, "Cut half edge occured twice" );
                 }
             }
 
+            auto findSiteContours
+                = [ pSegment ]( const Analysis::HalfEdgeVector& boundary, Analysis::HalfEdgeSet& siteEdges )
+            {
+                Analysis::FaceVector facesWithinSegment;
+                getSortedFacesInsidePolygon( boundary, facesWithinSegment );
+                for( auto f : facesWithinSegment )
+                {
+                    visitEdgesOfFace( f,
+                                      [ &siteEdges ]( Analysis::HalfEdge edge )
+                                      {
+                                          if( test( edge, EdgeMask::eSite ) )
+                                          {
+                                              siteEdges.insert( edge );
+                                          }
+                                      } );
+                }
+            };
+
+            switch( pSegment->plane )
+            {
+                case PartitionSegment::eHole:
+                {
+                    Boundary::Pane pane;
+                    pane.lower = PartitionSegment::eHole;
+                    pane.upper = PartitionSegment::eCeiling;
+                    findSiteContours( boundarySegmentPoly, pane.edges );
+                    boundary.panes.push_back( pane );
+                    boundary.hori_holes.push_back( boundarySegmentPoly );
+                }
+                break;
+                case PartitionSegment::eGround:
+                {
+                    Boundary::Pane pane;
+                    pane.lower = PartitionSegment::eGround;
+                    pane.upper = PartitionSegment::eCeiling;
+                    findSiteContours( boundarySegmentPoly, pane.edges );
+                    boundary.panes.push_back( pane );
+                    boundary.hori_floors.push_back( boundarySegmentPoly );
+                }
+                break;
+                case PartitionSegment::eMid:
+                {
+                    Boundary::Pane pane;
+                    pane.lower = PartitionSegment::eMid;
+                    pane.upper = PartitionSegment::eCeiling;
+                    findSiteContours( boundarySegmentPoly, pane.edges );
+                    boundary.panes.push_back( pane );
+                    boundary.hori_mids.push_back( boundarySegmentPoly );
+                }
+                break;
+                case PartitionSegment::eCeiling:
+                {
+                    boundary.hori_ceilings.push_back( boundarySegmentPoly );
+                }
+                break;
+            }
+        }
+
+        // build graph of all adjacent PartitionSegments
+        // Each adjacency occurs along a sequence of cut edges and their associated twin edges
+        // For each of these cut edge twin sequences construct the correct wall section given
+        // the plane of edge partition segment
+        {
+            struct CutEdgeTwinSeqeunce
+            {
+                PartitionSegment *pSegmentOne, *pSegmentTwo;
+                CutEdgeSeq        sequence;
+            };
+            std::vector< CutEdgeTwinSeqeunce > cutEdgeTwinSequences;
+
+            for( const auto& [ pSegment, cutEdgeSequences ] : segmentCutEdges )
+            {
+                for( const auto& subSeq : cutEdgeSequences )
+                {
+                    std::optional< CutEdgeSeq::const_iterator > iterLast;
+                    for( auto e : subSeq )
+                    {
+                        if( cutEdges.contains( e ) )
+                        {
+                            cutEdges.erase( e );
+
+                            auto iFind = cutEdgeIters.find( e->twin() );
+                            INVARIANT( iFind != cutEdgeIters.end(), "Failed to locate cut edge twin" );
+                            const CutEdgeSeqInfo& twinCutEdgeInfo = iFind->second;
+
+                            if( iterLast.has_value() && twinCutEdgeInfo.iter == iterLast.value() )
+                            {
+                                INVARIANT( !cutEdgeTwinSequences.empty(), "No twin sequence" );
+                                INVARIANT( cutEdgeTwinSequences.back().pSegmentOne == pSegment, "Segment mismatch" );
+                                INVARIANT( cutEdgeTwinSequences.back().pSegmentTwo == twinCutEdgeInfo.pSegment,
+                                           "Twin Segment mismatch" );
+
+                                cutEdgeTwinSequences.back().sequence.push_back( e );
+                            }
+                            else
+                            {
+                                // start new twin sequence
+                                CutEdgeTwinSeqeunce twinSeq;
+                                twinSeq.pSegmentOne = pSegment;
+                                twinSeq.pSegmentTwo = twinCutEdgeInfo.pSegment;
+                                twinSeq.sequence.push_back( e );
+                                cutEdgeTwinSequences.push_back( twinSeq );
+                            }
+
+                            auto twinNext = twinCutEdgeInfo.iter + 1;
+                            if( twinNext != twinCutEdgeInfo.iterEnd )
+                            {
+                                iterLast = twinNext;
+                            }
+                            else
+                            {
+                                iterLast.reset();
+                            }
+                        }
+                    }
+                }
+            }
+
+            INVARIANT( cutEdges.empty(), "Cut edges not empty: " << cutEdges.size() );
+
+            // finally generate the wall sections
+            for( const auto& twinSeq : cutEdgeTwinSequences )
+            {
+                if( twinSeq.pSegmentOne->plane != twinSeq.pSegmentTwo->plane )
+                {
+                    Boundary::WallSection wall;
+                    if( twinSeq.pSegmentOne->plane < twinSeq.pSegmentTwo->plane )
+                    {
+                        wall.lower = twinSeq.pSegmentOne->plane;
+                        wall.upper = twinSeq.pSegmentTwo->plane;
+                        for( auto e : twinSeq.sequence )
+                        {
+                            wall.edges.push_back( e->twin() );
+                            std::reverse( wall.edges.begin(), wall.edges.end() );
+                        }
+                    }
+                    else
+                    {
+                        wall.lower = twinSeq.pSegmentTwo->plane;
+                        wall.upper = twinSeq.pSegmentOne->plane;
+                        for( auto e : twinSeq.sequence )
+                            wall.edges.push_back( e );
+                    }
+                    boundary.walls.emplace_back( wall );
+                }
+            }
+        }
+
+        INVARIANT( !sequences.empty(), "No sequences for boundary" );
+
+        for( const auto& seq : sequences )
+        {
             switch( seq.m_plane )
             {
-                case Sequence::eHole:
+                case PartitionSegment::eHole:
                 {
                     Boundary::WallSection wall;
-                    wall.edges.assign( seq.m_edges.begin(), seq.m_edges.end() );
-                    boundary.wall_hole.emplace_back( wall );
+                    wall.lower = PartitionSegment::eHole;
+                    wall.upper = PartitionSegment::eGround;
+                    for( auto e : seq.m_edges )
+                    {
+                        wall.edges.push_back( e->twin() );
+                        std::reverse( wall.edges.begin(), wall.edges.end() );
+                    }
+                    boundary.walls.emplace_back( wall );
                 }
                 break;
-                case Sequence::eGround:
+                case PartitionSegment::eGround:
+                    break;
+                case PartitionSegment::eMid:
                 {
                     Boundary::WallSection wall;
-                    wall.edges.assign( seq.m_edges.begin(), seq.m_edges.end() );
-                    boundary.wall_ground.emplace_back( wall );
+                    wall.lower = PartitionSegment::eGround;
+                    wall.upper = PartitionSegment::eMid;
+                    for( auto e : seq.m_edges )
+                        wall.edges.push_back( e );
+                    boundary.walls.emplace_back( wall );
                 }
                 break;
-                case Sequence::eMid:
+                case PartitionSegment::eCeiling:
                 {
                     Boundary::WallSection wall;
-                    wall.edges.assign( seq.m_edges.begin(), seq.m_edges.end() );
-                    boundary.wall_lower.emplace_back( wall );
-                }
-                break;
-                case Sequence::eCeiling:
-                {
-                    Boundary::WallSection wall;
-                    wall.edges.assign( seq.m_edges.begin(), seq.m_edges.end() );
-                    boundary.wall_upper.emplace_back( wall );
+                    wall.lower = PartitionSegment::eGround;
+                    wall.upper = PartitionSegment::eCeiling;
+                    for( auto e : seq.m_edges )
+                        wall.edges.push_back( e );
+                    boundary.walls.emplace_back( wall );
                 }
                 break;
             }

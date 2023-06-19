@@ -194,10 +194,7 @@ table Boundary
 
     vert_panes:[Pane];
 
-    wall_hole:[WallSection];
-    wall_ground:[WallSection];
-    wall_lower:[WallSection];
-    wall_upper:[WallSection];
+    walls:[WallSection];
 }
 
 table Floor

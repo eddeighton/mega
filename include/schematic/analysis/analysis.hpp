@@ -48,7 +48,14 @@ public:
     {
         using Ptr       = std::unique_ptr< PartitionSegment >;
         using PtrVector = std::vector< Ptr >;
-
+        enum Plane
+        {
+            eHole,
+            eGround,
+            eMid,
+            eCeiling
+        };
+        Plane                                plane = eCeiling;
         schematic::Feature_Pin::PtrCstVector pins;
         schematic::Property::PtrCstVector    properties;
     };
@@ -102,9 +109,8 @@ public:
 
     // query used by editor for edge visualisation
     void getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges ) const;
-    void getPartitionPolygons(
-        std::map< const Analysis::Partition*, exact::Polygon_with_holes >&        floors,
-        std::map< const Analysis::PartitionSegment*, exact::Polygon_with_holes >& boundaries ); // const;
+    void getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors );    // const;
+    void getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries ); // const;
 
     // queries used by map format
     using VertexVector         = std::vector< Arrangement::Vertex_const_handle >;
@@ -180,10 +186,10 @@ public:
         using Vector = std::vector< HalfEdgePolygonWithHoles >;
     };
 
-    static inline exact::Polygon_with_holes fromHalfEdgePolygonWithHoles( const HalfEdgePolygonWithHoles& poly )
+    static inline exact::Polygon fromHalfEdgePolygon( const HalfEdgeVector& poly )
     {
         exact::Polygon outer;
-        for( auto& e : poly.outer )
+        for( auto& e : poly )
         {
             outer.push_back( e->source()->point() );
         }
@@ -192,8 +198,11 @@ public:
         {
             std::reverse( outer.begin(), outer.end() );
         }
-        exact::Polygon_with_holes polygonWithHoles( outer );
-
+        return outer;
+    }
+    static inline exact::Polygon_with_holes fromHalfEdgePolygonWithHoles( const HalfEdgePolygonWithHoles& poly )
+    {
+        exact::Polygon_with_holes polygonWithHoles( fromHalfEdgePolygon( poly.outer ) );
         for( auto& h : poly.holes )
         {
             Polygon hole;
@@ -231,6 +240,7 @@ public:
         {
             // type:Type;
             // properties:[Properties];
+            PartitionSegment::Plane lower, upper;
             HalfEdgeSet edges;
         };
 
@@ -238,6 +248,7 @@ public:
         {
             // type:Type;
             // properties:[Properties];
+            PartitionSegment::Plane lower, upper;
             HalfEdgeVector edges;
         };
 
@@ -251,10 +262,7 @@ public:
         HalfEdgeVectorVector hori_ceilings;
 
         std::vector< Pane >        panes;
-        std::vector< WallSection > wall_hole;
-        std::vector< WallSection > wall_ground;
-        std::vector< WallSection > wall_lower;
-        std::vector< WallSection > wall_upper;
+        std::vector< WallSection > walls;
     };
     Boundary::Vector getBoundaries();
 

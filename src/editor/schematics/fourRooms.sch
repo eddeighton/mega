@@ -219,6 +219,14 @@ Schematic(base;,0)
                     end(8,11)
                 }
             }
+            Pin(pin_0008;,8)
+            {
+                position(4,26)
+                Property(plane;,0)
+                {
+                    value(Mid;)
+                }
+            }
         }
         Wall(wall_0006;,5)
         {
