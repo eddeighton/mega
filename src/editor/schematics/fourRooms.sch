@@ -2,7 +2,7 @@ Schematic(base;,0)
 {
     Space(space_0000;,0)
     {
-        transform(1,0,0,0,1,0)
+        transform(1,0,0,0,1,-28)
         Contour(contour;,0)
         {
             path(0,28,264,28,264,112,0,112)
@@ -13,71 +13,53 @@ Schematic(base;,0)
         }
         Space(spac_0004;,2)
         {
-            transform(-1,0,50,0,1,62)
+            transform(-1,0,52,0,1,56)
             Contour(contour;,0)
             {
                 path(-34,-16,16,-16,16,36,-34,36)
             }
             Property(width;,1)
             {
-                value(0.5f;)
+                value(1;)
             }
-            Wall(wall_0002;,2)
+            Cut(cut_0007;,2)
             {
-                transform(-1,0,16,0,1,26)
-                Contour(contour;,0)
+                transform(-1,0,-32,0,1,30)
+                LineSegment(segment;,0)
                 {
-                    path(0,-4,16,-4,16,4,0,4)
-                }
-                Property(width;,1)
-                {
-                    value(0.5f;)
+                    start(0,0)
+                    end(4,0)
                 }
             }
-            Wall(wall_0003;,3)
+            Cut(cut__0008;,3)
             {
-                transform(-1,0,-7,0,1,9)
-                Contour(contour;,0)
+                transform(-1,0,-32,0,1,18)
+                LineSegment(segment;,0)
                 {
-                    path(0,-4,16,-4,16,4,0,4)
-                }
-                Property(width;,1)
-                {
-                    value(0.5f;)
+                    start(0,0)
+                    end(4,0)
                 }
             }
-            Space(space_0004;,4)
+            Pin(pin_0009;,4)
             {
-                transform(-1,0,-14,0,1,-16)
-                Contour(contour;,0)
+                position(-34,26)
+                Property(plane;,0)
                 {
-                    path(0,0,20,0,20,24,0,24)
-                }
-                Property(width;,1)
-                {
-                    value(0.5f;)
+                    value(Mid;)
                 }
             }
-            Connection(conn_0005;,5)
+            Connection(conn_0007;,5)
             {
-                transform(2.66454e-15,-1,-14,-1,-2.66454e-15,-4)
+                transform(2.66454e-15,-1,-34,-1,-2.66454e-15,-2)
                 Point(width;,0)
                 {
-                    position(6.5,2)
-                }
-            }
-            Connection(conn_0006;,6)
-            {
-                transform(2.66454e-15,-1,-34,-1,-2.66454e-15,-4)
-                Point(width;,0)
-                {
-                    position(6.5,2)
+                    position(7.5,3)
                 }
             }
         }
         Space(spac_0005;,3)
         {
-            transform(-1,0,122,0,1,62)
+            transform(-1,0,120,0,1,58)
             Contour(contour;,0)
             {
                 path(-34,-16,16,-16,16,36,-34,36)
@@ -86,39 +68,7 @@ Schematic(base;,0)
             {
                 value(0.5f;)
             }
-            Wall(wall_0002;,2)
-            {
-                transform(-1,0,16,0,1,26)
-                Contour(contour;,0)
-                {
-                    path(0,-4,16,-4,16,4,0,4)
-                }
-                Property(width;,1)
-                {
-                    value(0.5f;)
-                }
-            }
-            Wall(wall_0003;,3)
-            {
-                transform(-1,0,2,0,1,20)
-                Contour(contour;,0)
-                {
-                    path(0,-4,4,-7,12,-7,16,-4,16,4,12,6,4,6,0,9)
-                }
-                Property(width;,1)
-                {
-                    value(0.5f;)
-                }
-                Pin(pin__0002;,2)
-                {
-                    position(-72,-7)
-                    Property(type;,0)
-                    {
-                        value(Corridor;)
-                    }
-                }
-            }
-            Space(space_0004;,4)
+            Space(space_0004;,2)
             {
                 transform(-1,0,-14,0,1,-16)
                 Contour(contour;,0)
@@ -129,21 +79,29 @@ Schematic(base;,0)
                 {
                     value(0.5f;)
                 }
-            }
-            Connection(conn_0005;,5)
-            {
-                transform(2.66454e-15,-1,-14,-1,-2.66454e-15,-4)
-                Point(width;,0)
+                Connection(conn_0002;,2)
                 {
-                    position(6.5,2)
+                    transform(-2.66454e-15,1,0,-1,-2.66454e-15,12)
+                    Point(width;,0)
+                    {
+                        position(6.5,3)
+                    }
                 }
             }
-            Connection(conn_0006;,6)
+            Connection(conn_0006;,3)
             {
                 transform(2.66454e-15,-1,-34,-1,-2.66454e-15,-4)
                 Point(width;,0)
                 {
-                    position(6.5,2)
+                    position(6.5,3)
+                }
+            }
+            Pin(pin_0008;,4)
+            {
+                position(6,26)
+                Property(plane;,0)
+                {
+                    value(Mid;)
                 }
             }
         }
@@ -158,9 +116,9 @@ Schematic(base;,0)
             {
                 value(0.5f;)
             }
-            Wall(wall_0002;,2)
+            Wall(wall_0003;,2)
             {
-                transform(-1,0,16,0,1,26)
+                transform(-1,0,-7,0,1,11)
                 Contour(contour;,0)
                 {
                     path(0,-4,16,-4,16,4,0,4)
@@ -170,19 +128,7 @@ Schematic(base;,0)
                     value(0.5f;)
                 }
             }
-            Wall(wall_0003;,3)
-            {
-                transform(-1,0,-7,0,1,9)
-                Contour(contour;,0)
-                {
-                    path(0,-4,16,-4,16,4,0,4)
-                }
-                Property(width;,1)
-                {
-                    value(0.5f;)
-                }
-            }
-            Space(space_0004;,4)
+            Space(space_0004;,3)
             {
                 transform(-1,0,-14,0,1,-16)
                 Contour(contour;,0)
@@ -194,125 +140,24 @@ Schematic(base;,0)
                     value(0.5f;)
                 }
             }
-            Connection(conn_0005;,5)
+            Connection(conn_0005;,4)
             {
                 transform(2.66454e-15,-1,-14,-1,-2.66454e-15,-4)
                 Point(width;,0)
                 {
-                    position(6.5,2)
+                    position(6.5,4)
                 }
             }
-            Connection(conn_0006;,6)
+            Connection(conn_0006;,5)
             {
                 transform(2.66454e-15,-1,-34,-1,-2.66454e-15,-4)
                 Point(width;,0)
                 {
-                    position(6.5,2)
-                }
-            }
-            Cut(cut_0007;,7)
-            {
-                transform(-1,0,13,0,1,21)
-                LineSegment(segment;,0)
-                {
-                    start(0,-1)
-                    end(8,11)
-                }
-            }
-            Pin(pin_0008;,8)
-            {
-                position(4,26)
-                Property(plane;,0)
-                {
-                    value(Mid;)
+                    position(6.5,4)
                 }
             }
         }
-        Wall(wall_0006;,5)
-        {
-            transform(1,0,6,0,1,102)
-            Contour(contour;,0)
-            {
-                path(6,-16,16,-16,16,-4,6,-4)
-            }
-            Property(width;,1)
-            {
-                value(0.5f;)
-            }
-        }
-        Wall(wall_0007;,6)
-        {
-            transform(1,0,58,0,1,106)
-            Contour(contour;,0)
-            {
-                path(6,-16,16,-16,16,-4,6,-4)
-            }
-            Property(width;,1)
-            {
-                value(0.5f;)
-            }
-        }
-        Wall(wall_0008;,7)
-        {
-            transform(1,0,142,0,1,106)
-            Contour(contour;,0)
-            {
-                path(6,-16,16,-16,16,-4,6,-4)
-            }
-            Property(width;,1)
-            {
-                value(0.5f;)
-            }
-        }
-        Wall(wall_0009;,8)
-        {
-            transform(1,0,150,0,1,106)
-            Contour(contour;,0)
-            {
-                path(6,-16,16,-16,16,-4,6,-4)
-            }
-            Property(width;,1)
-            {
-                value(0.5f;)
-            }
-        }
-        Wall(wall_0010;,9)
-        {
-            transform(1,0,186,0,1,78)
-            Contour(contour;,0)
-            {
-                path(6,-16,16,-16,16,-4,6,-4)
-            }
-            Property(width;,1)
-            {
-                value(0.5f;)
-            }
-        }
-        Wall(wall_0011;,10)
-        {
-            transform(1,0,178,0,1,78)
-            Contour(contour;,0)
-            {
-                path(6,-16,16,-16,16,-4,6,-4)
-            }
-            Property(width;,1)
-            {
-                value(0.5f;)
-            }
-        }
-        Wall(wall_0012;,11)
-        {
-            transform(1,0,10,0,1,94)
-            Contour(contour;,0)
-            {
-                path(6,-16,16,-16,16,-4,6,-4)
-            }
-            Property(width;,1)
-            {
-                value(0.5f;)
-            }
-        }
-        Pin(pin__0012;,12)
+        Pin(pin__0012;,5)
         {
             position(76,40)
             Property(type;,0)

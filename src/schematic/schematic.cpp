@@ -483,6 +483,23 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
     return meshBuilder.Finish();
 }
 
+float convertUV( Mega::Plane plane )
+{
+    switch( plane )
+    {
+        case Mega::Plane_eHole:
+            return -1.0f;
+        case Mega::Plane_eGround:
+            return 0.0f;
+        case Mega::Plane_eMid:
+            return 1.0f;
+        case Mega::Plane_eCeiling:
+            return 2.0f;
+        default:
+            THROW_RTE( "Unknown plane" );
+    }
+}
+
 // Generate a seperate quad for each edge
 fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    fbVertMap,
                                             Mega::Plane                         lower,
@@ -492,6 +509,9 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
 {
     std::vector< fb::Offset< Mega::Vertex3D > > vertices;
     std::vector< int >                          indices;
+
+    const float fLowerUV = convertUV( lower );
+    const float fUpperUV = convertUV( upper );
 
     for( auto e : edges )
     {
@@ -503,17 +523,17 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
         const Mega::F2 sF2( sValue.x(), sValue.y() );
         const Mega::F2 tF2( tValue.x(), tValue.y() );
 
-        const Mega::F2 tPerp( -tF2.y() - sF2.y(), tF2.x() - sF2.x() );
-
-        const float mag = std::sqrt( tF2.x() * tF2.x() + sF2.y() * sF2.y() );
+        const Mega::F2 tDist( tF2.x() - sF2.x(), tF2.y() - sF2.y() );
+        const Mega::F2 tPerp( -tDist.y(), tDist.x() );
+        const float    mag = std::sqrt( tDist.x() * tDist.x() + tDist.y() * tDist.y() );
 
         const Mega::F3 normal( tPerp.x() / mag, tPerp.y() / mag, 0.0f );
         const Mega::F4 tangent( tPerp.x() / mag, tPerp.y() / mag, 0.0f, 0.0f );
 
-        auto sLower = buildVertex( builder, vertices, Mega::F2( 0, 0 ), normal, tangent, sVert, lower );
-        auto tLower = buildVertex( builder, vertices, Mega::F2( 0, 1 ), normal, tangent, tVert, lower );
-        auto sUpper = buildVertex( builder, vertices, Mega::F2( 1, 0 ), normal, tangent, sVert, upper );
-        auto tUpper = buildVertex( builder, vertices, Mega::F2( 1, 1 ), normal, tangent, tVert, upper );
+        auto sLower = buildVertex( builder, vertices, Mega::F2( 0, fLowerUV ), normal, tangent, sVert, lower );
+        auto tLower = buildVertex( builder, vertices, Mega::F2( 0, fUpperUV ), normal, tangent, tVert, lower );
+        auto sUpper = buildVertex( builder, vertices, Mega::F2( mag, fLowerUV ), normal, tangent, sVert, upper );
+        auto tUpper = buildVertex( builder, vertices, Mega::F2( mag, fUpperUV ), normal, tangent, tVert, upper );
 
         indices.push_back( sLower );
         indices.push_back( tLower );
@@ -543,6 +563,9 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
     std::vector< fb::Offset< Mega::Vertex3D > > vertices;
     std::vector< int >                          indices;
 
+    const float fLowerUV = convertUV( lower );
+    const float fUpperUV = convertUV( upper );
+
     float fUVDist = 0;
     for( auto e : edges )
     {
@@ -562,13 +585,13 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
         const Mega::F3 normal( tPerp.x() / mag, tPerp.y() / mag, 0.0f );
         const Mega::F4 tangent( tPerp.x() / mag, tPerp.y() / mag, 0.0f, 0.0f );
 
-        auto sLower = buildVertex( builder, vertices, Mega::F2( fUVDist, 0 ), normal, tangent, sVert, lower );
-        auto sUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, 1 ), normal, tangent, sVert, upper );
+        auto sLower = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, sVert, lower );
+        auto sUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, sVert, upper );
 
         fUVDist += mag;
 
-        auto tLower = buildVertex( builder, vertices, Mega::F2( fUVDist, 0 ), normal, tangent, tVert, lower );
-        auto tUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, 1 ), normal, tangent, tVert, upper );
+        auto tLower = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, tVert, lower );
+        auto tUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, tVert, upper );
 
         indices.push_back( sLower );
         indices.push_back( tLower );

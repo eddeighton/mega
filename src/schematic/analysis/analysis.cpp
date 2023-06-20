@@ -519,7 +519,7 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
                                                        }
                                                        return false;
                                                    } );
-            INVARIANT( !cutEdgeSequences.empty(), "No subsequences" );
+            INVARIANT( !cutEdgeSequences.empty() || cutEdges.empty(), "No subsequences" );
 
             // record the cut edge subsequences
             auto ib = segmentCutEdges.insert( { pSegment, cutEdgeSequences } );

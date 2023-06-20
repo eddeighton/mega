@@ -123,66 +123,102 @@ void Analysis::properties()
         }
 
         // locate partition containing point
-        CGAL::Object                       result = pointLocation.locate( pt );
-        Arrangement::Face_const_handle     face;
-        Arrangement::Halfedge_const_handle halfedge;
-        Arrangement::Vertex_const_handle   vertex;
-        if( CGAL::assign( face, result ) )
+        Analysis::Partition*        pPartition        = nullptr;
+        Analysis::PartitionSegment* pPartitionSegment = nullptr;
         {
-            if( auto pPartition = face->data().pPartition )
+            CGAL::Object                       result = pointLocation.locate( pt );
+            Arrangement::Face_const_handle     face;
+            Arrangement::Halfedge_const_handle halfedge;
+            Arrangement::Vertex_const_handle   vertex;
+            if( CGAL::assign( face, result ) )
             {
-                pPartition->pins.push_back( pPin );
-                collectProperties( pPin, pPartition->properties );
+                pPartition        = face->data().pPartition;
+                pPartitionSegment = face->data().pPartitionSegment;
+            }
+            else if( CGAL::assign( halfedge, result ) )
+            {
+                // accept if both faces have same partition
+                auto f1 = halfedge->face();
+                auto f2 = halfedge->twin()->face();
+                if( f1->data().pPartitionSegment == f2->data().pPartitionSegment )
+                {
+                    pPartition        = f1->data().pPartition;
+                    pPartitionSegment = f1->data().pPartitionSegment;
+                }
+                else
+                {
+                    INVARIANT( false, "Pin intersects halfedge with different face partitions: " << pPin->getName() );
+                }
+            }
+            else if( CGAL::assign( vertex, result ) )
+            {
+                auto incidentIter = vertex->incident_halfedges(), incidentIterEnd = incidentIter;
+                do
+                {
+                    HalfEdge outEdge = incidentIter->twin();
+                    if( !pPartition )
+                    {
+                        pPartition        = outEdge->data().pPartition;
+                        pPartitionSegment = outEdge->data().pPartitionSegment;
+                    }
+                    else
+                    {
+                        INVARIANT( outEdge->data().pPartition == pPartition,
+                                   "Pin incident with vertex that has inconsisten partitions: " << pPin->getName() );
+                        INVARIANT(
+                            outEdge->data().pPartitionSegment == pPartitionSegment,
+                            "Pin incident with vertex that has inconsisten partition segments: " << pPin->getName() );
+                    }
+                    ++incidentIter;
+                } while( incidentIter != incidentIterEnd );
             }
             else
             {
-                INVARIANT( false, "Pin face has no parition: " << pPin->getName() );
+                INVARIANT( false, "Pin does not intersect anything: " << pPin->getName() );
             }
-            if( auto pPartitionSegment = face->data().pPartitionSegment )
-            {
-                pPartitionSegment->pins.push_back( pPin );
-                collectProperties( pPin, pPartitionSegment->properties );
+        }
 
-                // determine the partition segment plane
-                for( const auto pProperty : pPartitionSegment->properties )
-                {
-                    if( pProperty->getName() == "plane" )
-                    {
-                        if( pProperty->getValue() == "Hole" )
-                        {
-                            pPartitionSegment->plane = PartitionSegment::eHole;
-                        }
-                        else if( pProperty->getValue() == "Ground" )
-                        {
-                            pPartitionSegment->plane = PartitionSegment::eGround;
-                        }
-                        else if( pProperty->getValue() == "Mid" )
-                        {
-                            pPartitionSegment->plane = PartitionSegment::eMid;
-                        }
-                        else if( pProperty->getValue() == "Ceiling" )
-                        {
-                            pPartitionSegment->plane = PartitionSegment::eCeiling;
-                        }
-                        else
-                        {
-                            INVARIANT( false, "Unrecognised plane type: " << pProperty->getValue() );
-                        }
-                    }
-                }
-            }
-        }
-        else if( CGAL::assign( halfedge, result ) )
+        if( pPartition )
         {
-            INVARIANT( false, "Pin intersects halfedge: " << pPin->getName() );
-        }
-        else if( CGAL::assign( vertex, result ) )
-        {
-            INVARIANT( false, "Pin intersects vertex: " << pPin->getName() );
+            pPartition->pins.push_back( pPin );
+            collectProperties( pPin, pPartition->properties );
         }
         else
         {
-            INVARIANT( false, "Pin does not intersect anything: " << pPin->getName() );
+            INVARIANT( false, "Could not resolve pin partition: " << pPin->getName() );
+        }
+        if( pPartitionSegment )
+        {
+            pPartitionSegment->pins.push_back( pPin );
+            collectProperties( pPin, pPartitionSegment->properties );
+
+            // determine the partition segment plane
+            for( const auto pProperty : pPartitionSegment->properties )
+            {
+                if( pProperty->getName() == "plane" )
+                {
+                    if( pProperty->getValue() == "Hole" )
+                    {
+                        pPartitionSegment->plane = PartitionSegment::eHole;
+                    }
+                    else if( pProperty->getValue() == "Ground" )
+                    {
+                        pPartitionSegment->plane = PartitionSegment::eGround;
+                    }
+                    else if( pProperty->getValue() == "Mid" )
+                    {
+                        pPartitionSegment->plane = PartitionSegment::eMid;
+                    }
+                    else if( pProperty->getValue() == "Ceiling" )
+                    {
+                        pPartitionSegment->plane = PartitionSegment::eCeiling;
+                    }
+                    else
+                    {
+                        INVARIANT( false, "Unrecognised plane type: " << pProperty->getValue() );
+                    }
+                }
+            }
         }
     }
 }
