@@ -40,6 +40,7 @@ namespace exact
 Analysis::Analysis( schematic::Schematic::Ptr pSchematic )
     : m_pSchematic( pSchematic )
     , m_observer( m_arr )
+    , m_laneBitmap( pSchematic->getLaneBitmap() )
 {
 }
 

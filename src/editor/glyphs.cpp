@@ -515,4 +515,97 @@ void GlyphText::setShouldRender( bool bShouldRender )
     m_pItem->setVisible( bShouldRender );
 }
 
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+QVector< QRgb > GlyphImage::m_coloursNormal;
+
+GlyphImage::GlyphImage( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map,
+                        schematic::ImageSpec* pImage, Toolbox::Ptr pToolBoxPtr )
+    : schematic::GlyphImage( pImage, pParent )
+    , m_pScene( pScene )
+    , m_map( map )
+    , m_pItem( nullptr )
+    , m_pToolBoxPtr( pToolBoxPtr )
+{
+    static bool bColourTablesInit = true;
+    if( bColourTablesInit )
+    {
+        bColourTablesInit = false;
+        QColor g_colourOne( 0, 0, 0, 125 );
+        QColor g_colourTwo( 125, 0, 0, 125 );
+        QColor g_colourThree( 255, 0, 0, 125 );
+        if( m_pToolBoxPtr )
+        {
+            m_pToolBoxPtr->getConfigValue( ".glyphs.image.colours.one", g_colourOne );
+            m_pToolBoxPtr->getConfigValue( ".glyphs.image.colours.two", g_colourTwo );
+            m_pToolBoxPtr->getConfigValue( ".glyphs.image.colours.three", g_colourThree );
+        }
+        m_coloursNormal.push_back( g_colourOne.rgb() );
+        m_coloursNormal.push_back( g_colourTwo.rgb() );
+        m_coloursNormal.push_back( g_colourThree.rgb() );
+    }
+
+    if( const schematic::ImageSpec* pImageSpec = getImageSpec() )
+    {
+        const schematic::MonoBitmap& buffer = pImageSpec->getBuffer();
+        QImage                       m_image(
+            buffer.get(), buffer.getWidth(), buffer.getHeight(), buffer.getStride(), QImage::Format_Indexed8 );
+        m_image.setColorTable( m_coloursNormal );
+        m_pixelMap = QPixmap::fromImage( m_image, Qt::ColorOnly ); //MonoOnly
+        setOrCreateImageItem();
+    }
+}
+
+GlyphImage::~GlyphImage()
+{
+    cleanUpItem( m_pItem, m_map, getImageSpec(), m_pScene );
+}
+
+void GlyphImage::setOrCreateImageItem()
+{
+    if( !m_pItem )
+    {
+        QGraphicsItem* pParentItem = m_map.findItem( getImageSpec()->getParent() );
+        m_pItem                    = new QGraphicsPixmapItem( m_pixelMap, pParentItem );
+        if( !pParentItem )
+            m_pScene->addItem( m_pItem );
+        m_map.insert( m_pItem, getImageSpec(), this );
+        m_pItem->setZValue( 0.0f );
+        m_pItem->setPos( 0.0f, 0.0f );
+        m_pItem->setOffset( 0.0f, 0.0f );
+        m_pItem->setScale( 0.25 );
+    }
+    else
+        m_pItem->setPixmap( m_pixelMap );
+}
+
+void GlyphImage::update()
+{
+    if( const schematic::ImageSpec* pImageSpec = getImageSpec() )
+    {
+        const schematic::MonoBitmap& buffer = pImageSpec->getBuffer();
+        if( ( m_lastUpdateTick < buffer.getLastUpdateTick() ) || !m_pItem )
+        {
+            QImage m_image(
+                buffer.get(), buffer.getWidth(), buffer.getHeight(), buffer.getStride(), QImage::Format_Indexed8 );
+            m_image.setColorTable( m_coloursNormal );
+            m_pixelMap.convertFromImage( m_image, Qt::ColorOnly );
+            setOrCreateImageItem();
+            m_lastUpdateTick.update();
+        }
+        m_pItem->setPos( 0.0f, 0.0f );
+        m_pItem->setOffset( 0.0f, 0.0f );
+        m_pItem->setScale( 0.25 );
+    }
+    // else if( m_pItem )
+    //{
+    //     cleanUpItem( m_pItem, m_map, getImageSpec(), m_pScene );
+    //     m_pItem = 0u;
+    // }
+}
+
+void GlyphImage::setShouldRender( bool bShouldRender )
+{
+    m_pItem->setVisible( bShouldRender );
+}
 } // namespace editor

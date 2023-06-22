@@ -62,7 +62,9 @@ public:
 
     virtual void getMarkupPolygonGroups( MarkupPolygonGroup::List& ) {}
     virtual void getMarkupTexts( MarkupText::List& ) {}
+    virtual void getImages( ImageSpec::List& ) {}
     virtual bool cmd_delete( const std::vector< const GlyphSpec* >& ) { return false; }
+    virtual void getImageSpecs() {}
 
 protected:
     ControlPoint::Set m_controlPointSet;

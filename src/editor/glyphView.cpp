@@ -225,6 +225,13 @@ schematic::IGlyph::Ptr GlyphView::createMarkupText( schematic::MarkupText* pMark
     return pNewGlyph;
 }
 
+schematic::IGlyph::Ptr GlyphView::createImage( schematic::ImageSpec* pImage, schematic::IGlyph::Ptr pParent )   
+{
+    schematic::IGlyph::Ptr pNewGlyph(
+        new GlyphImage( pParent, m_pScene, GlyphMap( m_itemMap, m_specMap ), pImage, getToolbox() ) );
+    return pNewGlyph;
+}
+
 void GlyphView::onEditted( bool bCommandCompleted )
 {
     m_pDocument->onEditted( bCommandCompleted );
@@ -454,8 +461,8 @@ SelectionSet GlyphView::getSelectedByRect( const QRectF& rect ) const
                 {
                     // const bool bIsCustomTool = m_pActiveTool->getToolType() != schematic::IEditContext::eSelect &&
                     //     m_pActiveTool->getToolType() != schematic::IEditContext::eDraw;
-                    // if( ( !bIsCustomTool && pSelectable->isImage() ) ||
-                    //     ( bIsCustomTool && !pSelectable->isImage() ) )
+                    // if( ( !bIsCustomTool && pSelectable->isOrigin() ) ||
+                    //     ( bIsCustomTool && !pSelectable->isOrigin() ) )
                     selection.insert( pTest );
                 }
             }
@@ -482,7 +489,7 @@ SelectionSet GlyphView::getSelectedByPath( const QPainterPath& path ) const
             {
                 if( Selectable* pSelectable = Selection::glyphToSelectable( pTest ) )
                 {
-                    // if( !pSelectable->isImage() )
+                    // if( !pSelectable->isOrigin() )
                     selection.insert( pTest );
                 }
             }
@@ -497,7 +504,7 @@ void GlyphView::setSelected( const SelectionSet& selection )
     {
         if( Selectable* pSelectable = Selection::glyphToSelectable( i->second ) )
         {
-            // if( !pSelectable->isImage() )
+            // if( !pSelectable->isOrigin() )
             {
                 const bool bIsSelected = selection.find( i->second ) != selection.end();
                 pSelectable->setSelected( bIsSelected );
@@ -637,7 +644,7 @@ void GlyphView::CmdSelectAll()
         {
             if( Selectable* pSelectable = Selection::glyphToSelectable( i->second ) )
             {
-                if( pSelectable->isImage()
+                if( pSelectable->isOrigin()
                     && m_pActiveContext->canEdit( i->second, m_pActiveTool->getToolType(), m_pActiveTool->getToolMode(),
                                                   m_pViewConfig->isGlyphVisible( ViewConfig::eGlyphVis_Points ),
                                                   m_pViewConfig->isGlyphVisible( ViewConfig::eGlyphVis_Sites ),

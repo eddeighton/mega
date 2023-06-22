@@ -56,6 +56,10 @@ void Schematic::init()
     {
         m_pPropertiesMarkup.reset( new MultiPolygonMarkup( *this, nullptr, true, eStage_Properties ) );
     }
+    if( !m_pLaneAxisMarkup.get() )
+    {
+        m_pLaneAxisMarkup.reset( new MonoBitmapImage( *this, nullptr, m_laneBitmap, eStage_Lanes ) );
+    }
 }
 
 Node::Ptr Schematic::copy( Node::Ptr pParent, const std::string& strName ) const
@@ -164,7 +168,7 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
         m_pAnalysis->getAllEdges( edges );
         m_pAnalysisMarkup->set( edges );
 
-        if( iStage >= eStage_Properties )
+        /*if( iStage >= eStage_Properties )
         {
             std::map< const exact::Analysis::Partition*, exact::Polygon_with_holes > floors;
             m_pAnalysis->getFloorPartitions( floors );
@@ -206,9 +210,20 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
             m_pPropertiesMarkup->setPolygons( polygons );
             m_pPropertiesMarkup->setStyles( styles );
         }
-        else
+        else*/
         {
             m_pPropertiesMarkup->reset();
+        }
+        
+        if( iStage >= eStage_Lanes )
+        {
+            // m_pLaneAxisMarkup
+            m_laneBitmap.setModified();
+            
+        }
+        else
+        {
+
         }
     }
 

@@ -196,4 +196,24 @@ void MultiPathMarkup::set( const std::vector< SegmentMask >& segments )
     m_updateTick.update();
 }
 
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+MonoBitmapImage::MonoBitmapImage( const GlyphSpecProducer& producer, const GlyphSpec* pParent, const MonoBitmap& bitmap,
+                                  CompilationStage compilationStage )
+    : m_producer( producer )
+    , m_pParent( pParent )
+    , m_bitmap( bitmap )
+    , m_compilationStage( compilationStage )
+{
+}
+const Point& MonoBitmapImage::getPoint() const
+{
+    static Point v{ 0, 0 };
+    return v;
+}
+const Vector& MonoBitmapImage::getOffsetX() const
+{
+    static Vector v{ 0, 0 };
+    return v;
+}
 } // namespace schematic

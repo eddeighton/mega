@@ -183,6 +183,31 @@ private:
     CompilationStage           m_compilationStage;
 };
 
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+class MonoBitmapImage : public ImageSpec
+{
+public:
+    MonoBitmapImage( const GlyphSpecProducer& producer, const GlyphSpec* pParent, const MonoBitmap& bitmap,
+                     CompilationStage compilationStage );
+
+    // GlyphSpec
+    virtual const GlyphSpec*         getParent() const { return m_pParent; }
+    virtual bool                     canEdit() const { return false; }
+    virtual CompilationStage         getCompilationStage() const { return m_compilationStage; }
+    virtual const GlyphSpecProducer* getProducer() const { return &m_producer; }
+
+    // ImageSpec
+    virtual const Point&      getPoint() const;
+    virtual const Vector&     getOffsetX() const;
+    virtual const MonoBitmap& getBuffer() const { return m_bitmap; }
+
+private:
+    const GlyphSpecProducer& m_producer;
+    const GlyphSpec*         m_pParent;
+    const MonoBitmap&        m_bitmap;
+    CompilationStage         m_compilationStage;
+};
 } // namespace schematic
 
 #endif // MARKUP_IMPL_01_DEC_2020

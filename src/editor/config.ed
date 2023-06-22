@@ -94,6 +94,15 @@ glyphs
     {
         colour( 50, 50, 50, 255 )
     }
+    image
+    {
+        colours
+        {
+            one( 0, 0, 0, 125 )
+            two( 125, 0, 0, 125 )
+            three( 255, 0, 0, 125 )
+        }
+    }
 }
 toolbox
 {

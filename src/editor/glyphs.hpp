@@ -83,7 +83,7 @@ public:
     bool         isSelected() const { return m_bSelected; }
     unsigned int getDepth() const { return m_uiDepth; }
     virtual void setSelected( bool bSelected );
-    virtual bool isImage() const = 0;
+    virtual bool isOrigin() const = 0;
 
 private:
     bool               m_bSelected;
@@ -270,7 +270,7 @@ public:
 
     // Selectable
     virtual void setSelected( bool bSelected );
-    virtual bool isImage() const { return false; }
+    virtual bool isOrigin() const { return false; }
 
     // ZoomDependent
     virtual void OnNewZoomLevel( float fZoom );
@@ -339,7 +339,7 @@ public:
 
     // Selectable
     virtual void setSelected( bool bSelected );
-    virtual bool isImage() const { return true; }
+    virtual bool isOrigin() const { return true; }
 
     // Renderable
     virtual void setShouldRender( bool bShouldRender );
@@ -389,6 +389,34 @@ private:
     GlyphMap                 m_map;
     QGraphicsSimpleTextItem* m_pItem;
     Toolbox::Ptr             m_pToolBoxPtr;
+};
+////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
+class GlyphImage : public schematic::GlyphImage, public Renderable
+{
+public:
+    GlyphImage( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, GlyphMap map, schematic::ImageSpec* pImage,
+                Toolbox::Ptr pToolBoxPtr );
+    ~GlyphImage();
+
+    // Renderable
+    virtual void setShouldRender( bool bShouldRender );
+
+    // schematic::GlyphImage
+    virtual void update();
+
+private:
+    void setOrCreateImageItem();
+
+private:
+    static QVector< QRgb > m_coloursNormal;
+    QPixmap                m_pixelMap;
+    QGraphicsScene*        m_pScene;
+    GlyphMap               m_map;
+    QGraphicsPixmapItem*   m_pItem;
+    Toolbox::Ptr           m_pToolBoxPtr;
+    Timing::UpdateTick     m_lastUpdateTick;
 };
 
 } // namespace editor

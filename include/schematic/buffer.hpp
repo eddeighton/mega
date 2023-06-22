@@ -34,7 +34,7 @@ class Buffer
 public:
     using BitmapType = std::vector< unsigned char >;
 
-    Buffer( unsigned int uiWidth, unsigned int uiHeight )
+    Buffer( unsigned int uiWidth = 0, unsigned int uiHeight = 0 )
         : m_uiWidth( uiWidth )
         , m_uiHeight( uiHeight )
         , m_buffer( uiWidth * uiHeight * PIXEL_SIZE )
@@ -77,7 +77,7 @@ private:
     Timing::UpdateTick m_lastUpdateTick;
 };
 
-using NavBitmap = Buffer< 1U >;
+using MonoBitmap = Buffer< 1U >;
 
 } // namespace schematic
 

@@ -48,6 +48,7 @@ public:
                                                              schematic::IGlyph::Ptr         pParent );
     virtual schematic::IGlyph::Ptr createMarkupText( schematic::MarkupText* pMarkupText,
                                                      schematic::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createImage( schematic::ImageSpec* pImage, schematic::IGlyph::Ptr pParent );
     virtual void                   onEditted( bool bCommandCompleted );
 
 signals:

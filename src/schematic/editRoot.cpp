@@ -33,7 +33,7 @@ EditRoot::EditRoot( GlyphFactory& glyphFactory, Node::Ptr pNode )
     {
         MarkupText::List texts;
         pGlyphSpecProducer->getMarkupTexts( texts );
-        for( MarkupText::List::const_iterator i = texts.begin(), iEnd = texts.end(); i != iEnd; ++i )
+        for( auto i = texts.begin(), iEnd = texts.end(); i != iEnd; ++i )
         {
             if( IGlyph::Ptr pMarkupGlyph = m_glyphFactory.createMarkupText( *i, IGlyph::Ptr() ) )
                 m_markup.insert( std::make_pair( *i, pMarkupGlyph ) );
@@ -41,11 +41,20 @@ EditRoot::EditRoot( GlyphFactory& glyphFactory, Node::Ptr pNode )
 
         MarkupPolygonGroup::List polyGroups;
         pGlyphSpecProducer->getMarkupPolygonGroups( polyGroups );
-        for( MarkupPolygonGroup::List::const_iterator i = polyGroups.begin(), iEnd = polyGroups.end(); i != iEnd; ++i )
+        for( auto i = polyGroups.begin(), iEnd = polyGroups.end(); i != iEnd; ++i )
         {
             if( IGlyph::Ptr pMarkupGlyph = m_glyphFactory.createMarkupPolygonGroup( *i, IGlyph::Ptr() ) )
                 m_markup.insert( std::make_pair( *i, pMarkupGlyph ) );
         }
+
+        ImageSpec::List images;
+        pGlyphSpecProducer->getImages( images );
+        for( auto i = images.begin(), iEnd = images.end(); i != iEnd; ++i )
+        {
+            if( IGlyph::Ptr pImageGlyph = m_glyphFactory.createImage( *i, IGlyph::Ptr() ) )
+                m_markup.insert( std::make_pair( *i, pImageGlyph ) );
+        }
+
     }
 }
 

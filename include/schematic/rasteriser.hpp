@@ -68,7 +68,7 @@ public:
     using RasterizerType   = agg::rasterizer_scanline_aa<>;
 
 public:
-    Rasteriser( NavBitmap& buffer, bool bClear = true )
+    Rasteriser( MonoBitmap& buffer, bool bClear = true )
         : m_buffer( buffer )
         , m_renderBuffer( buffer.get(), buffer.getWidth(), buffer.getHeight(), buffer.getStride() )
         , m_pixelFormater( m_renderBuffer )
@@ -76,12 +76,15 @@ public:
     {
         if( bClear )
             m_renderer.clear( ColourType( 0u ) );
+
     }
 
+    // NOTE: Setting gamma to zero will produce strange results
     template < class T >
-    void renderPath( T& path, const ColourType& colour, Float fGamma = 0.0f )
+    void renderPath( T& path, const ColourType& colour, Float fGamma = 0.5f )
     {
         RasterizerType ras;
+        // ras.filling_rule( agg::fill_even_odd );
         ras.gamma( agg::gamma_threshold( fGamma ) );
         ras.add_path( path );
         agg::render_scanlines_aa_solid( ras, m_scanLine, m_renderer, colour );
@@ -99,10 +102,10 @@ public:
 
     inline const ColourType& getPixel( int x, int y ) const { return m_renderer.pixel( x, y ); }
 
-    NavBitmap& getBuffer() { return m_buffer; }
+    MonoBitmap& getBuffer() { return m_buffer; }
 
 private:
-    NavBitmap&            m_buffer;
+    MonoBitmap&           m_buffer;
     agg::rendering_buffer m_renderBuffer;
     PixelFormatType       m_pixelFormater;
     RendererBaseType      m_renderer;

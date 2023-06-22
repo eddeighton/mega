@@ -105,6 +105,15 @@ schematic::IGlyph::Ptr ClipScene::createMarkupText( schematic::MarkupText* pMark
     return pNewGlyph;
 }
 
+schematic::IGlyph::Ptr ClipScene::createImage( schematic::ImageSpec* pImage, schematic::IGlyph::Ptr pParent )
+{
+    schematic::IGlyph::Ptr pNewGlyph(
+        new GlyphImage( pParent, this, GlyphMap( m_itemMap, m_specMap ), pImage, m_pToolBox ) );
+    if( Renderable* pRenderable = dynamic_cast< Renderable* >( pNewGlyph.get() ) )
+        pRenderable->setShouldRender( false );
+    return pNewGlyph;
+}
+
 void ClipScene::onEditted( bool bCommandCompleted )
 {
 }

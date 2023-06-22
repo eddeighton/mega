@@ -68,13 +68,25 @@ public:
         if( m_pPropertiesMarkup.get() )
             polyGroups.push_back( m_pPropertiesMarkup.get() );
     }
+    virtual void getImages( ImageSpec::List& images ) 
+    {
+        if( m_pLaneAxisMarkup.get() )
+            images.push_back( m_pLaneAxisMarkup.get() );
+    }
 
     exact::Analysis::Ptr getAnalysis() const { return m_pAnalysis; }
+
+private:
+    friend class ::exact::Analysis;
+    MonoBitmap& getLaneBitmap() { return m_laneBitmap; }
 
 private:
     exact::Analysis::Ptr                  m_pAnalysis;
     std::unique_ptr< MultiPathMarkup >    m_pAnalysisMarkup;
     std::unique_ptr< MultiPolygonMarkup > m_pPropertiesMarkup;
+
+    MonoBitmap                         m_laneBitmap;
+    std::unique_ptr< MonoBitmapImage > m_pLaneAxisMarkup;
 };
 
 } // namespace schematic

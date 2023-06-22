@@ -39,6 +39,8 @@
 namespace exact
 {
 
+static const double imageScale = 4.0;
+
 void Analysis::lanes()
 {
     static const exact::ExactToInexact converter;
@@ -52,9 +54,19 @@ void Analysis::lanes()
     HalfEdgeVector perimeter;
     getPerimeterPolygon( perimeter );
 
-    schematic::NavBitmap buffer( 128, 128 );
+    std::vector< exact::Point > points;
+    for( auto e : perimeter )
+    {
+        points.push_back( e->source()->point() );
+    }
+    const Rect boundingBox = CGAL::bbox_2( points.begin(), points.end() );
 
-    schematic::Rasteriser raster( buffer, true );
+    const double width  = CGAL::to_double( boundingBox.xmax() - boundingBox.xmin() ) * imageScale;
+    const double height = CGAL::to_double( boundingBox.ymax() - boundingBox.ymin() ) * imageScale;
+
+    m_laneBitmap.resize( std::ceil( width ) + imageScale, std::ceil( height ) + imageScale );
+
+    schematic::Rasteriser raster( m_laneBitmap, true );
 
     // /workspace/root/thirdparty/agg/src/include/agg_basics.h:336
     //---------------------------------------------------------path_commands_e
@@ -77,53 +89,63 @@ void Analysis::lanes()
 
     struct HalfEdgeVectorVertexSource
     {
+        const Rect&                              m_boundingBox;
         const Analysis::HalfEdgeVector&          m_boundarySegments;
-        Analysis::HalfEdgeVector::const_iterator iter;
-        bool                                     m_bFirst;
+        Analysis::HalfEdgeVector::const_iterator m_iter;
+        bool                                     m_bFirst      = true;
+        bool                                     m_bPolyClosed = false;
 
-        HalfEdgeVectorVertexSource( const Analysis::HalfEdgeVector& boundarySegments )
-            : m_boundarySegments( boundarySegments )
-            , iter( m_boundarySegments.begin() )
-            , m_bFirst( true )
+        HalfEdgeVectorVertexSource( const Rect& boundingBox, const Analysis::HalfEdgeVector& boundarySegments )
+            : m_boundingBox( boundingBox )
+            , m_boundarySegments( boundarySegments )
+            , m_iter( m_boundarySegments.begin() )
         {
         }
-        void     rewind( unsigned path_id = 0 ) { iter = m_boundarySegments.begin(); }
+        void rewind( unsigned path_id = 0 )
+        {
+            //
+            m_iter = m_boundarySegments.begin() + path_id;
+        }
+
         unsigned vertex( double* x, double* y )
         {
-            if( iter != m_boundarySegments.end() )
+            if( m_iter != m_boundarySegments.end() )
             {
-                const auto& p = ( *iter )->source()->point();
-                *x            = CGAL::to_double( p.x() );
-                *y            = CGAL::to_double( p.y() );
+                const auto& p = ( *m_iter )->source()->point();
+                *x            = ( CGAL::to_double( p.x() - m_boundingBox.xmin() ) + 0.5 ) * imageScale;
+                *y            = ( CGAL::to_double( p.y() - m_boundingBox.ymin() ) + 0.5 ) * imageScale;
+                ++m_iter;
 
-                ++iter;
                 if( m_bFirst )
                 {
-                    return agg::path_cmd_line_to;
+                    m_bFirst = false;
+                    // return agg::set_orientation( agg::path_cmd_move_to, agg::path_flags_ccw );
+                    return agg::path_cmd_move_to;
                 }
                 else
                 {
-                    m_bFirst = false;
-                    return agg::path_cmd_move_to;
+                    // return agg::set_orientation( agg::path_cmd_line_to, agg::path_flags_ccw );
+                    return agg::path_cmd_line_to;
                 }
             }
-            return agg::path_cmd_stop;
+            if( !m_bPolyClosed )
+            {
+                m_bPolyClosed = true;
+                return agg::get_close_flag( agg::path_cmd_end_poly );
+            }
+            else
+            {
+                return agg::path_cmd_stop;
+            }
         }
     };
 
     for( const auto& boundary : boundarySegments )
     {
-        HalfEdgeVectorVertexSource        visitor{ boundary };
-        schematic::Rasteriser::ColourType colourSet{ 0xFF };
-        raster.renderPath( visitor, colourSet );
+        HalfEdgeVectorVertexSource        visitor{ boundingBox, boundary };
+        schematic::Rasteriser::ColourType colourSet{ 0x01 };
+        raster.renderPath( visitor, colourSet, 1.0f );
     }
-
-    /*std::vector< exact::Polygon > polygons;
-    for( const auto& [ pPartitionSegment, polygon ] : boundaries )
-    {
-        polygons.push_back( polygon );
-    }
-    const Rect boundingBox = CGAL::bbox_2( polygons.begin(), polygons.end() );*/
 }
 
 } // namespace exact

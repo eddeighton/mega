@@ -23,6 +23,7 @@
 #include "schematic/compilation_stage.hpp"
 #include "schematic/cgalSettings.hpp"
 #include "schematic/compilation_stage.hpp"
+#include "schematic/buffer.hpp"
 
 #include "schematic/analysis/edge_mask.hpp"
 
@@ -126,15 +127,16 @@ protected:
     Transform m_transform;
 };
 
-/*
 class ImageSpec : public GlyphSpec
 {
 public:
+    using List = std::list< ImageSpec* >;
+    
     virtual const Point& getPoint() const = 0;
     virtual const Vector& getOffsetX() const = 0;
-    virtual NavBitmap::Ptr getBuffer() const = 0;
+    virtual const MonoBitmap& getBuffer() const = 0;
 };
-*/
+
 } // namespace schematic
 
 #endif // GLYPHSPEC_18_09_2013

@@ -46,7 +46,7 @@ public:
         , m_pParent( pParent )
     {
     }
-    virtual ~IGlyph() = default;
+    virtual ~IGlyph()         = default;
     virtual void     update() = 0;
     const GlyphSpec* getGlyphSpec() const { return m_pGlyphSpec; }
     Ptr              getParent() const { return m_pParent; }
@@ -113,6 +113,17 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
+class GlyphImage : public IGlyph
+{
+public:
+    GlyphImage( ImageSpec* pImageSpec, IGlyph::Ptr pParent )
+        : IGlyph( pImageSpec, pParent )
+    {
+    }
+    const ImageSpec* getImageSpec() const { return dynamic_cast< const ImageSpec* >( m_pGlyphSpec ); }
+};
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 class GlyphFactory
 {
 public:
@@ -120,6 +131,7 @@ public:
     virtual IGlyph::Ptr createOrigin( Origin* pOrigin, IGlyph::Ptr pParent )                                     = 0;
     virtual IGlyph::Ptr createMarkupPolygonGroup( MarkupPolygonGroup* pMarkupPolygonGroup, IGlyph::Ptr pParent ) = 0;
     virtual IGlyph::Ptr createMarkupText( MarkupText* pMarkupText, IGlyph::Ptr pParent )                         = 0;
+    virtual IGlyph::Ptr createImage( ImageSpec* pImage, IGlyph::Ptr pParent )                                    = 0;
 
     virtual void onEditted( bool bCommandCompleted ) = 0;
 };

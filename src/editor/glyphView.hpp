@@ -54,6 +54,7 @@ public:
                                                              schematic::IGlyph::Ptr         pParent );
     virtual schematic::IGlyph::Ptr createMarkupText( schematic::MarkupText* pMarkupText,
                                                      schematic::IGlyph::Ptr pParent );
+    virtual schematic::IGlyph::Ptr createImage( schematic::ImageSpec* pImage, schematic::IGlyph::Ptr pParent );
     virtual void                   onEditted( bool bCommandCompleted );
 
 public:
@@ -128,12 +129,12 @@ protected:
     SelectionModel           m_selectionModel;
     schematic::IEditContext* m_pActiveContext = nullptr;
 
-    SelectTool                             m_selectTool;
-    LassoTool                              m_lassoTool;
-    PenTool                                m_penTool;
-    EditTool                               m_editTool;
-    Tool*                                  m_pActiveTool;
-    ViewConfig::Ptr                        m_pViewConfig;
+    SelectTool                  m_selectTool;
+    LassoTool                   m_lassoTool;
+    PenTool                     m_penTool;
+    EditTool                    m_editTool;
+    Tool*                       m_pActiveTool;
+    ViewConfig::Ptr             m_pViewConfig;
     schematic::CompilationStage m_compilationConfig;
 
 private:

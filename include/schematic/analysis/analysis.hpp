@@ -123,7 +123,7 @@ public:
     // query used by editor for edge visualisation
     void getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges ) const;
     void getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors );    // const;
-    void getBoundaryPartitions( Analysis::HalfEdgeVectorVector& boundarySegments ); // const;
+    void getBoundaryPartitions( Analysis::HalfEdgeVectorVector& boundarySegments );                          // const;
     void getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries ); // const;
 
     class Observer : public CGAL::Arr_observer< Arrangement >
@@ -245,7 +245,7 @@ public:
             // type:Type;
             // properties:[Properties];
             PartitionSegment::Plane lower, upper;
-            HalfEdgeSet edges;
+            HalfEdgeSet             edges;
         };
 
         struct WallSection
@@ -253,7 +253,7 @@ public:
             // type:Type;
             // properties:[Properties];
             PartitionSegment::Plane lower, upper;
-            HalfEdgeVector edges;
+            HalfEdgeVector          edges;
         };
 
         // type:Type;
@@ -287,6 +287,7 @@ private:
     PartitionSegment::PtrVector m_boundarySegments;
     Arrangement                 m_arr;
     Observer                    m_observer;
+    schematic::MonoBitmap&      m_laneBitmap;
 };
 } // namespace exact
 

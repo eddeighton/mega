@@ -5,7 +5,7 @@ Schematic(base;,0)
         transform(1,0,0,0,1,0)
         Contour(contour;,0)
         {
-            path(0,0,112,0,112,112,0,112)
+            path(0,0,112,0,112,80,0,80)
         }
         Property(width;,1)
         {
@@ -13,7 +13,7 @@ Schematic(base;,0)
         }
         Space(spac_0009;,2)
         {
-            transform(-1,0,28,0,1,62)
+            transform(-1,0,38,0,1,28)
             Contour(contour;,0)
             {
                 path(-34,-16,16,-16,16,40,-34,40)
@@ -22,21 +22,13 @@ Schematic(base;,0)
             {
                 value(0.5f;)
             }
-            Object(obje_0002;,2)
+            Connection(conn_0002;,2)
             {
-                transform(-1,0,-8,0,1,16)
-                Contour(contour;,0)
+                transform(2.66454e-15,-1,-34,-1,-2.66454e-15,12)
+                Point(width;,0)
                 {
-                    path(-16,-16,16,-16,16,16,-16,16)
+                    position(6.5,2)
                 }
-            }
-        }
-        Connection(conn_0010;,3)
-        {
-            transform(2.66454e-15,-1,62,-1,-2.66454e-15,58)
-            Point(width;,0)
-            {
-                position(7.5,3)
             }
         }
     }
