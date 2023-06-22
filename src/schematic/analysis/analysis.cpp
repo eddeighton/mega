@@ -107,15 +107,19 @@ void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, exact::
     }
 }
 
-void Analysis::getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries )
+void Analysis::getBoundaryPartitions( Analysis::HalfEdgeVectorVector& boundarySegments )
 {
-    Analysis::HalfEdgeSet          edges;
-    Analysis::HalfEdgeVectorVector boundarySegments;
+    Analysis::HalfEdgeSet edges;
     getEdges( m_arr, edges,
               []( Arrangement::Halfedge_const_handle edge )
               { return test( edge, EdgeMask::ePartitionBoundarySegment ); } );
     getPolygonsDir( edges, boundarySegments, true );
+}
 
+void Analysis::getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries )
+{
+    Analysis::HalfEdgeVectorVector boundarySegments;
+    getBoundaryPartitions( boundarySegments );
     for( const auto& boundarySegment : boundarySegments )
     {
         auto pSegment = boundarySegment.front()->data().pPartitionSegment;

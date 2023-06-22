@@ -30,7 +30,6 @@
 #include "schematic/object.hpp"
 #include "schematic/cgalUtils.hpp"
 #include "schematic/property.hpp"
-#include "schematic/dataBitmap.hpp"
 #include "schematic/factory.hpp"
 
 #include "common/assert_verify.hpp"

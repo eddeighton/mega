@@ -23,8 +23,6 @@
 #include "common/tick.hpp"
 #include "common/assert_verify.hpp"
 
-#include <boost/shared_ptr.hpp>
-
 #include <vector>
 
 namespace schematic
@@ -35,7 +33,6 @@ class Buffer
 {
 public:
     using BitmapType = std::vector< unsigned char >;
-    using Ptr        = boost::shared_ptr< Buffer >;
 
     Buffer( unsigned int uiWidth, unsigned int uiHeight )
         : m_uiWidth( uiWidth )

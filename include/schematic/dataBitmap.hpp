@@ -41,7 +41,7 @@ public:
     public:
         typedef std::vector< Claim > Vector;
 
-        Claim( Float x, Float y, NavBitmap::Ptr pBuffer, boost::shared_ptr< Site > pSite );
+        Claim( Float x, Float y, NavBitmap& Buffer, boost::shared_ptr< Site > pSite );
 
         Float m_x, m_y;
         NavBitmap::Ptr m_pBuffer;

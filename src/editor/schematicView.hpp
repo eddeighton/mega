@@ -52,7 +52,11 @@ public slots:
     void CmdViewPort();
     void CmdViewPartition();
     void CmdViewProperties();
-    void CmdViewSkeleton();
+    void CmdViewLanes();
+    void CmdViewPlacement();
+    void CmdViewValues();
+    void CmdViewVisibility();
+
 
 private:
     void configureCompilationStage( schematic::CompilationStage stage );

@@ -20,19 +20,35 @@
 #ifndef RASTERISER_21_09_2013
 #define RASTERISER_21_09_2013
 
+#include "common/optimisation.hpp"
+
 #include "schematic/buffer.hpp"
 
-#include "agg_basics.hpp"
-// #include "agg_pixfmt_rgba.hpp"
-#include "agg_pixfmt_gray.hpp"
-#include "agg_rendering_buffer.hpp"
-#include "agg_rasterizer_scanline_aa.hpp"
-#include "agg_scanline_p.hpp"
-#include "agg_renderer_scanline.hpp"
-#include "agg_path_storage.hpp"
-#include "agg_conv_stroke.hpp"
-#include "agg_trans_affine.hpp"
-#include "agg_conv_transform.hpp"
+#ifdef _WIN32
+
+#else
+
+//#pragma PUSH_GCC_OPTIONS
+#pragma diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#pragma diagnostic ignored "-Wdeprecated-enum-float-conversion"
+#pragma diagnostic ignored "-Wreturn-local-addr"
+#pragma diagnostic ignored "-Wregister"
+
+#include "agg_basics.h"
+// #include "agg_pixfmt_rgba.h"
+#include "agg_pixfmt_gray.h"
+#include "agg_rendering_buffer.h"
+#include "agg_rasterizer_scanline_aa.h"
+#include "agg_scanline_p.h"
+#include "agg_renderer_scanline.h"
+#include "agg_path_storage.h"
+#include "agg_conv_stroke.h"
+#include "agg_trans_affine.h"
+#include "agg_conv_transform.h"
+
+//#pragma POP_GCC_OPTIONS
+
+#endif
 
 #include <vector>
 
@@ -52,9 +68,9 @@ public:
     using RasterizerType   = agg::rasterizer_scanline_aa<>;
 
 public:
-    Rasteriser( NavBitmap::Ptr pBuffer, bool bClear = true )
-        : m_pBuffer( pBuffer )
-        , m_renderBuffer( m_pBuffer->get(), m_pBuffer->getWidth(), m_pBuffer->getHeight(), m_pBuffer->getStride() )
+    Rasteriser( NavBitmap& buffer, bool bClear = true )
+        : m_buffer( buffer )
+        , m_renderBuffer( buffer.get(), buffer.getWidth(), buffer.getHeight(), buffer.getStride() )
         , m_pixelFormater( m_renderBuffer )
         , m_renderer( m_pixelFormater )
     {
@@ -83,10 +99,10 @@ public:
 
     inline const ColourType& getPixel( int x, int y ) const { return m_renderer.pixel( x, y ); }
 
-    NavBitmap::Ptr getBuffer() { return m_pBuffer; }
+    NavBitmap& getBuffer() { return m_buffer; }
 
 private:
-    NavBitmap::Ptr        m_pBuffer;
+    NavBitmap&            m_buffer;
     agg::rendering_buffer m_renderBuffer;
     PixelFormatType       m_pixelFormater;
     RendererBaseType      m_renderer;

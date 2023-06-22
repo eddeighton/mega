@@ -30,6 +30,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/cgal/cgal_include.cmake )
 #get flatbuffers
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/flatbuffers/flatbuffers_include.cmake )
 
+#get agg
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/agg/agg_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -52,7 +55,6 @@ set( SCHEMATIC_HEADERS
     ${SCHEMATIC_API_DIR}/connection.hpp
     ${SCHEMATIC_API_DIR}/container.hpp
     ${SCHEMATIC_API_DIR}/cut.hpp
-    ${SCHEMATIC_API_DIR}/dataBitmap.hpp
     ${SCHEMATIC_API_DIR}/editBase.hpp
     ${SCHEMATIC_API_DIR}/editInteractions.hpp
     ${SCHEMATIC_API_DIR}/editNested.hpp
@@ -91,14 +93,16 @@ set( SCHEMATIC_SOURCE
     ${SCHEMATIC_SRC_DIR}/analysis/task_contours.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_partitions.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_properties.cpp
-    ${SCHEMATIC_SRC_DIR}/analysis/task_skeleton.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_lanes.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_placement.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_values.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_visibility.cpp
 
     ${SCHEMATIC_SRC_DIR}/format/format.cpp
 
     ${SCHEMATIC_SRC_DIR}/cgalUtils.cpp
     ${SCHEMATIC_SRC_DIR}/connection.cpp
     ${SCHEMATIC_SRC_DIR}/cut.cpp
-    ${SCHEMATIC_SRC_DIR}/dataBitmap.cpp
     ${SCHEMATIC_SRC_DIR}/editBase.cpp
     ${SCHEMATIC_SRC_DIR}/editInteractions.cpp
     ${SCHEMATIC_SRC_DIR}/editNested.cpp
@@ -143,12 +147,13 @@ add_dependencies( schematic map_format )
 link_boost( schematic system )
 link_boost( schematic filesystem )
 link_boost( schematic iostreams )
-#link_boost( schematic serialization )
 
+link_agg( schematic )
 link_cgal( schematic )
+link_flatbuffers( schematic )
+
 link_common( schematic )
 link_ed( schematic )
-link_flatbuffers( schematic )
 
 install( FILES ${SCHEMATIC_HEADERS} DESTINATION include/schematic )
 install( TARGETS schematic EXPORT schematic DESTINATION bin)

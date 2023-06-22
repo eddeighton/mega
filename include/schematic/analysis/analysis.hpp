@@ -105,12 +105,10 @@ public:
     void ports();
     void partition();
     void properties();
-    void skeleton();
-
-    // query used by editor for edge visualisation
-    void getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges ) const;
-    void getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors );    // const;
-    void getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries ); // const;
+    void lanes();
+    void placement();
+    void values();
+    void visibility();
 
     // queries used by map format
     using VertexVector         = std::vector< Arrangement::Vertex_const_handle >;
@@ -121,6 +119,12 @@ public:
     using Face                 = Arrangement::Face_const_handle;
     using FaceVector           = std::vector< Face >;
     using FaceSet              = std::set< Face >;
+
+    // query used by editor for edge visualisation
+    void getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges ) const;
+    void getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors );    // const;
+    void getBoundaryPartitions( Analysis::HalfEdgeVectorVector& boundarySegments ); // const;
+    void getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries ); // const;
 
     class Observer : public CGAL::Arr_observer< Arrangement >
     {

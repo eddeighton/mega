@@ -110,25 +110,62 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
             m_pAnalysis.reset( new exact::Analysis( pThis ) );
             m_pAnalysis->contours();
             m_pAnalysis->ports();
-
-            std::vector< MultiPathMarkup::SegmentMask > edges;
-            m_pAnalysis->getAllEdges( edges );
-            m_pAnalysisMarkup->set( edges );
         }
 
         if( iStage >= eStage_Partition )
         {
             m_pAnalysis->partition();
-
-            std::vector< MultiPathMarkup::SegmentMask > edges;
-            m_pAnalysis->getAllEdges( edges );
-            m_pAnalysisMarkup->set( edges );
         }
 
         if( iStage >= eStage_Properties )
         {
             m_pAnalysis->properties();
+        }
 
+        if( iStage >= eStage_Lanes )
+        {
+            m_pAnalysis->lanes();
+        }
+
+        if( iStage >= eStage_Placement )
+        {
+            m_pAnalysis->placement();
+        }
+
+        if( iStage >= eStage_Values )
+        {
+            m_pAnalysis->values();
+        }
+
+        if( iStage >= eStage_Visibility )
+        {
+            m_pAnalysis->visibility();
+        }
+    }
+    catch( std::exception& ex )
+    {
+        os << ex.what();
+
+        m_pAnalysisMarkup->reset();
+        m_pPropertiesMarkup->reset();
+        return false;
+    }
+    catch( ... )
+    {
+        os << "Unknown exception compiling schematic";
+        m_pAnalysisMarkup->reset();
+        m_pPropertiesMarkup->reset();
+        return false;
+    }
+
+    if( m_pAnalysis )
+    {
+        std::vector< MultiPathMarkup::SegmentMask > edges;
+        m_pAnalysis->getAllEdges( edges );
+        m_pAnalysisMarkup->set( edges );
+
+        if( iStage >= eStage_Properties )
+        {
             std::map< const exact::Analysis::Partition*, exact::Polygon_with_holes > floors;
             m_pAnalysis->getFloorPartitions( floors );
 
@@ -169,30 +206,10 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
             m_pPropertiesMarkup->setPolygons( polygons );
             m_pPropertiesMarkup->setStyles( styles );
         }
-
-        if( iStage >= eStage_Skeleton )
+        else
         {
-            m_pAnalysis->skeleton();
-
-            std::vector< MultiPathMarkup::SegmentMask > edges;
-            m_pAnalysis->getAllEdges( edges );
-            m_pAnalysisMarkup->set( edges );
+            m_pPropertiesMarkup->reset();
         }
-    }
-    catch( std::exception& ex )
-    {
-        os << ex.what();
-
-        m_pAnalysisMarkup->reset();
-        m_pPropertiesMarkup->reset();
-        return false;
-    }
-    catch( ... )
-    {
-        os << "Unknown exception compiling schematic";
-        m_pAnalysisMarkup->reset();
-        m_pPropertiesMarkup->reset();
-        return false;
     }
 
     return true;
@@ -588,7 +605,7 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
         auto sLower = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, sVert, lower );
         auto sUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, sVert, upper );
 
-        fUVDist += mag;
+        fUVDist -= mag;
 
         auto tLower = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, tVert, lower );
         auto tUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, tVert, upper );

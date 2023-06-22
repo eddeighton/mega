@@ -62,11 +62,14 @@ void SchematicView::onViewFocussed()
     CMD_CONNECT( actionRedo,    CmdRedo );
     
     CMD_CONNECT( actionView_SiteContour  , CmdViewSiteContour );
-    CMD_CONNECT( actionView_Walls        , CmdViewWalls       );
-    CMD_CONNECT( actionView_Port     , CmdViewPort    );
-    CMD_CONNECT( actionView_Partition    , CmdViewPartition  );
-    CMD_CONNECT( actionView_Properties   , CmdViewProperties  );
-    CMD_CONNECT( actionView_Skeleton     , CmdViewSkeleton  );
+    CMD_CONNECT( actionView_Walls        , CmdViewWalls );
+    CMD_CONNECT( actionView_Port         , CmdViewPort );
+    CMD_CONNECT( actionView_Partition    , CmdViewPartition );
+    CMD_CONNECT( actionView_Properties   , CmdViewProperties );
+    CMD_CONNECT( actionView_Lanes        , CmdViewLanes );
+    CMD_CONNECT( actionView_Placement    , CmdViewPlacement );
+    CMD_CONNECT( actionView_Values       , CmdViewValues );
+    CMD_CONNECT( actionView_Visibility   , CmdViewVisibility );
 
     m_pMainWindow->getCompilationModeComboBox()->setCurrentIndex( m_compilationConfig );
     QObject::connect( m_pMainWindow->getCompilationModeComboBox(), 
@@ -92,7 +95,10 @@ void SchematicView::onViewUnfocussed()
     CMD_DISCONNECT( actionView_Port, CmdViewPort );
     CMD_DISCONNECT( actionView_Partition, CmdViewPartition );
     CMD_DISCONNECT( actionView_Properties, CmdViewProperties );
-    CMD_DISCONNECT( actionView_Skeleton, CmdViewSkeleton );
+    CMD_DISCONNECT( actionView_Lanes, CmdViewLanes );
+    CMD_DISCONNECT( actionView_Placement, CmdViewPlacement );
+    CMD_DISCONNECT( actionView_Values, CmdViewValues );
+    CMD_DISCONNECT( actionView_Visibility, CmdViewVisibility );
     
     QObject::disconnect( m_pMainWindow->getCompilationModeComboBox(), 
         SIGNAL( currentIndexChanged( int ) ), this, SLOT( OnCompilationModeChanged( int ) ) );
@@ -276,9 +282,24 @@ void SchematicView::CmdViewProperties()
     configureCompilationStage( schematic::eStage_Properties );
 }
 
-void SchematicView::CmdViewSkeleton()
+void SchematicView::CmdViewLanes()
 {
-    configureCompilationStage( schematic::eStage_Skeleton );
+    configureCompilationStage( schematic::eStage_Lanes );
+}
+
+void SchematicView::CmdViewPlacement()
+{
+    configureCompilationStage( schematic::eStage_Placement );
+}
+
+void SchematicView::CmdViewValues()
+{
+    configureCompilationStage( schematic::eStage_Values );
+}
+
+void SchematicView::CmdViewVisibility()
+{
+    configureCompilationStage( schematic::eStage_Visibility );
 }
 
 } // namespace editor

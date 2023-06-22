@@ -34,7 +34,7 @@
 
 namespace exact
 {
-
+/*
 void Analysis::skeleton()
 {
     HalfEdgePolygonWithHoles::Vector floors;
@@ -42,10 +42,11 @@ void Analysis::skeleton()
     getPolyonsWithHoles(
         m_arr,
         // OuterEdgePredicate
-        []( Arrangement::Halfedge_const_handle edge ) { return test( edge, EdgeMask::ePerimeter ); },
+        []( Arrangement::Halfedge_const_handle edge )
+        { return test( edge, EdgeMask::ePerimeter ) || test( edge, EdgeMask::ePartitionFloor ); },
         // InnerEdgePredicate
         []( Arrangement::Halfedge_const_handle edge )
-        { return test( edge, EdgeMask::ePartitionBoundary ) && !test( edge, EdgeMask::ePerimeterBoundary ); },
+        { return test( edge, EdgeMask::ePartitionFloor ) && !test( edge, EdgeMask::ePerimeterBoundary ); },
         floors );
 
     INVARIANT( floors.size() == 1, "Failed to locate single floor" );
@@ -75,9 +76,9 @@ void Analysis::skeleton()
 
     using ExtrusionSpec = std::tuple< double, EdgeMask::Type, EdgeMask::Type >;
     static constexpr std::array< ExtrusionSpec, 4 > extrusions
-        = { ExtrusionSpec{ 1.0, EdgeMask::eExtrusionOne, EdgeMask::eExtrusionOneBoundary },
-            ExtrusionSpec{ 2.0, EdgeMask::eExtrusionTwo, EdgeMask::eExtrusionTwoBoundary },
-            ExtrusionSpec{ 3.0, EdgeMask::eExtrusionThree, EdgeMask::eExtrusionThreeBoundary },
+        = { ExtrusionSpec{ 0.5, EdgeMask::eExtrusionOne, EdgeMask::eExtrusionOneBoundary },
+            ExtrusionSpec{ 1.0, EdgeMask::eExtrusionTwo, EdgeMask::eExtrusionTwoBoundary },
+            ExtrusionSpec{ 2.0, EdgeMask::eExtrusionThree, EdgeMask::eExtrusionThreeBoundary },
             ExtrusionSpec{ 4.0, EdgeMask::eExtrusionFour, EdgeMask::eExtrusionFourBoundary } };
     for( const auto& [ fOffset, mask, maskBoundary ] : extrusions )
     {
@@ -95,6 +96,6 @@ void Analysis::skeleton()
             }
         }
     }
-}
+}*/
 
 } // namespace exact

@@ -89,7 +89,10 @@
     <addaction name="actionView_Port"/>
     <addaction name="actionView_Partition"/>
     <addaction name="actionView_Properties"/>
-    <addaction name="actionView_Skeleton"/>
+    <addaction name="actionView_Lanes"/>
+    <addaction name="actionView_Placement"/>
+    <addaction name="actionView_Values"/>
+    <addaction name="actionView_Visibility"/>
     <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
@@ -629,9 +632,33 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="actionView_Skeleton">
+  <action name="actionView_Lanes">
    <property name="text">
-    <string>Skeleton</string>
+    <string>Lanes</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionView_Placement">
+   <property name="text">
+    <string>Placement</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionView_Values">
+   <property name="text">
+    <string>Values</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionView_Visibility">
+   <property name="text">
+    <string>Visibility</string>
    </property>
    <property name="visible">
     <bool>false</bool>
