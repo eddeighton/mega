@@ -201,12 +201,10 @@ inline void serialize( boost::archive::xml_iarchive& ar, mega::reference& ref, c
     {
         mega::AllocationID allocationID{};
         mega::MPO          mpo{};
-        mega::Flags        flags{};
         mega::TypeInstance typeInstance{};
 
         ar& boost::serialization::make_nvp( "allocationID", allocationID );
         ar& boost::serialization::make_nvp( "mpo", mpo );
-        ar& boost::serialization::make_nvp( "flags", flags );
         ar& boost::serialization::make_nvp( "type_instance", typeInstance );
 
         ref = mega::reference( typeInstance, mpo, allocationID );

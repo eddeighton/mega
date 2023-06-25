@@ -44,14 +44,14 @@ struct TypeInstance
 
     TypeInstance() = default;
     
-    constexpr TypeInstance( TypeID type, Instance instance )
-        : type( type )
-        , instance( instance )
+    constexpr TypeInstance( TypeID _type, Instance _instance )
+        : type( _type )
+        , instance( _instance )
     {
     }
-    constexpr TypeInstance( TypeID::ValueType type , Instance instance )
-        : type( type )
-        , instance( instance )
+    constexpr TypeInstance( TypeID::ValueType _type , Instance _instance )
+        : type( _type )
+        , instance( _instance )
     {
     }
 

@@ -374,6 +374,24 @@ const GlyphSpec* Feature_Pin::getParent( ControlPoint::Index id ) const
     return getParentGlyphSpecFromParentNode( m_pParent );
 }
 
+std::optional< exact::Transform > Feature_Pin::getAbsoluteExactTransform() const
+{
+    std::optional< exact::Transform > transformOpt;
+    {
+        Node::Ptr pParent = Node::getParent();
+        while( pParent )
+        {
+            if( Site::Ptr pSite = boost::dynamic_pointer_cast< Site >( pParent ) )
+            {
+                transformOpt = pSite->getAbsoluteExactTransform();
+                break;
+            }
+            pParent = pParent->getParent();
+        }
+    }
+    return transformOpt;
+}
+
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 const std::string& Feature_LineSegment::TypeName()

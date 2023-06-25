@@ -573,7 +573,7 @@ void GlyphImage::setOrCreateImageItem()
         m_pItem->setZValue( 0.0f );
         m_pItem->setPos( 0.0f, 0.0f );
         m_pItem->setOffset( 0.0f, 0.0f );
-        m_pItem->setScale( 0.25 );
+        m_pItem->setScale( 0.5 );
     }
     else
         m_pItem->setPixmap( m_pixelMap );
@@ -595,7 +595,7 @@ void GlyphImage::update()
         }
         m_pItem->setPos( 0.0f, 0.0f );
         m_pItem->setOffset( 0.0f, 0.0f );
-        m_pItem->setScale( 0.25 );
+        m_pItem->setScale( 0.5 );
     }
     // else if( m_pItem )
     //{

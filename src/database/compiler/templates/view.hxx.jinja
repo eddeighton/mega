@@ -95,9 +95,9 @@ namespace {{ stage.name }}
             struct EGDB_EXPORT Args
             {
 {% for ctor in interface.args_ctors %}
-                Args({% for param in ctor.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %})
+                Args({% for param in ctor.params %}{{ param.type }} _{{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %})
 {% for param in ctor.params %}
-                    {% if loop.is_first %}:{% else %},{% endif %} {{ param.value }}( {{ param.name }} )
+                    {% if loop.is_first %}:{% else %},{% endif %} {{ param.value }}( _{{ param.name }} )
 {% endfor %}{# ctor.params #}
                 {
                 }

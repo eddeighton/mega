@@ -101,19 +101,7 @@ void Analysis::properties()
 
     for( auto pPin : pins )
     {
-        std::optional< exact::Transform > transformOpt;
-        {
-            schematic::Node::Ptr pParent = pPin->schematic::Node::getParent();
-            while( pParent )
-            {
-                if( schematic::Site::Ptr pSite = boost::dynamic_pointer_cast< schematic::Site >( pParent ) )
-                {
-                    transformOpt = pSite->getAbsoluteExactTransform();
-                    break;
-                }
-                pParent = pParent->getParent();
-            }
-        }
+        std::optional< exact::Transform > transformOpt = pPin->getAbsoluteExactTransform();
 
         static const exact::InexactToExact converter;
         exact::Point                       pt = converter( pPin->getPoint( 0 ) );

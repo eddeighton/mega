@@ -466,8 +466,8 @@ std::ostream& operator<<( std::ostream& os, const db::schema::Stage& stage )
     struct StageElementPrinter : boost::static_visitor< void >
     {
         std::ostream& os;
-        StageElementPrinter( std::ostream& os )
-            : os( os )
+        StageElementPrinter( std::ostream& _os )
+            : os( _os )
         {
         }
         void operator()( const db::schema::File& file ) const { os << "    file " << file.m_id << "\n"; }
@@ -523,8 +523,8 @@ std::ostream& operator<<( std::ostream& os, const db::schema::Namespace& namespa
     struct NamespaceVariantPrinter : boost::static_visitor< void >
     {
         std::ostream& os;
-        NamespaceVariantPrinter( std::ostream& os )
-            : os( os )
+        NamespaceVariantPrinter( std::ostream& _os )
+            : os( _os )
         {
         }
         void operator()( const Namespace& namespace_ ) const { os << namespace_; }
@@ -547,8 +547,8 @@ std::ostream& operator<<( std::ostream& os, const db::schema::Schema& schema )
     struct SchemaVariantPrinter : boost::static_visitor< void >
     {
         std::ostream& os;
-        SchemaVariantPrinter( std::ostream& os )
-            : os( os )
+        SchemaVariantPrinter( std::ostream& _os )
+            : os( _os )
         {
         }
         void operator()( const Stage& stage ) const { os << stage; }

@@ -28,41 +28,49 @@
 namespace schematic
 {
 
-template < unsigned int PIXEL_SIZE >
+template < std::size_t PIXEL_SIZE >
 class Buffer
 {
-public:
     using BitmapType = std::vector< unsigned char >;
 
-    Buffer( unsigned int uiWidth = 0, unsigned int uiHeight = 0 )
+public:
+    using Size = std::size_t;
+
+    static constexpr inline Size bufferSize( Size uiWidth, Size uiHeight ) { return uiWidth * uiHeight * PIXEL_SIZE; }
+
+    Buffer( Buffer& )            = delete;
+    Buffer& operator=( Buffer& ) = delete;
+
+    inline Buffer( Size uiWidth = 0U, Size uiHeight = 0U )
         : m_uiWidth( uiWidth )
         , m_uiHeight( uiHeight )
-        , m_buffer( uiWidth * uiHeight * PIXEL_SIZE )
+        , m_buffer( bufferSize( m_uiWidth, m_uiHeight ) )
     {
     }
 
-    unsigned char*            get() { return m_buffer.data(); }
-    const unsigned char*      get() const { return m_buffer.data(); }
-    unsigned int              getWidth() const { return m_uiWidth; }
-    unsigned int              getHeight() const { return m_uiHeight; }
-    unsigned int              getStride() const { return m_uiWidth * PIXEL_SIZE; }
-    unsigned int              getSize() const { return m_uiWidth * m_uiWidth * PIXEL_SIZE; }
-    const Timing::UpdateTick& getLastUpdateTick() const { return m_lastUpdateTick; }
-    void                      setModified() { m_lastUpdateTick.update(); }
+    inline unsigned char*            get() { return m_buffer.data(); }
+    inline const unsigned char*      get() const { return m_buffer.data(); }
+    inline Size                      getWidth() const { return m_uiWidth; }
+    inline Size                      getHeight() const { return m_uiHeight; }
+    inline Size                      getStride() const { return m_uiWidth * PIXEL_SIZE; }
+    inline Size                      getSize() const { return bufferSize( m_uiWidth, m_uiWidth ); }
+    inline const Timing::UpdateTick& getLastUpdateTick() const { return m_lastUpdateTick; }
+    inline void                      setModified() { m_lastUpdateTick.update(); }
 
-    const unsigned char* getAt( unsigned int uiX, unsigned int uiY ) const
+    inline const unsigned char* getAt( Size uiX, Size uiY ) const
     {
-        const unsigned char* pPixel = 0u;
-
+        const unsigned char* pPixel = nullptr;
         ASSERT( uiX < m_uiWidth && uiY < m_uiHeight );
         if( uiX < m_uiWidth && uiY < m_uiHeight )
-            pPixel = m_buffer.data() + ( uiY * m_uiWidth * PIXEL_SIZE + uiX );
+        {
+            pPixel = m_buffer.data() + ( ( uiY * m_uiWidth * PIXEL_SIZE ) + uiX );
+        }
         return pPixel;
     }
 
-    void resize( unsigned int uiWidth, unsigned int uiHeight )
+    inline void resize( Size uiWidth, Size uiHeight )
     {
-        const unsigned int uiRequired = uiWidth * uiHeight * PIXEL_SIZE;
+        const Size uiRequired = bufferSize( uiWidth, uiHeight );
         if( m_buffer.size() < uiRequired )
             m_buffer.resize( uiRequired );
         if( uiWidth != m_uiWidth || uiHeight != m_uiHeight )
@@ -71,8 +79,16 @@ public:
         m_uiHeight = uiHeight;
     }
 
+    inline void reset()
+    {
+        for( auto& p : m_buffer )
+        {
+            p = 0U;
+        }
+    }
+
 private:
-    unsigned int       m_uiWidth, m_uiHeight;
+    Size               m_uiWidth, m_uiHeight;
     BitmapType         m_buffer;
     Timing::UpdateTick m_lastUpdateTick;
 };

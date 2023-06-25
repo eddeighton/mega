@@ -170,6 +170,8 @@ public:
         }
     }
 
+    std::optional< exact::Transform > getAbsoluteExactTransform() const;
+
     Point                               m_ptOrigin;
     ControlPointCallback< Feature_Pin > m_point;
 };

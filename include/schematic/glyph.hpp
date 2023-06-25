@@ -20,7 +20,6 @@
 #ifndef GLYPH_16_09_2013
 #define GLYPH_16_09_2013
 
-#include "buffer.hpp"
 #include "node.hpp"
 #include "glyphSpec.hpp"
 

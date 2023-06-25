@@ -21,7 +21,6 @@
 #define INTERACTIONS_EDIT_17_DEC_202
 
 #include "schematic/cgalSettings.hpp"
-#include "schematic/buffer.hpp"
 #include "schematic/site.hpp"
 #include "schematic/glyph.hpp"
 #include "schematic/property.hpp"

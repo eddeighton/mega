@@ -16,7 +16,7 @@ Schematic(base;,0)
             transform(1,0,30,0,1,82)
             Contour(contour;,0)
             {
-                path(-16,-52,70,-52,70,16,-16,16)
+                path(-16,-56,70,-56,70,16,-16,16)
             }
             Property(width;,1)
             {

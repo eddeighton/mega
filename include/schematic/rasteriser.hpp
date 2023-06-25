@@ -67,6 +67,8 @@ public:
     using ScanlineType     = agg::scanline_p8;
     using RasterizerType   = agg::rasterizer_scanline_aa<>;
 
+    static_assert( std::is_same< ColourType, agg::gray8 >::value );
+
 public:
     Rasteriser( MonoBitmap& buffer, bool bClear = true )
         : m_buffer( buffer )
@@ -81,10 +83,9 @@ public:
 
     // NOTE: Setting gamma to zero will produce strange results
     template < class T >
-    void renderPath( T& path, const ColourType& colour, Float fGamma = 0.5f )
+    void renderPath( T& path, const ColourType& colour, Float fGamma = 1.0f )
     {
         RasterizerType ras;
-        // ras.filling_rule( agg::fill_even_odd );
         ras.gamma( agg::gamma_threshold( fGamma ) );
         ras.add_path( path );
         agg::render_scanlines_aa_solid( ras, m_scanLine, m_renderer, colour );
@@ -100,7 +101,7 @@ public:
 
     void setPixel( int x, int y, const ColourType& colour ) { m_renderer.copy_pixel( x, y, colour ); }
 
-    inline const ColourType& getPixel( int x, int y ) const { return m_renderer.pixel( x, y ); }
+    inline ColourType getPixel( int x, int y ) const { return m_renderer.pixel( x, y ); }
 
     MonoBitmap& getBuffer() { return m_buffer; }
 

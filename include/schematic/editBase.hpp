@@ -20,7 +20,6 @@
 #ifndef BASE_EDIT_17_DEC_2020
 #define BASE_EDIT_17_DEC_2020
 
-#include "schematic/buffer.hpp"
 #include "schematic/node.hpp"
 #include "schematic/glyph.hpp"
 #include "schematic/editInteractions.hpp"

@@ -57,6 +57,7 @@ add_compile_options( /MP ) #Build with multiple processes
 
 ELSE( ${WIN32} )
 
+#add_compile_options("-Wshadow")
 add_compile_options("-Wfatal-errors")
 #add_compile_options("-Werror")
 #add_compile_options("-Wall")

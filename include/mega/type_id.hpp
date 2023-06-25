@@ -55,8 +55,8 @@ private:
         eSymbol = 1 // must match sign bit - ALL symbolIDs are negative
     };
 
-    constexpr TypeID( ContextID contextID )
-        : contextID( contextID )
+    constexpr TypeID( ContextID _contextID )
+        : contextID( _contextID )
     {
     }
 
@@ -78,8 +78,8 @@ public:
     {
     }
 
-    constexpr explicit TypeID( ValueType value )
-        : value( value )
+    constexpr explicit TypeID( ValueType _value )
+        : value( _value )
     {
     }
 

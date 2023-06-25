@@ -535,9 +535,9 @@ struct Database::Pimpl : public SuperFactory
             {
                 Database::Pimpl& database;
                 SuperType*& pSuper;
-                Visitor( Database::Pimpl& database, SuperType*& pSuper )
-                    :   database( database ),
-                        pSuper( pSuper )
+                Visitor( Database::Pimpl& _database, SuperType*& _pSuper )
+                    :   database( _database ),
+                        pSuper( _pSuper )
                 {}
         {% if not constructor.reconstructor %}
                     data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > operator()( {{ base.typename }}* pExisting ) const

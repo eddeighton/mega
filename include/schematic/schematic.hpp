@@ -26,6 +26,7 @@
 #include "schematic/container.hpp"
 #include "schematic/markup.hpp"
 #include "schematic/analysis/analysis.hpp"
+#include "schematic/buffer.hpp"
 
 #include "boost/filesystem/path.hpp"
 

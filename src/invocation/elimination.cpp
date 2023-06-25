@@ -169,7 +169,7 @@ EliminationResult firstStageElimination( OperationsStage::Invocations::Instructi
 {
     using OperationsStage::Invocations::Instructions::Instruction;
     using OperationsStage::Invocations::Instructions::Failure;
-    auto functor = []( Instruction* pInstruction ) -> bool { return db_cast< Failure >( pInstruction ); };
+    auto functor = []( Instruction* _pInstruction ) -> bool { return db_cast< Failure >( _pInstruction ); };
     return elimination( pInstruction, functor );
 }
 
