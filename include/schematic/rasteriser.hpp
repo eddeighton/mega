@@ -28,11 +28,11 @@
 
 #else
 
-//#pragma PUSH_GCC_OPTIONS
-#pragma diagnostic ignored "-Wdeprecated-enum-enum-conversion"
-#pragma diagnostic ignored "-Wdeprecated-enum-float-conversion"
-#pragma diagnostic ignored "-Wreturn-local-addr"
-#pragma diagnostic ignored "-Wregister"
+// #pragma PUSH_GCC_OPTIONS
+#pragma diagnostic ignored "-Wno-deprecated-enum-enum-conversion"
+#pragma diagnostic ignored "-Wno-deprecated-enum-float-conversion"
+#pragma diagnostic ignored "-Wno-return-local-addr"
+#pragma diagnostic ignored "-Wno-register"
 
 #include "agg_basics.h"
 // #include "agg_pixfmt_rgba.h"
@@ -46,7 +46,7 @@
 #include "agg_trans_affine.h"
 #include "agg_conv_transform.h"
 
-//#pragma POP_GCC_OPTIONS
+// #pragma POP_GCC_OPTIONS
 
 #endif
 
@@ -61,11 +61,11 @@ public:
     using Float = double;
 
     // typedef agg::pixfmt_bgra32                          PixelFormatType;
-    using PixelFormatType  = agg::pixfmt_gray8;
-    using ColourType       = PixelFormatType::color_type;
-    using RendererBaseType = agg::renderer_base< PixelFormatType >;
-    using ScanlineType     = agg::scanline_p8;
-    using RasterizerType   = agg::rasterizer_scanline_aa<>;
+    using PixelFormatType   = agg::pixfmt_gray8;
+    using ColourType        = PixelFormatType::color_type;
+    using RendererBaseType  = agg::renderer_base< PixelFormatType >;
+    using ScanlineType      = agg::scanline_p8;
+    using PolygonRasterizer = agg::rasterizer_scanline_aa<>;
 
     static_assert( std::is_same< ColourType, agg::gray8 >::value );
 
@@ -78,25 +78,28 @@ public:
     {
         if( bClear )
             m_renderer.clear( ColourType( 0u ) );
-
     }
 
-    // NOTE: Setting gamma to zero will produce strange results
-    template < class T >
-    void renderPath( T& path, const ColourType& colour, Float fGamma = 1.0f )
+    void render( PolygonRasterizer& rasterizer, const ColourType& colour )
     {
-        RasterizerType ras;
-        ras.gamma( agg::gamma_threshold( fGamma ) );
-        ras.add_path( path );
+        agg::render_scanlines_aa_solid( rasterizer, m_scanLine, m_renderer, colour );
+    }
+
+    void line( int x1, int y1, int x2, int y2, const ColourType& colour )
+    {
+        PolygonRasterizer ras;
+        ras.gamma( agg::gamma_threshold( 0.5 ) );
+        agg::path_storage path;
+        {
+            path.move_to( x1, y1 );
+            path.line_to( x2, y2 );
+        }
+        agg::conv_stroke< agg::path_storage > poly1( path );
+        {
+            poly1.width( 1.0 );
+        }
+        ras.add_path( poly1 );
         agg::render_scanlines_aa_solid( ras, m_scanLine, m_renderer, colour );
-    }
-
-    template < class T >
-    void renderPath( T& path, const ColourType& colour, Float fX, Float fY, Float fGamma = 0.0f )
-    {
-        agg::trans_affine transform;
-        transform *= agg::trans_affine_translation( fX, fY );
-        renderPath( agg::conv_transform< T >( path, transform ), colour, fGamma );
     }
 
     void setPixel( int x, int y, const ColourType& colour ) { m_renderer.copy_pixel( x, y, colour ); }

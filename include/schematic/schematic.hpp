@@ -72,7 +72,9 @@ public:
     virtual void getImages( ImageSpec::List& images ) 
     {
         if( m_pLaneAxisMarkup.get() )
+        {
             images.push_back( m_pLaneAxisMarkup.get() );
+        }
     }
 
     exact::Analysis::Ptr getAnalysis() const { return m_pAnalysis; }
@@ -80,6 +82,13 @@ public:
 private:
     friend class ::exact::Analysis;
     MonoBitmap& getLaneBitmap() { return m_laneBitmap; }
+    void setLaneBitmapOffset( const Vector& vOffset )
+    {
+        if( m_pLaneAxisMarkup.get() )
+        {
+            m_pLaneAxisMarkup->setOffset( vOffset );
+        }
+    }
 
 private:
     exact::Analysis::Ptr                  m_pAnalysis;

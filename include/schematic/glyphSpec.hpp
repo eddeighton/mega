@@ -132,8 +132,7 @@ class ImageSpec : public GlyphSpec
 public:
     using List = std::list< ImageSpec* >;
     
-    virtual const Point& getPoint() const = 0;
-    virtual const Vector& getOffsetX() const = 0;
+    virtual const Vector& getOffset() const = 0;
     virtual const MonoBitmap& getBuffer() const = 0;
 };
 

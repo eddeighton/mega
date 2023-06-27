@@ -3,9 +3,17 @@ Schematic(base;,0)
     Pin(pin;,0)
     {
         position(0,0)
-        Property(path;,0)
+        Property(turns;,0)
         {
             value(8.0;)
+        }
+        Property(distance;,1)
+        {
+            value(0.9;)
+        }
+        Property(space;,2)
+        {
+            value(0.1;)
         }
     }
 }

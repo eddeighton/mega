@@ -533,16 +533,19 @@ GlyphImage::GlyphImage( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, 
         bColourTablesInit = false;
         QColor g_colourOne( 0, 0, 0, 125 );
         QColor g_colourTwo( 125, 0, 0, 125 );
-        QColor g_colourThree( 255, 0, 0, 125 );
+        QColor g_colourThree( 0, 255, 0, 125 );
+        QColor g_colourFour( 0, 0, 255, 125 );
         if( m_pToolBoxPtr )
         {
             m_pToolBoxPtr->getConfigValue( ".glyphs.image.colours.one", g_colourOne );
             m_pToolBoxPtr->getConfigValue( ".glyphs.image.colours.two", g_colourTwo );
             m_pToolBoxPtr->getConfigValue( ".glyphs.image.colours.three", g_colourThree );
+            m_pToolBoxPtr->getConfigValue( ".glyphs.image.colours.four", g_colourFour );
         }
         m_coloursNormal.push_back( g_colourOne.rgb() );
         m_coloursNormal.push_back( g_colourTwo.rgb() );
         m_coloursNormal.push_back( g_colourThree.rgb() );
+        m_coloursNormal.push_back( g_colourFour.rgb() );
     }
 
     if( const schematic::ImageSpec* pImageSpec = getImageSpec() )
@@ -551,7 +554,7 @@ GlyphImage::GlyphImage( schematic::IGlyph::Ptr pParent, QGraphicsScene* pScene, 
         QImage                       m_image(
             buffer.get(), buffer.getWidth(), buffer.getHeight(), buffer.getStride(), QImage::Format_Indexed8 );
         m_image.setColorTable( m_coloursNormal );
-        m_pixelMap = QPixmap::fromImage( m_image, Qt::ColorOnly ); //MonoOnly
+        m_pixelMap = QPixmap::fromImage( m_image, Qt::ColorOnly ); // MonoOnly
         setOrCreateImageItem();
     }
 }
@@ -572,8 +575,11 @@ void GlyphImage::setOrCreateImageItem()
         m_map.insert( m_pItem, getImageSpec(), this );
         m_pItem->setZValue( 0.0f );
         m_pItem->setPos( 0.0f, 0.0f );
-        m_pItem->setOffset( 0.0f, 0.0f );
-        m_pItem->setScale( 0.5 );
+        if( const schematic::ImageSpec* pImageSpec = getImageSpec() )
+        {
+            const auto vOffset = pImageSpec->getOffset();
+            m_pItem->setOffset( vOffset.x(), vOffset.y() );
+        }
     }
     else
         m_pItem->setPixmap( m_pixelMap );
@@ -594,8 +600,8 @@ void GlyphImage::update()
             m_lastUpdateTick.update();
         }
         m_pItem->setPos( 0.0f, 0.0f );
-        m_pItem->setOffset( 0.0f, 0.0f );
-        m_pItem->setScale( 0.5 );
+        const auto vOffset = pImageSpec->getOffset();
+        m_pItem->setOffset( vOffset.x(), vOffset.y() );
     }
     // else if( m_pItem )
     //{

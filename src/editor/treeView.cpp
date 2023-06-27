@@ -47,7 +47,7 @@ TreeView::TreeView( QWidget* parent )
 
 void TreeView::CmdEdit()
 {
-    if( m_pGlyphView )
+    /*if( m_pGlyphView )
     {
         // see if any properties are selected.
         bool bEditedProperty = false;
@@ -84,7 +84,7 @@ void TreeView::CmdEdit()
             SelectionSet selection = m_pGlyphView->getSelection();
             m_pGlyphView->setSelected( selection );
         }
-    }
+    }*/
 }
 
 void TreeView::mouseReleaseEvent( QMouseEvent* pEvent )

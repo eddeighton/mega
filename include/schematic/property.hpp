@@ -68,9 +68,8 @@ public:
     const std::string&  getValue() const { return m_strValue; }
 
     template < typename ValueType >
-    const ValueType& getValue( const ValueType& defaultValue ) const
+    const ValueType& getValue( const ValueType& defaultValue, std::optional< ValueType >& lastValue ) const
     {
-        static std::optional< ValueType > last;
         if( getLastModifiedTick() > m_lastRead )
         {
             m_lastRead.update();
@@ -79,14 +78,14 @@ public:
                 std::istringstream is( m_strValue );
                 ValueType          value;
                 is >> value;
-                last = value;
+                lastValue = value;
             }
             catch( std::exception& )
             {
-                last = defaultValue;
+                lastValue = defaultValue;
             }
         }
-        return last.has_value() ? last.value() : defaultValue;
+        return lastValue.has_value() ? lastValue.value() : defaultValue;
     }
 
 private:

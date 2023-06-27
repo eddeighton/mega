@@ -206,14 +206,4 @@ MonoBitmapImage::MonoBitmapImage( const GlyphSpecProducer& producer, const Glyph
     , m_compilationStage( compilationStage )
 {
 }
-const Point& MonoBitmapImage::getPoint() const
-{
-    static Point v{ 0, 0 };
-    return v;
-}
-const Vector& MonoBitmapImage::getOffsetX() const
-{
-    static Vector v{ 0, 0 };
-    return v;
-}
 } // namespace schematic

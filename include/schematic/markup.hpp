@@ -198,14 +198,16 @@ public:
     virtual const GlyphSpecProducer* getProducer() const { return &m_producer; }
 
     // ImageSpec
-    virtual const Point&      getPoint() const;
-    virtual const Vector&     getOffsetX() const;
+    virtual const Vector&     getOffset() const { return m_bitmapOffset; }
     virtual const MonoBitmap& getBuffer() const { return m_bitmap; }
+
+    void setOffset( const Vector& vOffset ) { m_bitmapOffset = vOffset; }
 
 private:
     const GlyphSpecProducer& m_producer;
     const GlyphSpec*         m_pParent;
     const MonoBitmap&        m_bitmap;
+    Vector                   m_bitmapOffset;
     CompilationStage         m_compilationStage;
 };
 } // namespace schematic

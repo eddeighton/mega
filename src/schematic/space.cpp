@@ -162,10 +162,10 @@ bool Space::task_contour()
 
 void Space::task_extrusions()
 {
-    Kernel::FT wallWidth = 2;
+    Kernel::FT wallWidth = 0.25f;
     if( m_pWidthProperty )
     {
-        wallWidth = m_pWidthProperty->getValue( 2.0 );
+        wallWidth = m_pWidthProperty->getValue( 0.25f, m_lastWidthOpt );
     }
 
     if( !m_sitePolygon.is_empty() )

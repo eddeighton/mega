@@ -54,7 +54,7 @@ void Analysis::getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask
     }
 }
 
-void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors )
+void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles >& floors )
 {
     using NodePtr    = typename PolygonNode::Ptr;
     using NodeVector = std::vector< NodePtr >;
@@ -78,7 +78,7 @@ void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, exact::
 
     struct Visitor
     {
-        std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors;
+        std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles >& floors;
 
         void floor( const PolygonNode& node )
         {
@@ -86,25 +86,38 @@ void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, exact::
             auto pPartition = e->data().pPartition;
             INVARIANT( pPartition, "Floor edge missing partition" );
             INVARIANT( pPartition->pSite, "Floor partition missing site" );
+            INVARIANT( node.face(), "Floor is not a face" );
 
             HalfEdgePolygonWithHoles polyWithHoles;
             polyWithHoles.outer = node.polygon();
 
             for( auto pContour : node.contained() )
             {
+                INVARIANT( !pContour->face(), "Hole is a face" );
                 polyWithHoles.holes.push_back( pContour->polygon() );
                 for( auto pInner : pContour->contained() )
                 {
                     floor( *pInner );
                 }
             }
-            floors.insert( { pPartition, fromHalfEdgePolygonWithHoles( polyWithHoles ) } );
+            floors.insert( { pPartition, polyWithHoles } );
         }
     } visitor{ floors };
 
     for( auto pNode : rootNodes )
     {
         visitor.floor( *pNode );
+    }
+}
+
+void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors )
+{
+    std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles > halfEdgeFloors;
+    getFloorPartitions( halfEdgeFloors );
+
+    for( const auto& [ pPartition, polyWithHoles ] : halfEdgeFloors )
+    {
+        floors.insert( { pPartition, fromHalfEdgePolygonWithHoles( polyWithHoles ) } );
     }
 }
 

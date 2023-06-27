@@ -68,6 +68,8 @@ public:
         std::vector< PartitionSegment* >     segments;
         schematic::Feature_Pin::PtrCstVector pins;
         schematic::Property::PtrCstVector    properties;
+
+        bool bIsCorridor = false;
     };
 
     struct VertexData
@@ -120,8 +122,16 @@ public:
     using FaceVector           = std::vector< Face >;
     using FaceSet              = std::set< Face >;
 
+    struct HalfEdgePolygonWithHoles
+    {
+        HalfEdgeVector       outer;
+        HalfEdgeVectorVector holes;
+        using Vector = std::vector< HalfEdgePolygonWithHoles >;
+    };
+
     // query used by editor for edge visualisation
     void getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges ) const;
+    void getFloorPartitions( std::map< const Analysis::Partition*, HalfEdgePolygonWithHoles >& floors );    // const;
     void getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors );    // const;
     void getBoundaryPartitions( Analysis::HalfEdgeVectorVector& boundarySegments );                          // const;
     void getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries ); // const;
@@ -183,12 +193,6 @@ public:
     void getVertices( VertexVector& vertices ) const;
     void getPerimeterPolygon( HalfEdgeVector& polygon ) const;
 
-    struct HalfEdgePolygonWithHoles
-    {
-        HalfEdgeVector       outer;
-        HalfEdgeVectorVector holes;
-        using Vector = std::vector< HalfEdgePolygonWithHoles >;
-    };
 
     static inline exact::Polygon fromHalfEdgePolygon( const HalfEdgeVector& poly )
     {

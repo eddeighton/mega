@@ -55,8 +55,9 @@ public:
     const exact::Polygon& getExteriorPolygon() const { return m_exteriorPolygon; }
 
 private:
-    Feature_Contour::Ptr m_pContour;
-    Property::Ptr        m_pWidthProperty;
+    Feature_Contour::Ptr   m_pContour;
+    Property::Ptr          m_pWidthProperty;
+    std::optional< float > m_lastWidthOpt;
 
     Polygon            m_siteContourCache;
     Timing::UpdateTick m_siteContourTick;
