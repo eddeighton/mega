@@ -25,10 +25,13 @@
 #include "schematic/analysis/invariant.hpp"
 #include "schematic/analysis/analysis.hpp"
 
+#include <CGAL/ch_graham_andrew.h>
+
 namespace exact
 {
-
-inline void renderCurve( Analysis::Arrangement& arr, const exact::Curve& curve, EdgeMask::Type mask )
+    
+inline void renderCurve( Analysis::Arrangement& arr, const exact::Curve& curve, EdgeMask::Type innerMask,
+                         EdgeMask::Type outerMask = EdgeMask::TOTAL_MASK_TYPES )
 {
     Analysis::Arrangement::Curve_handle firstCurve = CGAL::insert( arr, curve );
     for( auto h = arr.induced_edges_begin( firstCurve ); h != arr.induced_edges_end( firstCurve ); ++h )
@@ -41,12 +44,50 @@ inline void renderCurve( Analysis::Arrangement& arr, const exact::Curve& curve, 
 
         if( bSameDir )
         {
-            classify( edge, mask );
+            classify( edge, innerMask );
+            if( outerMask != EdgeMask::TOTAL_MASK_TYPES )
+            {
+                classify( edge->twin(), outerMask );
+            }
         }
         else
         {
-            classify( edge->twin(), mask );
+            classify( edge->twin(), innerMask );
+            if( outerMask != EdgeMask::TOTAL_MASK_TYPES )
+            {
+                classify( edge, outerMask );
+            }
         }
+    }
+}
+
+inline void renderExtrudedCurve( Analysis::Arrangement& arr, const exact::Curve& curve,
+                                 const exact::Polygon& convexShape, EdgeMask::Type innerMask, EdgeMask::Type outerMask )
+{
+    const Vector vSource = curve.source() - Point{ 0.0, 0.0 };
+    const Vector vTarget = curve.target() - Point{ 0.0, 0.0 };
+
+    // generate all points of convex shape around curve end points
+    std::vector< Point > points;
+    for( const auto& p : convexShape )
+    {
+        points.emplace_back( p + vSource );
+        points.emplace_back( p + vTarget );
+    }
+
+    // calculate the monotone convex hull of result
+    std::vector< Point > hull;
+    CGAL::ch_graham_andrew( points.begin(), points.end(), std::back_inserter( hull ) );
+
+    // render the convex hull line segments
+    for( auto i = hull.begin(), iNext = hull.begin(), iEnd = hull.end(); i != iEnd; ++i )
+    {
+        ++iNext;
+        if( iNext == iEnd )
+        {
+            iNext = hull.begin();
+        }
+        renderCurve( arr, Curve( *i, *iNext ), innerMask, outerMask );
     }
 }
 

@@ -5,7 +5,7 @@ Schematic(base;,0)
         transform(1,0,0,0,1,0)
         Contour(contour;,0)
         {
-            path(0,0,88,0,88,88,0,88)
+            path(0,0,176,0,176,168,0,168)
         }
         Property(width;,1)
         {
@@ -13,10 +13,10 @@ Schematic(base;,0)
         }
         Space(spac_0009;,2)
         {
-            transform(-1,0,38,0,1,33)
+            transform(-1,0,110,0,1,105)
             Contour(contour;,0)
             {
-                path(-34,-16,22,-16,22,40,-34,40)
+                path(78,40,-34,40,-34,-72,78,-72)
             }
             Property(width;,1)
             {
@@ -83,10 +83,10 @@ Schematic(base;,0)
                 }
                 Connection(conn_0002;,2)
                 {
-                    transform(-5.16254e-15,1,12,-1,-5.16254e-15,-5)
+                    transform(-5.16254e-15,1,12,-1,-5.16254e-15,-10)
                     Point(width;,0)
                     {
-                        position(3.20711,5.29289)
+                        position(5.20711,4.29289)
                     }
                 }
             }
@@ -98,12 +98,304 @@ Schematic(base;,0)
                     path(0,0,8,0,10,2,10,6,8,8,0,8)
                 }
             }
-            Object(obje_0009;,9)
+            Space(spac_0011;,9)
             {
-                transform(-1,0,11,0,1,-7)
+                transform(1,0,58,0,1,16)
+                Contour(contour;,0)
+                {
+                    path(0,0,20,0,20,24,0,24)
+                }
+                Property(width;,1)
+                {
+                    value(0.5f;)
+                }
+            }
+            Connection(conn_0012;,10)
+            {
+                transform(-2.66454e-15,1,58,-1,-2.66454e-15,28)
+                Point(width;,0)
+                {
+                    position(5.5,4)
+                }
+            }
+            Connection(conn_0013;,11)
+            {
+                transform(1,0,49,0,1,40)
+                Point(width;,0)
+                {
+                    position(6.5,6)
+                }
+            }
+            Connection(conn_0014;,12)
+            {
+                transform(-1,-5.21805e-15,70,5.21805e-15,-1,16)
+                Point(width;,0)
+                {
+                    position(5.5,7)
+                }
+            }
+            Space(spac_0015;,13)
+            {
+                transform(1,-3.45526e-07,27.5,3.45526e-07,1,31.5)
+                Contour(contour;,0)
+                {
+                    path(-6,-20,12,-20,12,8,-6,8)
+                }
+                Property(width;,1)
+                {
+                    value(2;)
+                }
+                Connection(conn_0002;,2)
+                {
+                    transform(-5.16254e-15,1,12,-1,-5.16254e-15,-10)
+                    Point(width;,0)
+                    {
+                        position(5.20711,4.29289)
+                    }
+                }
+            }
+            Wall(wall_0018;,14)
+            {
+                transform(-1,-0,-11,-0,-1,-44)
+                Contour(contour;,0)
+                {
+                    path(0,-1,3,-4,16,-4,8,4,3,4,0,1)
+                }
+                Property(width;,1)
+                {
+                    value(0.5f;)
+                }
+            }
+            Space(spac_0019;,15)
+            {
+                transform(-1,-0,-14,-0,-1,-16)
+                Contour(contour;,0)
+                {
+                    path(0,0,20,0,20,24,0,24)
+                }
+                Property(width;,1)
+                {
+                    value(0.5f;)
+                }
+            }
+            Connection(conn_0020;,16)
+            {
+                transform(2.66454e-15,-1,-14,1,2.66454e-15,-28)
+                Point(width;,0)
+                {
+                    position(5.5,4)
+                }
+            }
+            Connection(conn_0021;,17)
+            {
+                transform(-1,-0,-9,-0,-1,-72)
+                Point(width;,0)
+                {
+                    position(6.5,6)
+                }
+            }
+            Connection(conn_0022;,18)
+            {
+                transform(2.66454e-15,-1,-34,1,2.66454e-15,-28)
+                Point(width;,0)
+                {
+                    position(5.5,7)
+                }
+            }
+            Space(spac_0023;,19)
+            {
+                transform(-1,3.45526e-07,15.5,-3.45526e-07,-1,-63.5)
+                Contour(contour;,0)
+                {
+                    path(-6,-20,12,-20,12,8,-6,8)
+                }
+                Property(width;,1)
+                {
+                    value(2;)
+                }
+                Connection(conn_0002;,2)
+                {
+                    transform(-5.16254e-15,1,12,-1,-5.16254e-15,-10)
+                    Point(width;,0)
+                    {
+                        position(5.20711,4.29289)
+                    }
+                }
+            }
+            Object(obje_0024;,20)
+            {
+                transform(-1,-0,-19,-0,-1,-54)
                 Contour(contour;,0)
                 {
                     path(0,0,8,0,10,2,10,6,8,8,0,8)
+                }
+            }
+            Space(spac_0027;,21)
+            {
+                transform(1,-0,58,0,-1,16)
+                Contour(contour;,0)
+                {
+                    path(0,0,20,0,20,31,6,31,0,25)
+                }
+                Property(width;,1)
+                {
+                    value(0.5f;)
+                }
+            }
+            Connection(conn_0028;,22)
+            {
+                transform(-2.66454e-15,1,58,1,2.66454e-15,1)
+                Point(width;,0)
+                {
+                    position(5.5,4)
+                }
+            }
+            Connection(conn_0029;,23)
+            {
+                transform(1,-0,49,0,-1,-72)
+                Point(width;,0)
+                {
+                    position(6.5,6)
+                }
+            }
+            Space(spac_0031;,24)
+            {
+                transform(1,-3.45526e-07,28.5,-3.45526e-07,-1,-63.5)
+                Contour(contour;,0)
+                {
+                    path(-6,-20,12,-20,12,8,-6,8)
+                }
+                Property(width;,1)
+                {
+                    value(2;)
+                }
+                Connection(conn_0002;,2)
+                {
+                    transform(-5.16254e-15,1,12,-1,-5.16254e-15,-10)
+                    Point(width;,0)
+                    {
+                        position(5.20711,4.29289)
+                    }
+                }
+            }
+            Space(space_0030;,25)
+            {
+                transform(-1,0,32,0,1,-33)
+                Contour(contour;,0)
+                {
+                    path(0,0,20,0,28,8,28,28,20,36,0,36,-8,28,-8,8)
+                }
+                Property(width;,1)
+                {
+                    value(0.25f;)
+                }
+                Connection(conn_0002;,2)
+                {
+                    transform(-2.66454e-15,1,-8,-1,-2.66454e-15,18)
+                    Point(width;,0)
+                    {
+                        position(4.5,2)
+                    }
+                }
+                Connection(conn_0003;,3)
+                {
+                    transform(-2.66454e-15,1,28,-1,-2.66454e-15,18)
+                    Point(width;,0)
+                    {
+                        position(4.5,2)
+                    }
+                }
+                Connection(conn_0004;,4)
+                {
+                    transform(1,0,10,0,1,36)
+                    Point(width;,0)
+                    {
+                        position(5.5,2)
+                    }
+                }
+                Connection(conn_0005;,5)
+                {
+                    transform(1,0,10,0,1,0)
+                    Point(width;,0)
+                    {
+                        position(5.5,2)
+                    }
+                }
+                Space(spac_0006;,6)
+                {
+                    transform(-1,6.66134e-16,20,6.66134e-16,1,0)
+                    Contour(contour;,0)
+                    {
+                        path(3,8,17,8,20,11,20,25,17,28,3,28,0,25,0,11)
+                    }
+                    Property(width;,1)
+                    {
+                        value(0.25f;)
+                    }
+                    Connection(conn_0004;,2)
+                    {
+                        transform(1,0,10,0,1,28)
+                        Point(width;,0)
+                        {
+                            position(5.5,2)
+                        }
+                    }
+                }
+            }
+            Space(spac_0029;,26)
+            {
+                transform(1,-0,58,0,-1,-48)
+                Contour(contour;,0)
+                {
+                    path(0,0,20,0,20,24,0,24)
+                }
+                Property(width;,1)
+                {
+                    value(0.5f;)
+                }
+            }
+            Connection(conn_0031;,27)
+            {
+                transform(-1,-2.72005e-15,68,-2.72005e-15,1,-48)
+                Point(width;,0)
+                {
+                    position(5.5,4)
+                }
+            }
+            Space(spac_0032;,28)
+            {
+                transform(1,0,58,0,1,-48)
+                Contour(contour;,0)
+                {
+                    path(0,0,20,0,20,33,6,33,0,27)
+                }
+                Property(width;,1)
+                {
+                    value(0.5f;)
+                }
+                Connection(conn_0002;,2)
+                {
+                    transform(-1,0,13,0,1,33)
+                    Point(width;,0)
+                    {
+                        position(3.5,3)
+                    }
+                }
+            }
+            Connection(conn_0033;,29)
+            {
+                transform(-2.66454e-15,1,58,-1,-2.66454e-15,-29)
+                Point(width;,0)
+                {
+                    position(5.5,4)
+                }
+            }
+            Connection(conn_0034;,30)
+            {
+                transform(-2.66454e-15,1,78,1,2.66454e-15,-62)
+                Point(width;,0)
+                {
+                    position(5.5,7)
                 }
             }
         }

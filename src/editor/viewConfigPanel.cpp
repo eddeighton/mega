@@ -63,7 +63,7 @@ ViewConfigPanel::ViewConfigPanel( QWidget* pParentWidget )
 }
 
 static QString glyphStrings[]
-    = { QString{ "Text" }, QString{ "Points" }, QString{ "Sites" }, QString{ "Connections" } };
+    = { QString{ "Text" }, QString{ "Points" }, QString{ "Sites" }, QString{ "Connections" }, QString{ "Images" } };
 
 void ViewConfigPanel::setViewConfig( editor::ViewConfig::Ptr pViewConfig )
 {

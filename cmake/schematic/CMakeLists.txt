@@ -88,6 +88,8 @@ set( SCHEMATIC_SOURCE
     ${SCHEMATIC_SRC_DIR}/analysis/analysis.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/constructions.hpp
     ${SCHEMATIC_SRC_DIR}/analysis/edge_mask.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/geometry.hpp
+    ${SCHEMATIC_SRC_DIR}/analysis/geometry.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/polygon_with_holes.hpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_connections.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_contours.cpp
@@ -116,6 +118,7 @@ set( SCHEMATIC_SOURCE
     ${SCHEMATIC_SRC_DIR}/node.cpp
     ${SCHEMATIC_SRC_DIR}/object.cpp
     ${SCHEMATIC_SRC_DIR}/property.cpp
+    ${SCHEMATIC_SRC_DIR}/rasteriser.cpp
     ${SCHEMATIC_SRC_DIR}/schematic.cpp
     ${SCHEMATIC_SRC_DIR}/site.cpp
     ${SCHEMATIC_SRC_DIR}/space.cpp

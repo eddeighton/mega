@@ -46,6 +46,7 @@ public:
         eGlyphVis_Points,
         eGlyphVis_Sites,
         eGlyphVis_Connections,
+        eGlyphVis_Images,
         TOTAL_GLYPH_SETTINGS
     };
 
@@ -73,6 +74,7 @@ public:
         m_glyphVisibility.set( eGlyphVis_Points );
         m_glyphVisibility.set( eGlyphVis_Sites );
         m_glyphVisibility.set( eGlyphVis_Connections );
+        m_glyphVisibility.set( eGlyphVis_Images );
 
         for( auto& m : m_maskVisibility )
             m = eMaskIgnor;

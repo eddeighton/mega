@@ -268,6 +268,7 @@ void GlyphView::updateGlyphVisibility()
     const bool bShowPoints      = m_pViewConfig->isGlyphVisible( ViewConfig::eGlyphVis_Points );
     const bool bShowSites       = m_pViewConfig->isGlyphVisible( ViewConfig::eGlyphVis_Sites );
     const bool bShowConnections = m_pViewConfig->isGlyphVisible( ViewConfig::eGlyphVis_Connections );
+    const bool bShowImages      = m_pViewConfig->isGlyphVisible( ViewConfig::eGlyphVis_Images );
 
     VERIFY_RTE( m_pActiveContext );
     const schematic::Origin* pEditContextOrigin = m_pActiveContext->getOrigin();
@@ -377,6 +378,13 @@ void GlyphView::updateGlyphVisibility()
                 {
                     if( !testGlyphOrigin( pOrigin, true ) )
                         bShowType = false;
+                }
+            }
+            else if( dynamic_cast< const GlyphImage* >( pGlyph ) )
+            {
+                if( !bShowImages )
+                {
+                    bShowType = false;
                 }
             }
 

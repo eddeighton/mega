@@ -30,7 +30,7 @@ Polygon getDefaultPolygon()
 {
     Polygon defaultPolygon;
     {
-        const double d = 16.0;
+        const double d = 8.0;
         defaultPolygon.push_back( Point( -d, -d ) );
         defaultPolygon.push_back( Point( d, -d ) );
         defaultPolygon.push_back( Point( d, d ) );
