@@ -40,7 +40,6 @@ static const agg::gray8 colourAvoid = agg::gray8{ 0x02 };
 static const agg::gray8 colourSpace = agg::gray8{ 0x01 };
 static const agg::gray8 colourClear = agg::gray8{ 0x00 };
 
-
 bool operator==( const agg::gray8& left, const agg::gray8& right )
 {
     return left.v == right.v; // && left.a == right.a;
@@ -261,7 +260,7 @@ void renderPolyWithHoles( schematic::Rasteriser& raster, const Rect& boundingBox
 }
 
 void renderPolyWithHolesClearance( schematic::Rasteriser& raster, const Rect& boundingBox,
-                                   const Analysis::Partition*                pPartition,
+                                   const Analysis::Partition*                   pPartition,
                                    const Analysis::HalfEdgeCstPolygonWithHoles& polyWithHoles, agg::gray8 colour,
                                    float fClearance )
 {
@@ -321,11 +320,47 @@ void calculateLaneSegments( schematic::Rasteriser& raster, const Rect& boundingB
 
     for( auto e : doorSteps )
     {
-        const auto   v      = e->target()->point() - e->source()->point();
-        const auto   n      = v.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
-        const double length = CGAL::approximate_sqrt( CGAL::to_double( n.squared_length() ) );
-        const auto   p1     = e->source()->point() + ( v / 2.0 );
-        const auto   p2     = p1 + ( n * 5.0 / length );
+        const auto       v      = e->target()->point() - e->source()->point();
+        const auto       n      = v.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
+        const double     length = CGAL::approximate_sqrt( CGAL::to_double( n.squared_length() ) );
+        const auto       p1     = e->source()->point() + ( v / 2.0 );
+        const exact::Ray r( p1, n );
+
+        exact::Point p2;
+        {
+            schematic::Connection::PtrCst pConnection = e->data().pConnection;
+            INVARIANT( pConnection, "Doorstep missing connection" );
+
+            static ::exact::InexactToExact converter;
+            const exact::Transform         transform = pConnection->getAbsoluteExactTransform();
+            const schematic::Segment       firstSeg  = pConnection->getFirstSegment();
+            const schematic::Segment       secondSeg = pConnection->getSecondSegment();
+            const exact::Point             ptFirstStart( transform( converter( firstSeg[ 0 ] ) ) );
+            const exact::Point             ptFirstEnd( transform( converter( firstSeg[ 1 ] ) ) );
+            const exact::Point             ptSecondStart( transform( converter( secondSeg[ 0 ] ) ) );
+            const exact::Point             ptSecondEnd( transform( converter( secondSeg[ 1 ] ) ) );
+            const exact::Segment           crossFirst( ptFirstStart, ptSecondStart );
+            const exact::Segment           crossSecond( ptFirstEnd, ptSecondEnd );
+
+            bool bSuccess = false;
+            if( auto result1 = CGAL::intersection( r, crossFirst ) )
+            {
+                if( const exact::Point* pResult1 = boost::get< exact::Point >( &*result1 ) )
+                {
+                    p2       = *pResult1;
+                    bSuccess = true;
+                }
+            }
+            else if( auto result2 = CGAL::intersection( r, crossSecond ) )
+            {
+                if( const exact::Point* pResult2 = boost::get< exact::Point >( &*result2 ) )
+                {
+                    p2       = *pResult2;
+                    bSuccess = true;
+                }
+            }
+            INVARIANT( bSuccess, "Failed to resolve doorstep connection distance" );
+        }
 
         const int x0 = Math::roundRealOutToInt( CGAL::to_double( p1.x() - boundingBox.xmin() ) );
         const int y0 = Math::roundRealOutToInt( CGAL::to_double( p1.y() - boundingBox.ymin() ) );

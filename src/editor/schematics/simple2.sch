@@ -27,7 +27,7 @@ Schematic(base;,0)
                 transform(2.66454e-15,-1,-34,-1,-2.66454e-15,30)
                 Point(width;,0)
                 {
-                    position(3.5,3)
+                    position(4.5,6)
                 }
             }
             Space(space_0003;,3)
@@ -46,7 +46,7 @@ Schematic(base;,0)
                     transform(-2.66454e-15,1,3,-1,-2.66454e-15,12)
                     Point(width;,0)
                     {
-                        position(3.5,6)
+                        position(5.5,10)
                     }
                 }
                 Wall(wall_0003;,3)
@@ -60,6 +60,14 @@ Schematic(base;,0)
                     {
                         value(1;)
                     }
+                }
+            }
+            Connection(conn_0004;,4)
+            {
+                transform(-2.66454e-15,1,15,-1,-2.66454e-15,-4)
+                Point(width;,0)
+                {
+                    position(5.5,11)
                 }
             }
         }
