@@ -57,7 +57,7 @@ public:
     virtual void init()
     {
         m_elements.clear();
-        this->template for_each(
+        this->template forEach(
             generics::collectIfConvert( m_elements, Node::ConvertPtrType< T >(), Node::ConvertPtrType< T >() ) );
         TBase::init();
     }

@@ -143,7 +143,7 @@ void Analysis::properties()
                 auto incidentIter = vertex->incident_halfedges(), incidentIterEnd = incidentIter;
                 do
                 {
-                    HalfEdge outEdge = incidentIter->twin();
+                    HalfEdgeCst outEdge = incidentIter->twin();
                     if( !pPartition )
                     {
                         pPartition        = outEdge->data().pPartition;

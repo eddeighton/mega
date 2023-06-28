@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <tuple>
+#include <list>
 
 namespace exact
 {
@@ -60,78 +61,194 @@ void Analysis::renderSiteContours( schematic::Site::Ptr pSite )
     }
 }
 
-void Analysis::constructConnectionEdges( schematic::Connection::Ptr   pConnection,
-                                         Arrangement::Halfedge_handle firstBisectorEdge,
-                                         Arrangement::Halfedge_handle secondBisectorEdge )
+void Analysis::constructConnectionEdges( schematic::Connection::Ptr pConnection,
+                                         HalfEdgeVector&            firstBisectors,
+                                         HalfEdgeVector&            secondBisectors )
 {
-    Arrangement::Vertex_handle vFirstStart  = firstBisectorEdge->source();
-    Arrangement::Vertex_handle vFirstEnd    = firstBisectorEdge->target();
-    Arrangement::Vertex_handle vSecondStart = secondBisectorEdge->source();
-    Arrangement::Vertex_handle vSecondEnd   = secondBisectorEdge->target();
-
-    const Point ptFirstStart  = vFirstStart->point();
-    const Point ptFirstEnd    = vFirstEnd->point();
-    const Point ptSecondStart = vSecondStart->point();
-    const Point ptSecondEnd   = vSecondEnd->point();
-    const Point ptFirstMid    = ptFirstStart + ( ptFirstEnd - ptFirstStart ) / 2.0;
-    const Point ptSecondMid   = ptSecondStart + ( ptSecondEnd - ptSecondStart ) / 2.0;
-
-    Arrangement::Halfedge_handle hFirstStartToMid = m_arr.split_edge( firstBisectorEdge, ptFirstMid );
-    Arrangement::Vertex_handle   vFirstMid        = hFirstStartToMid->target();
-
-    Arrangement::Halfedge_handle hSecondStartToMid = m_arr.split_edge( secondBisectorEdge, ptSecondMid );
-    Arrangement::Vertex_handle   vSecondMid        = hSecondStartToMid->target();
-
-    // create edge between mid points
-    Arrangement::Halfedge_handle m_hDoorStep;
+    // ensure the input sequences are sorted correctly
     {
+        auto sortSequence = []( HalfEdgeVector& sequence )
+        {
+            std::list< HalfEdge > sorted;
+
+            HalfEdgeSet edges( sequence.begin(), sequence.end() );
+
+            bool bProgress = true;
+            while( bProgress && !edges.empty() )
+            {
+                bProgress = false;
+
+                if( sorted.empty() )
+                {
+                    auto iFirst = edges.begin();
+                    sorted.push_back( *iFirst );
+                    edges.erase( iFirst );
+                    bProgress = true;
+                }
+                else
+                {
+                    for( auto i = edges.begin(), iEnd = edges.end(); i != iEnd; ++i )
+                    {
+                        auto e = *i;
+                        if( e->target() == sorted.front()->source() )
+                        {
+                            sorted.push_front( e );
+                            edges.erase( i );
+                            bProgress = true;
+                            break;
+                        }
+                        else if( e->source() == sorted.back()->target() )
+                        {
+                            sorted.push_back( e );
+                            edges.erase( i );
+                            bProgress = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            INVARIANT( edges.empty(), "Failed to sort input edge sequence" );
+            sequence.assign( sorted.begin(), sorted.end() );
+        };
+
+        INVARIANT( !firstBisectors.empty(), "First bisectors empty: " << pConnection->Node::getName() );
+        INVARIANT( !secondBisectors.empty(), "Second bisectors empty: " << pConnection->Node::getName() );
+
+        sortSequence( firstBisectors );
+        sortSequence( secondBisectors );
+
+        {
+            HalfEdge eLast;
+            for( auto e : firstBisectors )
+            {
+                INVARIANT( ( eLast == HalfEdge{} ) || ( eLast->target() == e->source() ),
+                           "First bisectors not sequence: " << pConnection->Node::getName() );
+                eLast = e;
+            }
+        }
+        {
+            HalfEdge eLast;
+            for( auto e : secondBisectors )
+            {
+                INVARIANT( ( eLast == HalfEdge{} ) || ( eLast->target() == e->source() ),
+                           "Second bisectors not sequence: " << pConnection->Node::getName() );
+                eLast = e;
+            }
+        }
+    }
+
+    // find all edges between bisectors and label as connection break edges UNLESS actual doorstep
+    // if there is a single site edge then it is used as the doorstep
+    HalfEdgeSet breakEdges;
+    HalfEdgeSet siteEdges;
+    {
+        VertexSet first, second;
+        for( auto e : firstBisectors )
+        {
+            first.insert( e->source() );
+            first.insert( e->target() );
+        }
+        for( auto e : secondBisectors )
+        {
+            second.insert( e->source() );
+            second.insert( e->target() );
+        }
+
+        for( auto v : first )
+        {
+            Arrangement::Halfedge_around_vertex_circulator first, iter;
+            first = iter = v->incident_halfedges();
+            do
+            {
+                if( second.contains( iter->source() ) )
+                {
+                    if( test( iter, EdgeMask::eSite ) )
+                    {
+                        siteEdges.insert( iter );
+                        siteEdges.insert( iter->twin() );
+                    }
+                    else
+                    {
+                        breakEdges.insert( iter );
+                        breakEdges.insert( iter->twin() );
+                    }
+                }
+                ++iter;
+            } while( iter != first );
+        }
+    }
+
+    for( auto e : breakEdges )
+    {
+        classify( e, EdgeMask::eConnectionBreak );
+    }
+
+    // now determine the doorStep
+    std::optional< HalfEdge > hDoorStep;
+
+    if( siteEdges.size() == 2 )
+    {
+        for( auto e : siteEdges )
+        {
+            hDoorStep = e;
+            break;
+        }
+    }
+    else
+    {
+        for( auto e : siteEdges )
+        {
+            classify( e, EdgeMask::eConnectionBreak );
+        }
+
+        auto findEdge = []( const HalfEdgeVector& edges, const exact::Kernel::FT& distance ) -> HalfEdge
+        {
+            exact::Kernel::FT firstDist = 0.0;
+            for( auto e : edges )
+            {
+                const auto d = firstDist + CGAL::squared_distance( e->source()->point(), e->target()->point() );
+                if( distance <= d )
+                {
+                    return e;
+                }
+                else
+                {
+                    firstDist = firstDist + d;
+                }
+            }
+            INVARIANT( false, "Failed to locate mid point edge" );
+        };
+
+        // construct doorstep from midpoints
+        Vertex      vFirstStart  = firstBisectors.front()->source();
+        Vertex      vFirstEnd    = firstBisectors.back()->target();
+        const Point ptFirstStart = vFirstStart->point();
+        const Point ptFirstEnd   = vFirstEnd->point();
+        HalfEdge    firstEdge    = findEdge( firstBisectors, CGAL::squared_distance( ptFirstStart, ptFirstEnd ) / 2.0 );
+        const Point ptFirstMid   = ptFirstStart + ( ptFirstEnd - ptFirstStart ) / 2.0;
+        HalfEdge    hFirstStartToMid = m_arr.split_edge( firstEdge, ptFirstMid );
+        Vertex      vFirstMid        = hFirstStartToMid->target();
+
+        Vertex      vSecondStart  = secondBisectors.front()->source();
+        Vertex      vSecondEnd    = secondBisectors.back()->target();
+        const Point ptSecondStart = vSecondStart->point();
+        const Point ptSecondEnd   = vSecondEnd->point();
+        HalfEdge secondEdge = findEdge( secondBisectors, CGAL::squared_distance( ptSecondStart, ptSecondEnd ) / 2.0 );
+        const Point ptSecondMid       = ptSecondStart + ( ptSecondEnd - ptSecondStart ) / 2.0;
+        HalfEdge    hSecondStartToMid = m_arr.split_edge( secondEdge, ptSecondMid );
+        Vertex      vSecondMid        = hSecondStartToMid->target();
+
         const ::exact::Curve segDoorStep( ptFirstMid, ptSecondMid );
-        m_hDoorStep = m_arr.insert_at_vertices( segDoorStep, vFirstMid, vSecondMid );
-        classify( m_hDoorStep, EdgeMask::eDoorStep );
-        classify( m_hDoorStep->twin(), EdgeMask::eDoorStep );
+        hDoorStep = m_arr.insert_at_vertices( segDoorStep, vFirstMid, vSecondMid );
     }
 
+    // classify the doorStep
+    INVARIANT( hDoorStep.has_value(), "Failed to construct doorstep: " << pConnection->Node::getName() );
     {
-        bool                                           bFound = false;
-        Arrangement::Halfedge_around_vertex_circulator first, iter;
-        first = iter = vFirstStart->incident_halfedges();
-        do
-        {
-            if( ( iter->source() == vSecondStart ) || ( iter->source() == vSecondEnd ) )
-            {
-                classify( iter, EdgeMask::eConnectionBreak );
-                classify( iter->twin(), EdgeMask::eConnectionBreak );
-                bFound = true;
-                break;
-            }
-            ++iter;
-        } while( iter != first );
-        if( !bFound )
-        {
-            throw std::runtime_error( "Failed in constructConnectionEdges" );
-        }
-        INVARIANT( bFound, "Connection failed" );
-    }
-    {
-        bool                                           bFound = false;
-        Arrangement::Halfedge_around_vertex_circulator first, iter;
-        first = iter = vFirstEnd->incident_halfedges();
-        do
-        {
-            if( ( iter->source() == vSecondStart ) || ( iter->source() == vSecondEnd ) )
-            {
-                classify( iter, EdgeMask::eConnectionBreak );
-                classify( iter->twin(), EdgeMask::eConnectionBreak );
-                bFound = true;
-                break;
-            }
-            ++iter;
-        } while( iter != first );
-        if( !bFound )
-        {
-            throw std::runtime_error( "Failed in constructConnectionEdges" );
-        }
-        INVARIANT( bFound, "Connection failed" );
+        classify( hDoorStep.value(), EdgeMask::eDoorStep );
+        classify( hDoorStep.value()->twin(), EdgeMask::eDoorStep );
+        hDoorStep.value()->data().pConnection         = pConnection;
+        hDoorStep.value()->twin()->data().pConnection = pConnection;
     }
 }
 
@@ -152,15 +269,13 @@ void Analysis::connect( schematic::Site::Ptr pSite )
         const exact::Direction    edgeDir( ptFirstStart - ptSecondEnd );
 
         // attempt to find the four connection vertices
-        std::vector< Arrangement::Halfedge_handle > toRemove;
-        Arrangement::Halfedge_handle                firstBisectorEdge, secondBisectorEdge;
-        bool                                        bFoundFirst = false, bFoundSecond = false;
+        HalfEdgeVector toRemove, firstBisectors, secondBisectors;
         {
             Curve_handle firstCurve = CGAL::insert( m_arr, Curve( ptFirstStart, ptFirstEnd ) );
 
             for( auto i = m_arr.induced_edges_begin( firstCurve ); i != m_arr.induced_edges_end( firstCurve ); ++i )
             {
-                Arrangement::Halfedge_handle h = *i;
+                HalfEdge h = *i;
 
                 if( ( h->source()->point() == ptFirstStart ) || ( h->source()->point() == ptFirstEnd )
                     || ( h->target()->point() == ptFirstStart ) || ( h->target()->point() == ptFirstEnd ) )
@@ -169,28 +284,22 @@ void Analysis::connect( schematic::Site::Ptr pSite )
                 }
                 else
                 {
-                    firstBisectorEdge = h;
+                    firstBisectors.push_back( h );
 
-                    const exact::Direction halfEdgeDir( firstBisectorEdge->target()->point()
-                                                        - firstBisectorEdge->source()->point() );
+                    const exact::Direction halfEdgeDir( h->target()->point() - h->source()->point() );
                     const exact::Direction halfEdgeOrthoDir
                         = halfEdgeDir.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
 
                     if( halfEdgeOrthoDir == edgeDir )
                     {
-                        classify( firstBisectorEdge->twin(), EdgeMask::eConnectionBisector );
-                        classify( firstBisectorEdge, EdgeMask::eConnectionBisectorBoundary );
+                        classify( h->twin(), EdgeMask::eConnectionBisector );
+                        classify( h, EdgeMask::eConnectionBisectorBoundary );
                     }
                     else
                     {
-                        classify( firstBisectorEdge, EdgeMask::eConnectionBisector );
-                        classify( firstBisectorEdge->twin(), EdgeMask::eConnectionBisectorBoundary );
+                        classify( h, EdgeMask::eConnectionBisector );
+                        classify( h->twin(), EdgeMask::eConnectionBisectorBoundary );
                     }
-
-                    if( bFoundFirst )
-                        throw std::runtime_error( "Failed in connect" );
-                    INVARIANT( !bFoundFirst, "Connect failed" );
-                    bFoundFirst = true;
                 }
             }
         }
@@ -200,7 +309,7 @@ void Analysis::connect( schematic::Site::Ptr pSite )
 
             for( auto i = m_arr.induced_edges_begin( secondCurve ); i != m_arr.induced_edges_end( secondCurve ); ++i )
             {
-                Arrangement::Halfedge_handle h = *i;
+                HalfEdge h = *i;
 
                 if( ( h->source()->point() == ptSecondStart ) || ( h->source()->point() == ptSecondEnd )
                     || ( h->target()->point() == ptSecondStart ) || ( h->target()->point() == ptSecondEnd ) )
@@ -209,47 +318,37 @@ void Analysis::connect( schematic::Site::Ptr pSite )
                 }
                 else
                 {
-                    secondBisectorEdge = h;
+                    secondBisectors.push_back( h );
 
-                    const exact::Direction halfEdgeDir( secondBisectorEdge->target()->point()
-                                                        - secondBisectorEdge->source()->point() );
+                    const exact::Direction halfEdgeDir( h->target()->point() - h->source()->point() );
                     const exact::Direction halfEdgeOrthoDir
                         = halfEdgeDir.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
 
                     if( halfEdgeOrthoDir == edgeDir )
                     {
-                        classify( secondBisectorEdge, EdgeMask::eConnectionBisector );
-                        classify( secondBisectorEdge->twin(), EdgeMask::eConnectionBisectorBoundary );
+                        classify( h, EdgeMask::eConnectionBisector );
+                        classify( h->twin(), EdgeMask::eConnectionBisectorBoundary );
                     }
                     else
                     {
-                        classify( secondBisectorEdge->twin(), EdgeMask::eConnectionBisector );
-                        classify( secondBisectorEdge, EdgeMask::eConnectionBisectorBoundary );
+                        classify( h->twin(), EdgeMask::eConnectionBisector );
+                        classify( h, EdgeMask::eConnectionBisectorBoundary );
                     }
-
-                    if( bFoundSecond )
-                        throw std::runtime_error( "Failed in connect" );
-                    INVARIANT( !bFoundSecond, "Connect failed" );
-                    bFoundSecond = true;
                 }
             }
         }
 
-        if( !( bFoundFirst && bFoundSecond ) )
+        if( firstBisectors.empty() || secondBisectors.empty() )
         {
             std::ostringstream os;
-            os << "Failed to construct connection: " << pConnection->Node::getName();
+            os << "Failed to find bisectors for connection: " << pConnection->Node::getName();
             throw std::runtime_error( os.str() );
         }
 
-        INVARIANT( bFoundFirst && bFoundSecond, "Failed to construct connection: " << pConnection->Node::getName() );
-        constructConnectionEdges( pConnection, firstBisectorEdge, secondBisectorEdge );
+        constructConnectionEdges( pConnection, firstBisectors, secondBisectors );
 
-        // INVARIANT( toRemove.size() == 4, "Bad connection" );
-        for( Arrangement::Halfedge_handle h : toRemove )
+        for( HalfEdge h : toRemove )
         {
-            // classify( h, EdgeMask::eConnectionEnd );
-            // classify( h->twin(), EdgeMask::eConnectionEnd );
             CGAL::remove_edge( m_arr, h );
         }
     }
@@ -272,10 +371,10 @@ void Analysis::cut( schematic::Site::Ptr pSite )
 
         Curve_handle curve = CGAL::insert( m_arr, Curve( ptStart, ptEnd ) );
 
-        // std::vector< Arrangement::Halfedge_handle > toRemove;
+        // std::vector< HalfEdge > toRemove;
         for( auto i = m_arr.induced_edges_begin( curve ); i != m_arr.induced_edges_end( curve ); ++i )
         {
-            Arrangement::Halfedge_handle h = *i;
+            HalfEdge h = *i;
 
             // TODO - possibly remove cut edges that are NOT within boundaries
 
@@ -295,7 +394,7 @@ void Analysis::cut( schematic::Site::Ptr pSite )
             }
         }
 
-        /*for( Arrangement::Halfedge_handle h : toRemove )
+        /*for( HalfEdge h : toRemove )
         {
             CGAL::remove_edge( m_arr, h );
         }*/

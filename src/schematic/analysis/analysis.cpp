@@ -54,18 +54,17 @@ void Analysis::getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask
     }
 }
 
-void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles >& floors )
+void Analysis::getFloorPartitions(
+    std::map< const Analysis::Partition*, Analysis::HalfEdgeCstPolygonWithHoles >& floors ) const
 {
     using NodePtr    = typename PolygonNode::Ptr;
     using NodeVector = std::vector< NodePtr >;
     NodeVector nodes;
     {
-        Analysis::HalfEdgeVectorVector floorPolygons;
+        HalfEdgeCstVectorVector floorPolygons;
         {
-            Analysis::HalfEdgeSet outerEdges;
-            getEdges( m_arr, outerEdges,
-                      []( Arrangement::Halfedge_const_handle edge )
-                      { return test( edge, EdgeMask::ePartitionFloor ); } );
+            HalfEdgeCstSet outerEdges;
+            getEdges( m_arr, outerEdges, []( HalfEdgeCst edge ) { return test( edge, EdgeMask::ePartitionFloor ); } );
             getPolygonsDir( outerEdges, floorPolygons, true );
         }
         for( auto& poly : floorPolygons )
@@ -75,10 +74,11 @@ void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, Analysi
     }
 
     auto rootNodes = getPolygonNodes( nodes );
+    INVARIANT( rootNodes.size() == 1, "getFloorPartitions did not find singular root node" );
 
     struct Visitor
     {
-        std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles >& floors;
+        std::map< const Analysis::Partition*, Analysis::HalfEdgeCstPolygonWithHoles >& floors;
 
         void floor( const PolygonNode& node )
         {
@@ -88,7 +88,7 @@ void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, Analysi
             INVARIANT( pPartition->pSite, "Floor partition missing site" );
             INVARIANT( node.face(), "Floor is not a face" );
 
-            HalfEdgePolygonWithHoles polyWithHoles;
+            HalfEdgeCstPolygonWithHoles polyWithHoles;
             polyWithHoles.outer = node.polygon();
 
             for( auto pContour : node.contained() )
@@ -110,9 +110,9 @@ void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, Analysi
     }
 }
 
-void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors )
+void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors ) const
 {
-    std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles > halfEdgeFloors;
+    std::map< const Analysis::Partition*, Analysis::HalfEdgeCstPolygonWithHoles > halfEdgeFloors;
     getFloorPartitions( halfEdgeFloors );
 
     for( const auto& [ pPartition, polyWithHoles ] : halfEdgeFloors )
@@ -121,18 +121,18 @@ void Analysis::getFloorPartitions( std::map< const Analysis::Partition*, exact::
     }
 }
 
-void Analysis::getBoundaryPartitions( Analysis::HalfEdgeVectorVector& boundarySegments )
+void Analysis::getBoundaryPartitions( Analysis::HalfEdgeCstVectorVector& boundarySegments ) const
 {
-    Analysis::HalfEdgeSet edges;
+    Analysis::HalfEdgeCstSet edges;
     getEdges( m_arr, edges,
               []( Arrangement::Halfedge_const_handle edge )
               { return test( edge, EdgeMask::ePartitionBoundarySegment ); } );
     getPolygonsDir( edges, boundarySegments, true );
 }
 
-void Analysis::getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries )
+void Analysis::getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries ) const
 {
-    Analysis::HalfEdgeVectorVector boundarySegments;
+    Analysis::HalfEdgeCstVectorVector boundarySegments;
     getBoundaryPartitions( boundarySegments );
     for( const auto& boundarySegment : boundarySegments )
     {
@@ -147,7 +147,7 @@ void Analysis::getBoundaryPartitions( std::map< const Analysis::PartitionSegment
     }
 }
 
-void Analysis::getVertices( VertexVector& vertices ) const
+void Analysis::getVertices( VertexCstVector& vertices ) const
 {
     for( auto i = m_arr.vertices_begin(); i != m_arr.vertices_end(); ++i )
     {
@@ -155,13 +155,13 @@ void Analysis::getVertices( VertexVector& vertices ) const
     }
 }
 
-void Analysis::getPerimeterPolygon( HalfEdgeVector& polygon ) const
+void Analysis::getPerimeterPolygon( HalfEdgeCstVector& polygon ) const
 {
-    HalfEdgeSet perimeterEdges;
+    HalfEdgeCstSet perimeterEdges;
     getEdges( m_arr, perimeterEdges,
               []( Arrangement::Halfedge_const_handle edge ) { return test( edge, EdgeMask::ePerimeter ); } );
 
-    HalfEdgeVectorVector polygons;
+    HalfEdgeCstVectorVector polygons;
     getPolygons( perimeterEdges, polygons );
 
     INVARIANT( polygons.size() == 1, "Did not find single perimeter polygon" );
@@ -193,7 +193,7 @@ Analysis::Floor::Vector Analysis::getFloors()
             floors.emplace_back( theFloor );
         }
 
-        void floorOrHole( PolygonNode& node, Floor& theFloor, HalfEdgePolygonWithHoles& polyWithHoles ) const
+        void floorOrHole( PolygonNode& node, Floor& theFloor, HalfEdgeCstPolygonWithHoles& polyWithHoles ) const
         {
             for( auto pContour : node.contained() )
             {
@@ -218,7 +218,7 @@ Analysis::Floor::Vector Analysis::getFloors()
         void floorEx1( PolygonNode& node, Floor& theFloor ) const
         {
             INVARIANT( node.outer(), "Found hole when expecting contour" );
-            HalfEdgePolygonWithHoles polyWithHoles;
+            HalfEdgeCstPolygonWithHoles polyWithHoles;
             polyWithHoles.outer = node.polygon();
             floorOrHole( node, theFloor, polyWithHoles );
             theFloor.ex1.push_back( polyWithHoles );
@@ -227,7 +227,7 @@ Analysis::Floor::Vector Analysis::getFloors()
         void floorEx2( PolygonNode& node, Floor& theFloor ) const
         {
             INVARIANT( node.outer(), "Found hole when expecting contour" );
-            HalfEdgePolygonWithHoles polyWithHoles;
+            HalfEdgeCstPolygonWithHoles polyWithHoles;
             polyWithHoles.outer = node.polygon();
             floorOrHole( node, theFloor, polyWithHoles );
             theFloor.ex2.push_back( polyWithHoles );
@@ -236,7 +236,7 @@ Analysis::Floor::Vector Analysis::getFloors()
         void floorEx3( PolygonNode& node, Floor& theFloor ) const
         {
             INVARIANT( node.outer(), "Found hole when expecting contour" );
-            HalfEdgePolygonWithHoles polyWithHoles;
+            HalfEdgeCstPolygonWithHoles polyWithHoles;
             polyWithHoles.outer = node.polygon();
             floorOrHole( node, theFloor, polyWithHoles );
             theFloor.ex3.push_back( polyWithHoles );
@@ -245,13 +245,13 @@ Analysis::Floor::Vector Analysis::getFloors()
         void floorEx4( PolygonNode& node, Floor& theFloor ) const
         {
             INVARIANT( node.outer(), "Found hole when expecting contour" );
-            HalfEdgePolygonWithHoles polyWithHoles;
+            HalfEdgeCstPolygonWithHoles polyWithHoles;
             polyWithHoles.outer = node.polygon();
             floorOrHole( node, theFloor, polyWithHoles );
             theFloor.ex4.push_back( polyWithHoles );
         }
 
-        void floorInner( PolygonNode& node, Floor& theFloor, HalfEdgePolygonWithHoles& poly ) const
+        void floorInner( PolygonNode& node, Floor& theFloor, HalfEdgeCstPolygonWithHoles& poly ) const
         {
             INVARIANT( node.inner(), "Found contour when expecting hole" );
 
@@ -362,23 +362,23 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
 {
     using Edge = Arrangement::Halfedge_const_handle;
 
-    HalfEdgeSet boundaryEdges;
+    HalfEdgeCstSet boundaryEdges;
     getEdges( m_arr, boundaryEdges, []( Edge edge ) { return test( edge, EdgeMask::ePartitionBoundary ); } );
 
-    HalfEdgeVectorVector boundaryPolygons;
+    HalfEdgeCstVectorVector boundaryPolygons;
     getPolygons( boundaryEdges, boundaryPolygons );
 
-    HalfEdgeSet boundarySegmentEdges;
+    HalfEdgeCstSet boundarySegmentEdges;
     getEdges(
         m_arr, boundarySegmentEdges, []( Edge edge ) { return test( edge, EdgeMask::ePartitionBoundarySegment ); } );
 
-    HalfEdgeVectorVector boundarySegmentPolygons;
+    HalfEdgeCstVectorVector boundarySegmentPolygons;
     getPolygonsDir( boundarySegmentEdges, boundarySegmentPolygons, true );
 
     // Partition::PtrVector        m_floors, m_boundaries;
     // PartitionSegment::PtrVector m_boundarySegments;
 
-    using SegmentEdgeMap = std::map< PartitionSegment*, HalfEdgeVector >;
+    using SegmentEdgeMap = std::map< PartitionSegment*, HalfEdgeCstVector >;
     SegmentEdgeMap segmentMap;
 
     for( const auto& segmentPoly : boundarySegmentPolygons )
@@ -503,8 +503,8 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
 
         boundary.contour = boundaryPolygon;
 
-        using CutEdgeSet       = Analysis::HalfEdgeSet;
-        using CutEdgeSeq       = Analysis::HalfEdgeVector;
+        using CutEdgeSet       = Analysis::HalfEdgeCstSet;
+        using CutEdgeSeq       = Analysis::HalfEdgeCstVector;
         using CutEdgeSeqVector = std::vector< CutEdgeSeq >;
         using CutEdgeSeqMap    = std::map< PartitionSegment*, CutEdgeSeqVector >;
         struct CutEdgeSeqInfo
@@ -512,7 +512,7 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
             PartitionSegment*          pSegment;
             CutEdgeSeq::const_iterator iter, iterEnd;
         };
-        using CutEdgeIterMap = std::map< Analysis::HalfEdge, CutEdgeSeqInfo >;
+        using CutEdgeIterMap = std::map< Analysis::HalfEdgeCst, CutEdgeSeqInfo >;
         CutEdgeSet     cutEdges;
         CutEdgeSeqMap  segmentCutEdges;
         CutEdgeIterMap cutEdgeIters;
@@ -523,20 +523,20 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
         {
             auto iFind = segmentMap.find( pSegment );
             INVARIANT( iFind != segmentMap.end(), "Could not find segment" );
-            const Analysis::HalfEdgeVector& boundarySegmentPoly = iFind->second;
+            const Analysis::HalfEdgeCstVector& boundarySegmentPoly = iFind->second;
 
             CutEdgeSeqVector cutEdgeSequences;
-            getSubSequences< Analysis::HalfEdge >( boundarySegmentPoly,
-                                                   cutEdgeSequences,
-                                                   [ &cutEdges ]( Analysis::HalfEdge e )
-                                                   {
-                                                       if( test( e, EdgeMask::eCut ) )
-                                                       {
-                                                           cutEdges.insert( e );
-                                                           return true;
-                                                       }
-                                                       return false;
-                                                   } );
+            getSubSequences< Analysis::HalfEdgeCst >( boundarySegmentPoly,
+                                                      cutEdgeSequences,
+                                                      [ &cutEdges ]( Analysis::HalfEdgeCst e )
+                                                      {
+                                                          if( test( e, EdgeMask::eCut ) )
+                                                          {
+                                                              cutEdges.insert( e );
+                                                              return true;
+                                                          }
+                                                          return false;
+                                                      } );
             INVARIANT( !cutEdgeSequences.empty() || cutEdges.empty(), "No subsequences" );
 
             // record the cut edge subsequences
@@ -548,21 +548,21 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
             {
                 for( CutEdgeSeq::const_iterator j = i->begin(), jEnd = i->end(); j != jEnd; ++j )
                 {
-                    Analysis::HalfEdge e = *j;
-                    auto               r = cutEdgeIters.insert( { e, CutEdgeSeqInfo{ pSegment, j, jEnd } } );
+                    Analysis::HalfEdgeCst e = *j;
+                    auto                  r = cutEdgeIters.insert( { e, CutEdgeSeqInfo{ pSegment, j, jEnd } } );
                     INVARIANT( r.second, "Cut half edge occured twice" );
                 }
             }
 
             auto findSiteContours
-                = [ pSegment ]( const Analysis::HalfEdgeVector& boundary, Analysis::HalfEdgeSet& siteEdges )
+                = [ pSegment ]( const Analysis::HalfEdgeCstVector& boundary, Analysis::HalfEdgeCstSet& siteEdges )
             {
-                Analysis::FaceVector facesWithinSegment;
+                Analysis::FaceCstVector facesWithinSegment;
                 getSortedFacesInsidePolygon( boundary, facesWithinSegment );
                 for( auto f : facesWithinSegment )
                 {
                     visitEdgesOfFace( f,
-                                      [ &siteEdges ]( Analysis::HalfEdge edge )
+                                      [ &siteEdges ]( Analysis::HalfEdgeCst edge )
                                       {
                                           if( test( edge, EdgeMask::eSite ) )
                                           {

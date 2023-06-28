@@ -29,14 +29,14 @@
 
 namespace exact
 {
-    
+
 inline void renderCurve( Analysis::Arrangement& arr, const exact::Curve& curve, EdgeMask::Type innerMask,
                          EdgeMask::Type outerMask = EdgeMask::TOTAL_MASK_TYPES )
 {
     Analysis::Arrangement::Curve_handle firstCurve = CGAL::insert( arr, curve );
     for( auto h = arr.induced_edges_begin( firstCurve ); h != arr.induced_edges_end( firstCurve ); ++h )
     {
-        Analysis::Arrangement::Halfedge_handle edge = *h;
+        Analysis::HalfEdge edge = *h;
 
         const bool bSameDir = firstCurve->is_directed_right()
                                   ? ( edge->direction() == CGAL::Arr_halfedge_direction::ARR_LEFT_TO_RIGHT )
@@ -98,7 +98,7 @@ inline void renderCurve( Analysis::Arrangement& arr, const exact::Curve& curve, 
     Analysis::Arrangement::Curve_handle firstCurve = CGAL::insert( arr, curve );
     for( auto h = arr.induced_edges_begin( firstCurve ); h != arr.induced_edges_end( firstCurve ); ++h )
     {
-        Analysis::Arrangement::Halfedge_handle edge = *h;
+        Analysis::HalfEdge edge = *h;
 
         const bool bSameDir = firstCurve->is_directed_right()
                                   ? ( edge->direction() == CGAL::Arr_halfedge_direction::ARR_LEFT_TO_RIGHT )

@@ -29,20 +29,20 @@
 namespace exact
 {
 
-inline void locateHoleBoundariesFromDoorStep( Analysis::Arrangement::Halfedge_handle                    doorStep,
-                                              const std::set< Analysis::Arrangement::Halfedge_handle >& boundaryEdges,
-                                              const std::vector< Analysis::Arrangement::Halfedge_handle >& floorEdges,
-                                              std::set< Analysis::Arrangement::Halfedge_handle >& innerBoundaries,
-                                              std::vector< Analysis::Arrangement::Face_handle >&  result )
+inline void locateHoleBoundariesFromDoorStep( Analysis::HalfEdge              doorStep,
+                                              const Analysis::HalfEdgeSet&    boundaryEdges,
+                                              const Analysis::HalfEdgeVector& floorEdges,
+                                              Analysis::HalfEdgeSet&          innerBoundaries,
+                                              Analysis::FaceVector&           result )
 {
-    std::set< Analysis::Arrangement::Face_handle > startFaces;
+    Analysis::FaceSet startFaces;
     startFaces.insert( doorStep->face() );
-    getSortedFaces< Analysis::Arrangement::Halfedge_handle, Analysis::Arrangement::Face_handle >(
+    getSortedFaces< Analysis::HalfEdge, Analysis::Arrangement::Face_handle >(
         startFaces, result,
 
         // if predicate returns TRUE then getSortedFaces will cross edge to get adjacent face
         // NOTE: getSortedFaces will ALSO ONLY cross edges NOT within 'boundary' variable
-        [ &boundaryEdges, &floorEdges, &innerBoundaries ]( Analysis::Arrangement::Halfedge_handle edge )
+        [ &boundaryEdges, &floorEdges, &innerBoundaries ]( Analysis::HalfEdge edge )
         {
             const auto& flags = edge->data().flags;
 
@@ -76,12 +76,11 @@ inline void locateHoleBoundariesFromDoorStep( Analysis::Arrangement::Halfedge_ha
 
 void Analysis::partition()
 {
-    std::vector< Arrangement::Vertex_handle >          doorStepVertices;
-    std::set< Analysis::Arrangement::Halfedge_handle > boundaryEdges;
-    std::set< Analysis::Arrangement::Halfedge_handle > doorSteps;
+    VertexVector doorStepVertices;
+    HalfEdgeSet  boundaryEdges;
+    HalfEdgeSet  doorSteps;
     {
-        getEdges(
-            m_arr, doorSteps, []( Arrangement::Halfedge_handle edge ) { return test( edge, EdgeMask::eDoorStep ); } );
+        getEdges( m_arr, doorSteps, []( HalfEdge edge ) { return test( edge, EdgeMask::eDoorStep ); } );
         for( auto d : doorSteps )
         {
             doorStepVertices.push_back( d->source() );
@@ -89,10 +88,9 @@ void Analysis::partition()
     }
 
     {
-        using HalfEdgeSet = std::set< Analysis::Arrangement::Halfedge_handle >;
         HalfEdgeSet floorEdges;
         getEdges( m_arr, floorEdges,
-                  []( Arrangement::Halfedge_handle edge )
+                  []( HalfEdge edge )
                   {
                       return ( test( edge, EdgeMask::eInterior ) || test( edge, EdgeMask::eExterior )
                                || test( edge, EdgeMask::eConnectionBisector ) || test( edge, EdgeMask::eDoorStep ) )
@@ -100,7 +98,7 @@ void Analysis::partition()
                              && !test( edge, EdgeMask::eConnectionBreak );
                   } );
 
-        std::vector< std::vector< Arrangement::Halfedge_handle > > floorPolygons;
+        HalfEdgeVectorVector floorPolygons;
         searchPolygons( doorStepVertices, floorEdges, true, floorPolygons );
 
         for( auto floorBoundary : floorPolygons )
@@ -161,9 +159,9 @@ void Analysis::partition()
                 // are reachable through the faces but are NOT in floorBoundary
 
                 // NOTE: MUST pass ALL floorEdges here not just the floorBoundary
-                std::set< Analysis::Arrangement::Halfedge_handle > holeBoundaries;
+                HalfEdgeSet holeBoundaries;
                 {
-                    std::vector< Analysis::Arrangement::Face_handle > faces;
+                    FaceVector faces;
                     locateHoleBoundariesFromDoorStep( e, floorEdges, floorBoundary, holeBoundaries, faces );
                     for( auto f : faces )
                     {
@@ -177,7 +175,7 @@ void Analysis::partition()
                 // same result each time - i.e. the algorithm must be correct if setting the same
                 // result multiple times
 
-                std::vector< std::vector< Arrangement::Halfedge_handle > > floorHoles;
+                HalfEdgeVectorVector floorHoles;
                 getPolygons( holeBoundaries, floorHoles );
 
                 for( auto innerWallBoundary : floorHoles )
@@ -199,8 +197,8 @@ void Analysis::partition()
             }
 
             INVARIANT( sites.size() != 0, "Floor has no sites" );
-            INVARIANT( sites.size() == 1, "Floor has multiple sites" );
-            pPartition->pSite = *sites.begin();
+            pPartition->pSite = m_pSchematic->findLeafMostSite( sites );
+            INVARIANT( pPartition->pSite, "Failed to determine leaf most site" );
             m_floors.emplace_back( std::move( pPartition ) );
         }
     }
@@ -208,20 +206,20 @@ void Analysis::partition()
     // The resultant partition boundary edges can now be used to determine the boundaries
     {
         // for starting points just use ALL boundary vertices
-        std::vector< Arrangement::Vertex_handle > boundaryVertices;
+        VertexVector boundaryVertices;
         for( auto e : boundaryEdges )
         {
             boundaryVertices.push_back( e->source() );
         }
 
-        std::vector< std::vector< Arrangement::Halfedge_handle > > boundaryPolygons;
+        HalfEdgeVectorVector boundaryPolygons;
         searchPolygons( boundaryVertices, boundaryEdges, false, boundaryPolygons );
 
         for( auto& boundary : boundaryPolygons )
         {
             // determine if there is already a partition - will have two sides to boundary
-            Partition*                                        pPartition = nullptr;
-            std::vector< Analysis::Arrangement::Face_handle > faces;
+            Partition* pPartition = nullptr;
+            FaceVector faces;
             {
                 getSortedFacesInsidePolygon( boundary, faces );
                 for( auto f : faces )
@@ -267,11 +265,11 @@ void Analysis::partition()
     {
         // Get all boundary edges COMBINED with the cut edges
         // NOTE that cut edges are on both sides of the cut curve
-        std::set< Analysis::Arrangement::Halfedge_handle > cutEdges;
-        getEdges( m_arr, cutEdges, []( Arrangement::Halfedge_handle edge ) { return test( edge, EdgeMask::eCut ); } );
+        HalfEdgeSet cutEdges;
+        getEdges( m_arr, cutEdges, []( HalfEdge edge ) { return test( edge, EdgeMask::eCut ); } );
 
         // just add ALL vertices from the boundary as start vertices
-        std::vector< Arrangement::Vertex_handle > boundarySegmentStartVertices;
+        VertexVector boundarySegmentStartVertices;
         {
             for( auto e : boundaryEdges )
             {
@@ -279,10 +277,10 @@ void Analysis::partition()
             }
         }
 
-        std::set< Analysis::Arrangement::Halfedge_handle > boundaryAndCutEdges = boundaryEdges;
+        HalfEdgeSet boundaryAndCutEdges = boundaryEdges;
         boundaryAndCutEdges.insert( cutEdges.begin(), cutEdges.end() );
 
-        std::vector< std::vector< Arrangement::Halfedge_handle > > boundarySegmentPolygons;
+        HalfEdgeVectorVector boundarySegmentPolygons;
         searchPolygons( boundarySegmentStartVertices, boundaryAndCutEdges, true, boundarySegmentPolygons );
 
         for( auto segmentBoundary : boundarySegmentPolygons )
@@ -305,7 +303,7 @@ void Analysis::partition()
                 {
                     PartitionSegment* pPartitionSegment = nullptr;
 
-                    std::vector< Analysis::Arrangement::Face_handle > faces;
+                    FaceVector faces;
                     getSortedFacesInsidePolygon( segmentBoundary, faces );
                     for( auto f : faces )
                     {

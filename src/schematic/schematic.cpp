@@ -214,16 +214,14 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
         {
             m_pPropertiesMarkup->reset();
         }
-        
+
         if( iStage >= eStage_Lanes )
         {
             // m_pLaneAxisMarkup
             m_laneBitmap.setModified();
-            
         }
         else
         {
-
         }
     }
 
@@ -287,7 +285,7 @@ struct FBVertMap
         exact::ExactToInexact convert;
 
         // record all vertices
-        exact::Analysis::VertexVector vertices;
+        exact::Analysis::VertexCstVector vertices;
         analysis.getVertices( vertices );
 
         for( auto pVert : vertices )
@@ -322,7 +320,7 @@ private:
     ValueMap  valueMap;
 };
 
-fb::Offset< Mega::Polygon > buildPolygon( const FBVertMap& fbVertMap, const exact::Analysis::HalfEdgeVector& contour,
+fb::Offset< Mega::Polygon > buildPolygon( const FBVertMap& fbVertMap, const exact::Analysis::HalfEdgeCstVector& contour,
                                           fb::FlatBufferBuilder& builder )
 {
     std::vector< FBVertMap::FBVert > vertices;
@@ -447,12 +445,12 @@ std::size_t buildVertex( fb::FlatBufferBuilder&                       builder,
 
 fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                                 fbVertMap,
                                               Mega::Plane                                      plane,
-                                              const exact::Analysis::HalfEdgePolygonWithHoles& poly,
+                                              const exact::Analysis::HalfEdgeCstPolygonWithHoles& poly,
                                               fb::FlatBufferBuilder&                           builder )
 {
     Triangulation triangulation;
     {
-        auto insertConstraints = [ & ]( const exact::Analysis::HalfEdgeVector& contour )
+        auto insertConstraints = [ & ]( const exact::Analysis::HalfEdgeCstVector& contour )
         {
             std::vector< Triangulation::CDT::Vertex_handle > verts;
             // create the vertices - recording the original vertex handle from the arrangement
@@ -515,7 +513,7 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
     return meshBuilder.Finish();
 }
 
-float convertUV( Mega::Plane plane )
+float convertVerticalUV( Mega::Plane plane )
 {
     switch( plane )
     {
@@ -533,17 +531,17 @@ float convertUV( Mega::Plane plane )
 }
 
 // Generate a seperate quad for each edge
-fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    fbVertMap,
-                                            Mega::Plane                         lower,
-                                            Mega::Plane                         upper,
-                                            const exact::Analysis::HalfEdgeSet& edges,
-                                            fb::FlatBufferBuilder&              builder )
+fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                       fbVertMap,
+                                            Mega::Plane                            lower,
+                                            Mega::Plane                            upper,
+                                            const exact::Analysis::HalfEdgeCstSet& edges,
+                                            fb::FlatBufferBuilder&                 builder )
 {
     std::vector< fb::Offset< Mega::Vertex3D > > vertices;
     std::vector< int >                          indices;
 
-    const float fLowerUV = convertUV( lower );
-    const float fUpperUV = convertUV( upper );
+    const float fLowerUV = convertVerticalUV( lower );
+    const float fUpperUV = convertVerticalUV( upper );
 
     for( auto e : edges )
     {
@@ -589,14 +587,14 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
 fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                       fbVertMap,
                                             Mega::Plane                            lower,
                                             Mega::Plane                            upper,
-                                            const exact::Analysis::HalfEdgeVector& edges,
+                                            const exact::Analysis::HalfEdgeCstVector& edges,
                                             fb::FlatBufferBuilder&                 builder )
 {
     std::vector< fb::Offset< Mega::Vertex3D > > vertices;
     std::vector< int >                          indices;
 
-    const float fLowerUV = convertUV( lower );
-    const float fUpperUV = convertUV( upper );
+    const float fLowerUV = convertVerticalUV( lower );
+    const float fUpperUV = convertVerticalUV( upper );
 
     float fUVDist = 0;
     for( auto e : edges )
@@ -665,7 +663,7 @@ Mega::Plane convert( exact::Analysis::PartitionSegment::Plane plane )
 
 void Schematic::compileMap( const boost::filesystem::path& filePath )
 {
-    using PolyWivOwls = exact::Analysis::HalfEdgePolygonWithHoles;
+    using PolyWivOwls = exact::Analysis::HalfEdgeCstPolygonWithHoles;
 
     std::ostringstream osError;
     if( !compile( schematic::TOTAL_COMPILAION_STAGES, osError ) )
@@ -694,7 +692,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
 
     fb::Offset< Mega::Polygon > fbMapPolygon;
     {
-        Analysis::HalfEdgeVector perimeter;
+        Analysis::HalfEdgeCstVector perimeter;
         m_pAnalysis->getPerimeterPolygon( perimeter );
         fbMapPolygon = buildPolygon( fbVertMap, perimeter, builder );
     }

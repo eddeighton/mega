@@ -103,7 +103,7 @@ IGlyph::Ptr EditNested::getControlPointGlyph( ControlPoint* pControlPoint )
 void EditNested::matchFeatures()
 {
     Feature::PtrSet features;
-    m_pNode->for_each_recursive(
+    m_pNode->forEachRecursive(
         generics::collectIfConvert( features, Node::ConvertPtrType< Feature >(), Node::ConvertPtrType< Feature >() ),
         Node::ConvertPtrType< Site >() );
 

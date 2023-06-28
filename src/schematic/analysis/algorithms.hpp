@@ -180,7 +180,8 @@ inline bool getSortedFacesInsidePolygon( const std::vector< HalfEdgeType >& poly
 }
 
 template < typename Predicate >
-inline void getEdges( const Analysis::Arrangement& arr, Analysis::HalfEdgeSet& edges, Predicate&& predicate )
+inline void getEdges( const Analysis::Arrangement& arr, std::set< Analysis::Arrangement::Halfedge_const_handle >& edges,
+                      Predicate&& predicate )
 {
     for( auto i = arr.halfedges_begin(); i != arr.halfedges_end(); ++i )
     {

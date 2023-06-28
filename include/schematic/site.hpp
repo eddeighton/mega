@@ -59,6 +59,7 @@ public:
     using PtrCst       = boost::shared_ptr< const Site >;
     using WeakPtr      = boost::weak_ptr< Site >;
     using PtrSet       = std::set< Ptr >;
+    using PtrCstSet    = std::set< PtrCst >;
     using PtrList      = std::list< Ptr >;
     using PtrVector    = std::vector< Ptr >;
     using PtrCstVector = std::vector< PtrCst >;
@@ -75,6 +76,34 @@ public:
 
     virtual void init();
     virtual void init( const Transform& transform ) = 0;
+
+    inline PtrCst findLeafMostSite( const PtrCstSet& sites ) const
+    {
+        PtrCst pThis = boost::dynamic_pointer_cast< const Site >( getPtr() );
+
+        if( sites.contains( pThis ) )
+        {
+            PtrCstSet remaining = sites;
+            remaining.erase( pThis );
+            if( remaining.empty() )
+            {
+                return pThis;
+            }
+            else
+            {
+                return findLeafMostSite( remaining );
+            }
+        }
+
+        for( auto pChild : getSites() )
+        {
+            if( auto pResult = pChild->findLeafMostSite( sites ) )
+            {
+                return pResult;
+            }
+        }
+        return {};
+    }
 
     // GlyphSpec
     virtual bool                     canEdit() const { return true; }

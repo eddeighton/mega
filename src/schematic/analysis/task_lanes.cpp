@@ -49,7 +49,7 @@ bool operator==( const agg::gray8& left, const agg::gray8& right )
 struct Policies
 {
     static constexpr bool TerminateEarly = false;
-    static constexpr int  MaxIterations  = 20000;
+    static constexpr int  MaxIterations  = 40000;
 };
 
 struct SearchCoeffs
@@ -207,12 +207,12 @@ astar::ErrorCode drawPath( const Value& vStart, Value& vEnd, const ValueSegmentV
         result );
 }
 
-using FloorPolyMap = std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles >;
+using FloorPolyMap = std::map< const Analysis::Partition*, Analysis::HalfEdgeCstPolygonWithHoles >;
 
 void renderPoly( agg::path_storage& path, const Rect& boundingBox, const Analysis::Partition* pPartition,
-                 const Analysis::HalfEdgeVector& poly )
+                 const Analysis::HalfEdgeCstVector& poly )
 {
-    auto convert = [ &boundingBox ]( Analysis::HalfEdge e, double& x, double& y )
+    auto convert = [ &boundingBox ]( Analysis::HalfEdgeCst e, double& x, double& y )
     {
         const auto& p = e->source()->point();
         x             = ( CGAL::to_double( p.x() - boundingBox.xmin() ) );
@@ -241,7 +241,7 @@ void renderPoly( agg::path_storage& path, const Rect& boundingBox, const Analysi
 }
 
 void renderPolyWithHoles( schematic::Rasteriser& raster, const Rect& boundingBox, const Analysis::Partition* pPartition,
-                          const Analysis::HalfEdgePolygonWithHoles& polyWithHoles, agg::gray8 colour )
+                          const Analysis::HalfEdgeCstPolygonWithHoles& polyWithHoles, agg::gray8 colour )
 {
     schematic::Rasteriser::PolygonRasterizer ras;
     ras.gamma( agg::gamma_threshold( 1.0 ) );
@@ -262,7 +262,7 @@ void renderPolyWithHoles( schematic::Rasteriser& raster, const Rect& boundingBox
 
 void renderPolyWithHolesClearance( schematic::Rasteriser& raster, const Rect& boundingBox,
                                    const Analysis::Partition*                pPartition,
-                                   const Analysis::HalfEdgePolygonWithHoles& polyWithHoles, agg::gray8 colour,
+                                   const Analysis::HalfEdgeCstPolygonWithHoles& polyWithHoles, agg::gray8 colour,
                                    float fClearance )
 {
     schematic::Rasteriser::PolygonRasterizer ras;
@@ -292,11 +292,11 @@ void renderPolyWithHolesClearance( schematic::Rasteriser& raster, const Rect& bo
 
 void calculateLaneSegments( schematic::Rasteriser& raster, const Rect& boundingBox,
                             const Analysis::Partition* pFloorPartition, const SearchCoeffs& coeffs,
-                            Adjacency& adjacency, const Analysis::HalfEdgePolygonWithHoles& polyWithHoles,
+                            Adjacency& adjacency, const Analysis::HalfEdgeCstPolygonWithHoles& polyWithHoles,
                             ValueSegmentVector& segments, ValueSegmentVector& doorStepSegments )
 {
     // collect all doorsteps
-    Analysis::HalfEdgeVector doorSteps;
+    Analysis::HalfEdgeCstVector doorSteps;
     for( auto e : polyWithHoles.outer )
     {
         if( test( e, EdgeMask::eDoorStep ) )
@@ -509,7 +509,7 @@ static exact::Polygon makeOctogon( double x )
 
 void Analysis::lanes()
 {
-    HalfEdgeVector perimeter;
+    HalfEdgeCstVector perimeter;
     getPerimeterPolygon( perimeter );
 
     std::vector< exact::Point > perimeterPoints;

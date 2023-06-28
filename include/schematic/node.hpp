@@ -72,7 +72,7 @@ public:
     template < class T >
     struct ConvertPtrType
     {
-        boost::shared_ptr< T > operator()( Node::Ptr p ) const { return boost::dynamic_pointer_cast< T >( p ); }
+        inline boost::shared_ptr< T > operator()( Node::Ptr p ) const { return boost::dynamic_pointer_cast< T >( p ); }
     };
 
     Node( Node::Ptr pParent, const std::string& strName );
@@ -97,15 +97,15 @@ protected:
     }
 
 public:
-    const std::string&              getName() const { return m_strName; }
-    Ptr                             getParent() const { return m_pParent.lock(); }
-    boost::shared_ptr< const File > getRootFile() const;
-    const PtrVector&                getChildren() const { return m_childrenOrdered; }
-    std::size_t                     size() const { return m_childrenOrdered.size(); }
-    const Timing::UpdateTick&       getLastModifiedTick() const { return m_lastModifiedTick; }
-    const Timing::UpdateTick&       getLastModifiedTickForTree() const;
-    std::size_t                     getIndex() const { return m_iIndex; }
-    virtual std::string             getStatement() const = 0;
+    inline const std::string&        getName() const { return m_strName; }
+    inline Ptr                       getParent() const { return m_pParent.lock(); }
+    boost::shared_ptr< const File >  getRootFile() const;
+    inline const PtrVector&          getChildren() const { return m_childrenOrdered; }
+    inline std::size_t               size() const { return m_childrenOrdered.size(); }
+    inline const Timing::UpdateTick& getLastModifiedTick() const { return m_lastModifiedTick; }
+    const Timing::UpdateTick&        getLastModifiedTickForTree() const;
+    inline std::size_t               getIndex() const { return m_iIndex; }
+    virtual std::string              getStatement() const = 0;
 
     void         setModified();
     virtual void init();
@@ -123,7 +123,7 @@ public:
     boost::optional< std::string > getPropertyString( const std::string& strKey ) const;
 
     template < class T >
-    boost::shared_ptr< T > get( const std::string& strKey ) const
+    inline boost::shared_ptr< T > get( const std::string& strKey ) const
     {
         boost::shared_ptr< T > pResultPtr;
         auto                   iFind = m_children.find( strKey );
@@ -133,7 +133,7 @@ public:
     }
 
     template < class TPredicate >
-    inline void for_each( const TPredicate& predicate ) const
+    inline void forEach( const TPredicate& predicate ) const
     {
         generics::for_each_second( m_children, predicate );
     }
@@ -152,13 +152,13 @@ public:
         {
             m_functor( p );
             if( !m_cutoffPredicate( p ) )
-                p->for_each( DepthFirstRecursion< TFunctor, TPredicateCutOff >( m_functor, m_cutoffPredicate ) );
+                p->forEach( DepthFirstRecursion< TFunctor, TPredicateCutOff >( m_functor, m_cutoffPredicate ) );
         }
     };
 
     template < class TFunctor, class TPredicateCutOff >
-    void for_each_recursive( const TFunctor&         functor,
-                             const TPredicateCutOff& cutoffPredicate = generics::_not( generics::all() ) ) const
+    inline void forEachRecursive( const TFunctor&         functor,
+                                  const TPredicateCutOff& cutoffPredicate = generics::_not( generics::all() ) ) const
     {
         generics::for_each_second(
             m_children, DepthFirstRecursion< TFunctor, TPredicateCutOff >( functor, cutoffPredicate ) );

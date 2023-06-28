@@ -37,7 +37,7 @@ namespace exact
 /*
 void Analysis::skeleton()
 {
-    HalfEdgePolygonWithHoles::Vector floors;
+    HalfEdgeCstPolygonWithHoles::Vector floors;
 
     getPolyonsWithHoles(
         m_arr,

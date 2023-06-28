@@ -75,7 +75,7 @@ void Node::setModified()
 }
 void Node::init()
 {
-    for_each( []( Ptr pNode ) { pNode->init(); } );
+    forEach( []( Ptr pNode ) { pNode->init(); } );
     setModified();
 }
 

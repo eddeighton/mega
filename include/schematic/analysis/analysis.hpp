@@ -79,6 +79,7 @@ public:
     {
         EdgeMask::Set                 flags;
         schematic::Site::PtrCstVector sites;
+        schematic::Connection::PtrCst pConnection;
         Partition*                    pPartition        = nullptr;
         PartitionSegment*             pPartitionSegment = nullptr;
 
@@ -113,28 +114,41 @@ public:
     void visibility();
 
     // queries used by map format
-    using VertexVector         = std::vector< Arrangement::Vertex_const_handle >;
-    using HalfEdge             = Arrangement::Halfedge_const_handle;
+    using VertexCstVector         = std::vector< Arrangement::Vertex_const_handle >;
+    using HalfEdgeCst             = Arrangement::Halfedge_const_handle;
+    using HalfEdgeCstSet          = std::set< HalfEdgeCst >;
+    using HalfEdgeCstVector       = std::vector< HalfEdgeCst >;
+    using HalfEdgeCstVectorVector = std::vector< HalfEdgeCstVector >;
+    using FaceCst                 = Arrangement::Face_const_handle;
+    using FaceCstVector           = std::vector< FaceCst >;
+    using FaceCstSet              = std::set< FaceCst >;
+
+    struct HalfEdgeCstPolygonWithHoles
+    {
+        HalfEdgeCstVector       outer;
+        HalfEdgeCstVectorVector holes;
+        using Vector = std::vector< HalfEdgeCstPolygonWithHoles >;
+    };
+
+    // non-const types
+    using Vertex               = Arrangement::Vertex_handle;
+    using VertexVector         = std::vector< Vertex >;
+    using VertexSet            = std::set< Vertex >;
+    using HalfEdge             = Arrangement::Halfedge_handle;
     using HalfEdgeSet          = std::set< HalfEdge >;
     using HalfEdgeVector       = std::vector< HalfEdge >;
     using HalfEdgeVectorVector = std::vector< HalfEdgeVector >;
-    using Face                 = Arrangement::Face_const_handle;
+    using Face                 = Arrangement::Face_handle;
     using FaceVector           = std::vector< Face >;
     using FaceSet              = std::set< Face >;
 
-    struct HalfEdgePolygonWithHoles
-    {
-        HalfEdgeVector       outer;
-        HalfEdgeVectorVector holes;
-        using Vector = std::vector< HalfEdgePolygonWithHoles >;
-    };
-
+public:
     // query used by editor for edge visualisation
     void getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges ) const;
-    void getFloorPartitions( std::map< const Analysis::Partition*, HalfEdgePolygonWithHoles >& floors );    // const;
-    void getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors );    // const;
-    void getBoundaryPartitions( Analysis::HalfEdgeVectorVector& boundarySegments );                          // const;
-    void getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries ); // const;
+    void getFloorPartitions( std::map< const Analysis::Partition*, HalfEdgeCstPolygonWithHoles >& floors ) const;
+    void getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors ) const;
+    void getBoundaryPartitions( Analysis::HalfEdgeCstVectorVector& boundarySegments ) const;
+    void getBoundaryPartitions( std::map< const Analysis::PartitionSegment*, exact::Polygon >& boundaries ) const;
 
     class Observer : public CGAL::Arr_observer< Arrangement >
     {
@@ -190,11 +204,10 @@ public:
     };
 
     // query functions used by map compilation
-    void getVertices( VertexVector& vertices ) const;
-    void getPerimeterPolygon( HalfEdgeVector& polygon ) const;
+    void getVertices( VertexCstVector& vertices ) const;
+    void getPerimeterPolygon( HalfEdgeCstVector& polygon ) const;
 
-
-    static inline exact::Polygon fromHalfEdgePolygon( const HalfEdgeVector& poly )
+    static inline exact::Polygon fromHalfEdgePolygon( const HalfEdgeCstVector& poly )
     {
         exact::Polygon outer;
         for( auto& e : poly )
@@ -208,7 +221,7 @@ public:
         }
         return outer;
     }
-    static inline exact::Polygon_with_holes fromHalfEdgePolygonWithHoles( const HalfEdgePolygonWithHoles& poly )
+    static inline exact::Polygon_with_holes fromHalfEdgePolygonWithHoles( const HalfEdgeCstPolygonWithHoles& poly )
     {
         exact::Polygon_with_holes polygonWithHoles( fromHalfEdgePolygon( poly.outer ) );
         for( auto& h : poly.holes )
@@ -230,12 +243,12 @@ public:
 
     struct Floor
     {
-        Partition*                       pPartition;
-        HalfEdgePolygonWithHoles         floor;
-        HalfEdgePolygonWithHoles::Vector ex1;
-        HalfEdgePolygonWithHoles::Vector ex2;
-        HalfEdgePolygonWithHoles::Vector ex3;
-        HalfEdgePolygonWithHoles::Vector ex4;
+        Partition*                          pPartition;
+        HalfEdgeCstPolygonWithHoles         floor;
+        HalfEdgeCstPolygonWithHoles::Vector ex1;
+        HalfEdgeCstPolygonWithHoles::Vector ex2;
+        HalfEdgeCstPolygonWithHoles::Vector ex3;
+        HalfEdgeCstPolygonWithHoles::Vector ex4;
         using Vector = std::vector< Floor >;
     };
     Floor::Vector getFloors();
@@ -249,7 +262,7 @@ public:
             // type:Type;
             // properties:[Properties];
             PartitionSegment::Plane lower, upper;
-            HalfEdgeSet             edges;
+            HalfEdgeCstSet          edges;
         };
 
         struct WallSection
@@ -257,17 +270,17 @@ public:
             // type:Type;
             // properties:[Properties];
             PartitionSegment::Plane lower, upper;
-            HalfEdgeVector          edges;
+            HalfEdgeCstVector       edges;
         };
 
         // type:Type;
         // properties:[Properties];
-        HalfEdgeVector contour;
+        HalfEdgeCstVector contour;
 
-        HalfEdgeVectorVector hori_holes;
-        HalfEdgeVectorVector hori_floors;
-        HalfEdgeVectorVector hori_mids;
-        HalfEdgeVectorVector hori_ceilings;
+        HalfEdgeCstVectorVector hori_holes;
+        HalfEdgeCstVectorVector hori_floors;
+        HalfEdgeCstVectorVector hori_mids;
+        HalfEdgeCstVectorVector hori_ceilings;
 
         std::vector< Pane >        panes;
         std::vector< WallSection > walls;
@@ -279,9 +292,9 @@ private:
     void contoursRecurse( schematic::Site::Ptr pSpace );
     void renderSiteContours( schematic::Site::Ptr pSpace );
     void connect( schematic::Site::Ptr pSite );
-    void constructConnectionEdges( schematic::Connection::Ptr   pConnection,
-                                   Arrangement::Halfedge_handle firstBisectorEdge,
-                                   Arrangement::Halfedge_handle secondBisectorEdge );
+    void constructConnectionEdges( schematic::Connection::Ptr pConnection,
+                                   HalfEdgeVector&            firstBisectors,
+                                   HalfEdgeVector&            secondBisectors );
     void cut( schematic::Site::Ptr pSite );
     void propertiesRecurse( schematic::Site::Ptr pSpace, std::vector< schematic::Property::Ptr >& properties );
 

@@ -58,6 +58,18 @@ public:
 
     const Site::PtrVector& getSites() const { return BaseType::getElements(); }
 
+    inline Site::PtrCst findLeafMostSite( const Site::PtrCstSet& sites ) const
+    {
+        for( auto p : getSites() )
+        {
+            if( auto pResult = p->findLeafMostSite( sites ) )
+            {
+                return pResult;
+            }
+        }
+        return {};
+    }
+
     bool compile( CompilationStage stage, std::ostream& os );
     void compileMap( const boost::filesystem::path& filePath );
 
