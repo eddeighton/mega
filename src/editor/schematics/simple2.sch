@@ -70,6 +70,14 @@ Schematic(base;,0)
                     position(5.5,11)
                 }
             }
+            Pin(pin__0005;,5)
+            {
+                position(-16,2)
+                Property(room;,0)
+                {
+                    value(Corridor;)
+                }
+            }
         }
     }
 }

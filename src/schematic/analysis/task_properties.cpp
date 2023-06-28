@@ -165,7 +165,6 @@ void Analysis::properties()
                 INVARIANT( false, "Pin does not intersect anything: " << pPin->getName() );
             }
         }
-
         if( pPartition )
         {
             pPartition->pins.push_back( pPin );
@@ -179,37 +178,64 @@ void Analysis::properties()
         {
             pPartitionSegment->pins.push_back( pPin );
             collectProperties( pPin, pPartitionSegment->properties );
+        }
+    }
 
-            // determine the partition segment plane
-            for( const auto pProperty : pPartitionSegment->properties )
+    // interpret properties
+    for( auto& pPartition : m_floors )
+    {
+        for( const auto pProperty : pPartition->properties )
+        {
+            if( pProperty->getName() == "room" )
             {
-                if( pProperty->getName() == "plane" )
+                if( pProperty->getValue() == "Corridor" )
                 {
-                    if( pProperty->getValue() == "Hole" )
-                    {
-                        pPartitionSegment->plane = PartitionSegment::eHole;
-                    }
-                    else if( pProperty->getValue() == "Ground" )
-                    {
-                        pPartitionSegment->plane = PartitionSegment::eGround;
-                    }
-                    else if( pProperty->getValue() == "Mid" )
-                    {
-                        pPartitionSegment->plane = PartitionSegment::eMid;
-                    }
-                    else if( pProperty->getValue() == "Ceiling" )
-                    {
-                        pPartitionSegment->plane = PartitionSegment::eCeiling;
-                    }
-                    else
-                    {
-                        INVARIANT( false, "Unrecognised plane type: " << pProperty->getValue() );
-                    }
+                    pPartition->bIsCorridor = true;
+                }
+                else
+                {
+                    INVARIANT( false, "Unrecognised partition room type: " << pProperty->getValue() );
+                }
+            }
+        }
+    }
+
+    // for( auto& pPartition : m_boundaries )
+    // {
+    // }
+
+    for( auto& pPartitionSegment : m_boundarySegments )
+    {
+        // determine the partition segment plane
+        for( const auto pProperty : pPartitionSegment->properties )
+        {
+            if( pProperty->getName() == "plane" )
+            {
+                if( pProperty->getValue() == "Hole" )
+                {
+                    pPartitionSegment->plane = PartitionSegment::eHole;
+                }
+                else if( pProperty->getValue() == "Ground" )
+                {
+                    pPartitionSegment->plane = PartitionSegment::eGround;
+                }
+                else if( pProperty->getValue() == "Mid" )
+                {
+                    pPartitionSegment->plane = PartitionSegment::eMid;
+                }
+                else if( pProperty->getValue() == "Ceiling" )
+                {
+                    pPartitionSegment->plane = PartitionSegment::eCeiling;
+                }
+                else
+                {
+                    INVARIANT( false, "Unrecognised plane type: " << pProperty->getValue() );
                 }
             }
         }
     }
 }
+
 void Analysis::propertiesRecurse( schematic::Site::Ptr pSite, std::vector< schematic::Property::Ptr >& properties )
 {
     collectPropertiesForSite( pSite, properties );
