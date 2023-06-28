@@ -24,7 +24,7 @@ Schematic(base;,0)
             }
             Connection(conn_0002;,2)
             {
-                transform(2.66454e-15,-1,-34,-1,-2.66454e-15,24)
+                transform(2.66454e-15,-1,-34,-1,-2.66454e-15,30)
                 Point(width;,0)
                 {
                     position(3.5,3)

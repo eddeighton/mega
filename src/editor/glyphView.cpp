@@ -182,7 +182,7 @@ void GlyphView::onViewUnfocussed()
     m_pMainWindow->getUI()->config->setViewConfig( {} );
 }
 
-void GlyphView::onZoomed()
+void GlyphView::updateItemZoomLevels()
 {
     const float currentZoomLevel = getZoomLevel();
     for( auto i = m_itemMap.begin(), iEnd = m_itemMap.end(); i != iEnd; ++i )
@@ -241,6 +241,7 @@ void GlyphView::onEditted( bool bCommandCompleted )
 void GlyphView::onDocumentUpdate()
 {
     updateGlyphVisibility();
+    updateItemZoomLevels();
     m_pActiveTool->onUpdate();
 }
 

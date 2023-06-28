@@ -29,6 +29,7 @@ class DocumentChangeObserver
 public:
     virtual void OnDocumentChanged( Document* pDocument )                               = 0;
     virtual void OnDocumentError( Document* pDocument, const std::string& strErrorMsg ) = 0;
+    virtual void OnDocumentSuccess( Document* pDocument ) = 0;
 };
 
 class Document

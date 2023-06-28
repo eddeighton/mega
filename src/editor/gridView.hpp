@@ -34,7 +34,7 @@ public:
     virtual void onViewFocussed();
     virtual void onViewUnfocussed();
 
-    virtual void onZoomed() = 0;
+    virtual void updateItemZoomLevels() = 0;
 
     bool isPanning() const { return m_pScrollData.get() ? true : false; }
 

@@ -197,14 +197,14 @@ void MainWindow::OnDocumentChanged( Document* pDocument )
 
 void MainWindow::OnDocumentError( Document* pDocument, const std::string& strErrorMsg )
 {
-    // if( pDocument->getFilePath().has_value() )
-    // {
-    // }
-    m_pMainWindowImpl->logView->appendPlainText( QDateTime::currentDateTime().toString() );
-    m_pMainWindowImpl->logView->appendPlainText( " " );
     m_pMainWindowImpl->logView->appendPlainText( QString::fromUtf8( strErrorMsg ) );
     m_pMainWindowImpl->logView->verticalScrollBar()->setValue(
         m_pMainWindowImpl->logView->verticalScrollBar()->maximum() );
+}
+
+void MainWindow::OnDocumentSuccess( Document* pDocument )
+{
+    m_pMainWindowImpl->logView->clear();
 }
 
 void MainWindow::addActionRef( QAction* pAction )
@@ -561,7 +561,7 @@ void MainWindow::OnLoadSchematic( ClipboardMsg msg )
         {
             possibleFilePath.clear();
         }
-        
+
         if( !possibleFilePath.empty() )
         {
             pNewSchematic.reset( new SchematicDocument(

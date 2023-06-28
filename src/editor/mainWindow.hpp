@@ -71,6 +71,7 @@ protected:
     // DocumentChangeObserver
     virtual void OnDocumentChanged( Document* pDocument );
     virtual void OnDocumentError( Document* pDocument, const std::string& strErrorMsg );
+    virtual void OnDocumentSuccess( Document* pDocument );
 
 public:
     QComboBox* getCompilationModeComboBox() const { return m_pCompilationModeComboBox; }

@@ -43,7 +43,7 @@ public:
     virtual void postCreate( Document::Ptr pDocument );
     virtual void onViewFocussed();
     virtual void onViewUnfocussed();
-    virtual void onZoomed();
+    virtual void updateItemZoomLevels();
 
 public:
     // glyph factory interface

@@ -80,7 +80,7 @@ QVector2D GridView::getQuantisationLevel() const
 void GridView::SetZoom( QVector2D v2NewZoomLevel )
 {
     setTransform( QTransform::fromScale( v2NewZoomLevel.x(), v2NewZoomLevel.y() ) );
-    onZoomed();
+    updateItemZoomLevels();
     CalculateRulerItems();
 }
 
@@ -115,7 +115,7 @@ void GridView::CmdZoomToAll()
     fitInView( rect, Qt::KeepAspectRatio );
     setTransformationAnchor( oldAnchor );
 
-    onZoomed();
+    updateItemZoomLevels();
     CalculateRulerItems();
 }
 
