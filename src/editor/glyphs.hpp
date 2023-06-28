@@ -325,6 +325,7 @@ private:
     PainterImpl                       m_pathPainter;
     GlyphMap                          m_map;
     std::vector< QGraphicsPathItem* > m_items;
+    QGraphicsPathItem*                m_pInvisibleItem = nullptr;
     Toolbox::Ptr                      m_pToolBoxPtr;
 };
 

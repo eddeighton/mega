@@ -106,6 +106,7 @@ public:
     virtual const GlyphSpecProducer* getProducer() const { return &m_producer; }
     virtual CompilationStage         getCompilationStage() const { return m_compilationStage; }
     virtual bool                     isPolygonsFilled() const;
+    virtual bool                     isMultiSegment() const { return false; }
     virtual const char*              polygonType() const { return {}; }
     virtual bool                     paint( Painter& painter ) const;
     void                             reset();
@@ -139,6 +140,7 @@ public:
     virtual const GlyphSpecProducer* getProducer() const { return &m_producer; }
     virtual CompilationStage         getCompilationStage() const { return m_compilationStage; }
     virtual bool                     isPolygonsFilled() const;
+    virtual bool                     isMultiSegment() const { return false; }
     virtual const char*              polygonType() const { return m_pszType; }
     virtual bool                     paint( Painter& painter ) const;
     void                             reset();
@@ -170,6 +172,7 @@ public:
     virtual const GlyphSpecProducer* getProducer() const { return &m_producer; }
     virtual CompilationStage         getCompilationStage() const { return m_compilationStage; }
     virtual bool                     isPolygonsFilled() const;
+    virtual bool                     isMultiSegment() const { return true; }
     virtual const char*              polygonType() const { return {}; }
     virtual bool                     paint( Painter& painter ) const;
     void                             reset();

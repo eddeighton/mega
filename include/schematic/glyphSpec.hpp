@@ -77,6 +77,7 @@ public:
     using List = std::list< MarkupPolygonGroup* >;
 
     virtual bool        isPolygonsFilled() const        = 0;
+    virtual bool        isMultiSegment() const          = 0;
     virtual const char* polygonType() const             = 0;
     virtual bool        paint( Painter& painter ) const = 0;
     virtual bool        canEdit() const { return false; }
@@ -131,8 +132,8 @@ class ImageSpec : public GlyphSpec
 {
 public:
     using List = std::list< ImageSpec* >;
-    
-    virtual const Vector& getOffset() const = 0;
+
+    virtual const Vector&     getOffset() const = 0;
     virtual const MonoBitmap& getBuffer() const = 0;
 };
 

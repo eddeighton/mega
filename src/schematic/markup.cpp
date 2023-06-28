@@ -187,6 +187,7 @@ bool MultiPathMarkup::paint( Painter& painter ) const
 
 void MultiPathMarkup::reset()
 {
+    m_segments.clear();
     m_updateTick.update();
 }
 

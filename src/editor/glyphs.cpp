@@ -139,6 +139,16 @@ GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsS
     // convert to painter path
     getMarkupPolygonGroup()->paint( m_pathPainter );
 
+    if( getMarkupPolygonGroup()->isMultiSegment() )
+    {
+        // create invisible item so that the glyph has an entry
+        m_pInvisibleItem = new QGraphicsPathItem( pParentItem );
+        m_pInvisibleItem->setVisible( false );
+        if( !pParentItem )
+            m_pScene->addItem( m_pInvisibleItem );
+        m_map.insert( m_pInvisibleItem, getMarkupPolygonGroup(), this );
+    }
+
     bool bFirst = true;
     for( const auto pPath : m_pathPainter.getPaths() )
     {
@@ -170,7 +180,7 @@ GlyphPolygonGroup::GlyphPolygonGroup( schematic::IGlyph::Ptr pParent, QGraphicsS
             pItem->setBrush( QBrush( Qt::NoBrush ) );
         }
 
-        if( bFirst )
+        if( bFirst && !getMarkupPolygonGroup()->isMultiSegment() )
         {
             m_map.insert( pItem, getMarkupPolygonGroup(), this );
             bFirst = false;
@@ -184,7 +194,7 @@ GlyphPolygonGroup::~GlyphPolygonGroup()
     bool bFirst = true;
     for( auto pItem : m_items )
     {
-        if( bFirst )
+        if( bFirst && !m_pInvisibleItem )
         {
             cleanUpItem( pItem, m_map, getMarkupPolygonGroup(), m_pScene );
             bFirst = false;
@@ -195,6 +205,10 @@ GlyphPolygonGroup::~GlyphPolygonGroup()
         }
     }
     m_items.clear();
+    if( m_pInvisibleItem )
+    {
+        cleanUpItem( m_pInvisibleItem, m_map, getMarkupPolygonGroup(), m_pScene );
+    }
 }
 
 void GlyphPolygonGroup::OnNewZoomLevel( float fZoom )
@@ -229,7 +243,7 @@ void GlyphPolygonGroup::update()
                 pItem = new QGraphicsPathItem( pPath->path, pParentItem );
                 if( !pParentItem )
                     m_pScene->addItem( pItem );
-                if( bFirst )
+                if( bFirst && !m_pInvisibleItem )
                 {
                     m_map.insert( pItem, getMarkupPolygonGroup(), this );
                     bFirst = false;
