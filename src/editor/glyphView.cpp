@@ -248,7 +248,7 @@ void GlyphView::onDocumentUpdate()
 void GlyphView::OnViewConfigChanged()
 {
     onDocumentUpdate();
-
+    
     // force update on all glyphs
     for( auto& [ pItem, pGlyph ] : m_itemMap )
     {

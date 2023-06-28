@@ -87,6 +87,10 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
 
     Schematic::Ptr pThis = boost::dynamic_pointer_cast< Schematic >( getPtr() );
 
+    m_pAnalysis.reset();
+    m_pAnalysisMarkup->reset();
+    m_pPropertiesMarkup->reset();
+
     try
     {
         if( iStage >= eStage_SiteContour )
@@ -110,7 +114,6 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
 
         if( iStage >= eStage_Port )
         {
-            m_pAnalysis.reset();
             m_pAnalysis.reset( new exact::Analysis( pThis ) );
             m_pAnalysis->contours();
             m_pAnalysis->ports();
@@ -150,15 +153,11 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
     {
         os << ex.what();
 
-        m_pAnalysisMarkup->reset();
-        m_pPropertiesMarkup->reset();
         return false;
     }
     catch( ... )
     {
         os << "Unknown exception compiling schematic";
-        m_pAnalysisMarkup->reset();
-        m_pPropertiesMarkup->reset();
         return false;
     }
 
