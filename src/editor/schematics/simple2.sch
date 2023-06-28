@@ -24,7 +24,7 @@ Schematic(base;,0)
             }
             Connection(conn_0002;,2)
             {
-                transform(2.66454e-15,-1,-34,-1,-2.66454e-15,26)
+                transform(2.66454e-15,-1,-34,-1,-2.66454e-15,24)
                 Point(width;,0)
                 {
                     position(3.5,3)
@@ -32,7 +32,7 @@ Schematic(base;,0)
             }
             Space(space_0003;,3)
             {
-                transform(-1,0,-10,0,1,15)
+                transform(-1,0,-10,0,1,16)
                 Contour(contour;,0)
                 {
                     path(0,0,24,0,24,24,0,24)

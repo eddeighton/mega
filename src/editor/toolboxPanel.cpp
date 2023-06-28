@@ -398,15 +398,7 @@ void FlowView::mouseDoubleClickEvent( QMouseEvent* pEvent )
 
     if( schematic::Schematic::Ptr pSchematic = getClickedSchematic( pEvent ) )
     {
-        const boost::filesystem::path filePath = pSchematic->getName();
-        if( boost::filesystem::exists( filePath ) )
-        {
-            OnQuickLoad( ClipboardMsg( pSchematic, m_pPalette, filePath ) );
-        }
-        else
-        {
-            OnQuickLoad( ClipboardMsg( pSchematic, m_pPalette ) );
-        }
+        OnQuickLoad( ClipboardMsg( pSchematic, m_pPalette,  pSchematic->getName() ) );
     }
 }
 
@@ -418,16 +410,7 @@ void FlowView::mousePressEvent( QMouseEvent* pEvent )
     {
         if( pEvent->button() == Qt::RightButton )
         {
-            // see if the name is the file path?
-            const boost::filesystem::path filePath = pSchematic->getName();
-            if( boost::filesystem::exists( filePath ) )
-            {
-                OnMenu( ClipboardMsg( pSchematic, m_pPalette, filePath ) );
-            }
-            else
-            {
-                OnMenu( ClipboardMsg( pSchematic, m_pPalette ) );
-            }
+            OnMenu( ClipboardMsg( pSchematic, m_pPalette, pSchematic->getName() ) );
         }
     }
 }

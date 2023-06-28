@@ -170,9 +170,7 @@ MainWindow::MainWindow( QWidget* pParent )
         m_pMainWindowImpl->dockLog->hide();
         m_pMainWindowImpl->dockStructure->hide();
 
-
         // m_pDockManager->dockContainers()
-
     }
 }
 
@@ -202,7 +200,8 @@ void MainWindow::OnDocumentError( Document* pDocument, const std::string& strErr
     // if( pDocument->getFilePath().has_value() )
     // {
     // }
-
+    m_pMainWindowImpl->logView->appendPlainText( QDateTime::currentDateTime().toString() );
+    m_pMainWindowImpl->logView->appendPlainText( " " );
     m_pMainWindowImpl->logView->appendPlainText( QString::fromUtf8( strErrorMsg ) );
     m_pMainWindowImpl->logView->verticalScrollBar()->setValue(
         m_pMainWindowImpl->logView->verticalScrollBar()->maximum() );
@@ -543,18 +542,38 @@ void MainWindow::OnNewSchematic()
 
 void MainWindow::OnLoadSchematic( ClipboardMsg msg )
 {
-    if( msg.optFilePath.has_value() )
+    SchematicDocument::Ptr pNewSchematic;
     {
-        SchematicDocument::Ptr pNewSchematic( new SchematicDocument(
-            *this, msg.pSchematic, schematic::File::getDefaultCompilationConfig(), msg.optFilePath.value() ) );
-        OnNewSchematic( pNewSchematic );
+        // NOTE: likely that strName is symbolic link
+        boost::filesystem::path possibleFilePath = msg.strName;
+        try
+        {
+            if( !boost::filesystem::exists( possibleFilePath ) )
+            {
+                possibleFilePath = boost::filesystem::read_symlink( possibleFilePath );
+                if( !boost::filesystem::exists( possibleFilePath ) )
+                {
+                    possibleFilePath.clear();
+                }
+            }
+        }
+        catch( boost::filesystem::filesystem_error& )
+        {
+            possibleFilePath.clear();
+        }
+        
+        if( !possibleFilePath.empty() )
+        {
+            pNewSchematic.reset( new SchematicDocument(
+                *this, msg.pSchematic, schematic::File::getDefaultCompilationConfig(), possibleFilePath ) );
+        }
+        else
+        {
+            pNewSchematic.reset(
+                new SchematicDocument( *this, msg.pSchematic, schematic::File::getDefaultCompilationConfig() ) );
+        }
     }
-    else
-    {
-        SchematicDocument::Ptr pNewSchematic(
-            new SchematicDocument( *this, msg.pSchematic, schematic::File::getDefaultCompilationConfig() ) );
-        OnNewSchematic( pNewSchematic );
-    }
+    OnNewSchematic( pNewSchematic );
 }
 
 void MainWindow::OnLoad()

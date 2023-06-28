@@ -15,42 +15,44 @@
 
 namespace editor
 {
-    
-    //Q_DECLARE_METATYPE
-    struct MissionMsg
+
+// Q_DECLARE_METATYPE
+struct MissionMsg
+{
+    MissionMsg( schematic::Node::PtrCst _pNode )
+        : pNode( _pNode )
     {
-        MissionMsg( schematic::Node::PtrCst _pNode ) : pNode( _pNode ) {}
-        schematic::Node::PtrCst pNode;
-    };
+    }
+    schematic::Node::PtrCst pNode;
+};
 
-    struct MissionContext
+struct MissionContext
+{
+    MissionContext( schematic::IEditContext* _pContext )
+        : pContext( _pContext )
     {
-        MissionContext( schematic::IEditContext* _pContext )
-            :   pContext( _pContext )
-        {}
-        schematic::IEditContext* pContext;
-    };
+    }
+    schematic::IEditContext* pContext;
+};
 
-    struct ClipboardMsg
+struct ClipboardMsg
+{
+    ClipboardMsg() {}
+
+    ClipboardMsg( schematic::Schematic::Ptr _pSchematic, editor::Toolbox::Palette::Ptr _pPalette,
+                  const std::string& _strName )
+        : pSchematic( _pSchematic )
+        , pPalette( _pPalette )
+        , strName( _strName )
     {
-        ClipboardMsg(){}
-        
-        ClipboardMsg( schematic::Schematic::Ptr _pSchematic, editor::Toolbox::Palette::Ptr _pPalette )
-            :   pSchematic( _pSchematic ),
-                pPalette( _pPalette )
-        {}
-        ClipboardMsg( schematic::Schematic::Ptr _pSchematic, editor::Toolbox::Palette::Ptr _pPalette, const boost::filesystem::path& filePath )
-            :   pSchematic( _pSchematic ),
-                pPalette( _pPalette ),
-                optFilePath( filePath )
-        {}
+    }
 
-        schematic::Schematic::Ptr pSchematic;
-        editor::Toolbox::Palette::Ptr pPalette;
-        std::optional< boost::filesystem::path > optFilePath;
-    };
+    schematic::Schematic::Ptr     pSchematic;
+    editor::Toolbox::Palette::Ptr pPalette;
+    std::string                   strName;
+};
 
-}
+} // namespace editor
 
 Q_DECLARE_METATYPE( editor::ClipboardMsg )
 

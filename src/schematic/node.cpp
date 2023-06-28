@@ -34,21 +34,21 @@ namespace schematic
 ///////////////////////////////////////////////////////////////////
 Node::Node( Node::Ptr pParent, const std::string& strName )
     : m_pParent( pParent )
-    , m_strName( boost::to_lower_copy( strName ) )
+    , m_strName( strName )
     , m_iIndex( 0 )
 {
+    // NOTE: used to use boost::to_lower_copy( strName ) here because
+    // the name needed to work as identifier in Ed.
 }
 
 Node::Node( Node::PtrCst pOriginal, Node::Ptr pNewParent, const std::string& strName )
     : m_pParent( pNewParent )
-    , m_strName( boost::to_lower_copy( strName ) )
+    , m_strName( strName )
     , m_iIndex( pOriginal->m_iIndex )
 {
 }
 
-Node::~Node()
-{
-}
+Node::~Node() = default;
 
 std::string Node::generateNewNodeName( const std::string& strPrefix ) const
 {
