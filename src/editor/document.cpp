@@ -310,6 +310,7 @@ void SchematicDocument::saveAs( const std::string& strFilePath )
 
 void SchematicDocument::undo()
 {
+    /*
     schematic::File::Ptr      pUndoFile      = m_undoHistory.onUndo();
     schematic::Schematic::Ptr pUndoSchematic = boost::dynamic_pointer_cast< schematic::Schematic >( pUndoFile );
     VERIFY_RTE( pUndoSchematic );
@@ -320,10 +321,12 @@ void SchematicDocument::undo()
         calculateDerived();
     }
     m_documentChangeObserver.OnDocumentChanged( this );
+    */
 }
 
 void SchematicDocument::redo()
 {
+    /*
     schematic::File::Ptr      pUndoFile      = m_undoHistory.onRedo();
     schematic::Schematic::Ptr pUndoSchematic = boost::dynamic_pointer_cast< schematic::Schematic >( pUndoFile );
     VERIFY_RTE( pUndoSchematic );
@@ -334,6 +337,7 @@ void SchematicDocument::redo()
         calculateDerived();
     }
     m_documentChangeObserver.OnDocumentChanged( this );
+    */
 }
 
 } // namespace editor

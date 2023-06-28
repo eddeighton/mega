@@ -43,6 +43,8 @@ void SchematicView::postCreate( SchematicDocument::Ptr pDocument )
     m_pSchematicDocument->setCompilationConfig( m_compilationConfig );
 
     onDocumentUpdate();
+    
+    CmdZoomToAll();
 }
 
 void SchematicView::OnItemModelDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight,
@@ -129,6 +131,7 @@ void SchematicView::mouseReleaseEvent( QMouseEvent* pEvent )
         // show context menu
         QMenu menu( this );
 
+        menu.addAction( m_pMainWindow->getUI()->actionZoomToAll );
         menu.addAction( m_pMainWindow->getUI()->actionEditContext );
         menu.addAction( m_pMainWindow->getUI()->actionTabOut );
         menu.addAction( m_pMainWindow->getUI()->actionSelectAll );

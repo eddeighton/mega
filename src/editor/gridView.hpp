@@ -44,7 +44,7 @@ public:
     void      SetZoom( QVector2D v2NewZoomLevel );
     void      DoZoom( float fAmt );
 
-private slots:
+protected slots:
     void CmdZoomToAll();
 
 protected:

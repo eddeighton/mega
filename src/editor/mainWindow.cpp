@@ -169,6 +169,10 @@ MainWindow::MainWindow( QWidget* pParent )
         // m_pDockManager->addDockWidgetTab( ads::LeftDockWidgetArea, m_pMainWindowImpl->dockStructure );
         m_pMainWindowImpl->dockLog->hide();
         m_pMainWindowImpl->dockStructure->hide();
+
+
+        // m_pDockManager->dockContainers()
+
     }
 }
 

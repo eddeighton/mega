@@ -26,6 +26,7 @@ GridView::GridView( QWidget* pParentWidget, MainWindow* pMainWindow )
     m_pScene = new QGraphicsScene;
     setScene( m_pScene );
     CalculateOversizedSceneRect();
+    setTransformationAnchor( AnchorUnderMouse );
 
     if( auto pToolBox = pMainWindow->getToolbox() )
     {
@@ -43,11 +44,7 @@ GridView::~GridView() = default;
 void GridView::postCreate( Document::Ptr pDocument )
 {
     m_bInitialising = false;
-
     CalculateOversizedSceneRect();
-    CmdZoomToAll();
-    update();
-    invalidateScene();
 }
 
 void GridView::onViewFocussed()
@@ -83,23 +80,20 @@ QVector2D GridView::getQuantisationLevel() const
 void GridView::SetZoom( QVector2D v2NewZoomLevel )
 {
     setTransform( QTransform::fromScale( v2NewZoomLevel.x(), v2NewZoomLevel.y() ) );
-
     onZoomed();
-
     CalculateRulerItems();
 }
 
 void GridView::DoZoom( float fAmt )
 {
-    ViewportAnchor oldAnchor = transformationAnchor();
-    setTransformationAnchor( AnchorUnderMouse );
+    //ViewportAnchor oldAnchor = transformationAnchor();
     SetZoom( getZoomVector() * fAmt );
-    setTransformationAnchor( oldAnchor );
+    //setTransformationAnchor( oldAnchor );
 }
 
 void GridView::CmdZoomToAll()
 {
-    QRectF rect( 0, 0, m_fDefaultZoom, m_fDefaultZoom );
+    QRectF rect( 0, 0, 1, 1 );
 
     QList< QGraphicsItem* > allItems = items();
     for( QList< QGraphicsItem* >::iterator i = allItems.begin(), iEnd = allItems.end(); i != iEnd; ++i )
@@ -114,6 +108,7 @@ void GridView::CmdZoomToAll()
     // }
 
     fitInView( rect, Qt::KeepAspectRatio );
+    onZoomed();
     CalculateRulerItems();
 }
 
@@ -132,12 +127,7 @@ void GridView::resizeEvent( QResizeEvent* pEvent )
 {
     if( !m_bInitialising )
     {
-        // qDebug() << "GridView::resizeEvent init=false";
         CalculateRulerItems();
-    }
-    else
-    {
-        // qDebug() << "GridView::resizeEvent init=true";
     }
 
     QGraphicsView::resizeEvent( pEvent );
