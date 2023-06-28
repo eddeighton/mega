@@ -86,38 +86,49 @@ void GridView::SetZoom( QVector2D v2NewZoomLevel )
 
 void GridView::DoZoom( float fAmt )
 {
-    //ViewportAnchor oldAnchor = transformationAnchor();
     SetZoom( getZoomVector() * fAmt );
-    //setTransformationAnchor( oldAnchor );
 }
 
 void GridView::CmdZoomToAll()
 {
-    QRectF rect( 0, 0, 1, 1 );
+    QRectF rect( 0, 0, 64, 64 );
+    for( QGraphicsItem* pItem : items() )
+    {
+        // avoid including the ruler text
+        if( !( dynamic_cast< QGraphicsSimpleTextItem* >( pItem ) ) )
+        {
+            rect = rect.united( pItem->sceneBoundingRect() );
+        }
+    }
 
-    QList< QGraphicsItem* > allItems = items();
-    for( QList< QGraphicsItem* >::iterator i = allItems.begin(), iEnd = allItems.end(); i != iEnd; ++i )
-        rect = rect.united( ( *i )->boundingRect() );
-
-    // TODO possibly constrain ZoomToAll to only the active context items...
-    // for( ItemMap::const_iterator i = m_itemMap.begin(),
-    //      iEnd = m_itemMap.end(); i!=iEnd; ++i )
+    // this->sceneRect()
+    //  TODO possibly constrain ZoomToAll to only the active context items...
+    //  for( ItemMap::const_iterator i = m_itemMap.begin(),
+    //       iEnd = m_itemMap.end(); i!=iEnd; ++i )
     //{
-    //     if( !m_pActiveContext || m_pActiveContext->canEdit( i->second, m_pActiveTool->getToolType(), m_toolMode ) )
-    //         rect = rect.united( i->first->sceneBoundingRect() );
-    // }
+    //      if( !m_pActiveContext || m_pActiveContext->canEdit( i->second, m_pActiveTool->getToolType(), m_toolMode ) )
+    //          rect = rect.united( i->first->sceneBoundingRect() );
+    //  }
 
+    auto oldAnchor = transformationAnchor();
+    setTransformationAnchor( NoAnchor );
     fitInView( rect, Qt::KeepAspectRatio );
+    setTransformationAnchor( oldAnchor );
+
     onZoomed();
     CalculateRulerItems();
 }
 
 void GridView::CalculateOversizedSceneRect()
 {
-    QRectF                  sceneRect( 0.0f, 0.0f, 0.0f, 0.0f );
-    QList< QGraphicsItem* > allItems = items();
-    for( QList< QGraphicsItem* >::iterator i = allItems.begin(), iEnd = allItems.end(); i != iEnd; ++i )
-        sceneRect = sceneRect.united( ( *i )->boundingRect() );
+    QRectF sceneRect( 0.0f, 0.0f, 0.0f, 0.0f );
+    for( QGraphicsItem* pItem : items() )
+    {
+        if( !( dynamic_cast< QGraphicsSimpleTextItem* >( pItem ) ) )
+        {
+            sceneRect = sceneRect.united( pItem->sceneBoundingRect() );
+        }
+    }
     const float f = 1024.0f;
     m_pScene->setSceneRect( QRectF(
         sceneRect.left() - f, sceneRect.top() - f, sceneRect.width() + f * 2.0f, sceneRect.height() + f * 2.0f ) );
