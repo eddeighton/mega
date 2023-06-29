@@ -806,7 +806,7 @@ void Analysis::lanes()
     // for each floor partition
     for( const auto& [ pPartition, polyWithHoles ] : floors )
     {
-        if( !pPartition->bIsCorridor )
+        if( !pPartition->bHasGutter )
         {
             PartitionLaneSegments segments;
             calculateLaneSegments( raster, boundingBox, pPartition, coeffs, adjacency, polyWithHoles, segments.segments,

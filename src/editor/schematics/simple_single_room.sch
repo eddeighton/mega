@@ -13,7 +13,7 @@ Schematic(base;,0)
         }
         Space(spac_0002;,2)
         {
-            transform(1,0,36,0,1,88)
+            transform(1,0,32,0,1,84)
             Contour(contour;,0)
             {
                 path(-16,-16,16,-16,16,16,-16,16)
@@ -24,7 +24,7 @@ Schematic(base;,0)
             }
             Connection(conn_0002;,2)
             {
-                transform(-2.66454e-15,1,-18,-1,-2.66454e-15,-7)
+                transform(-2.66454e-15,1,-18,-1,-2.66454e-15,-5)
                 Point(width;,0)
                 {
                     position(5.5,6)
@@ -41,7 +41,7 @@ Schematic(base;,0)
         }
         Space(spac_0003;,3)
         {
-            transform(1,0,36,0,1,52)
+            transform(1,0,32,0,1,36)
             Contour(contour;,0)
             {
                 path(-16,-16,16,-16,16,16,-16,16)
@@ -56,6 +56,62 @@ Schematic(base;,0)
                 Point(width;,0)
                 {
                     position(7.5,3)
+                }
+            }
+        }
+        Space(spac_0004;,4)
+        {
+            transform(1,0,80,0,1,90)
+            Contour(contour;,0)
+            {
+                path(-16,-16,16,-16,16,16,-16,16)
+            }
+            Property(width;,1)
+            {
+                value(0.5f;)
+            }
+            Connection(conn_0002;,2)
+            {
+                transform(-2.66454e-15,1,-16,-1,-2.66454e-15,2)
+                Point(width;,0)
+                {
+                    position(7.5,3)
+                }
+            }
+            Pin(pin__0003;,3)
+            {
+                position(2,4)
+                Property(lanes;,0)
+                {
+                    value(Pavement;)
+                }
+            }
+        }
+        Space(spac_0005;,5)
+        {
+            transform(1,0,82,0,1,36)
+            Contour(contour;,0)
+            {
+                path(-16,-16,16,-16,16,16,-16,16)
+            }
+            Property(width;,1)
+            {
+                value(0.5f;)
+            }
+            Connection(conn_0002;,2)
+            {
+                transform(-2.66454e-15,1,-18,-1,-2.66454e-15,-5)
+                Point(width;,0)
+                {
+                    position(5.5,6)
+                }
+            }
+            Pin(pin__0003;,3)
+            {
+                position(8,9)
+                Property(lanes;,0)
+                {
+                    value(Gutter;)
                 }
             }
         }

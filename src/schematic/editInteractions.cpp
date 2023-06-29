@@ -37,13 +37,25 @@ Interaction::Interaction( EditBase& edit, IEditContext::ToolMode toolMode, Float
     , m_qY( qY )
     , m_pHitGlyph( pHitGlyph )
 {
-    for( IGlyph::PtrSet::const_iterator i = totalSelection.begin(), iEnd = totalSelection.end(); i != iEnd; ++i )
+    IGlyph::PtrSet allowed;
     {
-        IGlyph::Ptr pGlyph = *i;
-        // determine whether the glyph belongs to the current edit context...
-        if( m_edit.canEdit( pGlyph.get(), IEditContext::eSelect, m_toolMode, true, true, true ) )
-            m_selection.insert( pGlyph );
+        for( auto i = totalSelection.begin(), iEnd = totalSelection.end(); i != iEnd; ++i )
+        {
+            IGlyph::Ptr pGlyph = *i;
+            // determine whether the glyph belongs to the current edit context...
+            if( m_edit.canEdit( pGlyph.get(), IEditContext::eSelect, m_toolMode, true, true, true ) )
+            {
+                allowed.insert( pGlyph );
+            }
+        }
     }
+
+    // resolve set of glyphs to edit that do not contain themselves
+    for( IGlyph::Ptr pGlyph : allowed )
+    {
+        // TODO ...
+    }
+    m_selection = allowed;
 
     if( pHitGlyph )
     {
@@ -52,7 +64,7 @@ Interaction::Interaction( EditBase& edit, IEditContext::ToolMode toolMode, Float
 
     if( !m_selection.empty() )
     {
-        for( IGlyph::PtrSet::iterator i = m_selection.begin(), iEnd = m_selection.end(); i != iEnd; ++i )
+        for( auto i = m_selection.begin(), iEnd = m_selection.end(); i != iEnd; ++i )
         {
             IGlyph::Ptr      pGlyph     = *i;
             const GlyphSpec* pGlyphSpec = pGlyph->getGlyphSpec();
