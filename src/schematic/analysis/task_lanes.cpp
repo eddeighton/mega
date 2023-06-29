@@ -31,6 +31,17 @@
 
 #include "common/astar.hpp"
 
+#include <CGAL/Polygon_with_holes_2.h>
+#include <CGAL/create_straight_skeleton_from_polygon_with_holes_2.h>
+#include <CGAL/create_offset_polygons_from_polygon_with_holes_2.h>
+#include <CGAL/create_offset_polygons_2.h>
+
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
+
+#include <tuple>
+
 namespace exact
 {
 namespace
@@ -48,7 +59,7 @@ bool operator==( const agg::gray8& left, const agg::gray8& right )
 struct Policies
 {
     static constexpr bool TerminateEarly = false;
-    static constexpr int  MaxIterations  = 40000;
+    static constexpr int  MaxIterations  = 100000;
 };
 
 struct SearchCoeffs
@@ -362,10 +373,14 @@ void calculateLaneSegments( schematic::Rasteriser& raster, const Rect& boundingB
             INVARIANT( bSuccess, "Failed to resolve doorstep connection distance" );
         }
 
-        const int x0 = Math::roundRealOutToInt( CGAL::to_double( p1.x() - boundingBox.xmin() ) );
-        const int y0 = Math::roundRealOutToInt( CGAL::to_double( p1.y() - boundingBox.ymin() ) );
-        const int x1 = Math::roundRealOutToInt( CGAL::to_double( p2.x() - boundingBox.xmin() ) );
-        const int y1 = Math::roundRealOutToInt( CGAL::to_double( p2.y() - boundingBox.ymin() ) );
+        // const int x0 = Math::roundRealOutToInt( CGAL::to_double( p1.x() - boundingBox.xmin() ) );
+        // const int y0 = Math::roundRealOutToInt( CGAL::to_double( p1.y() - boundingBox.ymin() ) );
+        // const int x1 = Math::roundRealOutToInt( CGAL::to_double( p2.x() - boundingBox.xmin() ) );
+        // const int y1 = Math::roundRealOutToInt( CGAL::to_double( p2.y() - boundingBox.ymin() ) );
+        const int x0 = CGAL::to_double( p1.x() - boundingBox.xmin() );
+        const int y0 = CGAL::to_double( p1.y() - boundingBox.ymin() );
+        const int x1 = CGAL::to_double( p2.x() - boundingBox.xmin() );
+        const int y1 = CGAL::to_double( p2.y() - boundingBox.ymin() );
 
         const auto dir = Math::fromVector< Angle >( x1 - x0, y1 - y0 );
 
@@ -540,10 +555,208 @@ static exact::Polygon makeOctogon( double x )
     return exact::Polygon{ points.begin(), points.end() };
 }
 
+using ExtrusionSpec = std::tuple< double, EdgeMask::Type, EdgeMask::Type >;
+
+template < typename PartitionEdgeFunctor, typename PartitionFunctor, std::size_t TotalExtrusions >
+void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partition::PtrVector& floors,
+                            Analysis::HalfEdgeSet&                              doorSteps,
+                            const std::array< ExtrusionSpec, TotalExtrusions >& extrusions,
+                            PartitionEdgeFunctor&& isPartitionEdge, PartitionFunctor&& isPartition )
+{
+    Analysis::HalfEdgeVectorVector doorStepGroups( floors.size() );
+    Analysis::HalfEdgeCstSet       allUsedDoorSteps;
+
+    // determine the connected components of partitions for gutters and pavements
+    using Graph = boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS >;
+    Graph graph( floors.size() );
+    {
+        using PartitionEdges = std::vector< std::pair< int, int > >;
+        PartitionEdges edges;
+        for( auto e : doorSteps )
+        {
+            auto pPartition1 = e->data().pPartition;
+            auto pPartition2 = e->twin()->data().pPartition;
+            if( isPartitionEdge( pPartition1, pPartition2 ) )
+            {
+                edges.push_back( { pPartition1->uniqueID, pPartition2->uniqueID } );
+                INVARIANT( ( pPartition1->uniqueID >= 0 ) && ( pPartition1->uniqueID < floors.size() ),
+                           "Invalid partition uniqueID" );
+                INVARIANT( ( pPartition2->uniqueID >= 0 ) && ( pPartition2->uniqueID < floors.size() ),
+                           "Invalid partition uniqueID" );
+                doorStepGroups[ pPartition1->uniqueID ].push_back( e );
+                doorStepGroups[ pPartition2->uniqueID ].push_back( e->twin() );
+                allUsedDoorSteps.insert( e );
+                allUsedDoorSteps.insert( e->twin() );
+            }
+        }
+        for( const auto& e : edges )
+        {
+            boost::add_edge( e.first, e.second, graph );
+        }
+    }
+
+    std::vector< int > componentIndices( floors.size() );
+    const auto         iNumComponents = boost::connected_components( graph, componentIndices.data() );
+
+    struct Component
+    {
+        std::vector< Analysis::Partition* > partitions;
+        Analysis::HalfEdgeSet               doorSteps;
+        bool                                bInclude = false;
+        using Vector                                 = std::vector< Component >;
+    };
+
+    typename Component::Vector components( iNumComponents );
+    using PartitionToComponentMap = std::map< Analysis::Partition*, typename Component::Vector::const_iterator >;
+    PartitionToComponentMap partitionsToComponents;
+    for( int iPartition = 0; iPartition != floors.size(); ++iPartition )
+    {
+        const int            iComponentIndex = componentIndices[ iPartition ];
+        Component&           component       = components[ iComponentIndex ];
+        Analysis::Partition* pPartition      = floors[ iPartition ].get();
+        component.partitions.push_back( pPartition );
+        partitionsToComponents.insert( { pPartition, components.begin() + iComponentIndex } );
+        if( isPartition( pPartition ) )
+        {
+            component.bInclude = true;
+        }
+        for( auto e : doorStepGroups[ iPartition ] )
+        {
+            component.doorSteps.insert( e );
+        }
+    }
+
+    using ComponentFloorMap
+        = std::map< typename Component::Vector::const_iterator, Analysis::HalfEdgeCstPolygonWithHoles >;
+    ComponentFloorMap componentFloors;
+    {
+        // like Analysis::getFloorPartitions but DO NOT USE doorsteps in allUsedDoorSteps
+        using NodePtr    = typename PolygonNode::Ptr;
+        using NodeVector = std::vector< NodePtr >;
+        NodeVector nodes;
+        {
+            Analysis::HalfEdgeCstVectorVector floorPolygons;
+            {
+                Analysis::HalfEdgeCstSet partitionFloorEdges;
+                getEdges( arr, partitionFloorEdges,
+                          [ &allUsedDoorSteps ]( Analysis::HalfEdgeCst edge )
+                          { return test( edge, EdgeMask::ePartitionFloor ) && !allUsedDoorSteps.contains( edge ); } );
+                getPolygonsDir( partitionFloorEdges, floorPolygons, true );
+            }
+            for( auto& poly : floorPolygons )
+            {
+                nodes.push_back( std::make_shared< PolygonNode >( poly ) );
+            }
+        }
+
+        auto rootNodes = getPolygonNodes( nodes );
+        INVARIANT( rootNodes.size() == 1, "getFloorPartitions did not find singular root node" );
+
+        struct Visitor
+        {
+            ComponentFloorMap&          floors;
+            typename Component::Vector& components;
+            PartitionToComponentMap&    partitionsToComponents;
+
+            void floor( const PolygonNode& node )
+            {
+                // NOTE: does not matter WHICH partition is found i.e. multiple partitions
+                // can belong to the same PolygonNode but they MUST ALL belong to the same component
+                auto e          = node.polygon().front();
+                auto pPartition = e->data().pPartition;
+                INVARIANT( pPartition, "Floor edge missing partition" );
+                INVARIANT( pPartition->pSite, "Floor partition missing site" );
+                INVARIANT( node.face(), "Floor is not a face" );
+
+                auto iFind = partitionsToComponents.find( pPartition );
+                INVARIANT( iFind != partitionsToComponents.end(), "Failed to locate component" );
+
+                Analysis::HalfEdgeCstPolygonWithHoles polyWithHoles;
+                polyWithHoles.outer = node.polygon();
+
+                for( auto pContour : node.contained() )
+                {
+                    INVARIANT( !pContour->face(), "Hole is a face" );
+                    polyWithHoles.holes.push_back( pContour->polygon() );
+                    for( auto pInner : pContour->contained() )
+                    {
+                        floor( *pInner );
+                    }
+                }
+                floors.insert( { iFind->second, polyWithHoles } );
+            }
+        } visitor{ componentFloors, components, partitionsToComponents };
+
+        for( auto pNode : rootNodes )
+        {
+            visitor.floor( *pNode );
+        }
+    }
+
+    // std::map< typename Component::Vector::const_iterator, Analysis::HalfEdgeCstPolygonWithHoles >;
+    for( const auto& [ componentIter, componentPolygonWithHoles ] : componentFloors )
+    {
+        const Component& component = *componentIter;
+        if( component.bInclude )
+        {
+            // calculate extrusion around the corridor for gutter style lanes
+            const exact::Polygon_with_holes polygonWithHoles
+                = Analysis::fromHalfEdgePolygonWithHoles( componentPolygonWithHoles );
+            using StraightSkeleton    = CGAL::Straight_skeleton_2< exact::Kernel >;
+            using StraightSkeletonPtr = boost::shared_ptr< StraightSkeleton >;
+
+            StraightSkeletonPtr pStraightSkeleton = CGAL::create_interior_straight_skeleton_2(
+                polygonWithHoles.outer_boundary().begin(), polygonWithHoles.outer_boundary().end(),
+                polygonWithHoles.holes_begin(), polygonWithHoles.holes_end(), exact::Kernel() );
+
+            for( const auto& [ fOffset, mask, maskBoundary ] : extrusions )
+            {
+                auto result = CGAL::create_offset_polygons_2( fOffset, *pStraightSkeleton );
+                for( const auto poly : result )
+                {
+                    auto i = poly->begin(), iNext = poly->begin(), iEnd = poly->end();
+                    for( ; i != iEnd; ++i )
+                    {
+                        ++iNext;
+                        if( iNext == iEnd )
+                            iNext = poly->begin();
+                        renderCurve( arr, Curve( Point( i->x(), i->y() ), Point( iNext->x(), iNext->y() ) ), mask,
+                                     maskBoundary, {}, {} );
+                    }
+                }
+            }
+        }
+    }
+}
+
 } // namespace
 
 void Analysis::lanes()
 {
+    HalfEdgeSet doorSteps;
+    getEdges( m_arr, doorSteps, []( HalfEdge e ) { return test( e, EdgeMask::eDoorStep ); } );
+
+    // first can generate the offset based gutters and pavements
+    {
+        static constexpr std::array< ExtrusionSpec, 2 > extrusions
+            = { ExtrusionSpec{ 2, EdgeMask::eLaneInner, EdgeMask::eLaneInnerBoundary },
+                ExtrusionSpec{ 2.25, EdgeMask::eLaneOuter, EdgeMask::eLaneOuterBoundary } };
+        generateLaneExtrusion(
+            m_arr, m_floors, doorSteps, extrusions,
+            []( Partition* pLeft, Partition* pRight ) { return pLeft->bHasGutter && pRight->bHasGutter; },
+            []( Partition* pPartition ) { return pPartition->bHasGutter; } );
+    }
+    {
+        static constexpr std::array< ExtrusionSpec, 2 > extrusions
+            = { ExtrusionSpec{ 5, EdgeMask::ePavementInner, EdgeMask::ePavementInnerBoundary },
+                ExtrusionSpec{ 5.25, EdgeMask::ePavementOuter, EdgeMask::ePavementOuterBoundary } };
+        generateLaneExtrusion(
+            m_arr, m_floors, doorSteps, extrusions,
+            []( Partition* pLeft, Partition* pRight ) { return pLeft->bHasPavement && pRight->bHasPavement; },
+            []( Partition* pPartition ) { return pPartition->bHasPavement; } );
+    }
+
+    // now generate the astar search based remaining lanes
     HalfEdgeCstVector perimeter;
     getPerimeterPolygon( perimeter );
 
@@ -579,7 +792,7 @@ void Analysis::lanes()
     Adjacency          adjacency{ raster };
 
     static const exact::Polygon octogonInner = makeOctogon( 1 );
-    static const exact::Polygon octogonOuter = makeOctogon( 1.125 );
+    static const exact::Polygon octogonOuter = makeOctogon( 1.25 );
 
     // NOTE: can only write the partition lane segments AFTER all are calculated
     // because any doorstep edge intersection will break calculation
@@ -593,11 +806,7 @@ void Analysis::lanes()
     // for each floor partition
     for( const auto& [ pPartition, polyWithHoles ] : floors )
     {
-        if( pPartition->bIsCorridor )
-        {
-            
-        }
-        else
+        if( !pPartition->bIsCorridor )
         {
             PartitionLaneSegments segments;
             calculateLaneSegments( raster, boundingBox, pPartition, coeffs, adjacency, polyWithHoles, segments.segments,

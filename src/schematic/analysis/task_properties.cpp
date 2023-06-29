@@ -197,6 +197,21 @@ void Analysis::properties()
                     INVARIANT( false, "Unrecognised partition room type: " << pProperty->getValue() );
                 }
             }
+            else if( pProperty->getName() == "lanes" )
+            {
+                if( pProperty->getValue() == "Gutter" )
+                {
+                    pPartition->bHasGutter = true;
+                }
+                else if( pProperty->getValue() == "Pavement" )
+                {
+                    pPartition->bHasPavement = true;
+                }
+                else
+                {
+                    INVARIANT( false, "Unrecognised partition room type: " << pProperty->getValue() );
+                }
+            }
         }
     }
 

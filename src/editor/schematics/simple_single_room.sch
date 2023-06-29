@@ -13,7 +13,7 @@ Schematic(base;,0)
         }
         Space(spac_0002;,2)
         {
-            transform(1,0,72,0,1,68)
+            transform(1,0,36,0,1,88)
             Contour(contour;,0)
             {
                 path(-16,-16,16,-16,16,16,-16,16)
@@ -22,13 +22,41 @@ Schematic(base;,0)
             {
                 value(0.5f;)
             }
-        }
-        Connection(conn_0003;,3)
-        {
-            transform(-2.66454e-15,1,56,-1,-2.66454e-15,68)
-            Point(width;,0)
+            Connection(conn_0002;,2)
             {
-                position(7.5,3)
+                transform(-2.66454e-15,1,-18,-1,-2.66454e-15,-7)
+                Point(width;,0)
+                {
+                    position(5.5,6)
+                }
+            }
+            Pin(pin__0003;,3)
+            {
+                position(8,9)
+                Property(lanes;,0)
+                {
+                    value(Gutter;)
+                }
+            }
+        }
+        Space(spac_0003;,3)
+        {
+            transform(1,0,36,0,1,52)
+            Contour(contour;,0)
+            {
+                path(-16,-16,16,-16,16,16,-16,16)
+            }
+            Property(width;,1)
+            {
+                value(0.5f;)
+            }
+            Connection(conn_0002;,2)
+            {
+                transform(-2.66454e-15,1,-16,-1,-2.66454e-15,0)
+                Point(width;,0)
+                {
+                    position(7.5,3)
+                }
             }
         }
     }

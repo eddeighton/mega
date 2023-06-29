@@ -1,0 +1,11 @@
+Schematic(pavement;,0)
+{
+    Pin(pin_0000;,0)
+    {
+        position(0,0)
+        Property(lanes;,0)
+        {
+            value(Pavement;)
+        }
+    }
+}

@@ -76,6 +76,8 @@ inline void locateHoleBoundariesFromDoorStep( Analysis::HalfEdge              do
 
 void Analysis::partition()
 {
+    int iPartitionID = 0;
+
     VertexVector doorStepVertices;
     HalfEdgeSet  boundaryEdges;
     HalfEdgeSet  doorSteps;
@@ -123,7 +125,9 @@ void Analysis::partition()
             if( iClassification == 1 )
                 continue;
 
-            Partition::Ptr                      pPartition = std::make_unique< Partition >();
+            Partition::Ptr pPartition = std::make_unique< Partition >();
+            pPartition->uniqueID      = iPartitionID++;
+
             std::set< schematic::Site::PtrCst > sites;
 
             // classify the outer floor boundary that has been reachable from the doorstep

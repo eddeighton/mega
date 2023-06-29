@@ -172,7 +172,7 @@ Analysis::Floor::Vector Analysis::getFloors()
 {
     Floor::Vector floors;
 
-    struct Visitor
+   /* struct Visitor
     {
         Floor::Vector& floors;
 
@@ -320,9 +320,9 @@ Analysis::Floor::Vector Analysis::getFloors()
                 }
             }
         }
-    };
+    };*/
 
-    auto rootNodes = getPolygonNodes(
+   /* auto rootNodes = getPolygonNodes(
         m_arr,
 
         // OuterEdgePredicate
@@ -353,7 +353,7 @@ Analysis::Floor::Vector Analysis::getFloors()
     for( auto pNode : rootNodes )
     {
         visitor.floor( *pNode );
-    }
+    }*/
 
     return floors;
 }

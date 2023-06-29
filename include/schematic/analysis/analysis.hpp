@@ -70,6 +70,10 @@ public:
         schematic::Property::PtrCstVector    properties;
 
         bool bIsCorridor = false;
+        bool bHasGutter = false;
+        bool bHasPavement = false;
+
+        int uniqueID = -1; // -1 means boundary
     };
 
     struct VertexData
