@@ -314,6 +314,22 @@ Schematic(base;,0)
                     }
                 }
             }
+            Pin(pin__0007;,7)
+            {
+                position(4,-38)
+                Property(lanes;,0)
+                {
+                    value(Gutter;)
+                }
+            }
+            Pin(pin__0008;,8)
+            {
+                position(-4,-38)
+                Property(lanes;,0)
+                {
+                    value(Pavement;)
+                }
+            }
         }
         Space(spac_0016;,6)
         {
@@ -649,6 +665,22 @@ Schematic(base;,0)
                         value(Corridor;)
                     }
                 }
+                Pin(pin__0006;,6)
+                {
+                    position(-12,2)
+                    Property(lanes;,0)
+                    {
+                        value(Gutter;)
+                    }
+                }
+                Pin(pin__0007;,7)
+                {
+                    position(-4,2)
+                    Property(lanes;,0)
+                    {
+                        value(Gutter;)
+                    }
+                }
             }
             Space(spac_0004;,4)
             {
@@ -785,15 +817,7 @@ Schematic(base;,0)
                         position(5.5,3)
                     }
                 }
-                Pin(pin__0005;,3)
-                {
-                    position(-20,2)
-                    Property(room;,0)
-                    {
-                        value(Corridor;)
-                    }
-                }
-                Connection(conn_0008;,4)
+                Connection(conn_0008;,3)
                 {
                     transform(2.66454e-15,-1,-84,1,2.66454e-15,28)
                     Point(width;,0)
@@ -801,12 +825,28 @@ Schematic(base;,0)
                         position(5.5,3)
                     }
                 }
-                Connection(conn_0009;,5)
+                Connection(conn_0009;,4)
                 {
-                    transform(1,5.21805e-15,-70,-5.21805e-15,1,40)
+                    transform(1,5.21805e-15,-60,-5.21805e-15,1,40)
                     Point(width;,0)
                     {
-                        position(5.5,3)
+                        position(13.5,3)
+                    }
+                }
+                Pin(pin__0005;,5)
+                {
+                    position(-58,18)
+                    Property(lanes;,0)
+                    {
+                        value(Gutter;)
+                    }
+                }
+                Pin(pin__0006;,6)
+                {
+                    position(-50,18)
+                    Property(lanes;,0)
+                    {
+                        value(Pavement;)
                     }
                 }
             }
@@ -834,7 +874,7 @@ Schematic(base;,0)
                     transform(-1,0,-9,0,1,15)
                     Contour(contour;,0)
                     {
-                        path(0,0,24,0,24,24,0,24)
+                        path(0,0,13,-9,24,-9,24,24,0,24)
                     }
                     Property(width;,1)
                     {
@@ -842,22 +882,10 @@ Schematic(base;,0)
                     }
                     Connection(conn_0002;,2)
                     {
-                        transform(-2.66454e-15,1,3,-1,-2.66454e-15,12)
+                        transform(-2.66454e-15,1,0,-1,-2.66454e-15,14)
                         Point(width;,0)
                         {
                             position(5.5,10)
-                        }
-                    }
-                    Wall(wall_0003;,3)
-                    {
-                        transform(1,0,2,0,1,12)
-                        Contour(contour;,0)
-                        {
-                            path(-2,6,-2,-6,4,-6,4,6)
-                        }
-                        Property(width;,1)
-                        {
-                            value(1;)
                         }
                     }
                 }
@@ -875,6 +903,14 @@ Schematic(base;,0)
                     Property(room;,0)
                     {
                         value(Corridor;)
+                    }
+                }
+                Pin(pin__0006;,6)
+                {
+                    position(-10,2)
+                    Property(lanes;,0)
+                    {
+                        value(Pavement;)
                     }
                 }
             }
@@ -944,6 +980,14 @@ Schematic(base;,0)
                 Point(width;,0)
                 {
                     position(19.5,5)
+                }
+            }
+            Pin(pin__0009;,9)
+            {
+                position(-64,26)
+                Property(lanes;,0)
+                {
+                    value(Pavement;)
                 }
             }
         }

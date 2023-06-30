@@ -197,26 +197,25 @@ table Boundary
     walls:[WallSection];
 }
 
-table Floor
+table Object
+{
+    type:Type;
+    children:[Object];
+    properties:[Properties];
+}
+
+table Room
 {
     type:Type;
     properties:[Properties];
     parent:Area;
     contour:Polygon;
 
-    floor:Mesh;
-    ground_one:[Mesh];
-    ground_two:[Mesh];
-    ground_three:[Mesh];
-    ground_four:[Mesh];
-}
+    floors:[Mesh];
+    pavements:[Mesh];
+    linings:[Mesh];
 
-table Object
-{
-    type:Type;
-    parent:Floor;
-    children:[Object];
-    properties:[Properties];
+    objects:[Object];
 }
 
 table Lane
@@ -230,7 +229,7 @@ table Map
 {
     contour:Polygon;
     root_area:Area;
-    floors:[Floor];
+    rooms:[Room];
     boundaries:[Boundary];
 
     lane_network_exterior:Lane;

@@ -88,15 +88,16 @@ set( SCHEMATIC_SOURCE
     ${SCHEMATIC_SRC_DIR}/analysis/analysis.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/constructions.hpp
     ${SCHEMATIC_SRC_DIR}/analysis/edge_mask.cpp
-    ${SCHEMATIC_SRC_DIR}/analysis/geometry.hpp
+    ${SCHEMATIC_SRC_DIR}/analysis/extrapolation.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/geometry.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/geometry.hpp
     ${SCHEMATIC_SRC_DIR}/analysis/polygon_with_holes.hpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_connections.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_contours.cpp
-    ${SCHEMATIC_SRC_DIR}/analysis/task_partitions.cpp
-    ${SCHEMATIC_SRC_DIR}/analysis/task_properties.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_lanes.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_partitions.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_placement.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_properties.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_values.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_visibility.cpp
 

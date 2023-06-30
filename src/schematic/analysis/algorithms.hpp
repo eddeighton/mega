@@ -339,13 +339,13 @@ inline void getPolygonsDir( const HalfEdgeSetType& edges, HalfEdgeVectorVectorTy
 // NOTE: bDir decides the order to consider incident edges.
 // If bDir IS FALSE then the algorithm will be inclusive i.e. it will choose the largest turn it can make
 // if bDir IS TRUE then the most acute turn will be made.
-template < typename VertexVector, typename HalfEdgeSetType >
-inline void searchPolygons( const VertexVector& startVertices, const HalfEdgeSetType& edges, bool bDir,
-                            std::vector< std::vector< Analysis::Arrangement::Halfedge_handle > >& polygons )
+template < typename VertexVector, typename HalfEdgeType >
+inline void searchPolygons( const VertexVector& startVertices, const std::set< HalfEdgeType >& edges, bool bDir,
+                            std::vector< std::vector< HalfEdgeType > >& polygons )
 {
-    using HalfEdge = typename HalfEdgeSetType::value_type;
+    using HalfEdge = HalfEdgeType;
 
-    HalfEdgeSetType open = edges;
+    std::set< HalfEdgeType > open = edges;
 
     for( auto startVertex : startVertices )
     {
@@ -354,7 +354,7 @@ inline void searchPolygons( const VertexVector& startVertices, const HalfEdgeSet
             if( e->source() == startVertex )
             {
                 // attempt to solve polygon from here
-                std::vector< Analysis::Arrangement::Halfedge_handle > polygon;
+                std::vector< HalfEdgeType > polygon;
 
                 open.erase( e );
                 polygon.push_back( e );
@@ -399,6 +399,115 @@ inline void searchPolygons( const VertexVector& startVertices, const HalfEdgeSet
         }
     }
 }
+
+template < typename HalfEdgeType, typename FaceType >
+inline void getFacesBoundary( const std::vector< FaceType >& faces, std::vector< HalfEdgeType >& boundaryEdges )
+{
+    using HalfEdge = HalfEdgeType;
+    using Face     = FaceType;
+
+    std::set< FaceType > allFaces( faces.begin(), faces.end() );
+    for( auto f : faces )
+    {
+        INVARIANT( !f->is_unbounded(), "getSortedFaces with unbounded face" );
+        {
+            auto iter  = f->outer_ccb();
+            auto start = iter;
+            do
+            {
+                Face adjacent = iter->twin()->face();
+                if( !allFaces.contains( adjacent ) )
+                {
+                    boundaryEdges.push_back( iter );
+                }
+                ++iter;
+            } while( iter != start );
+        }
+
+        // search through all holes
+        for( auto holeIter = f->holes_begin(), holeIterEnd = f->holes_end(); holeIter != holeIterEnd; ++holeIter )
+        {
+            auto iter  = *holeIter;
+            auto start = iter;
+            do
+            {
+                Face adjacent = iter->twin()->face();
+                if( !allFaces.contains( adjacent ) )
+                {
+                    boundaryEdges.push_back( iter );
+                }
+                ++iter;
+            } while( iter != start );
+        }
+    }
+}
+
+/*
+template < typename HalfEdgeType, typename EdgeSideTest >
+inline void searchBoundaryPolygons( const std::set< HalfEdgeType >&             edges,
+                                    std::vector< std::vector< HalfEdgeType > >& polygons,
+                                    EdgeSideTest&&                              edgeSideTest )
+{
+    using HalfEdge = HalfEdgeType;
+
+    std::set< HalfEdgeType > open = edges, eliminated;
+
+    while( !open.empty() )
+    {
+        // select first edge
+        HalfEdge                    startEdge = *open.begin();
+        HalfEdge                    e         = startEdge;
+        std::vector< HalfEdgeType > polygon;
+
+        bool bBoundaryPolygon = true;
+        do
+        {
+            auto edgeIter = e->target()->incident_halfedges();
+            while( edgeIter != e )
+                ++edgeIter;
+            auto edgeIterEnd = edgeIter;
+            INVARIANT( edgeSideTest( edgeIter ), "Edge not inside" );
+
+            do
+            {
+                bBoundaryPolygon = false;
+                // iterate round in counter-clockwise order
+                --edgeIter;
+
+                if( edges.contains( edgeIter ) || edges.contains( edgeIter->twin() ) )
+                {
+                    if( edgeSideTest( edgeIter->twin() ) )
+                    {
+                        bBoundaryPolygon = true;
+                        auto edgeTwin    = edgeIter->twin();
+                        polygon.push_back( edgeTwin );
+                        e = edgeTwin;
+                        break;
+                    }
+                    else
+                    {
+                        // if the next edge IS inside then current polygon is invalid
+                        break;
+                    }
+                }
+            } while( edgeIter != edgeIterEnd );
+
+        } while( ( e != startEdge ) && bBoundaryPolygon );
+
+        open.erase( startEdge );
+        open.erase( startEdge->twin() );
+
+        if( bBoundaryPolygon )
+        {
+            for( auto e : polygon )
+            {
+                open.erase( e );
+                open.erase( e->twin() );
+            }
+            polygons.push_back( polygon );
+        }
+    }
+}*/
 
 } // namespace exact
 

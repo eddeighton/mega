@@ -26,27 +26,32 @@
 namespace exact
 {
 
-class PolygonNode : std::enable_shared_from_this< PolygonNode >
+template < typename HalfEdgeType, typename FaceType >
+class PolygonNodeT : std::enable_shared_from_this< PolygonNodeT< HalfEdgeType, FaceType > >
 {
 public:
-    using Ptr       = std::shared_ptr< PolygonNode >;
-    using PtrVector = std::vector< Ptr >;
+    using HalfEdge       = HalfEdgeType;
+    using HalfEdgeVector = std::vector< HalfEdge >;
+    using Face           = FaceType;
+    using FaceVector     = std::vector< Face >;
+    using Ptr            = std::shared_ptr< PolygonNodeT< HalfEdgeType, FaceType > >;
+    using PtrVector      = std::vector< Ptr >;
 
-    static inline bool includes( const PolygonNode& includer, const PolygonNode& included )
+    static inline bool includes( const PolygonNodeT& includer, const PolygonNodeT& included )
     {
         return std::includes(
             includer.m_faces.begin(), includer.m_faces.end(), included.m_faces.begin(), included.m_faces.end() );
     }
 
-    static inline bool intersects( const PolygonNode& left, const PolygonNode& right )
+    static inline bool intersects( const PolygonNodeT& left, const PolygonNodeT& right )
     {
-        Analysis::FaceCstVector intersection;
+        FaceVector intersection;
         std::set_intersection( left.m_faces.begin(), left.m_faces.end(), right.m_faces.begin(), right.m_faces.end(),
                                std::back_inserter( intersection ) );
         return !intersection.empty();
     }
 
-    static inline bool equal( const PolygonNode& left, const PolygonNode& right )
+    static inline bool equal( const PolygonNodeT& left, const PolygonNodeT& right )
     {
         return left.m_faces == right.m_faces;
     }
@@ -73,7 +78,7 @@ public:
         }
     }
 
-    PolygonNode( const Analysis::HalfEdgeCstVector& polygon )
+    PolygonNodeT( const HalfEdgeVector& polygon )
         : m_type( TOTAL_POLYNODE_TYPES )
         , m_polygon( polygon )
     {
@@ -81,7 +86,7 @@ public:
         m_bPolygonIsFace = getSortedFacesInsidePolygon( m_polygon, m_faces );
         INVARIANT( !m_faces.empty(), "No faces for polygon" );
     }
-    PolygonNode( Type type, const Analysis::HalfEdgeCstVector& polygon )
+    PolygonNodeT( Type type, const HalfEdgeVector& polygon )
         : m_type( type )
         , m_polygon( polygon )
     {
@@ -90,14 +95,14 @@ public:
         INVARIANT( !m_faces.empty(), "No faces for polygon" );
     }
 
-    int  size() const { return m_faces.size(); }
-    bool outer() const { return ( m_type == eOuter ) || ( m_type == TOTAL_POLYNODE_TYPES ); }
-    bool inner() const { return ( m_type == eInner ) || ( m_type == TOTAL_POLYNODE_TYPES ); }
-    bool face() const { return m_bPolygonIsFace; }
-    const Analysis::HalfEdgeCstVector& polygon() const { return m_polygon; }
-    const Analysis::FaceCstVector&        faces() const { return m_faces; }
-    const PtrVector&                   contained() const { return m_contained; }
-    int                                validate( Type type = eOuter ) const
+    int                   size() const { return m_faces.size(); }
+    bool                  outer() const { return ( m_type == eOuter ) || ( m_type == TOTAL_POLYNODE_TYPES ); }
+    bool                  inner() const { return ( m_type == eInner ) || ( m_type == TOTAL_POLYNODE_TYPES ); }
+    bool                  face() const { return m_bPolygonIsFace; }
+    const HalfEdgeVector& polygon() const { return m_polygon; }
+    const FaceVector&     faces() const { return m_faces; }
+    const PtrVector&      contained() const { return m_contained; }
+    int                   validate( Type type = eOuter ) const
     {
         int count = 1;
         INVARIANT( ( m_type == TOTAL_POLYNODE_TYPES ) || ( type == m_type ), "Wrong polynode type" );
@@ -110,7 +115,7 @@ public:
     }
 
     // NOTE: insert ONLY functions correctly for use with sorted range
-    bool insert( PolygonNode::Ptr pNode )
+    bool insert( Ptr pNode )
     {
         if( equal( *this, *pNode ) )
         {
@@ -143,19 +148,25 @@ public:
     }
 
 private:
-    const Type                  m_type;
-    bool                        m_bPolygonIsFace;
-    Analysis::HalfEdgeCstVector m_polygon;
-    Analysis::FaceCstVector        m_faces;
-    PtrVector                   m_contained;
+    const Type     m_type;
+    bool           m_bPolygonIsFace;
+    HalfEdgeVector m_polygon;
+    FaceVector     m_faces;
+    PtrVector      m_contained;
 };
 
+using PolygonNode    = PolygonNodeT< Analysis::HalfEdge, Analysis::Face >;
+using PolygonNodeCst = PolygonNodeT< Analysis::HalfEdgeCst, Analysis::FaceCst >;
+
 // NOTE: outer and inner DOES NOT imply whether polygon is hole or face
-inline std::vector< PolygonNode::Ptr > getPolygonNodes( std::vector< PolygonNode::Ptr >& nodes )
+template < typename HalfEdgeType, typename FaceType >
+inline std::vector< typename PolygonNodeT< HalfEdgeType, FaceType >::Ptr >
+sortPolygonNodes( std::vector< typename PolygonNodeT< HalfEdgeType, FaceType >::Ptr >& nodes )
 {
     // construct a node for all polygons collecting their faces
-    using NodePtr    = PolygonNode::Ptr;
-    using NodeVector = std::vector< NodePtr >;
+    using PolygonNode = PolygonNodeT< HalfEdgeType, FaceType >;
+    using NodePtr     = typename PolygonNode::Ptr;
+    using NodeVector  = std::vector< NodePtr >;
 
     // sort in order of greatest to smallest
     std::sort(
@@ -230,13 +241,14 @@ inline std::vector< PolygonNode::Ptr > getPolygonNodes( std::vector< PolygonNode
 }
 
 // NOTE: outer and inner DOES NOT imply whether polygon is hole or face
+
 template < typename OuterEdgePredicate, typename InnerEdgePredicate >
-inline std::vector< PolygonNode::Ptr > getPolygonNodes( Analysis::Arrangement& arr,
-                                                        OuterEdgePredicate&&   outerEdgePredicate,
-                                                        InnerEdgePredicate&&   innerEdgePredicate )
+inline std::vector< PolygonNodeCst::Ptr > sortPolygonNodes( Analysis::Arrangement& arr,
+                                                           OuterEdgePredicate&&   outerEdgePredicate,
+                                                           InnerEdgePredicate&&   innerEdgePredicate )
 {
     // construct a node for all polygons collecting their faces
-    using NodePtr    = typename PolygonNode::Ptr;
+    using NodePtr    = typename PolygonNodeCst::Ptr;
     using NodeVector = std::vector< NodePtr >;
     NodeVector nodes;
     {
@@ -256,20 +268,20 @@ inline std::vector< PolygonNode::Ptr > getPolygonNodes( Analysis::Arrangement& a
 
         for( auto& poly : outerPolygons )
         {
-            nodes.push_back( std::make_shared< PolygonNode >( PolygonNode::eOuter, poly ) );
+            nodes.push_back( std::make_shared< PolygonNodeCst >( PolygonNodeCst::eOuter, poly ) );
         }
         for( auto& poly : innerPolygons )
         {
-            nodes.push_back( std::make_shared< PolygonNode >( PolygonNode::eInner, poly ) );
+            nodes.push_back( std::make_shared< PolygonNodeCst >( PolygonNodeCst::eInner, poly ) );
         }
     }
 
-    return getPolygonNodes( nodes );
+    return sortPolygonNodes< Analysis::HalfEdgeCst, Analysis::FaceCst >( nodes );
 }
 
 template < typename OuterEdgePredicate, typename InnerEdgePredicate >
 inline void getPolyonsWithHoles( Analysis::Arrangement& arr, OuterEdgePredicate&& outerEdgePredicate,
-                                 InnerEdgePredicate&&                        innerEdgePredicate,
+                                 InnerEdgePredicate&&                           innerEdgePredicate,
                                  Analysis::HalfEdgeCstPolygonWithHoles::Vector& polygonsWithHoles )
 {
     struct Visitor
@@ -281,7 +293,7 @@ inline void getPolyonsWithHoles( Analysis::Arrangement& arr, OuterEdgePredicate&
         {
         }
 
-        void outer( PolygonNode& node ) const
+        void outer( PolygonNodeCst& node ) const
         {
             INVARIANT( node.outer(), "Found hole when expecting contour" );
             Analysis::HalfEdgeCstPolygonWithHoles p;
@@ -293,7 +305,7 @@ inline void getPolyonsWithHoles( Analysis::Arrangement& arr, OuterEdgePredicate&
             polygonsWithHoles.push_back( p );
         }
 
-        void inner( PolygonNode& node, Analysis::HalfEdgeCstPolygonWithHoles& p ) const
+        void inner( PolygonNodeCst& node, Analysis::HalfEdgeCstPolygonWithHoles& p ) const
         {
             INVARIANT( node.inner(), "Found contour when expecting hole" );
             p.holes.push_back( node.polygon() );
@@ -304,7 +316,8 @@ inline void getPolyonsWithHoles( Analysis::Arrangement& arr, OuterEdgePredicate&
         }
     };
 
-    auto rootNodes = getPolygonNodes( arr, outerEdgePredicate, innerEdgePredicate );
+    auto rootNodes
+        = sortPolygonNodes< Analysis::HalfEdgeCst, Analysis::FaceCst >( arr, outerEdgePredicate, innerEdgePredicate );
 
     Visitor visitor( polygonsWithHoles );
     for( auto pNode : rootNodes )

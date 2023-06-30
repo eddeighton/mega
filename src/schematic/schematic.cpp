@@ -696,6 +696,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
         fbMapPolygon = buildPolygon( fbVertMap, perimeter, builder );
     }
 
+/*
     Analysis::Floor::Vector floors = m_pAnalysis->getFloors();
 
     std::vector< fb::Offset< Mega::Floor > > fbFloorsVec;
@@ -742,9 +743,9 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
         floorBuilder.add_ground_four( fbEx4 );
 
         fbFloorsVec.push_back( floorBuilder.Finish() );
-    }
+    }*/
 
-    auto fbFloors = builder.CreateVector( fbFloorsVec );
+    //auto fbFloors = builder.CreateVector( fbFloorsVec );
 
     // boundaries
 
@@ -832,7 +833,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
         Mega::MapBuilder mapBuilder( builder );
         mapBuilder.add_contour( fbMapPolygon );
         mapBuilder.add_root_area( fbRootArea );
-        mapBuilder.add_floors( fbFloors );
+        //mapBuilder.add_floors( fbFloors );
         mapBuilder.add_boundaries( fbBoundaries );
         fbMap = mapBuilder.Finish();
     }

@@ -69,8 +69,8 @@ public:
         schematic::Feature_Pin::PtrCstVector pins;
         schematic::Property::PtrCstVector    properties;
 
-        bool bIsCorridor = false;
-        bool bHasGutter = false;
+        bool bIsCorridor  = false;
+        bool bHasGutter   = false;
         bool bHasPavement = false;
 
         int uniqueID = -1; // -1 means boundary
@@ -127,13 +127,6 @@ public:
     using FaceCstVector           = std::vector< FaceCst >;
     using FaceCstSet              = std::set< FaceCst >;
 
-    struct HalfEdgeCstPolygonWithHoles
-    {
-        HalfEdgeCstVector       outer;
-        HalfEdgeCstVectorVector holes;
-        using Vector = std::vector< HalfEdgeCstPolygonWithHoles >;
-    };
-
     // non-const types
     using Vertex               = Arrangement::Vertex_handle;
     using VertexVector         = std::vector< Vertex >;
@@ -146,9 +139,21 @@ public:
     using FaceVector           = std::vector< Face >;
     using FaceSet              = std::set< Face >;
 
+    template < typename HalfEdgeType >
+    struct HalfEdgePolygonWithHolesT
+    {
+        std::vector< HalfEdgeType >                outer;
+        std::vector< std::vector< HalfEdgeType > > holes;
+        using Vector = std::vector< HalfEdgePolygonWithHolesT >;
+    };
+
+    using HalfEdgePolygonWithHoles    = HalfEdgePolygonWithHolesT< HalfEdge >;
+    using HalfEdgeCstPolygonWithHoles = HalfEdgePolygonWithHolesT< HalfEdgeCst >;
+
 public:
     // query used by editor for edge visualisation
     void getAllEdges( std::vector< std::pair< schematic::Segment, EdgeMask::Set > >& edges ) const;
+    void getFloorPartitions( std::map< const Analysis::Partition*, HalfEdgePolygonWithHoles >& floors );
     void getFloorPartitions( std::map< const Analysis::Partition*, HalfEdgeCstPolygonWithHoles >& floors ) const;
     void getFloorPartitions( std::map< const Analysis::Partition*, exact::Polygon_with_holes >& floors ) const;
     void getBoundaryPartitions( Analysis::HalfEdgeCstVectorVector& boundarySegments ) const;
@@ -211,7 +216,8 @@ public:
     void getVertices( VertexCstVector& vertices ) const;
     void getPerimeterPolygon( HalfEdgeCstVector& polygon ) const;
 
-    static inline exact::Polygon fromHalfEdgePolygon( const HalfEdgeCstVector& poly )
+    template < typename HalfEdgeType >
+    static inline exact::Polygon fromHalfEdgePolygon( const std::vector< HalfEdgeType >& poly )
     {
         exact::Polygon outer;
         for( auto& e : poly )
@@ -225,9 +231,12 @@ public:
         }
         return outer;
     }
-    static inline exact::Polygon_with_holes fromHalfEdgePolygonWithHoles( const HalfEdgeCstPolygonWithHoles& poly )
+
+    template < typename HalfEdgeType >
+    static inline exact::Polygon_with_holes
+    fromHalfEdgePolygonWithHoles( const HalfEdgePolygonWithHolesT< HalfEdgeType >& poly )
     {
-        exact::Polygon_with_holes polygonWithHoles( fromHalfEdgePolygon( poly.outer ) );
+        exact::Polygon_with_holes polygonWithHoles( fromHalfEdgePolygon< HalfEdgeType >( poly.outer ) );
         for( auto& h : poly.holes )
         {
             Polygon hole;
@@ -245,17 +254,22 @@ public:
         return polygonWithHoles;
     }
 
-    struct Floor
+    struct Room
     {
+        struct Object
+        {
+            using Vector = std::vector< Object >;
+            // TODO
+        };
+
         Partition*                          pPartition;
-        HalfEdgeCstPolygonWithHoles         floor;
-        HalfEdgeCstPolygonWithHoles::Vector ex1;
-        HalfEdgeCstPolygonWithHoles::Vector ex2;
-        HalfEdgeCstPolygonWithHoles::Vector ex3;
-        HalfEdgeCstPolygonWithHoles::Vector ex4;
-        using Vector = std::vector< Floor >;
+        HalfEdgeCstPolygonWithHoles::Vector floors;
+        HalfEdgeCstPolygonWithHoles::Vector pavements;
+        HalfEdgeCstPolygonWithHoles::Vector linings;
+        Object::Vector                      objects;
+        using Vector = std::vector< Room >;
     };
-    Floor::Vector getFloors();
+    Room::Vector getRooms();
 
     struct Boundary
     {

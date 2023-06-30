@@ -217,10 +217,10 @@ astar::ErrorCode drawPath( const Value& vStart, Value& vEnd, const ValueSegmentV
         result );
 }
 
-using FloorPolyMap = std::map< const Analysis::Partition*, Analysis::HalfEdgeCstPolygonWithHoles >;
+using FloorPolyMap = std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles >;
 
 void renderPoly( agg::path_storage& path, const Rect& boundingBox, const Analysis::Partition* pPartition,
-                 const Analysis::HalfEdgeCstVector& poly )
+                 const Analysis::HalfEdgeVector& poly )
 {
     auto convert = [ &boundingBox ]( Analysis::HalfEdgeCst e, double& x, double& y )
     {
@@ -251,7 +251,7 @@ void renderPoly( agg::path_storage& path, const Rect& boundingBox, const Analysi
 }
 
 void renderPolyWithHoles( schematic::Rasteriser& raster, const Rect& boundingBox, const Analysis::Partition* pPartition,
-                          const Analysis::HalfEdgeCstPolygonWithHoles& polyWithHoles, agg::gray8 colour )
+                          const Analysis::HalfEdgePolygonWithHoles& polyWithHoles, agg::gray8 colour )
 {
     schematic::Rasteriser::PolygonRasterizer ras;
     ras.gamma( agg::gamma_threshold( 1.0 ) );
@@ -271,8 +271,8 @@ void renderPolyWithHoles( schematic::Rasteriser& raster, const Rect& boundingBox
 }
 
 void renderPolyWithHolesClearance( schematic::Rasteriser& raster, const Rect& boundingBox,
-                                   const Analysis::Partition*                   pPartition,
-                                   const Analysis::HalfEdgeCstPolygonWithHoles& polyWithHoles, agg::gray8 colour,
+                                   const Analysis::Partition*                pPartition,
+                                   const Analysis::HalfEdgePolygonWithHoles& polyWithHoles, agg::gray8 colour,
                                    float fClearance )
 {
     schematic::Rasteriser::PolygonRasterizer ras;
@@ -300,31 +300,10 @@ void renderPolyWithHolesClearance( schematic::Rasteriser& raster, const Rect& bo
     raster.render( ras, colour );
 }
 
-void calculateLaneSegments( schematic::Rasteriser& raster, const Rect& boundingBox,
-                            const Analysis::Partition* pFloorPartition, const SearchCoeffs& coeffs,
-                            Adjacency& adjacency, const Analysis::HalfEdgeCstPolygonWithHoles& polyWithHoles,
+void calculateLaneSegments( schematic::Rasteriser& raster, const Rect& boundingBox, const SearchCoeffs& coeffs,
+                            Adjacency& adjacency, const Analysis::HalfEdgeCstVector& doorSteps,
                             ValueSegmentVector& segments, ValueSegmentVector& doorStepSegments )
 {
-    // collect all doorsteps
-    Analysis::HalfEdgeCstVector doorSteps;
-    for( auto e : polyWithHoles.outer )
-    {
-        if( test( e, EdgeMask::eDoorStep ) )
-        {
-            doorSteps.push_back( e );
-        }
-    }
-    for( const auto& hole : polyWithHoles.holes )
-    {
-        for( auto e : hole )
-        {
-            if( test( e, EdgeMask::eDoorStep ) )
-            {
-                doorSteps.push_back( e );
-            }
-        }
-    }
-
     using DoorStep     = std::pair< int, int >;
     using DoorStepsVec = std::vector< DoorStep >;
     DoorStepsVec doorStepPoints;
@@ -557,11 +536,21 @@ static exact::Polygon makeOctogon( double x )
 
 using ExtrusionSpec = std::tuple< double, EdgeMask::Type, EdgeMask::Type >;
 
+struct Component
+{
+    std::vector< Analysis::Partition* > partitions;
+    // Analysis::HalfEdgeSet               doorSteps;
+    //  bInclude indicates that this component contains gutter partitions
+    bool bInclude = false;
+    using Vector  = std::vector< Component >;
+};
+
 template < typename PartitionEdgeFunctor, typename PartitionFunctor, std::size_t TotalExtrusions >
 void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partition::PtrVector& floors,
                             Analysis::HalfEdgeSet&                              doorSteps,
                             const std::array< ExtrusionSpec, TotalExtrusions >& extrusions,
-                            PartitionEdgeFunctor&& isPartitionEdge, PartitionFunctor&& isPartition )
+                            PartitionEdgeFunctor&& isPartitionEdge, PartitionFunctor&& isPartition,
+                            Component::Vector& components, const std::vector< EdgeMask::Type >& boundaryMasks )
 {
     Analysis::HalfEdgeVectorVector doorStepGroups( floors.size() );
     Analysis::HalfEdgeCstSet       allUsedDoorSteps;
@@ -597,16 +586,7 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
 
     std::vector< int > componentIndices( floors.size() );
     const auto         iNumComponents = boost::connected_components( graph, componentIndices.data() );
-
-    struct Component
-    {
-        std::vector< Analysis::Partition* > partitions;
-        Analysis::HalfEdgeSet               doorSteps;
-        bool                                bInclude = false;
-        using Vector                                 = std::vector< Component >;
-    };
-
-    typename Component::Vector components( iNumComponents );
+    components.resize( iNumComponents );
     using PartitionToComponentMap = std::map< Analysis::Partition*, typename Component::Vector::const_iterator >;
     PartitionToComponentMap partitionsToComponents;
     for( int iPartition = 0; iPartition != floors.size(); ++iPartition )
@@ -620,14 +600,14 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
         {
             component.bInclude = true;
         }
-        for( auto e : doorStepGroups[ iPartition ] )
-        {
-            component.doorSteps.insert( e );
-        }
+        // for( auto e : doorStepGroups[ iPartition ] )
+        //{
+        // component.doorSteps.insert( e );
+        //}
     }
 
     using ComponentFloorMap
-        = std::map< typename Component::Vector::const_iterator, Analysis::HalfEdgeCstPolygonWithHoles >;
+        = std::map< typename Component::Vector::const_iterator, Analysis::HalfEdgePolygonWithHoles >;
     ComponentFloorMap componentFloors;
     {
         // like Analysis::getFloorPartitions but DO NOT USE doorsteps in allUsedDoorSteps
@@ -635,11 +615,11 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
         using NodeVector = std::vector< NodePtr >;
         NodeVector nodes;
         {
-            Analysis::HalfEdgeCstVectorVector floorPolygons;
+            Analysis::HalfEdgeVectorVector floorPolygons;
             {
-                Analysis::HalfEdgeCstSet partitionFloorEdges;
+                Analysis::HalfEdgeSet partitionFloorEdges;
                 getEdges( arr, partitionFloorEdges,
-                          [ &allUsedDoorSteps ]( Analysis::HalfEdgeCst edge )
+                          [ &allUsedDoorSteps ]( Analysis::HalfEdge edge )
                           { return test( edge, EdgeMask::ePartitionFloor ) && !allUsedDoorSteps.contains( edge ); } );
                 getPolygonsDir( partitionFloorEdges, floorPolygons, true );
             }
@@ -649,7 +629,7 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
             }
         }
 
-        auto rootNodes = getPolygonNodes( nodes );
+        auto rootNodes = sortPolygonNodes< Analysis::HalfEdge, Analysis::Face >( nodes );
         INVARIANT( rootNodes.size() == 1, "getFloorPartitions did not find singular root node" );
 
         struct Visitor
@@ -671,7 +651,7 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
                 auto iFind = partitionsToComponents.find( pPartition );
                 INVARIANT( iFind != partitionsToComponents.end(), "Failed to locate component" );
 
-                Analysis::HalfEdgeCstPolygonWithHoles polyWithHoles;
+                Analysis::HalfEdgePolygonWithHoles polyWithHoles;
                 polyWithHoles.outer = node.polygon();
 
                 for( auto pContour : node.contained() )
@@ -693,12 +673,28 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
         }
     }
 
-    // std::map< typename Component::Vector::const_iterator, Analysis::HalfEdgeCstPolygonWithHoles >;
+    // std::map< typename Component::Vector::const_iterator, Analysis::HalfEdgePolygonWithHoles >;
     for( const auto& [ componentIter, componentPolygonWithHoles ] : componentFloors )
     {
         const Component& component = *componentIter;
         if( component.bInclude )
         {
+            // mask the actual polygon with holes
+            for( auto m : boundaryMasks )
+            {
+                for( auto e : componentPolygonWithHoles.outer )
+                {
+                    classify( e, m );
+                }
+                for( const auto& hole : componentPolygonWithHoles.holes )
+                {
+                    for( auto e : hole )
+                    {
+                        classify( e, m );
+                    }
+                }
+            }
+
             // calculate extrusion around the corridor for gutter style lanes
             const exact::Polygon_with_holes polygonWithHoles
                 = Analysis::fromHalfEdgePolygonWithHoles( componentPolygonWithHoles );
@@ -733,27 +729,21 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
 
 void Analysis::lanes()
 {
-    HalfEdgeSet doorSteps;
-    getEdges( m_arr, doorSteps, []( HalfEdge e ) { return test( e, EdgeMask::eDoorStep ); } );
-
     // first can generate the offset based gutters and pavements
+    Component::Vector gutterComponents;
     {
-        static constexpr std::array< ExtrusionSpec, 2 > extrusions
-            = { ExtrusionSpec{ 2, EdgeMask::eLaneInner, EdgeMask::eLaneInnerBoundary },
-                ExtrusionSpec{ 2.25, EdgeMask::eLaneOuter, EdgeMask::eLaneOuterBoundary } };
+        HalfEdgeSet doorSteps;
+        getEdges( m_arr, doorSteps, []( HalfEdge e ) { return test( e, EdgeMask::eDoorStep ); } );
+
+        static constexpr std::array< ExtrusionSpec, 3 > extrusions
+            = { ExtrusionSpec{ 1, EdgeMask::eLane, EdgeMask::eLane },
+                ExtrusionSpec{ 2, EdgeMask::eLaneInnerBoundary, EdgeMask::eLaneInner },
+                ExtrusionSpec{ 2.25, EdgeMask::eLaneOuterBoundary, EdgeMask::eLaneOuter } };
         generateLaneExtrusion(
             m_arr, m_floors, doorSteps, extrusions,
             []( Partition* pLeft, Partition* pRight ) { return pLeft->bHasGutter && pRight->bHasGutter; },
-            []( Partition* pPartition ) { return pPartition->bHasGutter; } );
-    }
-    {
-        static constexpr std::array< ExtrusionSpec, 2 > extrusions
-            = { ExtrusionSpec{ 5, EdgeMask::ePavementInner, EdgeMask::ePavementInnerBoundary },
-                ExtrusionSpec{ 5.25, EdgeMask::ePavementOuter, EdgeMask::ePavementOuterBoundary } };
-        generateLaneExtrusion(
-            m_arr, m_floors, doorSteps, extrusions,
-            []( Partition* pLeft, Partition* pRight ) { return pLeft->bHasPavement && pRight->bHasPavement; },
-            []( Partition* pPartition ) { return pPartition->bHasPavement; } );
+            []( Partition* pPartition ) { return pPartition->bHasGutter; }, gutterComponents,
+            { EdgeMask::eLaneInner, EdgeMask::eLaneOuter } );
     }
 
     // now generate the astar search based remaining lanes
@@ -774,6 +764,7 @@ void Analysis::lanes()
         schematic::Vector{ CGAL::to_double( boundingBox.xmin() ), CGAL::to_double( boundingBox.ymin() ) } );
     schematic::Rasteriser raster( m_laneBitmap, false );
 
+    // using FloorPolyMap = std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles >;
     FloorPolyMap floors;
     getFloorPartitions( floors );
 
@@ -801,21 +792,65 @@ void Analysis::lanes()
         ValueSegmentVector segments;
         ValueSegmentVector doorStepSegments;
     };
-    std::map< const Analysis::Partition*, PartitionLaneSegments > partitionSegments;
+    std::vector< PartitionLaneSegments > partitionSegments;
 
     // for each floor partition
-    for( const auto& [ pPartition, polyWithHoles ] : floors )
+    for( const auto& component : gutterComponents )
     {
-        if( !pPartition->bHasGutter )
+        if( component.bInclude )
         {
-            PartitionLaneSegments segments;
-            calculateLaneSegments( raster, boundingBox, pPartition, coeffs, adjacency, polyWithHoles, segments.segments,
-                                   segments.doorStepSegments );
-            partitionSegments.insert( { pPartition, std::move( segments ) } );
+            // empty doorsteps for gutter
+            Analysis::HalfEdgeCstVector doorSteps;
+
+            // locate all systems in the set of partitions
+            // component.partitions
+
+            if( !doorSteps.empty() )
+            {
+                PartitionLaneSegments segments;
+                calculateLaneSegments(
+                    raster, boundingBox, coeffs, adjacency, doorSteps, segments.segments, segments.doorStepSegments );
+                partitionSegments.emplace_back( segments );
+            }
+        }
+        else
+        {
+            INVARIANT( component.partitions.size() == 1, "Invalid non-gutter partition" );
+
+            auto iFind = floors.find( component.partitions.front() );
+            INVARIANT( iFind != floors.end(), "Failed to locate floor" );
+
+            const Analysis::HalfEdgePolygonWithHoles& polyWithHoles = iFind->second;
+            Analysis::HalfEdgeCstVector               doorSteps;
+            for( auto e : polyWithHoles.outer )
+            {
+                if( test( e, EdgeMask::eDoorStep ) )
+                {
+                    doorSteps.push_back( e );
+                }
+            }
+            for( const auto& hole : polyWithHoles.holes )
+            {
+                for( auto e : hole )
+                {
+                    if( test( e, EdgeMask::eDoorStep ) )
+                    {
+                        doorSteps.push_back( e );
+                    }
+                }
+            }
+            INVARIANT( !doorSteps.empty(), "No doorsteps in non-gutter partition" );
+            if( !doorSteps.empty() )
+            {
+                PartitionLaneSegments segments;
+                calculateLaneSegments(
+                    raster, boundingBox, coeffs, adjacency, doorSteps, segments.segments, segments.doorStepSegments );
+                partitionSegments.emplace_back( segments );
+            }
         }
     }
 
-    for( const auto& [ pPartition, segments ] : partitionSegments )
+    for( const auto& segments : partitionSegments )
     {
         // render the octagonal lane geometry
         for( const auto& segment : segments.segments )
@@ -835,6 +870,226 @@ void Analysis::lanes()
             renderCurve( m_arr, curve, EdgeMask::eLane, EdgeMask::eLane );
             renderExtrudedCurve( m_arr, curve, octogonInner, EdgeMask::eLaneInner, EdgeMask::eLaneInnerBoundary );
             renderExtrudedCurve( m_arr, curve, octogonOuter, EdgeMask::eLaneOuter, EdgeMask::eLaneOuterBoundary );
+        }
+    }
+
+    // generate pavements
+    {
+        HalfEdgeSet doorSteps;
+        getEdges( m_arr, doorSteps, []( HalfEdge e ) { return test( e, EdgeMask::eDoorStep ); } );
+
+        Component::Vector                               pavementComponents;
+        static constexpr std::array< ExtrusionSpec, 2 > extrusions
+            = { ExtrusionSpec{ 5, EdgeMask::ePavementInnerBoundary, EdgeMask::ePavementInner },
+                ExtrusionSpec{ 5.25, EdgeMask::ePavementOuterBoundary, EdgeMask::ePavementOuter } };
+        generateLaneExtrusion(
+            m_arr, m_floors, doorSteps, extrusions,
+            []( Partition* pLeft, Partition* pRight ) { return pLeft->bHasPavement && pRight->bHasPavement; },
+            []( Partition* pPartition ) { return pPartition->bHasPavement; }, pavementComponents,
+            { EdgeMask::ePavementInner, EdgeMask::ePavementOuter } );
+    }
+
+    // calculate the actual partition subdivisions
+    {
+        FaceVector laneInnerFaces;
+        {
+            FaceSet     laneInnerStartFaces;
+            HalfEdgeSet laneInnerEdges;
+            getEdges(
+                m_arr, laneInnerEdges, []( Analysis::HalfEdge edge ) { return test( edge, EdgeMask::eLaneInner ); } );
+            for( auto e : laneInnerEdges )
+            {
+                laneInnerStartFaces.insert( e->face() );
+            }
+            getSortedFaces< HalfEdge, Face >( laneInnerStartFaces, laneInnerFaces,
+                                              [ &laneInnerEdges ]( HalfEdge e )
+                                              { return !laneInnerEdges.contains( e ); } );
+        }
+
+        FaceVector laneOuterFaces;
+        {
+            FaceSet     laneOuterStartFaces;
+            HalfEdgeSet laneOuterEdges;
+            getEdges(
+                m_arr, laneOuterEdges, []( Analysis::HalfEdge edge ) { return test( edge, EdgeMask::eLaneOuter ); } );
+            for( auto e : laneOuterEdges )
+            {
+                laneOuterStartFaces.insert( e->face() );
+            }
+            getSortedFaces< HalfEdge, Face >( laneOuterStartFaces, laneOuterFaces,
+                                              [ &laneOuterEdges ]( HalfEdge e )
+                                              { return !laneOuterEdges.contains( e ); } );
+        }
+
+        FaceVector pavementInnerFaces;
+        {
+            FaceSet     pavementInnerStartFaces;
+            HalfEdgeSet pavementInnerEdges;
+            getEdges( m_arr, pavementInnerEdges,
+                      []( Analysis::HalfEdge edge ) { return test( edge, EdgeMask::ePavementInner ); } );
+            for( auto e : pavementInnerEdges )
+            {
+                pavementInnerStartFaces.insert( e->face() );
+            }
+            getSortedFaces< HalfEdge, Face >( pavementInnerStartFaces, pavementInnerFaces,
+                                              [ &pavementInnerEdges ]( HalfEdge e )
+                                              { return !pavementInnerEdges.contains( e ); } );
+        }
+
+        FaceVector pavementOuterFaces;
+        {
+            FaceSet     pavementOuterStartFaces;
+            HalfEdgeSet pavementOuterEdges;
+            getEdges( m_arr, pavementOuterEdges,
+                      []( Analysis::HalfEdge edge ) { return test( edge, EdgeMask::ePavementOuter ); } );
+            for( auto e : pavementOuterEdges )
+            {
+                pavementOuterStartFaces.insert( e->face() );
+            }
+            getSortedFaces< HalfEdge, Face >( pavementOuterStartFaces, pavementOuterFaces,
+                                              [ &pavementOuterEdges ]( HalfEdge e )
+                                              { return !pavementOuterEdges.contains( e ); } );
+        }
+
+        // like Analysis::getFloorPartitions but DO NOT USE doorsteps in allUsedDoorSteps
+        using NodePtr    = typename PolygonNode::Ptr;
+        using NodeVector = std::vector< NodePtr >;
+        NodeVector nodes;
+        {
+            HalfEdgeVectorVector floorPolygons;
+            {
+                HalfEdgeSet partitionFloorEdges;
+                getEdges( m_arr, partitionFloorEdges,
+                          []( HalfEdge edge ) { return test( edge, EdgeMask::ePartitionFloor ); } );
+                getPolygonsDir( partitionFloorEdges, floorPolygons, true );
+            }
+            for( auto& poly : floorPolygons )
+            {
+                nodes.push_back( std::make_shared< PolygonNode >( poly ) );
+            }
+        }
+
+        auto rootNodes = sortPolygonNodes< HalfEdge, Face >( nodes );
+        INVARIANT( rootNodes.size() == 1, "sortPolygonNodes did not find singular root node" );
+
+        using PartitionFaceMap = std::map< Partition*, FaceVector >;
+        PartitionFaceMap partitionFaces;
+        {
+            struct Visitor
+            {
+                PartitionFaceMap& partitionFaces;
+
+                void floor( NodePtr pNode )
+                {
+                    FaceVector faces = pNode->faces();
+
+                    for( auto pContained : pNode->contained() )
+                    {
+                        FaceVector diff;
+                        std::set_difference( faces.begin(), faces.end(), pContained->faces().begin(),
+                                             pContained->faces().end(), std::back_inserter( diff ) );
+                        faces.swap( diff );
+                    }
+
+                    INVARIANT( !faces.empty(), "No faces in partition" );
+                    Face       f          = faces.front();
+                    Partition* pPartition = f->data().pPartition;
+                    INVARIANT( pPartition, "Face has no partition" );
+                    auto ib = partitionFaces.insert( { pPartition, faces } );
+                    INVARIANT( ib.second, "Found duplicate partitions" );
+
+                    for( auto pContained : pNode->contained() )
+                    {
+                        for( auto pFloor : pContained->contained() )
+                        {
+                            floor( pFloor );
+                        }
+                    }
+                }
+
+            } visitor( partitionFaces );
+            for( auto n : rootNodes )
+            {
+                visitor.floor( n );
+            }
+        }
+
+        for( auto& pPartition : m_floors )
+        {
+            auto iFind = partitionFaces.find( pPartition.get() );
+            INVARIANT( iFind != partitionFaces.end(), "Parition missing faces" );
+
+            FaceVector partitionFacesRemaining = iFind->second;
+            auto       calculateRemaining      = [ &partitionFacesRemaining ]( const FaceVector& used )
+            {
+                FaceVector remaining;
+                std::set_difference( partitionFacesRemaining.begin(), partitionFacesRemaining.end(), used.begin(),
+                                     used.end(), std::back_inserter( remaining ) );
+                partitionFacesRemaining.swap( remaining );
+            };
+
+            // determine the laneInnerFaces for this partition
+            {
+                FaceVector partitionLaneInnerFaces;
+                std::set_intersection( partitionFacesRemaining.begin(), partitionFacesRemaining.end(),
+                                       laneInnerFaces.begin(), laneInnerFaces.end(),
+                                       std::back_inserter( partitionLaneInnerFaces ) );
+                calculateRemaining( partitionLaneInnerFaces );
+
+                HalfEdgeVector boundary;
+                getFacesBoundary( partitionLaneInnerFaces, boundary );
+                for( auto e : boundary )
+                {
+                    classify( e, EdgeMask::eLaneInnerActual );
+                }
+            }
+
+            // determine the laneOuterFaces for this partition
+            {
+                FaceVector partitionLaneOuterFaces;
+                FaceVector partitionLaneOuterFacesTemp;
+                std::set_intersection( partitionFacesRemaining.begin(), partitionFacesRemaining.end(),
+                                       laneOuterFaces.begin(), laneOuterFaces.end(),
+                                       std::back_inserter( partitionLaneOuterFaces ) );
+                calculateRemaining( partitionLaneOuterFaces );
+
+                HalfEdgeVector boundary;
+                getFacesBoundary( partitionLaneOuterFaces, boundary );
+                for( auto e : boundary )
+                {
+                    classify( e, EdgeMask::eLaneOuterActual );
+                }
+            }
+
+            {
+                FaceVector partitionPavementInnerFaces;
+                std::set_intersection( partitionFacesRemaining.begin(), partitionFacesRemaining.end(),
+                                       pavementInnerFaces.begin(), pavementInnerFaces.end(),
+                                       std::back_inserter( partitionPavementInnerFaces ) );
+                calculateRemaining( partitionPavementInnerFaces );
+
+                HalfEdgeVector boundary;
+                getFacesBoundary( partitionPavementInnerFaces, boundary );
+                for( auto e : boundary )
+                {
+                    classify( e, EdgeMask::ePavementInnerActual );
+                }
+            }
+
+            {
+                FaceVector partitionPavementOuterFaces;
+                std::set_intersection( partitionFacesRemaining.begin(), partitionFacesRemaining.end(),
+                                       pavementOuterFaces.begin(), pavementOuterFaces.end(),
+                                       std::back_inserter( partitionPavementOuterFaces ) );
+                calculateRemaining( partitionPavementOuterFaces );
+
+                HalfEdgeVector boundary;
+                getFacesBoundary( partitionPavementOuterFaces, boundary );
+                for( auto e : boundary )
+                {
+                    classify( e, EdgeMask::ePavementOuterActual );
+                }
+            }
         }
     }
 }

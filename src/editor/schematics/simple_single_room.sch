@@ -64,7 +64,7 @@ Schematic(base;,0)
             transform(1,0,80,0,1,90)
             Contour(contour;,0)
             {
-                path(-16,-16,16,-16,16,16,-16,16)
+                path(-16,-16,24,-16,24,16,-16,16)
             }
             Property(width;,1)
             {
@@ -80,10 +80,30 @@ Schematic(base;,0)
             }
             Pin(pin__0003;,3)
             {
-                position(2,4)
+                position(-10,11)
                 Property(lanes;,0)
                 {
                     value(Pavement;)
+                }
+            }
+            Space(space_0004;,4)
+            {
+                transform(1,0,6,0,1,-6)
+                Contour(contour;,0)
+                {
+                    path(14,0,14,16,0,16,0,0)
+                }
+                Property(width;,1)
+                {
+                    value(0.25f;)
+                }
+                Connection(conn_0002;,2)
+                {
+                    transform(1,0,7,0,1,0)
+                    Point(width;,0)
+                    {
+                        position(3.5,4)
+                    }
                 }
             }
         }
@@ -108,10 +128,30 @@ Schematic(base;,0)
             }
             Pin(pin__0003;,3)
             {
-                position(8,9)
+                position(-13,12)
                 Property(lanes;,0)
                 {
                     value(Gutter;)
+                }
+            }
+            Space(spac_0004;,4)
+            {
+                transform(1,0,-5,0,1,-2)
+                Contour(contour;,0)
+                {
+                    path(13,0,13,9,2,9,2,0)
+                }
+                Property(width;,1)
+                {
+                    value(0.25f;)
+                }
+                Connection(conn_0002;,2)
+                {
+                    transform(1,0,8,0,1,0)
+                    Point(width;,0)
+                    {
+                        position(2.5,2)
+                    }
                 }
             }
         }
