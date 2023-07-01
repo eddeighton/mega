@@ -755,7 +755,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
                 laneFloorPolys.push_back( fbMeshFloor );
 
                 fb::Offset< Mega::Mesh > fbMeshCover
-                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eHole, polyWithHoles, builder );
+                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
                 laneCoverPolys.push_back( fbMeshCover );
 
                 fb::Offset< Mega::Mesh > fbWallOuter = buildVerticalMesh(
