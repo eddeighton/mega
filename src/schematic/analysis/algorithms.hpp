@@ -143,7 +143,35 @@ inline void getSortedFaces( std::set< FaceType >& startFaces, std::vector< FaceT
     getSortedFaces< HalfEdgeType, FaceType >(
         startFaces, result, [ &boundary ]( HalfEdgeType edge ) { return !boundary.contains( edge ); } );
 }
-
+/*
+template < typename HalfEdgeType, typename FaceType >
+inline std::vector< HalfEdgeType > orderPolygon( const std::vector< HalfEdgeType >& polygon, bool ccw )
+{
+    bool bIsCounterClockwise = true;
+    {
+        INVARIANT( polygon.size() > 2, "Degenerate polygon in getSortedFacesInsidePolygon" );
+        INVARIANT( polygon.front()->source() == polygon.back()->target(),
+                   "Non closed polygon in getSortedFacesInsidePolygon" );
+        exact::Polygon poly;
+        for( auto e : polygon )
+        {
+            poly.push_back( e->source()->point() );
+        }
+        INVARIANT( poly.is_simple(), "Non-simple polygon passed to getSortedFacesInsidePolygon" );
+        bIsCounterClockwise = poly.is_counterclockwise_oriented();
+    }
+    std::vector< HalfEdgeType > temp = polygon;
+    if( ccw != bIsCounterClockwise )
+    {
+        for( auto e : polygon )
+        {
+            temp.push_back( e->twin() );
+        }
+        std::reverse( temp.begin(), temp.end() );
+    }
+    return temp;
+}
+*/
 template < typename HalfEdgeType, typename FaceType >
 inline bool getSortedFacesInsidePolygon( const std::vector< HalfEdgeType >& polygon, std::vector< FaceType >& result )
 {

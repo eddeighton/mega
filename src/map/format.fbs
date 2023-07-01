@@ -211,18 +211,16 @@ table Room
     parent:Area;
     contour:Polygon;
 
-    floors:[Mesh];
+    roads:[Mesh];
     pavements:[Mesh];
-    linings:[Mesh];
+    pavement_linings:[Mesh];
+    lane_linings:[Mesh];
+
+    lane_floors:[Mesh];
+    lane_covers:[Mesh];
+    lane_walls:[Mesh];
 
     objects:[Object];
-}
-
-table Lane
-{
-    walls:[Mesh];
-    floors:[Mesh];
-    roofs:[Mesh];
 }
 
 table Map
@@ -231,12 +229,6 @@ table Map
     root_area:Area;
     rooms:[Room];
     boundaries:[Boundary];
-
-    lane_network_exterior:Lane;
-    lane_network_interior:Lane;
-    lane_large_track:Lane;
-    lane_small_track:Lane;
-    lane_systems:Lane;
 }
 
 root_type Map;

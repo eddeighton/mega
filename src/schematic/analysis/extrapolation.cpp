@@ -28,66 +28,179 @@ namespace exact
 
 Analysis::Room::Vector Analysis::getRooms()
 {
-    using NodePtr    = typename exact::PolygonNodeCst::Ptr;
+    enum NodeType
+    {
+        eNodeLaneSpace,
+        eNodeLaneLining,
+        eNodePavementSpace,
+        eNodePavementLining,
+        eNodeRoad,
+        TOTAL_NODE_TYPES
+    };
+    using Node       = exact::PolygonNodeT< HalfEdgeCst, FaceCst, NodeType >;
+    using NodePtr    = typename Node::Ptr;
     using NodeVector = std::vector< NodePtr >;
     NodeVector nodes;
     {
-        VertexCstVector doorStepVertices;
         {
-            HalfEdgeCstSet doorSteps;
-            getEdges( m_arr, doorSteps, []( HalfEdgeCst edge ) { return test( edge, EdgeMask::eDoorStep ); } );
-            for( auto d : doorSteps )
+            HalfEdgeCstVectorVector polygons;
+            HalfEdgeCstSet          edges;
+            getEdges( m_arr, edges, []( HalfEdgeCst edge ) { return test( edge, EdgeMask::eLaneSpace ); } );
+            getPolygonsDir( edges, polygons, true );
+            for( auto& poly : polygons )
             {
-                doorStepVertices.push_back( d->source() );
+                nodes.push_back( std::make_shared< Node >( eNodeLaneSpace, poly ) );
             }
         }
-
-        // test( edge, EdgeMask::eDoorStep ) ||
-        // test( edge, EdgeMask::eLaneOuter ) ||
-        // test( edge, EdgeMask::ePavementInner ) ||
-        // test( edge, EdgeMask::ePavementOuter );
-
-        // HalfEdgeCstVectorVector polygons;
-        // searchPolygons( doorStepVertices, edges, true, polygons );
-        //
-        // for( auto& poly : polygons )
-        //{
-        //    nodes.push_back( std::make_shared< PolygonNode >( poly ) );
-        //}
+        {
+            HalfEdgeCstVectorVector polygons;
+            HalfEdgeCstSet          edges;
+            getEdges( m_arr, edges, []( HalfEdgeCst edge ) { return test( edge, EdgeMask::eLaneLining ); } );
+            getPolygonsDir( edges, polygons, true );
+            for( auto& poly : polygons )
+            {
+                nodes.push_back( std::make_shared< Node >( eNodeLaneLining, poly ) );
+            }
+        }
+        {
+            HalfEdgeCstVectorVector polygons;
+            HalfEdgeCstSet          edges;
+            getEdges( m_arr, edges, []( HalfEdgeCst edge ) { return test( edge, EdgeMask::ePavementSpace ); } );
+            getPolygonsDir( edges, polygons, true );
+            for( auto& poly : polygons )
+            {
+                nodes.push_back( std::make_shared< Node >( eNodePavementSpace, poly ) );
+            }
+        }
+        {
+            HalfEdgeCstVectorVector polygons;
+            HalfEdgeCstSet          edges;
+            getEdges( m_arr, edges, []( HalfEdgeCst edge ) { return test( edge, EdgeMask::ePavementLining ); } );
+            getPolygonsDir( edges, polygons, true );
+            for( auto& poly : polygons )
+            {
+                nodes.push_back( std::make_shared< Node >( eNodePavementLining, poly ) );
+            }
+        }
+        {
+            HalfEdgeCstVectorVector polygons;
+            HalfEdgeCstSet          edges;
+            getEdges( m_arr, edges, []( HalfEdgeCst edge ) { return test( edge, EdgeMask::eRoad ); } );
+            getPolygonsDir( edges, polygons, true );
+            for( auto& poly : polygons )
+            {
+                nodes.push_back( std::make_shared< Node >( eNodeRoad, poly ) );
+            }
+        }
     }
 
-    auto rootNodes = sortPolygonNodes< HalfEdgeCst, FaceCst >( nodes );
-    INVARIANT( rootNodes.size() == 1, "getFloorPartitions did not find singular root node" );
+    auto rootNodes = sortPolygonNodes< HalfEdgeCst, FaceCst, NodeType >( nodes );
+    INVARIANT( rootNodes.size() == 1, "getRooms did not find singular root node" );
 
-    /*struct Visitor
+    using PartitionRoomMap = std::map< Partition*, Room >;
+    PartitionRoomMap roomMap;
+
+    struct Visitor
     {
-        std::map< const Analysis::Partition*, Analysis::HalfEdgeCstPolygonWithHoles >& floors;
+        PartitionRoomMap& roomMap;
 
-        void floor( const PolygonNode& node )
+        void visit( NodePtr pNode )
         {
-            auto e          = node.polygon().front();
-            auto pPartition = e->data().pPartition;
-            INVARIANT( pPartition, "Floor edge missing partition" );
-            INVARIANT( pPartition->pSite, "Floor partition missing site" );
-            INVARIANT( node.face(), "Floor is not a face" );
-
-            HalfEdgeCstPolygonWithHoles polyWithHoles;
-            polyWithHoles.outer = node.polygon();
-
-            for( auto pContour : node.contained() )
+            if( pNode->face() )
             {
-                INVARIANT( !pContour->face(), "Hole is a face" );
-                polyWithHoles.holes.push_back( pContour->polygon() );
-                for( auto pInner : pContour->contained() )
+                auto edge       = pNode->polygon().front();
+                auto pPartition = edge->data().pPartition;
+                INVARIANT( pPartition, "getRooms Floor edge missing partition" );
+
+                Room& room      = roomMap[ pPartition ];
+                room.pPartition = pPartition;
+
+                INVARIANT( room.pPartition->pSite, "Floor partition missing site" );
+
+                switch( pNode->type() )
                 {
-                    floor( *pInner );
+                    case eNodeLaneSpace:
+                    {
+                        HalfEdgeCstPolygonWithHoles lane;
+                        lane.outer = pNode->polygon();
+                        for( auto pContour : pNode->contained() )
+                        {
+                            lane.holes.push_back( pContour->polygon() );
+                        }
+                        room.lanes.push_back( lane );
+                    }
+                    break;
+                    case eNodeLaneLining:
+                    {
+                        HalfEdgeCstPolygonWithHoles laneLining;
+                        laneLining.outer = pNode->polygon();
+                        for( auto pContour : pNode->contained() )
+                        {
+                            laneLining.holes.push_back( pContour->polygon() );
+                        }
+                        room.laneLinings.push_back( laneLining );
+                    }
+                    break;
+                    case eNodePavementSpace:
+                    {
+                        HalfEdgeCstPolygonWithHoles pavement;
+                        pavement.outer = pNode->polygon();
+                        for( auto pContour : pNode->contained() )
+                        {
+                            pavement.holes.push_back( pContour->polygon() );
+                        }
+                        room.pavements.push_back( pavement );
+                    }
+                    break;
+                    case eNodePavementLining:
+                    {
+                        HalfEdgeCstPolygonWithHoles pavementLining;
+                        pavementLining.outer = pNode->polygon();
+                        for( auto pContour : pNode->contained() )
+                        {
+                            pavementLining.holes.push_back( pContour->polygon() );
+                        }
+                        room.pavementLinings.push_back( pavementLining );
+                    }
+                    break;
+                    case eNodeRoad:
+                    {
+                        HalfEdgeCstPolygonWithHoles road;
+                        road.outer = pNode->polygon();
+                        for( auto pContour : pNode->contained() )
+                        {
+                            road.holes.push_back( pContour->polygon() );
+                        }
+                        room.roads.push_back( road );
+                    }
+                    break;
+                    case TOTAL_NODE_TYPES:
+                    default:
+                    {
+                        INVARIANT( false, "Unknown node type" );
+                    }
+                    break;
                 }
             }
-            floors.insert( { pPartition, polyWithHoles } );
+
+            for( auto pContour : pNode->contained() )
+            {
+                visit( pContour );
+            }
         }
-    } visitor{ floors };
-*/
+    } visitor{ roomMap };
+
+    for( auto r : rootNodes )
+    {
+        INVARIANT( r->face(), "Root node is not a face" );
+        visitor.visit( r );
+    }
+
     Analysis::Room::Vector rooms;
+    for( auto& [ pPartition, room ] : roomMap )
+    {
+        rooms.emplace_back( room );
+    }
     return rooms;
 }
 

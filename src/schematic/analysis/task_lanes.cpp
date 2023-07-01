@@ -629,7 +629,7 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
             }
         }
 
-        auto rootNodes = sortPolygonNodes< Analysis::HalfEdge, Analysis::Face >( nodes );
+        auto rootNodes = sortPolygonNodes< Analysis::HalfEdge, Analysis::Face, char >( nodes );
         INVARIANT( rootNodes.size() == 1, "getFloorPartitions did not find singular root node" );
 
         struct Visitor
@@ -969,7 +969,7 @@ void Analysis::lanes()
             }
         }
 
-        auto rootNodes = sortPolygonNodes< HalfEdge, Face >( nodes );
+        auto rootNodes = sortPolygonNodes< HalfEdge, Face, char >( nodes );
         INVARIANT( rootNodes.size() == 1, "sortPolygonNodes did not find singular root node" );
 
         using PartitionFaceMap = std::map< Partition*, FaceVector >;
@@ -1040,7 +1040,8 @@ void Analysis::lanes()
                 getFacesBoundary( partitionLaneInnerFaces, boundary );
                 for( auto e : boundary )
                 {
-                    classify( e, EdgeMask::eLaneInnerActual );
+                    classify( e, EdgeMask::eLaneSpace );
+                    e->data().pPartition = pPartition.get();
                 }
             }
 
@@ -1057,7 +1058,8 @@ void Analysis::lanes()
                 getFacesBoundary( partitionLaneOuterFaces, boundary );
                 for( auto e : boundary )
                 {
-                    classify( e, EdgeMask::eLaneOuterActual );
+                    classify( e, EdgeMask::eLaneLining );
+                    e->data().pPartition = pPartition.get();
                 }
             }
 
@@ -1072,7 +1074,8 @@ void Analysis::lanes()
                 getFacesBoundary( partitionPavementInnerFaces, boundary );
                 for( auto e : boundary )
                 {
-                    classify( e, EdgeMask::ePavementInnerActual );
+                    classify( e, EdgeMask::ePavementSpace );
+                    e->data().pPartition = pPartition.get();
                 }
             }
 
@@ -1087,7 +1090,19 @@ void Analysis::lanes()
                 getFacesBoundary( partitionPavementOuterFaces, boundary );
                 for( auto e : boundary )
                 {
-                    classify( e, EdgeMask::ePavementOuterActual );
+                    classify( e, EdgeMask::ePavementLining );
+                    e->data().pPartition = pPartition.get();
+                }
+            }
+
+            // everything left is road
+            {
+                HalfEdgeVector boundary;
+                getFacesBoundary( partitionFacesRemaining, boundary );
+                for( auto e : boundary )
+                {
+                    classify( e, EdgeMask::eRoad );
+                    e->data().pPartition = pPartition.get();
                 }
             }
         }

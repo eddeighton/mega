@@ -87,9 +87,6 @@ struct ObjectBuilder;
 struct Room;
 struct RoomBuilder;
 
-struct Lane;
-struct LaneBuilder;
-
 struct Map;
 struct MapBuilder;
 
@@ -1622,10 +1619,14 @@ struct Room FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_PROPERTIES = 6,
     VT_PARENT = 8,
     VT_CONTOUR = 10,
-    VT_FLOORS = 12,
+    VT_ROADS = 12,
     VT_PAVEMENTS = 14,
-    VT_LININGS = 16,
-    VT_OBJECTS = 18
+    VT_PAVEMENT_LININGS = 16,
+    VT_LANE_LININGS = 18,
+    VT_LANE_FLOORS = 20,
+    VT_LANE_COVERS = 22,
+    VT_LANE_WALLS = 24,
+    VT_OBJECTS = 26
   };
   const Mega::Type *type() const {
     return GetStruct<const Mega::Type *>(VT_TYPE);
@@ -1639,14 +1640,26 @@ struct Room FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const Mega::Polygon *contour() const {
     return GetPointer<const Mega::Polygon *>(VT_CONTOUR);
   }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *floors() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_FLOORS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *roads() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_ROADS);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *pavements() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_PAVEMENTS);
   }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *linings() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_LININGS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *pavement_linings() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_PAVEMENT_LININGS);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *lane_linings() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_LANE_LININGS);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *lane_floors() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_LANE_FLOORS);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *lane_covers() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_LANE_COVERS);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *lane_walls() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_LANE_WALLS);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Object>> *objects() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Object>> *>(VT_OBJECTS);
@@ -1661,15 +1674,27 @@ struct Room FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyTable(parent()) &&
            VerifyOffset(verifier, VT_CONTOUR) &&
            verifier.VerifyTable(contour()) &&
-           VerifyOffset(verifier, VT_FLOORS) &&
-           verifier.VerifyVector(floors()) &&
-           verifier.VerifyVectorOfTables(floors()) &&
+           VerifyOffset(verifier, VT_ROADS) &&
+           verifier.VerifyVector(roads()) &&
+           verifier.VerifyVectorOfTables(roads()) &&
            VerifyOffset(verifier, VT_PAVEMENTS) &&
            verifier.VerifyVector(pavements()) &&
            verifier.VerifyVectorOfTables(pavements()) &&
-           VerifyOffset(verifier, VT_LININGS) &&
-           verifier.VerifyVector(linings()) &&
-           verifier.VerifyVectorOfTables(linings()) &&
+           VerifyOffset(verifier, VT_PAVEMENT_LININGS) &&
+           verifier.VerifyVector(pavement_linings()) &&
+           verifier.VerifyVectorOfTables(pavement_linings()) &&
+           VerifyOffset(verifier, VT_LANE_LININGS) &&
+           verifier.VerifyVector(lane_linings()) &&
+           verifier.VerifyVectorOfTables(lane_linings()) &&
+           VerifyOffset(verifier, VT_LANE_FLOORS) &&
+           verifier.VerifyVector(lane_floors()) &&
+           verifier.VerifyVectorOfTables(lane_floors()) &&
+           VerifyOffset(verifier, VT_LANE_COVERS) &&
+           verifier.VerifyVector(lane_covers()) &&
+           verifier.VerifyVectorOfTables(lane_covers()) &&
+           VerifyOffset(verifier, VT_LANE_WALLS) &&
+           verifier.VerifyVector(lane_walls()) &&
+           verifier.VerifyVectorOfTables(lane_walls()) &&
            VerifyOffset(verifier, VT_OBJECTS) &&
            verifier.VerifyVector(objects()) &&
            verifier.VerifyVectorOfTables(objects()) &&
@@ -1693,14 +1718,26 @@ struct RoomBuilder {
   void add_contour(::flatbuffers::Offset<Mega::Polygon> contour) {
     fbb_.AddOffset(Room::VT_CONTOUR, contour);
   }
-  void add_floors(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> floors) {
-    fbb_.AddOffset(Room::VT_FLOORS, floors);
+  void add_roads(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> roads) {
+    fbb_.AddOffset(Room::VT_ROADS, roads);
   }
   void add_pavements(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> pavements) {
     fbb_.AddOffset(Room::VT_PAVEMENTS, pavements);
   }
-  void add_linings(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> linings) {
-    fbb_.AddOffset(Room::VT_LININGS, linings);
+  void add_pavement_linings(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> pavement_linings) {
+    fbb_.AddOffset(Room::VT_PAVEMENT_LININGS, pavement_linings);
+  }
+  void add_lane_linings(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> lane_linings) {
+    fbb_.AddOffset(Room::VT_LANE_LININGS, lane_linings);
+  }
+  void add_lane_floors(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> lane_floors) {
+    fbb_.AddOffset(Room::VT_LANE_FLOORS, lane_floors);
+  }
+  void add_lane_covers(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> lane_covers) {
+    fbb_.AddOffset(Room::VT_LANE_COVERS, lane_covers);
+  }
+  void add_lane_walls(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> lane_walls) {
+    fbb_.AddOffset(Room::VT_LANE_WALLS, lane_walls);
   }
   void add_objects(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Object>>> objects) {
     fbb_.AddOffset(Room::VT_OBJECTS, objects);
@@ -1722,15 +1759,23 @@ inline ::flatbuffers::Offset<Room> CreateRoom(
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Properties>>> properties = 0,
     ::flatbuffers::Offset<Mega::Area> parent = 0,
     ::flatbuffers::Offset<Mega::Polygon> contour = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> floors = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> roads = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> pavements = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> linings = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> pavement_linings = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> lane_linings = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> lane_floors = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> lane_covers = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> lane_walls = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Object>>> objects = 0) {
   RoomBuilder builder_(_fbb);
   builder_.add_objects(objects);
-  builder_.add_linings(linings);
+  builder_.add_lane_walls(lane_walls);
+  builder_.add_lane_covers(lane_covers);
+  builder_.add_lane_floors(lane_floors);
+  builder_.add_lane_linings(lane_linings);
+  builder_.add_pavement_linings(pavement_linings);
   builder_.add_pavements(pavements);
-  builder_.add_floors(floors);
+  builder_.add_roads(roads);
   builder_.add_contour(contour);
   builder_.add_parent(parent);
   builder_.add_properties(properties);
@@ -1744,14 +1789,22 @@ inline ::flatbuffers::Offset<Room> CreateRoomDirect(
     const std::vector<::flatbuffers::Offset<Mega::Properties>> *properties = nullptr,
     ::flatbuffers::Offset<Mega::Area> parent = 0,
     ::flatbuffers::Offset<Mega::Polygon> contour = 0,
-    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *floors = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *roads = nullptr,
     const std::vector<::flatbuffers::Offset<Mega::Mesh>> *pavements = nullptr,
-    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *linings = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *pavement_linings = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *lane_linings = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *lane_floors = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *lane_covers = nullptr,
+    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *lane_walls = nullptr,
     const std::vector<::flatbuffers::Offset<Mega::Object>> *objects = nullptr) {
   auto properties__ = properties ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Properties>>(*properties) : 0;
-  auto floors__ = floors ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*floors) : 0;
+  auto roads__ = roads ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*roads) : 0;
   auto pavements__ = pavements ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*pavements) : 0;
-  auto linings__ = linings ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*linings) : 0;
+  auto pavement_linings__ = pavement_linings ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*pavement_linings) : 0;
+  auto lane_linings__ = lane_linings ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*lane_linings) : 0;
+  auto lane_floors__ = lane_floors ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*lane_floors) : 0;
+  auto lane_covers__ = lane_covers ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*lane_covers) : 0;
+  auto lane_walls__ = lane_walls ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*lane_walls) : 0;
   auto objects__ = objects ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Object>>(*objects) : 0;
   return Mega::CreateRoom(
       _fbb,
@@ -1759,92 +1812,14 @@ inline ::flatbuffers::Offset<Room> CreateRoomDirect(
       properties__,
       parent,
       contour,
-      floors__,
+      roads__,
       pavements__,
-      linings__,
+      pavement_linings__,
+      lane_linings__,
+      lane_floors__,
+      lane_covers__,
+      lane_walls__,
       objects__);
-}
-
-struct Lane FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef LaneBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_WALLS = 4,
-    VT_FLOORS = 6,
-    VT_ROOFS = 8
-  };
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *walls() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_WALLS);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *floors() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_FLOORS);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *roofs() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>> *>(VT_ROOFS);
-  }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_WALLS) &&
-           verifier.VerifyVector(walls()) &&
-           verifier.VerifyVectorOfTables(walls()) &&
-           VerifyOffset(verifier, VT_FLOORS) &&
-           verifier.VerifyVector(floors()) &&
-           verifier.VerifyVectorOfTables(floors()) &&
-           VerifyOffset(verifier, VT_ROOFS) &&
-           verifier.VerifyVector(roofs()) &&
-           verifier.VerifyVectorOfTables(roofs()) &&
-           verifier.EndTable();
-  }
-};
-
-struct LaneBuilder {
-  typedef Lane Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
-  ::flatbuffers::uoffset_t start_;
-  void add_walls(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> walls) {
-    fbb_.AddOffset(Lane::VT_WALLS, walls);
-  }
-  void add_floors(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> floors) {
-    fbb_.AddOffset(Lane::VT_FLOORS, floors);
-  }
-  void add_roofs(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> roofs) {
-    fbb_.AddOffset(Lane::VT_ROOFS, roofs);
-  }
-  explicit LaneBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  ::flatbuffers::Offset<Lane> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<Lane>(end);
-    return o;
-  }
-};
-
-inline ::flatbuffers::Offset<Lane> CreateLane(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> walls = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> floors = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Mesh>>> roofs = 0) {
-  LaneBuilder builder_(_fbb);
-  builder_.add_roofs(roofs);
-  builder_.add_floors(floors);
-  builder_.add_walls(walls);
-  return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<Lane> CreateLaneDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *walls = nullptr,
-    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *floors = nullptr,
-    const std::vector<::flatbuffers::Offset<Mega::Mesh>> *roofs = nullptr) {
-  auto walls__ = walls ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*walls) : 0;
-  auto floors__ = floors ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*floors) : 0;
-  auto roofs__ = roofs ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Mesh>>(*roofs) : 0;
-  return Mega::CreateLane(
-      _fbb,
-      walls__,
-      floors__,
-      roofs__);
 }
 
 struct Map FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -1853,12 +1828,7 @@ struct Map FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_CONTOUR = 4,
     VT_ROOT_AREA = 6,
     VT_ROOMS = 8,
-    VT_BOUNDARIES = 10,
-    VT_LANE_NETWORK_EXTERIOR = 12,
-    VT_LANE_NETWORK_INTERIOR = 14,
-    VT_LANE_LARGE_TRACK = 16,
-    VT_LANE_SMALL_TRACK = 18,
-    VT_LANE_SYSTEMS = 20
+    VT_BOUNDARIES = 10
   };
   const Mega::Polygon *contour() const {
     return GetPointer<const Mega::Polygon *>(VT_CONTOUR);
@@ -1872,21 +1842,6 @@ struct Map FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Boundary>> *boundaries() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Boundary>> *>(VT_BOUNDARIES);
   }
-  const Mega::Lane *lane_network_exterior() const {
-    return GetPointer<const Mega::Lane *>(VT_LANE_NETWORK_EXTERIOR);
-  }
-  const Mega::Lane *lane_network_interior() const {
-    return GetPointer<const Mega::Lane *>(VT_LANE_NETWORK_INTERIOR);
-  }
-  const Mega::Lane *lane_large_track() const {
-    return GetPointer<const Mega::Lane *>(VT_LANE_LARGE_TRACK);
-  }
-  const Mega::Lane *lane_small_track() const {
-    return GetPointer<const Mega::Lane *>(VT_LANE_SMALL_TRACK);
-  }
-  const Mega::Lane *lane_systems() const {
-    return GetPointer<const Mega::Lane *>(VT_LANE_SYSTEMS);
-  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_CONTOUR) &&
@@ -1899,16 +1854,6 @@ struct Map FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_BOUNDARIES) &&
            verifier.VerifyVector(boundaries()) &&
            verifier.VerifyVectorOfTables(boundaries()) &&
-           VerifyOffset(verifier, VT_LANE_NETWORK_EXTERIOR) &&
-           verifier.VerifyTable(lane_network_exterior()) &&
-           VerifyOffset(verifier, VT_LANE_NETWORK_INTERIOR) &&
-           verifier.VerifyTable(lane_network_interior()) &&
-           VerifyOffset(verifier, VT_LANE_LARGE_TRACK) &&
-           verifier.VerifyTable(lane_large_track()) &&
-           VerifyOffset(verifier, VT_LANE_SMALL_TRACK) &&
-           verifier.VerifyTable(lane_small_track()) &&
-           VerifyOffset(verifier, VT_LANE_SYSTEMS) &&
-           verifier.VerifyTable(lane_systems()) &&
            verifier.EndTable();
   }
 };
@@ -1929,21 +1874,6 @@ struct MapBuilder {
   void add_boundaries(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Boundary>>> boundaries) {
     fbb_.AddOffset(Map::VT_BOUNDARIES, boundaries);
   }
-  void add_lane_network_exterior(::flatbuffers::Offset<Mega::Lane> lane_network_exterior) {
-    fbb_.AddOffset(Map::VT_LANE_NETWORK_EXTERIOR, lane_network_exterior);
-  }
-  void add_lane_network_interior(::flatbuffers::Offset<Mega::Lane> lane_network_interior) {
-    fbb_.AddOffset(Map::VT_LANE_NETWORK_INTERIOR, lane_network_interior);
-  }
-  void add_lane_large_track(::flatbuffers::Offset<Mega::Lane> lane_large_track) {
-    fbb_.AddOffset(Map::VT_LANE_LARGE_TRACK, lane_large_track);
-  }
-  void add_lane_small_track(::flatbuffers::Offset<Mega::Lane> lane_small_track) {
-    fbb_.AddOffset(Map::VT_LANE_SMALL_TRACK, lane_small_track);
-  }
-  void add_lane_systems(::flatbuffers::Offset<Mega::Lane> lane_systems) {
-    fbb_.AddOffset(Map::VT_LANE_SYSTEMS, lane_systems);
-  }
   explicit MapBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1960,18 +1890,8 @@ inline ::flatbuffers::Offset<Map> CreateMap(
     ::flatbuffers::Offset<Mega::Polygon> contour = 0,
     ::flatbuffers::Offset<Mega::Area> root_area = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Room>>> rooms = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Boundary>>> boundaries = 0,
-    ::flatbuffers::Offset<Mega::Lane> lane_network_exterior = 0,
-    ::flatbuffers::Offset<Mega::Lane> lane_network_interior = 0,
-    ::flatbuffers::Offset<Mega::Lane> lane_large_track = 0,
-    ::flatbuffers::Offset<Mega::Lane> lane_small_track = 0,
-    ::flatbuffers::Offset<Mega::Lane> lane_systems = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Boundary>>> boundaries = 0) {
   MapBuilder builder_(_fbb);
-  builder_.add_lane_systems(lane_systems);
-  builder_.add_lane_small_track(lane_small_track);
-  builder_.add_lane_large_track(lane_large_track);
-  builder_.add_lane_network_interior(lane_network_interior);
-  builder_.add_lane_network_exterior(lane_network_exterior);
   builder_.add_boundaries(boundaries);
   builder_.add_rooms(rooms);
   builder_.add_root_area(root_area);
@@ -1984,12 +1904,7 @@ inline ::flatbuffers::Offset<Map> CreateMapDirect(
     ::flatbuffers::Offset<Mega::Polygon> contour = 0,
     ::flatbuffers::Offset<Mega::Area> root_area = 0,
     const std::vector<::flatbuffers::Offset<Mega::Room>> *rooms = nullptr,
-    const std::vector<::flatbuffers::Offset<Mega::Boundary>> *boundaries = nullptr,
-    ::flatbuffers::Offset<Mega::Lane> lane_network_exterior = 0,
-    ::flatbuffers::Offset<Mega::Lane> lane_network_interior = 0,
-    ::flatbuffers::Offset<Mega::Lane> lane_large_track = 0,
-    ::flatbuffers::Offset<Mega::Lane> lane_small_track = 0,
-    ::flatbuffers::Offset<Mega::Lane> lane_systems = 0) {
+    const std::vector<::flatbuffers::Offset<Mega::Boundary>> *boundaries = nullptr) {
   auto rooms__ = rooms ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Room>>(*rooms) : 0;
   auto boundaries__ = boundaries ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Boundary>>(*boundaries) : 0;
   return Mega::CreateMap(
@@ -1997,12 +1912,7 @@ inline ::flatbuffers::Offset<Map> CreateMapDirect(
       contour,
       root_area,
       rooms__,
-      boundaries__,
-      lane_network_exterior,
-      lane_network_interior,
-      lane_large_track,
-      lane_small_track,
-      lane_systems);
+      boundaries__);
 }
 
 inline bool VerifyVariant(::flatbuffers::Verifier &verifier, const void *obj, Variant type) {

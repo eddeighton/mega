@@ -56,7 +56,7 @@ void getFloorPartitions(
 {
     using HalfEdge      = HalfEdgeType;
     using Face          = FaceType;
-    using PolygonNode   = PolygonNodeT< HalfEdgeType, FaceType >;
+    using PolygonNode   = PolygonNodeT< HalfEdgeType, FaceType, bool >;
     using NodePtr       = typename PolygonNode::Ptr;
     using NodeVector    = std::vector< NodePtr >;
     using PolyWithHoles = Analysis::HalfEdgePolygonWithHolesT< HalfEdge >;
@@ -75,7 +75,7 @@ void getFloorPartitions(
         }
     }
 
-    auto rootNodes = sortPolygonNodes< HalfEdge, Face >( nodes );
+    auto rootNodes = sortPolygonNodes< HalfEdge, Face, bool >( nodes );
     INVARIANT( rootNodes.size() == 1, "getFloorPartitions did not find singular root node" );
 
     struct Visitor

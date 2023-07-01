@@ -263,9 +263,13 @@ public:
         };
 
         Partition*                          pPartition;
-        HalfEdgeCstPolygonWithHoles::Vector floors;
+
+        HalfEdgeCstPolygonWithHoles::Vector roads;
         HalfEdgeCstPolygonWithHoles::Vector pavements;
-        HalfEdgeCstPolygonWithHoles::Vector linings;
+        HalfEdgeCstPolygonWithHoles::Vector pavementLinings;
+        HalfEdgeCstPolygonWithHoles::Vector lanes;
+        HalfEdgeCstPolygonWithHoles::Vector laneLinings;
+
         Object::Vector                      objects;
         using Vector = std::vector< Room >;
     };

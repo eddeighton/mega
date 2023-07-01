@@ -442,10 +442,10 @@ std::size_t buildVertex( fb::FlatBufferBuilder&                       builder,
     return szIndex;
 }
 
-fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                                 fbVertMap,
-                                              Mega::Plane                                      plane,
+fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                                    fbVertMap,
+                                              Mega::Plane                                         plane,
                                               const exact::Analysis::HalfEdgeCstPolygonWithHoles& poly,
-                                              fb::FlatBufferBuilder&                           builder )
+                                              fb::FlatBufferBuilder&                              builder )
 {
     Triangulation triangulation;
     {
@@ -583,17 +583,32 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
 
     return meshBuilder.Finish();
 }
-fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                       fbVertMap,
-                                            Mega::Plane                            lower,
-                                            Mega::Plane                            upper,
-                                            const exact::Analysis::HalfEdgeCstVector& edges,
-                                            fb::FlatBufferBuilder&                 builder )
+fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                          fbVertMap,
+                                            Mega::Plane                               lower,
+                                            Mega::Plane                               upper,
+                                            const exact::Analysis::HalfEdgeCstVector& edgesIn,
+                                            fb::FlatBufferBuilder&                    builder,
+                                            bool bReverse )
 {
     std::vector< fb::Offset< Mega::Vertex3D > > vertices;
     std::vector< int >                          indices;
 
     const float fLowerUV = convertVerticalUV( lower );
     const float fUpperUV = convertVerticalUV( upper );
+
+    exact::Analysis::HalfEdgeCstVector edges;
+    if( bReverse )
+    {
+        for( auto e : edgesIn )
+        {
+            edges.push_back( e->twin() );
+        }
+        std::reverse( edges.begin(), edges.end() );
+    }
+    else
+    {
+        edges = edgesIn;
+    }
 
     float fUVDist = 0;
     for( auto e : edges )
@@ -696,56 +711,92 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
         fbMapPolygon = buildPolygon( fbVertMap, perimeter, builder );
     }
 
-/*
-    Analysis::Floor::Vector floors = m_pAnalysis->getFloors();
-
-    std::vector< fb::Offset< Mega::Floor > > fbFloorsVec;
-
-    for( const auto& floor : floors )
+    std::vector< fb::Offset< Mega::Room > > fbRoomsVec;
     {
-        fb::Offset< Mega::Mesh > fbMesh = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, floor.floor, builder );
-
-        auto fbFloorPolygon = buildPolygon( fbVertMap, floor.floor.outer, builder );
-
-        std::vector< fb::Offset< Mega::Mesh > > ex1Polys;
-        for( auto& ex : floor.ex1 )
+        Analysis::Room::Vector rooms = m_pAnalysis->getRooms();
+        for( const auto& room : rooms )
         {
-            ex1Polys.push_back( buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, ex, builder ) );
+            std::vector< fb::Offset< Mega::Mesh > > roadPolys;
+            for( const auto& polyWithHoles : room.roads )
+            {
+                fb::Offset< Mega::Mesh > fbMesh
+                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
+                roadPolys.push_back( fbMesh );
+            }
+            std::vector< fb::Offset< Mega::Mesh > > pavementPolys;
+            for( const auto& polyWithHoles : room.pavements )
+            {
+                fb::Offset< Mega::Mesh > fbMesh
+                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
+                pavementPolys.push_back( fbMesh );
+            }
+            std::vector< fb::Offset< Mega::Mesh > > pavementLiningPolys;
+            for( const auto& polyWithHoles : room.pavementLinings )
+            {
+                fb::Offset< Mega::Mesh > fbMesh
+                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
+                pavementLiningPolys.push_back( fbMesh );
+            }
+            std::vector< fb::Offset< Mega::Mesh > > laneLiningPolys;
+            for( const auto& polyWithHoles : room.laneLinings )
+            {
+                fb::Offset< Mega::Mesh > fbMesh
+                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
+                laneLiningPolys.push_back( fbMesh );
+            }
+
+            std::vector< fb::Offset< Mega::Mesh > > laneFloorPolys;
+            std::vector< fb::Offset< Mega::Mesh > > laneCoverPolys;
+            std::vector< fb::Offset< Mega::Mesh > > laneWallsPolys;
+            for( const auto& polyWithHoles : room.lanes )
+            {
+                fb::Offset< Mega::Mesh > fbMeshFloor
+                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eHole, polyWithHoles, builder );
+                laneFloorPolys.push_back( fbMeshFloor );
+
+                fb::Offset< Mega::Mesh > fbMeshCover
+                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eHole, polyWithHoles, builder );
+                laneCoverPolys.push_back( fbMeshCover );
+
+                fb::Offset< Mega::Mesh > fbWallOuter = buildVerticalMesh(
+                    fbVertMap, Mega::Plane_eHole, Mega::Plane_eGround, polyWithHoles.outer, builder, true );
+                laneWallsPolys.push_back( fbWallOuter );
+
+                for( const auto& hole : polyWithHoles.holes )
+                {
+                    fb::Offset< Mega::Mesh > fbWallHole
+                        = buildVerticalMesh( fbVertMap, Mega::Plane_eHole, Mega::Plane_eGround, hole, builder, true );
+                    laneWallsPolys.push_back( fbWallHole );
+                }
+            }
+
+            auto fbRoadPolys           = builder.CreateVector( roadPolys );
+            auto fbPavementPolys       = builder.CreateVector( pavementPolys );
+            auto fbPavementLiningPolys = builder.CreateVector( pavementLiningPolys );
+            auto fbLaneLiningPolys     = builder.CreateVector( laneLiningPolys );
+
+            auto fbLaneFloorPolys = builder.CreateVector( laneFloorPolys );
+            auto fbLaneCoverPolys = builder.CreateVector( laneCoverPolys );
+            auto fbLaneWallsPolys = builder.CreateVector( laneWallsPolys );
+
+            Mega::RoomBuilder roomBuilder( builder );
+
+            // floorBuilder.add_contour( fbRoomPolygon );
+
+            roomBuilder.add_roads( fbRoadPolys );
+            roomBuilder.add_pavements( fbPavementPolys );
+            roomBuilder.add_pavement_linings( fbPavementLiningPolys );
+            roomBuilder.add_lane_linings( fbLaneLiningPolys );
+
+            roomBuilder.add_lane_floors( fbLaneFloorPolys );
+            roomBuilder.add_lane_covers( fbLaneCoverPolys );
+            roomBuilder.add_lane_walls( fbLaneWallsPolys );
+
+            fbRoomsVec.push_back( roomBuilder.Finish() );
         }
-        std::vector< fb::Offset< Mega::Mesh > > ex2Polys;
-        for( auto& ex : floor.ex2 )
-        {
-            ex2Polys.push_back( buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, ex, builder ) );
-        }
-        std::vector< fb::Offset< Mega::Mesh > > ex3Polys;
-        for( auto& ex : floor.ex3 )
-        {
-            ex3Polys.push_back( buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, ex, builder ) );
-        }
-        std::vector< fb::Offset< Mega::Mesh > > ex4Polys;
-        for( auto& ex : floor.ex4 )
-        {
-            ex4Polys.push_back( buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, ex, builder ) );
-        }
+    }
 
-        auto fbEx1 = builder.CreateVector( ex1Polys );
-        auto fbEx2 = builder.CreateVector( ex2Polys );
-        auto fbEx3 = builder.CreateVector( ex3Polys );
-        auto fbEx4 = builder.CreateVector( ex4Polys );
-
-        Mega::FloorBuilder floorBuilder( builder );
-
-        floorBuilder.add_contour( fbFloorPolygon );
-        floorBuilder.add_floor( fbMesh );
-        floorBuilder.add_ground_one( fbEx1 );
-        floorBuilder.add_ground_two( fbEx2 );
-        floorBuilder.add_ground_three( fbEx3 );
-        floorBuilder.add_ground_four( fbEx4 );
-
-        fbFloorsVec.push_back( floorBuilder.Finish() );
-    }*/
-
-    //auto fbFloors = builder.CreateVector( fbFloorsVec );
+    auto fbRooms = builder.CreateVector( fbRoomsVec );
 
     // boundaries
 
@@ -799,7 +850,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             for( const Analysis::Boundary::WallSection& wall : boundary.walls )
             {
                 auto pMesh
-                    = buildVerticalMesh( fbVertMap, convert( wall.lower ), convert( wall.upper ), wall.edges, builder );
+                    = buildVerticalMesh( fbVertMap, convert( wall.lower ), convert( wall.upper ), wall.edges, builder, false );
                 Mega::WallSection::Builder wallBuilder( builder );
                 wallBuilder.add_mesh( pMesh );
                 fbWalls.push_back( wallBuilder.Finish() );
@@ -833,7 +884,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
         Mega::MapBuilder mapBuilder( builder );
         mapBuilder.add_contour( fbMapPolygon );
         mapBuilder.add_root_area( fbRootArea );
-        //mapBuilder.add_floors( fbFloors );
+        mapBuilder.add_rooms( fbRooms );
         mapBuilder.add_boundaries( fbBoundaries );
         fbMap = mapBuilder.Finish();
     }
