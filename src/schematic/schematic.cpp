@@ -234,6 +234,123 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
 // Map compilation routines
 namespace
 {
+
+exact::Analysis::HalfEdgeCstVector reverse( const exact::Analysis::HalfEdgeCstVector& path )
+{
+    exact::Analysis::HalfEdgeCstVector result;
+    for( auto e : path )
+    {
+        result.push_back( e->twin() );
+    }
+    std::reverse( result.begin(), result.end() );
+    return result;
+}
+
+exact::Analysis::VertexCstVector filterColinearEdges( const exact::Analysis::HalfEdgeCstVector& edges )
+{
+    exact::Analysis::VertexCstVector result;
+
+    if( edges.size() <= 2 )
+    {
+        if( edges.empty() )
+        {
+            // do nothing
+        }
+        else if( edges.size() == 1 )
+        {
+            result.push_back( edges.back()->source() );
+            result.push_back( edges.back()->target() );
+        }
+        else
+        {
+            VERIFY_RTE_MSG(
+                edges.back()->target() != edges.front()->source(), "Edge sequence of only two edges in loop" );
+            // always add the start and end
+            result.push_back( edges.front()->source() );
+            // but only add the middle if NOT colinear
+            switch( CGAL::orientation(
+                edges.front()->source()->point(), edges.back()->source()->point(), edges.back()->target()->point() ) )
+            {
+                case CGAL::RIGHT_TURN:
+                case CGAL::LEFT_TURN:
+                    result.push_back( edges.front()->target() );
+                    break;
+                case CGAL::COLLINEAR:
+                default:
+                    break;
+            }
+            result.push_back( edges.back()->target() );
+        }
+    }
+    else if( edges.back()->target() == edges.front()->source() )
+    {
+        bool bFoundLoop = false;
+        for( auto i = edges.end() - 1, iNext = i; !bFoundLoop; i = iNext )
+        {
+            // skip colinear points
+            bool bFoundTurn = false;
+            while( !bFoundTurn && !bFoundLoop )
+            {
+                ++iNext;
+                if( iNext == edges.end() )
+                {
+                    iNext = edges.begin();
+                }
+                switch( CGAL::orientation(
+                    ( *i )->source()->point(), ( *iNext )->source()->point(), ( *iNext )->target()->point() ) )
+                {
+                    case CGAL::RIGHT_TURN:
+                    case CGAL::LEFT_TURN:
+                        if( !result.empty() && ( result.front() == ( *iNext )->source() ) )
+                        {
+                            bFoundLoop = true;
+                        }
+                        else
+                        {
+                            result.push_back( ( *iNext )->source() );
+                        }
+                        bFoundTurn = true;
+                        break;
+                    case CGAL::COLLINEAR:
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+    else
+    {
+        // if not always start at start vertex
+        auto iPrev = edges.end();
+        for( auto i = edges.begin(), iEnd = edges.end(); i != iEnd; ++i )
+        {
+            if( iPrev == edges.end() )
+            {
+                iPrev = edges.begin();
+                result.push_back( ( *i )->source() );
+            }
+            else
+            {
+                switch( CGAL::orientation(
+                    ( *iPrev )->source()->point(), ( *i )->source()->point(), ( *i )->target()->point() ) )
+                {
+                    case CGAL::RIGHT_TURN:
+                    case CGAL::LEFT_TURN:
+                        result.push_back( ( *i )->source() );
+                        iPrev = i;
+                        break;
+                    case CGAL::COLLINEAR:
+                    default:
+                        break;
+                }
+            }
+        }
+        result.push_back( edges.back()->target() );
+    }
+
+    return result;
+}
+
 namespace fb = flatbuffers;
 
 using AreaMap = std::map< Site::Ptr, fb::Offset< Mega::Area > >;
@@ -453,10 +570,10 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
         {
             std::vector< Triangulation::CDT::Vertex_handle > verts;
             // create the vertices - recording the original vertex handle from the arrangement
-            for( auto& e : contour )
+            for( auto& originalVert : filterColinearEdges( contour ) )
             {
-                Triangulation::CDT::Vertex_handle v = triangulation.cdt.insert( e->source()->point() );
-                v->info().vertex                    = e->source();
+                Triangulation::CDT::Vertex_handle v = triangulation.cdt.insert( originalVert->point() );
+                v->info().vertex                    = originalVert;
                 verts.push_back( v );
             }
             for( auto i = verts.begin(), iNext = verts.begin(), iEnd = verts.end(); i != iEnd; ++i )
@@ -583,12 +700,13 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
 
     return meshBuilder.Finish();
 }
+
 fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                          fbVertMap,
                                             Mega::Plane                               lower,
                                             Mega::Plane                               upper,
-                                            const exact::Analysis::HalfEdgeCstVector& edgesIn,
+                                            const exact::Analysis::HalfEdgeCstVector& edges,
                                             fb::FlatBufferBuilder&                    builder,
-                                            bool bReverse )
+                                            bool                                      bReverse )
 {
     std::vector< fb::Offset< Mega::Vertex3D > > vertices;
     std::vector< int >                          indices;
@@ -596,54 +714,81 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
     const float fLowerUV = convertVerticalUV( lower );
     const float fUpperUV = convertVerticalUV( upper );
 
-    exact::Analysis::HalfEdgeCstVector edges;
-    if( bReverse )
-    {
-        for( auto e : edgesIn )
-        {
-            edges.push_back( e->twin() );
-        }
-        std::reverse( edges.begin(), edges.end() );
-    }
-    else
-    {
-        edges = edgesIn;
-    }
+    const exact::Analysis::VertexCstVector edgeVerts = filterColinearEdges( bReverse ? reverse( edges ) : edges );
+    const bool                             bIsLoop   = edges.back()->target() == edges.front()->source();
 
     float fUVDist = 0;
-    for( auto e : edges )
+    for( auto i = edgeVerts.begin(), iPrev = edgeVerts.end() - 1, iNext = edgeVerts.begin(), iEnd = edgeVerts.end();
+         i != iEnd; ++i )
     {
-        const auto& sValue = fbVertMap.get( e->source() );
-        const auto& tValue = fbVertMap.get( e->target() );
-        const auto  sVert  = fbVertMap( e->source() );
-        const auto  tVert  = fbVertMap( e->target() );
+        ++iNext;
+        if( iNext == edgeVerts.end() )
+        {
+            iNext = edgeVerts.begin();
+            if( !bIsLoop )
+                break;
+        }
 
-        const Mega::F2 sF2( sValue.x(), sValue.y() );
-        const Mega::F2 tF2( tValue.x(), tValue.y() );
+        const bool bFirst = i == edgeVerts.begin();
+        const bool bLast  = i == edgeVerts.end() - 1;
 
-        const Mega::F2 tDist( tF2.x() - sF2.x(), tF2.y() - sF2.y() );
-        const Mega::F2 tPerp( -tDist.y(), tDist.x() );
+        /*if( !bIsLoop && bFirst )
+        {
+        }
+        else if( !bIsLoop && bLast )
+        {
+        }
+        else*/
+        {
+            auto v     = *i;
+            auto vNext = *iNext;
 
-        const float mag = std::sqrt( tDist.x() * tDist.x() + tDist.y() * tDist.y() );
+            const exact::Direction halfEdgeDir( vNext->point() - v->point() );
+            const exact::Direction halfEdgeOrthoDir = halfEdgeDir.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
+            const exact::Vector    vNorm            = halfEdgeOrthoDir.vector();
 
-        const Mega::F3 normal( tPerp.x() / mag, tPerp.y() / mag, 0.0f );
-        const Mega::F4 tangent( tPerp.x() / mag, tPerp.y() / mag, 0.0f, 0.0f );
+            const auto& sValue = fbVertMap.get( v );
+            const auto& tValue = fbVertMap.get( vNext );
+            const auto  sVert  = fbVertMap( v );
+            const auto  tVert  = fbVertMap( vNext );
 
-        auto sLower = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, sVert, lower );
-        auto sUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, sVert, upper );
+            const Mega::F2 sF2( sValue.x(), sValue.y() );
+            const Mega::F2 tF2( tValue.x(), tValue.y() );
 
-        fUVDist -= mag;
+            const Mega::F2 tDist( tF2.x() - sF2.x(), tF2.y() - sF2.y() );
+            // const Mega::F2 tPerp( -tDist.y(), tDist.x() );
 
-        auto tLower = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, tVert, lower );
-        auto tUpper = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, tVert, upper );
+            const float mag = std::sqrt( tDist.x() * tDist.x() + tDist.y() * tDist.y() );
 
-        indices.push_back( sLower );
-        indices.push_back( tLower );
-        indices.push_back( sUpper );
+            const Mega::F3 normal( CGAL::to_double( vNorm.x() ), CGAL::to_double( vNorm.y() ), 0.0 );
+            const Mega::F4 tangent( normal.x(), normal.y(), normal.z(), 0.0 );
 
-        indices.push_back( sUpper );
-        indices.push_back( tLower );
-        indices.push_back( tUpper );
+            auto sLower
+                = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, sVert, lower );
+            auto sUpper
+                = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, sVert, upper );
+
+            fUVDist -= mag;
+
+            auto tLower
+                = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, tVert, lower );
+            auto tUpper
+                = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, tVert, upper );
+
+            indices.push_back( sLower );
+            indices.push_back( tLower );
+            indices.push_back( sUpper );
+
+            indices.push_back( sUpper );
+            indices.push_back( tLower );
+            indices.push_back( tUpper );
+        }
+
+        ++iPrev;
+        if( iPrev == edgeVerts.end() )
+        {
+            iPrev = edgeVerts.begin();
+        }
     }
 
     auto fbIndices = builder.CreateVector( indices );
@@ -849,8 +994,8 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::WallSection > > fbWalls;
             for( const Analysis::Boundary::WallSection& wall : boundary.walls )
             {
-                auto pMesh
-                    = buildVerticalMesh( fbVertMap, convert( wall.lower ), convert( wall.upper ), wall.edges, builder, false );
+                auto pMesh = buildVerticalMesh(
+                    fbVertMap, convert( wall.lower ), convert( wall.upper ), wall.edges, builder, false );
                 Mega::WallSection::Builder wallBuilder( builder );
                 wallBuilder.add_mesh( pMesh );
                 fbWalls.push_back( wallBuilder.Finish() );
