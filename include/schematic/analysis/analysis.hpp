@@ -24,6 +24,8 @@
 #include "edge_mask.hpp"
 #include "invariant.hpp"
 
+#include "schematic/analysis/polygon_with_holes.hpp"
+
 #include "schematic/cgalSettings.hpp"
 #include "schematic/space.hpp"
 #include "schematic/connection.hpp"
@@ -113,12 +115,15 @@ public:
     void partition();
     void properties();
     void lanes();
+    void linings();
     void placement();
     void values();
     void visibility();
 
     // queries used by map format
-    using VertexCstVector         = std::vector< Arrangement::Vertex_const_handle >;
+    using VertexCst               = Arrangement::Vertex_const_handle;
+    using VertexCstVector         = std::vector< VertexCst >;
+    using VertexCstVectorVector   = std::vector< std::vector< VertexCst > >;
     using HalfEdgeCst             = Arrangement::Halfedge_const_handle;
     using HalfEdgeCstSet          = std::set< HalfEdgeCst >;
     using HalfEdgeCstVector       = std::vector< HalfEdgeCst >;
@@ -139,16 +144,8 @@ public:
     using FaceVector           = std::vector< Face >;
     using FaceSet              = std::set< Face >;
 
-    template < typename HalfEdgeType >
-    struct HalfEdgePolygonWithHolesT
-    {
-        std::vector< HalfEdgeType >                outer;
-        std::vector< std::vector< HalfEdgeType > > holes;
-        using Vector = std::vector< HalfEdgePolygonWithHolesT >;
-    };
-
-    using HalfEdgePolygonWithHoles    = HalfEdgePolygonWithHolesT< HalfEdge >;
-    using HalfEdgeCstPolygonWithHoles = HalfEdgePolygonWithHolesT< HalfEdgeCst >;
+    using HalfEdgePolygonWithHoles    = exact::HalfEdgePolygonWithHolesT< HalfEdge >;
+    using HalfEdgeCstPolygonWithHoles = exact::HalfEdgePolygonWithHolesT< HalfEdgeCst >;
 
 public:
     // query used by editor for edge visualisation
@@ -216,43 +213,15 @@ public:
     void getVertices( VertexCstVector& vertices ) const;
     void getPerimeterPolygon( HalfEdgeCstVector& polygon ) const;
 
-    template < typename HalfEdgeType >
-    static inline exact::Polygon fromHalfEdgePolygon( const std::vector< HalfEdgeType >& poly )
+    class SkeletonRegionQuery
     {
-        exact::Polygon outer;
-        for( auto& e : poly )
-        {
-            outer.push_back( e->source()->point() );
-        }
-        // ensure it is a not a hole
-        if( !outer.is_counterclockwise_oriented() )
-        {
-            std::reverse( outer.begin(), outer.end() );
-        }
-        return outer;
-    }
+        HalfEdgeCstSet m_skeletonEdges;
+    public:
+        SkeletonRegionQuery( Analysis& analysis );
+        VertexCstVector getRegion( Analysis::VertexCst v, Analysis::HalfEdgeCst eNext ) const;
+    };
 
-    template < typename HalfEdgeType >
-    static inline exact::Polygon_with_holes
-    fromHalfEdgePolygonWithHoles( const HalfEdgePolygonWithHolesT< HalfEdgeType >& poly )
-    {
-        exact::Polygon_with_holes polygonWithHoles( fromHalfEdgePolygon< HalfEdgeType >( poly.outer ) );
-        for( auto& h : poly.holes )
-        {
-            Polygon hole;
-            for( auto& e : h )
-            {
-                hole.push_back( e->source()->point() );
-            }
-            // ensure it is a hole
-            if( !hole.is_clockwise_oriented() )
-            {
-                std::reverse( hole.begin(), hole.end() );
-            }
-            polygonWithHoles.add_hole( hole );
-        }
-        return polygonWithHoles;
-    }
+    void getSkeletonEdges( HalfEdgeCstSet& polygon ) const;
 
     struct Room
     {
@@ -262,7 +231,7 @@ public:
             // TODO
         };
 
-        Partition*                          pPartition;
+        Partition* pPartition;
 
         HalfEdgeCstPolygonWithHoles::Vector roads;
         HalfEdgeCstPolygonWithHoles::Vector pavements;
@@ -270,7 +239,7 @@ public:
         HalfEdgeCstPolygonWithHoles::Vector lanes;
         HalfEdgeCstPolygonWithHoles::Vector laneLinings;
 
-        Object::Vector                      objects;
+        Object::Vector objects;
         using Vector = std::vector< Room >;
     };
     Room::Vector getRooms();

@@ -19,9 +19,10 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "schematic/analysis/analysis.hpp"
+#include "schematic/analysis/polygon_with_holes.hpp"
 
 #include "algorithms.hpp"
-#include "polygon_with_holes.hpp"
+#include "polygon_tree.hpp"
 
 namespace exact
 {

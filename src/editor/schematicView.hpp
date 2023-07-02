@@ -53,6 +53,7 @@ public slots:
     void CmdViewPartition();
     void CmdViewProperties();
     void CmdViewLanes();
+    void CmdViewLinings();
     void CmdViewPlacement();
     void CmdViewValues();
     void CmdViewVisibility();

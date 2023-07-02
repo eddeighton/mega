@@ -45,6 +45,7 @@ set( SCHEMATIC_HEADERS
     ${SCHEMATIC_API_DIR}/analysis/edge_mask.hpp
     ${SCHEMATIC_API_DIR}/analysis/analysis.hpp
     ${SCHEMATIC_API_DIR}/analysis/invariant.hpp
+    ${SCHEMATIC_API_DIR}/analysis/polygon_with_holes.hpp
     
     ${SCHEMATIC_API_DIR}/format/format.hpp
 
@@ -91,10 +92,12 @@ set( SCHEMATIC_SOURCE
     ${SCHEMATIC_SRC_DIR}/analysis/extrapolation.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/geometry.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/geometry.hpp
-    ${SCHEMATIC_SRC_DIR}/analysis/polygon_with_holes.hpp
+    ${SCHEMATIC_SRC_DIR}/analysis/polygon_tree.hpp
+
     ${SCHEMATIC_SRC_DIR}/analysis/task_connections.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_contours.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_lanes.cpp
+    ${SCHEMATIC_SRC_DIR}/analysis/task_linings.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_partitions.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_placement.cpp
     ${SCHEMATIC_SRC_DIR}/analysis/task_properties.cpp

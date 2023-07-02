@@ -22,6 +22,7 @@
 
 #include "schematic/analysis/invariant.hpp"
 #include "schematic/analysis/analysis.hpp"
+#include "schematic/schematic.hpp"
 
 #include <vector>
 #include <tuple>

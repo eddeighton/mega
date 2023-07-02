@@ -198,6 +198,11 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
             m_pAnalysis->lanes();
         }
 
+        if( iStage >= eStage_Linings )
+        {
+            m_pAnalysis->linings();
+        }
+
         if( iStage >= eStage_Placement )
         {
             m_pAnalysis->placement();
@@ -283,9 +288,6 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
             // m_pLaneAxisMarkup
             m_laneBitmap.setModified();
         }
-        else
-        {
-        }
     }
 
     return true;
@@ -298,122 +300,6 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
 // Map compilation routines
 namespace
 {
-
-exact::Analysis::HalfEdgeCstVector reverse( const exact::Analysis::HalfEdgeCstVector& path )
-{
-    exact::Analysis::HalfEdgeCstVector result;
-    for( auto e : path )
-    {
-        result.push_back( e->twin() );
-    }
-    std::reverse( result.begin(), result.end() );
-    return result;
-}
-
-exact::Analysis::VertexCstVector filterColinearEdges( const exact::Analysis::HalfEdgeCstVector& edges )
-{
-    exact::Analysis::VertexCstVector result;
-
-    if( edges.size() <= 2 )
-    {
-        if( edges.empty() )
-        {
-            // do nothing
-        }
-        else if( edges.size() == 1 )
-        {
-            result.push_back( edges.back()->source() );
-            result.push_back( edges.back()->target() );
-        }
-        else
-        {
-            VERIFY_RTE_MSG(
-                edges.back()->target() != edges.front()->source(), "Edge sequence of only two edges in loop" );
-            // always add the start and end
-            result.push_back( edges.front()->source() );
-            // but only add the middle if NOT colinear
-            switch( CGAL::orientation(
-                edges.front()->source()->point(), edges.back()->source()->point(), edges.back()->target()->point() ) )
-            {
-                case CGAL::RIGHT_TURN:
-                case CGAL::LEFT_TURN:
-                    result.push_back( edges.front()->target() );
-                    break;
-                case CGAL::COLLINEAR:
-                default:
-                    break;
-            }
-            result.push_back( edges.back()->target() );
-        }
-    }
-    else if( edges.back()->target() == edges.front()->source() )
-    {
-        bool bFoundLoop = false;
-        for( auto i = edges.end() - 1, iNext = i; !bFoundLoop; i = iNext )
-        {
-            // skip colinear points
-            bool bFoundTurn = false;
-            while( !bFoundTurn && !bFoundLoop )
-            {
-                ++iNext;
-                if( iNext == edges.end() )
-                {
-                    iNext = edges.begin();
-                }
-                switch( CGAL::orientation(
-                    ( *i )->source()->point(), ( *iNext )->source()->point(), ( *iNext )->target()->point() ) )
-                {
-                    case CGAL::RIGHT_TURN:
-                    case CGAL::LEFT_TURN:
-                        if( !result.empty() && ( result.front() == ( *iNext )->source() ) )
-                        {
-                            bFoundLoop = true;
-                        }
-                        else
-                        {
-                            result.push_back( ( *iNext )->source() );
-                        }
-                        bFoundTurn = true;
-                        break;
-                    case CGAL::COLLINEAR:
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-    else
-    {
-        // if not always start at start vertex
-        auto iPrev = edges.end();
-        for( auto i = edges.begin(), iEnd = edges.end(); i != iEnd; ++i )
-        {
-            if( iPrev == edges.end() )
-            {
-                iPrev = edges.begin();
-                result.push_back( ( *i )->source() );
-            }
-            else
-            {
-                switch( CGAL::orientation(
-                    ( *iPrev )->source()->point(), ( *i )->source()->point(), ( *i )->target()->point() ) )
-                {
-                    case CGAL::RIGHT_TURN:
-                    case CGAL::LEFT_TURN:
-                        result.push_back( ( *i )->source() );
-                        iPrev = i;
-                        break;
-                    case CGAL::COLLINEAR:
-                    default:
-                        break;
-                }
-            }
-        }
-        result.push_back( edges.back()->target() );
-    }
-
-    return result;
-}
 
 namespace fb = flatbuffers;
 
@@ -630,14 +516,14 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
 {
     Triangulation triangulation;
     {
-        auto insertConstraints = [ & ]( const exact::Analysis::HalfEdgeCstVector& contour )
+        auto insertConstraints = [ & ]( const exact::Analysis::VertexCstVector& contour )
         {
             std::vector< Triangulation::CDT::Vertex_handle > verts;
             // create the vertices - recording the original vertex handle from the arrangement
-            for( auto& originalVert : filterColinearEdges( contour ) )
+            for( auto vertex : contour )
             {
-                Triangulation::CDT::Vertex_handle v = triangulation.cdt.insert( originalVert->point() );
-                v->info().vertex                    = originalVert;
+                Triangulation::CDT::Vertex_handle v = triangulation.cdt.insert( vertex->point() );
+                v->info().vertex                    = vertex;
                 verts.push_back( v );
             }
             for( auto i = verts.begin(), iNext = verts.begin(), iEnd = verts.end(); i != iEnd; ++i )
@@ -652,14 +538,14 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
         };
 
         // NOTE: does not matter about order here
-        insertConstraints( poly.outer );
+        insertConstraints( exact::filterColinearEdges< exact::Analysis::VertexCst >( poly.outer ) );
         for( auto& h : poly.holes )
         {
-            insertConstraints( h );
+            insertConstraints( exact::filterColinearEdges< exact::Analysis::VertexCst >( h ) );
         }
     }
 
-    using ArrVert = exact::Analysis::Arrangement::Vertex_const_handle;
+    using ArrVert = exact::Analysis::VertexCst;
 
     const Mega::F3 normal( 0.0f, 1.0f, 0.0f );
     const Mega::F4 tangent( 0.0f, 1.0f, 0.0f, 0.0f );
@@ -679,6 +565,116 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
 
                 indices.push_back( szIndex );
             }
+        }
+    }
+
+    auto fbIndices = builder.CreateVector( indices );
+    auto fbVerts   = builder.CreateVector( vertices );
+
+    Mega::MeshBuilder meshBuilder( builder );
+
+    meshBuilder.add_indices( fbIndices );
+    meshBuilder.add_vertices( fbVerts );
+
+    return meshBuilder.Finish();
+}
+
+void triangulateLiningRegion( const FBVertMap& fbVertMap, Mega::Plane plane,
+                              const exact::Analysis::VertexCstVector&      region,
+                              std::vector< fb::Offset< Mega::Vertex3D > >& vertices, std::vector< int >& indices,
+                              fb::FlatBufferBuilder& builder )
+{
+    Triangulation triangulation;
+    {
+        std::vector< Triangulation::CDT::Vertex_handle > verts;
+        // create the vertices - recording the original vertex handle from the arrangement
+        for( auto vertex : region )
+        {
+            Triangulation::CDT::Vertex_handle v = triangulation.cdt.insert( vertex->point() );
+            v->info().vertex                    = vertex;
+            verts.push_back( v );
+        }
+        for( auto i = verts.begin(), iNext = verts.begin(), iEnd = verts.end(); i != iEnd; ++i )
+        {
+            ++iNext;
+            if( iNext == iEnd )
+            {
+                iNext = verts.begin();
+            }
+            triangulation.cdt.insert_constraint( *i, *iNext );
+        }
+    }
+
+    using ArrVert = exact::Analysis::Arrangement::Vertex_const_handle;
+
+    const Mega::F3 normal( 0.0f, 1.0f, 0.0f );
+    const Mega::F4 tangent( 0.0f, 1.0f, 0.0f, 0.0f );
+
+    for( Triangulation::CDT::Face_handle f : triangulation.solve() )
+    {
+        if( f->info().in_domain() )
+        {
+            for( int i = 0; i != 3; ++i )
+            {
+                auto        v       = f->vertex( i )->info().vertex;
+                const auto& value   = fbVertMap.get( v );
+                std::size_t szIndex = buildVertex(
+                    builder, vertices, Mega::F2( value.x(), value.y() ), normal, tangent, fbVertMap( v ), plane );
+
+                indices.push_back( szIndex );
+            }
+        }
+    }
+}
+
+fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( const FBVertMap&                                    fbVertMap,
+                                                    Mega::Plane                                         plane,
+                                                    const exact::Analysis::HalfEdgeCstPolygonWithHoles& poly,
+                                                    const exact::Analysis::SkeletonRegionQuery& skeletonEdgeQuery,
+                                                    fb::FlatBufferBuilder&                      builder )
+{
+    auto collectContourSegmentRegion = [ &skeletonEdgeQuery ]( const exact::Analysis::HalfEdgeCstVector& contour )
+    {
+        exact::Analysis::VertexCstVectorVector regions;
+        auto filtered = exact::filterColinearEdges< exact::Analysis::VertexCst >( contour );
+        for( auto i = filtered.begin(), iNext = filtered.begin(), iEnd = filtered.end(); i != iEnd; ++i )
+        {
+            ++iNext;
+            if( iNext == iEnd )
+            {
+                iNext = filtered.begin();
+            }
+            exact::Analysis::HalfEdgeCst iNextEdge;
+            for( auto e : contour )
+            {
+                if( e->source() == *iNext )
+                {
+                    iNextEdge = e;
+                    break;
+                }
+            }
+            INVARIANT( iNextEdge != exact::Analysis::HalfEdgeCst{}, "Failed to locate vertex edge" );
+            regions.push_back( skeletonEdgeQuery.getRegion( *i, iNextEdge ) );
+        }
+        return regions;
+    };
+
+    std::vector< fb::Offset< Mega::Vertex3D > > vertices;
+    std::vector< int >                          indices;
+
+    {
+        exact::Analysis::VertexCstVectorVector outerRegions = collectContourSegmentRegion( poly.outer );
+        for( const auto& region : outerRegions )
+        {
+            triangulateLiningRegion( fbVertMap, plane, region, vertices, indices, builder );
+        }
+    }
+    for( const auto& hole : poly.holes )
+    {
+        exact::Analysis::VertexCstVectorVector holeRegions = collectContourSegmentRegion( hole );
+        for( const auto& region : holeRegions )
+        {
+            triangulateLiningRegion( fbVertMap, plane, region, vertices, indices, builder );
         }
     }
 
@@ -778,8 +774,9 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
     const float fLowerUV = convertVerticalUV( lower );
     const float fUpperUV = convertVerticalUV( upper );
 
-    const exact::Analysis::VertexCstVector edgeVerts = filterColinearEdges( bReverse ? reverse( edges ) : edges );
-    const bool                             bIsLoop   = edges.back()->target() == edges.front()->source();
+    const exact::Analysis::VertexCstVector edgeVerts
+        = exact::filterColinearEdges< exact::Analysis::VertexCst >( bReverse ? reverse( edges ) : edges );
+    const bool bIsLoop = edges.back()->target() == edges.front()->source();
 
     float fUVDist = 0;
     for( auto i = edgeVerts.begin(), iPrev = edgeVerts.end() - 1, iNext = edgeVerts.begin(), iEnd = edgeVerts.end();
@@ -913,6 +910,8 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
 
     using namespace exact;
 
+    const Analysis::SkeletonRegionQuery skeletonEdgeQuery( *m_pAnalysis );
+
     fb::Offset< Mega::Polygon > fbMapPolygon;
     {
         Analysis::HalfEdgeCstVector perimeter;
@@ -942,15 +941,15 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::Mesh > > pavementLiningPolys;
             for( const auto& polyWithHoles : room.pavementLinings )
             {
-                fb::Offset< Mega::Mesh > fbMesh
-                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
+                fb::Offset< Mega::Mesh > fbMesh = buildLiningHorizontalMesh(
+                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder );
                 pavementLiningPolys.push_back( fbMesh );
             }
             std::vector< fb::Offset< Mega::Mesh > > laneLiningPolys;
             for( const auto& polyWithHoles : room.laneLinings )
             {
-                fb::Offset< Mega::Mesh > fbMesh
-                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
+                fb::Offset< Mega::Mesh > fbMesh = buildLiningHorizontalMesh(
+                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder );
                 laneLiningPolys.push_back( fbMesh );
             }
 
@@ -959,12 +958,12 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::Mesh > > laneWallsPolys;
             for( const auto& polyWithHoles : room.lanes )
             {
-                fb::Offset< Mega::Mesh > fbMeshFloor
-                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eHole, polyWithHoles, builder );
+                fb::Offset< Mega::Mesh > fbMeshFloor = buildLiningHorizontalMesh(
+                    fbVertMap, Mega::Plane_eHole, polyWithHoles, skeletonEdgeQuery, builder );
                 laneFloorPolys.push_back( fbMeshFloor );
 
-                fb::Offset< Mega::Mesh > fbMeshCover
-                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
+                fb::Offset< Mega::Mesh > fbMeshCover = buildLiningHorizontalMesh(
+                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder );
                 laneCoverPolys.push_back( fbMeshCover );
 
                 fb::Offset< Mega::Mesh > fbWallOuter = buildVerticalMesh(

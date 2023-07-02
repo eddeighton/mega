@@ -5,7 +5,7 @@ Schematic(base;,0)
         transform(1,0,0,0,1,0)
         Contour(contour;,0)
         {
-            path(0,0,64,0,64,64,0,64)
+            path(0,0,128,0,128,128,0,128)
         }
         Property(width;,1)
         {
@@ -13,7 +13,7 @@ Schematic(base;,0)
         }
         Space(space_0002;,2)
         {
-            transform(1,-0,16,-0,1,16)
+            transform(1,0,44,0,1,52)
             Contour(contour;,0)
             {
                 path(0,0,32,0,32,32,0,32)

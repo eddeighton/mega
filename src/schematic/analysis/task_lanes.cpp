@@ -19,15 +19,17 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "algorithms.hpp"
-#include "polygon_with_holes.hpp"
 #include "constructions.hpp"
 #include "geometry.hpp"
+#include "polygon_tree.hpp"
 
 #include "schematic/cgalUtils.hpp"
 #include "schematic/analysis/analysis.hpp"
+#include "schematic/analysis/polygon_with_holes.hpp"
 
 #include "schematic/buffer.hpp"
 #include "schematic/rasteriser.hpp"
+#include "schematic/schematic.hpp"
 
 #include "common/astar.hpp"
 
@@ -636,8 +638,9 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
     ComponentFloorMap componentFloors;
     {
         // like Analysis::getFloorPartitions but DO NOT USE doorsteps in allUsedDoorSteps
-        using NodePtr    = typename PolygonNode::Ptr;
-        using NodeVector = std::vector< NodePtr >;
+        using PolygonNode = PolygonNodeT< Analysis::HalfEdge, Analysis::Face, char >;
+        using NodePtr     = typename PolygonNode::Ptr;
+        using NodeVector  = std::vector< NodePtr >;
         NodeVector nodes;
         {
             Analysis::HalfEdgeVectorVector floorPolygons;
@@ -722,7 +725,7 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
 
             // calculate extrusion around the corridor for gutter style lanes
             const exact::Polygon_with_holes polygonWithHoles
-                = Analysis::fromHalfEdgePolygonWithHoles( componentPolygonWithHoles );
+                = exact::fromHalfEdgePolygonWithHoles( componentPolygonWithHoles );
             using StraightSkeleton    = CGAL::Straight_skeleton_2< exact::Kernel >;
             using StraightSkeletonPtr = boost::shared_ptr< StraightSkeleton >;
 
@@ -984,8 +987,9 @@ void Analysis::lanes()
         }
 
         // like Analysis::getFloorPartitions but DO NOT USE doorsteps in allUsedDoorSteps
-        using NodePtr    = typename PolygonNode::Ptr;
-        using NodeVector = std::vector< NodePtr >;
+        using PolygonNode = PolygonNodeT< Analysis::HalfEdge, Analysis::Face, char >;
+        using NodePtr     = typename PolygonNode::Ptr;
+        using NodeVector  = std::vector< NodePtr >;
         NodeVector nodes;
         {
             HalfEdgeVectorVector floorPolygons;

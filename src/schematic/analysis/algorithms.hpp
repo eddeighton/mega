@@ -23,15 +23,13 @@
 
 #include "schematic/analysis/edge_mask.hpp"
 #include "schematic/analysis/invariant.hpp"
-#include "schematic/analysis/analysis.hpp"
+#include "schematic/analysis/polygon_with_holes.hpp"
 
-#include "schematic/schematic.hpp"
-#include "schematic/cut.hpp"
+#include "common/unreachable.hpp"
 
-#include <CGAL/Polygon_with_holes_2.h>
-#include <CGAL/create_straight_skeleton_from_polygon_with_holes_2.h>
-#include <CGAL/create_offset_polygons_from_polygon_with_holes_2.h>
-#include <CGAL/create_offset_polygons_2.h>
+#include <vector>
+#include <set>
+#include <algorithm>
 
 namespace exact
 {
@@ -143,35 +141,7 @@ inline void getSortedFaces( std::set< FaceType >& startFaces, std::vector< FaceT
     getSortedFaces< HalfEdgeType, FaceType >(
         startFaces, result, [ &boundary ]( HalfEdgeType edge ) { return !boundary.contains( edge ); } );
 }
-/*
-template < typename HalfEdgeType, typename FaceType >
-inline std::vector< HalfEdgeType > orderPolygon( const std::vector< HalfEdgeType >& polygon, bool ccw )
-{
-    bool bIsCounterClockwise = true;
-    {
-        INVARIANT( polygon.size() > 2, "Degenerate polygon in getSortedFacesInsidePolygon" );
-        INVARIANT( polygon.front()->source() == polygon.back()->target(),
-                   "Non closed polygon in getSortedFacesInsidePolygon" );
-        exact::Polygon poly;
-        for( auto e : polygon )
-        {
-            poly.push_back( e->source()->point() );
-        }
-        INVARIANT( poly.is_simple(), "Non-simple polygon passed to getSortedFacesInsidePolygon" );
-        bIsCounterClockwise = poly.is_counterclockwise_oriented();
-    }
-    std::vector< HalfEdgeType > temp = polygon;
-    if( ccw != bIsCounterClockwise )
-    {
-        for( auto e : polygon )
-        {
-            temp.push_back( e->twin() );
-        }
-        std::reverse( temp.begin(), temp.end() );
-    }
-    return temp;
-}
-*/
+
 template < typename HalfEdgeType, typename FaceType >
 inline bool getSortedFacesInsidePolygon( const std::vector< HalfEdgeType >& polygon, std::vector< FaceType >& result )
 {
@@ -207,8 +177,8 @@ inline bool getSortedFacesInsidePolygon( const std::vector< HalfEdgeType >& poly
     return bIsCounterClockwise;
 }
 
-template < typename Predicate >
-inline void getEdges( const Analysis::Arrangement& arr, std::set< Analysis::Arrangement::Halfedge_const_handle >& edges,
+template < typename ArrangementType, typename Predicate >
+inline void getEdges( const ArrangementType& arr, std::set< typename ArrangementType::Halfedge_const_handle >& edges,
                       Predicate&& predicate )
 {
     for( auto i = arr.halfedges_begin(); i != arr.halfedges_end(); ++i )
@@ -220,8 +190,8 @@ inline void getEdges( const Analysis::Arrangement& arr, std::set< Analysis::Arra
     }
 }
 
-template < typename Predicate >
-inline void getEdges( Analysis::Arrangement& arr, std::set< Analysis::Arrangement::Halfedge_handle >& edges,
+template < typename ArrangementType, typename Predicate >
+inline void getEdges( ArrangementType& arr, std::set< typename ArrangementType::Halfedge_handle >& edges,
                       Predicate&& predicate )
 {
     for( auto i = arr.halfedges_begin(); i != arr.halfedges_end(); ++i )
@@ -428,6 +398,58 @@ inline void searchPolygons( const VertexVector& startVertices, const std::set< H
     }
 }
 
+template < typename VertexType, typename HalfEdgeType >
+inline void searchSkeletonRegion( VertexType vStart, HalfEdgeType eNext, const std::set< HalfEdgeType >& edges,
+                                  std::vector< VertexType >& region )
+{
+    using HalfEdge = HalfEdgeType;
+
+    region.push_back( vStart );
+    region.push_back( eNext->source() );
+
+    HalfEdgeType e;
+    {
+        auto edgeIter = eNext->source()->incident_halfedges();
+        while( edgeIter != eNext->twin() )
+            ++edgeIter;
+        auto edgeIterEnd = edgeIter;
+        do
+        {
+            --edgeIter;
+            HalfEdge nextEdge = edgeIter->twin();
+            if( edges.contains( nextEdge ) )
+            {
+                e = nextEdge;
+                break;
+            }
+        } while( edgeIter != edgeIterEnd );
+    }
+    INVARIANT( e != HalfEdgeType{}, "Failed to locate edge" );
+
+    while( e->target() != vStart )
+    {
+        bool bFoundNextVertex = false;
+        auto edgeIter         = e->target()->incident_halfedges();
+        while( edgeIter != e )
+            ++edgeIter;
+        auto edgeIterEnd = edgeIter;
+        do
+        {
+            ++edgeIter;
+            INVARIANT( edgeIter != e, "searchSkeletonRegion failed" );
+            HalfEdge nextEdge = edgeIter->twin();
+            if( edges.contains( nextEdge ) )
+            {
+                e = nextEdge;
+                region.push_back( e->source() );
+                bFoundNextVertex = true;
+                break;
+            }
+        } while( edgeIter != edgeIterEnd );
+        INVARIANT( bFoundNextVertex, "Failed to find edge" );
+    }
+}
+
 template < typename HalfEdgeType, typename FaceType >
 inline void getFacesBoundary( const std::vector< FaceType >& faces, std::vector< HalfEdgeType >& boundaryEdges )
 {
@@ -469,73 +491,6 @@ inline void getFacesBoundary( const std::vector< FaceType >& faces, std::vector<
         }
     }
 }
-
-/*
-template < typename HalfEdgeType, typename EdgeSideTest >
-inline void searchBoundaryPolygons( const std::set< HalfEdgeType >&             edges,
-                                    std::vector< std::vector< HalfEdgeType > >& polygons,
-                                    EdgeSideTest&&                              edgeSideTest )
-{
-    using HalfEdge = HalfEdgeType;
-
-    std::set< HalfEdgeType > open = edges, eliminated;
-
-    while( !open.empty() )
-    {
-        // select first edge
-        HalfEdge                    startEdge = *open.begin();
-        HalfEdge                    e         = startEdge;
-        std::vector< HalfEdgeType > polygon;
-
-        bool bBoundaryPolygon = true;
-        do
-        {
-            auto edgeIter = e->target()->incident_halfedges();
-            while( edgeIter != e )
-                ++edgeIter;
-            auto edgeIterEnd = edgeIter;
-            INVARIANT( edgeSideTest( edgeIter ), "Edge not inside" );
-
-            do
-            {
-                bBoundaryPolygon = false;
-                // iterate round in counter-clockwise order
-                --edgeIter;
-
-                if( edges.contains( edgeIter ) || edges.contains( edgeIter->twin() ) )
-                {
-                    if( edgeSideTest( edgeIter->twin() ) )
-                    {
-                        bBoundaryPolygon = true;
-                        auto edgeTwin    = edgeIter->twin();
-                        polygon.push_back( edgeTwin );
-                        e = edgeTwin;
-                        break;
-                    }
-                    else
-                    {
-                        // if the next edge IS inside then current polygon is invalid
-                        break;
-                    }
-                }
-            } while( edgeIter != edgeIterEnd );
-
-        } while( ( e != startEdge ) && bBoundaryPolygon );
-
-        open.erase( startEdge );
-        open.erase( startEdge->twin() );
-
-        if( bBoundaryPolygon )
-        {
-            for( auto e : polygon )
-            {
-                open.erase( e );
-                open.erase( e->twin() );
-            }
-            polygons.push_back( polygon );
-        }
-    }
-}*/
 
 } // namespace exact
 

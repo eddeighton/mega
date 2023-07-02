@@ -69,6 +69,7 @@ void SchematicView::onViewFocussed()
     CMD_CONNECT( actionView_Partition    , CmdViewPartition );
     CMD_CONNECT( actionView_Properties   , CmdViewProperties );
     CMD_CONNECT( actionView_Lanes        , CmdViewLanes );
+    CMD_CONNECT( actionView_Linings      , CmdViewLinings );
     CMD_CONNECT( actionView_Placement    , CmdViewPlacement );
     CMD_CONNECT( actionView_Values       , CmdViewValues );
     CMD_CONNECT( actionView_Visibility   , CmdViewVisibility );
@@ -98,6 +99,7 @@ void SchematicView::onViewUnfocussed()
     CMD_DISCONNECT( actionView_Partition, CmdViewPartition );
     CMD_DISCONNECT( actionView_Properties, CmdViewProperties );
     CMD_DISCONNECT( actionView_Lanes, CmdViewLanes );
+    CMD_DISCONNECT( actionView_Linings, CmdViewLinings );
     CMD_DISCONNECT( actionView_Placement, CmdViewPlacement );
     CMD_DISCONNECT( actionView_Values, CmdViewValues );
     CMD_DISCONNECT( actionView_Visibility, CmdViewVisibility );
@@ -288,6 +290,11 @@ void SchematicView::CmdViewProperties()
 void SchematicView::CmdViewLanes()
 {
     configureCompilationStage( schematic::eStage_Lanes );
+}
+
+void SchematicView::CmdViewLinings()
+{
+    configureCompilationStage( schematic::eStage_Linings );
 }
 
 void SchematicView::CmdViewPlacement()

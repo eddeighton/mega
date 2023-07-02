@@ -24,6 +24,8 @@
 #include "schematic/cut.hpp"
 #include "schematic/schematic.hpp"
 
+#include "common/unreachable.hpp"
+
 #include <vector>
 #include <tuple>
 #include <list>
@@ -217,6 +219,7 @@ void Analysis::constructConnectionEdges( schematic::Connection::Ptr pConnection,
                 }
             }
             INVARIANT( false, "Failed to locate mid point edge" );
+            UNREACHABLE;
         };
 
         // construct doorstep from midpoints

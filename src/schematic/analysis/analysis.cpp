@@ -19,8 +19,9 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "algorithms.hpp"
-#include "polygon_with_holes.hpp"
+#include "polygon_tree.hpp"
 
+#include "schematic/analysis/polygon_with_holes.hpp"
 #include "schematic/analysis/analysis.hpp"
 #include "schematic/schematic.hpp"
 
@@ -51,15 +52,15 @@ namespace
 {
 template < typename ArrangementType, typename HalfEdgeType, typename FaceType >
 void getFloorPartitions(
-    ArrangementType&                                                                             arr,
-    std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHolesT< HalfEdgeType > >& floors )
+    ArrangementType&                                                                          arr,
+    std::map< const Analysis::Partition*, exact::HalfEdgePolygonWithHolesT< HalfEdgeType > >& floors )
 {
     using HalfEdge      = HalfEdgeType;
     using Face          = FaceType;
     using PolygonNode   = PolygonNodeT< HalfEdgeType, FaceType, bool >;
     using NodePtr       = typename PolygonNode::Ptr;
     using NodeVector    = std::vector< NodePtr >;
-    using PolyWithHoles = Analysis::HalfEdgePolygonWithHolesT< HalfEdge >;
+    using PolyWithHoles = exact::HalfEdgePolygonWithHolesT< HalfEdge >;
 
     NodeVector nodes;
     {
@@ -180,6 +181,19 @@ void Analysis::getPerimeterPolygon( HalfEdgeCstVector& polygon ) const
 
     INVARIANT( polygons.size() == 1, "Did not find single perimeter polygon" );
     polygon = polygons.front();
+}
+
+Analysis::SkeletonRegionQuery::SkeletonRegionQuery( Analysis& analysis )
+{
+    getEdges( analysis.m_arr, m_skeletonEdges,
+              []( Analysis::HalfEdgeCst edge ) { return test( edge, EdgeMask::eSkeleton ); } );
+}
+
+Analysis::VertexCstVector Analysis::SkeletonRegionQuery::getRegion( Analysis::VertexCst v, Analysis::HalfEdgeCst eNext ) const
+{
+    Analysis::VertexCstVector region;
+    searchSkeletonRegion< Analysis::VertexCst, Analysis::HalfEdgeCst >( v, eNext, m_skeletonEdges, region );
+    return region;
 }
 
 } // namespace exact

@@ -18,10 +18,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_June_14_polygon_with_holes
-#define GUARD_2023_June_14_polygon_with_holes
+#ifndef GUARD_2023_July_02_polygon_tree
+#define GUARD_2023_July_02_polygon_tree
 
-#include "algorithms.hpp"
+#include "schematic/analysis/invariant.hpp"
+#include "schematic/cgalSettings.hpp"
+
+#include <memory>
+#include <vector>
+#include <algorithm>
 
 namespace exact
 {
@@ -132,9 +137,6 @@ private:
     PtrVector      m_contained;
 };
 
-using PolygonNode    = PolygonNodeT< Analysis::HalfEdge, Analysis::Face, char >;
-using PolygonNodeCst = PolygonNodeT< Analysis::HalfEdgeCst, Analysis::FaceCst, char >;
-
 // NOTE: outer and inner DOES NOT imply whether polygon is hole or face
 template < typename HalfEdgeType, typename FaceType, typename NodeType >
 inline std::vector< typename PolygonNodeT< HalfEdgeType, FaceType, NodeType >::Ptr >
@@ -222,7 +224,6 @@ sortPolygonNodes( std::vector< typename PolygonNodeT< HalfEdgeType, FaceType, No
 
     return rootNodes;
 }
+}
 
-} // namespace exact
-
-#endif // GUARD_2023_June_14_polygon_with_holes
+#endif //GUARD_2023_July_02_polygon_tree
