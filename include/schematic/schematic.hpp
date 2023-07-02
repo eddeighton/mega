@@ -81,7 +81,7 @@ public:
         if( m_pPropertiesMarkup.get() )
             polyGroups.push_back( m_pPropertiesMarkup.get() );
     }
-    virtual void getImages( ImageSpec::List& images ) 
+    virtual void getImages( ImageSpec::List& images )
     {
         if( m_pLaneAxisMarkup.get() )
         {
@@ -91,14 +91,25 @@ public:
 
     exact::Analysis::Ptr getAnalysis() const { return m_pAnalysis; }
 
+    struct LaneConfig
+    {
+        float laneRadius     = 0.75;
+        float laneLining     = 0.15;
+        float pavementRadius = 2.25;
+        float pavementLining = 0.15;
+        float clearance      = 3.5;
+    };
+    LaneConfig getLaneConfig();
+
 private:
     friend class ::exact::Analysis;
     MonoBitmap& getLaneBitmap() { return m_laneBitmap; }
-    void setLaneBitmapOffset( const Vector& vOffset )
+    void        setLaneBitmapOffset( const Vector& vOffset, int scaling )
     {
         if( m_pLaneAxisMarkup.get() )
         {
             m_pLaneAxisMarkup->setOffset( vOffset );
+            m_pLaneAxisMarkup->setScaling( scaling );
         }
     }
 
@@ -109,6 +120,18 @@ private:
 
     MonoBitmap                         m_laneBitmap;
     std::unique_ptr< MonoBitmapImage > m_pLaneAxisMarkup;
+
+    // lane configuration
+    Property::Ptr          m_pLaneRadius;
+    Property::Ptr          m_pLaneLining;
+    Property::Ptr          m_pPavementRadius;
+    Property::Ptr          m_pPavementLining;
+    Property::Ptr          m_pClearance;
+    std::optional< float > m_laneRadiusOpt;
+    std::optional< float > m_laneLiningOpt;
+    std::optional< float > m_pavementRadiusOpt;
+    std::optional< float > m_pavementLiningOpt;
+    std::optional< float > m_clearanceOpt;
 };
 
 } // namespace schematic

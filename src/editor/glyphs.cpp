@@ -593,6 +593,11 @@ void GlyphImage::setOrCreateImageItem()
         {
             const auto vOffset = pImageSpec->getOffset();
             m_pItem->setOffset( vOffset.x(), vOffset.y() );
+            const auto scaling = pImageSpec->getScaling();
+            if( scaling > 0 )
+            {
+                m_pItem->setScale( 1 / static_cast< double >( scaling ) );
+            }
         }
     }
     else
@@ -616,6 +621,11 @@ void GlyphImage::update()
         m_pItem->setPos( 0.0f, 0.0f );
         const auto vOffset = pImageSpec->getOffset();
         m_pItem->setOffset( vOffset.x(), vOffset.y() );
+        const auto scaling = pImageSpec->getScaling();
+        if( scaling > 0 )
+        {
+            m_pItem->setScale( 1 / static_cast< double >( scaling ) );
+        }
     }
     // else if( m_pItem )
     //{

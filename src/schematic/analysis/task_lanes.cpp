@@ -219,20 +219,47 @@ astar::ErrorCode drawPath( const Value& vStart, Value& vEnd, const ValueSegmentV
 
 using FloorPolyMap = std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles >;
 
-void renderPoly( agg::path_storage& path, const Rect& boundingBox, const Analysis::Partition* pPartition,
-                 const Analysis::HalfEdgeVector& poly )
+struct SchematicToBitmap
 {
-    auto convert = [ &boundingBox ]( Analysis::HalfEdgeCst e, double& x, double& y )
+    const Rect& boundingBox;
+
+    static constexpr int BITMAP_SCALING = 2;
+
+    // const int x0 = Math::roundRealOutToInt( CGAL::to_double( p1.x() - boundingBox.xmin() ) );
+    // const int y0 = Math::roundRealOutToInt( CGAL::to_double( p1.y() - boundingBox.ymin() ) );
+    // const int x1 = Math::roundRealOutToInt( CGAL::to_double( p2.x() - boundingBox.xmin() ) );
+    // const int y1 = Math::roundRealOutToInt( CGAL::to_double( p2.y() - boundingBox.ymin() ) );
+
+    // used when convert arrangement edge paths to agg contours
+    void operator()( Analysis::HalfEdgeCst e, double& x, double& y ) const
     {
         const auto& p = e->source()->point();
-        x             = ( CGAL::to_double( p.x() - boundingBox.xmin() ) );
-        y             = ( CGAL::to_double( p.y() - boundingBox.ymin() ) );
-    };
+        x             = ( CGAL::to_double( p.x() - boundingBox.xmin() ) ) * BITMAP_SCALING;
+        y             = ( CGAL::to_double( p.y() - boundingBox.ymin() ) ) * BITMAP_SCALING;
+    }
 
+    // used when convert doorstep points to precise pixels for bresenham lines
+    void operator()( const exact::Point& pt, int& x, int& y ) const
+    {
+        x = static_cast< int >( ( CGAL::to_double( pt.x() - boundingBox.xmin() ) ) * BITMAP_SCALING );
+        y = static_cast< int >( ( CGAL::to_double( pt.y() - boundingBox.ymin() ) ) * BITMAP_SCALING );
+    }
+
+    // basis to convert back bitmap segments to arrangement points
+    exact::Point operator()( const int x, const int y ) const
+    {
+        return exact::Point{
+            ( 0.75 + x + boundingBox.xmin() ) / BITMAP_SCALING, ( 0.75 + y + boundingBox.ymin() ) / BITMAP_SCALING };
+    }
+};
+
+void renderPoly( const SchematicToBitmap& converter, agg::path_storage& path, const Analysis::Partition* pPartition,
+                 const Analysis::HalfEdgeVector& poly )
+{
     double x, y;
     for( auto i = poly.begin(), iEnd = poly.end(), iNext = poly.begin(); i != iEnd; ++i )
     {
-        convert( *i, x, y );
+        converter( *i, x, y );
 
         ++iNext;
         if( i == poly.begin() )
@@ -250,7 +277,8 @@ void renderPoly( agg::path_storage& path, const Rect& boundingBox, const Analysi
     }
 }
 
-void renderPolyWithHoles( schematic::Rasteriser& raster, const Rect& boundingBox, const Analysis::Partition* pPartition,
+void renderPolyWithHoles( const SchematicToBitmap& converter, schematic::Rasteriser& raster,
+                          const Analysis::Partition*                pPartition,
                           const Analysis::HalfEdgePolygonWithHoles& polyWithHoles, agg::gray8 colour )
 {
     schematic::Rasteriser::PolygonRasterizer ras;
@@ -258,19 +286,19 @@ void renderPolyWithHoles( schematic::Rasteriser& raster, const Rect& boundingBox
 
     {
         agg::path_storage path;
-        renderPoly( path, boundingBox, pPartition, polyWithHoles.outer );
+        renderPoly( converter, path, pPartition, polyWithHoles.outer );
         ras.add_path( path );
     }
     for( const auto& hole : polyWithHoles.holes )
     {
         agg::path_storage path;
-        renderPoly( path, boundingBox, pPartition, hole );
+        renderPoly( converter, path, pPartition, hole );
         ras.add_path( path );
     }
     raster.render( ras, colour );
 }
 
-void renderPolyWithHolesClearance( schematic::Rasteriser& raster, const Rect& boundingBox,
+void renderPolyWithHolesClearance( const SchematicToBitmap& converter, schematic::Rasteriser& raster,
                                    const Analysis::Partition*                pPartition,
                                    const Analysis::HalfEdgePolygonWithHoles& polyWithHoles, agg::gray8 colour,
                                    float fClearance )
@@ -280,7 +308,7 @@ void renderPolyWithHolesClearance( schematic::Rasteriser& raster, const Rect& bo
 
     {
         agg::path_storage path;
-        renderPoly( path, boundingBox, pPartition, polyWithHoles.outer );
+        renderPoly( converter, path, pPartition, polyWithHoles.outer );
         agg::conv_stroke< agg::path_storage > contour( path );
         {
             contour.width( fClearance );
@@ -290,7 +318,7 @@ void renderPolyWithHolesClearance( schematic::Rasteriser& raster, const Rect& bo
     for( const auto& hole : polyWithHoles.holes )
     {
         agg::path_storage path;
-        renderPoly( path, boundingBox, pPartition, hole );
+        renderPoly( converter, path, pPartition, hole );
         agg::conv_stroke< agg::path_storage > contour( path );
         {
             contour.width( 4.0 );
@@ -300,9 +328,10 @@ void renderPolyWithHolesClearance( schematic::Rasteriser& raster, const Rect& bo
     raster.render( ras, colour );
 }
 
-void calculateLaneSegments( schematic::Rasteriser& raster, const Rect& boundingBox, const SearchCoeffs& coeffs,
-                            Adjacency& adjacency, const Analysis::HalfEdgeCstVector& doorSteps,
-                            ValueSegmentVector& segments, ValueSegmentVector& doorStepSegments )
+void calculateLaneSegments( const SchematicToBitmap& converter, schematic::Rasteriser& raster,
+                            const SearchCoeffs& coeffs, Adjacency& adjacency,
+                            const Analysis::HalfEdgeCstVector& doorSteps, ValueSegmentVector& segments,
+                            ValueSegmentVector& doorStepSegments )
 {
     using DoorStep     = std::pair< int, int >;
     using DoorStepsVec = std::vector< DoorStep >;
@@ -321,14 +350,14 @@ void calculateLaneSegments( schematic::Rasteriser& raster, const Rect& boundingB
             schematic::Connection::PtrCst pConnection = e->data().pConnection;
             INVARIANT( pConnection, "Doorstep missing connection" );
 
-            static ::exact::InexactToExact converter;
+            static ::exact::InexactToExact inexactToExactConverter;
             const exact::Transform         transform = pConnection->getAbsoluteExactTransform();
             const schematic::Segment       firstSeg  = pConnection->getFirstSegment();
             const schematic::Segment       secondSeg = pConnection->getSecondSegment();
-            const exact::Point             ptFirstStart( transform( converter( firstSeg[ 0 ] ) ) );
-            const exact::Point             ptFirstEnd( transform( converter( firstSeg[ 1 ] ) ) );
-            const exact::Point             ptSecondStart( transform( converter( secondSeg[ 0 ] ) ) );
-            const exact::Point             ptSecondEnd( transform( converter( secondSeg[ 1 ] ) ) );
+            const exact::Point             ptFirstStart( transform( inexactToExactConverter( firstSeg[ 0 ] ) ) );
+            const exact::Point             ptFirstEnd( transform( inexactToExactConverter( firstSeg[ 1 ] ) ) );
+            const exact::Point             ptSecondStart( transform( inexactToExactConverter( secondSeg[ 0 ] ) ) );
+            const exact::Point             ptSecondEnd( transform( inexactToExactConverter( secondSeg[ 1 ] ) ) );
             const exact::Segment           crossFirst( ptFirstStart, ptSecondStart );
             const exact::Segment           crossSecond( ptFirstEnd, ptSecondEnd );
 
@@ -352,14 +381,10 @@ void calculateLaneSegments( schematic::Rasteriser& raster, const Rect& boundingB
             INVARIANT( bSuccess, "Failed to resolve doorstep connection distance" );
         }
 
-        // const int x0 = Math::roundRealOutToInt( CGAL::to_double( p1.x() - boundingBox.xmin() ) );
-        // const int y0 = Math::roundRealOutToInt( CGAL::to_double( p1.y() - boundingBox.ymin() ) );
-        // const int x1 = Math::roundRealOutToInt( CGAL::to_double( p2.x() - boundingBox.xmin() ) );
-        // const int y1 = Math::roundRealOutToInt( CGAL::to_double( p2.y() - boundingBox.ymin() ) );
-        const int x0 = CGAL::to_double( p1.x() - boundingBox.xmin() );
-        const int y0 = CGAL::to_double( p1.y() - boundingBox.ymin() );
-        const int x1 = CGAL::to_double( p2.x() - boundingBox.xmin() );
-        const int y1 = CGAL::to_double( p2.y() - boundingBox.ymin() );
+        int x0, y0;
+        converter( p1, x0, y0 );
+        int x1, y1;
+        converter( p2, x1, y1 );
 
         const auto dir = Math::fromVector< Angle >( x1 - x0, y1 - y0 );
 
@@ -729,16 +754,19 @@ void generateLaneExtrusion( Analysis::Arrangement& arr, const Analysis::Partitio
 
 void Analysis::lanes()
 {
+    const schematic::Schematic::LaneConfig laneConfig = m_pSchematic->getLaneConfig();
+
     // first can generate the offset based gutters and pavements
     Component::Vector gutterComponents;
     {
         HalfEdgeSet doorSteps;
         getEdges( m_arr, doorSteps, []( HalfEdge e ) { return test( e, EdgeMask::eDoorStep ); } );
 
-        static constexpr std::array< ExtrusionSpec, 3 > extrusions
-            = { ExtrusionSpec{ 1, EdgeMask::eLane, EdgeMask::eLane },
-                ExtrusionSpec{ 2, EdgeMask::eLaneInnerBoundary, EdgeMask::eLaneInner },
-                ExtrusionSpec{ 2.25, EdgeMask::eLaneOuterBoundary, EdgeMask::eLaneOuter } };
+        const std::array< ExtrusionSpec, 3 > extrusions
+            = { ExtrusionSpec{ laneConfig.laneRadius, EdgeMask::eLane, EdgeMask::eLane },
+                ExtrusionSpec{ laneConfig.laneRadius * 2.0, EdgeMask::eLaneInnerBoundary, EdgeMask::eLaneInner },
+                ExtrusionSpec{ laneConfig.laneRadius * 2.0 + laneConfig.laneLining, EdgeMask::eLaneOuterBoundary,
+                               EdgeMask::eLaneOuter } };
         generateLaneExtrusion(
             m_arr, m_floors, doorSteps, extrusions,
             []( Partition* pLeft, Partition* pRight ) { return pLeft->bHasGutter && pRight->bHasGutter; },
@@ -758,11 +786,14 @@ void Analysis::lanes()
     const Rect   boundingBox = CGAL::bbox_2( perimeterPoints.begin(), perimeterPoints.end() );
     const double width       = CGAL::to_double( boundingBox.xmax() - boundingBox.xmin() );
     const double height      = CGAL::to_double( boundingBox.ymax() - boundingBox.ymin() );
-    m_laneBitmap.resize( std::ceil( width ), std::ceil( height ) );
+    m_laneBitmap.resize( std::ceil( width ) * SchematicToBitmap::BITMAP_SCALING,
+                         std::ceil( height ) * SchematicToBitmap::BITMAP_SCALING );
     m_laneBitmap.reset();
     m_pSchematic->setLaneBitmapOffset(
-        schematic::Vector{ CGAL::to_double( boundingBox.xmin() ), CGAL::to_double( boundingBox.ymin() ) } );
-    schematic::Rasteriser raster( m_laneBitmap, false );
+        schematic::Vector{ CGAL::to_double( boundingBox.xmin() ), CGAL::to_double( boundingBox.ymin() ) },
+        SchematicToBitmap::BITMAP_SCALING );
+    schematic::Rasteriser   raster( m_laneBitmap, false );
+    const SchematicToBitmap converter{ boundingBox };
 
     // using FloorPolyMap = std::map< const Analysis::Partition*, Analysis::HalfEdgePolygonWithHoles >;
     FloorPolyMap floors;
@@ -770,20 +801,20 @@ void Analysis::lanes()
 
     for( const auto& [ pPartition, polyWithHoles ] : floors )
     {
-        renderPolyWithHoles( raster, boundingBox, pPartition, polyWithHoles, colourSpace );
+        renderPolyWithHoles( converter, raster, pPartition, polyWithHoles, colourSpace );
     }
 
     // TODO set clearance per partition via properties
     for( const auto& [ pPartition, polyWithHoles ] : floors )
     {
-        renderPolyWithHolesClearance( raster, boundingBox, pPartition, polyWithHoles, colourAvoid, 4.0f );
+        renderPolyWithHolesClearance( converter, raster, pPartition, polyWithHoles, colourAvoid, laneConfig.clearance );
     }
 
     const SearchCoeffs coeffs;
     Adjacency          adjacency{ raster };
 
-    static const exact::Polygon octogonInner = makeOctogon( 1 );
-    static const exact::Polygon octogonOuter = makeOctogon( 1.25 );
+    const exact::Polygon octogonInner = makeOctogon( laneConfig.laneRadius );
+    const exact::Polygon octogonOuter = makeOctogon( laneConfig.laneRadius + laneConfig.laneLining );
 
     // NOTE: can only write the partition lane segments AFTER all are calculated
     // because any doorstep edge intersection will break calculation
@@ -809,7 +840,7 @@ void Analysis::lanes()
             {
                 PartitionLaneSegments segments;
                 calculateLaneSegments(
-                    raster, boundingBox, coeffs, adjacency, doorSteps, segments.segments, segments.doorStepSegments );
+                    converter, raster, coeffs, adjacency, doorSteps, segments.segments, segments.doorStepSegments );
                 partitionSegments.emplace_back( segments );
             }
         }
@@ -844,20 +875,20 @@ void Analysis::lanes()
             {
                 PartitionLaneSegments segments;
                 calculateLaneSegments(
-                    raster, boundingBox, coeffs, adjacency, doorSteps, segments.segments, segments.doorStepSegments );
+                    converter, raster, coeffs, adjacency, doorSteps, segments.segments, segments.doorStepSegments );
                 partitionSegments.emplace_back( segments );
             }
         }
     }
 
+    // render generated lane segments into the arrangement
     for( const auto& segments : partitionSegments )
     {
         // render the octagonal lane geometry
         for( const auto& segment : segments.segments )
         {
             const Curve curve{
-                Point{ 0.5 + segment.first.x + boundingBox.xmin(), 0.5 + segment.first.y + boundingBox.ymin() },
-                Point{ 0.5 + segment.second.x + boundingBox.xmin(), 0.5 + segment.second.y + boundingBox.ymin() } };
+                converter( segment.first.x, segment.first.y ), converter( segment.second.x, segment.second.y ) };
             renderCurve( m_arr, curve, EdgeMask::eLane, EdgeMask::eLane );
             renderExtrudedCurve( m_arr, curve, octogonInner, EdgeMask::eLaneInner, EdgeMask::eLaneInnerBoundary );
             renderExtrudedCurve( m_arr, curve, octogonOuter, EdgeMask::eLaneOuter, EdgeMask::eLaneOuterBoundary );
@@ -865,8 +896,7 @@ void Analysis::lanes()
         for( const auto& segment : segments.doorStepSegments )
         {
             const Curve curve{
-                Point{ 0.5 + segment.first.x + boundingBox.xmin(), 0.5 + segment.first.y + boundingBox.ymin() },
-                Point{ 0.5 + segment.second.x + boundingBox.xmin(), 0.5 + segment.second.y + boundingBox.ymin() } };
+                converter( segment.first.x, segment.first.y ), converter( segment.second.x, segment.second.y ) };
             renderCurve( m_arr, curve, EdgeMask::eLane, EdgeMask::eLane );
             renderExtrudedCurve( m_arr, curve, octogonInner, EdgeMask::eLaneInner, EdgeMask::eLaneInnerBoundary );
             renderExtrudedCurve( m_arr, curve, octogonOuter, EdgeMask::eLaneOuter, EdgeMask::eLaneOuterBoundary );
@@ -878,10 +908,12 @@ void Analysis::lanes()
         HalfEdgeSet doorSteps;
         getEdges( m_arr, doorSteps, []( HalfEdge e ) { return test( e, EdgeMask::eDoorStep ); } );
 
-        Component::Vector                               pavementComponents;
-        static constexpr std::array< ExtrusionSpec, 2 > extrusions
-            = { ExtrusionSpec{ 5, EdgeMask::ePavementInnerBoundary, EdgeMask::ePavementInner },
-                ExtrusionSpec{ 5.25, EdgeMask::ePavementOuterBoundary, EdgeMask::ePavementOuter } };
+        Component::Vector                    pavementComponents;
+        const std::array< ExtrusionSpec, 2 > extrusions
+            = { ExtrusionSpec{
+                    laneConfig.pavementRadius * 2.0, EdgeMask::ePavementInnerBoundary, EdgeMask::ePavementInner },
+                ExtrusionSpec{ laneConfig.pavementRadius * 2.0 + laneConfig.pavementLining,
+                               EdgeMask::ePavementOuterBoundary, EdgeMask::ePavementOuter } };
         generateLaneExtrusion(
             m_arr, m_floors, doorSteps, extrusions,
             []( Partition* pLeft, Partition* pRight ) { return pLeft->bHasPavement && pRight->bHasPavement; },

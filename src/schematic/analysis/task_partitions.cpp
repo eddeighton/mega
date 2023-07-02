@@ -287,6 +287,22 @@ void Analysis::partition()
         HalfEdgeVectorVector boundarySegmentPolygons;
         searchPolygons( boundarySegmentStartVertices, boundaryAndCutEdges, true, boundarySegmentPolygons );
 
+        // check all boundary edges are found
+        {
+            std::set< HalfEdge > edges;
+            for( auto segmentBoundary : boundarySegmentPolygons )
+            {
+                for( auto e : segmentBoundary )
+                {
+                    edges.insert( e );
+                }
+            }
+            for( auto e : boundaryEdges )
+            {
+                INVARIANT( edges.contains( e ), "Boundary edge not contained in boundary segment polygons" );
+            }
+        }
+
         for( auto segmentBoundary : boundarySegmentPolygons )
         {
             // only admit boundary segments that have atleast three edges AND

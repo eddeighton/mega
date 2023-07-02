@@ -316,6 +316,7 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
             INVARIANT( pBoundary == nullptr || pBoundary == edge->data().pPartition, "Inconsistent boundary" );
             pBoundary = edge->data().pPartition;
             INVARIANT( pBoundary, "Boundary edge has no partition" );
+            INVARIANT( test( edge, EdgeMask::ePartitionBoundarySegment ), "Boundary is not partition segment boundary" );
             PartitionSegment* pPartitionSegment = edge->data().pPartitionSegment;
             INVARIANT( pPartitionSegment, "Boundary edge has no partition segment" );
             INVARIANT( std::find( pBoundary->segments.begin(), pBoundary->segments.end(), pPartitionSegment )

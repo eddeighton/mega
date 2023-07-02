@@ -202,15 +202,18 @@ public:
 
     // ImageSpec
     virtual const Vector&     getOffset() const { return m_bitmapOffset; }
+    virtual int               getScaling() const { return m_scaling; }
     virtual const MonoBitmap& getBuffer() const { return m_bitmap; }
 
     void setOffset( const Vector& vOffset ) { m_bitmapOffset = vOffset; }
+    void setScaling( int scaling ) { m_scaling = scaling; }
 
 private:
     const GlyphSpecProducer& m_producer;
     const GlyphSpec*         m_pParent;
     const MonoBitmap&        m_bitmap;
     Vector                   m_bitmapOffset;
+    int                      m_scaling = 1;
     CompilationStage         m_compilationStage;
 };
 } // namespace schematic

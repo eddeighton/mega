@@ -133,8 +133,9 @@ class ImageSpec : public GlyphSpec
 public:
     using List = std::list< ImageSpec* >;
 
-    virtual const Vector&     getOffset() const = 0;
-    virtual const MonoBitmap& getBuffer() const = 0;
+    virtual const Vector&     getOffset() const  = 0;
+    virtual int               getScaling() const = 0;
+    virtual const MonoBitmap& getBuffer() const  = 0;
 };
 
 } // namespace schematic

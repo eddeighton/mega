@@ -60,6 +60,42 @@ void Schematic::init()
     {
         m_pLaneAxisMarkup.reset( new MonoBitmapImage( *this, nullptr, m_laneBitmap, eStage_Lanes ) );
     }
+
+    if( !( m_pLaneRadius = get< Property >( "laneRadius" ) ) )
+    {
+        m_pLaneRadius = Property::Ptr( new Property( getPtr(), "laneRadius" ) );
+        m_pLaneRadius->init();
+        m_pLaneRadius->setStatement( "0.75f" );
+        add( m_pLaneRadius );
+    }
+    if( !( m_pLaneLining = get< Property >( "laneLining" ) ) )
+    {
+        m_pLaneLining = Property::Ptr( new Property( getPtr(), "laneLining" ) );
+        m_pLaneLining->init();
+        m_pLaneLining->setStatement( "0.15f" );
+        add( m_pLaneLining );
+    }
+    if( !( m_pPavementRadius = get< Property >( "pavementRadius" ) ) )
+    {
+        m_pPavementRadius = Property::Ptr( new Property( getPtr(), "pavementRadius" ) );
+        m_pPavementRadius->init();
+        m_pPavementRadius->setStatement( "2.25f" );
+        add( m_pPavementRadius );
+    }
+    if( !( m_pPavementLining = get< Property >( "pavementLining" ) ) )
+    {
+        m_pPavementLining = Property::Ptr( new Property( getPtr(), "pavementLining" ) );
+        m_pPavementLining->init();
+        m_pPavementLining->setStatement( "0.15f" );
+        add( m_pPavementLining );
+    }
+    if( !( m_pClearance = get< Property >( "clearance" ) ) )
+    {
+        m_pClearance = Property::Ptr( new Property( getPtr(), "clearance" ) );
+        m_pClearance->init();
+        m_pClearance->setStatement( "3.5f" );
+        add( m_pClearance );
+    }
 }
 
 Node::Ptr Schematic::copy( Node::Ptr pParent, const std::string& strName ) const
@@ -79,6 +115,34 @@ void Schematic::save( format::Node& node ) const
 {
     format::Node::File::Schematic& schematic = *node.mutable_file()->mutable_schematic();
     File::save( node );
+}
+
+Schematic::LaneConfig Schematic::getLaneConfig()
+{
+    LaneConfig laneConfig;
+
+    if( m_pLaneRadius )
+    {
+        laneConfig.laneRadius = m_pLaneRadius->getValue( laneConfig.laneRadius, m_laneRadiusOpt );
+    }
+    if( m_pLaneLining )
+    {
+        laneConfig.laneLining = m_pLaneLining->getValue( laneConfig.laneLining, m_laneLiningOpt );
+    }
+    if( m_pPavementRadius )
+    {
+        laneConfig.pavementRadius = m_pPavementRadius->getValue( laneConfig.pavementRadius, m_pavementRadiusOpt );
+    }
+    if( m_pPavementLining )
+    {
+        laneConfig.pavementLining = m_pPavementLining->getValue( laneConfig.pavementLining, m_pavementLiningOpt );
+    }
+    if( m_pClearance )
+    {
+        laneConfig.clearance = m_pClearance->getValue( laneConfig.clearance, m_clearanceOpt );
+    }
+
+    return laneConfig;
 }
 
 bool Schematic::compile( CompilationStage stage, std::ostream& os )
