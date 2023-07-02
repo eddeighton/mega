@@ -93,10 +93,10 @@ public:
 
     struct LaneConfig
     {
-        float laneRadius     = 0.75;
-        float laneLining     = 0.15;
-        float pavementRadius = 2.25;
-        float pavementLining = 0.15;
+        float laneRadius     = 0.5f;
+        float laneLining     = 0.3f;
+        float pavementRadius = 2.25f;
+        float pavementLining = 0.3f;
         float clearance      = 3.5;
     };
     LaneConfig getLaneConfig();
