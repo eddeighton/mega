@@ -579,8 +579,10 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
     return meshBuilder.Finish();
 }
 
+using VertexDistanceMap = std::map< exact::Analysis::VertexCst, float >;
+
 void triangulateLiningRegion( const FBVertMap& fbVertMap, Mega::Plane plane,
-                              const exact::Analysis::VertexCstVector&      region,
+                              const exact::Analysis::VertexCstVector& region, const VertexDistanceMap& distances,
                               std::vector< fb::Offset< Mega::Vertex3D > >& vertices, std::vector< int >& indices,
                               fb::FlatBufferBuilder& builder )
 {
@@ -610,16 +612,41 @@ void triangulateLiningRegion( const FBVertMap& fbVertMap, Mega::Plane plane,
     const Mega::F3 normal( 0.0f, 1.0f, 0.0f );
     const Mega::F4 tangent( 0.0f, 1.0f, 0.0f, 0.0f );
 
+    // First two vertices of the region are the boundary segment vertices in counter clockwise order
+    // so can calculate coordinate axis along this line for uv
+    INVARIANT( region.size() > 1, "Invalid region" );
+
+    float fP1Distance;
+    {
+        auto iFind1 = distances.find( region[ 0 ] );
+        INVARIANT( iFind1 != distances.end(), "Failed to locate vertex 0" );
+        fP1Distance = iFind1->second;
+    }
+
+    const exact::Point                         p1 = region[ 0 ]->point();
+    const exact::Point                         p2 = region[ 1 ]->point();
+    const exact::Segment                       segment( p1, p2 );
+    exact::Kernel::Construct_projected_point_2 project;
+
     for( Triangulation::CDT::Face_handle f : triangulation.solve() )
     {
         if( f->info().in_domain() )
         {
             for( int i = 0; i != 3; ++i )
             {
-                auto        v       = f->vertex( i )->info().vertex;
-                const auto& value   = fbVertMap.get( v );
-                std::size_t szIndex = buildVertex(
-                    builder, vertices, Mega::F2( value.x(), value.y() ), normal, tangent, fbVertMap( v ), plane );
+                auto        vertex = f->vertex( i )->info().vertex;
+                const auto& value  = fbVertMap.get( vertex );
+
+                const exact::Point tPoint( value.x(), value.y() );
+                const exact::Point pt    = project( segment.supporting_line(), tPoint );
+                const auto         xDiff = tPoint - pt;
+                const auto         xDist = CGAL::approximate_sqrt( CGAL::to_double( xDiff.squared_length() ) );
+                const auto         yDiff = p1 - pt;
+                const auto         yDist = CGAL::approximate_sqrt( CGAL::to_double( yDiff.squared_length() ) );
+
+                // NEED associated distance with each contour vertex with which to add dist
+                std::size_t szIndex = buildVertex( builder, vertices, Mega::F2( fP1Distance + yDist, xDist ), normal,
+                                                   tangent, fbVertMap( vertex ), plane );
 
                 indices.push_back( szIndex );
             }
@@ -633,10 +660,14 @@ fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( const FBVertMap&            
                                                     const exact::Analysis::SkeletonRegionQuery& skeletonEdgeQuery,
                                                     fb::FlatBufferBuilder&                      builder )
 {
-    auto collectContourSegmentRegion = [ &skeletonEdgeQuery ]( const exact::Analysis::HalfEdgeCstVector& contour )
+    VertexDistanceMap vertexDistances;
+
+    auto collectContourSegmentRegion
+        = [ &skeletonEdgeQuery, &vertexDistances ]( const exact::Analysis::HalfEdgeCstVector& contour )
     {
         exact::Analysis::VertexCstVectorVector regions;
-        auto filtered = exact::filterColinearEdges< exact::Analysis::VertexCst >( contour );
+        auto  filtered  = exact::filterColinearEdges< exact::Analysis::VertexCst >( contour );
+        float fDistance = 0.0f;
         for( auto i = filtered.begin(), iNext = filtered.begin(), iEnd = filtered.end(); i != iEnd; ++i )
         {
             ++iNext;
@@ -655,6 +686,10 @@ fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( const FBVertMap&            
             }
             INVARIANT( iNextEdge != exact::Analysis::HalfEdgeCst{}, "Failed to locate vertex edge" );
             regions.push_back( skeletonEdgeQuery.getRegion( *i, iNextEdge ) );
+
+            vertexDistances.insert( { *i, fDistance } );
+            const auto vDiff = ( *iNext )->point() - ( *i )->point();
+            fDistance += CGAL::approximate_sqrt( CGAL::to_double( vDiff.squared_length() ) );
         }
         return regions;
     };
@@ -666,7 +701,7 @@ fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( const FBVertMap&            
         exact::Analysis::VertexCstVectorVector outerRegions = collectContourSegmentRegion( poly.outer );
         for( const auto& region : outerRegions )
         {
-            triangulateLiningRegion( fbVertMap, plane, region, vertices, indices, builder );
+            triangulateLiningRegion( fbVertMap, plane, region, vertexDistances, vertices, indices, builder );
         }
     }
     for( const auto& hole : poly.holes )
@@ -674,7 +709,7 @@ fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( const FBVertMap&            
         exact::Analysis::VertexCstVectorVector holeRegions = collectContourSegmentRegion( hole );
         for( const auto& region : holeRegions )
         {
-            triangulateLiningRegion( fbVertMap, plane, region, vertices, indices, builder );
+            triangulateLiningRegion( fbVertMap, plane, region, vertexDistances, vertices, indices, builder );
         }
     }
 
