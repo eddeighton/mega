@@ -55,7 +55,7 @@ void calculateLinings( Analysis::Arrangement& arr, const Analysis::HalfEdgePolyg
         polygonWithHoles.outer_boundary().begin(), polygonWithHoles.outer_boundary().end(),
         polygonWithHoles.holes_begin(), polygonWithHoles.holes_end(), exact::Kernel() );
 
-    std::map< int, exact::Point >                  pointIDMap;
+    /*std::map< int, exact::Point >                  pointIDMap;
     std::map< exact::Point, int >                  idPointMap;
     std::vector< StraightSkeleton::Vertex_handle > skeletonVertices, contourVertices;
     for( StraightSkeleton::Vertex_handle v : pStraightSkeleton->vertex_handles() )
@@ -73,29 +73,36 @@ void calculateLinings( Analysis::Arrangement& arr, const Analysis::HalfEdgePolyg
             INVARIANT( v->is_contour(), "Vertex not contour or skeleton" );
             contourVertices.push_back( v );
         }
-    }
+    }*/
 
     // check ALL points can be found in the straight skeleton
-    for( auto e : polygonWithHoles.outer_boundary() )
+    /*std::set< exact::Point > boundaryPoints;
+    for( auto pt : polygonWithHoles.outer_boundary() )
     {
-        INVARIANT( idPointMap.find( e ) != idPointMap.end(), "Failed to locate point in buildLiningHorizontalMesh" );
+        INVARIANT( idPointMap.find( pt ) != idPointMap.end(), "Failed to locate point in buildLiningHorizontalMesh" );
+        boundaryPoints.insert( pt );
     }
     for( const auto& polygon : polygonWithHoles.holes() )
     {
-        for( auto e : polygon )
+        for( auto pt : polygon )
         {
             INVARIANT(
-                idPointMap.find( e ) != idPointMap.end(), "Failed to locate point in buildLiningHorizontalMesh" );
+                idPointMap.find( pt ) != idPointMap.end(), "Failed to locate point in buildLiningHorizontalMesh" );
+            boundaryPoints.insert( pt );
         }
-    }
+    }*/
 
     for( auto h : pStraightSkeleton->halfedge_handles() )
     {
         StraightSkeleton::Halfedge_handle e = h;
-        if( !e->is_border() && ( e->vertex()->is_skeleton() || e->next()->vertex()->is_skeleton() ) )
+
+        //if( e->is_bisector() )
         {
-            renderCurve( arr, Curve( e->vertex()->point(), e->next()->vertex()->point() ), EdgeMask::eSkeleton,
-                         EdgeMask::eSkeleton );
+           // if( e != e->defining_contour_edge() )
+            {
+                renderCurve( arr, Curve( e->vertex()->point(), e->next()->vertex()->point() ), EdgeMask::eSkeleton,
+                             EdgeMask::eSkeleton );
+            }
         }
     }
 }

@@ -48,31 +48,31 @@ inline void serializeMathType( Archive& ar, TMathType& mathType )
 
 
 template < class Archive >
-inline void serialize( Archive& ar, F2& v, const unsigned int version )
+inline void serialize( Archive& ar, ::F2& v, const unsigned int version )
 {
     serializeMathType( ar, v );
 }
 
 template < class Archive >
-inline void serialize( Archive& ar, F3& v, const unsigned int version )
+inline void serialize( Archive& ar, ::F3& v, const unsigned int version )
 {
     serializeMathType( ar, v );
 }
 
 template < class Archive >
-inline void serialize( Archive& ar, F4& v, const unsigned int version )
+inline void serialize( Archive& ar, ::F4& v, const unsigned int version )
 {
     serializeMathType( ar, v );
 }
 
 template < class Archive >
-inline void serialize( Archive& ar, Quat& v, const unsigned int version )
+inline void serialize( Archive& ar, ::Quat& v, const unsigned int version )
 {
     serializeMathType( ar, v );
 }
 
 template < class Archive >
-inline void serialize( Archive& ar, F33& v, const unsigned int version )
+inline void serialize( Archive& ar, ::F33& v, const unsigned int version )
 {
     serializeMathType( ar, v );
 }

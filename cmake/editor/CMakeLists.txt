@@ -25,6 +25,15 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get cgal
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/cgal/cgal_include.cmake )
 
+#get fmt
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/fmt/fmt_include.cmake )
+
+#get spdlog
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
+
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
 #get ads
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/qtdock2/qtdock2_include.cmake )
 
@@ -114,10 +123,21 @@ target_link_libraries( editor Qt6::Widgets)
 target_link_libraries( editor mega_interface )
 target_link_libraries( editor schematic )
 
+target_link_libraries( editor compiler_config )
+target_link_libraries( editor database )
+target_link_libraries( editor log )
+target_link_libraries( editor network )
+target_link_libraries( editor protocol )
+target_link_libraries( editor utilities )
+target_link_libraries( editor tool )
+
 link_cgal( editor )
 link_qtdock2( editor )
 link_common( editor )
 link_ed( editor )
+link_fmt( mega )
+link_json( mega )
+link_spdlog( mega )
 
 install( FILES ${EDITOR_HEADERS} DESTINATION include/editor )
 install( FILES ${EDITOR_SRC_DIR}/config.ed DESTINATION bin )

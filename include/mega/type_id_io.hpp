@@ -73,31 +73,31 @@ inline std::istream& operator>>( std::istream& is, mega::TypeID& typeID )
 namespace boost::serialization
 {
 // xml
-inline void serialize( boost::archive::xml_iarchive& ar, mega::TypeID& typeID, const unsigned int version )
+inline void serialize( boost::archive::xml_iarchive& ar, ::mega::TypeID& typeID, const unsigned int version )
 {
-    mega::TypeID::ValueType value;
-    ar&                     boost::serialization::make_nvp( "symbolID", value );
-    typeID = mega::TypeID( value );
+    ::mega::TypeID::ValueType value;
+    ar&                       boost::serialization::make_nvp( "symbolID", value );
+    typeID = ::mega::TypeID( value );
 }
 
-inline void serialize( boost::archive::xml_oarchive& ar, mega::TypeID& typeID, const unsigned int version )
+inline void serialize( boost::archive::xml_oarchive& ar, ::mega::TypeID& typeID, const unsigned int version )
 {
-    mega::TypeID::ValueType value = typeID;
-    ar&                     boost::serialization::make_nvp( "symbolID", value );
+    ::mega::TypeID::ValueType value = typeID;
+    ar&                       boost::serialization::make_nvp( "symbolID", value );
 }
 
 // binary
-inline void serialize( boost::archive::binary_iarchive& ar, mega::TypeID& typeID, const unsigned int version )
+inline void serialize( boost::archive::binary_iarchive& ar, ::mega::TypeID& typeID, const unsigned int version )
 {
-    mega::TypeID::ValueType value;
-    ar&                     value;
-    typeID = mega::TypeID( value );
+    ::mega::TypeID::ValueType value;
+    ar&                       value;
+    typeID = ::mega::TypeID( value );
 }
 
-inline void serialize( boost::archive::binary_oarchive& ar, mega::TypeID& typeID, const unsigned int version )
+inline void serialize( boost::archive::binary_oarchive& ar, ::mega::TypeID& typeID, const unsigned int version )
 {
-    mega::TypeID::ValueType value = typeID;
-    ar&                     value;
+    ::mega::TypeID::ValueType value = typeID;
+    ar&                       value;
 }
 
 } // namespace boost::serialization

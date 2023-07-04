@@ -42,22 +42,23 @@ namespace boost::archive
 
 class EGDB_EXPORT MegaIArchive : public binary_iarchive
 {
-    std::set< mega::io::ObjectInfo* >& m_objectInfos;
+    std::set< ::mega::io::ObjectInfo* >& m_objectInfos;
 
 public:
-    MegaIArchive( std::istream& os, std::set< mega::io::ObjectInfo* >& objectInfos, ::data::ObjectPartLoader& loader );
-    void objectInfo( mega::io::ObjectInfo* pObjectInfo );
+    MegaIArchive( ::std::istream& os, ::std::set< ::mega::io::ObjectInfo* >& objectInfos,
+                  ::data::ObjectPartLoader& loader );
+    void objectInfo( ::mega::io::ObjectInfo* pObjectInfo );
 
     ::data::ObjectPartLoader& m_loader;
 };
 
 class EGDB_EXPORT MegaOArchive : public binary_oarchive
 {
-    std::set< const mega::io::ObjectInfo* >& m_objectInfos;
+    std::set< const ::mega::io::ObjectInfo* >& m_objectInfos;
 
 public:
-    MegaOArchive( std::ostream& os, std::set< const mega::io::ObjectInfo* >& objectInfos );
-    void objectInfo( const mega::io::ObjectInfo* pObjectInfo );
+    MegaOArchive( ::std::ostream& os, ::std::set< const ::mega::io::ObjectInfo* >& objectInfos );
+    void objectInfo( const ::mega::io::ObjectInfo* pObjectInfo );
 };
 
 } // namespace boost::archive

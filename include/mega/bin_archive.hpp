@@ -111,12 +111,12 @@ BOOST_SERIALIZATION_USE_ARRAY_OPTIMIZATION( boost::archive::SnapshotOArchive )
 
 namespace boost::serialization
 {
-inline void serialize( boost::archive::SnapshotIArchive& ar, mega::reference& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::reference& value, const unsigned int version )
 {
     ar.load( value );
 }
 
-inline void serialize( boost::archive::SnapshotOArchive& ar, mega::reference& value, const unsigned int version )
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::reference& value, const unsigned int version )
 {
     ar.save( value );
 }

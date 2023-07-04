@@ -564,8 +564,8 @@ Analysis::Boundary::Vector Analysis::getBoundaries()
                     for( auto e : seq.m_edges )
                     {
                         wall.edges.push_back( e->twin() );
-                        std::reverse( wall.edges.begin(), wall.edges.end() );
                     }
+                    std::reverse( wall.edges.begin(), wall.edges.end() );
                     boundary.walls.emplace_back( wall );
                 }
                 break;

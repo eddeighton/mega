@@ -91,37 +91,64 @@ struct Map;
 struct MapBuilder;
 
 enum Plane : int16_t {
-  Plane_eHole = 0,
-  Plane_eGround = 1,
-  Plane_eMid = 2,
-  Plane_eCeiling = 3,
-  Plane_MIN = Plane_eHole,
-  Plane_MAX = Plane_eCeiling
+  Plane_eAbyss = 0,
+  Plane_eHoleDeep = 1,
+  Plane_eHole = 2,
+  Plane_eGround = 3,
+  Plane_eLower = 4,
+  Plane_eMid = 5,
+  Plane_eUpper = 6,
+  Plane_eCeiling = 7,
+  Plane_eCeilingHigh = 8,
+  Plane_eRoof = 9,
+  Plane_eFly = 10,
+  Plane_eSky = 11,
+  Plane_eTOTAL_PLANES = 12,
+  Plane_MIN = Plane_eAbyss,
+  Plane_MAX = Plane_eTOTAL_PLANES
 };
 
-inline const Plane (&EnumValuesPlane())[4] {
+inline const Plane (&EnumValuesPlane())[13] {
   static const Plane values[] = {
+    Plane_eAbyss,
+    Plane_eHoleDeep,
     Plane_eHole,
     Plane_eGround,
+    Plane_eLower,
     Plane_eMid,
-    Plane_eCeiling
+    Plane_eUpper,
+    Plane_eCeiling,
+    Plane_eCeilingHigh,
+    Plane_eRoof,
+    Plane_eFly,
+    Plane_eSky,
+    Plane_eTOTAL_PLANES
   };
   return values;
 }
 
 inline const char * const *EnumNamesPlane() {
-  static const char * const names[5] = {
+  static const char * const names[14] = {
+    "eAbyss",
+    "eHoleDeep",
     "eHole",
     "eGround",
+    "eLower",
     "eMid",
+    "eUpper",
     "eCeiling",
+    "eCeilingHigh",
+    "eRoof",
+    "eFly",
+    "eSky",
+    "eTOTAL_PLANES",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNamePlane(Plane e) {
-  if (::flatbuffers::IsOutRange(e, Plane_eHole, Plane_eCeiling)) return "";
+  if (::flatbuffers::IsOutRange(e, Plane_eAbyss, Plane_eTOTAL_PLANES)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesPlane()[index];
 }
@@ -597,7 +624,7 @@ struct Vertex3DBuilder {
 inline ::flatbuffers::Offset<Vertex3D> CreateVertex3D(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<Mega::Vertex> vertex = 0,
-    Mega::Plane plane = Mega::Plane_eHole,
+    Mega::Plane plane = Mega::Plane_eAbyss,
     const Mega::F3 *normal = nullptr,
     const Mega::F2 *uv = nullptr,
     const Mega::F4 *tangent = nullptr) {

@@ -129,198 +129,198 @@ namespace boost::serialization
 {
 
 
-inline void serialize( boost::archive::xml_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
+inline void serialize( boost::archive::xml_iarchive& ar, ::mega::TypeInstance& value, const unsigned int version )
 {
     ar& boost::serialization::make_nvp( "instance", value.instance );
     ar& boost::serialization::make_nvp( "type", value.type );
 }
 
-inline void serialize( boost::archive::xml_oarchive& ar, mega::TypeInstance& value, const unsigned int version )
+inline void serialize( boost::archive::xml_oarchive& ar, ::mega::TypeInstance& value, const unsigned int version )
 {
     ar& boost::serialization::make_nvp( "instance", value.instance );
     ar& boost::serialization::make_nvp( "type", value.type );
 }
 
-inline void serialize( boost::archive::xml_iarchive& ar, mega::MP& value, const unsigned int version )
+inline void serialize( boost::archive::xml_iarchive& ar, ::mega::MP& value, const unsigned int version )
 {
-    mega::U32 machine{};
-    mega::U32 process{};
+    ::mega::U32 machine{};
+    ::mega::U32 process{};
     ar&       boost::serialization::make_nvp( "machine", machine );
     ar&       boost::serialization::make_nvp( "process", process );
-    value = mega::MP( machine, process );
+    value = ::mega::MP( machine, process );
 }
 
-inline void serialize( boost::archive::xml_oarchive& ar, mega::MP& value, const unsigned int version )
+inline void serialize( boost::archive::xml_oarchive& ar, ::mega::MP& value, const unsigned int version )
 {
-    mega::U32 machine = value.getMachineID();
-    mega::U32 process = value.getProcessID();
+    ::mega::U32 machine = value.getMachineID();
+    ::mega::U32 process = value.getProcessID();
     ar&       boost::serialization::make_nvp( "machine", machine );
     ar&       boost::serialization::make_nvp( "process", process );
 }
 
-inline void serialize( boost::archive::xml_iarchive& ar, mega::MPO& value, const unsigned int version )
+inline void serialize( boost::archive::xml_iarchive& ar, ::mega::MPO& value, const unsigned int version )
 {
-    mega::U32 machine{};
-    mega::U32 process{};
-    mega::U32 owner{};
-    ar&       boost::serialization::make_nvp( "machine", machine );
-    ar&       boost::serialization::make_nvp( "process", process );
-    ar&       boost::serialization::make_nvp( "owner", owner );
-    value = mega::MPO( machine, process, owner );
-}
-
-inline void serialize( boost::archive::xml_oarchive& ar, mega::MPO& value, const unsigned int version )
-{
-    mega::U32 machine = value.getMachineID();
-    mega::U32 process = value.getProcessID();
-    mega::U32 owner   = value.getOwnerID();
+    ::mega::U32 machine{};
+    ::mega::U32 process{};
+    ::mega::U32 owner{};
     ar&       boost::serialization::make_nvp( "machine", machine );
     ar&       boost::serialization::make_nvp( "process", process );
     ar&       boost::serialization::make_nvp( "owner", owner );
+    value = ::mega::MPO( machine, process, owner );
 }
 
-inline void serialize( boost::archive::xml_iarchive& ar, mega::reference& ref, const unsigned int version )
+inline void serialize( boost::archive::xml_oarchive& ar, ::mega::MPO& value, const unsigned int version )
 {
-    mega::Flags flags{};
+    ::mega::U32 machine = value.getMachineID();
+    ::mega::U32 process = value.getProcessID();
+    ::mega::U32 owner   = value.getOwnerID();
+    ar&       boost::serialization::make_nvp( "machine", machine );
+    ar&       boost::serialization::make_nvp( "process", process );
+    ar&       boost::serialization::make_nvp( "owner", owner );
+}
+
+inline void serialize( boost::archive::xml_iarchive& ar, ::mega::reference& ref, const unsigned int version )
+{
+    ::mega::Flags flags{};
     ar&         boost::serialization::make_nvp( "flags", flags );
 
-    if( flags == mega::HEAP_ADDRESS )
+    if( flags == ::mega::HEAP_ADDRESS )
     {
-        mega::U64          heap{};
-        mega::U32          owner{};
-        mega::TypeInstance typeInstance{};
+        ::mega::U64          heap{};
+        ::mega::U32          owner{};
+        ::mega::TypeInstance typeInstance{};
 
         // NOTE reloading heap pointer!
         ar& boost::serialization::make_nvp( "heap", heap );
         ar& boost::serialization::make_nvp( "owner", owner );
         ar& boost::serialization::make_nvp( "type_instance", typeInstance );
 
-        ref = mega::reference( typeInstance, owner, reinterpret_cast< mega::HeapAddress >( heap ) );
+        ref = ::mega::reference( typeInstance, owner, reinterpret_cast< ::mega::HeapAddress >( heap ) );
     }
     else
     {
-        mega::AllocationID allocationID{};
-        mega::MPO          mpo{};
-        mega::TypeInstance typeInstance{};
+        ::mega::AllocationID allocationID{};
+        ::mega::MPO          mpo{};
+        ::mega::TypeInstance typeInstance{};
 
         ar& boost::serialization::make_nvp( "allocationID", allocationID );
         ar& boost::serialization::make_nvp( "mpo", mpo );
         ar& boost::serialization::make_nvp( "type_instance", typeInstance );
 
-        ref = mega::reference( typeInstance, mpo, allocationID );
+        ref = ::mega::reference( typeInstance, mpo, allocationID );
     }
 }
 
-inline void serialize( boost::archive::xml_oarchive& ar, mega::reference& ref, const unsigned int version )
+inline void serialize( boost::archive::xml_oarchive& ar, ::mega::reference& ref, const unsigned int version )
 {
-    mega::Flags flags = ref.getFlags();
+    ::mega::Flags flags = ref.getFlags();
     ar&         boost::serialization::make_nvp( "flags", flags );
 
     if( ref.isHeapAddress() )
     {
-        auto               heap = reinterpret_cast< mega::U64 >( ref.getHeap() );
+        auto               heap = reinterpret_cast< ::mega::U64 >( ref.getHeap() );
         ar&                boost::serialization::make_nvp( "heap", heap );
-        mega::U32          owner = ref.getOwnerID();
+        ::mega::U32          owner = ref.getOwnerID();
         ar&                boost::serialization::make_nvp( "owner", owner );
-        mega::TypeInstance typeInstance = ref.getTypeInstance();
+        ::mega::TypeInstance typeInstance = ref.getTypeInstance();
         ar&                boost::serialization::make_nvp( "type_instance", typeInstance );
     }
     else
     {
-        mega::AllocationID allocationID = ref.getAllocationID();
+        ::mega::AllocationID allocationID = ref.getAllocationID();
         ar&                boost::serialization::make_nvp( "allocationID", allocationID );
-        mega::MPO          mpo = ref.getMPO();
+        ::mega::MPO          mpo = ref.getMPO();
         ar&                boost::serialization::make_nvp( "mpo", mpo );
-        mega::TypeInstance typeInstance = ref.getTypeInstance();
+        ::mega::TypeInstance typeInstance = ref.getTypeInstance();
         ar&                boost::serialization::make_nvp( "type_instance", typeInstance );
     }
 }
 
 // binary
 
-inline void serialize( boost::archive::binary_iarchive& ar, mega::TypeInstance& value, const unsigned int version )
+inline void serialize( boost::archive::binary_iarchive& ar, ::mega::TypeInstance& value, const unsigned int version )
 {
     ar& value.type;
     ar& value.instance;
 }
 
-inline void serialize( boost::archive::binary_oarchive& ar, mega::TypeInstance& value, const unsigned int version )
+inline void serialize( boost::archive::binary_oarchive& ar, ::mega::TypeInstance& value, const unsigned int version )
 {
     ar& value.type;
     ar& value.instance;
 }
 
-inline void serialize( boost::archive::binary_iarchive& ar, mega::MP& value, const unsigned int version )
+inline void serialize( boost::archive::binary_iarchive& ar, ::mega::MP& value, const unsigned int version )
 {
-    mega::U32 machine{};
-    mega::U32 process{};
+    ::mega::U32 machine{};
+    ::mega::U32 process{};
     ar&       machine;
     ar&       process;
-    value = mega::MP( machine, process );
+    value = ::mega::MP( machine, process );
 }
 
-inline void serialize( boost::archive::binary_oarchive& ar, mega::MP& value, const unsigned int version )
+inline void serialize( boost::archive::binary_oarchive& ar, ::mega::MP& value, const unsigned int version )
 {
-    ar&( mega::U32 )value.getMachineID();
-    ar&( mega::U32 )value.getProcessID();
+    ar&( ::mega::U32 )value.getMachineID();
+    ar&( ::mega::U32 )value.getProcessID();
 }
 
-inline void serialize( boost::archive::binary_iarchive& ar, mega::MPO& value, const unsigned int version )
+inline void serialize( boost::archive::binary_iarchive& ar, ::mega::MPO& value, const unsigned int version )
 {
-    mega::U32 machine{};
-    mega::U32 process{};
-    mega::U32 owner{};
+    ::mega::U32 machine{};
+    ::mega::U32 process{};
+    ::mega::U32 owner{};
     ar&       machine;
     ar&       process;
     ar&       owner;
-    value = mega::MPO( machine, process, owner );
+    value = ::mega::MPO( machine, process, owner );
 }
 
-inline void serialize( boost::archive::binary_oarchive& ar, mega::MPO& value, const unsigned int version )
+inline void serialize( boost::archive::binary_oarchive& ar, ::mega::MPO& value, const unsigned int version )
 {
-    ar&( mega::U32 )value.getMachineID();
-    ar&( mega::U32 )value.getProcessID();
-    ar&( mega::U32 )value.getOwnerID();
+    ar&( ::mega::U32 )value.getMachineID();
+    ar&( ::mega::U32 )value.getProcessID();
+    ar&( ::mega::U32 )value.getOwnerID();
 }
 
-inline void serialize( boost::archive::binary_iarchive& ar, mega::reference& ref, const unsigned int version )
+inline void serialize( boost::archive::binary_iarchive& ar, ::mega::reference& ref, const unsigned int version )
 {
-    mega::Flags flags{};
+    ::mega::Flags flags{};
     ar&         flags;
 
-    if( flags == mega::HEAP_ADDRESS )
+    if( flags == ::mega::HEAP_ADDRESS )
     {
-        mega::U64          heap{};
-        mega::U32          owner{};
-        mega::TypeInstance typeInstance{};
+        ::mega::U64          heap{};
+        ::mega::U32          owner{};
+        ::mega::TypeInstance typeInstance{};
 
         ar& heap;
         ar& owner;
         ar& typeInstance;
 
-        ref = mega::reference( typeInstance, owner, reinterpret_cast< mega::HeapAddress >( heap ) );
+        ref = ::mega::reference( typeInstance, owner, reinterpret_cast< ::mega::HeapAddress >( heap ) );
     }
     else
     {
-        mega::AllocationID allocationID{};
-        mega::MPO          mpo{};
-        mega::TypeInstance typeInstance{};
+        ::mega::AllocationID allocationID{};
+        ::mega::MPO          mpo{};
+        ::mega::TypeInstance typeInstance{};
 
         ar& allocationID;
         ar& mpo;
         ar& typeInstance;
 
-        ref = mega::reference( typeInstance, mpo, allocationID );
+        ref = ::mega::reference( typeInstance, mpo, allocationID );
     }
 }
 
-inline void serialize( boost::archive::binary_oarchive& ar, mega::reference& ref, const unsigned int version )
+inline void serialize( boost::archive::binary_oarchive& ar, ::mega::reference& ref, const unsigned int version )
 {
     ar& ref.getFlags();
     if( ref.isHeapAddress() )
     {
-        ar& reinterpret_cast< mega::U64 >( ref.getHeap() );
-        ar&( mega::U32 )ref.getOwnerID();
+        ar& reinterpret_cast< ::mega::U64 >( ref.getHeap() );
+        ar&( ::mega::U32 )ref.getOwnerID();
         ar& ref.getTypeInstance();
     }
     else

@@ -186,10 +186,23 @@ void Analysis::getPerimeterPolygon( HalfEdgeCstVector& polygon ) const
 Analysis::SkeletonRegionQuery::SkeletonRegionQuery( Analysis& analysis )
 {
     getEdges( analysis.m_arr, m_skeletonEdges,
-              []( Analysis::HalfEdgeCst edge ) { return test( edge, EdgeMask::eSkeleton ); } );
+              []( Analysis::HalfEdgeCst edge )
+              {
+                  // clang-format off
+                return test( edge, EdgeMask::eSkeleton ) && 
+                !(
+                    test( edge, EdgeMask::eLaneSpace ) || 
+                    test( edge, EdgeMask::eLaneLining ) || 
+                    test( edge, EdgeMask::ePavementSpace ) || 
+                    test( edge, EdgeMask::ePavementLining ) || 
+                    test( edge, EdgeMask::eRoad )
+                );
+                  // clang-format on
+              } );
 }
 
-Analysis::VertexCstVector Analysis::SkeletonRegionQuery::getRegion( Analysis::VertexCst v, Analysis::HalfEdgeCst eNext ) const
+Analysis::VertexCstVector Analysis::SkeletonRegionQuery::getRegion( Analysis::VertexCst   v,
+                                                                    Analysis::HalfEdgeCst eNext ) const
 {
     Analysis::VertexCstVector region;
     searchSkeletonRegion< Analysis::VertexCst, Analysis::HalfEdgeCst >( v, eNext, m_skeletonEdges, region );

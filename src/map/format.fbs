@@ -86,10 +86,19 @@ table Polygon
 
 enum Plane : short
 {
+    eAbyss,
+    eHoleDeep,
     eHole,
     eGround,
+    eLower,
     eMid,
-    eCeiling
+    eUpper,
+    eCeiling,
+    eCeilingHigh,
+    eRoof,
+    eFly,
+    eSky,
+    eTOTAL_PLANES
 }
 
 table Vertex3D

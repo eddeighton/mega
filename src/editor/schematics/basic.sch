@@ -13,10 +13,10 @@ Schematic(base;,0)
         }
         Space(space_0002;,2)
         {
-            transform(1,0,44,0,1,52)
+            transform(1,0,64,0,1,48)
             Contour(contour;,0)
             {
-                path(0,0,32,0,32,32,0,32)
+                path(-32,32,-32,0,32,0,32,32)
             }
             Property(width;,1)
             {
@@ -27,7 +27,7 @@ Schematic(base;,0)
                 transform(1,0,0,0,1,0)
                 Contour(contour;,0)
                 {
-                    path(0,0,10,0,10,32,0,32)
+                    path(-10,32,-10,0,10,0,10,32)
                 }
                 Property(width;,1)
                 {
@@ -67,59 +67,121 @@ Schematic(base;,0)
                         value(Mid;)
                     }
                 }
-                Connection(conn_0006;,6)
-                {
-                    transform(-2.66454e-15,1,0,-1,-2.66454e-15,24)
-                    Point(width;,0)
-                    {
-                        position(2.5,3)
-                    }
-                }
-                Property(lane_0007;,7)
+                Property(lane_0007;,6)
                 {
                     value(0.75f;)
                 }
-                Property(lane_0008;,8)
+                Property(lane_0008;,7)
                 {
                     value(0.15f;)
                 }
-                Property(pave_0009;,9)
+                Property(pave_0009;,8)
                 {
                     value(2.25f;)
                 }
-                Property(pave_0010;,10)
+                Property(pave_0010;,9)
                 {
                     value(0.15f;)
                 }
-                Property(clea_0011;,11)
+                Property(clea_0011;,10)
                 {
                     value(3.5f;)
                 }
-                Pin(pin__0012;,12)
+                Pin(pin__0012;,11)
                 {
-                    position(4,29)
+                    position(13,27)
                     Property(lanes;,0)
                     {
                         value(Gutter;)
                     }
                 }
-                Property(lane_0013;,13)
+                Property(lane_0013;,12)
                 {
                     value(0.75f;)
                 }
-                Property(lane_0014;,14)
+                Property(lane_0014;,13)
                 {
                     value(0.15f;)
                 }
-                Property(pave_0015;,15)
+                Property(pave_0015;,14)
                 {
                     value(2.25f;)
                 }
-                Property(pave_0016;,16)
+                Property(pave_0016;,15)
                 {
                     value(0.15f;)
                 }
-                Property(clea_0017;,17)
+                Property(clea_0017;,16)
+                {
+                    value(3.5f;)
+                }
+                Connection(conn_0018;,17)
+                {
+                    transform(2.66454e-15,-1,-10,-1,-2.66454e-15,16)
+                    Point(width;,0)
+                    {
+                        position(1.5,3)
+                    }
+                }
+                Cut(cut__0019;,18)
+                {
+                    transform(-1,-0,-9,0,1,28)
+                    LineSegment(segment;,0)
+                    {
+                        start(0,0)
+                        end(2,0)
+                    }
+                }
+                Cut(cut__0020;,19)
+                {
+                    transform(-1,-0,-9,0,1,20)
+                    LineSegment(segment;,0)
+                    {
+                        start(0,0)
+                        end(2,0)
+                    }
+                }
+                Connection(conn_0021;,20)
+                {
+                    transform(1,2.72005e-15,0,2.72005e-15,-1,32)
+                    Point(width;,0)
+                    {
+                        position(4.5,3)
+                    }
+                }
+                Connection(conn_0022;,21)
+                {
+                    transform(1,2.72005e-15,0,2.72005e-15,-1,0)
+                    Point(width;,0)
+                    {
+                        position(4.5,3)
+                    }
+                }
+                Pin(pin__0022;,22)
+                {
+                    position(-7,30)
+                    Property(lanes;,0)
+                    {
+                        value(Gutter;)
+                    }
+                }
+                Property(lane_0023;,23)
+                {
+                    value(0.75f;)
+                }
+                Property(lane_0024;,24)
+                {
+                    value(0.15f;)
+                }
+                Property(pave_0025;,25)
+                {
+                    value(2.25f;)
+                }
+                Property(pave_0026;,26)
+                {
+                    value(0.15f;)
+                }
+                Property(clea_0027;,27)
                 {
                     value(3.5f;)
                 }
@@ -229,6 +291,124 @@ Schematic(base;,0)
                 {
                     value(3.5f;)
                 }
+                Wall(wall_0021;,21)
+                {
+                    transform(1,0,8,0,1,10)
+                    Contour(contour;,0)
+                    {
+                        path(0,0,0,-6,1,-7,4,-7,5,-6,5,0,4,1,1,1)
+                    }
+                    Property(width;,1)
+                    {
+                        value(0.25f;)
+                    }
+                    Pin(pin_0002;,2)
+                    {
+                        position(1,-1)
+                        Property(plane;,0)
+                        {
+                            value(Hole;)
+                        }
+                    }
+                    Property(lane_0003;,3)
+                    {
+                        value(0.75f;)
+                    }
+                    Property(lane_0004;,4)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(pave_0005;,5)
+                    {
+                        value(2.25f;)
+                    }
+                    Property(pave_0006;,6)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(clea_0007;,7)
+                    {
+                        value(3.5f;)
+                    }
+                }
+                Wall(wall_0022;,22)
+                {
+                    transform(1,0,6,0,1,1)
+                    Contour(contour;,0)
+                    {
+                        path(-1,1,-4,1,-4,4,-5,5,-6,5,-6,-1,0,-1,0,0)
+                    }
+                    Property(width;,1)
+                    {
+                        value(0.25f;)
+                    }
+                    Pin(pin_0002;,2)
+                    {
+                        position(-4,1)
+                        Property(plane;,0)
+                        {
+                            value(Mid;)
+                        }
+                    }
+                    Property(lane_0003;,3)
+                    {
+                        value(0.75f;)
+                    }
+                    Property(lane_0004;,4)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(pave_0005;,5)
+                    {
+                        value(2.25f;)
+                    }
+                    Property(pave_0006;,6)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(clea_0007;,7)
+                    {
+                        value(3.5f;)
+                    }
+                    Cut(cut_0008;,8)
+                    {
+                        transform(1,0,-5,0,1,-2)
+                        LineSegment(segment;,0)
+                        {
+                            start(0,0)
+                            end(0,8)
+                        }
+                    }
+                    Property(lane_0009;,9)
+                    {
+                        value(0.75f;)
+                    }
+                    Property(lane_0010;,10)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(pave_0011;,11)
+                    {
+                        value(2.25f;)
+                    }
+                    Property(pave_0012;,12)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(clea_0013;,13)
+                    {
+                        value(3.5f;)
+                    }
+                    Cut(cut__0014;,14)
+                    {
+                        transform(-2.66454e-15,1,-7,-1,-2.66454e-15,1.42109e-14)
+                        LineSegment(segment;,0)
+                        {
+                            start(0,0)
+                            end(0,8)
+                        }
+                    }
+                }
             }
             Space(spac_0004;,4)
             {
@@ -269,6 +449,274 @@ Schematic(base;,0)
             Connection(conn_0006;,6)
             {
                 transform(1,0,13,0,1,32)
+                Point(width;,0)
+                {
+                    position(1.5,3)
+                }
+            }
+            Space(spac_0008;,7)
+            {
+                transform(-1,-0,-16,0,1,-0)
+                Contour(contour;,0)
+                {
+                    path(0,0,16,0,16,16,0,16)
+                }
+                Property(width;,1)
+                {
+                    value(0.25f;)
+                }
+                Connection(conn_0002;,2)
+                {
+                    transform(-2.66454e-15,1,0,-1,-2.66454e-15,8)
+                    Point(width;,0)
+                    {
+                        position(1.5,3)
+                    }
+                }
+                Cut(cut_0003;,3)
+                {
+                    transform(1,0,2,0,1,15)
+                    LineSegment(segment;,0)
+                    {
+                        start(0,0)
+                        end(0,2)
+                    }
+                }
+                Property(lane_0004;,4)
+                {
+                    value(0.75f;)
+                }
+                Property(lane_0005;,5)
+                {
+                    value(0.15f;)
+                }
+                Property(pave_0006;,6)
+                {
+                    value(2.25f;)
+                }
+                Property(pave_0007;,7)
+                {
+                    value(0.15f;)
+                }
+                Property(clea_0008;,8)
+                {
+                    value(3.5f;)
+                }
+                Cut(cut__0009;,9)
+                {
+                    transform(1,0,10,0,1,15)
+                    LineSegment(segment;,0)
+                    {
+                        start(0,0)
+                        end(0,2)
+                    }
+                }
+                Property(lane_0011;,10)
+                {
+                    value(0.75f;)
+                }
+                Property(lane_0012;,11)
+                {
+                    value(0.15f;)
+                }
+                Property(pave_0013;,12)
+                {
+                    value(2.25f;)
+                }
+                Property(pave_0014;,13)
+                {
+                    value(0.15f;)
+                }
+                Property(clea_0015;,14)
+                {
+                    value(3.5f;)
+                }
+                Pin(pin_0015;,15)
+                {
+                    position(6,16)
+                    Property(plane;,0)
+                    {
+                        value(Hole;)
+                    }
+                }
+                Property(lane_0016;,16)
+                {
+                    value(0.75f;)
+                }
+                Property(lane_0017;,17)
+                {
+                    value(0.15f;)
+                }
+                Property(pave_0018;,18)
+                {
+                    value(2.25f;)
+                }
+                Property(pave_0019;,19)
+                {
+                    value(0.15f;)
+                }
+                Property(clea_0020;,20)
+                {
+                    value(3.5f;)
+                }
+                Wall(wall_0021;,21)
+                {
+                    transform(1,0,8,0,1,10)
+                    Contour(contour;,0)
+                    {
+                        path(0,0,0,-6,1,-7,4,-7,5,-6,5,0,4,1,1,1)
+                    }
+                    Property(width;,1)
+                    {
+                        value(0.25f;)
+                    }
+                    Pin(pin_0002;,2)
+                    {
+                        position(1,-1)
+                        Property(plane;,0)
+                        {
+                            value(Hole;)
+                        }
+                    }
+                    Property(lane_0003;,3)
+                    {
+                        value(0.75f;)
+                    }
+                    Property(lane_0004;,4)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(pave_0005;,5)
+                    {
+                        value(2.25f;)
+                    }
+                    Property(pave_0006;,6)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(clea_0007;,7)
+                    {
+                        value(3.5f;)
+                    }
+                }
+                Wall(wall_0022;,22)
+                {
+                    transform(1,0,6,0,1,1)
+                    Contour(contour;,0)
+                    {
+                        path(-1,1,-4,1,-4,4,-5,5,-6,5,-6,-1,0,-1,0,0)
+                    }
+                    Property(width;,1)
+                    {
+                        value(0.25f;)
+                    }
+                    Pin(pin_0002;,2)
+                    {
+                        position(-4,1)
+                        Property(plane;,0)
+                        {
+                            value(Mid;)
+                        }
+                    }
+                    Property(lane_0003;,3)
+                    {
+                        value(0.75f;)
+                    }
+                    Property(lane_0004;,4)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(pave_0005;,5)
+                    {
+                        value(2.25f;)
+                    }
+                    Property(pave_0006;,6)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(clea_0007;,7)
+                    {
+                        value(3.5f;)
+                    }
+                    Cut(cut_0008;,8)
+                    {
+                        transform(1,0,-5,0,1,-2)
+                        LineSegment(segment;,0)
+                        {
+                            start(0,0)
+                            end(0,8)
+                        }
+                    }
+                    Property(lane_0009;,9)
+                    {
+                        value(0.75f;)
+                    }
+                    Property(lane_0010;,10)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(pave_0011;,11)
+                    {
+                        value(2.25f;)
+                    }
+                    Property(pave_0012;,12)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(clea_0013;,13)
+                    {
+                        value(3.5f;)
+                    }
+                    Cut(cut__0014;,14)
+                    {
+                        transform(-2.66454e-15,1,-7,-1,-2.66454e-15,1.42109e-14)
+                        LineSegment(segment;,0)
+                        {
+                            start(0,0)
+                            end(0,8)
+                        }
+                    }
+                }
+            }
+            Space(spac_0009;,8)
+            {
+                transform(-1,-0,-16,0,1,16)
+                Contour(contour;,0)
+                {
+                    path(0,0,16,0,16,16,0,16)
+                }
+                Property(width;,1)
+                {
+                    value(0.25f;)
+                }
+                Connection(conn_0002;,2)
+                {
+                    transform(-2.66454e-15,1,0,-1,-2.66454e-15,8)
+                    Point(width;,0)
+                    {
+                        position(1.5,3)
+                    }
+                }
+                Connection(conn_0003;,3)
+                {
+                    transform(1,0,12,0,1,0)
+                    Point(width;,0)
+                    {
+                        position(1.5,3)
+                    }
+                }
+            }
+            Connection(conn_0010;,9)
+            {
+                transform(-1,-0,-13,0,1,-0)
+                Point(width;,0)
+                {
+                    position(1.5,3)
+                }
+            }
+            Connection(conn_0011;,10)
+            {
+                transform(-1,-0,-13,0,1,32)
                 Point(width;,0)
                 {
                     position(1.5,3)

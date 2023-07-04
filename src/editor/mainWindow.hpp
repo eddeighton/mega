@@ -8,6 +8,7 @@
 
 #include <QMainWindow>
 #include <QComboBox>
+#include <QTimer>
 
 #ifndef Q_MOC_RUN
 
@@ -15,6 +16,8 @@
 #include "document.hpp"
 
 #include "common/scheduler.hpp"
+
+#include "boost/asio/spawn.hpp"
 
 #include <map>
 #include <thread>
@@ -45,7 +48,7 @@ class MainWindow : public QMainWindow, public DocumentChangeObserver
     using ActionMap = std::map< QAction*, int >;
 
 public:
-    explicit MainWindow( QWidget* parent = nullptr );
+    explicit MainWindow( boost::asio::yield_context& yield_ctx );
     virtual ~MainWindow();
 
     static MainWindow* getSingleton()
@@ -76,7 +79,9 @@ protected:
 public:
     QComboBox* getCompilationModeComboBox() const { return m_pCompilationModeComboBox; }
 
+    void queueIdleTimer() { QTimer::singleShot( 0, this, SLOT( OnIdle() ) ); }
 public slots:
+    void OnIdle();
     void OnDocumentSaved( const void* pDocument );
 
     void OnFloatingWidgetCreated( ads::CFloatingDockContainer* pFloatingWidget );
@@ -95,13 +100,14 @@ public slots:
     void OnSaveAll();
 
 protected:
-    static MainWindow* m_pThis;
-    Ui::MainWindow*    m_pMainWindowImpl;
-    ads::CDockManager* m_pDockManager;
-    DocumentViewMap    m_docViewMap;
-    ActionMap          m_actionRefCountMap;
-    Toolbox::Ptr       m_pToolbox;
-    QComboBox*         m_pCompilationModeComboBox;
+    static MainWindow*          m_pThis;
+    boost::asio::yield_context& m_yield_ctx;
+    Ui::MainWindow*             m_pMainWindowImpl;
+    ads::CDockManager*          m_pDockManager;
+    DocumentViewMap             m_docViewMap;
+    ActionMap                   m_actionRefCountMap;
+    Toolbox::Ptr                m_pToolbox;
+    QComboBox*                  m_pCompilationModeComboBox;
 };
 
 } // namespace editor
