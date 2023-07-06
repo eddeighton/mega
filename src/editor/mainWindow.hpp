@@ -48,7 +48,7 @@ class MainWindow : public QMainWindow, public DocumentChangeObserver
     using ActionMap = std::map< QAction*, int >;
 
 public:
-    explicit MainWindow( boost::asio::yield_context& yield_ctx );
+    explicit MainWindow( boost::asio::yield_context* pYieldCtx );
     virtual ~MainWindow();
 
     static MainWindow* getSingleton()
@@ -101,7 +101,7 @@ public slots:
 
 protected:
     static MainWindow*          m_pThis;
-    boost::asio::yield_context& m_yield_ctx;
+    boost::asio::yield_context* m_pYield_ctx;
     Ui::MainWindow*             m_pMainWindowImpl;
     ads::CDockManager*          m_pDockManager;
     DocumentViewMap             m_docViewMap;

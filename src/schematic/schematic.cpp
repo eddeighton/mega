@@ -690,16 +690,14 @@ void triangulateLiningRegion( const FBVertMap& fbVertMap, Mega::Plane plane,
     }
 }
 
-std::vector< fb::Offset< Mega::Mesh > >
-buildLiningHorizontalMesh( const FBVertMap&                                    fbVertMap,
-                           Mega::Plane                                         plane,
-                           const exact::Analysis::HalfEdgeCstPolygonWithHoles& poly,
-                           const exact::Analysis::SkeletonRegionQuery&         skeletonEdgeQuery,
-                           fb::FlatBufferBuilder&                              builder )
+fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( const FBVertMap&                                    fbVertMap,
+                                                    Mega::Plane                                         plane,
+                                                    const exact::Analysis::HalfEdgeCstPolygonWithHoles& poly,
+                                                    const exact::Analysis::SkeletonRegionQuery& skeletonEdgeQuery,
+                                                    fb::FlatBufferBuilder&                      builder )
 {
     VertexDistanceMap vertexDistances;
-
-    auto collectContourSegmentRegion
+    auto              collectContourSegmentRegion
         = [ &skeletonEdgeQuery, &vertexDistances ]( const exact::Analysis::HalfEdgeCstVector& contour, bool ccw )
     {
         exact::Analysis::VertexCstVectorVector regions;
@@ -743,25 +741,15 @@ buildLiningHorizontalMesh( const FBVertMap&                                    f
         return regions;
     };
 
+    std::vector< fb::Offset< Mega::Vertex3D > > vertices;
+    std::vector< int >                          indices;
+
     std::vector< fb::Offset< Mega::Mesh > > resultMeshes;
     {
         exact::Analysis::VertexCstVectorVector outerRegions = collectContourSegmentRegion( poly.outer, true );
         for( const auto& region : outerRegions )
         {
-            std::vector< fb::Offset< Mega::Vertex3D > > vertices;
-            std::vector< int >                          indices;
-
             triangulateLiningRegion( fbVertMap, plane, region, vertexDistances, vertices, indices, builder );
-
-            auto fbIndices = builder.CreateVector( indices );
-            auto fbVerts   = builder.CreateVector( vertices );
-
-            Mega::MeshBuilder meshBuilder( builder );
-
-            meshBuilder.add_indices( fbIndices );
-            meshBuilder.add_vertices( fbVerts );
-
-            resultMeshes.push_back( meshBuilder.Finish() );
         }
     }
     for( const auto& hole : poly.holes )
@@ -769,24 +757,19 @@ buildLiningHorizontalMesh( const FBVertMap&                                    f
         exact::Analysis::VertexCstVectorVector holeRegions = collectContourSegmentRegion( hole, false );
         for( const auto& region : holeRegions )
         {
-            std::vector< fb::Offset< Mega::Vertex3D > > vertices;
-            std::vector< int >                          indices;
-
             triangulateLiningRegion( fbVertMap, plane, region, vertexDistances, vertices, indices, builder );
-
-            auto fbIndices = builder.CreateVector( indices );
-            auto fbVerts   = builder.CreateVector( vertices );
-
-            Mega::MeshBuilder meshBuilder( builder );
-
-            meshBuilder.add_indices( fbIndices );
-            meshBuilder.add_vertices( fbVerts );
-
-            resultMeshes.push_back( meshBuilder.Finish() );
         }
     }
 
-    return resultMeshes;
+    auto fbIndices = builder.CreateVector( indices );
+    auto fbVerts   = builder.CreateVector( vertices );
+
+    Mega::MeshBuilder meshBuilder( builder );
+
+    meshBuilder.add_indices( fbIndices );
+    meshBuilder.add_vertices( fbVerts );
+
+    return meshBuilder.Finish();
 }
 
 float convertVerticalUV( Mega::Plane plane )
@@ -1041,18 +1024,14 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::Mesh > > pavementLiningPolys;
             for( const auto& polyWithHoles : room.pavementLinings )
             {
-                auto meshes = buildLiningHorizontalMesh(
-                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder );
-                for( const auto& mesh : meshes )
-                    pavementLiningPolys.push_back( mesh );
+                pavementLiningPolys.push_back( buildLiningHorizontalMesh(
+                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder ) );
             }
             std::vector< fb::Offset< Mega::Mesh > > laneLiningPolys;
             for( const auto& polyWithHoles : room.laneLinings )
             {
-                auto meshes = buildLiningHorizontalMesh(
-                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder );
-                for( const auto& mesh : meshes )
-                    laneLiningPolys.push_back( mesh );
+                laneLiningPolys.push_back( buildLiningHorizontalMesh(
+                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder ) );
             }
 
             std::vector< fb::Offset< Mega::Mesh > > laneFloorPolys;
@@ -1060,19 +1039,10 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::Mesh > > laneWallsPolys;
             for( const auto& polyWithHoles : room.lanes )
             {
-                {
-                    auto meshes = buildLiningHorizontalMesh(
-                        fbVertMap, Mega::Plane_eHole, polyWithHoles, skeletonEdgeQuery, builder );
-                    for( const auto& mesh : meshes )
-                        laneFloorPolys.push_back( mesh );
-                }
-
-                {
-                    auto meshes = buildLiningHorizontalMesh(
-                        fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder );
-                    for( const auto& mesh : meshes )
-                        laneCoverPolys.push_back( mesh );
-                }
+                laneFloorPolys.push_back( buildLiningHorizontalMesh(
+                    fbVertMap, Mega::Plane_eHole, polyWithHoles, skeletonEdgeQuery, builder ) );
+                laneCoverPolys.push_back( buildLiningHorizontalMesh(
+                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder ) );
 
                 fb::Offset< Mega::Mesh > fbWallOuter = buildVerticalMesh(
                     fbVertMap, Mega::Plane_eHole, Mega::Plane_eGround, polyWithHoles.outer, builder, true );

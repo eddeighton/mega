@@ -24,7 +24,7 @@ namespace exact
 {
 
 void Analysis::placement()
-{
+{ 
    
 }
 

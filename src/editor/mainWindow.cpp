@@ -34,9 +34,9 @@ namespace editor
 {
 MainWindow* MainWindow::m_pThis = nullptr;
 
-MainWindow::MainWindow( boost::asio::yield_context& yield_ctx )
+MainWindow::MainWindow( boost::asio::yield_context* pYieldCtx )
     : QMainWindow( nullptr )
-    , m_yield_ctx( yield_ctx )
+    , m_pYield_ctx( pYieldCtx )
     , m_pMainWindowImpl( new Ui::MainWindow )
     , m_pToolbox( new Toolbox( boost::filesystem::current_path().string() ) )
 {
