@@ -73,15 +73,9 @@ struct F33
     m:[F3:3];
 }
 
-// Vertices
-table Vertex
-{
-    position:F2;
-}
-
 table Polygon
 {
-    vertices:[Vertex];
+    vertices:[F2];
 }
 
 enum Plane : short
@@ -103,11 +97,10 @@ enum Plane : short
 
 table Vertex3D
 {
-    vertex:Vertex;
+    position:F2;
     plane:Plane;
     normal:F3;
     uv:F2;
-    tangent:F4;
 }
 
 table Mesh

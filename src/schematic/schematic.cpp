@@ -339,67 +339,39 @@ fb::Offset< Mega::Area > recurseSites( fb::FlatBufferBuilder& builder, Site::Ptr
     return pAreaPtr;
 }
 
-struct FBVertMap
+class PositionConverter
 {
-    using AnalysisVert = exact::Analysis::VertexCst;
-    using FBVert       = fb::Offset< Mega::Vertex >;
-    using VertexMap    = std::map< AnalysisVert, FBVert >;
-    using ValueMap     = std::map< AnalysisVert, Mega::F2 >;
+    static exact::ExactToInexact m_convert;
 
-    FBVertMap( exact::Analysis& analysis, fb::FlatBufferBuilder& builder )
+public:
+    template < typename ExactPointType >
+    inline Mega::F2 operator()( const ExactPointType& pt )
     {
-        exact::ExactToInexact convert;
-
-        // record all vertices
-        exact::Analysis::VertexCstVector vertices;
-        analysis.getVertices( vertices );
-
-        for( auto pVert : vertices )
-        {
-            const schematic::Point pt = convert( pVert->point() );
-            const Mega::F2         f2( pt.x(), pt.y() );
-
-            Mega::VertexBuilder vertBuilder( builder );
-            vertBuilder.add_position( &f2 );
-            fb::Offset< Mega::Vertex > pVertex = vertBuilder.Finish();
-            vertexMap.insert( { pVert, pVertex } );
-            valueMap.insert( { pVert, f2 } );
-        }
+        const schematic::Point inexactPoint = m_convert( pt );
+        return Mega::F2( inexactPoint.x(), inexactPoint.y() );
     }
-
-    const FBVert& operator()( AnalysisVert pVert ) const
-    {
-        auto iFind = vertexMap.find( pVert );
-        VERIFY_RTE_MSG( iFind != vertexMap.end(), "Failed to find vertex" );
-        return iFind->second;
-    }
-
-    const Mega::F2& get( AnalysisVert pVert ) const
-    {
-        auto iFind = valueMap.find( pVert );
-        VERIFY_RTE_MSG( iFind != valueMap.end(), "Failed to find vertex" );
-        return iFind->second;
-    }
-
-private:
-    VertexMap vertexMap;
-    ValueMap  valueMap;
 };
+exact::ExactToInexact PositionConverter::m_convert;
 
-fb::Offset< Mega::Polygon > buildPolygon( const FBVertMap& fbVertMap, const exact::Analysis::HalfEdgeCstVector& contour,
-                                          fb::FlatBufferBuilder& builder )
+fb::Offset< Mega::Polygon > buildPolygon( const exact::Analysis::HalfEdgeCstVector& contour,
+                                          fb::FlatBufferBuilder&                    builder )
 {
-    std::vector< FBVertMap::FBVert > vertices;
+    std::vector< Mega::F2 > vertices;
     {
         for( auto pEdge : contour )
         {
-            vertices.push_back( fbVertMap( pEdge->source() ) );
+            vertices.push_back( PositionConverter()( pEdge->source()->point() ) );
         }
     }
-    auto pVerts = builder.CreateVector( vertices );
+    std::vector< const Mega::F2* > vertPtrs;
+    for( const auto& f2 : vertices )
+    {
+        vertPtrs.push_back( &f2 );
+    }
+    auto pVertices = builder.CreateVector( vertPtrs );
 
     Mega::PolygonBuilder polyBuilder( builder );
-    polyBuilder.add_vertices( pVerts );
+    polyBuilder.add_vertices( pVertices );
     return polyBuilder.Finish();
 }
 
@@ -418,7 +390,7 @@ struct Triangulation
 
     struct VertexData
     {
-        exact::Analysis::Arrangement::Vertex_const_handle vertex;
+        exact::Analysis::VertexCst vertex = exact::Analysis::VertexCst{};
     };
 
     using K    = exact::Kernel;
@@ -489,17 +461,15 @@ struct Triangulation
 
 std::size_t buildVertex( fb::FlatBufferBuilder&                       builder,
                          std::vector< fb::Offset< Mega::Vertex3D > >& vertices,
+                         const Mega::F2&                              position,
                          const Mega::F2&                              uv,
                          const Mega::F3&                              normal,
-                         const Mega::F4&                              tangent,
-                         FBVertMap::FBVert                            fbVert,
                          Mega::Plane                                  plane )
 {
     Mega::Vertex3DBuilder vertBuilder( builder );
-    vertBuilder.add_vertex( fbVert );
+    vertBuilder.add_position( &position );
     vertBuilder.add_normal( &normal );
     vertBuilder.add_plane( plane );
-    vertBuilder.add_tangent( &tangent );
     vertBuilder.add_uv( &uv );
     auto fbVert3d = vertBuilder.Finish();
 
@@ -509,12 +479,13 @@ std::size_t buildVertex( fb::FlatBufferBuilder&                       builder,
     return szIndex;
 }
 
-fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                                    fbVertMap,
-                                              Mega::Plane                                         plane,
+fb::Offset< Mega::Mesh > buildHorizontalMesh( Mega::Plane                                         plane,
                                               const exact::Analysis::HalfEdgeCstPolygonWithHoles& poly,
-                                              fb::FlatBufferBuilder&                              builder )
+                                              fb::FlatBufferBuilder&                              builder,
+                                              bool bAddGridVertices = true )
 {
-    Triangulation triangulation;
+    std::optional< Rect > boundsOpt;
+    Triangulation         triangulation;
     {
         auto insertConstraints = [ & ]( const exact::Analysis::VertexCstVector& contour )
         {
@@ -538,17 +509,47 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
         };
 
         // NOTE: does not matter about order here
-        insertConstraints( exact::filterColinearEdges< exact::Analysis::VertexCst >( poly.outer ) );
+        {
+            exact::Analysis::VertexCstVector outerVertices
+                = exact::filterColinearEdges< exact::Analysis::VertexCst >( poly.outer );
+            if( bAddGridVertices )
+            {
+                // calculate the bounding box
+                std::vector< exact::Point > outerPoints;
+                for( auto v : outerVertices )
+                {
+                    outerPoints.push_back( v->point() );
+                }
+                boundsOpt = CGAL::bbox_2( outerPoints.begin(), outerPoints.end() );
+            }
+            insertConstraints( outerVertices );
+        }
         for( auto& h : poly.holes )
         {
             insertConstraints( exact::filterColinearEdges< exact::Analysis::VertexCst >( h ) );
         }
     }
 
+   /* if( bAddGridVertices )
+    {
+        INVARIANT( boundsOpt.has_value(), "no bounding box" );
+        // add grid vertices
+        const int xMin = static_cast< int >( std::floor( CGAL::to_double( boundsOpt.value().xmin() ) ) );
+        const int xMax = static_cast< int >( std::ceil( CGAL::to_double( boundsOpt.value().xmax() ) ) );
+        const int yMin = static_cast< int >( std::floor( CGAL::to_double( boundsOpt.value().ymin() ) ) );
+        const int yMax = static_cast< int >( std::ceil( CGAL::to_double( boundsOpt.value().ymax() ) ) );
+        for( int x = xMin; x <= xMax; x++ )
+        {
+            for( int y = yMin; y <= yMax; y++ )
+            {
+                triangulation.cdt.insert( exact::Point( x, y ) );
+            }
+        }
+    }*/
+
     using ArrVert = exact::Analysis::VertexCst;
 
     const Mega::F3 normal( 0.0f, 1.0f, 0.0f );
-    const Mega::F4 tangent( 0.0f, 1.0f, 0.0f, 0.0f );
 
     std::vector< fb::Offset< Mega::Vertex3D > > vertices;
     std::vector< int >                          indices;
@@ -558,11 +559,9 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
         {
             for( int i = 0; i != 3; ++i )
             {
-                auto        v       = f->vertex( i )->info().vertex;
-                const auto& value   = fbVertMap.get( v );
-                std::size_t szIndex = buildVertex(
-                    builder, vertices, Mega::F2( value.x(), value.y() ), normal, tangent, fbVertMap( v ), plane );
-
+                const auto     vertex  = f->vertex( i );
+                const Mega::F2 f2      = PositionConverter()( vertex->point() );
+                std::size_t    szIndex = buildVertex( builder, vertices, f2, f2, normal, plane );
                 indices.push_back( szIndex );
             }
         }
@@ -581,15 +580,13 @@ fb::Offset< Mega::Mesh > buildHorizontalMesh( const FBVertMap&                  
 
 using VertexDistanceMap = std::map< exact::Analysis::VertexCst, float >;
 
-void triangulateLiningRegion( const FBVertMap& fbVertMap, Mega::Plane plane,
-                              const exact::Analysis::VertexCstVector& region, const VertexDistanceMap& distances,
-                              std::vector< fb::Offset< Mega::Vertex3D > >& vertices, std::vector< int >& indices,
-                              fb::FlatBufferBuilder& builder )
+void triangulateLiningRegion( Mega::Plane plane, const exact::Analysis::VertexCstVector& region,
+                              const VertexDistanceMap& distances, std::vector< fb::Offset< Mega::Vertex3D > >& vertices,
+                              std::vector< int >& indices, fb::FlatBufferBuilder& builder )
 {
     std::map< exact::Analysis::VertexCst, std::size_t > indexMap;
     {
         const Mega::F3 normal( 0.0f, 1.0f, 0.0f );
-        const Mega::F4 tangent( 0.0f, 1.0f, 0.0f, 0.0f );
 
         // First two vertices of the region are the boundary segment vertices in counter clockwise order
         // so can calculate coordinate axis along this line for uv
@@ -610,8 +607,7 @@ void triangulateLiningRegion( const FBVertMap& fbVertMap, Mega::Plane plane,
         // add the vertices around the region
         for( auto vertex : region )
         {
-            const auto&        value = fbVertMap.get( vertex );
-            const exact::Point vertexPoint( value.x(), value.y() );
+            const exact::Point vertexPoint        = vertex->point();
             const exact::Point nearestPointOnLine = project( segment.supporting_line(), vertexPoint );
 
             double uvXDist = fP1Distance;
@@ -646,8 +642,8 @@ void triangulateLiningRegion( const FBVertMap& fbVertMap, Mega::Plane plane,
             const auto uvYDist = CGAL::approximate_sqrt( CGAL::to_double( yDiff.squared_length() ) );
 
             // NEED associated distance with each contour vertex with which to add dist
-            std::size_t szIndex = buildVertex(
-                builder, vertices, Mega::F2( uvXDist, uvYDist ), normal, tangent, fbVertMap( vertex ), plane );
+            std::size_t szIndex = buildVertex( builder, vertices, PositionConverter()( vertex->point() ),
+                                               Mega::F2( uvXDist, uvYDist ), normal, plane );
 
             indexMap.insert( { vertex, szIndex } );
         }
@@ -690,8 +686,7 @@ void triangulateLiningRegion( const FBVertMap& fbVertMap, Mega::Plane plane,
     }
 }
 
-fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( const FBVertMap&                                    fbVertMap,
-                                                    Mega::Plane                                         plane,
+fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( Mega::Plane                                         plane,
                                                     const exact::Analysis::HalfEdgeCstPolygonWithHoles& poly,
                                                     const exact::Analysis::SkeletonRegionQuery& skeletonEdgeQuery,
                                                     fb::FlatBufferBuilder&                      builder )
@@ -749,7 +744,7 @@ fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( const FBVertMap&            
         exact::Analysis::VertexCstVectorVector outerRegions = collectContourSegmentRegion( poly.outer, true );
         for( const auto& region : outerRegions )
         {
-            triangulateLiningRegion( fbVertMap, plane, region, vertexDistances, vertices, indices, builder );
+            triangulateLiningRegion( plane, region, vertexDistances, vertices, indices, builder );
         }
     }
     for( const auto& hole : poly.holes )
@@ -757,7 +752,7 @@ fb::Offset< Mega::Mesh > buildLiningHorizontalMesh( const FBVertMap&            
         exact::Analysis::VertexCstVectorVector holeRegions = collectContourSegmentRegion( hole, false );
         for( const auto& region : holeRegions )
         {
-            triangulateLiningRegion( fbVertMap, plane, region, vertexDistances, vertices, indices, builder );
+            triangulateLiningRegion( plane, region, vertexDistances, vertices, indices, builder );
         }
     }
 
@@ -790,8 +785,7 @@ float convertVerticalUV( Mega::Plane plane )
 }
 
 // Generate a seperate quad for each edge
-fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                       fbVertMap,
-                                            Mega::Plane                            lower,
+fb::Offset< Mega::Mesh > buildVerticalMesh( Mega::Plane                            lower,
                                             Mega::Plane                            upper,
                                             const exact::Analysis::HalfEdgeCstSet& edges,
                                             fb::FlatBufferBuilder&                 builder )
@@ -804,25 +798,19 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
 
     for( auto e : edges )
     {
-        const auto& sValue = fbVertMap.get( e->source() );
-        const auto& tValue = fbVertMap.get( e->target() );
-        const auto  sVert  = fbVertMap( e->source() );
-        const auto  tVert  = fbVertMap( e->target() );
-
-        const Mega::F2 sF2( sValue.x(), sValue.y() );
-        const Mega::F2 tF2( tValue.x(), tValue.y() );
+        const Mega::F2 sF2 = PositionConverter()( e->source()->point() );
+        const Mega::F2 tF2 = PositionConverter()( e->target()->point() );
 
         const Mega::F2 tDist( tF2.x() - sF2.x(), tF2.y() - sF2.y() );
         const Mega::F2 tPerp( -tDist.y(), tDist.x() );
         const float    mag = std::sqrt( tDist.x() * tDist.x() + tDist.y() * tDist.y() );
 
         const Mega::F3 normal( tPerp.x() / mag, tPerp.y() / mag, 0.0f );
-        const Mega::F4 tangent( tPerp.x() / mag, tPerp.y() / mag, 0.0f, 0.0f );
 
-        auto sLower = buildVertex( builder, vertices, Mega::F2( 0, fLowerUV ), normal, tangent, sVert, lower );
-        auto tLower = buildVertex( builder, vertices, Mega::F2( 0, fUpperUV ), normal, tangent, tVert, lower );
-        auto sUpper = buildVertex( builder, vertices, Mega::F2( mag, fLowerUV ), normal, tangent, sVert, upper );
-        auto tUpper = buildVertex( builder, vertices, Mega::F2( mag, fUpperUV ), normal, tangent, tVert, upper );
+        auto sLower = buildVertex( builder, vertices, sF2, Mega::F2( 0, fLowerUV ), normal, lower );
+        auto tLower = buildVertex( builder, vertices, tF2, Mega::F2( 0, fUpperUV ), normal, lower );
+        auto sUpper = buildVertex( builder, vertices, sF2, Mega::F2( mag, fLowerUV ), normal, upper );
+        auto tUpper = buildVertex( builder, vertices, tF2, Mega::F2( mag, fUpperUV ), normal, upper );
 
         indices.push_back( sLower );
         indices.push_back( tLower );
@@ -844,8 +832,7 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
     return meshBuilder.Finish();
 }
 
-fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                          fbVertMap,
-                                            Mega::Plane                               lower,
+fb::Offset< Mega::Mesh > buildVerticalMesh( Mega::Plane                               lower,
                                             Mega::Plane                               upper,
                                             const exact::Analysis::HalfEdgeCstVector& edges,
                                             fb::FlatBufferBuilder&                    builder,
@@ -891,33 +878,21 @@ fb::Offset< Mega::Mesh > buildVerticalMesh( const FBVertMap&                    
             const exact::Direction halfEdgeOrthoDir = halfEdgeDir.perpendicular( CGAL::Orientation::COUNTERCLOCKWISE );
             const exact::Vector    vNorm            = halfEdgeOrthoDir.vector();
 
-            const auto& sValue = fbVertMap.get( v );
-            const auto& tValue = fbVertMap.get( vNext );
-            const auto  sVert  = fbVertMap( v );
-            const auto  tVert  = fbVertMap( vNext );
-
-            const Mega::F2 sF2( sValue.x(), sValue.y() );
-            const Mega::F2 tF2( tValue.x(), tValue.y() );
+            const Mega::F2 sF2 = PositionConverter()( v->point() );
+            const Mega::F2 tF2 = PositionConverter()( vNext->point() );
 
             const Mega::F2 tDist( tF2.x() - sF2.x(), tF2.y() - sF2.y() );
-            // const Mega::F2 tPerp( -tDist.y(), tDist.x() );
-
-            const float mag = std::sqrt( tDist.x() * tDist.x() + tDist.y() * tDist.y() );
+            const float    mag = std::sqrt( tDist.x() * tDist.x() + tDist.y() * tDist.y() );
 
             const Mega::F3 normal( CGAL::to_double( vNorm.x() ), CGAL::to_double( vNorm.y() ), 0.0 );
-            const Mega::F4 tangent( normal.x(), normal.y(), normal.z(), 0.0 );
 
-            auto sLower
-                = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, sVert, lower );
-            auto sUpper
-                = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, sVert, upper );
+            auto sLower = buildVertex( builder, vertices, sF2, Mega::F2( fUVDist, fLowerUV ), normal, lower );
+            auto sUpper = buildVertex( builder, vertices, sF2, Mega::F2( fUVDist, fUpperUV ), normal, upper );
 
             fUVDist -= mag;
 
-            auto tLower
-                = buildVertex( builder, vertices, Mega::F2( fUVDist, fLowerUV ), normal, tangent, tVert, lower );
-            auto tUpper
-                = buildVertex( builder, vertices, Mega::F2( fUVDist, fUpperUV ), normal, tangent, tVert, upper );
+            auto tLower = buildVertex( builder, vertices, tF2, Mega::F2( fUVDist, fLowerUV ), normal, lower );
+            auto tUpper = buildVertex( builder, vertices, tF2, Mega::F2( fUVDist, fUpperUV ), normal, upper );
 
             indices.push_back( sLower );
             indices.push_back( tLower );
@@ -977,8 +952,6 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
 
     fb::FlatBufferBuilder builder;
 
-    FBVertMap fbVertMap( *m_pAnalysis, builder );
-
     // write the site tree
     fb::Offset< Mega::Area > fbRootArea;
     AreaMap                  areaMap;
@@ -999,7 +972,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
     {
         Analysis::HalfEdgeCstVector perimeter;
         m_pAnalysis->getPerimeterPolygon( perimeter );
-        fbMapPolygon = buildPolygon( fbVertMap, perimeter, builder );
+        fbMapPolygon = buildPolygon( perimeter, builder );
     }
 
     std::vector< fb::Offset< Mega::Room > > fbRoomsVec;
@@ -1010,28 +983,26 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::Mesh > > roadPolys;
             for( const auto& polyWithHoles : room.roads )
             {
-                fb::Offset< Mega::Mesh > fbMesh
-                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
+                fb::Offset< Mega::Mesh > fbMesh = buildHorizontalMesh( Mega::Plane_eGround, polyWithHoles, builder );
                 roadPolys.push_back( fbMesh );
             }
             std::vector< fb::Offset< Mega::Mesh > > pavementPolys;
             for( const auto& polyWithHoles : room.pavements )
             {
-                fb::Offset< Mega::Mesh > fbMesh
-                    = buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, polyWithHoles, builder );
+                fb::Offset< Mega::Mesh > fbMesh = buildHorizontalMesh( Mega::Plane_eGround, polyWithHoles, builder );
                 pavementPolys.push_back( fbMesh );
             }
             std::vector< fb::Offset< Mega::Mesh > > pavementLiningPolys;
             for( const auto& polyWithHoles : room.pavementLinings )
             {
-                pavementLiningPolys.push_back( buildLiningHorizontalMesh(
-                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder ) );
+                pavementLiningPolys.push_back(
+                    buildLiningHorizontalMesh( Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder ) );
             }
             std::vector< fb::Offset< Mega::Mesh > > laneLiningPolys;
             for( const auto& polyWithHoles : room.laneLinings )
             {
-                laneLiningPolys.push_back( buildLiningHorizontalMesh(
-                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder ) );
+                laneLiningPolys.push_back(
+                    buildLiningHorizontalMesh( Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder ) );
             }
 
             std::vector< fb::Offset< Mega::Mesh > > laneFloorPolys;
@@ -1039,19 +1010,19 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::Mesh > > laneWallsPolys;
             for( const auto& polyWithHoles : room.lanes )
             {
-                laneFloorPolys.push_back( buildLiningHorizontalMesh(
-                    fbVertMap, Mega::Plane_eHole, polyWithHoles, skeletonEdgeQuery, builder ) );
-                laneCoverPolys.push_back( buildLiningHorizontalMesh(
-                    fbVertMap, Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder ) );
+                laneFloorPolys.push_back(
+                    buildLiningHorizontalMesh( Mega::Plane_eHole, polyWithHoles, skeletonEdgeQuery, builder ) );
+                laneCoverPolys.push_back(
+                    buildLiningHorizontalMesh( Mega::Plane_eGround, polyWithHoles, skeletonEdgeQuery, builder ) );
 
-                fb::Offset< Mega::Mesh > fbWallOuter = buildVerticalMesh(
-                    fbVertMap, Mega::Plane_eHole, Mega::Plane_eGround, polyWithHoles.outer, builder, true );
+                fb::Offset< Mega::Mesh > fbWallOuter
+                    = buildVerticalMesh( Mega::Plane_eHole, Mega::Plane_eGround, polyWithHoles.outer, builder, true );
                 laneWallsPolys.push_back( fbWallOuter );
 
                 for( const auto& hole : polyWithHoles.holes )
                 {
                     fb::Offset< Mega::Mesh > fbWallHole
-                        = buildVerticalMesh( fbVertMap, Mega::Plane_eHole, Mega::Plane_eGround, hole, builder, true );
+                        = buildVerticalMesh( Mega::Plane_eHole, Mega::Plane_eGround, hole, builder, true );
                     laneWallsPolys.push_back( fbWallHole );
                 }
             }
@@ -1093,26 +1064,24 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::Mesh > > fbhori_hole;
             for( const auto& hori_hole : boundary.hori_holes )
             {
-                fbhori_hole.push_back(
-                    buildHorizontalMesh( fbVertMap, Mega::Plane_eHole, PolyWivOwls{ hori_hole }, builder ) );
+                fbhori_hole.push_back( buildHorizontalMesh( Mega::Plane_eHole, PolyWivOwls{ hori_hole }, builder ) );
             }
             std::vector< fb::Offset< Mega::Mesh > > fbhori_floor;
             for( const auto& hori_floor : boundary.hori_floors )
             {
                 fbhori_floor.push_back(
-                    buildHorizontalMesh( fbVertMap, Mega::Plane_eGround, PolyWivOwls{ hori_floor }, builder ) );
+                    buildHorizontalMesh( Mega::Plane_eGround, PolyWivOwls{ hori_floor }, builder ) );
             }
             std::vector< fb::Offset< Mega::Mesh > > fbhori_mid;
             for( const auto& hori_mid : boundary.hori_mids )
             {
-                fbhori_mid.push_back(
-                    buildHorizontalMesh( fbVertMap, Mega::Plane_eMid, PolyWivOwls{ hori_mid }, builder ) );
+                fbhori_mid.push_back( buildHorizontalMesh( Mega::Plane_eMid, PolyWivOwls{ hori_mid }, builder ) );
             }
             std::vector< fb::Offset< Mega::Mesh > > fbhori_ceiling;
             for( const auto& hori_ceiling : boundary.hori_ceilings )
             {
                 fbhori_ceiling.push_back(
-                    buildHorizontalMesh( fbVertMap, Mega::Plane_eCeiling, PolyWivOwls{ hori_ceiling }, builder ) );
+                    buildHorizontalMesh( Mega::Plane_eCeiling, PolyWivOwls{ hori_ceiling }, builder ) );
             }
 
             auto fbhori_holeVec    = builder.CreateVector( fbhori_hole );
@@ -1123,8 +1092,7 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::Pane > > fbPaneVec;
             for( const auto& pane : boundary.panes )
             {
-                auto pMesh
-                    = buildVerticalMesh( fbVertMap, convert( pane.lower ), convert( pane.upper ), pane.edges, builder );
+                auto pMesh = buildVerticalMesh( convert( pane.lower ), convert( pane.upper ), pane.edges, builder );
                 Mega::PaneBuilder paneBuilder( builder );
                 paneBuilder.add_quad( pMesh );
                 fbPaneVec.push_back( paneBuilder.Finish() );
@@ -1135,8 +1103,8 @@ void Schematic::compileMap( const boost::filesystem::path& filePath )
             std::vector< fb::Offset< Mega::WallSection > > fbWalls;
             for( const Analysis::Boundary::WallSection& wall : boundary.walls )
             {
-                auto pMesh = buildVerticalMesh(
-                    fbVertMap, convert( wall.lower ), convert( wall.upper ), wall.edges, builder, false );
+                auto pMesh
+                    = buildVerticalMesh( convert( wall.lower ), convert( wall.upper ), wall.edges, builder, false );
                 Mega::WallSection::Builder wallBuilder( builder );
                 wallBuilder.add_mesh( pMesh );
                 fbWalls.push_back( wallBuilder.Finish() );

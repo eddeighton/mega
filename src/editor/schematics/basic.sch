@@ -185,6 +185,46 @@ Schematic(base;,0)
                 {
                     value(3.5f;)
                 }
+                Space(space_0028;,28)
+                {
+                    transform(1,-0,-4,-0,1,14)
+                    Contour(contour;,0)
+                    {
+                        path(0,0,0,-6,6,-6,6,0)
+                    }
+                    Property(width;,1)
+                    {
+                        value(0.25f;)
+                    }
+                    Connection(conn_0002;,2)
+                    {
+                        transform(-2.66454e-15,1,6,-1,-2.66454e-15,-3)
+                        Point(width;,0)
+                        {
+                            position(1.5,3)
+                        }
+                    }
+                    Property(lane_0003;,3)
+                    {
+                        value(0.75f;)
+                    }
+                    Property(lane_0004;,4)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(pave_0005;,5)
+                    {
+                        value(2.25f;)
+                    }
+                    Property(pave_0006;,6)
+                    {
+                        value(0.15f;)
+                    }
+                    Property(clea_0007;,7)
+                    {
+                        value(3.5f;)
+                    }
+                }
             }
             Space(spac_0003;,3)
             {

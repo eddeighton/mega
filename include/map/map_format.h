@@ -30,9 +30,6 @@ struct Quat;
 
 struct F33;
 
-struct Vertex;
-struct VertexBuilder;
-
 struct Polygon;
 struct PolygonBuilder;
 
@@ -462,60 +459,18 @@ inline ::flatbuffers::Offset<TypeName> CreateTypeNameDirect(
       type);
 }
 
-struct Vertex FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef VertexBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_POSITION = 4
-  };
-  const Mega::F2 *position() const {
-    return GetStruct<const Mega::F2 *>(VT_POSITION);
-  }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyField<Mega::F2>(verifier, VT_POSITION, 4) &&
-           verifier.EndTable();
-  }
-};
-
-struct VertexBuilder {
-  typedef Vertex Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
-  ::flatbuffers::uoffset_t start_;
-  void add_position(const Mega::F2 *position) {
-    fbb_.AddStruct(Vertex::VT_POSITION, position);
-  }
-  explicit VertexBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  ::flatbuffers::Offset<Vertex> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<Vertex>(end);
-    return o;
-  }
-};
-
-inline ::flatbuffers::Offset<Vertex> CreateVertex(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const Mega::F2 *position = nullptr) {
-  VertexBuilder builder_(_fbb);
-  builder_.add_position(position);
-  return builder_.Finish();
-}
-
 struct Polygon FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef PolygonBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VERTICES = 4
   };
-  const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Vertex>> *vertices() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Mega::Vertex>> *>(VT_VERTICES);
+  const ::flatbuffers::Vector<const Mega::F2 *> *vertices() const {
+    return GetPointer<const ::flatbuffers::Vector<const Mega::F2 *> *>(VT_VERTICES);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_VERTICES) &&
            verifier.VerifyVector(vertices()) &&
-           verifier.VerifyVectorOfTables(vertices()) &&
            verifier.EndTable();
   }
 };
@@ -524,7 +479,7 @@ struct PolygonBuilder {
   typedef Polygon Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_vertices(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Vertex>>> vertices) {
+  void add_vertices(::flatbuffers::Offset<::flatbuffers::Vector<const Mega::F2 *>> vertices) {
     fbb_.AddOffset(Polygon::VT_VERTICES, vertices);
   }
   explicit PolygonBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
@@ -540,7 +495,7 @@ struct PolygonBuilder {
 
 inline ::flatbuffers::Offset<Polygon> CreatePolygon(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Mega::Vertex>>> vertices = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<const Mega::F2 *>> vertices = 0) {
   PolygonBuilder builder_(_fbb);
   builder_.add_vertices(vertices);
   return builder_.Finish();
@@ -548,8 +503,8 @@ inline ::flatbuffers::Offset<Polygon> CreatePolygon(
 
 inline ::flatbuffers::Offset<Polygon> CreatePolygonDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<::flatbuffers::Offset<Mega::Vertex>> *vertices = nullptr) {
-  auto vertices__ = vertices ? _fbb.CreateVector<::flatbuffers::Offset<Mega::Vertex>>(*vertices) : 0;
+    const std::vector<Mega::F2> *vertices = nullptr) {
+  auto vertices__ = vertices ? _fbb.CreateVectorOfStructs<Mega::F2>(*vertices) : 0;
   return Mega::CreatePolygon(
       _fbb,
       vertices__);
@@ -558,14 +513,13 @@ inline ::flatbuffers::Offset<Polygon> CreatePolygonDirect(
 struct Vertex3D FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef Vertex3DBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_VERTEX = 4,
+    VT_POSITION = 4,
     VT_PLANE = 6,
     VT_NORMAL = 8,
-    VT_UV = 10,
-    VT_TANGENT = 12
+    VT_UV = 10
   };
-  const Mega::Vertex *vertex() const {
-    return GetPointer<const Mega::Vertex *>(VT_VERTEX);
+  const Mega::F2 *position() const {
+    return GetStruct<const Mega::F2 *>(VT_POSITION);
   }
   Mega::Plane plane() const {
     return static_cast<Mega::Plane>(GetField<int16_t>(VT_PLANE, 0));
@@ -576,17 +530,12 @@ struct Vertex3D FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const Mega::F2 *uv() const {
     return GetStruct<const Mega::F2 *>(VT_UV);
   }
-  const Mega::F4 *tangent() const {
-    return GetStruct<const Mega::F4 *>(VT_TANGENT);
-  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_VERTEX) &&
-           verifier.VerifyTable(vertex()) &&
+           VerifyField<Mega::F2>(verifier, VT_POSITION, 4) &&
            VerifyField<int16_t>(verifier, VT_PLANE, 2) &&
            VerifyField<Mega::F3>(verifier, VT_NORMAL, 4) &&
            VerifyField<Mega::F2>(verifier, VT_UV, 4) &&
-           VerifyField<Mega::F4>(verifier, VT_TANGENT, 4) &&
            verifier.EndTable();
   }
 };
@@ -595,8 +544,8 @@ struct Vertex3DBuilder {
   typedef Vertex3D Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_vertex(::flatbuffers::Offset<Mega::Vertex> vertex) {
-    fbb_.AddOffset(Vertex3D::VT_VERTEX, vertex);
+  void add_position(const Mega::F2 *position) {
+    fbb_.AddStruct(Vertex3D::VT_POSITION, position);
   }
   void add_plane(Mega::Plane plane) {
     fbb_.AddElement<int16_t>(Vertex3D::VT_PLANE, static_cast<int16_t>(plane), 0);
@@ -606,9 +555,6 @@ struct Vertex3DBuilder {
   }
   void add_uv(const Mega::F2 *uv) {
     fbb_.AddStruct(Vertex3D::VT_UV, uv);
-  }
-  void add_tangent(const Mega::F4 *tangent) {
-    fbb_.AddStruct(Vertex3D::VT_TANGENT, tangent);
   }
   explicit Vertex3DBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -623,16 +569,14 @@ struct Vertex3DBuilder {
 
 inline ::flatbuffers::Offset<Vertex3D> CreateVertex3D(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<Mega::Vertex> vertex = 0,
+    const Mega::F2 *position = nullptr,
     Mega::Plane plane = Mega::Plane_eAbyss,
     const Mega::F3 *normal = nullptr,
-    const Mega::F2 *uv = nullptr,
-    const Mega::F4 *tangent = nullptr) {
+    const Mega::F2 *uv = nullptr) {
   Vertex3DBuilder builder_(_fbb);
-  builder_.add_tangent(tangent);
   builder_.add_uv(uv);
   builder_.add_normal(normal);
-  builder_.add_vertex(vertex);
+  builder_.add_position(position);
   builder_.add_plane(plane);
   return builder_.Finish();
 }
