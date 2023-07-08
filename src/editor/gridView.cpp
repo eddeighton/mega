@@ -66,12 +66,15 @@ QVector2D GridView::getQuantisationLevel() const
 {
     const QVector2D zoomLevel = getZoomVector();
 
-    float fXStep = 1.0f;
-    while( fXStep < fabs( m_iQuantisation / zoomLevel.x() ) )
+    const float minStep = 0.25f;
+    const int   iQuantisation = 16;
+
+    float fXStep = minStep;
+    while( fXStep < fabs( iQuantisation / zoomLevel.x() ) )
         fXStep *= 2.0f;
 
-    float fYStep = 1.0f;
-    while( fYStep < fabs( m_iQuantisation / zoomLevel.y() ) )
+    float fYStep = minStep;
+    while( fYStep < fabs( iQuantisation / zoomLevel.y() ) )
         fYStep *= 2.0f;
 
     return QVector2D( fXStep, fYStep );

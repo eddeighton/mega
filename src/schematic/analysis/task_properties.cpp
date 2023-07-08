@@ -81,21 +81,8 @@ void collectPropertiesForSite( schematic::Node::Ptr pNode, std::vector< schemati
     }
 }
 
-} // namespace
-
-void Analysis::properties()
+void collectPinProperties( Analysis::Point_location& pointLocation, schematic::Space::Ptr pRootSpace )
 {
-    auto sites = m_pSchematic->getSites();
-    INVARIANT( sites.size() < 2, "Schematic contains more than one root site" );
-    INVARIANT( sites.size() == 1, "Schematic missing root site" );
-
-    schematic::Space::Ptr pRootSpace = boost::dynamic_pointer_cast< schematic::Space >( sites.front() );
-
-    std::vector< schematic::Property::Ptr > properties;
-    propertiesRecurse( pRootSpace, properties );
-
-    Analysis::Point_location pointLocation( m_arr );
-
     std::vector< schematic::Feature_Pin::Ptr > pins;
     collectPins( pRootSpace, pins );
 
@@ -114,10 +101,10 @@ void Analysis::properties()
         Analysis::Partition*        pPartition        = nullptr;
         Analysis::PartitionSegment* pPartitionSegment = nullptr;
         {
-            CGAL::Object                       result = pointLocation.locate( pt );
-            Arrangement::Face_const_handle     face;
-            Arrangement::Halfedge_const_handle halfedge;
-            Arrangement::Vertex_const_handle   vertex;
+            CGAL::Object          result = pointLocation.locate( pt );
+            Analysis::FaceCst     face;
+            Analysis::HalfEdgeCst halfedge;
+            Analysis::VertexCst   vertex;
             if( CGAL::assign( face, result ) )
             {
                 pPartition        = face->data().pPartition;
@@ -143,7 +130,7 @@ void Analysis::properties()
                 auto incidentIter = vertex->incident_halfedges(), incidentIterEnd = incidentIter;
                 do
                 {
-                    HalfEdgeCst outEdge = incidentIter->twin();
+                    auto outEdge = incidentIter->twin();
                     if( !pPartition )
                     {
                         pPartition        = outEdge->data().pPartition;
@@ -179,6 +166,28 @@ void Analysis::properties()
             pPartitionSegment->pins.push_back( pPin );
             collectProperties( pPin, pPartitionSegment->properties );
         }
+    }
+}
+} // namespace
+
+void Analysis::properties()
+{
+    auto sites = m_pSchematic->getSites();
+    INVARIANT( sites.size() < 2, "Schematic contains more than one root site" );
+    INVARIANT( sites.size() == 1, "Schematic missing root site" );
+
+    schematic::Space::Ptr pRootSpace = boost::dynamic_pointer_cast< schematic::Space >( sites.front() );
+
+    // propagate properties through the site tree down to partitions
+    {
+        std::vector< schematic::Property::Ptr > properties;
+        propertiesRecurse( pRootSpace, properties );
+    }
+
+    // propagate all pin properties to partitions
+    {
+        Analysis::Point_location pointLocation( m_arr );
+        collectPinProperties( pointLocation, pRootSpace );
     }
 
     // interpret properties

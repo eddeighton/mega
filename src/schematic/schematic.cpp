@@ -61,7 +61,7 @@ void Schematic::init()
         m_pLaneAxisMarkup.reset( new MonoBitmapImage( *this, nullptr, m_laneBitmap, eStage_Lanes ) );
     }
 
-    if( !( m_pLaneRadius = get< Property >( "laneRadius" ) ) )
+    /*if( !( m_pLaneRadius = get< Property >( "laneRadius" ) ) )
     {
         m_pLaneRadius = Property::Ptr( new Property( getPtr(), "laneRadius" ) );
         m_pLaneRadius->init();
@@ -95,7 +95,7 @@ void Schematic::init()
         m_pClearance->init();
         m_pClearance->setStatement( "3.5f" );
         add( m_pClearance );
-    }
+    }*/
 }
 
 Node::Ptr Schematic::copy( Node::Ptr pParent, const std::string& strName ) const
@@ -121,7 +121,7 @@ Schematic::LaneConfig Schematic::getLaneConfig()
 {
     LaneConfig laneConfig;
 
-    if( m_pLaneRadius )
+    /*if( m_pLaneRadius )
     {
         laneConfig.laneRadius = m_pLaneRadius->getValue( laneConfig.laneRadius, m_laneRadiusOpt );
     }
@@ -140,7 +140,7 @@ Schematic::LaneConfig Schematic::getLaneConfig()
     if( m_pClearance )
     {
         laneConfig.clearance = m_pClearance->getValue( laneConfig.clearance, m_clearanceOpt );
-    }
+    }*/
 
     return laneConfig;
 }
@@ -193,6 +193,11 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
             m_pAnalysis->properties();
         }
 
+        if( iStage >= eStage_Placement )
+        {
+            m_pAnalysis->placement();
+        }
+
         if( iStage >= eStage_Lanes )
         {
             m_pAnalysis->lanes();
@@ -201,11 +206,6 @@ bool Schematic::compile( CompilationStage stage, std::ostream& os )
         if( iStage >= eStage_Linings )
         {
             m_pAnalysis->linings();
-        }
-
-        if( iStage >= eStage_Placement )
-        {
-            m_pAnalysis->placement();
         }
 
         if( iStage >= eStage_Values )

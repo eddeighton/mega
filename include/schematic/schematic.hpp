@@ -122,7 +122,7 @@ private:
     std::unique_ptr< MonoBitmapImage > m_pLaneAxisMarkup;
 
     // lane configuration
-    Property::Ptr          m_pLaneRadius;
+    /*Property::Ptr          m_pLaneRadius;
     Property::Ptr          m_pLaneLining;
     Property::Ptr          m_pPavementRadius;
     Property::Ptr          m_pPavementLining;
@@ -131,7 +131,7 @@ private:
     std::optional< float > m_laneLiningOpt;
     std::optional< float > m_pavementRadiusOpt;
     std::optional< float > m_pavementLiningOpt;
-    std::optional< float > m_clearanceOpt;
+    std::optional< float > m_clearanceOpt;*/
 };
 
 } // namespace schematic

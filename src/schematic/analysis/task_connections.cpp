@@ -374,27 +374,31 @@ void Analysis::cut( schematic::Site::Ptr pSite )
 
         Curve_handle curve = CGAL::insert( m_arr, Curve( ptStart, ptEnd ) );
 
-        std::vector< HalfEdge > toRemove;
+        //std::vector< HalfEdge > toRemove;
         for( auto i = m_arr.induced_edges_begin( curve ); i != m_arr.induced_edges_end( curve ); ++i )
         {
             HalfEdge h = *i;
 
-            if( ( h->source()->point() == ptStart ) || ( h->source()->point() == ptEnd )
+            /*if( ( h->source()->point() == ptStart ) || ( h->source()->point() == ptEnd )
                 || ( h->target()->point() == ptStart ) || ( h->target()->point() == ptEnd ) )
             {
-                toRemove.push_back( h );
+                if( !test( h, EdgeMask::eInterior ) && !test( h, EdgeMask::eInteriorBoundary )
+                    && !test( h, EdgeMask::eExterior ) && !test( h, EdgeMask::eExteriorBoundary ) )
+                {
+                    toRemove.push_back( h );
+                }
             }
-            else
+            else*/
             {
                 classify( h, EdgeMask::eCut );
                 classify( h->twin(), EdgeMask::eCut );
             }
         }
 
-        for( HalfEdge h : toRemove )
+        /*for( HalfEdge h : toRemove )
         {
             CGAL::remove_edge( m_arr, h );
-        }
+        }*/
     }
 
     for( schematic::Site::Ptr pNestedSite : pSite->getSites() )

@@ -31,9 +31,9 @@ enum CompilationStage
     eStage_Port,
     eStage_Partition,
     eStage_Properties,
+    eStage_Placement,
     eStage_Lanes,
     eStage_Linings,
-    eStage_Placement,
     eStage_Values,
     eStage_Visibility,
     TOTAL_COMPILAION_STAGES

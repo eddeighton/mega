@@ -83,34 +83,18 @@ void Node::load( const format::Node& node )
 {
     // ensure the sites are restored to their original order using
     // the map index
-    using NewSite = std::pair< Node::Ptr, const format::Node* >;
-    std::vector< NewSite > newNodes( node.children.size() );
+    using NewNode = std::pair< Node::Ptr, const format::Node* >;
+    std::vector< NewNode > newNodes;
 
-    std::set< int > used;
     for( const auto& child : node.children )
     {
-        int szIndex = child.first;
-        if( used.contains( szIndex ) )
-        {
-            for( szIndex = 0; szIndex != node.children.size(); ++szIndex )
-            {
-                if( !used.contains( szIndex ) )
-                    break;
-            }
-        }
-        else
-        {
-            used.insert( szIndex );
-        }
         const format::Node& childSite = child.second;
-
-        Node::Ptr pNewNode = schematic::construct( getPtr(), childSite );
+        Node::Ptr           pNewNode  = schematic::construct( getPtr(), childSite );
         pNewNode->load( childSite );
-
-        newNodes[ szIndex ] = std::make_pair( pNewNode, &childSite );
+        newNodes.emplace_back( NewNode{ pNewNode, &childSite } );
     }
 
-    for( const NewSite& newNode : newNodes )
+    for( const NewNode& newNode : newNodes )
     {
         add( newNode.first );
         newNode.first->init();
@@ -128,42 +112,7 @@ void Node::save( format::Node& node ) const
         node.children.insert( { childNode.index, childNode } );
     }
 }
-/*
-void Node::load( Node::Ptr pThis, Loader& loader )
-{
-    //VERIFY_RTE_MSG( node.statement.declarator.identifier, "Node with no identifier" );
-    //m_strName = node.statement.declarator.identifier.get();
 
-    THROW_RTE( "TODO" );
-    for( Ed::Node::Vector::const_iterator
-        i = node.children.begin(), iEnd = node.children.end(); i!=iEnd; ++i )
-    {
-        VERIFY_RTE_MSG( i->statement.declarator.identifier, "Node with no identifier" );
-        if( Node::Ptr pNewNode = factory.load( pThis, *i ) )
-        {
-            pNewNode->m_iIndex = m_childrenOrdered.size();
-            m_childrenOrdered.push_back( pNewNode );
-            m_children.insert( std::make_pair( i->statement.declarator.identifier.get(), pNewNode ) );
-        }
-    }
-    setModified();
-}
-
-void Node::save( Storer& storer ) const
-{
-    THROW_RTE( "TODO" );
-    node.statement.declarator.identifier = getName();
-    for( PtrVector::const_iterator i = m_childrenOrdered.begin(),
-        iEnd = m_childrenOrdered.end(); i!=iEnd; ++i )
-    {
-        Ed::Node n;
-        n.statement.declarator.identifier = (*i)->getName();
-        (*i)->save( n );
-        node.children.push_back( n );
-    }
-
-}
-*/
 bool Node::add( Node::Ptr pNewNode )
 {
     bool                   bInserted = false;
@@ -193,17 +142,6 @@ void Node::remove( Node::Ptr pNode )
         ( *i )->m_iIndex = ( i - iBegin );
     setModified();
 }
-/*
-void Node::removeOptional( Ptr pNode )
-{
-    PtrVector::iterator iFind =
-        std::find( m_childrenOrdered.begin(), m_childrenOrdered.end(), pNode );
-    PtrMap::const_iterator iFindKey = m_children.find( pNode->getName() );
-    VERIFY_RTE( (iFind != m_childrenOrdered.end() && iFindKey != m_children.end()) ||
-        !(iFind != m_childrenOrdered.end() && iFindKey != m_children.end()));
-    if( iFind != m_childrenOrdered.end() && iFindKey != m_children.end() )
-        remove( pNode );
-}*/
 
 boost::optional< std::string > Node::getPropertyString( const std::string& strKey ) const
 {
@@ -223,10 +161,8 @@ const Timing::UpdateTick& Node::getLastModifiedTickForTree() const
 
     for( PtrVector::const_iterator i = m_childrenOrdered.begin(), iEnd = m_childrenOrdered.end(); i != iEnd; ++i )
     {
-        const Node& child = **i;
-
+        const Node&               child             = **i;
         const Timing::UpdateTick& childLatestUpdate = child.getLastModifiedTickForTree();
-
         if( childLatestUpdate > *pLastUpdate )
             pLastUpdate = &childLatestUpdate;
     }

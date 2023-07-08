@@ -82,7 +82,6 @@ private:
 
     float m_fDefaultZoom  = 256.0f;
     bool  m_bInitialising = true;
-    int   m_iQuantisation = 16;
 
     QColor m_mainLineColour  = QColor( 100, 100, 100, 125 );
     QColor m_otherLineColour = QColor( 200, 200, 200, 125 );

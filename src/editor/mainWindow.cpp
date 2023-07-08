@@ -86,9 +86,9 @@ MainWindow::MainWindow( boost::asio::yield_context* pYieldCtx )
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Port->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Partition->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Properties->text() );
+        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Placement->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Lanes->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Linings->text() );
-        m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Placement->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Values->text() );
         m_pCompilationModeComboBox->addItem( m_pMainWindowImpl->actionView_Visibility->text() );
     }

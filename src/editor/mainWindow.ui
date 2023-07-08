@@ -89,9 +89,9 @@
     <addaction name="actionView_Port"/>
     <addaction name="actionView_Partition"/>
     <addaction name="actionView_Properties"/>
+    <addaction name="actionView_Placement"/>
     <addaction name="actionView_Lanes"/>
     <addaction name="actionView_Linings"/>
-    <addaction name="actionView_Placement"/>
     <addaction name="actionView_Values"/>
     <addaction name="actionView_Visibility"/>
     <addaction name="separator"/>
@@ -666,6 +666,14 @@
     <bool>false</bool>
    </property>
   </action>
+  <action name="actionView_Placement">
+   <property name="text">
+    <string>Placement</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
   <action name="actionView_Lanes">
    <property name="text">
     <string>Lanes</string>
@@ -677,14 +685,6 @@
   <action name="actionView_Linings">
    <property name="text">
     <string>Linings</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
-   </property>
-  </action>
-  <action name="actionView_Placement">
-   <property name="text">
-    <string>Placement</string>
    </property>
    <property name="visible">
     <bool>false</bool>
