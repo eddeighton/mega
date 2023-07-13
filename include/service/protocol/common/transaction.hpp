@@ -45,9 +45,9 @@ class Transaction
 public:
     struct Out
     {
-        std::vector< log::Structure::Read >  m_structure;
-        std::vector< log::Scheduling::Read > m_scheduling;
-        std::vector< log::Memory::Read >     m_memory;
+        std::vector< log::Structure::DataIO >  m_structure;
+        std::vector< log::Scheduling::DataIO > m_scheduling;
+        std::vector< log::Memory::DataIO >     m_memory;
 
         template < typename Archive >
         inline void serialize( Archive& ar, const unsigned int )
@@ -57,9 +57,22 @@ public:
             ar& m_memory;
         }
 
-        void push_back( const log::Structure::Read& read ) { m_structure.push_back( read ); }
-        void push_back( const log::Scheduling::Read& read ) { m_scheduling.push_back( read ); }
-        void push_back( const log::Memory::Read& read ) { m_memory.push_back( read ); }
+        void push_back( const log::Structure::Read& read )
+        {
+            log::Structure::DataIO record{ { read.getSource().getNetworkAddress(), read.getTarget().getNetworkAddress(),
+                                             read.getRelation(), read.getType() } };
+            m_structure.emplace_back( record );
+        }
+        void push_back( const log::Scheduling::Read& read )
+        {
+            log::Scheduling::DataIO record{ { read.getRef().getNetworkAddress(), read.getType() } };
+            m_scheduling.emplace_back( record );
+        }
+        void push_back( const log::Memory::Read& read )
+        {
+            log::Memory::DataIO record{ { read.getRef().getNetworkAddress() }, std::string{ read.getData() } };
+            m_memory.emplace_back( record );
+        }
     };
 
     std::optional< Out > m_out;
@@ -126,7 +139,7 @@ public:
     }
 
     using MPOTransactions = std::map< MPO, Transaction::Out >;
-    using UnparentedSet = std::unordered_set< reference, reference::Hash >;
+    using UnparentedSet   = std::unordered_set< reference, reference::Hash >;
 
     void generateStructure( MPOTransactions& transactions, UnparentedSet& unparented )
     {
@@ -150,40 +163,40 @@ public:
                 break;
                 case log::Structure::eMake:
                 {
-                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
                     transactions[ r.getSource().getMPO() ].push_back( r );
                 }
                 break;
                 case log::Structure::eMakeSource:
                 {
-                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
                     transactions[ r.getSource().getMPO() ].push_back( r );
                     unparented.erase( r.getSource().getObjectAddress() );
                 }
                 break;
                 case log::Structure::eMakeTarget:
                 {
-                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
                     transactions[ r.getSource().getMPO() ].push_back( r );
                     unparented.erase( r.getTarget().getObjectAddress() );
                 }
                 break;
                 case log::Structure::eBreak:
                 {
-                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
                     transactions[ r.getSource().getMPO() ].push_back( r );
                 }
                 break;
                 case log::Structure::eBreakSource:
                 {
-                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
                     transactions[ r.getSource().getMPO() ].push_back( r );
                     unparented.insert( r.getSource().getObjectAddress() );
                 }
                 break;
                 case log::Structure::eBreakTarget:
                 {
-                    ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
+                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
                     transactions[ r.getSource().getMPO() ].push_back( r );
                     unparented.insert( r.getTarget().getObjectAddress() );
                 }

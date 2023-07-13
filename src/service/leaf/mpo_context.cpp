@@ -276,18 +276,6 @@ void MPOContext::cycleComplete()
     m_transactionProducer.generate( transactions, unparentedObjects );
 
     m_pMemoryManager->Garbage();
-   /* {
-        for( auto& deleteRef : m_deleteQueues[ TOTAL_DELETE_QUEUES - 1 ] )
-        {
-            m_pMemoryManager->Delete( deleteRef );
-            m_log.record( mega::log::Structure::Write( reference{}, deleteRef, 0, mega::log::Structure::eDestruct ) );
-        }
-        for( int i = TOTAL_DELETE_QUEUES - 1; i > 0; --i )
-        {
-            m_deleteQueues[ i ].swap( m_deleteQueues[ i - 1 ] );
-        }
-        m_deleteQueues[ 0 ].clear();
-    }*/
 
     for( const auto& unparentedObject : unparentedObjects )
     {
@@ -303,7 +291,6 @@ void MPOContext::cycleComplete()
             }
             m_pMemoryManager->Delete( deleteRef );
             m_log.record( mega::log::Structure::Write( reference{}, deleteRef, 0, mega::log::Structure::eDestruct ) );
-           // m_deleteQueues[ 0 ].push_back( deleteRef );
         }
     }
 
