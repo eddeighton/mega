@@ -53,8 +53,7 @@ std::string makeIterName( FinalStage::Concrete::Context* pContext )
 }
 
 template < typename TDimensionType >
-std::string calculateElementOffset( const JITDatabase& database, TDimensionType* pUserDim,
-                                    std::string& strInstance )
+std::string calculateElementOffset( const JITDatabase& database, TDimensionType* pUserDim, std::string& strInstance )
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
@@ -366,10 +365,13 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
                            { "objectName", strFullTypeName },
                            { "parts", nlohmann::json::array() },
+                           { "relations", nlohmann::json::array() },
                            { "mangled_data_types", nlohmann::json::array() },
                            { "elements", nlohmann::json::array() } } );
 
     recurseAllocatorElements( database, pObject, data );
+
+    // std::vector< FinalStage::HyperGraph::Relation* > owningRelations;
 
     std::set< std::string > mangledDataTypes;
     {
@@ -443,8 +445,9 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                                 bOwning = true;
                         }
                     }
-
+                    
                     std::string    strMangle;
+                    RelationID     relationID = pRelation->get_id();
                     nlohmann::json link( { { "type", mega::psz_mega_reference_vector },
                                            { "type_id", printTypeID( pLinkDim->get_concrete_id() ) },
                                            { "mangle", "" },
@@ -452,7 +455,9 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                                            { "offset", pLinkDim->get_offset() },
                                            { "singular", false },
                                            { "types", nlohmann::json::array() },
-                                           { "owning", bOwning }
+                                           { "owning", bOwning },
+                                           { "relation_id_lower", printTypeID( relationID.getLower() ) },
+                                           { "relation_id_upper", printTypeID( relationID.getUpper() ) }
 
                     } );
 

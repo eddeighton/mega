@@ -167,8 +167,6 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case StateMachine::SIM:
                 {
-                    lastCycle = m_log.getTimeStamp();
-
                     m_clock.nextCycle();
 
                     {
@@ -242,6 +240,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                                                                getID(), m_pClock->getID(),
                                                                network::sim::MSG_SimClock_Request{
                                                                    m_mpo.value(), m_log.getRange( lastCycle ) } ) } );
+                                    lastCycle = m_log.getTimeStamp();
                                 }
                                 else
                                 {

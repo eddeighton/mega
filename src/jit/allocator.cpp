@@ -38,7 +38,7 @@ Allocator::Allocator( TypeID objectTypeID, JITDatabase& database, JITCompiler::M
     m_pCtor = pModule->get< object::ObjectCtor::FunctionPtr >( 
         Symbol( "ctor_", objectTypeID, Symbol::VStar ) );
     m_pDtor = pModule->get< object::ObjectDtor::FunctionPtr >( 
-        Symbol( "dtor_", objectTypeID, Symbol::VStar ) );
+        Symbol( "dtor_", objectTypeID, Symbol::Ref_VStar ) );
     m_pSaveBin = pModule->get< object::ObjectSaveBin::FunctionPtr >( 
         Symbol( "save_object_bin_", objectTypeID, Symbol::VStar_VStar ) );
     m_pLoadBin = pModule->get< object::ObjectLoadBin::FunctionPtr >( 

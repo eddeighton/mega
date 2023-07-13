@@ -272,14 +272,12 @@ void MPOContext::cycleComplete()
         if( unparentedObject.getMPO() == m_mpo.value() )
         {
             // delete the heap address
+            reference toDelete = unparentedObject;
+            if( toDelete.isNetworkAddress() )
             {
-                reference toDelete = unparentedObject;
-                if( toDelete.isNetworkAddress() )
-                {
-                    toDelete = m_pMemoryManager->networkToHeap( toDelete );
-                }
-                m_pMemoryManager->Delete( toDelete );
+                toDelete = m_pMemoryManager->networkToHeap( toDelete );
             }
+            m_pMemoryManager->Delete( toDelete );
             m_log.record( mega::log::Structure::Write(
                 reference{}, unparentedObject.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
         }

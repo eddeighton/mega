@@ -35,26 +35,7 @@
             "name" : "LinkReset",
             "arguments" : [
                 {
-                    "name" : "source",
-                    "type" : "mega::reference"
-                },
-                {
-                    "name" : "target",
-                    "type" : "mega::reference"
-                }
-            ],
-            "return_type" : "void",
-            "return" : "void"
-        },
-        {
-            "name" : "LinkOverwrite",
-            "arguments" : [
-                {
-                    "name" : "source",
-                    "type" : "mega::reference"
-                },
-                {
-                    "name" : "target",
+                    "name" : "ref",
                     "type" : "mega::reference"
                 }
             ],

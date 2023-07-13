@@ -649,17 +649,11 @@ R"TEMPLATE(
     switch( overload )
     {
         case WriteOperation::DEFAULT:
-        case WriteOperation::INSERT:
         {
             //mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} }
         }
         break;
         case WriteOperation::REMOVE:
-        {
-            //mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} }
-        }
-        break;
-        case WriteOperation::OVERWRITE:
         {
             //mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} }
         }

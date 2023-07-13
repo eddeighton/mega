@@ -38,7 +38,9 @@ namespace mega::mangle
     bool ref_vector_contains( void* pData, const mega::reference& ref );
     void ref_vector_remove( void* pData, const mega::reference& ref );
     void ref_vector_add( void* pData, const mega::reference& ref );
-    void ref_vector_clear( void* pData );
+    bool ref_vector_empty( void* pData );
+    mega::reference ref_vector_back( void* pData );
+    void ref_vector_pop( void* pData );
 
     void log( const char* );
 }
@@ -80,7 +82,7 @@ bool isTarget( const mega::reference& ref )
     return false;
 }
 
-void* getSourceData( mega::reference& ref )
+void* getSourceData( const mega::reference& ref )
 {
     switch( ref.getType() )
     {
@@ -99,7 +101,7 @@ void* getSourceData( mega::reference& ref )
     return nullptr;
 }
 
-void* getTargetData( mega::reference& ref )
+void* getTargetData( const mega::reference& ref )
 {
     switch( ref.getType() )
     {
@@ -120,7 +122,7 @@ void* getTargetData( mega::reference& ref )
 
 {% if source_singular %}
 {%      if target_singular %}
-void unlinkSource( mega::reference& source )
+void unlinkSource( const mega::reference& source )
 {
     // source AND target are singular
     mega::reference& sourceRef = *reinterpret_cast< mega::reference* >( getSourceData( source ) );
@@ -146,7 +148,7 @@ void unlinkSource( mega::reference& source )
     }
 }
 {%      else %}
-void unlinkSource( mega::reference& source )
+void unlinkSource( const mega::reference& source )
 {
     // source is singular, target is non-singular
     mega::reference& sourceRef = *reinterpret_cast< mega::reference* >( getSourceData( source ) );
@@ -176,7 +178,7 @@ void unlinkSource( mega::reference& source )
 
 {% if target_singular %}
 {%      if source_singular %}
-void unlinkTarget( mega::reference& target )
+void unlinkTarget( const mega::reference& target )
 {
     // source AND target are singular
     mega::reference& targetRef = *reinterpret_cast< mega::reference* >( getTargetData( target ) );
@@ -203,7 +205,7 @@ void unlinkTarget( mega::reference& target )
     }
 }
 {%      else %}
-void unlinkTarget( mega::reference& target )
+void unlinkTarget( const mega::reference& target )
 {
     // source is singular, target is non-singular
     mega::reference& targetRef = *reinterpret_cast< mega::reference* >( getTargetData( target ) );
@@ -234,24 +236,24 @@ void unlinkTarget( mega::reference& target )
 
 
 {% if source_singular %}
-void linkSource( mega::reference& source, mega::reference& target )
+void linkSource( const mega::reference& source, const mega::reference& target )
 {
     *reinterpret_cast< mega::reference* >( getSourceData( source ) ) = target;
 }
 {% else %}
-void linkSource( mega::reference& source, mega::reference& target )
+void linkSource( const mega::reference& source, const mega::reference& target )
 {
     mega::mangle::ref_vector_add( getSourceData( source ), target );
 }
 {% endif %}
 
 {% if target_singular %}
-void linkTarget( mega::reference& target, mega::reference& source )
+void linkTarget( const mega::reference& target, const mega::reference& source )
 {
     *reinterpret_cast< mega::reference* >( getTargetData( target ) ) = source;
 }
 {% else %}
-void linkTarget( mega::reference& target, mega::reference& source )
+void linkTarget( const mega::reference& target, const mega::reference& source )
 {
     mega::mangle::ref_vector_add( getTargetData( target ), source );
 }
@@ -404,16 +406,102 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
 {% endif %}
 }
 
-void link_overwrite_{{ relationID }}( mega::reference context, mega::reference parameter )
+void link_reset_{{ relationID }}( mega::reference context )
 {
     prepare( context );
-    prepare( parameter );
-    throw mega::runtime::JITException{ "link_overwrite_{{ relationID }} NOT IMPLEMENTED" };
-}
 
-void link_reset_{{ relationID }}( mega::reference context, mega::reference parameter )
-{
-    prepare( context );
-    prepare( parameter );
-    throw mega::runtime::JITException{ "link_reset_{{ relationID }} NOT IMPLEMENTED" };
+    if( isSource( context ) )
+    {
+{% if source_singular %}
+        unlinkSource( context );
+{% else %}
+
+    void* pSourceData = getSourceData( context );
+    while( !mega::mangle::ref_vector_empty( pSourceData ) )
+    {
+        mega::reference target = mega::mangle::ref_vector_back( pSourceData );
+        prepare( target );
+
+{%      if target_singular %}
+        mega::reference& targetRef = *reinterpret_cast< mega::reference* >( getTargetData( target ) );
+        if( targetRef != context )
+        {
+            throw mega::runtime::JITException{ "link_reset_{{ relationID }} source target combination does not match link" };
+        }
+        
+        targetRef = mega::reference{};
+
+{%      else %}
+
+        void* pTargetData = getTargetData( target );
+        if( !mega::mangle::ref_vector_contains( pTargetData, context ) )
+        {
+            throw mega::runtime::JITException{ "link_reset_{{ relationID }} source target combination does not match link" };
+        }
+        mega::mangle::ref_vector_remove( pTargetData, context );
+
+{%      endif %}
+
+        mega::mangle::ref_vector_pop( pSourceData );
+
+{%      if source_owned %}
+        mega::mangle::structure_break_source( context, target, {{ relationID }} );
+{%      else if target_owned %}
+        mega::mangle::structure_break_target( context, target, {{ relationID }} );
+{%      else %}
+        mega::mangle::structure_break( context, target, {{ relationID }} );
+{%      endif %}
+    }
+
+{% endif %}
+    }
+    else if( isTarget( context ) )
+    {
+{% if target_singular %}
+        unlinkTarget( context );
+{% else %}
+
+    void* pTargetData = getTargetData( context );
+    while( !mega::mangle::ref_vector_empty( pTargetData ) )
+    {
+        mega::reference source = mega::mangle::ref_vector_back( pTargetData );
+        prepare( source );
+
+{%      if source_singular %}
+        mega::reference& sourceRef = *reinterpret_cast< mega::reference* >( getSourceData( source ) );
+        if( sourceRef != context )
+        {
+            throw mega::runtime::JITException{ "link_reset_{{ relationID }} source target combination does not match link" };
+        }
+        
+        targetRef = mega::reference{};
+
+{%      else %}
+
+        void* pSourceData = getSourceData( source );
+        if( !mega::mangle::ref_vector_contains( pSourceData, context ) )
+        {
+            throw mega::runtime::JITException{ "link_reset_{{ relationID }} source target combination does not match link" };
+        }
+        mega::mangle::ref_vector_remove( pSourceData, context );
+
+{%      endif %}
+
+        mega::mangle::ref_vector_pop( pTargetData );
+
+{%      if source_owned %}
+        mega::mangle::structure_break_source( source, context, {{ relationID }} );
+{%      else if target_owned %}
+        mega::mangle::structure_break_target( source, context, {{ relationID }} );
+{%      else %}
+        mega::mangle::structure_break( source, context, {{ relationID }} );
+{%      endif %}
+    }
+
+{% endif %}
+    }
+    else
+    {
+        throw mega::runtime::JITException{ "link_reset_{{ relationID }} invalid reference" };
+    }
 }

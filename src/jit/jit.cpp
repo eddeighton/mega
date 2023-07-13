@@ -519,12 +519,6 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
             *ppFunction    = ( void* )pRelation->getBreak();
         }
         break;
-        case relation::eLinkOverwrite:
-        {
-            auto pRelation = getRelation( compiler, relationID );
-            *ppFunction    = ( void* )pRelation->getOverwrite();
-        }
-        break;
         case relation::eLinkReset:
         {
             auto pRelation = getRelation( compiler, relationID );

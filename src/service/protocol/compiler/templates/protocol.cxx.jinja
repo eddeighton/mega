@@ -108,7 +108,6 @@ Request_Sender::Request_Sender( ConversationBase& _conversation_,
 {
     Message _response_;
     {
-        mega::_MPOContextStack _mpoStack;
         ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
             m_conversation.shared_from_this(), m_sender.getConnectionID() );
 
@@ -124,6 +123,7 @@ Request_Sender::Request_Sender( ConversationBase& _conversation_,
                 }
             );
 
+            mega::_MPOContextStack _mpoStack;
             if ( const boost::system::error_code ec = m_sender.send( _msg_, m_yield_ctx ) )
             {
                 THROW_RTE( "Error writing: " << ec.what() );

@@ -110,9 +110,7 @@ PYBIND11_MODULE( megastructure, pythonModule )
 
     pybind11::enum_< WriteOperation >( pythonModule, "WriteOperation" )
         .value( "DEFAULT", WriteOperation::DEFAULT )
-        .value( "INSERT", WriteOperation::INSERT )
         .value( "REMOVE", WriteOperation::REMOVE )
-        .value( "OVERWRITE", WriteOperation::OVERWRITE )
         .value( "RESET", WriteOperation::RESET );
 
     pybind11::class_< PythonRoot >( pythonModule, "Root" )

@@ -43,7 +43,6 @@ public:
 
     relation::LinkMake::FunctionPtr      getMake() const { return m_pMake; }
     relation::LinkBreak::FunctionPtr     getBreak() const { return m_pBreak; }
-    relation::LinkOverwrite::FunctionPtr getOverwrite() const { return m_pOverwrite; }
     relation::LinkReset::FunctionPtr     getReset() const { return m_pReset; }
 
 private:
@@ -51,7 +50,6 @@ private:
     JITCompiler::Module::Ptr             m_pModule;
     relation::LinkMake::FunctionPtr      m_pMake      = nullptr;
     relation::LinkBreak::FunctionPtr     m_pBreak     = nullptr;
-    relation::LinkOverwrite::FunctionPtr m_pOverwrite = nullptr;
     relation::LinkReset::FunctionPtr     m_pReset     = nullptr;
 };
 } // namespace mega::runtime

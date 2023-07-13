@@ -24,6 +24,8 @@
 #include "service/network/end_point.hpp"
 #include "service/protocol/model/messages.hxx"
 
+#include "service/protocol/common/context.hpp"
+
 #include "jit/jit_exception.hpp"
 
 #include <chrono>
@@ -278,6 +280,7 @@ InThreadConversation::InThreadConversation( ConversationManager&  conversationMa
 
 ReceivedMsg InThreadConversation::receive( boost::asio::yield_context& yield_ctx )
 {
+    mega::_MPOContextStack _mpoStack;
     return m_channel.async_receive( yield_ctx );
 }
 
@@ -343,6 +346,7 @@ ConcurrentConversation::ConcurrentConversation( ConversationManager&  conversati
 
 ReceivedMsg ConcurrentConversation::receive( boost::asio::yield_context& yield_ctx )
 {
+    mega::_MPOContextStack _mpoStack;
     return m_channel.async_receive( yield_ctx );
 }
 

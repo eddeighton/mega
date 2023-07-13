@@ -109,11 +109,31 @@ void action_stop( const mega::reference& source )
     log.record( mega::log::Scheduling::Write( source.getNetworkAddress(), mega::log::Scheduling::eStop ) );
 }
 
+bool ref_vector_empty( void* pData )
+{
+    const ReferenceVector& vec = reify< ReferenceVector >( pData );
+    return vec.empty();
+}
+
+mega::reference ref_vector_back( void* pData )
+{
+    const ReferenceVector& vec = reify< ReferenceVector >( pData );
+    VERIFY_RTE_MSG( !vec.empty(), "ref_vector_back called on empty vector" );
+    return vec.back();
+}
+
+void ref_vector_pop( void* pData )
+{
+    ReferenceVector& vec = reify< ReferenceVector >( pData );
+    vec.pop_back();
+}
+
 bool ref_vector_contains( void* pData, const mega::reference& ref )
 {
     const ReferenceVector& vec = reify< ReferenceVector >( pData );
     return std::find( vec.cbegin(), vec.cend(), ref.getNetworkAddress() ) != vec.cend();
 }
+
 void ref_vector_remove( void* pData, const mega::reference& ref )
 {
     auto& vec   = reify< ReferenceVector >( pData );
@@ -123,15 +143,11 @@ void ref_vector_remove( void* pData, const mega::reference& ref )
         vec.erase( iFind );
     }
 }
+
 void ref_vector_add( void* pData, const mega::reference& ref )
 {
     auto& vec = reify< ReferenceVector >( pData );
     vec.push_back( ref.getNetworkAddress() );
-}
-void ref_vector_clear( void* pData )
-{
-    auto& vec = reify< ReferenceVector >( pData );
-    vec.clear();
 }
 
 mega::U64 ref_vector_get_size( void* pData )

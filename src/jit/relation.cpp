@@ -39,10 +39,8 @@ Relation::Relation( const RelationID& relationID, JITDatabase& database, JITComp
         Symbol( "link_make_", relationID, Symbol::Ref_Ref ) );
     m_pBreak = pModule->get< relation::LinkBreak::FunctionPtr >( 
         Symbol( "link_break_", relationID, Symbol::Ref_Ref ) );
-    m_pOverwrite = pModule->get< relation::LinkOverwrite::FunctionPtr >( 
-        Symbol( "link_overwrite_", relationID, Symbol::Ref_Ref ) );
     m_pReset = pModule->get< relation::LinkReset::FunctionPtr >( 
-        Symbol( "link_reset_", relationID, Symbol::Ref_Ref ) );
+        Symbol( "link_reset_", relationID, Symbol::Ref ) );
 }
 
 } // namespace mega::runtime

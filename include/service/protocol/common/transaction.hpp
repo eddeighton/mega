@@ -140,12 +140,12 @@ public:
             {
                 case log::Structure::eConstruct:
                 {
-
+                    // do nothing
                 }
                 break;
                 case log::Structure::eDestruct:
                 {
-
+                    // do nothing
                 }
                 break;
                 case log::Structure::eMake:

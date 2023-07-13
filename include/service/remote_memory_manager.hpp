@@ -120,7 +120,7 @@ public:
 
         return reference::make( objectHeapAddress, networkAddress.getTypeInstance() );
     }
-
+/*
     void Delete( reference& ref )
     {
         auto iFind = m_heapMap.find( ref.getObjectAddress() );
@@ -139,7 +139,7 @@ public:
         auto pHeader = reinterpret_cast< ObjectHeader* >( iFind->second.get() );
 
         // invoke the destructor
-        pHeader->m_pAllocator->getDtor()( pHeader );
+        pHeader->m_pAllocator->getDtor()( ref.getObjectAddress(), pHeader );
 
         // delete the object header
         pHeader->~ObjectHeader();
@@ -150,7 +150,7 @@ public:
         // null out the reference
         ref = reference{};
     }
-
+*/
 private:
     U64              m_usedHeapMemory = 0U;
     MP               m_mp;

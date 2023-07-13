@@ -203,7 +203,7 @@ public:
         auto pHeader = reinterpret_cast< ObjectHeader* >( get( iFind->second ) );
 
         // invoke the destructor
-        pHeader->m_pAllocator->getDtor()( pHeader );
+        pHeader->m_pAllocator->getDtor()( ref.getObjectAddress(), pHeader );
 
         // delete the object header
         pHeader->~ObjectHeader();

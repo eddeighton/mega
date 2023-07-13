@@ -87,6 +87,17 @@
             ],
             "return_type" : "void",
             "return" : "void"
+        },
+        {
+            "name" : "ObjectDestroyed",
+            "arguments" : [
+                {
+                    "name" : "object",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
         }
     ]
 }

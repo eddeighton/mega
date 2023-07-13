@@ -71,18 +71,30 @@ void ctor_{{ objectTypeID }}( void* pBuffer )
 {% endfor %}
 }
 
-void dtor_{{ objectTypeID }}( void* pBuffer )
+void dtor_{{ objectTypeID }}( mega::reference ref, void* pBuffer )
 {
 {% for part in parts %}
-    for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+{
+    mega::Instance instance = 0;
+    for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }}, ++instance )
     {
 {% for member in part.members %}
         mega::mangle::delete_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
 {% endfor %}
-{% for member in part.links %}
-        mega::mangle::delete_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+{% for link in part.links %}
+{% if link.owning %}
+    {
+        const mega::reference linkRef = mega::reference::make( ref, 
+                mega::TypeInstance{ {{ link.type_id }}, static_cast< mega::Instance >( instance ) } );
+        static thread_local mega::runtime::relation::LinkReset function( 
+            g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );
+        function( linkRef );
+        mega::mangle::delete_{{link.mangle}}( pIter + {{ link.offset }} ); // {{ link.type }} {{ link.name }}
+    }
+{% endif %}
 {% endfor %}
     }
+}
 {% endfor %}
 }
 

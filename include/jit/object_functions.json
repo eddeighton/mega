@@ -15,6 +15,10 @@
             "name": "ObjectDtor",
             "arguments": [
                 {
+                    "name": "ref",
+                    "type": "mega::reference"
+                },
+                {
                     "name": "Buffer",
                     "type": "void*"
                 }

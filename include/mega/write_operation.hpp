@@ -24,9 +24,7 @@
 enum class WriteOperation
 {
     DEFAULT,
-    INSERT,
     REMOVE,
-    OVERWRITE,
     RESET,
     TOTAL_WRITE_OPERATIONS
 };

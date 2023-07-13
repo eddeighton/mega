@@ -737,7 +737,6 @@ R"TEMPLATE(
 {{ indent }}    switch( overload )
 {{ indent }}    {
 {{ indent }}        case WriteOperation::DEFAULT:
-{{ indent }}        case WriteOperation::INSERT:
 {{ indent }}        {
 {{ indent }}            static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 {{ indent }}            function( {{ instance }}, target );
@@ -749,16 +748,10 @@ R"TEMPLATE(
 {{ indent }}            function( {{ instance }}, target );
 {{ indent }}        }
 {{ indent }}        break;
-{{ indent }}        case WriteOperation::OVERWRITE:
-{{ indent }}        {
-{{ indent }}            static thread_local mega::runtime::relation::LinkOverwrite function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
-{{ indent }}            function( {{ instance }}, target );
-{{ indent }}        }
-{{ indent }}        break;
 {{ indent }}        case WriteOperation::RESET:
 {{ indent }}        {
 {{ indent }}            static thread_local mega::runtime::relation::LinkReset function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
-{{ indent }}            function( {{ instance }}, target );
+{{ indent }}            function( {{ instance }} );
 {{ indent }}        }
 {{ indent }}        break;
 {{ indent }}        case WriteOperation::TOTAL_WRITE_OPERATIONS:
