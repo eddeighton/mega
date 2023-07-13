@@ -63,50 +63,64 @@ void log( const char* pszMsg )
 
 void structure_make( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
+    VERIFY_RTE_MSG( source.isHeapAddress(), "structure_make passed network address " );
+    VERIFY_RTE_MSG( target.isHeapAddress(), "structure_make passed network address " );
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write(
-        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eMake ) );
+        source, target, relationID, mega::log::Structure::eMake ) );
 }
 void structure_make_source( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
+    VERIFY_RTE_MSG( source.isHeapAddress(), "structure_make_source passed network address " );
+    VERIFY_RTE_MSG( target.isHeapAddress(), "structure_make_source passed network address " );
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write(
-        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eMakeSource ) );
+        source, target, relationID, mega::log::Structure::eMakeSource ) );
 }
 void structure_make_target( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
+    VERIFY_RTE_MSG( source.isHeapAddress(), "structure_make_target passed network address " );
+    VERIFY_RTE_MSG( target.isHeapAddress(), "structure_make_target passed network address " );
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write(
-        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eMakeTarget ) );
+        source, target, relationID, mega::log::Structure::eMakeTarget ) );
 }
 void structure_break( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
+    VERIFY_RTE_MSG( source.isHeapAddress(), "structure_break passed network address " );
+    VERIFY_RTE_MSG( target.isHeapAddress(), "structure_break passed network address " );
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write(
-        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eBreak ) );
+        source, target, relationID, mega::log::Structure::eBreak ) );
 }
 void structure_break_source( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
+    VERIFY_RTE_MSG( source.isHeapAddress(), "structure_break_source passed network address " );
+    VERIFY_RTE_MSG( target.isHeapAddress(), "structure_break_source passed network address " );
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write(
-        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eBreakSource ) );
+        source, target, relationID, mega::log::Structure::eBreakSource ) );
 }
 void structure_break_target( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
+    VERIFY_RTE_MSG( source.isHeapAddress(), "structure_break_target passed network address " );
+    VERIFY_RTE_MSG( target.isHeapAddress(), "structure_break_target passed network address " );
     mega::log::Storage& log = mega::Context::get()->getLog();
     log.record( mega::log::Structure::Write(
-        source.getNetworkAddress(), target.getNetworkAddress(), relationID, mega::log::Structure::eBreakTarget ) );
+        source, target, relationID, mega::log::Structure::eBreakTarget ) );
 }
 
 void action_start( const mega::reference& source )
 {
+    VERIFY_RTE_MSG( source.isHeapAddress(), "action_start passed network address " );
     mega::log::Storage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Scheduling::Write( source.getNetworkAddress(), mega::log::Scheduling::eStart ) );
+    log.record( mega::log::Scheduling::Write( source, mega::log::Scheduling::eStart ) );
 }
 void action_stop( const mega::reference& source )
 {
+    VERIFY_RTE_MSG( source.isHeapAddress(), "action_stop passed network address " );
     mega::log::Storage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Scheduling::Write( source.getNetworkAddress(), mega::log::Scheduling::eStop ) );
+    log.record( mega::log::Scheduling::Write( source, mega::log::Scheduling::eStop ) );
 }
 
 bool ref_vector_empty( void* pData )

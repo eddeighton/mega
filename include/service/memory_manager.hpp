@@ -29,7 +29,7 @@
 #include "database/mpo_database.hpp"
 
 #include "service/protocol/common/sender_ref.hpp"
-//#include "service/network/log.hpp"
+// #include "service/network/log.hpp"
 
 #include "mega/memory.hpp"
 #include "mega/reference_io.hpp"
@@ -54,10 +54,11 @@ class MemoryManager
         return std::visit( GetPtrVisitor{}, ptr );
     }
 
-    using HeapMap      = std::unordered_map< reference, PtrVariant, reference::Hash >;
-    using NetMap       = std::unordered_map< reference, reference, reference::Hash >;
-    using Allocators   = std::map< TypeID, FixedAllocator::Ptr >;
-    using AllocatorMap = std::unordered_map< TypeID, FixedAllocator*, TypeID::Hash >;
+    using HeapMap       = std::unordered_map< reference, PtrVariant, reference::Hash >;
+    using NetMap        = std::unordered_map< reference, reference, reference::Hash >;
+    using Allocators    = std::map< TypeID, FixedAllocator::Ptr >;
+    using AllocatorMap  = std::unordered_map< TypeID, FixedAllocator*, TypeID::Hash >;
+    using OldHeapVector = std::vector< PtrVariant >;
 
 public:
     using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID ) >;
@@ -92,7 +93,7 @@ public:
             // register with all types
             for( FinalStage::Concrete::Object* pObject : pMapping->get_concrete() )
             {
-                //SPDLOG_TRACE( "Fixed allocations for: {} of {}", typeID, pObject->get_concrete_id() );
+                // SPDLOG_TRACE( "Fixed allocations for: {} of {}", typeID, pObject->get_concrete_id() );
                 VERIFY_RTE( m_allocatorsMap.insert( { pObject->get_concrete_id(), pAllocator.get() } ).second );
             }
 
@@ -140,6 +141,9 @@ public:
 private:
     inline reference construct( const reference& networkAddress, PtrVariant&& memory, Allocator::Ptr pAllocator )
     {
+        using ::operator<<;
+        VERIFY_RTE_MSG( networkAddress.isNetworkAddress(), "construct given heap address: " << networkAddress );
+
         const reference objectNetAddress = networkAddress.getObjectAddress();
         void*           pAddress         = get( memory );
 
@@ -166,14 +170,14 @@ public:
         auto           iFind      = m_allocatorsMap.find( objectType );
         if( iFind != m_allocatorsMap.end() )
         {
-            //SPDLOG_TRACE( "Memory Manager:New fixed allocation for: {} of {}", typeID, objectType );
+            // SPDLOG_TRACE( "Memory Manager:New fixed allocation for: {} of {}", typeID, objectType );
             FixedAllocator::FixedPtr pFixed = iFind->second->allocate();
             const reference          networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, pFixed.getID() };
             return construct( networkAddress, PtrVariant{ std::move( pFixed ) }, pAllocator );
         }
         else
         {
-            //SPDLOG_TRACE( "Memory Manager:New heap allocation for: {} of {}", typeID, objectType );
+            // SPDLOG_TRACE( "Memory Manager:New heap allocation for: {} of {}", typeID, objectType );
             auto          sizeAlign = pAllocator->getSizeAlignment();
             HeapBufferPtr memory( sizeAlign );
             m_usedHeapMemory += sizeAlign.size;
@@ -188,28 +192,33 @@ public:
     {
         ASSERT( ref.isHeapAddress() );
 
-        auto    iFind = m_heapMap.find( ref.getObjectAddress() );
-        using ::operator<<;
-        VERIFY_RTE_MSG( iFind != m_heapMap.end(), "Failed to locate reference heap buffer: " << ref );
+        auto heapEntry = m_heapMap.extract( ref.getObjectAddress() );
 
         // remove the network address entry
         {
-            auto iFind2 = m_netMap.find( ref.getHeaderAddress() );
+            auto    iFind2 = m_netMap.find( ref.getHeaderAddress() );
+            using ::operator<<;
             VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for reference: " << ref );
             m_netMap.erase( iFind2 );
         }
 
         // get the object header
-        auto pHeader = reinterpret_cast< ObjectHeader* >( get( iFind->second ) );
+        auto pHeader = reinterpret_cast< ObjectHeader* >( get( heapEntry.mapped() ) );
 
         // invoke the destructor
         pHeader->m_pAllocator->getDtor()( ref.getObjectAddress(), pHeader );
 
-        // delete the object header
-        pHeader->~ObjectHeader();
+        m_oldHeap.emplace_back( std::move( heapEntry.mapped() ) );
+    }
 
-        // remove the heap address entry
-        m_heapMap.erase( iFind );
+    inline void Garbage()
+    {
+        for( auto& pHeap : m_oldHeap )
+        {
+            auto pHeader = reinterpret_cast< ObjectHeader* >( get( pHeap ) );
+            pHeader->~ObjectHeader();
+        }
+        m_oldHeap.clear();
     }
 
 private:
@@ -222,6 +231,7 @@ private:
     NetMap           m_netMap;
     Allocators       m_allocators;
     AllocatorMap     m_allocatorsMap;
+    OldHeapVector    m_oldHeap;
 };
 
 } // namespace mega::runtime

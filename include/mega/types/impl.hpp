@@ -80,9 +80,10 @@ struct SimpleDimension
 
     static inline void save_memory_record( const mega::reference& ref, const T& value )
     {
+        VERIFY_RTE_MSG( ref.isHeapAddress(), "save_memory_record passed network address " );
         mega::log::Storage& log = mega::Context::get()->getLog();
         log.record( mega::log::Memory::Write{
-            ref.getNetworkAddress(), std::string_view( reinterpret_cast< const char* >( &value ), sizeof( T ) ) } );
+            ref, std::string_view( reinterpret_cast< const char* >( &value ), sizeof( T ) ) } );
     }
     static inline void load_memory_record( const void* pData, mega::U64 size, T& value )
     {
@@ -135,11 +136,12 @@ struct NonSimpleDimension
 
     static inline void save_memory_record( const mega::reference& ref, const T& value )
     {
+        VERIFY_RTE_MSG( ref.isHeapAddress(), "save_memory_record passed network address " );
         RecordSaveArchive recordSaveArchive;
         recordSaveArchive.save( value );
 
         mega::log::Storage& log = mega::Context::get()->getLog();
-        log.record( mega::log::Memory::Write{ ref.getNetworkAddress(), recordSaveArchive.get() } );
+        log.record( mega::log::Memory::Write{ ref, recordSaveArchive.get() } );
     }
     static inline void load_memory_record( const void* pData, mega::U64 size, T& value )
     {

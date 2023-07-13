@@ -636,8 +636,8 @@ R"TEMPLATE(
 {{ indent }}                {{ concrete_type_id }}, 
 {{ indent }}                {{ instance }}.getInstance()
 {{ indent }}            ),
-{{ indent }}            {{ instance }}.getMPO(), 
-{{ indent }}            {{ instance }}.getAllocationID()
+{{ indent }}            {{ instance }}.getOwnerID(), 
+{{ indent }}            {{ instance }}.getHeap()
 {{ indent }}        ),
 {{ indent }}        pTarget
 {{ indent }}    );

@@ -107,8 +107,7 @@ reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )
     if( parent.getMPO() == getThisMPO() )
     {
         allocated = m_pMemoryManager->New( objectTypeID );
-        m_log.record( mega::log::Structure::Write(
-            parent.getNetworkAddress(), allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+        m_log.record( mega::log::Structure::Write( parent, allocated, 0, mega::log::Structure::eConstruct ) );
     }
     else
     {
@@ -203,8 +202,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     // instantiate the root
     m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
     VERIFY_RTE_MSG( m_root.is_valid(), "Root allocation failed" );
-    m_log.record(
-        mega::log::Structure::Write( reference{}, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+    m_log.record( mega::log::Structure::Write( reference{}, m_root, 0, mega::log::Structure::eConstruct ) );
 }
 
 void MPOContext::jit( runtime::JITFunctor func )
@@ -277,6 +275,20 @@ void MPOContext::cycleComplete()
     network::TransactionProducer::UnparentedSet   unparentedObjects;
     m_transactionProducer.generate( transactions, unparentedObjects );
 
+    m_pMemoryManager->Garbage();
+   /* {
+        for( auto& deleteRef : m_deleteQueues[ TOTAL_DELETE_QUEUES - 1 ] )
+        {
+            m_pMemoryManager->Delete( deleteRef );
+            m_log.record( mega::log::Structure::Write( reference{}, deleteRef, 0, mega::log::Structure::eDestruct ) );
+        }
+        for( int i = TOTAL_DELETE_QUEUES - 1; i > 0; --i )
+        {
+            m_deleteQueues[ i ].swap( m_deleteQueues[ i - 1 ] );
+        }
+        m_deleteQueues[ 0 ].clear();
+    }*/
+
     for( const auto& unparentedObject : unparentedObjects )
     {
         // destroy the object
@@ -284,14 +296,14 @@ void MPOContext::cycleComplete()
         if( unparentedObject.getMPO() == m_mpo.value() )
         {
             // delete the heap address
-            reference toDelete = unparentedObject;
-            if( toDelete.isNetworkAddress() )
+            reference deleteRef = unparentedObject;
+            if( deleteRef.isNetworkAddress() )
             {
-                toDelete = m_pMemoryManager->networkToHeap( toDelete );
+                deleteRef = m_pMemoryManager->networkToHeap( deleteRef );
             }
-            m_pMemoryManager->Delete( toDelete );
-            m_log.record( mega::log::Structure::Write(
-                reference{}, unparentedObject.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
+            m_pMemoryManager->Delete( deleteRef );
+            m_log.record( mega::log::Structure::Write( reference{}, deleteRef, 0, mega::log::Structure::eDestruct ) );
+           // m_deleteQueues[ 0 ].push_back( deleteRef );
         }
     }
 
