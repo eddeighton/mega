@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "jit/program_functions.hxx"
+#include "jit/jit_exception.hpp"
 
 #include "service/mpo_context.hpp"
 #include "service/cycle.hpp"
@@ -62,9 +63,20 @@ void* log()
 
 Cycle::~Cycle()
 {
-    if( auto pContext = getMPOContext() )
+    try
     {
-        pContext->cycleComplete();
+        if( auto pContext = getMPOContext() )
+        {
+            pContext->cycleComplete();
+        }
+    }
+    catch( mega::runtime::JITException& ex )
+    {
+        SPDLOG_ERROR( "Cycle::~Cycle JIT exception: {}", ex.what() );
+    }
+    catch( std::exception& ex )
+    {
+        SPDLOG_ERROR( "Cycle::~Cycle exception: {}", ex.what() );
     }
 }
 

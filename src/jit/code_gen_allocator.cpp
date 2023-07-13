@@ -445,11 +445,14 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                                 bOwning = true;
                         }
                     }
+
+                    
                     
                     std::string    strMangle;
                     RelationID     relationID = pRelation->get_id();
                     nlohmann::json link( { { "type", mega::psz_mega_reference_vector },
                                            { "type_id", printTypeID( pLinkDim->get_concrete_id() ) },
+                                           { "link_type_id", printTypeID( pLinkDim->get_link()->get_concrete_id() ) },
                                            { "mangle", "" },
                                            { "name", pLinkDim->get_link()->get_link()->get_identifier() },
                                            { "offset", pLinkDim->get_offset() },

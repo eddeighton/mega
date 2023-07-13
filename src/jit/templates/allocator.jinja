@@ -85,7 +85,7 @@ void dtor_{{ objectTypeID }}( mega::reference ref, void* pBuffer )
 {% if link.owning %}
     {
         const mega::reference linkRef = mega::reference::make( ref, 
-                mega::TypeInstance{ {{ link.type_id }}, static_cast< mega::Instance >( instance ) } );
+                mega::TypeInstance{ {{ link.link_type_id }}, static_cast< mega::Instance >( instance ) } );
         static thread_local mega::runtime::relation::LinkReset function( 
             g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );
         function( linkRef );
