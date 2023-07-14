@@ -61,12 +61,11 @@ TEST( Reference, InvalidByDefault )
 
 TEST( Reference, HeapAccess )
 {
-    mega::reference h{ mega::TypeInstance{ mega::max_typeID_context, 123 }, mega::OwnerID( 255 ), ( mega::HeapAddress )0xFFFFFFFF };
+    mega::reference h{ mega::TypeInstance{ mega::max_typeID_context, 123 }, ( mega::HeapAddress )0xFFFFFFFF };
 
     ASSERT_TRUE( h.isHeapAddress() );
     ASSERT_EQ( h.getType(), mega::max_typeID_context );
     ASSERT_EQ( h.getInstance(), 123 );
-    ASSERT_EQ( h.getOwnerID(), 255 );
     ASSERT_EQ( h.getHeap(), ( mega::HeapAddress )0xFFFFFFFF );
 }
 
@@ -90,7 +89,7 @@ TEST( Reference, HeaderAccess )
     mega::reference        networkAddress{ typeInstance, testMPO, 4 };
     mega::ObjectHeaderBase header{ networkAddress, 9 };
 
-    mega::reference h{ typeInstance, mega::OwnerID( 255 ), &header };
+    mega::reference h{ typeInstance, &header };
 
     ASSERT_TRUE( h.isHeapAddress() );
     ASSERT_EQ( h.getMPO(), testMPO );
@@ -201,7 +200,7 @@ INSTANTIATE_TEST_SUITE_P( Reference, ReferenceIOTest,
             ReferenceTestData{ mega::min_net_ref },
 
             // heap address
-            ReferenceTestData{ mega::reference{ mega::TypeInstance{}, mega::OwnerID{}, mega::HeapAddress{} } },
+            ReferenceTestData{ mega::reference{ mega::TypeInstance{}, mega::HeapAddress{} } },
             ReferenceTestData{ mega::max_heap_ref },
             ReferenceTestData{ mega::min_heap_ref }
         ));

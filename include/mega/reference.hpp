@@ -61,7 +61,7 @@ class reference
     struct HeapAddressData
     {
         HeapAddress  m_heap;    // 8
-        OwnerID      m_ownerID; // 1
+        mega::U8     _padding;  // 1
         Flags        m_flags;   // 1
         TypeInstance m_type;    // 6
     };
@@ -119,7 +119,6 @@ public:
     constexpr inline ProcessID    getProcessID() const;
 
     // common to both
-    constexpr inline OwnerID      getOwnerID() const { return prc.m_ownerID; }
     constexpr inline Flags        getFlags() const { return prc.m_flags; }
     constexpr inline TypeID       getType() const { return prc.m_type.type; }
     constexpr inline Instance     getInstance() const { return prc.m_type.instance; }
@@ -133,8 +132,8 @@ public:
     {
     }
 
-    constexpr reference( TypeInstance typeInstance, OwnerID owner, HeapAddress heap )
-        : prc{ heap, owner, HEAP_ADDRESS, typeInstance }
+    constexpr reference( TypeInstance typeInstance, HeapAddress heap )
+        : prc{ heap, 0U, HEAP_ADDRESS, typeInstance }
     {
     }
     constexpr reference( TypeInstance typeInstance, MPO mpo, AllocationID allocationID )
@@ -148,7 +147,7 @@ public:
     {
         if( other.isHeapAddress() )
         {
-            return { TypeInstance{ typeID, other.getInstance() }, other.getOwnerID(), other.getHeap() };
+            return { TypeInstance{ typeID, other.getInstance() }, other.getHeap() };
         }
         else
         {
@@ -165,7 +164,7 @@ public:
     {
         if( other.isHeapAddress() )
         {
-            return { typeInstance, other.getOwnerID(), other.getHeap() };
+            return { typeInstance, other.getHeap() };
         }
         else
         {

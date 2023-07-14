@@ -113,7 +113,7 @@ public:
         pAllocator->getCtor()( pHeapBuffer.get() );
 
         const reference objectHeapAddress
-            = reference{ objectAddress.getTypeInstance(), objectAddress.getOwnerID(), pHeapBuffer.get() };
+            = reference{ objectAddress.getTypeInstance(), pHeapBuffer.get() };
 
         m_heapMap.insert( { objectHeapAddress, std::move( pHeapBuffer ) } );
         m_netMap.insert( { objectAddress, objectHeapAddress } );

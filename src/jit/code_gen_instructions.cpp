@@ -636,7 +636,6 @@ R"TEMPLATE(
 {{ indent }}                {{ concrete_type_id }}, 
 {{ indent }}                {{ instance }}.getInstance()
 {{ indent }}            ),
-{{ indent }}            {{ instance }}.getOwnerID(), 
 {{ indent }}            {{ instance }}.getHeap()
 {{ indent }}        ),
 {{ indent }}        pTarget

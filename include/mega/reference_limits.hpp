@@ -43,12 +43,10 @@ static constexpr auto min_net_ref = mega::reference{
 
 static const auto max_heap_ref
     = mega::reference{ mega::TypeInstance{ max_typeID_context, std::numeric_limits< mega::Instance >::max() },
-                       0,   // std::numeric_limits< mega::OwnerID >::max(),
                        nullptr }; // reinterpret_cast< void* >( std::numeric_limits< mega::U64 >::max() )
 
 static const auto min_heap_ref
     = mega::reference{ mega::TypeInstance{ min_typeID_context, std::numeric_limits< mega::Instance >::min() },
-                       0,   // std::numeric_limits< mega::OwnerID >::min(),
                        nullptr }; // reinterpret_cast< void* >( std::numeric_limits< mega::U64 >::min() )
 } // namespace mega
 

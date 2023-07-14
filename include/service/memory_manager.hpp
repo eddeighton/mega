@@ -153,7 +153,7 @@ private:
         // invoke the constructor
         pAllocator->getCtor()( pAddress );
 
-        const reference heapAddress{ objectNetAddress.getTypeInstance(), m_mpo.getOwnerID(), pAddress };
+        const reference heapAddress{ objectNetAddress.getTypeInstance(), pAddress };
 
         VERIFY_RTE( m_heapMap.insert( { heapAddress, std::move( memory ) } ).second );
         VERIFY_RTE( m_netMap.insert( { objectNetAddress, heapAddress } ).second );

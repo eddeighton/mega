@@ -72,14 +72,13 @@ inline std::ostream& operator<<( std::ostream& os, const mega::MPO& mpo )
 
 inline std::ostream& operator<<( std::ostream& os, const mega::TypeInstance& typeInstance )
 {
-    return os << std::dec << '[' << typeInstance.type << "." << std::setw( 4 )
-              << std::setfill( '0' ) << typeInstance.instance << ']';
+    return os << std::dec << '[' << typeInstance.type << "." << std::setw( 4 ) << std::setfill( '0' )
+              << typeInstance.instance << ']';
 }
 inline std::istream& operator>>( std::istream& is, mega::TypeInstance& typeInstance )
 {
     char c;
-    return is >> std::dec >> c >> typeInstance.type >> c >> std::setw( 4 ) >> typeInstance.instance
-           >> c;
+    return is >> std::dec >> c >> typeInstance.type >> c >> std::setw( 4 ) >> typeInstance.instance >> c;
 }
 
 inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
@@ -87,8 +86,7 @@ inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
     if( ref.isHeapAddress() )
     {
         return os << std::hex << "x" << std::setw( 16 ) << std::setfill( '0' )
-                  << reinterpret_cast< mega::U64 >( ref.getHeap() ) << "." << std::setw( 2 ) << std::setfill( '0' )
-                  << std::dec << static_cast< mega::U32 >( ref.getOwnerID() ) << "." << ref.getTypeInstance();
+                  << reinterpret_cast< mega::U64 >( ref.getHeap() ) << "." << ref.getTypeInstance();
     }
     else
     {
@@ -103,12 +101,10 @@ inline std::istream& operator>>( std::istream& is, mega::reference& ref )
     if( is.peek() == 'x' )
     {
         mega::HeapAddress  heapAddress;
-        mega::U32          ownerID;
         mega::TypeInstance typeInstance;
 
-        is >> std::dec >> c >> std::setw( 16 ) >> heapAddress >> c >> std::setw( 2 ) >> ownerID >> std::setw( 1 ) >> c
-            >> typeInstance;
-        ref = mega::reference( typeInstance, ownerID, heapAddress );
+        is >> std::dec >> c >> std::setw( 16 ) >> heapAddress >> std::setw( 1 ) >> c >> typeInstance;
+        ref = mega::reference( typeInstance, heapAddress );
     }
     else
     {
@@ -128,7 +124,6 @@ inline std::istream& operator>>( std::istream& is, mega::reference& ref )
 namespace boost::serialization
 {
 
-
 inline void serialize( boost::archive::xml_iarchive& ar, ::mega::TypeInstance& value, const unsigned int version )
 {
     ar& boost::serialization::make_nvp( "instance", value.instance );
@@ -145,8 +140,8 @@ inline void serialize( boost::archive::xml_iarchive& ar, ::mega::MP& value, cons
 {
     ::mega::U32 machine{};
     ::mega::U32 process{};
-    ar&       boost::serialization::make_nvp( "machine", machine );
-    ar&       boost::serialization::make_nvp( "process", process );
+    ar&         boost::serialization::make_nvp( "machine", machine );
+    ar&         boost::serialization::make_nvp( "process", process );
     value = ::mega::MP( machine, process );
 }
 
@@ -154,8 +149,8 @@ inline void serialize( boost::archive::xml_oarchive& ar, ::mega::MP& value, cons
 {
     ::mega::U32 machine = value.getMachineID();
     ::mega::U32 process = value.getProcessID();
-    ar&       boost::serialization::make_nvp( "machine", machine );
-    ar&       boost::serialization::make_nvp( "process", process );
+    ar&         boost::serialization::make_nvp( "machine", machine );
+    ar&         boost::serialization::make_nvp( "process", process );
 }
 
 inline void serialize( boost::archive::xml_iarchive& ar, ::mega::MPO& value, const unsigned int version )
@@ -163,9 +158,9 @@ inline void serialize( boost::archive::xml_iarchive& ar, ::mega::MPO& value, con
     ::mega::U32 machine{};
     ::mega::U32 process{};
     ::mega::U32 owner{};
-    ar&       boost::serialization::make_nvp( "machine", machine );
-    ar&       boost::serialization::make_nvp( "process", process );
-    ar&       boost::serialization::make_nvp( "owner", owner );
+    ar&         boost::serialization::make_nvp( "machine", machine );
+    ar&         boost::serialization::make_nvp( "process", process );
+    ar&         boost::serialization::make_nvp( "owner", owner );
     value = ::mega::MPO( machine, process, owner );
 }
 
@@ -174,28 +169,26 @@ inline void serialize( boost::archive::xml_oarchive& ar, ::mega::MPO& value, con
     ::mega::U32 machine = value.getMachineID();
     ::mega::U32 process = value.getProcessID();
     ::mega::U32 owner   = value.getOwnerID();
-    ar&       boost::serialization::make_nvp( "machine", machine );
-    ar&       boost::serialization::make_nvp( "process", process );
-    ar&       boost::serialization::make_nvp( "owner", owner );
+    ar&         boost::serialization::make_nvp( "machine", machine );
+    ar&         boost::serialization::make_nvp( "process", process );
+    ar&         boost::serialization::make_nvp( "owner", owner );
 }
 
 inline void serialize( boost::archive::xml_iarchive& ar, ::mega::reference& ref, const unsigned int version )
 {
     ::mega::Flags flags{};
-    ar&         boost::serialization::make_nvp( "flags", flags );
+    ar&           boost::serialization::make_nvp( "flags", flags );
 
     if( flags == ::mega::HEAP_ADDRESS )
     {
         ::mega::U64          heap{};
-        ::mega::U32          owner{};
         ::mega::TypeInstance typeInstance{};
 
         // NOTE reloading heap pointer!
         ar& boost::serialization::make_nvp( "heap", heap );
-        ar& boost::serialization::make_nvp( "owner", owner );
         ar& boost::serialization::make_nvp( "type_instance", typeInstance );
 
-        ref = ::mega::reference( typeInstance, owner, reinterpret_cast< ::mega::HeapAddress >( heap ) );
+        ref = ::mega::reference( typeInstance, reinterpret_cast< ::mega::HeapAddress >( heap ) );
     }
     else
     {
@@ -214,25 +207,23 @@ inline void serialize( boost::archive::xml_iarchive& ar, ::mega::reference& ref,
 inline void serialize( boost::archive::xml_oarchive& ar, ::mega::reference& ref, const unsigned int version )
 {
     ::mega::Flags flags = ref.getFlags();
-    ar&         boost::serialization::make_nvp( "flags", flags );
+    ar&           boost::serialization::make_nvp( "flags", flags );
 
     if( ref.isHeapAddress() )
     {
-        auto               heap = reinterpret_cast< ::mega::U64 >( ref.getHeap() );
-        ar&                boost::serialization::make_nvp( "heap", heap );
-        ::mega::U32          owner = ref.getOwnerID();
-        ar&                boost::serialization::make_nvp( "owner", owner );
+        auto                 heap = reinterpret_cast< ::mega::U64 >( ref.getHeap() );
+        ar&                  boost::serialization::make_nvp( "heap", heap );
         ::mega::TypeInstance typeInstance = ref.getTypeInstance();
-        ar&                boost::serialization::make_nvp( "type_instance", typeInstance );
+        ar&                  boost::serialization::make_nvp( "type_instance", typeInstance );
     }
     else
     {
         ::mega::AllocationID allocationID = ref.getAllocationID();
-        ar&                boost::serialization::make_nvp( "allocationID", allocationID );
+        ar&                  boost::serialization::make_nvp( "allocationID", allocationID );
         ::mega::MPO          mpo = ref.getMPO();
-        ar&                boost::serialization::make_nvp( "mpo", mpo );
+        ar&                  boost::serialization::make_nvp( "mpo", mpo );
         ::mega::TypeInstance typeInstance = ref.getTypeInstance();
-        ar&                boost::serialization::make_nvp( "type_instance", typeInstance );
+        ar&                  boost::serialization::make_nvp( "type_instance", typeInstance );
     }
 }
 
@@ -254,8 +245,8 @@ inline void serialize( boost::archive::binary_iarchive& ar, ::mega::MP& value, c
 {
     ::mega::U32 machine{};
     ::mega::U32 process{};
-    ar&       machine;
-    ar&       process;
+    ar&         machine;
+    ar&         process;
     value = ::mega::MP( machine, process );
 }
 
@@ -270,9 +261,9 @@ inline void serialize( boost::archive::binary_iarchive& ar, ::mega::MPO& value, 
     ::mega::U32 machine{};
     ::mega::U32 process{};
     ::mega::U32 owner{};
-    ar&       machine;
-    ar&       process;
-    ar&       owner;
+    ar&         machine;
+    ar&         process;
+    ar&         owner;
     value = ::mega::MPO( machine, process, owner );
 }
 
@@ -286,19 +277,17 @@ inline void serialize( boost::archive::binary_oarchive& ar, ::mega::MPO& value, 
 inline void serialize( boost::archive::binary_iarchive& ar, ::mega::reference& ref, const unsigned int version )
 {
     ::mega::Flags flags{};
-    ar&         flags;
+    ar&           flags;
 
     if( flags == ::mega::HEAP_ADDRESS )
     {
         ::mega::U64          heap{};
-        ::mega::U32          owner{};
         ::mega::TypeInstance typeInstance{};
 
         ar& heap;
-        ar& owner;
         ar& typeInstance;
 
-        ref = ::mega::reference( typeInstance, owner, reinterpret_cast< ::mega::HeapAddress >( heap ) );
+        ref = ::mega::reference( typeInstance, reinterpret_cast< ::mega::HeapAddress >( heap ) );
     }
     else
     {
@@ -320,7 +309,6 @@ inline void serialize( boost::archive::binary_oarchive& ar, ::mega::reference& r
     if( ref.isHeapAddress() )
     {
         ar& reinterpret_cast< ::mega::U64 >( ref.getHeap() );
-        ar&( ::mega::U32 )ref.getOwnerID();
         ar& ref.getTypeInstance();
     }
     else
