@@ -133,8 +133,8 @@ public:
         ASSERT( networkAddress.isNetworkAddress() );
         auto    iFind = m_netMap.find( networkAddress.getObjectAddress() );
         using ::operator<<;
-        VERIFY_RTE_MSG(
-            iFind != m_netMap.end(), "Failed to locate network address entry for reference: " << networkAddress );
+        VERIFY_RTE_MSG( iFind != m_netMap.end(),
+                        "Failed to locate network address entry for reference: " << networkAddress.getObjectAddress() );
         return reference::make( iFind->second, networkAddress.getTypeInstance() );
     }
 

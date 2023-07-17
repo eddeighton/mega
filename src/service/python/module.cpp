@@ -30,6 +30,7 @@
 #include "service/protocol/common/jit_base.hpp"
 
 #include "mega/reference_io.hpp"
+#include "mega/invocation_io.hpp"
 #include "mega/maths_types.hpp"
 
 #include <spdlog/async.h>
@@ -356,7 +357,10 @@ const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID
     pythonRequest().PythonExecuteJIT( functor );
     if( exceptionPtrOpt.has_value() )
     {
-        SPDLOG_ERROR( "PythonModule::invoke rethrowing exception" );
+        std::ostringstream osError;
+        using ::operator<<;
+        osError << "Exception compiling invocation: " << invocationID;
+        SPDLOG_ERROR( "PythonModule::invoke rethrowing exception for invocation: {}", osError.str() );
         std::rethrow_exception( exceptionPtrOpt.value() );
     }
 

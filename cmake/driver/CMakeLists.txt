@@ -71,6 +71,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_sim.cpp
 		${DRIVER_SOURCE_DIR}/command_stash.cpp
 		${DRIVER_SOURCE_DIR}/command_status.cpp
+		${DRIVER_SOURCE_DIR}/command_symbols.cpp
 		${DRIVER_SOURCE_DIR}/command_tool_chain.cpp
 		${DRIVER_SOURCE_DIR}/command_trace.cpp
 		

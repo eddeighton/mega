@@ -74,7 +74,7 @@ struct SymbolMaps
     OperationsStage::Symbols::InterfaceTypeID* findInterfaceTypeID( mega::TypeID typeID ) const
     {
         auto iFind = m_interfaceIDMap.find( typeID );
-        VERIFY_RTE( iFind != m_interfaceIDMap.end() );
+        VERIFY_RTE_MSG( iFind != m_interfaceIDMap.end(), "Failed to find type id: " << typeID );
         return iFind->second;
     }
 
