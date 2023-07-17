@@ -260,6 +260,7 @@ public:
             }
         }
 
+        // NOTE: new here means in new namespace - i.e. newInterfaceTypeIDs has ALL type IDs not just new ones.
         std::map< TypeIDSequence, New::Symbols::InterfaceTypeID* > newInterfaceTypeIDSequences;
         std::map< TypeID, New::Symbols::InterfaceTypeID* >         newInterfaceTypeIDs;
         {
@@ -271,15 +272,12 @@ public:
                                &SymbolAnalysis::db_cast< SymbolAnalysis::Interface::IContext,
                                                          SymbolAnalysis::Interface::ContextGroup > );
 
-            std::set< TypeID > usedTypeIDs;
-
             {
                 // always have root be type ROOT_TYPE_ID
                 auto pNewInterfaceSymbol
                     = newDatabase.construct< New::Symbols::InterfaceTypeID >( New::Symbols::InterfaceTypeID::Args{
                         { ROOT_SYMBOL_ID }, ROOT_TYPE_ID, std::nullopt, std::nullopt } );
 
-                VERIFY_RTE( usedTypeIDs.insert( pNewInterfaceSymbol->get_id() ).second );
                 VERIFY_RTE( newInterfaceTypeIDSequences.insert( { { ROOT_SYMBOL_ID }, pNewInterfaceSymbol } ).second );
                 VERIFY_RTE(
                     newInterfaceTypeIDs.insert( { pNewInterfaceSymbol->get_id(), pNewInterfaceSymbol } ).second );
@@ -339,7 +337,6 @@ public:
 
                             if( reusedTypeID != TypeID{} )
                             {
-                                VERIFY_RTE( usedTypeIDs.insert( reusedTypeID ).second );
                                 VERIFY_RTE(
                                     newInterfaceTypeIDs.insert( { reusedTypeID, pNewInterfaceSymbol } ).second );
                             }
@@ -379,7 +376,6 @@ public:
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{
                                 idSeq, pOldInterfaceTypeID->get_id(), std::nullopt, pDimension } );
-                        VERIFY_RTE( usedTypeIDs.insert( pOldInterfaceTypeID->get_id() ).second );
                         VERIFY_RTE( newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } ).second );
                         VERIFY_RTE( newInterfaceTypeIDs.insert( { pOldInterfaceTypeID->get_id(), pNewInterfaceSymbol } )
                                         .second );
@@ -404,7 +400,7 @@ public:
             std::map< New::Interface::Object*, New::Symbols::InterfaceTypeID* > objectInterfaceTypeIDs;
             {
                 std::set< TypeID::SubValueType > usedObjectIDs = { ROOT_TYPE_ID.getObjectID() };
-                for( auto typeID : usedTypeIDs )
+                for( const auto& [ typeID, _ ] : newInterfaceTypeIDs )
                 {
                     if( typeID.getObjectID() != 0 )
                     {
@@ -412,8 +408,8 @@ public:
                     }
                 }
 
-                auto usedIter        = usedObjectIDs.begin();
-                TypeID::SubValueType   objectIDCounter = ROOT_TYPE_ID.getObjectID();
+                auto                 usedIter        = usedObjectIDs.begin();
+                TypeID::SubValueType objectIDCounter = ROOT_TYPE_ID.getObjectID();
                 ASSERT( objectIDCounter == 1U );
 
                 // set all object interface type IDs
@@ -444,13 +440,13 @@ public:
             }
 
             // establish the used subObjectIDs per objectID
-            std::multimap< TypeID::SubValueType, TypeID::SubValueType > usedSubObjectIDs;
-            for( const auto typeID : usedTypeIDs )
+            std::map< TypeID::SubValueType, std::set< TypeID::SubValueType > > usedSubObjectIDs;
+            for( const auto& [ typeID, _ ] : newInterfaceTypeIDs )
             {
                 // only add non-zero sub object IDs
                 if( typeID.getSubObjectID() != 0 )
                 {
-                    usedSubObjectIDs.insert( { typeID.getObjectID(), typeID.getSubObjectID() } );
+                    usedSubObjectIDs[ typeID.getObjectID() ].insert( typeID.getSubObjectID() );
                 }
             }
 
@@ -493,17 +489,22 @@ public:
                     // find the begining of the object TypeID range in usedTypeIDS
                     TypeID newTypeID;
                     {
-                        auto i           = usedSubObjectIDs.lower_bound( objectID );
-                        auto iEnd        = usedSubObjectIDs.upper_bound( objectID );
-                        TypeID::SubValueType   subObjectID = 1U;
-                        while( ( i != iEnd ) && ( subObjectID == i->second ) )
+                        std::set< TypeID::SubValueType >& subobjectIDs = usedSubObjectIDs[ objectID ];
+                        TypeID::SubValueType              subObjectID  = 1U;
+                        for( auto used : subobjectIDs )
                         {
-                            ++i;
-                            ++subObjectID;
-                            VERIFY_RTE_MSG( subObjectID != 0, "SubObjectID overflow" );
+                            if( subObjectID != used )
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                ++subObjectID;
+                            }
                         }
-                        usedSubObjectIDs.insert( { objectID, subObjectID } );
+                        VERIFY_RTE_MSG( subObjectID != 0, "SubObjectID overflow" );
                         newTypeID = TypeID::make_context( objectID, subObjectID );
+                        subobjectIDs.insert( subObjectID );
                     }
 
                     pInterfaceTypeID->set_id( newTypeID );

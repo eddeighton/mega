@@ -59,7 +59,7 @@ public:
         {
             using namespace DependencyAnalysis;
 
-            for ( Parser::Dependency* pDependency : pContextDef->get_dependencies() )
+            for( Parser::Dependency* pDependency : pContextDef->get_dependencies() )
             {
                 VERIFY_PARSER( !pDependency->get_str().empty(), "Empty dependency", pContextDef->get_id() );
                 boost::filesystem::path sourceFilePath = pContextDef->get_id()->get_source_file();
@@ -69,7 +69,7 @@ public:
                     mega::utilities::Glob{ sourceFilePath.parent_path(), pDependency->get_str(), pContextDef } );
             }
 
-            for ( Parser::ContextDef* pContext : pContextDef->get_children() )
+            for( Parser::ContextDef* pContext : pContextDef->get_children() )
             {
                 collectDependencies( pContext, dependencyGlobs );
             }
@@ -89,31 +89,38 @@ public:
             collectDependencies( pRoot->get_root()->get_ast(), dependencyGlobs );
 
             std::vector< Glob* >            globs;
-            mega::utilities::FilePathVector matchedFilePaths;
-            for ( const mega::utilities::Glob& glob : dependencyGlobs )
+            mega::utilities::FilePathVector resolution;
+            for( const mega::utilities::Glob& glob : dependencyGlobs )
             {
                 try
                 {
+                    mega::utilities::FilePathVector matchedFilePaths;
                     mega::utilities::resolveGlob( glob, m_environment.srcDir(), matchedFilePaths );
+                    for( const boost::filesystem::path& filePath : matchedFilePaths )
+                    {
+                        const auto megaFilePath = m_environment.megaFilePath_fromPath( filePath );
+                        if( sourceFiles.count( megaFilePath ) )
+                        {
+                            // ensure the resolution DOES NOT contain the original file
+                            VERIFY_PARSER( megaFilePath != sourceFilePath,
+                                           "Source file contains dependency to itself: " << filePath.string(),
+                                           reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                            if( std::find( resolution.begin(), resolution.end(), filePath ) == resolution.end() )
+                                resolution.push_back( filePath );
+                        }
+                    }
                 }
-                catch ( mega::utilities::GlobException& ex )
+                catch( mega::utilities::GlobException& ex )
                 {
                     VERIFY_PARSER( false, "Dependency error: " << ex.what(),
                                    reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
                 }
-                catch ( boost::filesystem::filesystem_error& ex )
+                catch( boost::filesystem::filesystem_error& ex )
                 {
                     VERIFY_PARSER( false, "Dependency error: " << ex.what(),
                                    reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
                 }
                 globs.push_back( database.construct< Glob >( Glob::Args{ glob.source_file, glob.glob } ) );
-            }
-
-            mega::utilities::FilePathVector resolution;
-            for ( const boost::filesystem::path& filePath : matchedFilePaths )
-            {
-                if ( sourceFiles.count( m_environment.megaFilePath_fromPath( filePath ) ) )
-                    resolution.push_back( filePath );
             }
 
             SourceFileDependencies* pDependencies = database.construct< SourceFileDependencies >(
@@ -133,19 +140,19 @@ public:
             std::vector< Glob* >            globs;
             mega::utilities::FilePathVector matchedFilePaths;
 
-            for ( DependencyAnalysisView::Dependencies::Glob* pOldGlob : pOldDependencies->get_globs() )
+            for( DependencyAnalysisView::Dependencies::Glob* pOldGlob : pOldDependencies->get_globs() )
             {
                 const mega::utilities::Glob glob{ pOldGlob->get_location(), pOldGlob->get_glob(), nullptr };
                 try
                 {
                     mega::utilities::resolveGlob( glob, m_environment.srcDir(), matchedFilePaths );
                 }
-                catch ( mega::utilities::GlobException& ex )
+                catch( mega::utilities::GlobException& ex )
                 {
                     VERIFY_PARSER( false, "Dependency error: " << ex.what(),
                                    reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
                 }
-                catch ( boost::filesystem::filesystem_error& ex )
+                catch( boost::filesystem::filesystem_error& ex )
                 {
                     VERIFY_PARSER( false, "Dependency error: " << ex.what(),
                                    reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
@@ -154,9 +161,9 @@ public:
             }
 
             mega::utilities::FilePathVector resolution;
-            for ( const boost::filesystem::path& filePath : matchedFilePaths )
+            for( const boost::filesystem::path& filePath : matchedFilePaths )
             {
-                if ( sourceFiles.count( m_environment.megaFilePath_fromPath( filePath ) ) )
+                if( sourceFiles.count( m_environment.megaFilePath_fromPath( filePath ) ) )
                     resolution.push_back( filePath );
             }
 
@@ -171,7 +178,7 @@ public:
     PathSet getNewSortedSourceFiles() const
     {
         PathSet sourceFiles;
-        for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
             sourceFiles.insert( sourceFilePath );
         }
@@ -195,13 +202,13 @@ public:
                           std::set< mega::io::megaFilePath >&                       unique,
                           DependencyAnalysis::Dependencies::TransitiveDependencies* pTransitive )
     {
-        for ( MegaFileDependencies::Ptr pDep : pDependencies->m_transitive )
+        for( MegaFileDependencies::Ptr pDep : pDependencies->m_transitive )
         {
             solveTransitive( pDep, unique, pTransitive );
         }
-        if ( !pDependencies->m_file.path().empty() )
+        if( !pDependencies->m_file.path().empty() )
         {
-            if ( unique.count( pDependencies->m_file ) == 0 )
+            if( unique.count( pDependencies->m_file ) == 0 )
             {
                 pTransitive->push_back_mega_source_files( pDependencies->m_file );
                 unique.insert( pDependencies->m_file );
@@ -224,26 +231,26 @@ public:
         // collect all initial component wide dependencies first
         std::vector< Components::Component* > components
             = database.many< Components::Component >( m_environment.project_manifest() );
-        for ( Components::Component* pComponent : components )
+        for( Components::Component* pComponent : components )
         {
             const MegaFileDependencies::Vector dependencies = pComponent->get_dependencies();
             {
                 std::set< mega::io::megaFilePath > depSet;
-                for ( const mega::io::megaFilePath& megaFile : dependencies )
+                for( const mega::io::megaFilePath& megaFile : dependencies )
                 {
                     depSet.insert( megaFile );
                 }
                 VERIFY_RTE( depSet.size() == dependencies.size() );
             }
 
-            for ( const mega::io::megaFilePath& megaFile : pComponent->get_mega_source_files() )
+            for( const mega::io::megaFilePath& megaFile : pComponent->get_mega_source_files() )
             {
                 MegaFileDependencies::Ptr pDep( new MegaFileDependencies );
                 pDep->m_file    = megaFile;
                 pDep->m_initial = dependencies;
                 megaFileDependencies.insert( std::make_pair( megaFile, pDep ) );
             }
-            for ( const mega::io::cppFilePath cppFile : pComponent->get_cpp_source_files() )
+            for( const mega::io::cppFilePath cppFile : pComponent->get_cpp_source_files() )
             {
                 MegaFileDependencies::Ptr pDep( new MegaFileDependencies );
                 pDep->m_initial = dependencies;
@@ -252,22 +259,22 @@ public:
         }
 
         // collect all initial source level dependencies
-        for ( SourceFileDependencies* pSourceFile : dependencies )
+        for( SourceFileDependencies* pSourceFile : dependencies )
         {
             MegaFileDependencyMap::iterator iFind = megaFileDependencies.find( pSourceFile->get_source_file() );
             VERIFY_RTE( iFind != megaFileDependencies.end() );
-            for ( const boost::filesystem::path& megaFile : pSourceFile->get_resolution() )
+            for( const boost::filesystem::path& megaFile : pSourceFile->get_resolution() )
             {
                 iFind->second->m_initial.push_back( m_environment.megaFilePath_fromPath( megaFile ) );
             }
         }
 
-        for ( auto& [ filePath, pDependencies ] : megaFileDependencies )
+        for( auto& [ filePath, pDependencies ] : megaFileDependencies )
         {
-            for ( const mega::io::megaFilePath& megaFile : pDependencies->m_initial )
+            for( const mega::io::megaFilePath& megaFile : pDependencies->m_initial )
             {
                 MegaFileDependencyMap::iterator iFind = megaFileDependencies.find( megaFile );
-                if ( pDependencies->m_set.count( iFind->second ) == 0 )
+                if( pDependencies->m_set.count( iFind->second ) == 0 )
                 {
                     pDependencies->m_transitive.push_back( iFind->second );
                     pDependencies->m_set.insert( iFind->second );
@@ -275,12 +282,12 @@ public:
             }
         }
 
-        for ( auto& [ filePath, pDependencies ] : cppFileDependencies )
+        for( auto& [ filePath, pDependencies ] : cppFileDependencies )
         {
-            for ( const mega::io::megaFilePath& megaFile : pDependencies->m_initial )
+            for( const mega::io::megaFilePath& megaFile : pDependencies->m_initial )
             {
                 MegaFileDependencyMap::iterator iFind = megaFileDependencies.find( megaFile );
-                if ( pDependencies->m_set.count( iFind->second ) == 0 )
+                if( pDependencies->m_set.count( iFind->second ) == 0 )
                 {
                     pDependencies->m_transitive.push_back( iFind->second );
                     pDependencies->m_set.insert( iFind->second );
@@ -291,7 +298,7 @@ public:
         std::map< mega::io::megaFilePath, TransitiveDependencies* > megaFileTransitiveMap;
         std::map< mega::io::cppFilePath, TransitiveDependencies* >  cppFileTransitiveMap;
 
-        for ( auto& [ filePath, pDependencies ] : megaFileDependencies )
+        for( auto& [ filePath, pDependencies ] : megaFileDependencies )
         {
             TransitiveDependencies* pTransitive
                 = database.construct< TransitiveDependencies >( TransitiveDependencies::Args{ {} } );
@@ -300,7 +307,7 @@ public:
             megaFileTransitiveMap.insert( std::make_pair( filePath, pTransitive ) );
         }
 
-        for ( auto& [ filePath, pDependencies ] : cppFileDependencies )
+        for( auto& [ filePath, pDependencies ] : cppFileDependencies )
         {
             TransitiveDependencies* pTransitive
                 = database.construct< TransitiveDependencies >( TransitiveDependencies::Args{ {} } );
@@ -320,12 +327,12 @@ public:
         start( taskProgress, "Task_DependencyAnalysis", manifestFilePath.path(), dependencyCompilationFilePath.path() );
 
         task::DeterminantHash determinant( m_toolChain.toolChainHash );
-        for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
             determinant ^= m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
         }
 
-        if ( m_environment.restore( dependencyCompilationFilePath, determinant ) )
+        if( m_environment.restore( dependencyCompilationFilePath, determinant ) )
         {
             m_environment.setBuildHashCode( dependencyCompilationFilePath );
             cached( taskProgress );
@@ -351,7 +358,7 @@ public:
 
         //
         bool bReusedOldDatabase = false;
-        if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
+        if( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
         {
             try
             {
@@ -406,7 +413,7 @@ public:
                             {
                                 const Old::Dependencies::SourceFileDependencies* pDependencies = *i;
                                 const task::DeterminantHash interfaceHash = hashCodeGenerator( *j );
-                                if ( interfaceHash == pDependencies->get_hash_code() )
+                                if( interfaceHash == pDependencies->get_hash_code() )
                                 {
                                     // since the code is NOT modified - can re use the globs from previous result
                                     newDependencies.push_back(
@@ -473,13 +480,13 @@ public:
                 succeeded( taskProgress );
                 bReusedOldDatabase = true;
             }
-            catch ( mega::io::DatabaseVersionException& )
+            catch( mega::io::DatabaseVersionException& )
             {
                 bReusedOldDatabase = false;
             }
         }
 
-        if ( !bReusedOldDatabase )
+        if( !bReusedOldDatabase )
         {
             using namespace DependencyAnalysis;
             using namespace DependencyAnalysis::Dependencies;
@@ -489,7 +496,7 @@ public:
                 std::vector< SourceFileDependencies* > dependencies;
                 {
                     const PathSet newSourceFiles = getNewSortedSourceFiles();
-                    for ( const mega::io::megaFilePath& sourceFilePath : newSourceFiles )
+                    for( const mega::io::megaFilePath& sourceFilePath : newSourceFiles )
                     {
                         const task::DeterminantHash interfaceHash = hashCodeGenerator( sourceFilePath );
                         dependencies.push_back( CalculateDependencies( m_environment )(

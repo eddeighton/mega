@@ -335,8 +335,8 @@ public:
             {
                 usedObjectIDs.insert( typeID.getObjectID() );
             }
-            auto usedIter        = usedObjectIDs.begin();
-            TypeID::SubValueType   objectIDCounter = ROOT_TYPE_ID.getObjectID();
+            auto                 usedIter        = usedObjectIDs.begin();
+            TypeID::SubValueType objectIDCounter = ROOT_TYPE_ID.getObjectID();
 
             for( auto [ _, pSymbolTypeID ] : new_concrete_type_id_sequences )
             {
@@ -363,10 +363,10 @@ public:
         }
 
         // establish the used subObjectIDs per objectID
-        std::multimap< TypeID::SubValueType, TypeID::SubValueType > usedSubObjectIDs;
+        std::map< TypeID::SubValueType, std::set< TypeID::SubValueType > > usedSubObjectIDs;
         for( const auto typeID : usedTypeIDs )
         {
-            usedSubObjectIDs.insert( { typeID.getObjectID(), typeID.getSubObjectID() } );
+            usedSubObjectIDs[ typeID.getObjectID() ].insert( typeID.getSubObjectID() );
         }
 
         auto genSubObject
@@ -402,22 +402,29 @@ public:
             // find the begining of the object TypeID range in usedTypeIDS
             TypeID newTypeID;
             {
-                auto i           = usedSubObjectIDs.lower_bound( objectID );
-                auto iEnd        = usedSubObjectIDs.upper_bound( objectID );
-                TypeID::SubValueType   subObjectID = 0U;
-                while( ( i != iEnd ) && ( subObjectID == i->second ) )
+                std::set< TypeID::SubValueType >& subobjectIDs = usedSubObjectIDs[ objectID ];
+                TypeID::SubValueType              subObjectID  = 0U;
+                for( auto used : subobjectIDs )
                 {
-                    ++i;
-                    ++subObjectID;
-                    VERIFY_RTE_MSG( subObjectID != 0, "SubObjectID overflow" );
+                    if( subObjectID != used )
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        ++subObjectID;
+                        VERIFY_RTE_MSG( subObjectID != 0, "SubObjectID overflow" );
+                    }
                 }
+
                 // there may not be an object in which case subObjectID 0 will not be used
                 if( subObjectID == 0U )
                 {
-                    usedSubObjectIDs.insert( { objectID, subObjectID } );
+                    subobjectIDs.insert( subObjectID );
                     ++subObjectID;
+                    VERIFY_RTE_MSG( subObjectID != 0, "SubObjectID overflow" );
                 }
-                usedSubObjectIDs.insert( { objectID, subObjectID } );
+                subobjectIDs.insert( subObjectID );
                 newTypeID = TypeID::make_context( objectID, subObjectID );
             }
 
