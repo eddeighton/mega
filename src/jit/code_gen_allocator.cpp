@@ -43,7 +43,7 @@ std::string fullInterfaceTypeName( FinalStage::Interface::IContext* pIContext )
     return osFullTypeName.str();
 }
 
-std::string makeIterName( FinalStage::Concrete::Context* pContext )
+std::string makeIterName( const FinalStage::Concrete::Context* pContext )
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
@@ -52,40 +52,37 @@ std::string makeIterName( FinalStage::Concrete::Context* pContext )
     return os.str();
 }
 
-template < typename TDimensionType >
-std::string calculateElementOffset( const JITDatabase& database, TDimensionType* pUserDim, std::string& strInstance )
+struct ParentSizes
 {
-    using namespace FinalStage;
-    using namespace FinalStage::Concrete;
+    std::vector< const FinalStage::Concrete::Context* > parents;
+    std::vector< U64 >                                  sizes;
 
-    MemoryLayout::Part* pPart   = pUserDim->get_part();
-    auto                pBuffer = pPart->get_buffer();
-
-    std::vector< Concrete::Context* > parents;
-    std::vector< U64 >                sizes;
+    ParentSizes( const JITDatabase& database, const FinalStage::Concrete::Context* pContext )
     {
-        Concrete::Context* pContext = pUserDim->get_parent();
-        U64                size     = 1;
+        using namespace FinalStage;
+        using namespace FinalStage::Concrete;
+
+        U64 size = 1;
         while( pContext )
         {
             parents.push_back( pContext );
             sizes.push_back( size );
             size *= database.getLocalDomainSize( pContext->get_concrete_id() );
-            if( !!db_cast< Concrete::Object >( pContext ) )
+            if( !!db_cast< const Concrete::Object >( pContext ) )
                 break;
-            pContext = db_cast< Concrete::Context >( pContext->get_parent() );
+            pContext = db_cast< const Concrete::Context >( pContext->get_parent() );
         }
         std::reverse( parents.begin(), parents.end() );
         std::reverse( sizes.begin(), sizes.end() );
     }
 
-    std::ostringstream offset;
-    offset << pPart->get_offset();
-    offset << " + " << pPart->get_size() << " * (";
-    bool bFirst = true;
-
+    std::string calculateInstance() const
     {
+        using namespace FinalStage;
+        using namespace FinalStage::Concrete;
+
         std::ostringstream instance;
+        bool               bFirst = true;
         for( U64 i = 0; i != parents.size(); ++i )
         {
             if( bFirst )
@@ -94,10 +91,28 @@ std::string calculateElementOffset( const JITDatabase& database, TDimensionType*
                 instance << " + ";
             instance << sizes[ i ] << " * " << makeIterName( parents[ i ] ) << " ";
         }
-        strInstance = instance.str();
+        return instance.str();
     }
+};
 
-    offset << strInstance << ") + " << pUserDim->get_offset();
+template < typename TDimensionType >
+std::string calculateElementOffset( const JITDatabase& database, TDimensionType* pUserDim, std::string& strInstance )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Concrete;
+
+    std::ostringstream offset;
+    {
+        ParentSizes parentSizes( database, pUserDim->get_parent() );
+        strInstance = parentSizes.calculateInstance();
+
+        MemoryLayout::Part* pPart   = pUserDim->get_part();
+        auto                pBuffer = pPart->get_buffer();
+
+        offset << pPart->get_offset();
+        offset << " + " << pPart->get_size() << " * (";
+        offset << strInstance << ") + " << pUserDim->get_offset();
+    }
 
     return offset.str();
 }
@@ -159,7 +174,7 @@ std::optional< nlohmann::json > allocatorLink( const JITDatabase& database, Fina
         }
     }
 
-    if( bOwning )
+    // if( bOwning )
     {
         std::string strRelationID;
         {
@@ -247,11 +262,11 @@ std::optional< nlohmann::json > allocatorLink( const JITDatabase& database, Fina
 
         return element;
     }
-    else
+    /*else
     {
         // for now do not add non-owning links to xml format.
         return {};
-    }
+    }*/
 }
 
 void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete::Context* pContext,
@@ -275,6 +290,12 @@ void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete
         return;
     }
 
+    std::string strInstance;
+    {
+        ParentSizes parentSizes( database, pContext );
+        strInstance = parentSizes.calculateInstance();
+    }
+
     {
         nlohmann::json element( { { "concrete_id", printTypeID( pContext->get_concrete_id() ) },
                                   { "is_object", !!db_cast< Concrete::Object >( pContext ) },
@@ -284,7 +305,8 @@ void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete
                                   { "end", database.getLocalDomainSize( pContext->get_concrete_id() ) },
                                   { "is_part_begin", true },
                                   { "is_part_end", false },
-                                  { "owning", false }
+                                  { "owning", false },
+                                  { "instance", strInstance }
 
         } );
         data[ "elements" ].push_back( element );
@@ -343,7 +365,8 @@ void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete
                                   { "name", pContext->get_interface()->get_identifier() },
                                   { "is_part_begin", false },
                                   { "is_part_end", true },
-                                  { "owning", false }
+                                  { "owning", false },
+                                  { "instance", strInstance }
 
         } );
         data[ "elements" ].push_back( element );
@@ -446,8 +469,6 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                         }
                     }
 
-                    
-                    
                     std::string    strMangle;
                     RelationID     relationID = pRelation->get_id();
                     nlohmann::json link( { { "type", mega::psz_mega_reference_vector },

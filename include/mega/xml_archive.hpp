@@ -171,14 +171,14 @@ public:
         base::save( strEncode );
     }
 
-    inline void save( mega::reference& ref )
+    inline void save( const mega::reference& ref )
     {
         this->end_preamble();
 
         std::string strEncode;
         {
             std::ostringstream os;
-            if( auto indexOpt = refToIndexIfExist( ref ) )
+            if( auto indexOpt = refToIndexIfExist( ref ); indexOpt.has_value() )
             {
                 os << indexOpt.value();
             }
@@ -192,9 +192,9 @@ public:
         base::save( strEncode );
     }
 
-    inline std::optional< mega::AddressTable::Index > refToIndexIfExist( const mega::reference& maybeNetAddress ) const
+    inline std::optional< mega::AddressTable::Index > refToIndexIfExist( const mega::reference& maybeNetAddress )
     {
-        return m_table.refToIndexIfExist( maybeNetAddress );
+        return m_table.refToIndexIfObjectExist( maybeNetAddress );
     }
     inline const mega::AddressTable::Index& refToIndex( const mega::reference& maybeNetAddress )
     {
@@ -213,8 +213,11 @@ inline void serialize( boost::archive::XMLIArchive& ar, mega::reference& value, 
 {
     ar.load( value );
 }
-
 inline void serialize( boost::archive::XMLOArchive& ar, mega::reference& value, const unsigned int )
+{
+    ar.save( value );
+}
+inline void serialize( boost::archive::XMLOArchive& ar, const mega::reference& value, const unsigned int )
 {
     ar.save( value );
 }
@@ -233,7 +236,7 @@ public:
     }
 
     template < typename T >
-    inline void save( const char* name, T& value )
+    inline void save( const char* name, const T& value )
     {
         m_archive& boost::serialization::make_nvp( name, value );
     }
@@ -250,18 +253,18 @@ public:
         auto indexOpt = m_archive.refToIndexIfExist( ref );
         VERIFY_RTE( indexOpt.has_value() );
 
-        if( bIsObject )
+        //if( bIsObject )
         {
             std::ostringstream os;
             os << "<" << name << " index=\"" << indexOpt.value() << "\" >";
             m_archive.put( os.str().c_str() );
         }
-        else
+        /*else
         {
             std::ostringstream os;
             os << "<" << name << ">";
             m_archive.put( os.str().c_str() );
-        }
+        }*/
     }
     inline void endData( const char* name, bool bIsObject, const reference& ref )
     {

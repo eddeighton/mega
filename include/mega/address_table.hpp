@@ -45,25 +45,46 @@ public:
 
     inline const IndexTable& getTable() const { return m_table; }
 
+    // NOTE: ensure the object address is always mapped to index
+    // besides underlying contexts of the object
     inline const Index& refToIndex( const reference& maybeNetAddress )
     {
-        reference ref = maybeNetAddress.getNetworkAddress();
-        auto iFind = m_table.find( ref );
+        const auto net = maybeNetAddress.getNetworkAddress();
+        const auto obj = net.getObjectAddress();
+        if( obj != net )
+        {
+            refToIndex( obj );
+        }
+
+        auto iFind = m_table.find( net );
         if( iFind == m_table.end() )
         {
             const Index index = m_table.size();
-            m_references.push_back( ref );
-            iFind = m_table.insert( { ref, index } ).first;
+            m_references.push_back( net );
+            iFind = m_table.insert( { net, index } ).first;
         }
         return iFind->second;
     }
 
-    inline std::optional< Index > refToIndexIfExist( const reference& maybeNetAddress ) const
+    // if the object has an index then store and index for the reference even if
+    // it is a context of the object
+    inline std::optional< Index > refToIndexIfObjectExist( const reference& maybeNetAddress )
     {
-        auto iFind = m_table.find( maybeNetAddress.getNetworkAddress() );
-        if( iFind != m_table.end() )
+        const auto net = maybeNetAddress.getNetworkAddress();
         {
-            return iFind->second;
+            auto iFind = m_table.find( net );
+            if( iFind != m_table.end() )
+            {
+                return iFind->second;
+            }
+        }
+        {
+            const auto obj   = net.getObjectAddress();
+            auto       iFind = m_table.find( obj );
+            if( iFind != m_table.end() )
+            {
+                return refToIndex( net );
+            }
         }
         return {};
     }
@@ -95,6 +116,6 @@ private:
     IndexTable      m_table;
     ReferenceVector m_references;
 };
-}
+} // namespace mega
 
-#endif //GUARD_2022_November_07_address_table
+#endif // GUARD_2022_November_07_address_table
