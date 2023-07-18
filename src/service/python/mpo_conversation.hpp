@@ -52,6 +52,8 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
 
     // network::python::Impl
+    virtual TypeID PythonGetInterfaceTypeID( const TypeID&               concreteTypeID,
+                                             boost::asio::yield_context& yield_ctx ) override;
     virtual std::unordered_map< std::string, mega::TypeID >
                       PythonGetIdentities( boost::asio::yield_context& yield_ctx ) override;
     virtual void      PythonExecuteJIT( const mega::runtime::JITFunctor& func,

@@ -274,7 +274,9 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 }
             }
 
-            const mega::InvocationID invocationID{ { m_reference.getType() }, m_type_path, operationID };
+            const mega::TypeID interfaceTypeID = m_module.getInterfaceTypeID( m_reference.getType() );
+
+            const mega::InvocationID invocationID{ { interfaceTypeID }, m_type_path, operationID };
 
             SPDLOG_TRACE( "PythonReference::call: {}", invocationID );
 
@@ -448,7 +450,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                         } );
 
                     // given the result can now obtain the corresponding python wrapper function
-                    auto pPythonWrapperFunction = m_module.getPythonWrapper( result.interfaceTypeID );
+                    auto pPythonWrapperFunction = m_module.getPythonFunctionWrapper( result.interfaceTypeID );
 
                     // execute the wrapper function in the MPO context passing in the CallResult and args
                     PyObject* pPyObject = nullptr;

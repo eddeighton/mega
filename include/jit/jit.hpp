@@ -53,23 +53,23 @@ public:
     JIT( const MegastructureInstallation& megastructureInstallation, const Project& project, JIT& oldJIT );
     ~JIT();
 
-    std::unordered_map< std::string, mega::TypeID > getIdentities() const;
+    TypeID                                    getInterfaceTypeID( TypeID concreteTypeID ) const;
+    std::unordered_map< std::string, TypeID > getIdentities() const;
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& typeID );
 
     virtual InvocationTypeInfo compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
-                                                          const mega::InvocationID& invocationID,
-                                                          void**                    ppFunction ) override;
+                                                          const InvocationID& invocationID,
+                                                          void**              ppFunction ) override;
     virtual void               getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
-    virtual void               getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
-                                                      const mega::InvocationID& invocationID, int functionType,
-                                                      void** ppFunction ) override;
-    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega::TypeID typeID, int functionType,
+    virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, const InvocationID& invocationID,
+                                        int functionType, void** ppFunction ) override;
+    virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID typeID, int functionType,
                                     void** ppFunction ) override;
     virtual void getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, const RelationID& relationID,
                                       int functionType, void** ppFunction ) override;
-    virtual void getActionFunction( mega::TypeID concreteTypeID, void** ppFunction, ActionInfo& actionInfo ) override;
-    virtual void getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction ) override;
+    virtual void getActionFunction( TypeID concreteTypeID, void** ppFunction, ActionInfo& actionInfo ) override;
+    virtual void getPythonFunction( TypeID interfaceTypeID, void** ppFunction ) override;
     virtual void getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int functionType,
                                       void** ppFunction ) override;
 
@@ -84,7 +84,7 @@ private:
 
     JITCompiler                            m_jitCompiler;
     JITDatabase                            m_database;
-    mega::io::FileStore::Ptr               m_pythonFileStore;
+    io::FileStore::Ptr                     m_pythonFileStore;
     OperationsStage::Database              m_pythonDatabase;
     FinalStage::Database                   m_pythonDatabaseFinal;
     OperationsStage::Symbols::SymbolTable* m_pPythonSymbolTable;

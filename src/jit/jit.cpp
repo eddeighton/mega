@@ -86,6 +86,11 @@ JIT::~JIT()
     }
 }
 
+mega::TypeID JIT::getInterfaceTypeID( TypeID concreteTypeID ) const
+{
+    return m_database.getInterfaceTypeID( concreteTypeID );
+}
+
 std::unordered_map< std::string, mega::TypeID > JIT::getIdentities() const
 {
     return m_database.getIdentities();
@@ -104,7 +109,7 @@ Allocator::Ptr JIT::getAllocator( const CodeGenerator::LLVMCompiler& compiler, c
     Allocator::Ptr pAllocator;
     {
         const TypeID objectTypeID = TypeID::make_object_type( typeID );
-        auto iFind = m_allocators.find( objectTypeID );
+        auto         iFind        = m_allocators.find( objectTypeID );
         if( iFind != m_allocators.end() )
         {
             pAllocator = iFind->second;
@@ -340,74 +345,70 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
     {
         case invocation::eRead:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Read::FunctionPtr >( 
-                Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction = ( void* )pModule->get< invocation::Read::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eWrite:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Write::FunctionPtr >( 
-                Symbol( invocationID, Symbol::Ref_CVStar ) );
+            *ppFunction
+                = ( void* )pModule->get< invocation::Write::FunctionPtr >( Symbol( invocationID, Symbol::Ref_CVStar ) );
         }
         break;
         case invocation::eReadLink:
         {
-            *ppFunction = ( void* )pModule->get< invocation::ReadLink::FunctionPtr >(
-                Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction
+                = ( void* )pModule->get< invocation::ReadLink::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eWriteLink:
         {
-            *ppFunction = ( void* )pModule->get< invocation::WriteLink::FunctionPtr >( 
+            *ppFunction = ( void* )pModule->get< invocation::WriteLink::FunctionPtr >(
                 Symbol( invocationID, Symbol::Ref_Wo_RefCR ) );
         }
         break;
         case invocation::eWriteLinkRange:
         {
-            *ppFunction = ( void* )pModule->get< invocation::WriteLinkRange::FunctionPtr >( 
+            *ppFunction = ( void* )pModule->get< invocation::WriteLinkRange::FunctionPtr >(
                 Symbol( invocationID, Symbol::Ref_Wo_CVStar ) );
         }
         break;
         case invocation::eAllocate:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Allocate::FunctionPtr >( 
-                Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction
+                = ( void* )pModule->get< invocation::Allocate::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eCall:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Call::FunctionPtr >( 
-                Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction = ( void* )pModule->get< invocation::Call::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eGet:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Get::FunctionPtr >( 
-                Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction = ( void* )pModule->get< invocation::Get::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eSave:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Save::FunctionPtr >( 
-                Symbol( invocationID, Symbol::Ref_VStar ) );
+            *ppFunction
+                = ( void* )pModule->get< invocation::Save::FunctionPtr >( Symbol( invocationID, Symbol::Ref_VStar ) );
         }
         break;
         case invocation::eLoad:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Load::FunctionPtr >( 
-                Symbol( invocationID, Symbol::Ref_VStar ) );
+            *ppFunction
+                = ( void* )pModule->get< invocation::Load::FunctionPtr >( Symbol( invocationID, Symbol::Ref_VStar ) );
         }
         break;
         case invocation::eStart:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Start::FunctionPtr >( 
-                Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction
+                = ( void* )pModule->get< invocation::Start::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eStop:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Stop::FunctionPtr >(
-                Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction = ( void* )pModule->get< invocation::Stop::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::TOTAL_FUNCTION_TYPES:
@@ -544,8 +545,8 @@ void JIT::getActionFunction( mega::TypeID concreteTypeID, void** ppFunction, Act
     *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( interfaceTypeID );
 
     // TODO
-    //const FinalStage::Concrete::Action* pAction = m_database.getAction( interfaceTypeID );
-    actionInfo.type                             = ActionInfo::eAction;
+    // const FinalStage::Concrete::Action* pAction = m_database.getAction( interfaceTypeID );
+    actionInfo.type = ActionInfo::eAction;
 }
 
 void JIT::getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction )
@@ -591,8 +592,8 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
     {
         case operators::eCast:
         {
-            *ppFunction = ( void* )pModule->get< operators::Cast::FunctionPtr >(
-                Symbol( "mega_cast_", target, Symbol::Ref ) );
+            *ppFunction
+                = ( void* )pModule->get< operators::Cast::FunctionPtr >( Symbol( "mega_cast_", target, Symbol::Ref ) );
         }
         break;
         case operators::eActive:

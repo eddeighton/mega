@@ -18,6 +18,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+msg PythonGetInterfaceTypeID
+{
+    request( mega::TypeID concreteTypeID );
+    response( mega::TypeID interfaceTypeID );
+}
 
 msg PythonGetIdentities
 {

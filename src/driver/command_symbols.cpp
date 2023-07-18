@@ -66,6 +66,10 @@ const std::string& getIdentifier( FinalStage::Concrete::Dimensions::User* pDim )
 {
     return pDim->get_interface_dimension()->get_id()->get_str();
 }
+const std::string& getIdentifier( FinalStage::Concrete::Dimensions::LinkReference* pLink )
+{
+    return pLink->get_link()->get_link()->get_identifier();
+}
 
 template < typename TContextType >
 std::string getContextFullTypeName( TContextType* pContext, std::string strDelim = "_" )
@@ -107,6 +111,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             strGraphType;
     boost::filesystem::path databaseArchivePath, outputFilePath;
+    bool                    bConcrete = false;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Generate graph json data" );
@@ -114,6 +119,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         // clang-format off
         commandOptions.add_options()
             ( "database",   po::value< boost::filesystem::path >( &databaseArchivePath ),               "Path to database archive" )
+            ( "concrete",   po::bool_switch( &bConcrete ),                                              "Concrete symbols" )
             ;
         // clang-format on
     }
@@ -136,24 +142,61 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
             Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
 
-            for( const auto& [ interfaceTypeID, pInterfaceTypeID ] : pSymbolTable->get_interface_type_ids() )
+            if( bConcrete )
             {
-                if( pInterfaceTypeID->get_context().has_value() )
+                for( const auto& [ concreteTypeID, pConcreteTypeID ] : pSymbolTable->get_concrete_type_ids() )
                 {
-                    std::cout << interfaceTypeID << " "
-                              << getContextFullTypeName( pInterfaceTypeID->get_context().value() ) << "\n";
+                    if( pConcreteTypeID->get_context().has_value() )
+                    {
+                        std::cout << concreteTypeID << " "
+                                  << getContextFullTypeName( pConcreteTypeID->get_context().value() ) << "\n";
+                    }
+                    else if( pConcreteTypeID->get_dim_user().has_value() )
+                    {
+                        auto pDimension = pConcreteTypeID->get_dim_user().value();
+                        std::cout << concreteTypeID << " " << getContextFullTypeName( pDimension->get_parent() )
+                                  << "::" << getIdentifier( pDimension )
+                                  << " type:" << pDimension->get_interface_dimension()->get_canonical_type() << "\n";
+                    }
+                    else if( pConcreteTypeID->get_dim_link().has_value() )
+                    {
+                        auto pLink = pConcreteTypeID->get_dim_link().value();
+                        std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent() )
+                                  << "::" << getIdentifier( pLink ) << "\n";
+                    }
+                    else if( pConcreteTypeID->get_dim_allocation().has_value() )
+                    {
+                        auto pAllocation = pConcreteTypeID->get_dim_allocation().value();
+                        std::cout << concreteTypeID << " " << getContextFullTypeName( pAllocation->get_parent() )
+                                  << "::_allocation_\n";
+                    }
+                    else
+                    {
+                        THROW_RTE( "Concrete TypeID: " << concreteTypeID << " has no context or dimension" );
+                    }
                 }
-                else if( pInterfaceTypeID->get_dimension().has_value() )
+            }
+            else
+            {
+                for( const auto& [ interfaceTypeID, pInterfaceTypeID ] : pSymbolTable->get_interface_type_ids() )
                 {
-                    Interface::DimensionTrait* pDimension = pInterfaceTypeID->get_dimension().value();
+                    if( pInterfaceTypeID->get_context().has_value() )
+                    {
+                        std::cout << interfaceTypeID << " "
+                                  << getContextFullTypeName( pInterfaceTypeID->get_context().value() ) << "\n";
+                    }
+                    else if( pInterfaceTypeID->get_dimension().has_value() )
+                    {
+                        Interface::DimensionTrait* pDimension = pInterfaceTypeID->get_dimension().value();
 
-                    std::cout << interfaceTypeID << " " << getContextFullTypeName( pDimension->get_parent() )
-                              << "::" << pDimension->get_id()->get_str() << " type:" << pDimension->get_canonical_type()
-                              << "\n";
-                }
-                else
-                {
-                    THROW_RTE( "Interface TypeID: " << interfaceTypeID << " has no context or dimension" );
+                        std::cout << interfaceTypeID << " " << getContextFullTypeName( pDimension->get_parent() )
+                                  << "::" << pDimension->get_id()->get_str()
+                                  << " type:" << pDimension->get_canonical_type() << "\n";
+                    }
+                    else
+                    {
+                        THROW_RTE( "Interface TypeID: " << interfaceTypeID << " has no context or dimension" );
+                    }
                 }
             }
         }

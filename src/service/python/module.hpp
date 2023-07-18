@@ -90,8 +90,9 @@ public:
     PythonModule& operator=( PythonModule&& )      = delete;
 
     // Python Dynamic Invocations
+    mega::TypeID                           getInterfaceTypeID( const mega::TypeID concreteTypeID );
     const FunctionInfo&                    invoke( const mega::InvocationID& invocationID );
-    PythonReference::PythonWrapperFunction getPythonWrapper( TypeID interfaceTypeID );
+    PythonReference::PythonWrapperFunction getPythonFunctionWrapper( TypeID interfaceTypeID );
 
     template < typename Functor >
     void invoke( Functor&& functor )

@@ -62,15 +62,15 @@ public:
     const FinalStage::Operations::Invocation* tryGetInvocation( const InvocationID& invocation ) const;
     void addDynamicInvocation( const InvocationID& invocation, const FinalStage::Operations::Invocation* pInvocation );
 
-    TypeID                                          getInterfaceTypeID( TypeID concreteTypeID ) const;
-    std::vector< TypeID >                           getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
-    FinalStage::Concrete::Object*                   getObject( TypeID objectType ) const;
-    FinalStage::Interface::Action*                  getAction( TypeID interfaceTypeID ) const;
-    const FinalStage::Components::Component*        getComponent( TypeID objectType ) const;
-    const FinalStage::Components::Component*        getOperationComponent( TypeID interfaceTypeID ) const;
-    U64                                             getLocalDomainSize( TypeID concreteID ) const;
-    std::vector< FinalStage::Concrete::Object* >    getObjects() const;
-    std::unordered_map< std::string, mega::TypeID > getIdentities() const;
+    TypeID                                       getInterfaceTypeID( TypeID concreteTypeID ) const;
+    std::vector< TypeID >                        getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
+    FinalStage::Concrete::Object*                getObject( TypeID objectType ) const;
+    FinalStage::Interface::Action*               getAction( TypeID interfaceTypeID ) const;
+    const FinalStage::Components::Component*     getComponent( TypeID objectType ) const;
+    const FinalStage::Components::Component*     getOperationComponent( TypeID interfaceTypeID ) const;
+    U64                                          getLocalDomainSize( TypeID concreteID ) const;
+    std::vector< FinalStage::Concrete::Object* > getObjects() const;
+    std::unordered_map< std::string, TypeID >    getIdentities() const;
 
     std::vector< FinalStage::Concrete::Dimensions::User* >          getUserDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::LinkReference* > getLinkDimensions() const;

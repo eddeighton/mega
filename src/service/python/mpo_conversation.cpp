@@ -208,6 +208,12 @@ void MPOConversation::RootSimRun( const Project& project, const mega::MPO& mpo, 
     resetMPOContext();
 }
 
+TypeID MPOConversation::PythonGetInterfaceTypeID( const TypeID& concreteTypeID, boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "MPOConversation::PythonGetInterfaceTypeID" );
+    return getLeafJITRequest().GetInterfaceTypeID( concreteTypeID );
+}
+
 std::unordered_map< std::string, mega::TypeID > MPOConversation::PythonGetIdentities( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "MPOConversation::PythonGetIdentities" );

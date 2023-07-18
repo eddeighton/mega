@@ -319,6 +319,11 @@ PythonModule::~PythonModule()
     shutdown();
 }
 
+mega::TypeID PythonModule::getInterfaceTypeID( const mega::TypeID concreteTypeID )
+{
+    return pythonRequest().PythonGetInterfaceTypeID( concreteTypeID );
+}
+
 const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID& invocationID )
 {
     SPDLOG_TRACE( "PythonModule::invoke: {}", invocationID );
@@ -367,9 +372,9 @@ const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID
     return functionInfo;
 }
 
-PythonReference::PythonWrapperFunction PythonModule::getPythonWrapper( TypeID interfaceTypeID )
+PythonReference::PythonWrapperFunction PythonModule::getPythonFunctionWrapper( TypeID interfaceTypeID )
 {
-    SPDLOG_TRACE( "PythonModule::getPythonWrapper: {}", interfaceTypeID );
+    SPDLOG_TRACE( "PythonModule::getPythonFunctionWrapper: {}", interfaceTypeID );
 
     auto iFind = m_wrapperTable.find( interfaceTypeID );
     if( iFind != m_wrapperTable.end() )

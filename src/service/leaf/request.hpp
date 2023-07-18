@@ -130,7 +130,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual void             RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
 
@@ -164,11 +164,13 @@ public:
                                        boost::asio::yield_context& yield_ctx ) override;
 
     // public network::jit::Impl
-    virtual void GetAllocator( const TypeID&               objectTypeID,
-                               const mega::U64&            jitAllocatorPtr,
-                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
-    virtual std::unordered_map< std::string, mega::TypeID > GetIdentities( boost::asio::yield_context& yield_ctx ) override;
+    virtual void   GetAllocator( const TypeID&               objectTypeID,
+                                 const U64&                  jitAllocatorPtr,
+                                 boost::asio::yield_context& yield_ctx ) override;
+    virtual void   ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
+    virtual TypeID GetInterfaceTypeID( const mega::TypeID&         concreteTypeID,
+                                       boost::asio::yield_context& yield_ctx ) override;
+    virtual std::unordered_map< std::string, TypeID > GetIdentities( boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;

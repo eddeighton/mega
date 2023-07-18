@@ -130,6 +130,15 @@ void load_object_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 
 void save_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
+    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::readLock( ref );
+    }
+    else if( ref.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( ref );
+    }
+
     mega::mangle::xml_save_begin_structure( ref, pSerialiser );
 
     char* pBuffer = reinterpret_cast< char* >( ref.getHeap() );
@@ -191,6 +200,15 @@ void save_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pS
 
 void save_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
+    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::readLock( ref );
+    }
+    else if( ref.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( ref );
+    }
+
     char* pBuffer = reinterpret_cast< char* >( ref.getHeap() );
 
 {%  for element in elements %}
@@ -259,6 +277,15 @@ void save_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser 
 
 void load_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
+    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::readLock( ref );
+    }
+    else if( ref.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( ref );
+    }
+
     char* pBuffer = reinterpret_cast< char* >( ref.getHeap() );
 
 {%  for element in elements %}
@@ -374,6 +401,15 @@ void load_object_xml_structure_{{ objectTypeID }}( mega::reference ref, void* pS
 
 void load_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser )
 {
+    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::readLock( ref );
+    }
+    else if( ref.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( ref );
+    }
+    
     char* pBuffer = reinterpret_cast< char* >( ref.getHeap() );
 
 {%  for element in elements %}

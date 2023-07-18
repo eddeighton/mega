@@ -33,16 +33,23 @@ void LeafRequestConversation::GetAllocator( const mega::TypeID&         typeID,
                                             boost::asio::yield_context& yield_ctx )
 {
     runtime::Allocator::Ptr* pAllocatorPtr = type_reify< runtime::Allocator::Ptr >( jitAllocatorPtr );
-    *pAllocatorPtr = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), typeID );
+    *pAllocatorPtr                         = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), typeID );
 }
 
 void LeafRequestConversation::ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx )
 {
     auto llvmCompiler = getLLVMCompiler( yield_ctx );
-    func( m_leaf.getJIT(), (void*)&llvmCompiler );
+    func( m_leaf.getJIT(), ( void* )&llvmCompiler );
 }
 
-std::unordered_map< std::string, mega::TypeID > LeafRequestConversation::GetIdentities( boost::asio::yield_context& yield_ctx )
+TypeID LeafRequestConversation::GetInterfaceTypeID( const mega::TypeID& concreteTypeID, boost::asio::yield_context& )
+{
+    VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
+    return m_leaf.m_pJIT->getInterfaceTypeID( concreteTypeID );
+}
+
+std::unordered_map< std::string, mega::TypeID >
+LeafRequestConversation::GetIdentities( boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
     return m_leaf.m_pJIT->getIdentities();
