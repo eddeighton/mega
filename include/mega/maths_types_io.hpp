@@ -25,9 +25,6 @@
 
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-
 #include <boost/serialization/array.hpp>
 
 namespace boost::serialization
@@ -36,16 +33,8 @@ namespace boost::serialization
 template < typename Archive, typename TMathType >
 inline void serializeMathType( Archive& ar, TMathType& mathType )
 {
-    if constexpr( mega::ArchiveTraits< Archive >::is_xml )
-    {
-        ar& boost::serialization::make_nvp( "data", mathType.data );
-    }
-    else // if constexpr ( !mega::ArchiveTraits< Archive >::is_xml )
-    {
-        ar& mathType.data;
-    }
+    ar& mathType.data;
 }
-
 
 template < class Archive >
 inline void serialize( Archive& ar, ::F2& v, const unsigned int version )

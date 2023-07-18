@@ -22,7 +22,6 @@
 #define GUARD_2023_April_14_archive_traits
 
 #include "bin_archive.hpp"
-#include "xml_archive.hpp"
 #include "record_archive.hpp"
 
 namespace mega
@@ -64,30 +63,6 @@ template<>
 struct ArchiveTraits< mega::RecordSaveArchive >
 {
     static constexpr bool is_xml = false;
-};
-
-template<>
-struct ArchiveTraits< mega::XMLLoadArchive >
-{
-    static constexpr bool is_xml = true;
-};
-
-template<>
-struct ArchiveTraits< mega::XMLSaveArchive >
-{
-    static constexpr bool is_xml = true;
-};
-
-template<>
-struct ArchiveTraits< boost::archive::XMLIArchive >
-{
-    static constexpr bool is_xml = true;
-};
-
-template<>
-struct ArchiveTraits< boost::archive::XMLOArchive >
-{
-    static constexpr bool is_xml = true;
 };
 
 }
