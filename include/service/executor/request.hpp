@@ -29,6 +29,7 @@
 #include "service/protocol/model/sim.hxx"
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/project.hxx"
+#include "service/protocol/model/enrole.hxx"
 
 namespace mega::service
 {
@@ -41,7 +42,8 @@ class ExecutorRequestConversation : public network::ConcurrentConversation,
                                     public network::job::Impl,
                                     public network::status::Impl,
                                     public network::sim::Impl,
-                                    public network::project::Impl
+                                    public network::project::Impl,
+                                    public network::enrole::Impl
 {
 protected:
     Executor& m_executor;
@@ -85,7 +87,6 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-
     // network::mpo::Impl
     virtual network::Message MPODown( const network::Message& request, const MPO& mpo,
                                       boost::asio::yield_context& yield_ctx ) override;
@@ -110,6 +111,9 @@ public:
 
     // network::project::Impl
     virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
+
+    // network::enrole::Impl
+    virtual void EnroleDestroy( boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace mega::service

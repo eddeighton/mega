@@ -50,7 +50,7 @@ public:
     virtual mega::reference getThisRoot()                                 = 0;
     virtual mega::reference getRoot( MPO mpo )                            = 0;
     virtual MPO             constructMPO( MP machineProcess )             = 0;
-    virtual MP              constructExector( MachineID daemonMachineID ) = 0;
+    virtual MP              constructExecutor( MachineID daemonMachineID ) = 0;
 
     virtual void jit( runtime::JITFunctor func ) = 0;
     virtual void yield()                         = 0;

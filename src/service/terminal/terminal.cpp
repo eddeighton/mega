@@ -223,6 +223,10 @@ mega::MP Terminal::ExecutorCreate( mega::MachineID daemonMachineID )
 {
     return getRequest< network::enrole::Request_Encoder >().EnroleCreateExecutor( daemonMachineID );
 }
+void Terminal::ExecutorDestroy( const mega::MP& mp )
+{
+    return getMPRequest< network::enrole::Request_Encoder >( mp ).EnroleDestroy();
+}
 
 mega::MPO Terminal::SimCreate( const mega::MP& mp )
 {

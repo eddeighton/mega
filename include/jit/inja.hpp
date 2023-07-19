@@ -52,6 +52,7 @@ class Inja
     ::inja::Template    m_stopTemplate;
     ::inja::Template    m_writeLinkTemplate;
     ::inja::Template    m_writeTemplate;
+    ::inja::Template    m_moveTemplate;
 
 public:
     using Ptr = std::unique_ptr< Inja >;
@@ -73,6 +74,7 @@ public:
         m_stopTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().string() );
         m_writeLinkTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWriteLink().string() );
         m_writeTemplate     = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().string() );
+        m_moveTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateMove().string() );
     }
 
     void render_allocator( const nlohmann::json& data, std::ostream& os )
@@ -130,6 +132,10 @@ public:
     void render_program( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_programTemplate, data );
+    }
+    void render_move( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_moveTemplate, data );
     }
 
     std::string render( const std::string& strTemplate, const nlohmann::json& data )

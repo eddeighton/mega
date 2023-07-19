@@ -136,5 +136,9 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateProgram() c
 {
     return m_installationPath / "templates/program.jinja";
 }
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateMove() const
+{
+    return m_installationPath / "templates/move.jinja";
+}
 
 } // namespace mega

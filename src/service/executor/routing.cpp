@@ -49,7 +49,9 @@ network::Message ExecutorRequestConversation::dispatchRequest( const network::Me
         return result;
     if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "ExecutorRequestConversation::dispatchRequest failed" );
+    if ( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    THROW_RTE( "ExecutorRequestConversation::dispatchRequest failed for: " << msg.getName() );
 }
 
 void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
@@ -167,6 +169,11 @@ network::Message ExecutorRequestConversation::MPDown( const network::Message& re
                                                       boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
+}
+
+void ExecutorRequestConversation::EnroleDestroy( boost::asio::yield_context& )
+{
+    m_executor.shutdown();
 }
 
 } // namespace mega::service

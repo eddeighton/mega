@@ -43,6 +43,7 @@
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/jit.hxx"
+#include "service/protocol/model/enrole.hxx"
 
 // #include "service/protocol/common/context.hpp"
 
@@ -60,7 +61,8 @@ class LeafRequestConversation : public network::InThreadConversation,
                                 public network::job::Impl,
                                 public network::memory::Impl,
                                 public network::jit::Impl,
-                                public network::project::Impl
+                                public network::project::Impl,
+                                public network::enrole::Impl
 {
 protected:
     Leaf& m_leaf;

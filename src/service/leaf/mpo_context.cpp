@@ -101,7 +101,7 @@ MPO MPOContext::constructMPO( MP machineProcess )
     return request.SimCreate();
 }
 
-MP MPOContext::constructExector( MachineID daemonMachineID )
+MP MPOContext::constructExecutor( MachineID daemonMachineID )
 {
     network::enrole::Request_Encoder request(
         [ mpoRequest = getMPRequest() ]( const network::Message& msg ) mutable

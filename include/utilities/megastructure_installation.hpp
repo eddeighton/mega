@@ -58,6 +58,7 @@ public:
     boost::filesystem::path getRuntimeTemplateGet() const;
     boost::filesystem::path getRuntimeTemplateRelation() const;
     boost::filesystem::path getRuntimeTemplateProgram() const;
+    boost::filesystem::path getRuntimeTemplateMove() const;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )

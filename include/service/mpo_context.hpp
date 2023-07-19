@@ -115,7 +115,7 @@ public:
     virtual mega::reference getThisRoot() override { return m_root; }
     virtual mega::reference getRoot( MPO mpo ) override;
     virtual MPO             constructMPO( MP machineProcess ) override;
-    virtual MP              constructExector( MachineID daemonMachineID ) override;
+    virtual MP              constructExecutor( MachineID daemonMachineID ) override;
     virtual void            jit( runtime::JITFunctor func ) override;
     virtual void            yield() override;
 

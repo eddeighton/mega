@@ -166,6 +166,9 @@ void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const JIT
             case mega::runtime::invocation::eStop:
                 m_pInja->render_stop( data, osCPPCode );
                 break;
+            case mega::runtime::invocation::eMove:
+                m_pInja->render_move( data, osCPPCode );
+                break;
             case mega::runtime::invocation::eWriteLinkRange:
             case mega::runtime::invocation::TOTAL_FUNCTION_TYPES:
             default:

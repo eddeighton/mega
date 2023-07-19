@@ -119,8 +119,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             {
                 const mega::MP          executorMP = toMP( strDestroy );
                 mega::service::Terminal terminal;
-                THROW_TODO;
-                // terminal.ExecutorDestroy( executorMP );
+                terminal.ExecutorDestroy( executorMP );
             }
             else
             {

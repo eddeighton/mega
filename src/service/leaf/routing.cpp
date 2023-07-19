@@ -59,6 +59,8 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
         return result;
     if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     THROW_RTE( "LeafRequestConversation::dispatchRequest failed on msg: " << msg );
 }
 

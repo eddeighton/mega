@@ -17,59 +17,29 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-msg EnroleDaemon
+// ed was here
+#include "mega/native_types.hpp"
+#include "mega/reference.hpp"
+#include "service/protocol/common/mpo_context_interface.hpp" 
+#include "jit/object_functions.hxx"
+#include "jit/jit_exception.hpp"
+
+static const char* g_pszModuleName = "{{module_name}}";
+
+namespace mega::mangle
 {
-    request();
-    response( MachineID daemonMachineID );
 }
 
-msg EnroleLeafWithDaemon
+mega::reference {{ name }}( mega::reference context )
 {
-    request( std::string startupUUID, mega::network::Node::Type type );
-    response( MP leafMP );
-}
+{% for variable in variables %}
+{{ variable }}
+{% endfor %}
 
-msg EnroleLeafWithRoot
-{
-    request( std::string startupUUID, MachineID daemonMachineID );
-    response( MP leafMP );
-}
+{% for assignment in assignments %}
+{{ assignment }}
+{% endfor %}
 
-msg EnroleLeafDisconnect
-{
-    request( MP leafMP );
-    response();
+    throw mega::runtime::JITException{ "Start invocation failed" };
+    return mega::reference{};
 }
-
-msg EnroleGetDaemons
-{
-    request();
-    response( std::vector< mega::MachineID > daemons );
-}
-msg EnroleGetProcesses
-{
-    request( mega::MachineID machineID );
-    response( std::vector< mega::MP > machineProcesses );
-}
-msg EnroleGetMPO
-{
-    request( mega::MP machineProcess );
-    response( std::vector< mega::MPO > mpos );
-}
-
-msg EnroleCreateExecutor
-{
-    request( MachineID daemonMachineID );
-    response( mega::MP executorMP );
-}
-msg EnroleDestroy
-{
-    request();
-    response();
-}
-msg EnroleDaemonSpawn
-{
-    request( std::string strProgram, std::string strStartupUUID );
-    response();
-}
-
