@@ -63,10 +63,10 @@ class reference
 #pragma pack( 1 )
     struct HeapAddressData
     {
-        HeapAddress  m_heap;    // 8
-        mega::U8     _padding;  // 1
-        Flags        m_flags;   // 1
-        TypeInstance m_type;    // 6
+        HeapAddress  m_heap;   // 8
+        mega::U8     _padding; // 1
+        Flags        m_flags;  // 1
+        TypeInstance m_type;   // 6
     };
 #pragma pack()
 #ifndef MEGAJIT
@@ -100,7 +100,7 @@ public:
         inline U64 operator()( const reference& ref ) const noexcept
         {
             const reference& r = ref.getNetworkAddress();
-            const U64* p = reinterpret_cast< const U64* >( &r );
+            const U64*       p = reinterpret_cast< const U64* >( &r );
             return *p + *( p + 1 );
         }
     };
@@ -115,8 +115,13 @@ public:
     inline const reference& getHeaderAddress() const;
     inline reference        getNetworkAddress() const;
     inline reference        getObjectAddress() const;
-    inline TimeStamp        getLockCycle() const;
-    inline void             setLockCycle( TimeStamp lockCycle );
+
+    inline RefCount getRefCount() const;
+    inline void     decRefCount() const;
+    inline void     incRefCount() const;
+
+    inline TimeStamp getLockCycle() const;
+    inline void      setLockCycle( TimeStamp lockCycle );
 
     // network - can access via heap header
     constexpr inline AllocationID getAllocationID() const;
@@ -148,7 +153,10 @@ public:
     {
     }
 
-    static constexpr inline reference make_root( MPO mpo ) { return { TypeInstance::make_root(), mpo, ROOT_OBJECT_ID }; }
+    static constexpr inline reference make_root( MPO mpo )
+    {
+        return { TypeInstance::make_root(), mpo, ROOT_OBJECT_ID };
+    }
 
     static constexpr inline reference make( const reference& other, TypeID typeID )
     {
@@ -245,8 +253,24 @@ public:
 struct ObjectHeaderBase
 {
     reference m_networkAddress;
-    TimeStamp m_lockCycle;
+    TimeStamp m_lockCycle = 0U;
+    RefCount  m_refCount  = 0U;
 };
+
+inline RefCount reference::getRefCount() const
+{
+    return reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_refCount;
+}
+
+inline void reference::decRefCount() const
+{
+    --reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_refCount;
+}
+
+inline void reference::incRefCount() const
+{
+    ++reinterpret_cast< ObjectHeaderBase* >( getHeap() )->m_refCount;
+}
 
 inline TimeStamp reference::getLockCycle() const
 {

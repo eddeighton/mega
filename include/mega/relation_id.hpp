@@ -68,6 +68,7 @@ public:
                + static_cast< ValueType >( static_cast< TypeID::ValueType >( m_upper ) );
     }
 
+#ifndef MEGAJIT
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
@@ -81,12 +82,15 @@ public:
             return id.m_lower + ( id.m_upper << sizeof( TypeID ) );
         }
     };
+#endif
 
 private:
     TypeID m_lower = TypeID{}, m_upper = TypeID{};
 };
+#ifndef MEGAJIT
 static_assert( sizeof( RelationID ) == 8U, "Invalid RelationID Size" );
 static_assert( sizeof( RelationID ) == sizeof( RelationID::ValueType ), "Invalid RelationID Size" );
+#endif
 
 } // namespace mega
 

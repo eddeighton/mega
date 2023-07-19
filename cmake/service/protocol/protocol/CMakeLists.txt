@@ -135,6 +135,7 @@ set( MEGA_PROTOCOL_COMMON_SOURCE
     ${MEGA_SRC_DIR}/service/protocol/common/conversation_base.cpp  
     ${MEGA_SRC_DIR}/service/protocol/common/node.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/root_config.cpp
+    ${MEGA_SRC_DIR}/service/protocol/common/transaction.cpp
     )
 
 add_library( protocol 
@@ -147,6 +148,7 @@ add_library( protocol
 target_link_libraries( protocol mega_interface )
 target_link_libraries( protocol utilities )
 target_link_libraries( protocol pipeline )
+target_link_libraries( protocol log )
 
 IF( ${WIN32} )
 

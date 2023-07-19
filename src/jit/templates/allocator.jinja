@@ -474,3 +474,32 @@ void load_object_xml_{{ objectTypeID }}( mega::reference ref, void* pSerialiser 
 {%      endif %}
 {%  endfor %}
 }
+
+void unparent_{{ objectTypeID }}( mega::reference ref )
+{
+    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::readLock( ref );
+    }
+    else if( ref.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( ref );
+    }
+
+{%  for element in elements %}
+{%      if element.is_part_begin %}
+    for( mega::U64 {{ element.iter }} = {{ element.start }}; {{ element.iter }} != {{ element.end }}; ++{{ element.iter }} )
+    {
+{%      else if element.is_part_end %}
+    }
+{%      else %}
+{%          if element.owned %}
+        {
+            static thread_local mega::runtime::relation::LinkReset function( g_pszModuleName, mega::RelationID{ {{ element.relationID }} } );
+            function( mega::reference::make( ref, mega::TypeInstance{ {{ element.concrete_id }}, static_cast< mega::Instance >( {{ element.instance }} ) } ) );
+        }
+{%          endif %}
+{%      endif %}
+{%  endfor %}
+
+}

@@ -17,24 +17,22 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef MEGA_NATIVE_TYPES_18_SEPT_2022
 #define MEGA_NATIVE_TYPES_18_SEPT_2022
 
 namespace mega
 {
 
-using U8 = unsigned char;
-using I8 = signed char;
-using U16 = unsigned short;
-using I16 = signed short;
-using U32 = unsigned int;
-using I32 = signed int;
-using F32 = float;
-using F64 = double;
-using TimeStamp      = U32;
+using U8        = unsigned char;
+using I8        = signed char;
+using U16       = unsigned short;
+using I16       = signed short;
+using U32       = unsigned int;
+using I32       = signed int;
+using F32       = float;
+using F64       = double;
+using TimeStamp = U32;
+using RefCount  = U16;
 
 #ifdef _WIN64
 using U64 = unsigned long long;

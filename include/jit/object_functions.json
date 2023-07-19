@@ -121,6 +121,17 @@
             ],
             "return_type": "void",
             "return": "void"
+        },
+        {
+            "name": "ObjectUnparent",
+            "arguments": [
+                {
+                    "name": "ref",
+                    "type": "mega::reference"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
         }
     ]
 }

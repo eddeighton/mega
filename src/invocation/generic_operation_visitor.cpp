@@ -391,6 +391,20 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     pInstruction->push_back_children( pGetAction );
                 }
                 break;
+                case id_Move:
+                {
+                    // derive directly to the concrete context
+                    Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
+                    if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
+                        return;
+
+                    using OperationsStage::Invocations::Operations::Move;
+                    Move* pMove = m_database.construct< Move >( Move::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pMove );
+                }
+                break;
                 default:
                     THROW_RTE( "Unreachable" );
             }

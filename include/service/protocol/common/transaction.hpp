@@ -57,18 +57,18 @@ public:
             ar& m_memory;
         }
 
-        void push_back( const log::Structure::Read& read )
+        inline void push_back( const log::Structure::Read& read )
         {
             log::Structure::DataIO record{ { read.getSource().getNetworkAddress(), read.getTarget().getNetworkAddress(),
                                              read.getRelation(), read.getType() } };
             m_structure.emplace_back( record );
         }
-        void push_back( const log::Scheduling::Read& read )
+        inline void push_back( const log::Scheduling::Read& read )
         {
             log::Scheduling::DataIO record{ { read.getRef().getNetworkAddress(), read.getType() } };
             m_scheduling.emplace_back( record );
         }
-        void push_back( const log::Memory::Read& read )
+        inline void push_back( const log::Memory::Read& read )
         {
             log::Memory::DataIO record{ { read.getRef().getNetworkAddress() }, std::string{ read.getData() } };
             m_memory.emplace_back( record );
@@ -105,7 +105,7 @@ public:
     }
 
     template < typename Archive >
-    void save( Archive& ar, const unsigned int ) const
+    inline void save( Archive& ar, const unsigned int ) const
     {
         if( m_out.has_value() )
         {
@@ -119,7 +119,7 @@ public:
     }
 
     template < typename Archive >
-    void load( Archive& ar, const unsigned int )
+    inline void load( Archive& ar, const unsigned int )
     {
         VERIFY_RTE( m_in.has_value() );
         ar&* m_in;
@@ -131,114 +131,15 @@ public:
 class TransactionProducer
 {
 public:
-    TransactionProducer( mega::log::Storage& log )
-        : m_log( log )
-        , m_iteratorEnd( m_log.getIterator() )
-        , m_iterator( m_log.getIterator() )
-    {
-    }
-
     using MPOTransactions = std::map< MPO, Transaction::Out >;
     using UnparentedSet   = std::unordered_set< reference, reference::Hash >;
 
-    void generateStructure( MPOTransactions& transactions, UnparentedSet& unparented )
-    {
-        using RecordType                    = log::Structure::Read;
-        log::Iterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-        log::Iterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
-        for( ; iter != iterEnd; ++iter )
-        {
-            const RecordType r = *iter;
-            switch( r.getType() )
-            {
-                case log::Structure::eConstruct:
-                {
-                    // do nothing
-                }
-                break;
-                case log::Structure::eDestruct:
-                {
-                    // do nothing
-                }
-                break;
-                case log::Structure::eMake:
-                {
-                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
-                    transactions[ r.getSource().getMPO() ].push_back( r );
-                }
-                break;
-                case log::Structure::eMakeSource:
-                {
-                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
-                    transactions[ r.getSource().getMPO() ].push_back( r );
-                    unparented.erase( r.getSource().getObjectAddress() );
-                }
-                break;
-                case log::Structure::eMakeTarget:
-                {
-                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
-                    transactions[ r.getSource().getMPO() ].push_back( r );
-                    unparented.erase( r.getTarget().getObjectAddress() );
-                }
-                break;
-                case log::Structure::eBreak:
-                {
-                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
-                    transactions[ r.getSource().getMPO() ].push_back( r );
-                }
-                break;
-                case log::Structure::eBreakSource:
-                {
-                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
-                    transactions[ r.getSource().getMPO() ].push_back( r );
-                    unparented.insert( r.getSource().getObjectAddress() );
-                }
-                break;
-                case log::Structure::eBreakTarget:
-                {
-                    // ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
-                    transactions[ r.getSource().getMPO() ].push_back( r );
-                    unparented.insert( r.getTarget().getObjectAddress() );
-                }
-                break;
-                default:
-                {
-                    THROW_RTE( "Unknown structure record type" );
-                }
-                break;
-            }
-        }
-    }
-    void generateScheduling( MPOTransactions& transactions )
-    {
-        using RecordType                    = log::Scheduling::Read;
-        log::Iterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-        log::Iterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
-        for( ; iter != iterEnd; ++iter )
-        {
-            const RecordType r = *iter;
-            transactions[ r.getRef().getMPO() ].push_back( r );
-        }
-    }
-    void generateMemory( MPOTransactions& transactions )
-    {
-        using RecordType                    = log::Memory::Read;
-        log::Iterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-        log::Iterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
-        for( ; iter != iterEnd; ++iter )
-        {
-            const RecordType r = *iter;
-            transactions[ r.getRef().getMPO() ].push_back( r );
-        }
-    }
+    TransactionProducer( mega::log::Storage& log );
 
-    void generate( MPOTransactions& transactions, UnparentedSet& unparented )
-    {
-        generateStructure( transactions, unparented );
-        generateScheduling( transactions );
-        generateMemory( transactions );
-        m_iterator = m_iteratorEnd;
-    }
+    void generateStructure( MPOTransactions& transactions, UnparentedSet& unparented );
+    void generateScheduling( MPOTransactions& transactions );
+    void generateMemory( MPOTransactions& transactions );
+    void generate( MPOTransactions& transactions, UnparentedSet& unparented );
 
 private:
     mega::log::Storage&           m_log;

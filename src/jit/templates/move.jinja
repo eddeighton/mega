@@ -22,6 +22,7 @@
 #include "mega/reference.hpp"
 #include "service/protocol/common/mpo_context_interface.hpp" 
 #include "jit/object_functions.hxx"
+#include "jit/relation_functions.hxx"
 #include "jit/jit_exception.hpp"
 
 static const char* g_pszModuleName = "{{module_name}}";
@@ -30,7 +31,7 @@ namespace mega::mangle
 {
 }
 
-mega::reference {{ name }}( mega::reference context, mega::reference target )
+void {{ name }}( mega::reference context, mega::reference target )
 {
 {% for variable in variables %}
 {{ variable }}
@@ -39,7 +40,4 @@ mega::reference {{ name }}( mega::reference context, mega::reference target )
 {% for assignment in assignments %}
 {{ assignment }}
 {% endfor %}
-
-    throw mega::runtime::JITException{ "Move invocation failed" };
-    return mega::reference{};
 }

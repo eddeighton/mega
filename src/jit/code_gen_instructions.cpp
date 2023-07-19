@@ -27,7 +27,7 @@ namespace mega::runtime
 
 struct Args
 {
-    const JITDatabase&           database;
+    const JITDatabase&                database;
     const CodeGenerator::VariableMap& variables;
     FunctionDeclarations&             functions;
     nlohmann::json&                   data;
@@ -69,8 +69,8 @@ void gen( Args args, FinalStage::Invocations::Instructions::ParentDerivation* pP
     const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
     const mega::U64    szLocalSize = args.database.getLocalDomainSize( targetType );
 
-    os << args.indent << args.get( pTo ) << " = mega::reference::make( " << 
-            args.get( pFrom ) << ", mega::TypeInstance{ " << printTypeID( targetType ) << ", "
+    os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
+       << ", mega::TypeInstance{ " << printTypeID( targetType ) << ", "
        << "static_cast< mega::Instance >( " << s << ".getInstance() / " << szLocalSize << " ) } );\n";
 
     args.data[ "assignments" ].push_back( os.str() );
@@ -247,9 +247,114 @@ R"TEMPLATE(
             }
             else
             {
-                THROW_RTE( "Invalid allocation parent" );
+                THROW_RTE( "Invalid allocation - no owning links" );
             }
         }
+
+        os << args.inja.render( szTemplate, templateData );
+    }
+
+    args.data[ "assignments" ].push_back( os.str() );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// Move
+void gen( Args args, FinalStage::Invocations::Operations::Move* pMove )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Invocations;
+
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::readLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
+{{ indent }}}
+{{ indent }}
+{% if unparentAll %}
+{{ indent }}static thread_local mega::runtime::object::ObjectUnparent unparent( g_pszModuleName, {{ concrete_type_id }} );
+{{ indent }}unparent( {{ instance }}.getObjectAddress() );
+{% else %}
+{{ indent }}static thread_local mega::runtime::relation::LinkReset unparent( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
+{{ indent }}unparent( {{ instance }} );
+{% endif %}
+{{ indent }}
+{{ indent }}static thread_local mega::runtime::relation::LinkMake reparent( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
+{{ indent }}reparent( {{ instance }}, target );
+)TEMPLATE";
+    // clang-format on
+
+    std::ostringstream os;
+    {
+        Concrete::Context*   pConcreteTarget = pMove->get_concrete_target();
+        Variables::Instance* pInstance       = pMove->get_instance();
+
+        bool bUnparentAll = false;
+        std::ostringstream osRelationID;
+
+        Concrete::Context* pMoveContext = pInstance->get_concrete();
+        if( Concrete::Link* pMoveLinkContext = db_cast< Concrete::Link >( pMoveContext ) )
+        {
+            auto pMovingObjectOpt = pMoveLinkContext->get_concrete_object();
+            VERIFY_RTE_MSG( pMovingObjectOpt.has_value(), "Attempting to move link context that has no object" );
+            auto pMovingObject = pMovingObjectOpt.value();
+
+            auto owningLinks = pMovingObject->get_owning_links();
+            VERIFY_RTE_MSG( std::find( owningLinks.begin(), owningLinks.end(), pMoveLinkContext ) != owningLinks.end(),
+                            "Specified move link does NOT own object" );
+
+            auto pLinkInterface = pMoveLinkContext->get_link_interface();
+            auto pRelation      = pLinkInterface->get_relation();
+            bool bSource        = true;
+
+            Interface::LinkInterface* pOtherLinkInterface = nullptr;
+            if( pRelation->get_source_interface() == pLinkInterface )
+            {
+                VERIFY_RTE( pRelation->get_ownership().get() == mega::Ownership::eOwnSource );
+                pOtherLinkInterface = pRelation->get_target_interface();
+            }
+            else if( pRelation->get_target_interface() == pLinkInterface )
+            {
+                VERIFY_RTE( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget );
+                pOtherLinkInterface = pRelation->get_source_interface();
+                bSource             = false;
+            }
+            else
+            {
+                THROW_RTE( "Invalid relation does not match source or target link interface" );
+            }
+
+            // calculate the relation ID
+            {
+                const mega::RelationID& relationID = pRelation->get_id();
+                osRelationID << relationID.getLower() << ',' << relationID.getUpper();
+            }
+            // is the move WITHIN the same MPO ?
+        }
+        // TODO: use pObject->get_owning_links() on object instead
+        else
+        {
+            bUnparentAll = true;
+            THROW_RTE( "Move context is not a link interface" );
+        }
+
+        std::ostringstream osIndent;
+        osIndent << args.indent;
+
+        nlohmann::json templateData( { { "indent", osIndent.str() },
+                                       { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
+                                       { "instance", args.get( pInstance ) },
+                                       { "unparentAll", bUnparentAll },
+                                       { "owning_relation_id", osRelationID.str() }
+
+        } );
 
         os << args.inja.render( szTemplate, templateData );
     }
@@ -470,47 +575,6 @@ R"TEMPLATE(
     {
         Concrete::Context*   pConcreteTarget = pLoad->get_concrete_target();
         Variables::Instance* pInstance       = pLoad->get_instance();
-
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
-        nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
-                                       { "instance", args.get( pInstance ) } } );
-
-        os << args.inja.render( szTemplate, templateData );
-    }
-
-    args.data[ "assignments" ].push_back( os.str() );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// Move
-void gen( Args args, FinalStage::Invocations::Operations::Move* pMove )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    // clang-format off
-static const char* szTemplate =
-R"TEMPLATE(
-{{ indent }}{
-{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
-{{ indent }}    {
-{{ indent }}        mega::runtime::readLock( {{ instance }} );
-{{ indent }}    }
-{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
-{{ indent }}    {
-{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
-{{ indent }}    }
-{{ indent }}}
-)TEMPLATE";
-    // clang-format on
-
-    std::ostringstream os;
-    {
-        Concrete::Context*   pConcreteTarget = pMove->get_concrete_target();
-        Variables::Instance* pInstance       = pMove->get_instance();
 
         std::ostringstream osIndent;
         osIndent << args.indent;
@@ -841,7 +905,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Range* pRange )
 
 } // namespace
 
-void CodeGenerator::generateInstructions( const JITDatabase&                             database,
+void CodeGenerator::generateInstructions( const JITDatabase&                                  database,
                                           FinalStage::Invocations::Instructions::Instruction* pInstruction,
                                           const VariableMap& variables, FunctionDeclarations& functions,
                                           nlohmann::json& data, Indent& indent ) const

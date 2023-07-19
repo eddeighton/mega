@@ -51,6 +51,8 @@ Allocator::Allocator( TypeID objectTypeID, JITDatabase& database, JITCompiler::M
         Symbol( "save_object_xml_", objectTypeID, Symbol::Ref_VStar ) );
     m_pLoadXML = pModule->get< object::ObjectLoadXML::FunctionPtr >( 
         Symbol( "load_object_xml_", objectTypeID, Symbol::Ref_VStar ) );
+    m_pUnparent = pModule->get< object::ObjectUnparent::FunctionPtr >( 
+        Symbol( "unparent_", objectTypeID, Symbol::Ref ) );
 }
 
 } // namespace mega::runtime

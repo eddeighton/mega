@@ -53,6 +53,7 @@ public:
     object::ObjectLoadXMLStructure::FunctionPtr getLoadXMLStructure() const { return m_pLoadXMLStructure; }
     object::ObjectSaveXML::FunctionPtr          getSaveXML() const { return m_pSaveXML; }
     object::ObjectLoadXML::FunctionPtr          getLoadXML() const { return m_pLoadXML; }
+    object::ObjectUnparent::FunctionPtr         getUnparent() const { return m_pUnparent; }
 
 private:
     JITCompiler::Module::Ptr                    m_pModule;
@@ -66,6 +67,7 @@ private:
     object::ObjectLoadXMLStructure::FunctionPtr m_pLoadXMLStructure = nullptr;
     object::ObjectSaveXML::FunctionPtr          m_pSaveXML          = nullptr;
     object::ObjectLoadXML::FunctionPtr          m_pLoadXML          = nullptr;
+    object::ObjectUnparent::FunctionPtr         m_pUnparent         = nullptr;
 };
 
 } // namespace mega::runtime

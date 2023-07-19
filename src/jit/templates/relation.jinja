@@ -120,9 +120,35 @@ void* getTargetData( const mega::reference& ref )
     return nullptr;
 }
 
+void structureBreak( const mega::reference& source, const mega::reference& target )
+{
+{% if source_owned %}
+    source.decRefCount();
+    mega::mangle::structure_break_source( source, target, {{ relationID }} );
+{% else if target_owned %}
+    target.decRefCount();
+    mega::mangle::structure_break_target( source, target, {{ relationID }} );
+{% else %}
+    mega::mangle::structure_break( source, target, {{ relationID }} );
+{% endif %}
+}
+
+void structureMake( const mega::reference& source, const mega::reference& target )
+{
+{% if source_owned %}
+    source.incRefCount();
+    mega::mangle::structure_make_source( source, target, {{ relationID }} );
+{% else if target_owned %}
+    target.incRefCount();
+    mega::mangle::structure_make_target( source, target, {{ relationID }} );
+{% else %}
+    mega::mangle::structure_make( source, target, {{ relationID }} );
+{% endif %}
+}
+
 {% if source_singular %}
 {%      if target_singular %}
-void unlinkSource( const mega::reference& source )
+void unlinkExistingSingularSourceLink( const mega::reference& source )
 {
     // source AND target are singular
     mega::reference& sourceRef = *reinterpret_cast< mega::reference* >( getSourceData( source ) );
@@ -134,21 +160,13 @@ void unlinkSource( const mega::reference& source )
         {
             throw mega::runtime::JITException{ "Hypergraph error source not equal to target ref" };
         }
-
-        // generate edge delete record
-{%          if source_owned %}
-        mega::mangle::structure_break_source( source, sourceRef, {{ relationID }} );
-{%          else if target_owned %}
-        mega::mangle::structure_break_target( source, sourceRef, {{ relationID }} );
-{%          else %}
-        mega::mangle::structure_break( source, sourceRef, {{ relationID }} );
-{%          endif %}
+        structureBreak( source, sourceRef );
         sourceRef = mega::reference{};
         sourceTarget = mega::reference{};
     }
 }
 {%      else %}
-void unlinkSource( const mega::reference& source )
+void unlinkExistingSingularSourceLink( const mega::reference& source )
 {
     // source is singular, target is non-singular
     mega::reference& sourceRef = *reinterpret_cast< mega::reference* >( getSourceData( source ) );
@@ -160,15 +178,7 @@ void unlinkSource( const mega::reference& source )
         {
             throw mega::runtime::JITException{ "Hypergraph error source not contained in target" };
         }
-
-        // generate edge delete record
-{%          if source_owned %}
-        mega::mangle::structure_break_source( source, sourceRef, {{ relationID }} );
-{%          else if target_owned %}
-        mega::mangle::structure_break_target( source, sourceRef, {{ relationID }} );
-{%          else %}
-        mega::mangle::structure_break( source, sourceRef, {{ relationID }} );
-{%          endif %}
+        structureBreak( source, sourceRef );
         mega::mangle::ref_vector_remove( pTargetData, source );
         sourceRef = mega::reference{};
     }
@@ -178,7 +188,7 @@ void unlinkSource( const mega::reference& source )
 
 {% if target_singular %}
 {%      if source_singular %}
-void unlinkTarget( const mega::reference& target )
+void unlinkExistingSingularTargetLink( const mega::reference& target )
 {
     // source AND target are singular
     mega::reference& targetRef = *reinterpret_cast< mega::reference* >( getTargetData( target ) );
@@ -190,22 +200,13 @@ void unlinkTarget( const mega::reference& target )
         {
             throw mega::runtime::JITException{ "Hypergraph error target not equal to source ref" };
         }
-
-        // generate edge delete record
-{%          if source_owned %}
-        mega::mangle::structure_break_source( targetRef, target, {{ relationID }} );
-{%          else if target_owned %}
-        mega::mangle::structure_break_target( targetRef, target, {{ relationID }} );
-{%          else %}
-        mega::mangle::structure_break( targetRef, target, {{ relationID }} );
-{%          endif %}
-
+        structureBreak( targetRef, target );
         sourceRef = mega::reference{};
         targetRef = mega::reference{};
     }
 }
 {%      else %}
-void unlinkTarget( const mega::reference& target )
+void unlinkExistingSingularTargetLink( const mega::reference& target )
 {
     // source is singular, target is non-singular
     mega::reference& targetRef = *reinterpret_cast< mega::reference* >( getTargetData( target ) );
@@ -217,16 +218,7 @@ void unlinkTarget( const mega::reference& target )
         {
             throw mega::runtime::JITException{ "Hypergraph error target not contained in source" };
         }
-
-        // generate edge delete record
-{%          if source_owned %}
-        mega::mangle::structure_break_source( targetRef, target, {{ relationID }} );
-{%          else if target_owned %}
-        mega::mangle::structure_break_target( targetRef, target, {{ relationID }} );
-{%          else %}
-        mega::mangle::structure_break( targetRef, target, {{ relationID }} );
-{%          endif %}
-
+        structureBreak( targetRef, target );
         mega::mangle::ref_vector_remove( pSourceData, target );
         targetRef = mega::reference{};
     }
@@ -282,22 +274,15 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
     }
 
 {% if source_singular %}
-    unlinkSource( source );
+    unlinkExistingSingularSourceLink( source );
 {% endif %}
 {% if target_singular %}
-    unlinkTarget( target );
+    unlinkExistingSingularTargetLink( target );
 {% endif %}
 
     linkSource( source, target );
     linkTarget( target, source );
-
-{%      if source_owned %}
-    mega::mangle::structure_make_source( source, target, {{ relationID }} );
-{%      else if target_owned %}
-    mega::mangle::structure_make_target( source, target, {{ relationID }} );
-{%      else %}
-    mega::mangle::structure_make( source, target, {{ relationID }} );
-{%      endif %}
+    structureMake( source, target );
 }
 
 void link_break_{{ relationID }}( mega::reference context, mega::reference parameter )
@@ -331,15 +316,6 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     {
         throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
     }
-            
-{%          if source_owned %}
-    mega::mangle::structure_break_source( source, target, {{ relationID }} );
-{%          else if target_owned %}
-    mega::mangle::structure_break_target( source, target, {{ relationID }} );
-{%          else %}
-    mega::mangle::structure_break( source, target, {{ relationID }} );
-{%          endif %}
-
     sourceRef = mega::reference{};
     targetRef = mega::reference{};
         
@@ -351,14 +327,6 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     {
         throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
     }
-
-{%          if source_owned %}
-    mega::mangle::structure_break_source( source, target, {{ relationID }} );
-{%          else if target_owned %}
-    mega::mangle::structure_break_target( source, target, {{ relationID }} );
-{%          else %}
-    mega::mangle::structure_break( source, target, {{ relationID }} );
-{%          endif %}
     sourceRef = mega::reference{};
     mega::mangle::ref_vector_remove( pTargetData, source );
     
@@ -372,14 +340,6 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     {
         throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
     }
-
-{%          if source_owned %}
-    mega::mangle::structure_break_source( source, target, {{ relationID }} );
-{%          else if target_owned %}
-    mega::mangle::structure_break_target( source, target, {{ relationID }} );
-{%          else %}
-    mega::mangle::structure_break( source, target, {{ relationID }} );
-{%          endif %}
     mega::mangle::ref_vector_remove( pSourceData, target );
     targetRef = mega::reference{};
     
@@ -391,19 +351,13 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
     {
         throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
     }
-    
-{%          if source_owned %}
-    mega::mangle::structure_break_source( source, target, {{ relationID }} );
-{%          else if target_owned %}
-    mega::mangle::structure_break_target( source, target, {{ relationID }} );
-{%          else %}
-    mega::mangle::structure_break( source, target, {{ relationID }} );
-{%          endif %}
     mega::mangle::ref_vector_remove( pSourceData, target );
     mega::mangle::ref_vector_remove( pTargetData, source );
     
 {%      endif %}
 {% endif %}
+
+    structureBreak( source, target );
 }
 
 void link_reset_{{ relationID }}( mega::reference context )
@@ -413,7 +367,7 @@ void link_reset_{{ relationID }}( mega::reference context )
     if( isSource( context ) )
     {
 {% if source_singular %}
-        unlinkSource( context );
+        unlinkExistingSingularSourceLink( context );
 {% else %}
 
     void* pSourceData = getSourceData( context );
@@ -428,7 +382,6 @@ void link_reset_{{ relationID }}( mega::reference context )
         {
             throw mega::runtime::JITException{ "link_reset_{{ relationID }} source target combination does not match link" };
         }
-        
         targetRef = mega::reference{};
 
 {%      else %}
@@ -443,14 +396,7 @@ void link_reset_{{ relationID }}( mega::reference context )
 {%      endif %}
 
         mega::mangle::ref_vector_pop( pSourceData );
-
-{%      if source_owned %}
-        mega::mangle::structure_break_source( context, target, {{ relationID }} );
-{%      else if target_owned %}
-        mega::mangle::structure_break_target( context, target, {{ relationID }} );
-{%      else %}
-        mega::mangle::structure_break( context, target, {{ relationID }} );
-{%      endif %}
+        structureBreak( context, target );
     }
 
 {% endif %}
@@ -458,7 +404,7 @@ void link_reset_{{ relationID }}( mega::reference context )
     else if( isTarget( context ) )
     {
 {% if target_singular %}
-        unlinkTarget( context );
+        unlinkExistingSingularTargetLink( context );
 {% else %}
 
     void* pTargetData = getTargetData( context );
@@ -473,8 +419,7 @@ void link_reset_{{ relationID }}( mega::reference context )
         {
             throw mega::runtime::JITException{ "link_reset_{{ relationID }} source target combination does not match link" };
         }
-        
-        targetRef = mega::reference{};
+        sourceRef = mega::reference{};
 
 {%      else %}
 
@@ -488,14 +433,7 @@ void link_reset_{{ relationID }}( mega::reference context )
 {%      endif %}
 
         mega::mangle::ref_vector_pop( pTargetData );
-
-{%      if source_owned %}
-        mega::mangle::structure_break_source( source, context, {{ relationID }} );
-{%      else if target_owned %}
-        mega::mangle::structure_break_target( source, context, {{ relationID }} );
-{%      else %}
-        mega::mangle::structure_break( source, context, {{ relationID }} );
-{%      endif %}
+        structureBreak( source, context );
     }
 
 {% endif %}

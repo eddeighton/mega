@@ -407,6 +407,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Save* pSave )
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
 
+    THROW_TODO;
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(

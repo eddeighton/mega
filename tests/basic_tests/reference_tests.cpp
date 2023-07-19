@@ -73,7 +73,7 @@ TEST( Reference, NetAccess )
 {
     using namespace mega;
     mega::MPO       testMPO( 1, 2, 3 );
-    mega::reference h{ mega::TypeInstance{ mega::max_typeID_context, 123}, testMPO, 4 };
+    mega::reference h{ mega::TypeInstance{ mega::max_typeID_context, 123 }, testMPO, 4 };
 
     ASSERT_TRUE( h.isNetworkAddress() );
     ASSERT_EQ( h.getType(), mega::max_typeID_context );
@@ -87,13 +87,15 @@ TEST( Reference, HeaderAccess )
     mega::TypeInstance     typeInstance{ mega::max_typeID_context, 123 };
     mega::MPO              testMPO( 1, 2, 3 );
     mega::reference        networkAddress{ typeInstance, testMPO, 4 };
-    mega::ObjectHeaderBase header{ networkAddress, 9 };
+    mega::ObjectHeaderBase header{ networkAddress, 1U, 9 };
 
     mega::reference h{ typeInstance, &header };
 
     ASSERT_TRUE( h.isHeapAddress() );
     ASSERT_EQ( h.getMPO(), testMPO );
     ASSERT_EQ( h.getAllocationID(), 4 );
+    ASSERT_EQ( h.getRefCount(), 9 );
+    ASSERT_EQ( h.getLockCycle(), 1 );
 }
 /*
 // struct OtherTypeInstance
@@ -114,19 +116,19 @@ TEST( Reference, HeaderAccess )
 //     char c;
 //     return is >> c >> typeInstance.type >> c >> std::hex >> typeInstance.instance >> c;
 // }
-// 
+//
 // TEST( Reference, TypeInstance )
 // {
 //     const OtherTypeInstance expected{
 //         mega::min_typeID_context, std::numeric_limits< mega::Instance >::min() };
-// 
+//
 //     std::string str;
 //     {
 //         std::ostringstream os;
 //         os << expected;
 //         str = os.str();
 //     }
-// 
+//
 //     OtherTypeInstance result;
 //     {
 //         std::istringstream is( str );
@@ -137,8 +139,7 @@ TEST( Reference, HeaderAccess )
 */
 TEST( Reference, TypeInstance2 )
 {
-    const mega::TypeInstance expected{
-        mega::max_typeID_context, std::numeric_limits< mega::Instance >::max() };
+    const mega::TypeInstance expected{ mega::max_typeID_context, std::numeric_limits< mega::Instance >::max() };
 
     std::string str;
     {

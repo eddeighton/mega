@@ -148,7 +148,7 @@ private:
         void*           pAddress         = get( memory );
 
         // establish the header including the network address, lock timestamp and shared ownership of allocator
-        new( pAddress ) ObjectHeader{ ObjectHeaderBase{ objectNetAddress, 0U }, pAllocator };
+        new( pAddress ) ObjectHeader{ ObjectHeaderBase{ objectNetAddress }, pAllocator };
 
         // invoke the constructor
         pAllocator->getCtor()( pAddress );

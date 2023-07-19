@@ -494,6 +494,12 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
             *ppFunction     = ( void* )pAllocator->getLoadXML();
         }
         break;
+        case object::eObjectUnparent:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction     = ( void* )pAllocator->getUnparent();
+        }
+        break;
         default:
         case object::TOTAL_FUNCTION_TYPES:
         {

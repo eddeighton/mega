@@ -131,7 +131,8 @@ void generateAllocatorDimensions( const JITDatabase& database, FinalStage::Concr
                               { "instance", strInstance },
                               { "is_part_begin", false },
                               { "is_part_end", false },
-                              { "owning", false }
+                              { "owning", false },
+                              { "owned", false }
 
     } );
     data[ "elements" ].push_back( element );
@@ -161,14 +162,19 @@ std::optional< nlohmann::json > allocatorLink( const JITDatabase& database, Fina
     }
 
     bool bOwning = false;
+    bool bOwned  = false;
     {
         if( bSource )
         {
             if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
                 bOwning = true;
+            if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
+                bOwned = true;
         }
         else
         {
+            if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
+                bOwned = true;
             if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
                 bOwning = true;
         }
@@ -217,6 +223,7 @@ std::optional< nlohmann::json > allocatorLink( const JITDatabase& database, Fina
                                   { "is_part_end", false },
                                   { "singular", bSingular },
                                   { "owning", bOwning },
+                                  { "owned", bOwned },
                                   { "source", bSource },
                                   { "relationID", strRelationID },
                                   { "types", nlohmann::json::array() }
@@ -306,6 +313,7 @@ void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete
                                   { "is_part_begin", true },
                                   { "is_part_end", false },
                                   { "owning", false },
+                                  { "owned", false },
                                   { "instance", strInstance }
 
         } );
@@ -366,6 +374,7 @@ void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete
                                   { "is_part_begin", false },
                                   { "is_part_end", true },
                                   { "owning", false },
+                                  { "owned", false },
                                   { "instance", strInstance }
 
         } );
@@ -456,14 +465,19 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                     }
 
                     bool bOwning = false;
+                    bool bOwned  = false;
                     {
                         if( bSource )
                         {
                             if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
                                 bOwning = true;
+                            if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
+                                bOwned = true;
                         }
                         else
                         {
+                            if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
+                                bOwned = true;
                             if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
                                 bOwning = true;
                         }
@@ -480,6 +494,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                                            { "singular", false },
                                            { "types", nlohmann::json::array() },
                                            { "owning", bOwning },
+                                           { "owned", bOwned },
                                            { "relation_id_lower", printTypeID( relationID.getLower() ) },
                                            { "relation_id_upper", printTypeID( relationID.getUpper() ) }
 
