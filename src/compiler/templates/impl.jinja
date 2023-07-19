@@ -196,8 +196,17 @@ struct __invoke_impl
         mega::XMLLoadArchive archive( args... );
         function( context, &archive );
     }
-{% else if invocation.explicit_operation == "Files" %}
-        // Files
+{% else if invocation.explicit_operation == "Move" %}
+    template< typename... Args >
+    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
+    {
+        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
+        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
+        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
+        // Move
+        static thread_local mega::runtime::invocation::Move function( g_unit_name, id );
+        function( context, args... );
+    }
 {% else if invocation.explicit_operation == "GetAction" %}
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... ) const

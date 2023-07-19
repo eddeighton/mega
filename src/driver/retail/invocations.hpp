@@ -854,7 +854,7 @@ void generateInstructions( const RetailDatabase&                               d
         {
             gen( Args{ database, variables, data, templateEngine }, pLoad );
         }
-        else if( auto pFiles = db_cast< Files >( pOperation ) )
+        else if( auto pFiles = db_cast< Move >( pOperation ) )
         {
             THROW_TODO;
         }

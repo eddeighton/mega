@@ -174,7 +174,7 @@ namespace Invocations
         {
         }
 
-        object Files : BasicOperation -> OperationsStage::Operations
+        object Move : BasicOperation -> OperationsStage::Operations
         {
         }
 

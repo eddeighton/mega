@@ -505,7 +505,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 break;
                 case id_exp_Save:
                 case id_exp_Load:
-                case id_exp_Files:
+                case id_exp_Move:
                 case id_exp_Done:
                 case id_exp_Range:
                 case id_exp_Raw:

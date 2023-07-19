@@ -279,7 +279,7 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
         case id_Stop:
         case id_Save:
         case id_Load:
-        case id_Files:
+        case id_Move:
         case id_Get:
         case id_Range:
         case id_Raw:

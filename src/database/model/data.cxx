@@ -7926,32 +7926,32 @@ namespace Operations
             });
     }
         
-    // struct Invocations_Operations_Files : public mega::io::Object
-    Invocations_Operations_Files::Invocations_Operations_Files( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Files >( loader, this ) )          , p_Operations_Invocations_Operations_BasicOperation( loader )
+    // struct Invocations_Operations_Move : public mega::io::Object
+    Invocations_Operations_Move::Invocations_Operations_Move( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Move >( loader, this ) )          , p_Operations_Invocations_Operations_BasicOperation( loader )
     {
     }
-    bool Invocations_Operations_Files::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Invocations_Operations_Move::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Operations_Files >( loader, const_cast< Invocations_Operations_Files* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Operations_Move >( loader, const_cast< Invocations_Operations_Move* >( this ) ) };
     }
-    void Invocations_Operations_Files::set_inheritance_pointer()
+    void Invocations_Operations_Move::set_inheritance_pointer()
     {
-        p_Operations_Invocations_Operations_BasicOperation->m_inheritance = data::Ptr< data::Operations::Invocations_Operations_Files >( p_Operations_Invocations_Operations_BasicOperation, this );
+        p_Operations_Invocations_Operations_BasicOperation->m_inheritance = data::Ptr< data::Operations::Invocations_Operations_Move >( p_Operations_Invocations_Operations_BasicOperation, this );
     }
-    void Invocations_Operations_Files::load( mega::io::Loader& loader )
+    void Invocations_Operations_Move::load( mega::io::Loader& loader )
     {
         loader.load( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_Files::store( mega::io::Storer& storer ) const
+    void Invocations_Operations_Move::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_Files::to_json( nlohmann::json& _part__ ) const
+    void Invocations_Operations_Move::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Invocations_Operations_Files" },
+                { "partname", "Invocations_Operations_Move" },
                 { "filetype" , "Operations" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -9974,7 +9974,7 @@ std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& Invoc
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
         case data::Operations::Invocations_Operations_Load::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
-        case data::Operations::Invocations_Operations_Files::Object_Part_Type_ID:
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
         case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
@@ -12664,7 +12664,7 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_Invocations_I
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
         case data::Operations::Invocations_Operations_Load::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Files::Object_Part_Type_ID:
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
         case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
@@ -12812,7 +12812,7 @@ data::Ptr< data::Concrete::Concrete_Context >& get_Invocations_Operations_BasicO
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->concrete_target;
         case data::Operations::Invocations_Operations_Load::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->concrete_target;
-        case data::Operations::Invocations_Operations_Files::Object_Part_Type_ID:
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->concrete_target;
         case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->concrete_target;
@@ -12842,7 +12842,7 @@ data::Ptr< data::Tree::Interface_IContext >& get_Invocations_Operations_BasicOpe
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->interface;
         case data::Operations::Invocations_Operations_Load::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->interface;
-        case data::Operations::Invocations_Operations_Files::Object_Part_Type_ID:
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->interface;
         case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->interface;
@@ -12946,7 +12946,7 @@ std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& get_I
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
         case data::Operations::Invocations_Operations_Load::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
-        case data::Operations::Invocations_Operations_Files::Object_Part_Type_ID:
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
         case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
@@ -16800,7 +16800,7 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_Invocations_I
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
         case data::Operations::Invocations_Operations_Load::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Files::Object_Part_Type_ID:
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
         case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
@@ -16948,7 +16948,7 @@ data::Ptr< data::Concrete::Concrete_Context >& set_Invocations_Operations_BasicO
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->concrete_target;
         case data::Operations::Invocations_Operations_Load::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->concrete_target;
-        case data::Operations::Invocations_Operations_Files::Object_Part_Type_ID:
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->concrete_target;
         case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->concrete_target;
@@ -16978,7 +16978,7 @@ data::Ptr< data::Tree::Interface_IContext >& set_Invocations_Operations_BasicOpe
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->interface;
         case data::Operations::Invocations_Operations_Load::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->interface;
-        case data::Operations::Invocations_Operations_Files::Object_Part_Type_ID:
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->interface;
         case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_BasicOperation >( m_data )->interface;
@@ -17082,7 +17082,7 @@ std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& set_I
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
         case data::Operations::Invocations_Operations_Load::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
-        case data::Operations::Invocations_Operations_Files::Object_Part_Type_ID:
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
         case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->derived_contexts;
@@ -19076,7 +19076,7 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 87: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
         case 88: return new Operations::Invocations_Operations_Save( loader, objectInfo );
         case 89: return new Operations::Invocations_Operations_Load( loader, objectInfo );
-        case 90: return new Operations::Invocations_Operations_Files( loader, objectInfo );
+        case 90: return new Operations::Invocations_Operations_Move( loader, objectInfo );
         case 91: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
         case 92: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
         case 93: return new Operations::Invocations_Operations_Read( loader, objectInfo );

@@ -160,6 +160,21 @@
             ],
             "return_type" : "void",
             "return" : "void"
+        },
+        {
+            "name" : "Move",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "target",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
         }
     ]
 }

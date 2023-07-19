@@ -72,11 +72,11 @@ struct [[clang::eg_type( mega::id_Load )]] Load
     };
 };
 
-struct [[clang::eg_type( mega::id_Files )]] Files
+struct [[clang::eg_type( mega::id_Move )]] Move
 {
     enum : mega::TypeID::ValueType
     {
-        ID = mega::id_Files
+        ID = mega::id_Move
     };
 };
 

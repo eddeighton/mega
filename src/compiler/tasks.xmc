@@ -70,16 +70,16 @@ TASK(Unity,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const m
 TASK(UnityDatabase,std::get< mega::io::manifestFilePath >( task.sourceFilePath ),const mega::io::manifestFilePath&)
 
 // Schematic tasks
-TASK(SchematicParse,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
-TASK(SchematicContours,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
-TASK(SchematicExtrusions,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
-TASK(SchematicConnections,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
-TASK(SchematicWallSections,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
-TASK(SchematicFloorPlan,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
-TASK(SchematicVisibility,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
-TASK(SchematicValueSpace,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
-TASK(SchematicSpawnPoints,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
-TASK(SchematicMapFile,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicParse,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicContours,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicExtrusions,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicConnections,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicWallSections,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicFloorPlan,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicVisibility,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicValueSpace,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicSpawnPoints,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
+// TASK(SchematicMapFile,std::get< mega::io::schFilePath >( task.sourceFilePath ),const mega::io::schFilePath&)
 
 // Component name based tasks
 TASK(CPPInclude,std::get< std::string >( task.sourceFilePath ),const std::string&)

@@ -34,7 +34,7 @@ enum OperationID : TypeID::ValueType
     id_Stop,
     id_Save,
     id_Load,
-    id_Files,
+    id_Move,
     id_Get,
     id_Range,
     id_Raw,
@@ -65,8 +65,8 @@ inline constexpr bool isOperationArgs( OperationID operationType )
             return true;
         case id_Load:
             return true;
-        case id_Files:
-            return false;
+        case id_Move:
+            return true;
         case id_Get:
             return false;
         case id_Range:
@@ -115,7 +115,7 @@ enum ExplicitOperationID : TypeID::ValueType
     id_exp_Stop,
     id_exp_Save,
     id_exp_Load,
-    id_exp_Files,
+    id_exp_Move,
     id_exp_GetAction,
     id_exp_GetDimension,
     id_exp_Done,

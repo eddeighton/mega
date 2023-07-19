@@ -297,7 +297,7 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
         case mega::id_exp_Load:            functionType = mega::runtime::invocation::eLoad; break; 
         case mega::id_exp_GetAction:       functionType = mega::runtime::invocation::eGet; break;         
         case mega::id_exp_GetDimension:    functionType = mega::runtime::invocation::eGet; break;  
-        case mega::id_exp_Files:                  
+        case mega::id_exp_Move:            functionType = mega::runtime::invocation::eMove; break;           
         case mega::id_exp_Done:            
         case mega::id_exp_Range:           
         case mega::id_exp_Raw:             

@@ -273,7 +273,7 @@ void build( Database& database, Invocation* pInvocation )
         case id_Stop:
         case id_Save:
         case id_Load:
-        case id_Files:
+        case id_Move:
         case id_Get:
         {
             GenericOperationVisitor visitor{ database, pInvocation };
@@ -545,9 +545,9 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if( !bFound )
         {
-            if( auto pOp = db_cast< Files >( pOperation ) )
+            if( auto pOp = db_cast< Move >( pOperation ) )
             {
-                setOrCheck( resultOpt, id_exp_Files );
+                setOrCheck( resultOpt, id_exp_Move );
                 bFound = true;
             }
         }
@@ -821,7 +821,7 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
             dimensionReturnTypes = derivedDimensions;
         }
         break;
-        case id_exp_Files:
+        case id_exp_Move:
         {
             contextReturnTypes   = derivedContexts;
             dimensionReturnTypes = derivedDimensions;
@@ -1180,7 +1180,7 @@ OperationsStage::Operations::Invocation* construct( Database& database, Symbols:
             case mega::id_exp_Stop:
             case mega::id_exp_Save:
             case mega::id_exp_Load:
-            case mega::id_exp_Files:
+            case mega::id_exp_Move:
             case mega::id_exp_Range:
             case mega::id_exp_Raw:
             {

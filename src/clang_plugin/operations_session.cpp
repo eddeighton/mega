@@ -323,7 +323,7 @@ public:
                 return true;
             }
             break;
-            case mega::id_Files:
+            case mega::id_Move:
             {
                 resultType = clang::getVoidType( pASTContext );
                 return true;

@@ -303,13 +303,13 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     pInstruction->push_back_children( pLoad );
                 }
                 break;
-                case id_Files:
+                case id_Move:
                 {
-                    using OperationsStage::Invocations::Operations::Files;
-                    Files* pFiles = m_database.construct< Files >( Files::Args{
+                    using OperationsStage::Invocations::Operations::Move;
+                    Move* pMove = m_database.construct< Move >( Move::Args{
                         BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
                                               pCurrentInterface, pCurrentConcrete } } );
-                    pInstruction->push_back_children( pFiles );
+                    pInstruction->push_back_children( pMove );
                 }
                 break;
                 case id_Get:
@@ -584,7 +584,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
             case id_Stop:
             case id_Save:
             case id_Load:
-            case id_Files:
+            case id_Move:
                 THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on dimension" );
             default:
                 THROW_RTE( "Unreachable" );

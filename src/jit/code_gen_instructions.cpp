@@ -485,6 +485,47 @@ R"TEMPLATE(
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+// Move
+void gen( Args args, FinalStage::Invocations::Operations::Move* pMove )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Invocations;
+
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::readLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
+{{ indent }}}
+)TEMPLATE";
+    // clang-format on
+
+    std::ostringstream os;
+    {
+        Concrete::Context*   pConcreteTarget = pMove->get_concrete_target();
+        Variables::Instance* pInstance       = pMove->get_instance();
+
+        std::ostringstream osIndent;
+        osIndent << args.indent;
+
+        nlohmann::json templateData( { { "indent", osIndent.str() },
+                                       { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
+                                       { "instance", args.get( pInstance ) } } );
+
+        os << args.inja.render( szTemplate, templateData );
+    }
+
+    args.data[ "assignments" ].push_back( os.str() );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 // GetAction
 void gen( Args args, FinalStage::Invocations::Operations::GetAction* pGet )
 {
@@ -953,9 +994,9 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLoad );
         }
-        else if( auto pFiles = db_cast< Files >( pOperation ) )
+        else if( auto pMove = db_cast< Move >( pOperation ) )
         {
-            THROW_TODO;
+            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pMove );
         }
         else if( auto pGet = db_cast< GetAction >( pOperation ) )
         {
