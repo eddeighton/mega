@@ -120,7 +120,9 @@ public:
                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
-    virtual MP EnroleLeafWithDaemon( const network::Node::Type& type, boost::asio::yield_context& yield_ctx ) override;
+    virtual MP EnroleLeafWithDaemon( const std::string& startupUUID, const network::Node::Type& type,
+                                     boost::asio::yield_context& yield_ctx ) override;
+    virtual void EnroleDaemonSpawn( const std::string& strProgram, const std::string& startupUUID, boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,

@@ -94,6 +94,25 @@ void Root::saveConfig()
     }
 }
 
+void Root::setStartupUUIDMP( const std::string& strUUID, MP mp )
+{
+    m_startupUUIDs[ strUUID ] = mp;
+}
+
+std::optional< MP > Root::getAndResetStartupUUID( const std::string& strUUID )
+{
+    std::optional< MP > result;
+
+    auto iFind = m_startupUUIDs.find( strUUID );
+    if( iFind != m_startupUUIDs.end() )
+    {
+        result = iFind->second;
+        m_startupUUIDs.erase( iFind );
+    }
+
+    return result;
+}
+
 void Root::onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MachineID machineID )
 {
     SPDLOG_TRACE( "Root::onDaemonDisconnect {} {}", connectionID, machineID );

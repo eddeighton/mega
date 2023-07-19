@@ -21,6 +21,7 @@ execute_process(
 		--clang_compiler "${SCRIPT_CLANG_COMPILER}"
 		--parser "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:parser>"
 		--mega_compiler "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:compiler>"
+		--mega_executor "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:executor>"
 		--clang_plugin "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:clang_plugin>"
 		--database "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:database>"
 

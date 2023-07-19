@@ -61,7 +61,7 @@ int inner_main( int argc, char* argv[] )
     std::string             strFilter, strXSL;
     int                     iRepeats = 1;
     bool                    bWait = false, bDebug = false, bReport = false, bCOut = false, bBreak = false;
-    boost::filesystem::path clangPlugin, parserDll, megaCompiler, clangCompiler, databaseDll;
+    boost::filesystem::path clangPlugin, parserDll, megaCompiler, megaExecutor, clangCompiler, databaseDll;
     std::string             strCPPFlags, strCPPDefines, strIncludeDirectories;
 
     namespace bpo = boost::program_options;
@@ -82,7 +82,8 @@ int inner_main( int argc, char* argv[] )
 
         ( "clang_compiler", bpo::value< boost::filesystem::path >( &clangCompiler ),    "Clang Compiler path" )
         ( "parser_dll",     bpo::value< boost::filesystem::path >( &parserDll ),        "Parser DLL Path" )
-        ( "mega_compiler",  bpo::value< boost::filesystem::path >( &megaCompiler ),     "Megastructure compiler pipeline path" )
+        ( "mega_compiler",  bpo::value< boost::filesystem::path >( &megaCompiler ),     "Megastructure compiler path" )
+        ( "mega_executor",  bpo::value< boost::filesystem::path >( &megaExecutor ),     "Megastructure executor path" )
         ( "clang_plugin",   bpo::value< boost::filesystem::path >( &clangPlugin ),      "Clang Plugin path" )
         ( "database_dll",   bpo::value< boost::filesystem::path >( &databaseDll ),      "Database DLL Path" )
 
@@ -118,6 +119,7 @@ int inner_main( int argc, char* argv[] )
         VERIFY_RTE_MSG( boost::filesystem::exists( clangCompiler ), "File not found clangCompiler at : " << clangCompiler.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( parserDll ), "File not found parserDll at : " << parserDll.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( megaCompiler ), "File not found megaCompiler at : " << megaCompiler.string() );
+        VERIFY_RTE_MSG( boost::filesystem::exists( megaExecutor ), "File not found megaExecutor at : " << megaExecutor.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( clangPlugin ), "File not found clangPlugin at : " << clangPlugin.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( databaseDll ), "File not found databaseDll at : " << databaseDll.string() );
         // clang-format on
@@ -126,7 +128,7 @@ int inner_main( int argc, char* argv[] )
         const mega::U64   szDatabaseVersion = mega::utilities::ToolChain::getDatabaseVersion( databaseDll );
 
         g_toolChain = mega::utilities::ToolChain(
-            strClangVersion, szDatabaseVersion, parserDll, megaCompiler, clangCompiler, clangPlugin, databaseDll );
+            strClangVersion, szDatabaseVersion, parserDll, megaCompiler, megaExecutor, clangCompiler, clangPlugin, databaseDll );
     }
 
     {

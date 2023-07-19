@@ -120,6 +120,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
                         << "parserPath:         " << toolChain.parserPath.string() << "\n"
                         << "megaCompilerPath:   " << toolChain.megaCompilerPath.string() << "\n"
+                        << "megaExecutorPath:   " << toolChain.megaExecutorPath.string() << "\n"
                         << "clangCompilerPath:  " << toolChain.clangCompilerPath.string() << "\n"
                         << "clangPluginPath:    " << toolChain.clangPluginPath.string() << "\n"
                         << "databasePath:       " << toolChain.databasePath.string() << "\n"

@@ -64,6 +64,7 @@ public:
     void                      ClearStash();
     network::Status           GetNetworkStatus();
     pipeline::PipelineResult  PipelineRun( const pipeline::Configuration& pipelineConfig );
+    mega::MP                  ExecutorCreate( mega::MachineID daemonMachineID );
     mega::MPO                 SimCreate( const mega::MP& mp );
     void                      SimDestroy( const mega::MPO& mpo );
     TimeStamp                 SimRead( const mega::MPO& from, const mega::MPO& to );

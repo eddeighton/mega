@@ -46,10 +46,11 @@ public:
     virtual MachineProcessIDVector getProcesses( MachineID machineID ) = 0;
     virtual MPOVector              getMPO( MP machineProcess )         = 0;
 
-    virtual MPO             getThisMPO()                      = 0;
-    virtual mega::reference getThisRoot()                     = 0;
-    virtual mega::reference getRoot( MPO mpo )                = 0;
-    virtual MPO             constructMPO( MP machineProcess ) = 0;
+    virtual MPO             getThisMPO()                                  = 0;
+    virtual mega::reference getThisRoot()                                 = 0;
+    virtual mega::reference getRoot( MPO mpo )                            = 0;
+    virtual MPO             constructMPO( MP machineProcess )             = 0;
+    virtual MP              constructExector( MachineID daemonMachineID ) = 0;
 
     virtual void jit( runtime::JITFunctor func ) = 0;
     virtual void yield()                         = 0;
@@ -78,10 +79,7 @@ struct _MPOContextStack
         _pMPOContext_ = getMPOContext();
         resetMPOContext();
     }
-    inline ~_MPOContextStack()
-    {
-        setMPOContext( _pMPOContext_ );
-    }
+    inline ~_MPOContextStack() { setMPOContext( _pMPOContext_ ); }
 };
 
 } // namespace mega

@@ -33,6 +33,14 @@ namespace driver
 namespace sim
 {
 
+mega::MachineID toMachineID( const std::string& strMachineID )
+{
+    mega::MachineID    machineID;
+    std::istringstream is( strMachineID );
+    is >> machineID;
+    return machineID;
+}
+
 mega::MP toMP( const std::string& strMP )
 {
     mega::MP           mp;
@@ -60,9 +68,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
         commandOptions.add_options()
-            ( "create",     po::value( &strCreate ),        "Create using Executor MPO" )
-            //( "list",       po::bool_switch( &bList ) ,     "List" )
-            ( "destroy",    po::value( &strDestroy ) ,      "Destroy" )
+            ( "create",     po::value( &strCreate ),        "Create executor MP or simulation MPO" )
+            ( "destroy",    po::value( &strDestroy ) ,      "Destroy executor or simulation MPO" )
 
             ( "id",         po::value( &strID ) ,           "Source MPO for lock Commands" )
             ( "read",       po::value( &strRead ) ,         "Request Read Lock on specified MPO ( use id to specify who from )" )
@@ -83,44 +90,64 @@ void command( bool bHelp, const std::vector< std::string >& args )
     po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
     po::notify( vm );
 
-    if ( bHelp )
+    if( bHelp )
     {
         std::cout << commandOptions << "\n";
     }
     else
     {
-        if ( !strCreate.empty() )
+        if( !strCreate.empty() )
         {
-            const mega::MP          executorMP = toMP( strCreate );
-            mega::service::Terminal terminal;
-            const mega::MPO         simMPO = terminal.SimCreate( executorMP );
-            std::cout << simMPO << std::endl;
+            if( std::find( strCreate.begin(), strCreate.end(), '.' ) == strCreate.end() )
+            {
+                const mega::MachineID   daemonMachineID = toMachineID( strCreate );
+                mega::service::Terminal terminal;
+                const mega::MP          executorMP = terminal.ExecutorCreate( daemonMachineID );
+                std::cout << executorMP << std::endl;
+            }
+            else
+            {
+                const mega::MP          executorMP = toMP( strCreate );
+                mega::service::Terminal terminal;
+                const mega::MPO         simMPO = terminal.SimCreate( executorMP );
+                std::cout << simMPO << std::endl;
+            }
         }
-        else if ( !strDestroy.empty() )
+        else if( !strDestroy.empty() )
         {
-            const mega::MPO         simMPO = toMPO( strDestroy );
-            mega::service::Terminal terminal;
-            terminal.SimDestroy( simMPO );
+            if( std::find( strCreate.begin(), strCreate.end(), '.' ) == strCreate.end() )
+            {
+                const mega::MP          executorMP = toMP( strDestroy );
+                mega::service::Terminal terminal;
+                THROW_TODO;
+                // terminal.ExecutorDestroy( executorMP );
+            }
+            else
+            {
+                const mega::MPO         simMPO = toMPO( strDestroy );
+                mega::service::Terminal terminal;
+                terminal.SimDestroy( simMPO );
+            }
         }
-        else if ( !strRead.empty() )
+        else if( !strRead.empty() )
         {
             VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strRead );
             mega::service::Terminal terminal;
-            const mega::TimeStamp lockCycle = terminal.SimRead( sourceMPO, targetMPO );
+            const mega::TimeStamp   lockCycle = terminal.SimRead( sourceMPO, targetMPO );
             std::cout << lockCycle << std::endl;
         }
-        else if ( !strWrite.empty() )
+        else if( !strWrite.empty() )
         {
             VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strWrite );
             mega::service::Terminal terminal;
-            const mega::TimeStamp lockCycle = terminal.SimWrite( sourceMPO, targetMPO );
+            const mega::TimeStamp   lockCycle = terminal.SimWrite( sourceMPO, targetMPO );
             std::cout << lockCycle << std::endl;
         }
-        else if ( !strRelease.empty() )
+        else if( !strRelease.empty() )
         {
             VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
             const mega::MPO         sourceMPO = toMPO( strID );

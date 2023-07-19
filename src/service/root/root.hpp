@@ -41,6 +41,8 @@ class Root : public network::ConversationManager
     friend class RootRequestConversation;
     friend class RootSimulation;
 
+    using StartupUUIDMap = std::map< std::string, MP >;
+
 public:
     Root( boost::asio::io_context& ioContext, const boost::filesystem::path& stashFolder, short portNumber );
     void shutdown();
@@ -52,6 +54,9 @@ public:
     MegastructureInstallation getMegastructureInstallation();
     const Project&            getProject() const { return m_config.getProject(); }
     void                      setProject( const Project& project ) { m_config.setProject( project ); }
+
+    void                setStartupUUIDMP( const std::string& strUUID, MP mp );
+    std::optional< MP > getAndResetStartupUUID( const std::string& strUUID );
 
 private:
     void loadConfig();
@@ -66,6 +71,7 @@ private:
     mega::network::RootConfig                  m_config;
     std::optional< MegastructureInstallation > m_megastructureInstallationOpt;
     MPOManager                                 m_mpoManager;
+    StartupUUIDMap                             m_startupUUIDs;
 };
 
 } // namespace mega::service

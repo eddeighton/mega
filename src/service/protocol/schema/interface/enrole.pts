@@ -25,13 +25,13 @@ msg EnroleDaemon
 
 msg EnroleLeafWithDaemon
 {
-    request( mega::network::Node::Type type );
+    request( std::string startupUUID, mega::network::Node::Type type );
     response( MP leafMP );
 }
 
 msg EnroleLeafWithRoot
 {
-    request( MachineID daemonMachineID );
+    request( std::string startupUUID, MachineID daemonMachineID );
     response( MP leafMP );
 }
 
@@ -56,3 +56,15 @@ msg EnroleGetMPO
     request( mega::MP machineProcess );
     response( std::vector< mega::MPO > mpos );
 }
+
+msg EnroleCreateExecutor
+{
+    request( MachineID daemonMachineID );
+    response( mega::MP executorMP );
+}
+msg EnroleDaemonSpawn
+{
+    request( std::string strProgram, std::string strStartupUUID );
+    response();
+}
+

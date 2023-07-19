@@ -23,6 +23,12 @@
 
 #include "service/protocol/model/memory.hxx"
 
+#include "common/string.hpp"
+
+#include <boost/asio/steady_timer.hpp>
+
+#include <chrono>
+
 namespace mega::service
 {
 
@@ -35,7 +41,7 @@ MachineID RootRequestConversation::EnroleDaemon( boost::asio::yield_context& yie
     pConnection->setDisconnectCallback( [ machineID, &root = m_root ]( const network::ConnectionID& connectionID )
                                         { root.onDaemonDisconnect( connectionID, machineID ); } );
 
-    network::Server::Connection::Label label { machineID } ;
+    network::Server::Connection::Label label{ machineID };
     VERIFY_RTE_MSG( std::get< MachineID >( label ) == machineID, "std::variant sucks!" );
 
     m_root.m_server.labelConnection( label, pConnection );
@@ -43,10 +49,19 @@ MachineID RootRequestConversation::EnroleDaemon( boost::asio::yield_context& yie
     return machineID;
 }
 
-MP RootRequestConversation::EnroleLeafWithRoot( const MachineID& machineID, boost::asio::yield_context& yield_ctx )
+MP RootRequestConversation::EnroleLeafWithRoot( const std::string&          startupUUID,
+                                                const MachineID&            machineID,
+                                                boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "RootRequestConversation::EnroleLeafWithRoot: {} {}", startupUUID, machineID );
+
     const MP mp = m_root.m_mpoManager.newLeaf( machineID );
-    SPDLOG_TRACE( "RootRequestConversation::EnroleLeafWithRoot: {}", mp );
+
+    if( !startupUUID.empty() )
+    {
+        m_root.setStartupUUIDMP( startupUUID, mp );
+    }
+
     return mp;
 }
 
@@ -63,7 +78,7 @@ void RootRequestConversation::EnroleLeafDisconnect( const MP& mp, boost::asio::y
     VERIFY_RTE( std::get< MachineID >( pConnection->getLabel().value() ) == mp.getMachineID() );
 
     network::memory::Request_Sender sender( *this, *pConnection, yield_ctx );
-    for ( MPO mpo : terminatedMPOS )
+    for( MPO mpo : terminatedMPOS )
     {
         sender.MPODestroyed( mpo );
     }
@@ -82,6 +97,50 @@ std::vector< MPO > RootRequestConversation::EnroleGetMPO( const MP&             
                                                           boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMPO( machineProcess );
+}
+
+MP RootRequestConversation::EnroleCreateExecutor( const MachineID&            daemonMachineID,
+                                                  boost::asio::yield_context& yield_ctx )
+{
+    network::Server::Connection::Label label{ daemonMachineID };
+    auto                               pDaemonConnection = m_root.m_server.findConnection( label );
+    VERIFY_RTE_MSG( pDaemonConnection, "Failed to locate daemon: " << daemonMachineID );
+    network::enrole::Request_Sender sender( *this, *pDaemonConnection, yield_ctx );
+
+    const std::string strStartupUUID = common::uuid();
+
+    auto megaInstall = m_root.getMegastructureInstallation();
+
+    sender.EnroleDaemonSpawn( megaInstall.getExecutorPath().string(), strStartupUUID );
+
+    using namespace std::chrono_literals;
+    const std::chrono::time_point< std::chrono::steady_clock > timeoutTime = std::chrono::steady_clock::now() + 5s;
+    /*
+        boost::asio::steady_timer timer( m_root.m_ioContext );
+
+        timer.expires_from_now( 250ms );
+        timer.async_wait(
+            [  ]( boost::system::error_code ec )
+            {
+
+            }
+            );
+    */
+    SPDLOG_TRACE(
+        "RootRequestConversation::EnroleCreateExecutor Waiting for daemon: {} to create process with UUID: {}",
+        daemonMachineID, strStartupUUID );
+
+    // start waiting with timeout for MP to register with startup UUID
+    int iCounter = 0;
+    while( std::chrono::steady_clock::now() < timeoutTime )
+    {
+        if( auto mpOpt = m_root.getAndResetStartupUUID( strStartupUUID ) )
+        {
+            return mpOpt.value();
+        }
+        boost::asio::post( yield_ctx );
+    }
+    THROW_RTE( "Timeout waiting for executor to start on damon: " << daemonMachineID );
 }
 
 } // namespace mega::service

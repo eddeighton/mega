@@ -38,6 +38,7 @@
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/sim.hxx"
+#include "service/protocol/model/enrole.hxx"
 
 #include "common/requireSemicolon.hpp"
 
@@ -88,7 +89,10 @@ Terminal::~Terminal()
     m_io_context.run();
 }
 
-void Terminal::shutdown() { m_receiverChannel.stop(); }
+void Terminal::shutdown()
+{
+    m_receiverChannel.stop();
+}
 
 network::ConversationBase::Ptr Terminal::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                            const network::Message&      msg )
@@ -123,7 +127,7 @@ network::Message Terminal::routeGenericRequest( const network::ConversationID& c
                 SPDLOG_TRACE( "Terminal::rootRequest::RootConversation::run {}", m_message );
                 m_result = m_router( *this, m_terminal.getLeafSender(), yield_ctx )( m_message );
             }
-            catch ( std::exception& ex )
+            catch( std::exception& ex )
             {
                 m_result = std::current_exception();
             }
@@ -144,10 +148,10 @@ network::Message Terminal::routeGenericRequest( const network::ConversationID& c
                                sender );
     }
 
-    while ( !result.has_value() )
+    while( !result.has_value() )
         m_io_context.run_one();
 
-    if ( result->index() == 1 )
+    if( result->index() == 1 )
     {
         std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );
     }
@@ -215,6 +219,11 @@ pipeline::PipelineResult Terminal::PipelineRun( const pipeline::Configuration& p
     return getRequest< network::pipeline::Request_Encoder >().PipelineRun( pipelineConfig );
 }
 
+mega::MP Terminal::ExecutorCreate( mega::MachineID daemonMachineID )
+{
+    return getRequest< network::enrole::Request_Encoder >().EnroleCreateExecutor( daemonMachineID );
+}
+
 mega::MPO Terminal::SimCreate( const mega::MP& mp )
 {
     return getMPRequest< network::sim::Request_Encoder >( mp ).SimCreate();
@@ -248,8 +257,8 @@ std::string Terminal::PingMPO( const mega::MPO& mpo, const std::string& strMsg )
     return getMPORequest< network::status::Request_Encoder >( mpo ).Ping( strMsg );
 }
 
-void Terminal::SimErrorCheck(const mega::MPO& mpo)
+void Terminal::SimErrorCheck( const mega::MPO& mpo )
 {
-    return getMPORequest< network::sim::Request_Encoder >(mpo).SimErrorCheck();
+    return getMPORequest< network::sim::Request_Encoder >( mpo ).SimErrorCheck();
 }
 } // namespace mega::service

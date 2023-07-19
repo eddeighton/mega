@@ -75,6 +75,11 @@ boost::filesystem::path MegastructureInstallation::getMegaIncludePath() const
     return m_installationPath / "include";
 }
 
+boost::filesystem::path MegastructureInstallation::getExecutorPath() const
+{
+    return getToolchain().megaExecutorPath;
+}
+
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateAllocation() const
 {
     return m_installationPath / "templates/allocator.jinja";

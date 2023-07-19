@@ -101,6 +101,15 @@ MPO MPOContext::constructMPO( MP machineProcess )
     return request.SimCreate();
 }
 
+MP MPOContext::constructExector( MachineID daemonMachineID )
+{
+    network::enrole::Request_Encoder request(
+        [ mpoRequest = getMPRequest() ]( const network::Message& msg ) mutable
+        { return mpoRequest.MPRoot( msg, MP{} ); },
+        m_conversationIDRef );
+    return request.EnroleCreateExecutor( daemonMachineID );
+}
+
 reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )
 {
     reference allocated;
@@ -314,7 +323,7 @@ boost::filesystem::path MPOContext::makeLogDirectory( const network::Conversatio
 {
     boost::filesystem::path logFolder;
     {
-        const char* pszCFG_TYPE = std::getenv( "CFG_TYPE" );
+        const char* pszCFG_TYPE = std::getenv( network::ENV_CFG_TYPE );
         if( pszCFG_TYPE != nullptr )
         {
             std::ostringstream os;

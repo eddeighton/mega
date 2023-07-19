@@ -48,6 +48,9 @@ public:
 
 std::string makeProcessName( Node::Type type );
 
+extern const char* ENV_PROCESS_UUID;
+extern const char* ENV_CFG_TYPE;
+
 } // namespace mega::network
 
 #endif // NODE_17_JUNE_2022

@@ -101,12 +101,6 @@ msg SimDestroyBlocking
     response();
 }
 
-msg SimRPC
-{
-    request();
-    response();
-}
-
 msg SimMove
 {
     request();

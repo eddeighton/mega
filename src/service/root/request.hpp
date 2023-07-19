@@ -121,12 +121,14 @@ public:
 
     // network::enrole::Impl
     virtual MachineID EnroleDaemon( boost::asio::yield_context& yield_ctx ) override;
-    virtual MP   EnroleLeafWithRoot( const MachineID& daemonMachineID, boost::asio::yield_context& yield_ctx ) override;
-    virtual void EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx ) override;
+    virtual MP        EnroleLeafWithRoot( const std::string& startupUUID, const MachineID& daemonMachineID,
+                                          boost::asio::yield_context& yield_ctx ) override;
+    virtual void      EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx ) override;
     virtual std::vector< MachineID > EnroleGetDaemons( boost::asio::yield_context& yield_ctx ) override;
     virtual std::vector< MP >        EnroleGetProcesses( const MachineID&            machineID,
                                                          boost::asio::yield_context& yield_ctx ) override;
     virtual std::vector< MPO > EnroleGetMPO( const MP& machineProcess, boost::asio::yield_context& yield_ctx ) override;
+    virtual MP EnroleCreateExecutor( const MachineID& daemonMachineID, boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,

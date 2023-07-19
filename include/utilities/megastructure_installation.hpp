@@ -42,6 +42,7 @@ public:
     boost::filesystem::path        getParserPath() const;
     boost::filesystem::path        getClangPath() const;
     boost::filesystem::path        getMegaIncludePath() const;
+    boost::filesystem::path        getExecutorPath() const;
 
     boost::filesystem::path getRuntimeTemplateAllocation() const;
     boost::filesystem::path getRuntimeTemplateAllocate() const;

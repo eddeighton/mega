@@ -53,12 +53,18 @@ public:
 
         auto daemonSender = getDaemonSender( yield_ctx );
 
+        std::string startupUUID;
+        if( const char* pszValue = std::getenv( network::ENV_PROCESS_UUID ) )
+        {
+            startupUUID = pszValue;
+        }
+
         // enrole - getting MP
         {
             network::enrole::Request_Encoder encoder( [ &daemonSender ]( const network::Message& msg ) mutable
                                                       { return daemonSender.LeafDaemon( msg ); },
                                                       getID() );
-            m_leaf.m_mp = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
+            m_leaf.m_mp = encoder.EnroleLeafWithDaemon( startupUUID, m_leaf.getType() );
 
             SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
         }

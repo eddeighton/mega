@@ -46,7 +46,7 @@ public:
         {
             boost::filesystem::path logFolder;
             {
-                const char* pszCFG_TYPE = std::getenv( "CFG_TYPE" );
+                const char* pszCFG_TYPE = std::getenv( network::ENV_CFG_TYPE );
                 if( pszCFG_TYPE != nullptr )
                 {
                     std::ostringstream os;

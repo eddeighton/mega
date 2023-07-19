@@ -21,10 +21,13 @@
 
 #include "service/network/log.hpp"
 
+#include "boost/process.hpp"
+
 namespace mega::service
 {
 // network::enrole::Impl
-MP DaemonRequestConversation::EnroleLeafWithDaemon( const mega::network::Node::Type& type,
+MP DaemonRequestConversation::EnroleLeafWithDaemon( const std::string&               startupUUID,
+                                                    const mega::network::Node::Type& type,
                                                     boost::asio::yield_context&      yield_ctx )
 {
     network::Server::Connection::Ptr pConnection
@@ -33,7 +36,7 @@ MP DaemonRequestConversation::EnroleLeafWithDaemon( const mega::network::Node::T
     pConnection->setType( type );
 
     const mega::MP leafMP
-        = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleLeafWithRoot( m_daemon.m_machineID );
+        = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleLeafWithRoot( startupUUID, m_daemon.m_machineID );
     SPDLOG_TRACE( "Leaf enroled as {}", leafMP );
 
     m_daemon.m_server.labelConnection( leafMP, pConnection );
@@ -41,6 +44,13 @@ MP DaemonRequestConversation::EnroleLeafWithDaemon( const mega::network::Node::T
                                         { daemon.onLeafDisconnect( connectionID, leafMP ); } );
 
     return leafMP;
+}
+
+void DaemonRequestConversation::EnroleDaemonSpawn( const std::string& strProgram, const std::string& strStartupUUID, boost::asio::yield_context& yield_ctx )
+{
+    auto env = boost::this_process::environment();
+    env[ network::ENV_PROCESS_UUID ] = strStartupUUID;
+    boost::process::spawn( strProgram, env );
 }
 
 } // namespace mega::service

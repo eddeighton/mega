@@ -100,6 +100,7 @@ add_custom_command( TARGET invocation_tests POST_BUILD COMMAND $<TARGET_FILE_NAM
 	--clang_compiler ${SCRIPT_CLANG_COMPILER}
 	--parser $<TARGET_FILE:parser> 
 	--mega_compiler $<TARGET_FILE:compiler>
+	--mega_executor $<TARGET_FILE:executor>
 	--clang_plugin $<TARGET_FILE:clang_plugin>
 	--database $<TARGET_FILE:database>
 

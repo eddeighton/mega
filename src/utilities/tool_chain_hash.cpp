@@ -34,6 +34,7 @@ ToolChain::ToolChain( const std::string& strClangCompilerVersion,
 
                       const boost::filesystem::path& parser,
                       const boost::filesystem::path& path_megaCompiler,
+                      const boost::filesystem::path& path_megaExecutor,
                       const boost::filesystem::path& path_clangCompiler,
                       const boost::filesystem::path& path_clangPlugin,
                       const boost::filesystem::path& database,
@@ -43,6 +44,7 @@ ToolChain::ToolChain( const std::string& strClangCompilerVersion,
 
     : parserPath( parser )
     , megaCompilerPath( path_megaCompiler )
+    , megaExecutorPath( path_megaExecutor )
     , clangCompilerPath( path_clangCompiler )
     , clangPluginPath( path_clangPlugin )
     , databasePath( database )
