@@ -198,6 +198,7 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
             *ppFunction = ( void* )m_pProgram->getRecordBreak();
         }
         break;
+        default:
         case program::TOTAL_FUNCTION_TYPES:
         {
             THROW_RTE( "Unsupported program function" );
@@ -300,7 +301,8 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
         case mega::id_exp_Move:            functionType = mega::runtime::invocation::eMove; break;           
         case mega::id_exp_Done:            
         case mega::id_exp_Range:           
-        case mega::id_exp_Raw:             
+        case mega::id_exp_Raw:    
+        default:         
         case mega::HIGHEST_EXPLICIT_OPERATION_TYPE:
             THROW_RTE( "Unknown explicit operation type" );
             break;
@@ -411,6 +413,12 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
             *ppFunction = ( void* )pModule->get< invocation::Stop::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
+        case invocation::eMove:
+        {
+            *ppFunction = ( void* )pModule->get< invocation::Move::FunctionPtr >( Symbol( invocationID, Symbol::Ref_Ref ) );
+        }
+        break;
+        default:
         case invocation::TOTAL_FUNCTION_TYPES:
         {
             THROW_RTE( "Unsupported invocation function" );
@@ -486,6 +494,7 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
             *ppFunction     = ( void* )pAllocator->getLoadXML();
         }
         break;
+        default:
         case object::TOTAL_FUNCTION_TYPES:
         {
             THROW_RTE( "Unsupported object function" );
@@ -526,6 +535,7 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
             *ppFunction    = ( void* )pRelation->getReset();
         }
         break;
+        default:
         case relation::TOTAL_FUNCTION_TYPES:
         {
             THROW_RTE( "Unsupported object function" );
@@ -608,6 +618,7 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
                 Symbol( "mega_cast_", target, Symbol::Ref ) );
         }
         break;
+        default:
         case operators::TOTAL_FUNCTION_TYPES:
         {
             THROW_RTE( "Unsupported object function" );

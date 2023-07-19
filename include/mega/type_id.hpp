@@ -119,8 +119,10 @@ public:
 #endif
 
 };
-static_assert( sizeof( TypeID ) == 4U, "Invalid TypeID Size" );
 
+#ifndef MEGAJIT
+static_assert( sizeof( TypeID ) == 4U, "Invalid TypeID Size" );
+#endif
 static constexpr TypeID ROOT_SYMBOL_ID = TypeID( -1 );
 static constexpr TypeID ROOT_TYPE_ID   = TypeID::make_context( 1, 0 );
 

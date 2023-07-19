@@ -41,8 +41,11 @@ namespace mega
 
 using HeapAddress                         = void*; // recheck numeric_limits if change
 static constexpr HeapAddress NULL_ADDRESS = nullptr;
+
+#ifndef MEGAJIT
 static_assert( sizeof( HeapAddress ) == 8U, "Invalid HeapAddress Size" );
 static_assert( sizeof( HeapAddress ) == sizeof( U64 ), "Invalid HeapAddress Size" );
+#endif
 
 using AllocationID = U16;
 using Flags        = U8;
@@ -66,7 +69,9 @@ class reference
         TypeInstance m_type;    // 6
     };
 #pragma pack()
+#ifndef MEGAJIT
     static_assert( sizeof( HeapAddressData ) == 16U, "Invalid HeapAddressData Size" );
+#endif
 
 #pragma pack( 1 )
     struct NetworkAddressData
@@ -79,7 +84,9 @@ class reference
         TypeInstance m_type;         // 6
     };
 #pragma pack()
+#ifndef MEGAJIT
     static_assert( sizeof( NetworkAddressData ) == 16U, "Invalid NetworkAddressData Size" );
+#endif
 
     union
     {

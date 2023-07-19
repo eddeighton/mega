@@ -30,7 +30,7 @@ namespace mega::mangle
 {
 }
 
-mega::reference {{ name }}( mega::reference context )
+mega::reference {{ name }}( mega::reference context, mega::reference target )
 {
 {% for variable in variables %}
 {{ variable }}
@@ -40,6 +40,6 @@ mega::reference {{ name }}( mega::reference context )
 {{ assignment }}
 {% endfor %}
 
-    throw mega::runtime::JITException{ "Start invocation failed" };
+    throw mega::runtime::JITException{ "Move invocation failed" };
     return mega::reference{};
 }

@@ -103,11 +103,18 @@ MPO MPOContext::constructMPO( MP machineProcess )
 
 MP MPOContext::constructExecutor( MachineID daemonMachineID )
 {
-    network::enrole::Request_Encoder request(
-        [ mpoRequest = getMPRequest() ]( const network::Message& msg ) mutable
-        { return mpoRequest.MPRoot( msg, MP{} ); },
-        m_conversationIDRef );
+    network::enrole::Request_Encoder request( [ mpoRequest = getMPRequest() ]( const network::Message& msg ) mutable
+                                              { return mpoRequest.MPRoot( msg, MP{} ); },
+                                              m_conversationIDRef );
     return request.EnroleCreateExecutor( daemonMachineID );
+}
+
+void MPOContext::destroyExecutor( MP mp )
+{
+    network::enrole::Request_Encoder request( [ mpoRequest = getMPRequest(), mp ]( const network::Message& msg ) mutable
+                                              { return mpoRequest.MPUp( msg, mp ); },
+                                              m_conversationIDRef );
+    return request.EnroleDestroy();
 }
 
 reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )

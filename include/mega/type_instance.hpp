@@ -84,7 +84,9 @@ struct TypeInstance
 };
 #pragma pack()
 
+#ifndef MEGAJIT
 static_assert( sizeof( TypeInstance ) == 6U, "Invalid TypeInstance Size" );
+#endif
 
 } // namespace mega
 
