@@ -230,7 +230,7 @@ TimeStamp MPOConversation::PythonCycle( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "MPOConversation::PythonCycle" );
     cycleComplete();
-    return m_log.getTimeStamp();
+    return getLog().getTimeStamp();
 }
 
 void MPOConversation::PythonFunctor( const mega::runtime::Functor& functor, boost::asio::yield_context& )

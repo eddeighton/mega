@@ -45,7 +45,6 @@ Simulation::Simulation( Executor& executor, const network::ConversationID& conve
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
     , MPOContext( conversationID )
     , m_processClock( processClock )
-    , m_scheduler( m_log )
 {
     m_bEnableQueueing = true;
 }
@@ -105,8 +104,11 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         m_processClock.registerMPO(
             network::SenderRef{ m_mpo.value(), this, m_pMemoryManager->getAllocators() } );
 
+        // create the scheduler on the stack!
+        Scheduler scheduler( getLog() );
+
         bool                    bRegistedAsTerminating = false;
-        TimeStamp               lastCycle              = m_log.getTimeStamp();
+        TimeStamp               lastCycle              = getLog().getTimeStamp();
         StateMachine::MsgVector tempMessages;
         while( !m_stateMachine.isTerminated() )
         {
@@ -142,7 +144,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
-                        m_scheduler.cycle();
+                        scheduler.cycle();
                     }
 
                     cycleComplete();
@@ -192,8 +194,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         if( m_stateMachine.onMsg( { msg } ) )
                         {
-                            m_processClock.requestClock( this, m_mpo.value(), m_log.getRange( lastCycle ) );
-                            lastCycle = m_log.getTimeStamp();
+                            m_processClock.requestClock( this, m_mpo.value(), getLog().getRange( lastCycle ) );
+                            lastCycle = getLog().getTimeStamp();
                         }
                     }
                     break;
@@ -367,7 +369,7 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
     archive.beginObject( heapAddress.getHeaderAddress() );
     objectSaveBin( object.getType(), heapAddress.getHeap(), &archive );
 
-    return archive.makeSnapshot( m_log.getTimeStamp() );
+    return archive.makeSnapshot( getLog().getTimeStamp() );
 }
 
 reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& )
@@ -375,7 +377,7 @@ reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yiel
     SPDLOG_TRACE( "SIM::SimAllocate: {}", objectTypeID );
     QueueStackDepth queueMsgs( m_queueStack );
     reference       allocated = m_pMemoryManager->New( objectTypeID );
-    m_log.record( mega::log::Structure::Write( reference{}, allocated, 0, mega::log::Structure::eConstruct ) );
+    getLog().record( mega::log::Structure::Write( reference{}, allocated, 0, mega::log::Structure::eConstruct ) );
     return allocated.getHeaderAddress();
 }
 
@@ -383,7 +385,7 @@ Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yi
 {
     SPDLOG_TRACE( "SIM::SimLockRead: {}", mpo );
     THROW_TODO;
-    return Snapshot{ m_log.getTimeStamp() };
+    return Snapshot{ getLog().getTimeStamp() };
 }
 
 TimeStamp Simulation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
@@ -394,7 +396,7 @@ TimeStamp Simulation::SimLockRead( const MPO& requestingMPO, const MPO& targetMP
     {
         return 0U;
     }
-    return m_log.getTimeStamp();
+    return getLog().getTimeStamp();
 }
 
 TimeStamp Simulation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
@@ -405,7 +407,7 @@ TimeStamp Simulation::SimLockWrite( const MPO& requestingMPO, const MPO& targetM
     {
         return 0U;
     }
-    return m_log.getTimeStamp();
+    return getLog().getTimeStamp();
 }
 
 void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
@@ -488,10 +490,11 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         status.setMPO( m_mpo.value() );
         {
             std::ostringstream os;
-            os << "Simulation: " << m_log.getTimeStamp();
+            os << "Simulation: " << getLog().getTimeStamp();
             status.setDescription( os.str() );
         }
-        status.setLogIterator( m_log.getIterator() );
+        status.setLogIterator( getLog().getIterator() );
+        status.setLogFolder( getLog().getFolder().string() );
 
         using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
         using MPOVec          = std::vector< MPO >;
@@ -505,6 +508,8 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
             status.setWriter( writer.value() );
 
         status.setMemory( m_pMemoryManager->getStatus() );
+
+        
     }
 
     return status;

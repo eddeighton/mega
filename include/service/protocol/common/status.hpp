@@ -52,6 +52,7 @@ public:
     const std::optional< MPO >&                   getMPO() const { return m_mpo; }
     const std::vector< network::ConversationID >& getConversations() const { return m_conversationIDs; }
     const std::optional< log::IndexRecord >&      getLogIterator() const { return m_logIterator; }
+    const std::optional< std::string >&           getLogFolder() const { return m_strLogFolder; }
     const std::optional< network::MemoryStatus >& getMemory() const { return m_memory; }
 
     const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getReads() const { return m_reads; }
@@ -70,6 +71,7 @@ public:
         m_conversationIDs = conversations;
     }
     void setLogIterator( const log::IndexRecord& iterator ) { m_logIterator = iterator; }
+    void setLogFolder( const std::string& strLogFolder ) { m_strLogFolder = strLogFolder; }
     void setMemory( network::MemoryStatus memoryStatus ) { m_memory = memoryStatus; }
 
     void setReads( const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& value ) { m_reads = value; }
@@ -87,6 +89,7 @@ public:
         archive& m_mpo;
         archive& m_conversationIDs;
         archive& m_logIterator;
+        archive& m_strLogFolder;
         archive& m_memory;
 
         archive& m_reads;
@@ -104,6 +107,7 @@ private:
     std::optional< MPO >                   m_mpo;
     std::vector< network::ConversationID > m_conversationIDs;
     std::optional< log::IndexRecord >      m_logIterator;
+    std::optional< std::string >           m_strLogFolder;
     std::optional< network::MemoryStatus > m_memory;
 
     std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_reads;

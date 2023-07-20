@@ -57,21 +57,19 @@ namespace mega
 class MPOContext : public Context
 {
 protected:
-    const network::ConversationID&            m_conversationIDRef;
-    std::optional< mega::MPO >                m_mpo;
-    log::Storage                              m_log;
-    mega::service::LockTracker                m_lockTracker;
-    network::TransactionProducer              m_transactionProducer;
-    boost::asio::yield_context*               m_pYieldContext = nullptr;
-    reference                                 m_root;
-    std::unique_ptr< runtime::MPODatabase >   m_pDatabase;
-    std::unique_ptr< runtime::MemoryManager > m_pMemoryManager;
+    const network::ConversationID&                  m_conversationIDRef;
+    std::optional< mega::MPO >                      m_mpo;
+    std::unique_ptr< log::Storage >                 m_pLog;
+    mega::service::LockTracker                      m_lockTracker;
+    std::unique_ptr< network::TransactionProducer > m_pTransactionProducer;
+    boost::asio::yield_context*                     m_pYieldContext = nullptr;
+    reference                                       m_root;
+    std::unique_ptr< runtime::MPODatabase >         m_pDatabase;
+    std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
 
 public:
     MPOContext( const network::ConversationID& conversationID )
         : m_conversationIDRef( conversationID )
-        , m_log( makeLogDirectory( conversationID ) )
-        , m_transactionProducer( m_log )
     {
     }
 
@@ -118,7 +116,11 @@ public:
     virtual void            yield() override;
 
     // log
-    virtual log::Storage& getLog() override { return m_log; }
+    virtual log::Storage& getLog() override
+    {
+        ASSERT( m_pLog );
+        return *m_pLog;
+    }
 
     // called by Cycle dtor
     void applyTransaction( const network::Transaction& transaction );
@@ -126,9 +128,6 @@ public:
 
 protected:
     void createRoot( const Project& project, const mega::MPO& mpo );
-
-private:
-    boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID );
 };
 
 } // namespace mega

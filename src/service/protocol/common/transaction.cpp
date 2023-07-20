@@ -82,6 +82,10 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
                 }
             }
             break;
+            case log::Structure::eMove:
+            {
+            }
+            break;
             default:
             {
                 THROW_RTE( "Unknown structure record type" );

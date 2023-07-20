@@ -188,10 +188,11 @@ public:
 
             {
                 std::ostringstream os;
-                os << "Tool: " << m_log.getTimeStamp();
+                os << "Tool: " << getLog().getTimeStamp();
             }
 
-            status.setLogIterator( m_log.getIterator() );
+            status.setLogIterator( getLog().getIterator() );
+            status.setLogFolder( getLog().getFolder().string() );
 
             status.setMemory( m_pMemoryManager->getStatus() );
         }

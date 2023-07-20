@@ -278,16 +278,24 @@ R"TEMPLATE(
 {{ indent }}    }
 {{ indent }}}
 {{ indent }}
-{% if unparentAll %}
-{{ indent }}static thread_local mega::runtime::object::ObjectUnparent unparent( g_pszModuleName, {{ concrete_type_id }} );
-{{ indent }}unparent( {{ instance }}.getObjectAddress() );
+{% if unparent_all %}
+{{ indent }} static thread_local mega::runtime::object::ObjectUnparent unparent( g_pszModuleName, {{ concrete_type_id }} );
+{{ indent }} unparent( {{ instance }}.getObjectAddress() );
 {% else %}
-{{ indent }}static thread_local mega::runtime::relation::LinkReset unparent( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
-{{ indent }}unparent( {{ instance }} );
+{{ indent }} static thread_local mega::runtime::relation::LinkReset unparent( g_pszModuleName, mega::RelationID{ {{ relation_id }} } );
+{{ indent }} unparent( {{ instance }} );
 {% endif %}
 {{ indent }}
-{{ indent }}static thread_local mega::runtime::relation::LinkMake reparent( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
-{{ indent }}reparent( {{ instance }}, target );
+{{ indent }} if( {{ instance }}.getMPO() == target.getMPO() )
+{{ indent }} {
+{{ indent }}    static thread_local mega::runtime::relation::LinkMake reparent( g_pszModuleName, mega::RelationID{ {{ relation_id }} } );
+{{ indent }}    reparent( {{ instance }}, target );
+{{ indent }} }
+{{ indent }} else
+{{ indent }} {
+{{ indent }}    mega::mangle::structure_move( {{ instance }}, target, {{ relation_id_as_int }} );
+{{ indent }} }
+{{ indent }}
 )TEMPLATE";
     // clang-format on
 
@@ -298,6 +306,7 @@ R"TEMPLATE(
 
         bool bUnparentAll = false;
         std::ostringstream osRelationID;
+        std::ostringstream osRelationIDAsInt;
 
         Concrete::Context* pMoveContext = pInstance->get_concrete();
         if( Concrete::Link* pMoveLinkContext = db_cast< Concrete::Link >( pMoveContext ) )
@@ -335,6 +344,8 @@ R"TEMPLATE(
             {
                 const mega::RelationID& relationID = pRelation->get_id();
                 osRelationID << relationID.getLower() << ',' << relationID.getUpper();
+                using ::operator<<;
+                osRelationIDAsInt << relationID;
             }
             // is the move WITHIN the same MPO ?
         }
@@ -351,8 +362,9 @@ R"TEMPLATE(
         nlohmann::json templateData( { { "indent", osIndent.str() },
                                        { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
                                        { "instance", args.get( pInstance ) },
-                                       { "unparentAll", bUnparentAll },
-                                       { "owning_relation_id", osRelationID.str() }
+                                       { "unparent_all", bUnparentAll },
+                                       { "relation_id", osRelationID.str() },
+                                       { "relation_id_as_int", osRelationIDAsInt.str() }
 
         } );
 

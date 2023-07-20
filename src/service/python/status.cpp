@@ -58,10 +58,11 @@ network::Status MPOConversation::GetStatus( const std::vector< network::Status >
 
         {
             std::ostringstream os;
-            os << "Python: " << m_log.getTimeStamp();
+            os << "Python: " << getLog().getTimeStamp();
         }
 
-        status.setLogIterator( m_log.getIterator() );
+        status.setLogIterator( getLog().getIterator() );
+        status.setLogFolder( getLog().getFolder().string() );
 
         status.setMemory( m_pMemoryManager->getStatus() );
     }

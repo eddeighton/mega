@@ -43,7 +43,8 @@
                         "MakeTarget",
                         "Break",
                         "BreakSource",
-                        "BreakTarget"
+                        "BreakTarget",
+                        "Move"
                     ]
                 }
             ],

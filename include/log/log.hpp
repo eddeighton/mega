@@ -284,6 +284,8 @@ public:
     Storage( const boost::filesystem::path& folderPath, bool bLoad = false );
     ~Storage();
 
+    const boost::filesystem::path& getFolder() const { return m_folderPath; }
+
 public:
     // WRITE interface
 

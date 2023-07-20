@@ -123,7 +123,7 @@ reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )
     if( parent.getMPO() == getThisMPO() )
     {
         allocated = m_pMemoryManager->New( objectTypeID );
-        m_log.record( mega::log::Structure::Write( parent, allocated, 0, mega::log::Structure::eConstruct ) );
+        m_pLog->record( mega::log::Structure::Write( parent, allocated, 0, mega::log::Structure::eConstruct ) );
     }
     else
     {
@@ -198,6 +198,34 @@ void MPOContext::writeLock( reference& ref )
 
 void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
 {
+    // initialise event log
+    {
+        boost::filesystem::path logFolder;
+        {
+            const char* pszCFG_TYPE = std::getenv( network::ENV_CFG_TYPE );
+            if( pszCFG_TYPE != nullptr )
+            {
+                std::ostringstream os;
+                os << "/home/foobar/test_" << pszCFG_TYPE;
+                logFolder = os.str();
+            }
+            else
+            {
+                logFolder = boost::filesystem::current_path();
+            }
+        }
+        std::ostringstream os;
+        os << "events/ev_" << mpo.getMachineID() << "-" << mpo.getProcessID() << "-"
+           << static_cast< mega::U32 >( mpo.getOwnerID() ) << "_" << m_conversationIDRef << "/";
+
+        const boost::filesystem::path eventLogFolder = logFolder / os.str();
+        SPDLOG_TRACE( "MPOContext::createRoot: mpo: {} project: {} event log: {}", mpo,
+                      project.getProjectInstallPath().string(), eventLogFolder.string() );
+
+        m_pLog                 = std::make_unique< log::Storage >( eventLogFolder );
+        m_pTransactionProducer = std::make_unique< network::TransactionProducer >( *m_pLog );
+    }
+
     m_mpo = mpo;
 
     m_pDatabase.reset();
@@ -218,7 +246,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     // instantiate the root
     m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
     VERIFY_RTE_MSG( m_root.is_valid(), "Root allocation failed" );
-    m_log.record( mega::log::Structure::Write( reference{}, m_root, 0, mega::log::Structure::eConstruct ) );
+    m_pLog->record( mega::log::Structure::Write( reference{}, m_root, 0, mega::log::Structure::eConstruct ) );
 }
 
 void MPOContext::jit( runtime::JITFunctor func )
@@ -259,6 +287,8 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
                 case log::Structure::eBreakTarget:
                     recordBreak( structure.m_data.m_Source, structure.m_data.m_Target );
                     break;
+                case log::Structure::eMove:
+                    break;
                 default:
                     THROW_RTE(
                         "Unsupported structure record type: " << log::Structure::toString( structure.m_data.m_Type ) );
@@ -271,7 +301,7 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
         {
             SPDLOG_TRACE( "SIM::SimLockRelease Got scheduling record: {} {}", scheduling.m_data.m_Ref,
                           log::Scheduling::toString( scheduling.m_data.m_Type ) );
-            m_log.record( log::Scheduling::Write( scheduling.m_data.m_Ref, scheduling.m_data.m_Type ) );
+            m_pLog->record( log::Scheduling::Write( scheduling.m_data.m_Ref, scheduling.m_data.m_Type ) );
         }
     }
     {
@@ -285,11 +315,11 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
 
 void MPOContext::cycleComplete()
 {
-    m_log.cycle();
+    m_pLog->cycle();
 
     network::TransactionProducer::MPOTransactions transactions;
     network::TransactionProducer::UnparentedSet   unparentedObjects;
-    m_transactionProducer.generate( transactions, unparentedObjects );
+    m_pTransactionProducer->generate( transactions, unparentedObjects );
 
     m_pMemoryManager->Garbage();
 
@@ -306,7 +336,7 @@ void MPOContext::cycleComplete()
                 deleteRef = m_pMemoryManager->networkToHeap( deleteRef );
             }
             m_pMemoryManager->Delete( deleteRef );
-            m_log.record( mega::log::Structure::Write( reference{}, deleteRef, 0, mega::log::Structure::eDestruct ) );
+            m_pLog->record( mega::log::Structure::Write( reference{}, deleteRef, 0, mega::log::Structure::eDestruct ) );
         }
     }
 
@@ -326,25 +356,4 @@ void MPOContext::cycleComplete()
     m_lockTracker.reset();
 }
 
-boost::filesystem::path MPOContext::makeLogDirectory( const network::ConversationID& conversationID )
-{
-    boost::filesystem::path logFolder;
-    {
-        const char* pszCFG_TYPE = std::getenv( network::ENV_CFG_TYPE );
-        if( pszCFG_TYPE != nullptr )
-        {
-            std::ostringstream os;
-            os << "/home/foobar/test_" << pszCFG_TYPE;
-            logFolder = os.str();
-        }
-        else
-        {
-            logFolder = boost::filesystem::current_path();
-        }
-    }
-
-    std::ostringstream os;
-    os << "log_" << conversationID;
-    return logFolder / os.str();
-}
 } // namespace mega

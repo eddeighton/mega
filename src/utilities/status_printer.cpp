@@ -90,6 +90,10 @@ void StatusPrinter::printNodeInfo( const network::Status& status, std::ostream& 
 
     if( m_config.m_bLog )
     {
+        if( status.getLogFolder().has_value() )
+        {
+            line( os, indent ) << "LOG: " << status.getLogFolder().value() << "\n";
+        }
         if( status.getLogIterator().has_value() )
         {
             const log::IndexRecord& iter = status.getLogIterator().value();
@@ -97,7 +101,7 @@ void StatusPrinter::printNodeInfo( const network::Status& status, std::ostream& 
             {
                 if( auto amt = iter.get( log::TrackType( i ) ).get(); amt > 0 )
                 {
-                    line( os, indent ) << "LOG: " << log::toName( log::TrackType( i ) ) << ": "
+                    line( os, indent ) << "  " << log::toName( log::TrackType( i ) ) << ": "
                                        << iter.get( log::TrackType( i ) ).get() << "\n";
                 }
             }

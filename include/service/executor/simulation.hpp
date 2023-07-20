@@ -98,7 +98,6 @@ private:
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     ProcessClock&                                        m_processClock;
     network::Sender::Ptr                                 m_pRequestChannelSender;
-    Scheduler                                            m_scheduler;
     StateMachine                                         m_stateMachine;
     StateMachine::MsgVector                              m_messageQueue;
     int                                                  m_queueStack = 0;
