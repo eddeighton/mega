@@ -74,7 +74,7 @@ msg SimUnregister
 msg SimClock
 {
     request( MPO mpo, log::Range range );
-    response();
+    response( network::ClockTick clockTick );
 }
 
 msg SimCreate

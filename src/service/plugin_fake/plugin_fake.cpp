@@ -20,6 +20,7 @@
 
 #include "service/plugin/api.hpp"
 
+#include "service/executor/clock.hpp"
 #include "service/executor/executor.hpp"
 
 #include "mega/native_types.hpp"
@@ -41,7 +42,7 @@ namespace mega::service
 namespace
 {
 
-class FakePlugin
+class FakePlugin : public ProcessClock
 {
     mega::service::Executor m_executor;
 
@@ -49,7 +50,7 @@ public:
     using Ptr = std::shared_ptr< FakePlugin >;
 
     FakePlugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
-        : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort() )
+        : m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), *this, network::Node::Plugin )
     {
     }
 
@@ -57,6 +58,24 @@ public:
     FakePlugin( FakePlugin&& )                 = delete;
     FakePlugin& operator=( const FakePlugin& ) = delete;
     FakePlugin& operator=( FakePlugin&& )      = delete;
+
+    // ProcessClock
+    virtual void setActiveProject( const Project& project, U64 dbHashCode ) override
+    {
+        // do nothing
+    }
+    virtual void registerMPO( network::SenderRef sender )
+    {
+        // do nothing
+    }
+    virtual void unregisterMPO( network::SenderRef sender )
+    {
+        // do nothing
+    }
+    virtual void requestClock( network::ConversationBase* pSender, MPO mpo, log::Range range )
+    {
+        // do nothing
+    }
 
     mega::U64   database_hashcode() { return 0; }
     const char* database() { return nullptr; }
@@ -66,9 +85,9 @@ public:
     void upstream( float delta, void* pRange )
     {
         //
-       // boost::filesystem::path f( "/build/linux_gcc_shared_debug/game/install/bin/unityDatabase.json" );
-       // auto                    h = task::FileHash( f );
-       // SPDLOG_TRACE( "Got unityDatabase.json hashcode of: {}", h.get() );
+        // boost::filesystem::path f( "/build/linux_gcc_shared_debug/game/install/bin/unityDatabase.json" );
+        // auto                    h = task::FileHash( f );
+        // SPDLOG_TRACE( "Got unityDatabase.json hashcode of: {}", h.get() );
     }
 
     U64         network_count() { return 0; }

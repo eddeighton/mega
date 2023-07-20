@@ -27,31 +27,11 @@
 
 namespace mega
 {
-Clock::Clock()
-{
-    m_lastTick = m_startTick = ClockType::now();
-    m_cycle                  = 1U;
-    m_ct = m_dt = 0.0f;
-}
-
-void Clock::nextCycle()
-{
-    const Tick nowTick = ClockType::now();
-    m_dt               = FloatTickDuration( nowTick - m_lastTick ).count();
-    m_ct               = FloatTickDuration( nowTick - m_startTick ).count();
-    m_lastTick         = nowTick;
-    ++m_cycle;
-}
-
-Clock::Tick Clock::actual() const { return ClockType::now(); }
-TimeStamp   Clock::cycle() const { return m_cycle; }
-F32         Clock::ct() const { return m_ct; }
-F32         Clock::dt() const { return m_dt; }
-
 } // namespace mega
 
 // implement mega/clock.hpp
-
+/*
 mega::TimeStamp Clock::cycle() { return mega::Context::get()->cycle(); }
 mega::F32 Clock::ct() { return mega::Context::get()->ct(); }
 mega::F32 Clock::dt() { return mega::Context::get()->dt(); }
+*/

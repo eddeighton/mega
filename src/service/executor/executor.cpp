@@ -44,16 +44,16 @@ namespace mega::service
 {
 
 Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short daemonPortNumber,
-                    network::ConversationBase* pClock, network::Node::Type nodeType )
+                    ProcessClock& processClock, network::Node::Type nodeType )
     : network::ConversationManager( network::makeProcessName( nodeType ), io_context )
     , m_io_context( io_context )
     , m_numThreads( numThreads )
-    , m_pClock( pClock )
+    , m_processClock( processClock )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf(
-          [ &m_receiverChannel = m_receiverChannel, nodeType ]()
+          [ &m_receiverChannel = m_receiverChannel ]()
           {
-              m_receiverChannel.run( network::makeProcessName( nodeType ) );
+              m_receiverChannel.run( network::makeProcessName( network::Node::Leaf ) );
               return m_receiverChannel.getSender();
           }(),
           nodeType, daemonPortNumber )
@@ -61,23 +61,20 @@ Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short d
     m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
         m_leaf.getMegastructureInstallation().getParserPath(), "g_parserSymbol" );
 
-    if( m_pClock )
+    updateActiveProjectToClock();
+}
+
+void Executor::updateActiveProjectToClock()
+{
+    // fire and forget to the plugin the active project
+    mega::U64 unityDBHashCode = 0U;
     {
-        // fire and forget to the plugin the active project
-        using namespace network::project;
-        mega::U64 unityDBHashCode = 0U;
+        if( auto dbHashCodeOpt = m_leaf.getUnityDBHashCode() )
         {
-            if( m_leaf.getUnityDBHashCode().has_value() )
-            {
-                unityDBHashCode = m_leaf.getUnityDBHashCode().value().get();
-            }
+            unityDBHashCode = dbHashCodeOpt.value().get();
         }
-        const network::ReceivedMsg rMsg{
-            m_pClock->getConnectionID(),
-            MSG_SetUnityProject_Request::make(
-                m_pClock->getID(), MSG_SetUnityProject_Request{ m_leaf.getActiveProject(), unityDBHashCode } ) };
-        m_pClock->send( rMsg );
     }
+    m_processClock.setActiveProject( m_leaf.getActiveProject(), unityDBHashCode );
 }
 
 Executor::~Executor()
@@ -98,8 +95,9 @@ Executor::~Executor()
 
 class ExecutorShutdown : public ExecutorRequestConversation
 {
-    std::promise< void >& m_promise;
+    std::promise< void >&          m_promise;
     std::vector< Simulation::Ptr > m_simulations;
+
 public:
     ExecutorShutdown( Executor& exe, std::promise< void >& promise, std::vector< Simulation::Ptr > simulations )
         : ExecutorRequestConversation( exe, exe.createConversationID( "shutdown" ), {} )
@@ -127,8 +125,8 @@ void Executor::shutdown()
     if( !simulations.empty() )
     {
         SPDLOG_WARN( "Simulations still running when shutting executor down" );
-        std::promise< void > promise;
-        std::future< void >  future = promise.get_future();
+        std::promise< void >           promise;
+        std::future< void >            future = promise.get_future();
         network::ConversationBase::Ptr pShutdown( new ExecutorShutdown( *this, promise, simulations ) );
         conversationInitiated( pShutdown, getLeafSender() );
         future.get();
@@ -174,7 +172,7 @@ mega::MPO Executor::createSimulation( network::ConversationBase&  callingConvers
         WriteLock lock( m_mutex );
         // NOTE: duplicate of ConversationManager::createConversationID
         const network::ConversationID id( ++m_nextConversationID, getLeafSender().getConnectionID() );
-        pSimulation = std::make_shared< Simulation >( *this, id, m_pClock );
+        pSimulation = std::make_shared< Simulation >( *this, id, m_processClock );
         m_conversations.insert( std::make_pair( pSimulation->getID(), pSimulation ) );
         spawnInitiatedConversation( pSimulation, getLeafSender() );
         SPDLOG_TRACE( "Executor::createSimulation {} {}", m_strProcessName, id );

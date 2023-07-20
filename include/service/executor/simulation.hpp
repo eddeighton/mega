@@ -20,6 +20,8 @@
 #ifndef SIMULATION_22_JUNE_2022
 #define SIMULATION_22_JUNE_2022
 
+#include "clock.hpp"
+
 #include "service/executor/request.hpp"
 
 #include "service/executor/clock.hpp"
@@ -46,9 +48,7 @@ class Simulation : public ExecutorRequestConversation, public MPOContext
 public:
     using Ptr = std::shared_ptr< Simulation >;
 
-    Simulation( Executor&                      executor,
-                const network::ConversationID& conversationID,
-                network::ConversationBase*     pClock = nullptr );
+    Simulation( Executor& executor, const network::ConversationID& conversationID, ProcessClock& processClock );
 
     virtual network::Message     dispatchRequest( const network::Message&     msg,
                                                   boost::asio::yield_context& yield_ctx ) override;
@@ -90,26 +90,16 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
-    // MPOContext
-    // clock
-    virtual TimeStamp cycle() override { return m_clock.cycle(); }
-    virtual F32       ct() override { return m_clock.ct(); }
-    virtual F32       dt() override { return m_clock.dt(); }
-
 private:
-    void issueClock();
-    void clock();
     void runSimulation( boost::asio::yield_context& yield_ctx );
-
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
 private:
-    network::ConversationBase*                           m_pClock;
+    std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
+    ProcessClock&                                        m_processClock;
     network::Sender::Ptr                                 m_pRequestChannelSender;
     Scheduler                                            m_scheduler;
     StateMachine                                         m_stateMachine;
-    boost::asio::steady_timer                            m_timer;
-    std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     StateMachine::MsgVector                              m_messageQueue;
     int                                                  m_queueStack = 0;
     struct QueueStackDepth
@@ -122,7 +112,6 @@ private:
         }
         ~QueueStackDepth() { --stackDepth; }
     };
-    Clock                                 m_clock;
     std::string                           m_strSimCreateError;
     std::optional< network::ReceivedMsg > m_simCreateMsgOpt;
     bool                                  m_bShuttingDown = false;

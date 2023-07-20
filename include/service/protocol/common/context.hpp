@@ -56,11 +56,6 @@ public:
     virtual void jit( runtime::JITFunctor func ) = 0;
     virtual void yield()                         = 0;
 
-    // clock
-    virtual TimeStamp cycle() = 0;
-    virtual F32       ct()    = 0;
-    virtual F32       dt()    = 0;
-
     // log
     virtual log::Storage& getLog() = 0;
 

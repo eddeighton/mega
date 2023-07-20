@@ -37,7 +37,7 @@ namespace mega::service
 
 Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
     : m_channel( ioContext )
-    , m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), this, network::Node::Plugin )
+    , m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), *this, network::Node::Plugin )
     , m_stateMachine( *this )
 {
     SPDLOG_TRACE( "Plugin::Plugin()" );
@@ -113,6 +113,41 @@ void Plugin::sendErrorResponse( const network::ReceivedMsg& msg, const std::stri
     sendErrorResponse( msg, strErrorMsg );
 }
 
+// ProcessClock
+void Plugin::setActiveProject( const Project& project, U64 unityDBHashCode )
+{
+    using namespace network::project;
+    const network::ReceivedMsg rMsg{
+        getConnectionID(),
+        MSG_SetUnityProject_Request::make( getID(), MSG_SetUnityProject_Request{ project, unityDBHashCode } ) };
+    send( rMsg );
+}
+
+void Plugin::registerMPO( network::SenderRef sender )
+{
+    send( network::ReceivedMsg{
+        sender.m_pSender->getConnectionID(),
+        network::sim::MSG_SimRegister_Request::make(
+            sender.m_pSender->getID(), getID(), network::sim::MSG_SimRegister_Request{ std::move( sender ) } ) } );
+}
+
+void Plugin::unregisterMPO( network::SenderRef sender )
+{
+    send( network::ReceivedMsg{
+        sender.m_pSender->getConnectionID(),
+        network::sim::MSG_SimUnregister_Request::make(
+            sender.m_pSender->getID(), getID(), network::sim::MSG_SimUnregister_Request{ sender.m_mpo } ) } );
+}
+
+void Plugin::requestClock( network::ConversationBase* pSender, MPO mpo, log::Range range )
+{
+    send( network::ReceivedMsg{
+        pSender->getConnectionID(),
+        network::sim::MSG_SimClock_Request::make(
+            pSender->getID(), getID(), network::sim::MSG_SimClock_Request{ mpo, std::move( range ) } ) } );
+}
+
+// network::ConversationBase
 const network::ConversationID& Plugin::getID() const
 {
     static network::ConversationID pluginID{ 0, "PLUGIN" };

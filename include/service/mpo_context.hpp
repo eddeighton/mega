@@ -67,9 +67,6 @@ protected:
     std::unique_ptr< runtime::MPODatabase >   m_pDatabase;
     std::unique_ptr< runtime::MemoryManager > m_pMemoryManager;
 
-    // static constexpr std::size_t                                TOTAL_DELETE_QUEUES = 4;
-    // std::array< std::vector< reference >, TOTAL_DELETE_QUEUES > m_deleteQueues;
-
 public:
     MPOContext( const network::ConversationID& conversationID )
         : m_conversationIDRef( conversationID )

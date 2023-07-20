@@ -41,13 +41,11 @@
 namespace mega::service
 {
 
-Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID,
-                        network::ConversationBase* pClock )
+Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID, ProcessClock& processClock )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
     , MPOContext( conversationID )
-    , m_pClock( pClock )
+    , m_processClock( processClock )
     , m_scheduler( m_log )
-    , m_timer( executor.m_io_context )
 {
     m_bEnableQueueing = true;
 }
@@ -97,22 +95,6 @@ network::jit::Request_Sender Simulation::getLeafJITRequest()
     return { *this, m_executor.getLeafSender(), *m_pYieldContext };
 }
 
-void Simulation::issueClock()
-{
-    Simulation* pThis = this;
-    using namespace std::chrono_literals;
-    m_timer.expires_from_now( 15ms );
-    m_timer.async_wait( [ pThis ]( boost::system::error_code ec ) { pThis->clock(); } );
-}
-
-void Simulation::clock()
-{
-    // SPDLOG_TRACE( "SIM: Clock {} {}", getID(), getElapsedTime() );
-    //  send the clock tick msg
-    using namespace network::sim;
-    send( network::ReceivedMsg{ getConnectionID(), StateMachine::Clock::make( getID(), StateMachine::Clock{} ) } );
-}
-
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
@@ -120,19 +102,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         VERIFY_RTE( m_mpo.has_value() );
         SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
-        // issue first clock tick
-        if( m_pClock )
-        {
-            m_pClock->send( network::ReceivedMsg{
-                getConnectionID(), network::sim::MSG_SimRegister_Request::make(
-                                       getID(), m_pClock->getID(),
-                                       network::sim::MSG_SimRegister_Request{ network::SenderRef{
-                                           m_mpo.value(), this, m_pMemoryManager->getAllocators() } } ) } );
-        }
-        else
-        {
-            clock();
-        }
+        m_processClock.registerMPO(
+            network::SenderRef{ m_mpo.value(), this, m_pMemoryManager->getAllocators() } );
 
         bool                    bRegistedAsTerminating = false;
         TimeStamp               lastCycle              = m_log.getTimeStamp();
@@ -167,7 +138,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case StateMachine::SIM:
                 {
-                    m_clock.nextCycle();
+                    // m_clock.nextCycle();
 
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
@@ -178,10 +149,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     m_pMemoryManager->doubleBuffer();
 
-                    /*if( m_log.getTimeStamp() % 60 == 0 )
-                    {
-                        SPDLOG_TRACE( "SIM: cycleComplete {} {}", m_mpo.value(), m_log.getTimeStamp() );
-                    }*/
+                    // SPDLOG_TRACE( "SIM: Cycle {} {}", getID(), m_mpo.value() );
                 }
                 break;
                 case StateMachine::READ:
@@ -197,14 +165,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 case StateMachine::TERM:
                 {
                     SPDLOG_TRACE( "SIM: TERM {} {}", getID(), m_mpo.value() );
-
-                    if( m_pClock )
-                    {
-                        m_pClock->send( network::ReceivedMsg{
-                            getConnectionID(), network::sim::MSG_SimUnregister_Request::make(
-                                                   getID(), m_pClock->getID(),
-                                                   network::sim::MSG_SimUnregister_Request{ m_mpo.value() } ) } );
-                    }
+                    m_processClock.unregisterMPO( network::SenderRef{ m_mpo.value(), this, m_pMemoryManager->getAllocators() } );
                 }
                 break;
                 case StateMachine::WAIT:
@@ -231,22 +192,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         if( m_stateMachine.onMsg( { msg } ) )
                         {
-                            // if( !m_stateMachine.isTerminated() )
-                            {
-                                if( m_pClock )
-                                {
-                                    m_pClock->send( network::ReceivedMsg{
-                                        getConnectionID(), network::sim::MSG_SimClock_Request::make(
-                                                               getID(), m_pClock->getID(),
-                                                               network::sim::MSG_SimClock_Request{
-                                                                   m_mpo.value(), m_log.getRange( lastCycle ) } ) } );
-                                    lastCycle = m_log.getTimeStamp();
-                                }
-                                else
-                                {
-                                    issueClock();
-                                }
-                            }
+                            m_processClock.requestClock( this, m_mpo.value(), m_log.getRange( lastCycle ) );
+                            lastCycle = m_log.getTimeStamp();
                         }
                     }
                     break;
@@ -427,9 +374,8 @@ reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yiel
 {
     SPDLOG_TRACE( "SIM::SimAllocate: {}", objectTypeID );
     QueueStackDepth queueMsgs( m_queueStack );
-    reference allocated = m_pMemoryManager->New( objectTypeID );
-    m_log.record( mega::log::Structure::Write(
-        reference{}, allocated, 0, mega::log::Structure::eConstruct ) );
+    reference       allocated = m_pMemoryManager->New( objectTypeID );
+    m_log.record( mega::log::Structure::Write( reference{}, allocated, 0, mega::log::Structure::eConstruct ) );
     return allocated.getHeaderAddress();
 }
 

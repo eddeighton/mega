@@ -98,34 +98,42 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         if( !strCreate.empty() )
         {
-            if( std::find( strCreate.begin(), strCreate.end(), '.' ) == strCreate.end() )
+            if( std::count( strCreate.begin(), strCreate.end(), '.' ) == 0 )
             {
                 const mega::MachineID   daemonMachineID = toMachineID( strCreate );
                 mega::service::Terminal terminal;
                 const mega::MP          executorMP = terminal.ExecutorCreate( daemonMachineID );
                 std::cout << executorMP << std::endl;
             }
-            else
+            else if( std::count( strCreate.begin(), strCreate.end(), '.' ) == 1 )
             {
                 const mega::MP          executorMP = toMP( strCreate );
                 mega::service::Terminal terminal;
                 const mega::MPO         simMPO = terminal.SimCreate( executorMP );
                 std::cout << simMPO << std::endl;
             }
+            else
+            {
+                THROW_RTE( "Invalid machineID or MP specified to create: " << strCreate );
+            }
         }
         else if( !strDestroy.empty() )
         {
-            if( std::find( strCreate.begin(), strCreate.end(), '.' ) == strCreate.end() )
+            if( std::count( strDestroy.begin(), strDestroy.end(), '.' ) == 1 )
             {
                 const mega::MP          executorMP = toMP( strDestroy );
                 mega::service::Terminal terminal;
                 terminal.ExecutorDestroy( executorMP );
             }
-            else
+            else if( std::count( strDestroy.begin(), strDestroy.end(), '.' ) == 2 )
             {
                 const mega::MPO         simMPO = toMPO( strDestroy );
                 mega::service::Terminal terminal;
                 terminal.SimDestroy( simMPO );
+            }
+            else
+            {
+                THROW_RTE( "Invalid MP or MPO specified to destroy: " << strDestroy );
             }
         }
         else if( !strRead.empty() )

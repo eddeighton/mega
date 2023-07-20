@@ -20,6 +20,8 @@
 #ifndef EXECUTOR_27_MAY_2022
 #define EXECUTOR_27_MAY_2022
 
+#include "clock.hpp"
+
 #include "service/leaf.hpp"
 
 #include "service/network/conversation_manager.hpp"
@@ -52,11 +54,12 @@ class Executor : public network::ConversationManager
 public:
     using SimulationMap = std::unordered_map< mega::MPO, std::shared_ptr< Simulation >, mega::MPO::Hash >;
 
-    Executor( boost::asio::io_context&   io_context,
-              U64                        numThreads,
-              short                      daemonPortNumber,
-              network::ConversationBase* pClock   = nullptr,
-              network::Node::Type        nodeType = network::Node::Executor );
+    Executor( boost::asio::io_context& io_context,
+              U64                      numThreads,
+              short                    daemonPortNumber,
+              ProcessClock&            processClock,
+              network::Node::Type      nodeType );
+
     ~Executor() override;
     void shutdown();
 
@@ -74,12 +77,12 @@ public:
     void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );
     void      conversationCompleted( network::ConversationBase::Ptr pConversation ) override;
 
-    network::ConversationBase* getClock() { return m_pClock; }
+    void updateActiveProjectToClock();
 
 private:
     boost::asio::io_context&                 m_io_context;
     U64                                      m_numThreads;
-    network::ConversationBase*               m_pClock;
+    ProcessClock&                            m_processClock;
     boost::shared_ptr< EG_PARSER_INTERFACE > m_pParser;
     network::ReceiverChannel                 m_receiverChannel;
     Leaf                                     m_leaf;

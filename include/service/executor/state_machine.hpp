@@ -60,11 +60,13 @@ private:
     MsgVector           m_msgQueue;
     IDSet               m_activeReads;
     std::optional< ID > m_activeWrite;
+    network::ClockTick  m_clockTick;
 
 public:
-    State getState() const { return m_state; }
-    bool  isTerminating() const { return m_state == TERM; }
-    bool  isTerminated() const
+    State                     getState() const { return m_state; }
+    const network::ClockTick& getClockTick() const { return m_clockTick; }
+    bool                      isTerminating() const { return m_state == TERM; }
+    bool                      isTerminated() const
     {
         return ( m_state == TERM ) && m_activeReads.empty() && ( !m_activeWrite.has_value() ) && m_acks.empty();
     }
@@ -74,12 +76,12 @@ public:
 
     void resetAcks() { m_acks.clear(); }
 
-    using Read      = network::sim::MSG_SimLockRead_Request;
-    using Write     = network::sim::MSG_SimLockWrite_Request;
-    using Release   = network::sim::MSG_SimLockRelease_Request;
-    using Destroy   = network::sim::MSG_SimDestroy_Request;
-    using Block     = network::sim::MSG_SimDestroyBlocking_Request;
-    using Clock     = network::sim::MSG_SimClock_Response;
+    using Read    = network::sim::MSG_SimLockRead_Request;
+    using Write   = network::sim::MSG_SimLockWrite_Request;
+    using Release = network::sim::MSG_SimLockRelease_Request;
+    using Destroy = network::sim::MSG_SimDestroy_Request;
+    using Block   = network::sim::MSG_SimDestroyBlocking_Request;
+    using Clock   = network::sim::MSG_SimClock_Response;
 
     static network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
     static const mega::MPO&   getSimID( const Msg& msg )
@@ -95,6 +97,19 @@ public:
             case Destroy::ID:
             case Block::ID:
             case Clock::ID:
+            default:
+                THROW_RTE( "Unreachable" );
+        }
+    }
+    static const network::ClockTick& getClockTick( const Msg& msg )
+    {
+        switch( getMsgID( msg ) )
+        {
+            case Clock::ID:
+            {
+                return Clock::get( msg.msg ).clockTick;
+            }
+            break;
             default:
                 THROW_RTE( "Unreachable" );
         }
@@ -167,6 +182,7 @@ public:
                     {
                         if( m_state == WAIT )
                         {
+                            m_clockTick  = getClockTick( msg );
                             m_state      = SIM;
                             bClockTicked = true;
                         }
@@ -297,6 +313,7 @@ public:
                 case Clock::ID:
                     if( m_activeReads.empty() && m_state == READ )
                     {
+                        m_clockTick  = getClockTick( msg );
                         m_state      = SIM;
                         bClockTicked = true;
                     }
@@ -426,6 +443,7 @@ public:
                 case Clock::ID:
                     if( !m_activeWrite.has_value() )
                     {
+                        m_clockTick  = getClockTick( msg );
                         m_state      = SIM;
                         bClockTicked = true;
                     }
@@ -490,6 +508,7 @@ public:
                 break;
                 case Clock::ID:
                 {
+                    m_clockTick  = getClockTick( msg );
                     bClockTicked = true;
                 }
                 break;

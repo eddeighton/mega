@@ -47,25 +47,27 @@ set( EXECUTOR_SRC_DIR ${MEGA_SRC_DIR}/service/executor )
 ####################################################################
 
 set( EXECUTOR_LIB_API 
+    ${EXECUTOR_API_DIR}/clock_standalone.hpp
+    ${EXECUTOR_API_DIR}/clock.hpp
     ${EXECUTOR_API_DIR}/executor.hpp
     ${EXECUTOR_API_DIR}/request.hpp 
-    ${EXECUTOR_API_DIR}/state_machine.hpp 
-    ${EXECUTOR_API_DIR}/simulation.hpp
-    ${EXECUTOR_API_DIR}/clock.hpp
     ${EXECUTOR_API_DIR}/scheduler.hpp
+    ${EXECUTOR_API_DIR}/simulation.hpp
+    ${EXECUTOR_API_DIR}/state_machine.hpp 
     )
 
 set( EXECUTOR_LIB_SRC 
-    ${EXECUTOR_SRC_DIR}/request.cpp
-    ${EXECUTOR_SRC_DIR}/job.hpp
-    ${EXECUTOR_SRC_DIR}/job.cpp
-    ${EXECUTOR_SRC_DIR}/simulation.cpp
-    ${EXECUTOR_SRC_DIR}/scheduler.cpp
+    ${EXECUTOR_SRC_DIR}/clock_standalone.cpp
     ${EXECUTOR_SRC_DIR}/clock.cpp
     ${EXECUTOR_SRC_DIR}/executor.cpp
-    ${EXECUTOR_SRC_DIR}/routing.cpp
-    ${EXECUTOR_SRC_DIR}/status.cpp
+    ${EXECUTOR_SRC_DIR}/job.cpp
+    ${EXECUTOR_SRC_DIR}/job.hpp
     ${EXECUTOR_SRC_DIR}/project.cpp
+    ${EXECUTOR_SRC_DIR}/request.cpp
+    ${EXECUTOR_SRC_DIR}/routing.cpp
+    ${EXECUTOR_SRC_DIR}/scheduler.cpp
+    ${EXECUTOR_SRC_DIR}/simulation.cpp
+    ${EXECUTOR_SRC_DIR}/status.cpp
 )
 
 add_library( executorLib

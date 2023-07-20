@@ -66,12 +66,6 @@ public:
     virtual void
     RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
-    // mega::MPOContext
-    // clock
-    virtual TimeStamp cycle() override { return TimeStamp{}; }
-    virtual F32       ct() override { return F32{}; }
-    virtual F32       dt() override { return F32{}; }
-
     bool isRunComplete() const { return m_bRunComplete; }
 
 private:

@@ -32,6 +32,19 @@ namespace mega::network
 
 class ConversationBase;
 
+struct ClockTick
+{
+public:
+    mega::TimeStamp m_cycle = {};
+    mega::F32       m_ct = {}, m_dt = {};
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        THROW_RTE( "Attempted to serialize ClockTick" );
+    }
+};
+
 class SenderRef
 {
 public:

@@ -17,39 +17,30 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef EG_CLOCK_12_06_2019
 #define EG_CLOCK_12_06_2019
+
+#include "utilities/project.hpp"
+
+#include "service/protocol/common/sender_ref.hpp"
+
+#include "log/range.hpp"
 
 #include "mega/reference.hpp"
 
 #include <chrono>
+#include <memory>
 
-namespace mega
+namespace mega::service
 {
-    struct Clock
-    {
-    public:
-        typedef std::chrono::steady_clock                           ClockType;
-        typedef ClockType::time_point                               Tick;
-        typedef ClockType::duration                                 TickDuration;
-        typedef std::chrono::duration< mega::F32, std::ratio< 1 > > FloatTickDuration;
+class ProcessClock
+{
+public:
+    virtual void setActiveProject( const Project& project, U64 dbHashCode )                    = 0;
+    virtual void registerMPO( network::SenderRef sender )                                      = 0;
+    virtual void unregisterMPO( network::SenderRef sender )                                    = 0;
+    virtual void requestClock( network::ConversationBase* pSender, MPO mpo, log::Range range ) = 0;
+};
+} // namespace mega::service
 
-        Clock();
-
-        void nextCycle();
-
-        Tick            actual() const;
-        mega::TimeStamp cycle() const;
-        mega::F32       ct() const;
-        mega::F32       dt() const;
-
-    private:
-        Tick            m_lastTick, m_startTick;
-        mega::TimeStamp m_cycle;
-        mega::F32       m_ct, m_dt;
-    };
-}
-
-#endif //EG_CLOCK_12_06_2019
+#endif // EG_CLOCK_12_06_2019

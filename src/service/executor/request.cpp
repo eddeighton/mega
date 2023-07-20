@@ -116,10 +116,8 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
                 THROW_RTE( "Unsupported MPO request type for mpo: " << mpo << " request: " << request.getName() );
         }
     }
-    else
-    {
-        THROW_RTE( "Failed to resolve simulation: " << mpo );
-    }
+    THROW_RTE( "Failed to resolve simulation: " << mpo );
+    return {}; // prevent warning
 }
 
 } // namespace mega::service

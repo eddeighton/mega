@@ -25,6 +25,7 @@
 #include "service/plugin/player_network.hpp"
 #include "service/plugin/plugin_state_machine.hpp"
 
+#include "service/executor/clock.hpp"
 #include "service/executor/executor.hpp"
 
 #include "service/protocol/common/platform_state.hpp"
@@ -44,7 +45,7 @@
 namespace mega::service
 {
 
-class Plugin : public network::ConversationBase
+class Plugin : public network::ConversationBase, public ProcessClock
 {
     using MessageChannel
         = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, network::ReceivedMsg ) >;
@@ -64,23 +65,33 @@ public:
     Plugin& operator=( Plugin&& )      = delete;
 
     // Sender
-    virtual network::ConnectionID     getConnectionID() const;
-    virtual boost::system::error_code send( const network::Message& msg, boost::asio::yield_context& yield_ctx );
+    virtual network::ConnectionID     getConnectionID() const override;
+    virtual boost::system::error_code send( const network::Message&     msg,
+                                            boost::asio::yield_context& yield_ctx ) override;
     void         sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg );
     virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx );
+                                    boost::asio::yield_context& yield_ctx ) override;
+
+    // ProcessClock
+    virtual void setActiveProject( const Project& project, U64 dbHashCode ) override;
+    virtual void registerMPO( network::SenderRef sender ) override;
+    virtual void unregisterMPO( network::SenderRef sender ) override;
+    virtual void requestClock( network::ConversationBase* pSender, MPO mpo, log::Range range ) override;
 
     // network::ConversationBase
-    virtual const network::ConversationID& getID() const;
-    virtual void                           send( const network::ReceivedMsg& msg );
+    virtual const network::ConversationID& getID() const override;
+    virtual void                           send( const network::ReceivedMsg& msg ) override;
 
-    virtual network::Message   dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
-    virtual void               run( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
-    virtual const std::string& getProcessName() const { THROW_TODO; }
-    virtual U64                getStackSize() const { THROW_TODO; }
-    virtual void               onDisconnect( const network::ConnectionID& connectionID ) { THROW_TODO; }
-    virtual void               requestStarted( const network::ConnectionID& connectionID ) { ; }
-    virtual void               requestCompleted() { ; }
+    virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override
+    {
+        THROW_TODO;
+    }
+    virtual void               run( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
+    virtual const std::string& getProcessName() const override { THROW_TODO; }
+    virtual U64                getStackSize() const override { THROW_TODO; }
+    virtual void               onDisconnect( const network::ConnectionID& connectionID ) override { THROW_TODO; }
+    virtual void               requestStarted( const network::ConnectionID& connectionID ) override { ; }
+    virtual void               requestCompleted() override { ; }
 
     void send( ConversationBase& sender, network::Message&& requestMsg )
     {
@@ -106,7 +117,8 @@ public:
     void upstream( float delta, void* pRange )
     {
         m_ct += delta;
-        m_stateMachine.sendUpstream();
+        const network::ClockTick clockTick{ ++m_cycle, m_ct, delta };
+        m_stateMachine.sendUpstream( clockTick );
     }
 
     void runOne();
@@ -134,7 +146,8 @@ private:
     std::string m_strDatabasePath;
     U64         m_memoryHashcode;
     // MemoryDescription                            m_memoryDescription;
-    float m_ct = 0.0f;
+    mega::TimeStamp m_cycle = 0;
+    float           m_ct    = 0.0f;
     // float                        m_statusRate       = 1.0f;
     // bool                         m_bNetworkRequest  = false;
     // bool                         m_bPlatformRequest = false;

@@ -198,12 +198,6 @@ public:
 
         return status;
     }
-
-    // mega::MPOContext
-    // clock
-    virtual TimeStamp cycle() override { return TimeStamp{}; }
-    virtual F32       ct() override { return F32{}; }
-    virtual F32       dt() override { return F32{}; }
 };
 } // namespace
 

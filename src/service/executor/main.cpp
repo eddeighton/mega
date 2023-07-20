@@ -17,10 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "service/executor/clock_standalone.hpp"
 #include "service/executor/executor.hpp"
 
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
+
+#include "service/protocol/common/node.hpp"
 
 #include "pipeline/pipeline.hpp"
 
@@ -38,14 +41,15 @@
 #include <chrono>
 #include <thread>
 
-
 int main( int argc, const char* argv[] )
 {
-    using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
-    NumThreadsType          uiNumThreads       = std::thread::hardware_concurrency();
-    std::string             strIP              = "localhost";
-    short                   daemonPortNumber   = mega::network::MegaDaemonPort();
-    boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
+    using namespace std::chrono_literals;
+    mega::service::ProcessClockStandalone::FloatTickDuration tickRate = 15ms;
+    using NumThreadsType                                              = decltype( std::thread::hardware_concurrency() );
+    NumThreadsType          uiNumThreads                              = std::thread::hardware_concurrency();
+    std::string             strIP                                     = "localhost";
+    short                   daemonPortNumber                          = mega::network::MegaDaemonPort();
+    boost::filesystem::path logFolder                                 = boost::filesystem::current_path() / "log";
     std::string             strConsoleLogLevel = "warn", strLogFileLevel = "warn";
     {
         bool bShowHelp = false;
@@ -90,11 +94,13 @@ int main( int argc, const char* argv[] )
     try
     {
         mega::network::configureLog( logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
-                                           mega::network::fromStr( strLogFileLevel ) );
+                                     mega::network::fromStr( strLogFileLevel ) );
 
         boost::asio::io_context ioContext;
 
-        mega::service::Executor executor( ioContext, uiNumThreads, daemonPortNumber );
+        mega::service::ProcessClockStandalone clock( ioContext, tickRate );
+        mega::service::Executor               executor(
+            ioContext, uiNumThreads, daemonPortNumber, clock, mega::network::Node::Executor );
 
         /*auto signalHandler = [ &executor ]( const boost::system::error_code& error, int signalNumber )
             {
@@ -110,7 +116,6 @@ int main( int argc, const char* argv[] )
 
         // Start an asynchronous wait for one of the signals to occur.
         // signals.async_wait( signalHandler );
-
 
         std::vector< std::thread > threads;
         for( int i = 0; i < uiNumThreads; ++i )
