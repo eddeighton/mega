@@ -43,7 +43,7 @@ class LeafEnrole : public LeafRequestConversation
 
 public:
     LeafEnrole( Leaf& leaf, const network::ConnectionID& originatingConnectionID, std::promise< void >& promise )
-        : LeafRequestConversation( leaf, leaf.createConversationID( originatingConnectionID ), originatingConnectionID )
+        : LeafRequestConversation( leaf, leaf.createConversationID(), originatingConnectionID )
         , m_promise( promise )
     {
     }
@@ -110,7 +110,9 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short da
     , m_work_guard( m_io_context.get_executor() )
     , m_io_thread( [ &io_context = m_io_context ]() { io_context.run(); } )
 {
-    m_receiverChannel.run( network::makeProcessName( network::Node::Leaf ) );
+    std::ostringstream osLeafConnectionID;
+    osLeafConnectionID << "LeafConn"; // << network::makeProcessName( network::Node::Leaf )
+    m_receiverChannel.run( osLeafConnectionID.str() );
 
     m_pSelfSender = m_receiverChannel.getSender();
 

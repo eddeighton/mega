@@ -93,7 +93,7 @@ private:
     template < typename RequestType >
     RequestType getRequest()
     {
-        const auto conversationID = createConversationID( getLeafSender().getConnectionID() );
+        const network::ConversationID conversationID;
         using namespace std::placeholders;
         return RequestType(
             std::bind( &Terminal::routeGenericRequest, this, conversationID, _1, makeTermRoot() ), conversationID );
@@ -102,7 +102,7 @@ private:
     template < typename RequestType >
     RequestType getMPRequest( mega::MP mp )
     {
-        const auto conversationID = createConversationID( getLeafSender().getConnectionID() );
+        const network::ConversationID conversationID;
         using namespace std::placeholders;
         return RequestType(
             std::bind( &Terminal::routeGenericRequest, this, conversationID, _1, makeMP( mp ) ), conversationID );
@@ -111,7 +111,7 @@ private:
     template < typename RequestType >
     RequestType getMPORequest( mega::MPO mpo )
     {
-        const auto conversationID = createConversationID( getLeafSender().getConnectionID() );
+        const network::ConversationID conversationID;
         using namespace std::placeholders;
         return RequestType(
             std::bind( &Terminal::routeGenericRequest, this, conversationID, _1, makeMPO( mpo ) ), conversationID );

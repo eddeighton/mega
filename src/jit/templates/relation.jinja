@@ -96,7 +96,7 @@ void* getSourceData( const mega::reference& ref )
         break;
 {% endfor %}
         default:
-            throw mega::runtime::JITException{ "Invalid source type for link" };
+            throw mega::runtime::JITException{ "Invalid source type for link in relation: {{ relationID }}" };
     }
     return nullptr;
 }
@@ -115,7 +115,7 @@ void* getTargetData( const mega::reference& ref )
         break;
 {% endfor %}
         default:
-            throw mega::runtime::JITException{ "Invalid target type for link" };
+            throw mega::runtime::JITException{ "Invalid target type for link in relation: {{ relationID }}" };
     }
     return nullptr;
 }
@@ -158,7 +158,7 @@ void unlinkExistingSingularSourceLink( const mega::reference& source )
         mega::reference& sourceTarget = *reinterpret_cast< mega::reference* >( getTargetData( sourceRef ) );
         if( source != sourceTarget )
         {
-            throw mega::runtime::JITException{ "Hypergraph error source not equal to target ref" };
+            throw mega::runtime::JITException{ "Hypergraph error source not equal to target ref in relation: {{ relationID }}" };
         }
         structureBreak( source, sourceRef );
         sourceRef = mega::reference{};
@@ -176,7 +176,7 @@ void unlinkExistingSingularSourceLink( const mega::reference& source )
         void* pTargetData = getTargetData( sourceRef );
         if( !mega::mangle::ref_vector_contains( pTargetData, source ) )
         {
-            throw mega::runtime::JITException{ "Hypergraph error source not contained in target" };
+            throw mega::runtime::JITException{ "Hypergraph error source not contained in target in relation: {{ relationID }}" };
         }
         structureBreak( source, sourceRef );
         mega::mangle::ref_vector_remove( pTargetData, source );
@@ -198,7 +198,7 @@ void unlinkExistingSingularTargetLink( const mega::reference& target )
         mega::reference& sourceRef = *reinterpret_cast< mega::reference* >( getSourceData( targetRef ) );
         if( target != sourceRef )
         {
-            throw mega::runtime::JITException{ "Hypergraph error target not equal to source ref" };
+            throw mega::runtime::JITException{ "Hypergraph error target not equal to source ref in relation: {{ relationID }}" };
         }
         structureBreak( targetRef, target );
         sourceRef = mega::reference{};
@@ -213,10 +213,10 @@ void unlinkExistingSingularTargetLink( const mega::reference& target )
     prepare( targetRef );
     if( targetRef.is_valid() )
     {
-        void* pSourceData = getTargetData( targetRef );
+        void* pSourceData = getSourceData( targetRef );
         if( !mega::mangle::ref_vector_contains( pSourceData, target ) )
         {
-            throw mega::runtime::JITException{ "Hypergraph error target not contained in source" };
+            throw mega::runtime::JITException{ "Hypergraph error target not contained in source in relation: {{ relationID }}" };
         }
         structureBreak( targetRef, target );
         mega::mangle::ref_vector_remove( pSourceData, target );
@@ -362,6 +362,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
 
 void link_reset_{{ relationID }}( mega::reference context )
 {
+    mega::mangle::log( "link_reset_{{ relationID }} start" );
     prepare( context );
 
     if( isSource( context ) )
@@ -373,8 +374,10 @@ void link_reset_{{ relationID }}( mega::reference context )
     void* pSourceData = getSourceData( context );
     while( !mega::mangle::ref_vector_empty( pSourceData ) )
     {
+        mega::mangle::log( "link_reset_{{ relationID }}" );
         mega::reference target = mega::mangle::ref_vector_back( pSourceData );
         prepare( target );
+
 
 {%      if target_singular %}
         mega::reference& targetRef = *reinterpret_cast< mega::reference* >( getTargetData( target ) );
@@ -410,6 +413,7 @@ void link_reset_{{ relationID }}( mega::reference context )
     void* pTargetData = getTargetData( context );
     while( !mega::mangle::ref_vector_empty( pTargetData ) )
     {
+        mega::mangle::log( "link_reset_{{ relationID }}" );
         mega::reference source = mega::mangle::ref_vector_back( pTargetData );
         prepare( source );
 

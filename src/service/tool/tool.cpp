@@ -57,10 +57,9 @@ class GenericConversation : public ToolRequestConversation, public mega::MPOCont
     TConversationFunctor m_functor;
 
 public:
-    GenericConversation( Tool& tool, const network::ConversationID& conversationID,
-                         const network::ConnectionID& originatingConnectionID, TConversationFunctor&& functor )
-        : ToolRequestConversation( tool, conversationID, originatingConnectionID )
-        , mega::MPOContext( conversationID )
+    GenericConversation( Tool& tool, const network::ConversationID& conversationID, TConversationFunctor&& functor )
+        : ToolRequestConversation( tool, conversationID )
+        , mega::MPOContext( m_conversationID )
         , m_tool( tool )
         , m_functor( functor )
     {
@@ -253,9 +252,9 @@ void Tool::run( Tool::Functor& function )
                 exceptionResult = std::current_exception();
             }
         };
-        network::ConversationBase::Ptr pConversation(
-            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                     getLeafSender().getConnectionID(), std::move( func ) ) );
+        // getLeafSender().getConnectionID()
+        network::ConversationBase::Ptr pConversation( new GenericConversation(
+            *this, createConversationID(), std::move( func ) ) );
 
         conversationInitiated( pConversation, getLeafSender() );
     }

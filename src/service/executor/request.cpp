@@ -36,61 +36,71 @@ MPO ExecutorRequestConversation::SimCreate( boost::asio::yield_context& yield_ct
     return m_executor.createSimulation( *this, yield_ctx );
 }
 
-#define FORWARDED_MSG_ERROR( code ) \
-DO_STUFF_AND_REQUIRE_SEMI_COLON( code )
+#define FORWARDED_MSG_ERROR( code ) DO_STUFF_AND_REQUIRE_SEMI_COLON( code )
 
 // TODO: check ording of receiverID senderID is correct way round! - they are being swapped in response
 #define FORWARD_SIM_MSG_NO_ARG_NO_RETURN( namespace_, name )                                                 \
     case network::namespace_::MSG_##name##_Request::ID:                                                      \
-    {                   \
-            auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
-            network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
-            rq.name();                                                                                          \
-            return network::namespace_::MSG_##name##_Response::make(                                             \
-                request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{} );  \
-    } \
+    {                                                                                                        \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
+        rq.name();                                                                                           \
+        return network::namespace_::MSG_##name##_Response::make(                                             \
+            request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{} );  \
+    }                                                                                                        \
     break
 
 #define FORWARD_SIM_MSG_NO_ARG_ONE_RETURN( namespace_, name )                                                          \
     case network::namespace_::MSG_##name##_Request::ID:                                                                \
     {                                                                                                                  \
-            auto&                               msg = network::namespace_::MSG_##name##_Request::get( request );           \
-            network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                              \
-            return network::namespace_::MSG_##name##_Response::make(                                                       \
-                request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{ rq.name() } ); \
-    }                                                                                                        \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request );           \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                              \
+        return network::namespace_::MSG_##name##_Response::make(                                                       \
+            request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{ rq.name() } ); \
+    }                                                                                                                  \
     break
 
 #define FORWARD_SIM_MSG_ONE_ARG_ONE_RETURN( namespace_, name, arg1 )                                         \
     case network::namespace_::MSG_##name##_Request::ID:                                                      \
     {                                                                                                        \
-            auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
-            network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
-            return network::namespace_::MSG_##name##_Response::make(                                             \
-                request.getReceiverID(), request.getSenderID(),                                                  \
-                network::namespace_::MSG_##name##_Response{ rq.name( msg.arg1 ) } );                             \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
+        return network::namespace_::MSG_##name##_Response::make(                                             \
+            request.getReceiverID(), request.getSenderID(),                                                  \
+            network::namespace_::MSG_##name##_Response{ rq.name( msg.arg1 ) } );                             \
     }                                                                                                        \
     break
 
 #define FORWARD_SIM_MSG_TWO_ARG_ONE_RETURN( namespace_, name, arg1, arg2 )                                   \
     case network::namespace_::MSG_##name##_Request::ID:                                                      \
     {                                                                                                        \
-            auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
-            network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
-            return network::namespace_::MSG_##name##_Response::make(                                             \
-                request.getReceiverID(), request.getSenderID(),                                                  \
-                network::namespace_::MSG_##name##_Response{ rq.name( msg.arg1, msg.arg2 ) } );                   \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
+        return network::namespace_::MSG_##name##_Response::make(                                             \
+            request.getReceiverID(), request.getSenderID(),                                                  \
+            network::namespace_::MSG_##name##_Response{ rq.name( msg.arg1, msg.arg2 ) } );                   \
+    }                                                                                                        \
+    break
+
+#define FORWARD_SIM_MSG_TWO_ARG_NO_RETURN( namespace_, name, arg1, arg2 )                                    \
+    case network::namespace_::MSG_##name##_Request::ID:                                                      \
+    {                                                                                                        \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
+        rq.name( msg.arg1, msg.arg2 );                                                                       \
+        return network::namespace_::MSG_##name##_Response::make(                                             \
+            request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{} );  \
     }                                                                                                        \
     break
 
 #define FORWARD_SIM_MSG_THREE_ARG_NO_RETURN( namespace_, name, arg1, arg2, arg3 )                            \
     case network::namespace_::MSG_##name##_Request::ID:                                                      \
     {                                                                                                        \
-            auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
-            network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
-            rq.name( msg.arg1, msg.arg2, msg.arg3 );                                                             \
-            return network::namespace_::MSG_##name##_Response::make(                                             \
-                request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{} );  \
+        auto&                               msg = network::namespace_::MSG_##name##_Request::get( request ); \
+        network::namespace_::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );                    \
+        rq.name( msg.arg1, msg.arg2, msg.arg3 );                                                             \
+        return network::namespace_::MSG_##name##_Response::make(                                             \
+            request.getReceiverID(), request.getSenderID(), network::namespace_::MSG_##name##_Response{} );  \
     }                                                                                                        \
     break
 
@@ -100,6 +110,8 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
     using ::operator<<;
     if( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
     {
+        //VERIFY_RTE_MSG( pSim->getID() == request.getReceiverID(),
+        //    "MPODown request received ID does not match simulation" );
         switch( request.getID() )
         {
             FORWARD_SIM_MSG_NO_ARG_NO_RETURN( sim, SimErrorCheck );
@@ -111,6 +123,7 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
             FORWARD_SIM_MSG_TWO_ARG_ONE_RETURN( sim, SimLockWrite, requestingMPO, targetMPO );
             FORWARD_SIM_MSG_THREE_ARG_NO_RETURN( sim, SimLockRelease, requestingMPO, targetMPO, transaction );
             FORWARD_SIM_MSG_NO_ARG_NO_RETURN( sim, SimDestroy );
+            FORWARD_SIM_MSG_TWO_ARG_NO_RETURN( sim, SimMove, object, targetParent );
 
             default:
                 THROW_RTE( "Unsupported MPO request type for mpo: " << mpo << " request: " << request.getName() );

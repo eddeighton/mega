@@ -66,10 +66,9 @@ std::vector< ConversationID > ConversationManager::reportConversations() const
     return activities;
 }
 
-ConversationID ConversationManager::createConversationID( const ConnectionID& connectionID ) const
+ConversationID ConversationManager::createConversationID() const
 {
-    WriteLock lock( m_mutex );
-    return { ++m_nextConversationID, connectionID };
+    return {};
 }
 
 void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pConversation, Sender& parentSender )
@@ -102,6 +101,7 @@ void ConversationManager::externalConversationInitiated( ExternalConversation::P
 
 void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender )
 {
+    SPDLOG_TRACE( "ConversationManager::conversationInitiated: {} {}", m_strProcessName, pConversation->getID() );
     WriteLock lock( m_mutex );
     m_conversations.insert( std::make_pair( pConversation->getID(), pConversation ) );
     spawnInitiatedConversation( pConversation, parentSender );

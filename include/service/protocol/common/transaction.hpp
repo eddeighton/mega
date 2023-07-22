@@ -133,13 +133,14 @@ class TransactionProducer
 public:
     using MPOTransactions = std::map< MPO, Transaction::Out >;
     using UnparentedSet   = std::unordered_set< reference, reference::Hash >;
+    using MovedObjects    = std::unordered_map< MPO, std::pair< reference, reference >, MPO::Hash >;
 
     TransactionProducer( mega::log::Storage& log );
 
-    void generateStructure( MPOTransactions& transactions, UnparentedSet& unparented );
+    void generateStructure( MPOTransactions& transactions, UnparentedSet& unparented, MovedObjects& movedObjects );
     void generateScheduling( MPOTransactions& transactions );
     void generateMemory( MPOTransactions& transactions );
-    void generate( MPOTransactions& transactions, UnparentedSet& unparented );
+    void generate( MPOTransactions& transactions, UnparentedSet& unparented, MovedObjects& movedObjects );
 
 private:
     mega::log::Storage&           m_log;

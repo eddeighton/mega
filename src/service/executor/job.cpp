@@ -55,7 +55,7 @@ ExecutorRequestConversation::JobStart( const mega::utilities::ToolChain&        
     for ( int i = 0; i < m_executor.getNumThreads(); ++i )
     {
         JobConversation::Ptr pJob = std::make_shared< JobConversation >(
-            m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), pPipeline,
+            m_executor, m_executor.createConversationID(), pPipeline,
             rootConversationID );
         jobIDs.push_back( pJob->getID() );
         jobs.push_back( pJob );

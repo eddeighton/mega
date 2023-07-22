@@ -25,7 +25,7 @@ namespace mega::service
 {
 
 ToolRequestConversation::ToolRequestConversation( Tool& tool, const network::ConversationID& conversationID,
-                                                  const network::ConnectionID& originatingConnectionID )
+                                                  std::optional< network::ConnectionID > originatingConnectionID )
     : InThreadConversation( tool, conversationID, originatingConnectionID )
     , m_tool( tool )
 {

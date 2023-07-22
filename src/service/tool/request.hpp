@@ -42,7 +42,7 @@ protected:
 
 public:
     ToolRequestConversation( Tool& tool, const network::ConversationID& conversationID,
-                             const network::ConnectionID& originatingConnectionID );
+                             std::optional< network::ConnectionID > originatingConnectionID = std::nullopt );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;

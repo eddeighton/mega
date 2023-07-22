@@ -136,6 +136,7 @@ public:
     bool planet_current();
 
 private:
+    network::ConversationID m_conID;
     MessageChannel          m_channel;
     mega::service::Executor m_executor;
     // Platform::Ptr                                m_pPlatform;

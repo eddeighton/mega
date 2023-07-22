@@ -43,12 +43,12 @@ Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
     SPDLOG_TRACE( "Plugin::Plugin()" );
     /*{
         m_pPlatform = std::make_shared< Platform >(
-            m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), *this );
+            m_executor, m_executor.createConversationID(), *this );
         m_executor.conversationInitiated( m_pPlatform, m_executor.getLeafSender() );
     }
     {
         m_pPlayerNetwork = std::make_shared< PlayerNetwork >(
-            m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), *this );
+            m_executor, m_executor.createConversationID(), *this );
         m_executor.conversationInitiated( m_pPlayerNetwork, m_executor.getLeafSender() );
     }*/
 }
@@ -150,8 +150,7 @@ void Plugin::requestClock( network::ConversationBase* pSender, MPO mpo, log::Ran
 // network::ConversationBase
 const network::ConversationID& Plugin::getID() const
 {
-    static network::ConversationID pluginID{ 0, "PLUGIN" };
-    return pluginID;
+    return m_conID;
 }
 
 void Plugin::send( const network::ReceivedMsg& msg )

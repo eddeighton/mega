@@ -67,6 +67,7 @@ protected:
     std::unique_ptr< runtime::MPODatabase >         m_pDatabase;
     std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
 
+    network::TransactionProducer::MovedObjects    m_movedObjects;
 public:
     MPOContext( const network::ConversationID& conversationID )
         : m_conversationIDRef( conversationID )

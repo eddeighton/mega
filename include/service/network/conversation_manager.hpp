@@ -45,7 +45,7 @@ public:
     void onDisconnect( const ConnectionID& connectionID );
 
     std::vector< ConversationID > reportConversations() const;
-    ConversationID                createConversationID( const ConnectionID& connectionID ) const;
+    ConversationID                createConversationID() const;
     void                          externalConversationInitiated( ExternalConversation::Ptr pConversation );
     void                          conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender );
     void                          conversationJoined( ConversationBase::Ptr pConversation );
@@ -69,8 +69,6 @@ protected:
     mutable std::shared_mutex m_mutex;
     using WriteLock = std::unique_lock< std::shared_mutex >;
     using ReadLock  = std::shared_lock< std::shared_mutex >;
-
-    mutable ConversationID::ID m_nextConversationID = 0U;
 };
 
 } // namespace mega::network

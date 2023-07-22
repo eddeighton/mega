@@ -24,10 +24,14 @@
 
 #include "mega/native_types.hpp"
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/serialization/array_wrapper.hpp>
+
 #include <string>
 #include <ostream>
 #include <istream>
-#include <utility>
 
 namespace mega::network
 {
@@ -37,90 +41,70 @@ using ConnectionID = std::string;
 
 /// ConversationID
 /// This is a value type representing an OPAQUE value to identify a converation network-wide.
-/// The internal values MUST NOT be interpreted to mean anything i.e. the connectionID will NOT
-/// reliably mean anything to a given process.
 class ConversationID
 {
-    friend bool          operator==( const ConversationID& left, const ConversationID& right );
-    friend bool          operator<( const ConversationID& left, const ConversationID& right );
-    friend std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID );
-
-public:
-    using ID = mega::U16;
-
-    ConversationID()
-        : m_id( 0U )
+    ConversationID( boost::uuids::uuid u )
+        : m_uuid( std::move( u ) )
     {
     }
 
-    ConversationID( ID id, ConnectionID connectionID )
-        : m_id( id )
-        , m_connectionID(std::move( connectionID ))
+public:
+    ConversationID()                                   = default;
+    ConversationID( ConversationID& )                  = default;
+    ConversationID( const ConversationID& )            = default;
+    ConversationID( ConversationID&& )                 = default;
+    ConversationID& operator=( ConversationID& )       = default;
+    ConversationID& operator=( const ConversationID& ) = default;
+
+    static inline ConversationID fromUUID( const std::string& strUUID )
     {
+        boost::uuids::uuid u;
+        {
+            std::istringstream is( strUUID );
+            is >> u;
+        }
+        return ConversationID{ u };
     }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& m_id;
-        archive& m_connectionID;
+        archive & boost::serialization::make_array( m_uuid.data, m_uuid.size() );
     }
 
     struct Hash
     {
         inline mega::U64 operator()( const ConversationID& id ) const noexcept
         {
-            const common::Hash hash{ id.m_id, id.m_connectionID };
+            common::Hash hash;
+            for( const auto& v : id.m_uuid )
+            {
+                hash ^= v;
+            }
             return hash.get();
         }
     };
 
+    inline std::string toStr() const { return boost::uuids::to_string( m_uuid ); }
+
+    inline bool operator==( const ConversationID& right ) const { return m_uuid == right.m_uuid; }
+    inline bool operator!=( const ConversationID& right ) const { return m_uuid != right.m_uuid; }
+    inline bool operator<( const ConversationID& right ) const { return m_uuid < right.m_uuid; }
+
 private:
-    ID           getID() const { return m_id; }
-    ConnectionID getConnectionID() const { return m_connectionID; }
-
-    ID           m_id;
-    ConnectionID m_connectionID;
+    boost::uuids::uuid m_uuid = boost::uuids::random_generator()();
 };
-
-inline bool operator==( const ConversationID& left, const ConversationID& right )
-{
-    return ( left.getConnectionID() == right.getConnectionID() ) && ( left.getID() == right.getID() );
-}
-
-inline bool operator!=( const ConversationID& left, const ConversationID& right ) { return !( left == right ); }
-
-inline bool operator<( const ConversationID& left, const ConversationID& right )
-{
-    return ( left.getConnectionID() != right.getConnectionID() ) ? ( left.getConnectionID() < right.getConnectionID() )
-                                                                 : left.getID() < right.getID();
-}
 
 inline std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID )
 {
-    return os << conversationID.getID() << "_" << conversationID.getConnectionID();
+    return os << conversationID.toStr();
 }
 
 inline std::istream& operator>>( std::istream& is, ConversationID& conversationID )
 {
     std::string str;
     is >> str;
-
-    auto iter = std::find( str.begin(), str.end(), '_' );
-
-    VERIFY_RTE( iter != str.end() );
-
-    const std::string strCon( iter + 1, str.end() );
-
-    ConversationID::ID id;
-    {
-        std::string        strInt( str.begin(), iter );
-        std::istringstream isInt( strInt );
-        isInt >> id;
-    }
-
-    conversationID = ConversationID{ id, strCon };
-
+    conversationID = ConversationID::fromUUID( str );
     return is;
 }
 

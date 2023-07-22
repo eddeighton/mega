@@ -103,6 +103,6 @@ msg SimDestroyBlocking
 
 msg SimMove
 {
-    request();
+    request( reference object, reference targetParent );
     response();
 }

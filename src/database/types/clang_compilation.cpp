@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/types/clang_compilation.hpp"
 
 #include "common/assert_verify.hpp"
@@ -36,28 +35,28 @@ std::string Compilation::generatePCHVerificationCMD() const
     osCmd << compiler.string() << " -x c++ ";
 
     // flags
-    for ( const std::string& flag : flags )
+    for( const std::string& flag : flags )
     {
         VERIFY_RTE( !flag.empty() );
         osCmd << "-" << flag << " ";
     }
 
     // defines
-    for ( const std::string& strDefine : defines )
+    for( const std::string& strDefine : defines )
     {
         VERIFY_RTE( !strDefine.empty() );
         osCmd << "-D" << strDefine << " ";
     }
 
     // input pch
-    for ( const boost::filesystem::path& inputPCH : inputPCH )
+    for( const boost::filesystem::path& inputPCH : inputPCH )
     {
         osCmd << "-Xclang -fno-pch-timestamp -Xclang -include-pch ";
         osCmd << "-Xclang " << inputPCH.string() << " ";
     }
 
     // eg
-    if ( compilationMode.has_value() )
+    if( compilationMode.has_value() )
     {
         VERIFY_RTE( compiler_plugin.has_value() );
         VERIFY_RTE( srcDir.has_value() );
@@ -68,7 +67,7 @@ std::string Compilation::generatePCHVerificationCMD() const
         osCmd << "-Xclang -egsrddir=" << srcDir.value().string() << " ";
         osCmd << "-Xclang -egbuilddir=" << buildDir.value().string() << " ";
 
-        if ( sourceFile.has_value() )
+        if( sourceFile.has_value() )
         {
             osCmd << "-Xclang -egsource=" << sourceFile.value().string() << " ";
         }
@@ -81,7 +80,7 @@ std::string Compilation::generatePCHVerificationCMD() const
     }
 
     // include directories
-    for ( const boost::filesystem::path& includeDir : includeDirs )
+    for( const boost::filesystem::path& includeDir : includeDirs )
     {
         osCmd << "-I " << includeDir.string() << " ";
     }
@@ -105,28 +104,28 @@ std::string Compilation::generateCompilationCMD() const
     osCmd << compiler.string() << " ";
 
     // flags
-    for ( const std::string& flag : flags )
+    for( const std::string& flag : flags )
     {
         VERIFY_RTE( !flag.empty() );
         osCmd << "-" << flag << " ";
     }
 
     // defines
-    for ( const std::string& strDefine : defines )
+    for( const std::string& strDefine : defines )
     {
         VERIFY_RTE( !strDefine.empty() );
         osCmd << "-D" << strDefine << " ";
     }
 
     // input pch
-    for ( const boost::filesystem::path& inputPCH : inputPCH )
+    for( const boost::filesystem::path& inputPCH : inputPCH )
     {
         osCmd << "-Xclang -fno-pch-timestamp -Xclang -include-pch ";
         osCmd << "-Xclang " << inputPCH.string() << " ";
     }
 
     // eg
-    if ( compilationMode.has_value() )
+    if( compilationMode.has_value() )
     {
         VERIFY_RTE( compiler_plugin.has_value() );
         VERIFY_RTE( srcDir.has_value() );
@@ -137,7 +136,7 @@ std::string Compilation::generateCompilationCMD() const
         osCmd << "-Xclang -egsrddir=" << srcDir.value().string() << " ";
         osCmd << "-Xclang -egbuilddir=" << buildDir.value().string() << " ";
 
-        if ( sourceFile.has_value() )
+        if( sourceFile.has_value() )
         {
             osCmd << "-Xclang -egsource=" << sourceFile.value().string() << " ";
         }
@@ -150,7 +149,7 @@ std::string Compilation::generateCompilationCMD() const
     }
 
     // include directories
-    for ( const boost::filesystem::path& includeDir : includeDirs )
+    for( const boost::filesystem::path& includeDir : includeDirs )
     {
         osCmd << "-I " << includeDir.string() << " ";
     }
@@ -162,12 +161,15 @@ std::string Compilation::generateCompilationCMD() const
     osCmd << inputFile.string() << " ";
 
     // output
-    if ( outputPCH.has_value() )
+    if( outputPCH.has_value() )
     {
         VERIFY_RTE( !outputObject.has_value() );
-        osCmd << " -Xclang -fno-pch-timestamp -Xclang -emit-pch -o " << outputPCH.value().string() << " ";
+        // https://maskray.me/blog/2023-07-16-precompiled-headers
+        // https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-fpch-instantiate-templates
+        osCmd << " -Xclang -fno-pch-timestamp -Xclang -fpch-instantiate-templates -Xclang -emit-pch -o "
+              << outputPCH.value().string() << " ";
     }
-    else if ( outputObject.has_value() )
+    else if( outputObject.has_value() )
     {
         VERIFY_RTE( !outputPCH.has_value() );
         osCmd << " -c -o " << outputObject.value().string() << " ";

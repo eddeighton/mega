@@ -30,6 +30,7 @@ static const char* g_pszModuleName = "{{module_name}}";
 namespace mega::mangle
 {
     void structure_move( const mega::reference& source, const mega::reference& target, mega::U64 relationID );
+    void log( const char* );
 }
 
 void {{ name }}( mega::reference context, mega::reference target )

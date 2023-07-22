@@ -43,7 +43,7 @@ namespace mega::service
 
 Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID, ProcessClock& processClock )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
-    , MPOContext( conversationID )
+    , MPOContext( m_conversationID )
     , m_processClock( processClock )
 {
     m_bEnableQueueing = true;
@@ -101,8 +101,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         VERIFY_RTE( m_mpo.has_value() );
         SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
-        m_processClock.registerMPO(
-            network::SenderRef{ m_mpo.value(), this, m_pMemoryManager->getAllocators() } );
+        m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
+        // m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, m_pMemoryManager->getAllocators() } );
 
         // create the scheduler on the stack!
         Scheduler scheduler( getLog() );
@@ -140,8 +140,6 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case StateMachine::SIM:
                 {
-                    // m_clock.nextCycle();
-
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
                         scheduler.cycle();
@@ -149,8 +147,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     cycleComplete();
 
-                    m_pMemoryManager->doubleBuffer();
-
+                    // m_pMemoryManager->doubleBuffer();
                     // SPDLOG_TRACE( "SIM: Cycle {} {}", getID(), m_mpo.value() );
                 }
                 break;
@@ -167,7 +164,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 case StateMachine::TERM:
                 {
                     SPDLOG_TRACE( "SIM: TERM {} {}", getID(), m_mpo.value() );
-                    m_processClock.unregisterMPO( network::SenderRef{ m_mpo.value(), this, m_pMemoryManager->getAllocators() } );
+                    m_processClock.unregisterMPO( network::SenderRef{ m_mpo.value(), this, {} } );
+                    // network::SenderRef{ m_mpo.value(), this, m_pMemoryManager->getAllocators() } );
                 }
                 break;
                 case StateMachine::WAIT:
@@ -194,6 +192,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         if( m_stateMachine.onMsg( { msg } ) )
                         {
+                            sendMoveRequests();
                             m_processClock.requestClock( this, m_mpo.value(), getLog().getRange( lastCycle ) );
                             lastCycle = getLog().getTimeStamp();
                         }
@@ -221,14 +220,27 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
     }
 }
 
-network::ReceivedMsg Simulation::receive( boost::asio::yield_context& yield_ctx )
+void Simulation::sendMoveRequests()
 {
-    network::ReceivedMsg msg;
+    QueueStackDepth queueMsgs( m_queueStack );
+
+    for( const auto& [ mpo, sourceTarget ] : m_movedObjects )
     {
-        mega::_MPOContextStack _mpoStack;
-        msg = ExecutorRequestConversation::receive( yield_ctx );
+        SPDLOG_TRACE( "SIM: Simulation::sendMoveRequests: this:{} mpo:{} {} -> {}", getThisMPO(), mpo,
+                      sourceTarget.first, sourceTarget.second );
+
+        if( mpo != getThisMPO() )
+        {
+            getMPOSimRequest( mpo ).SimMove(
+                sourceTarget.first.getNetworkAddress(), sourceTarget.second.getNetworkAddress() );
+        }
+        else
+        {
+            // TODO
+        }
     }
-    return msg;
+
+    m_movedObjects.clear();
 }
 
 void Simulation::unqueue()
@@ -350,12 +362,13 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
 
 void Simulation::SimErrorCheck( boost::asio::yield_context& yield_ctx )
 {
-    THROW_RTE( "Simulation::SimErrorCheck" );
+    using ::operator<<;
+    THROW_RTE( "Simulation::SimErrorCheck: " << getThisMPO() );
 }
 
 Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "SIM::SimSnapshot: {}", object );
+    SPDLOG_TRACE( "SIM::SimObjectSnapshot: {} {}", getThisMPO(), object );
     QueueStackDepth queueMsgs( m_queueStack );
 
     using ::operator<<;
@@ -374,7 +387,7 @@ Snapshot Simulation::SimObjectSnapshot( const reference& object, boost::asio::yi
 
 reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "SIM::SimAllocate: {}", objectTypeID );
+    SPDLOG_TRACE( "SIM::SimAllocate: {} {}", getThisMPO(), objectTypeID );
     QueueStackDepth queueMsgs( m_queueStack );
     reference       allocated = m_pMemoryManager->New( objectTypeID );
     getLog().record( mega::log::Structure::Write( reference{}, allocated, 0, mega::log::Structure::eConstruct ) );
@@ -383,7 +396,7 @@ reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yiel
 
 Snapshot Simulation::SimSnapshot( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "SIM::SimLockRead: {}", mpo );
+    SPDLOG_TRACE( "SIM::SimSnapshot: {}", mpo );
     THROW_TODO;
     return Snapshot{ getLog().getTimeStamp() };
 }
@@ -477,6 +490,15 @@ void Simulation::SimDestroyBlocking( boost::asio::yield_context& )
     // do nothing
 }
 
+void Simulation::SimMove( const reference& source, const reference& targetParent, boost::asio::yield_context& )
+{
+    SPDLOG_TRACE( "SIM::SimMove mpo: {} source: {} target: {}", getThisMPO(), source, targetParent );
+    if( !m_stateMachine.isTerminating() )
+    {
+        QueueStackDepth queueMsgs( m_queueStack );
+    }
+}
+
 // network::status::Impl
 network::Status Simulation::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                        boost::asio::yield_context&           yield_ctx )
@@ -508,8 +530,6 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
             status.setWriter( writer.value() );
 
         status.setMemory( m_pMemoryManager->getStatus() );
-
-        
     }
 
     return status;

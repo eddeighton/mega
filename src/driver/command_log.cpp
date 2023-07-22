@@ -38,10 +38,11 @@ void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path logFolderPath;
 
-    bool bShowLogRecords        = true;
+    bool bShowLogRecords        = false;
     bool bShowStructureRecords  = false;
     bool bShowSchedulingRecords = false;
     bool bShowMemoryRecords     = false;
+    bool bShowAll               = false;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Simulation Commands" );
@@ -50,9 +51,11 @@ void command( bool bHelp, const std::vector< std::string >& args )
         commandOptions.add_options()
             ( "folder",     po::value( &logFolderPath ),                "Log folder path. ( Default argumnet )" )
             
-            ( "structure",  po::bool_switch( &bShowStructureRecords ),  "Show structure records." )
-            ( "scheduling", po::bool_switch( &bShowSchedulingRecords ), "Show scheduling records." )
-            ( "memory",     po::bool_switch( &bShowMemoryRecords ),     "Show memory records." )
+            ( "msgs",       po::bool_switch( &bShowLogRecords )->default_value( true ),     "Show log message records." )
+            ( "structure",  po::bool_switch( &bShowStructureRecords ),                      "Show structure records." )
+            ( "scheduling", po::bool_switch( &bShowSchedulingRecords ),                     "Show scheduling records." )
+            ( "memory",     po::bool_switch( &bShowMemoryRecords ),                         "Show memory records." )
+            ( "all",        po::bool_switch( &bShowAll ),                                   "Show all records." )
             ;
         // clang-format on
     }
@@ -64,13 +67,17 @@ void command( bool bHelp, const std::vector< std::string >& args )
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
 
+    if( bShowAll )
     {
-        if( bShowStructureRecords )
-            bShowLogRecords = false;
-        if( bShowSchedulingRecords )
-            bShowLogRecords = false;
-        if( bShowMemoryRecords )
-            bShowLogRecords = false;
+        bShowLogRecords        = true;
+        bShowStructureRecords  = true;
+        bShowSchedulingRecords = true;
+        bShowMemoryRecords     = true;
+    }
+    // if nothing then show log messages
+    else if( !bShowStructureRecords && !bShowSchedulingRecords && !bShowMemoryRecords )
+    {
+        bShowLogRecords = true;
     }
 
     if( bHelp )
@@ -126,7 +133,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 {
                     const Read&        record = *i;
                     std::ostringstream os;
-                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( record.getType() ) << ": " << record.getSource() << ": " << record.getTarget();
+                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( record.getType() ) << ": "
+                       << record.getSource() << ": " << record.getTarget() << ": " << record.getRelation();
                     SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, os.str() );
                 }
             }
@@ -137,7 +145,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 {
                     const Read&        schedulingRecord = *i;
                     std::ostringstream os;
-                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( schedulingRecord.getType() ) << ": " << schedulingRecord.getRef();
+                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( schedulingRecord.getType() ) << ": "
+                       << schedulingRecord.getRef();
                     SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, os.str() );
                 }
             }

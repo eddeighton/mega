@@ -215,8 +215,11 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
             }
         }
         std::ostringstream os;
-        os << "events/ev_" << mpo.getMachineID() << "-" << mpo.getProcessID() << "-"
-           << static_cast< mega::U32 >( mpo.getOwnerID() ) << "_" << m_conversationIDRef << "/";
+        {
+            using ::operator<<;
+            os << "events/ev_" << mpo.getMachineID() << "-" << mpo.getProcessID() << "-"
+               << static_cast< mega::U32 >( mpo.getOwnerID() ) << "_" << m_conversationIDRef << "/";
+        }
 
         const boost::filesystem::path eventLogFolder = logFolder / os.str();
         SPDLOG_TRACE( "MPOContext::createRoot: mpo: {} project: {} event log: {}", mpo,
@@ -288,7 +291,11 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
                     recordBreak( structure.m_data.m_Source, structure.m_data.m_Target );
                     break;
                 case log::Structure::eMove:
-                    break;
+                {
+                    m_movedObjects.insert( { structure.m_data.m_Target.getMPO(),
+                                             { structure.m_data.m_Source, structure.m_data.m_Target } } );
+                }
+                break;
                 default:
                     THROW_RTE(
                         "Unsupported structure record type: " << log::Structure::toString( structure.m_data.m_Type ) );
@@ -319,7 +326,7 @@ void MPOContext::cycleComplete()
 
     network::TransactionProducer::MPOTransactions transactions;
     network::TransactionProducer::UnparentedSet   unparentedObjects;
-    m_pTransactionProducer->generate( transactions, unparentedObjects );
+    m_pTransactionProducer->generate( transactions, unparentedObjects, m_movedObjects );
 
     m_pMemoryManager->Garbage();
 

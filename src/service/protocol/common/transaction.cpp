@@ -29,7 +29,8 @@ TransactionProducer::TransactionProducer( mega::log::Storage& log )
     , m_iterator( m_log.getIterator() )
 {
 }
-void TransactionProducer::generateStructure( MPOTransactions& transactions, UnparentedSet& unparented )
+void TransactionProducer::generateStructure( MPOTransactions& transactions, UnparentedSet& unparented,
+                                             MovedObjects& movedObjects )
 {
     using RecordType                    = log::Structure::Read;
     log::Iterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
@@ -84,6 +85,10 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
             break;
             case log::Structure::eMove:
             {
+                transactions[ r.getSource().getMPO() ].push_back( r );
+                // prevent locally deleting the object
+                unparented.erase( r.getSource().getObjectAddress() );
+                movedObjects.insert( { r.getTarget().getMPO(), { r.getSource(), r.getTarget() } } );
             }
             break;
             default:
@@ -117,9 +122,10 @@ void TransactionProducer::generateMemory( MPOTransactions& transactions )
     }
 }
 
-void TransactionProducer::generate( MPOTransactions& transactions, UnparentedSet& unparented )
+void TransactionProducer::generate( MPOTransactions& transactions, UnparentedSet& unparented,
+                                    MovedObjects& movedObjects )
 {
-    generateStructure( transactions, unparented );
+    generateStructure( transactions, unparented, movedObjects );
     generateScheduling( transactions );
     generateMemory( transactions );
     m_iterator = m_iteratorEnd;

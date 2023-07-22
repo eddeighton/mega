@@ -100,7 +100,7 @@ class ExecutorShutdown : public ExecutorRequestConversation
 
 public:
     ExecutorShutdown( Executor& exe, std::promise< void >& promise, std::vector< Simulation::Ptr > simulations )
-        : ExecutorRequestConversation( exe, exe.createConversationID( "shutdown" ), {} )
+        : ExecutorRequestConversation( exe, exe.createConversationID(), {} )
         , m_promise( promise )
         , m_simulations( simulations )
     {
@@ -171,11 +171,11 @@ mega::MPO Executor::createSimulation( network::ConversationBase&  callingConvers
     {
         WriteLock lock( m_mutex );
         // NOTE: duplicate of ConversationManager::createConversationID
-        const network::ConversationID id( ++m_nextConversationID, getLeafSender().getConnectionID() );
+        const network::ConversationID id;
+        SPDLOG_TRACE( "Executor::createSimulation {} {}", m_strProcessName, id );
         pSimulation = std::make_shared< Simulation >( *this, id, m_processClock );
         m_conversations.insert( std::make_pair( pSimulation->getID(), pSimulation ) );
         spawnInitiatedConversation( pSimulation, getLeafSender() );
-        SPDLOG_TRACE( "Executor::createSimulation {} {}", m_strProcessName, id );
     }
 
     network::sim::Request_Sender rq( callingConversation, pSimulation->getID(), *pSimulation, yield_ctx );

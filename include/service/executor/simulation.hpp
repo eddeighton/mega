@@ -52,7 +52,6 @@ public:
 
     virtual network::Message     dispatchRequest( const network::Message&     msg,
                                                   boost::asio::yield_context& yield_ctx ) override;
-    virtual network::ReceivedMsg receive( boost::asio::yield_context& yield_ctx ) override;
     virtual void                 unqueue() override;
     virtual bool                 queue( const network::ReceivedMsg& msg ) override;
     virtual void                 run( boost::asio::yield_context& yield_ctx ) override;
@@ -78,6 +77,7 @@ public:
     virtual MPO  SimCreate( boost::asio::yield_context& ) override;
     virtual void SimDestroy( boost::asio::yield_context& ) override;
     virtual void SimDestroyBlocking( boost::asio::yield_context& ) override;
+    virtual void SimMove( const reference& source, const reference& targetParent, boost::asio::yield_context&) override;
 
     // network::project::Impl
     virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
@@ -94,6 +94,8 @@ private:
     void runSimulation( boost::asio::yield_context& yield_ctx );
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
+    // bool m_bSendingMoveRequests = false;
+    void sendMoveRequests();
 private:
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     ProcessClock&                                        m_processClock;

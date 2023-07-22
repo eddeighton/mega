@@ -43,7 +43,7 @@ class DaemonEnrole : public DaemonRequestConversation
 public:
     DaemonEnrole( Daemon& daemon, const network::ConnectionID& originatingConnectionID, std::promise< void >& promise )
         : DaemonRequestConversation(
-            daemon, daemon.createConversationID( originatingConnectionID ), originatingConnectionID )
+            daemon, daemon.createConversationID(), originatingConnectionID )
         , m_promise( promise )
     {
     }
@@ -110,7 +110,7 @@ void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::
     public:
         DaemonLeafDisconnect( Daemon& daemon, const network::ConnectionID& originatingConnectionID, mega::MP leafMP )
             : DaemonRequestConversation(
-                daemon, daemon.createConversationID( originatingConnectionID ), originatingConnectionID )
+                daemon, daemon.createConversationID(), originatingConnectionID )
             , m_leafMP( leafMP )
         {
         }

@@ -100,7 +100,7 @@ public:
             m_allocators.insert( { typeID, std::move( pAllocator ) } );
         }
     }
-
+/*
     inline network::SenderRef::AllocatorBaseArray getAllocators() const
     {
         network::SenderRef::AllocatorBaseArray result;
@@ -123,7 +123,7 @@ public:
         {
             pAllocator->copyToDoubleBuffer();
         }
-    }
+    }*/
 
     inline AllocationID getAllocationID() const { return m_allocationIDCounter; }
     inline U64          getAllocationCount() const { return m_heapMap.size(); }
@@ -219,6 +219,22 @@ public:
             pHeader->~ObjectHeader();
         }
         m_oldHeap.clear();
+    }
+
+    using MemoryEntry = HeapMap::node_type;
+
+    inline MemoryEntry Move( const reference& ref )
+    {
+        ASSERT( ref.isHeapAddress() );
+
+        // remove the network address entry
+        {
+            auto    iFind2 = m_netMap.find( ref.getHeaderAddress() );
+            using ::operator<<;
+            VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for reference: " << ref );
+            m_netMap.erase( iFind2 );
+        }
+        return m_heapMap.extract( ref.getObjectAddress() );
     }
 
 private:

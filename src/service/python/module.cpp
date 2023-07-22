@@ -296,12 +296,12 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
 {
     {
         m_pExternalConversation = std::make_shared< network::ExternalConversation >(
-            m_python, m_python.createConversationID( m_python.getLeafSender().getConnectionID() ), m_ioContext );
+            m_python, m_python.createConversationID(), m_ioContext );
         m_python.externalConversationInitiated( m_pExternalConversation );
     }
     {
         m_mpoConversation = std::make_shared< MPOConversation >(
-            m_python, m_python.createConversationID( m_python.getLeafSender().getConnectionID() ) );
+            m_python, m_python.createConversationID() );
         m_python.conversationInitiated( m_mpoConversation, m_python.getLeafSender() );
     }
 

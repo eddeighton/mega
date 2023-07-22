@@ -23,9 +23,7 @@
 
 #include "mega/reference.hpp"
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 MPO       getThisMPO();
 void      networkToHeap( reference& ref );
@@ -33,7 +31,6 @@ void      readLock( reference& ref );
 void      writeLock( reference& ref );
 reference allocate( const reference& parent, TypeID typeID );
 void*     log();
-} // namespace runtime
 } // namespace mega
 
 #endif // GUARD_2023_January_11_mpo_context_interface
