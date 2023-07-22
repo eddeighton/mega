@@ -24,7 +24,7 @@
 
 #include "service/executor/executor.hpp"
 
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 
 #include "service/protocol/common/context.hpp"
 
@@ -41,9 +41,9 @@
 namespace mega::service
 {
 
-Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID, ProcessClock& processClock )
-    : ExecutorRequestConversation( executor, conversationID, std::nullopt )
-    , MPOContext( m_conversationID )
+Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logicalthreadID, ProcessClock& processClock )
+    : ExecutorRequestLogicalThread( executor, logicalthreadID, std::nullopt )
+    , MPOContext( m_logicalthreadID )
     , m_processClock( processClock )
 {
     m_bEnableQueueing = true;
@@ -51,14 +51,14 @@ Simulation::Simulation( Executor& executor, const network::ConversationID& conve
 
 network::Message Simulation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
-    return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
+    return ExecutorRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
 // MPOContext
 network::mpo::Request_Sender Simulation::getMPRequest()
 {
     VERIFY_RTE( m_pYieldContext );
-    return ExecutorRequestConversation::getMPRequest( *m_pYieldContext );
+    return ExecutorRequestLogicalThread::getMPRequest( *m_pYieldContext );
 }
 network::enrole::Request_Encoder Simulation::getRootEnroleRequest()
 {
@@ -210,13 +210,13 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
     }
     catch( std::exception& ex )
     {
-        SPDLOG_WARN( "SIM: Conversation: {} exception: {}", getID(), ex.what() );
-        m_conversationManager.conversationCompleted( shared_from_this() );
+        SPDLOG_WARN( "SIM: LogicalThread: {} exception: {}", getID(), ex.what() );
+        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
     }
     catch( mega::runtime::JITException& ex )
     {
-        SPDLOG_WARN( "SIM: Conversation: {} exception: {}", getID(), ex.what() );
-        m_conversationManager.conversationCompleted( shared_from_this() );
+        SPDLOG_WARN( "SIM: LogicalThread: {} exception: {}", getID(), ex.what() );
+        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
     }
 }
 
@@ -267,7 +267,7 @@ void Simulation::unqueue()
     else
     {
         // allow ordinary request processing
-        ExecutorRequestConversation::unqueue();
+        ExecutorRequestLogicalThread::unqueue();
     }
 }
 
@@ -283,7 +283,7 @@ bool Simulation::queue( const network::ReceivedMsg& msg )
                 return true;
             }
             default:
-                return ExecutorRequestConversation::queue( msg );
+                return ExecutorRequestLogicalThread::queue( msg );
         }
     }
     else
@@ -306,7 +306,7 @@ bool Simulation::queue( const network::ReceivedMsg& msg )
                 }
                 else
                 {
-                    return ExecutorRequestConversation::queue( msg );
+                    return ExecutorRequestLogicalThread::queue( msg );
                 }
             }
             break;
@@ -323,7 +323,7 @@ bool Simulation::queue( const network::ReceivedMsg& msg )
             }
             break;
         }
-        return ExecutorRequestConversation::queue( msg );
+        return ExecutorRequestLogicalThread::queue( msg );
     }
 }
 
@@ -333,7 +333,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     {
         SPDLOG_TRACE( "SIM::run started" );
         // send request to root to start - will get request back to run
-        network::sim::Request_Encoder request( [ rootRequest = ExecutorRequestConversation::getMPRequest( yield_ctx ) ](
+        network::sim::Request_Encoder request( [ rootRequest = ExecutorRequestLogicalThread::getMPRequest( yield_ctx ) ](
                                                    const network::Message& msg ) mutable
                                                { return rootRequest.MPRoot( msg, MP{} ); },
                                                getID() );
@@ -447,7 +447,7 @@ MPO Simulation::SimCreate( boost::asio::yield_context& )
         THROW_RTE( m_strSimCreateError );
     }
     VERIFY_RTE_MSG( m_mpo.has_value(), "SimCreate failed and has no mpo" );
-    // This is called when RootSimRun acks the pending SimCreate from ExecutorRequestConversation::SimCreate
+    // This is called when RootSimRun acks the pending SimCreate from ExecutorRequestLogicalThread::SimCreate
     return m_mpo.value();
 }
 
@@ -508,7 +508,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
 
     network::Status status{ childNodeStatus };
     {
-        status.setConversationID( { getID() } );
+        status.setLogicalThreadID( { getID() } );
         status.setMPO( m_mpo.value() );
         {
             std::ostringstream os;

@@ -18,10 +18,10 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "service/network/receiver.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/end_point.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -41,9 +41,9 @@
 
 namespace mega::network
 {
-SocketReceiver::SocketReceiver( ConversationManager& conversationManager, Traits::Socket& socket,
+SocketReceiver::SocketReceiver( LogicalThreadManager& logicalthreadManager, Traits::Socket& socket,
                                 std::function< void() > disconnectHandler )
-    : m_conversationManager( conversationManager )
+    : m_logicalthreadManager( logicalthreadManager )
     , m_socket( socket )
     , m_disconnectHandler( std::move( disconnectHandler ) )
 {
@@ -127,7 +127,7 @@ void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
                         decode( is, msg );
                     }
                     const ReceivedMsg receivedMsg{ m_connectionID, std::move( msg ) };
-                    m_conversationManager.dispatch( receivedMsg );
+                    m_logicalthreadManager.dispatch( receivedMsg );
                 }
                 else // if( ec.failed() )
                 {
@@ -140,9 +140,9 @@ void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
     m_disconnectHandler();
 }
 
-ConcurrentChannelReceiver::ConcurrentChannelReceiver( ConversationManager& conversationManager,
+ConcurrentChannelReceiver::ConcurrentChannelReceiver( LogicalThreadManager& logicalthreadManager,
                                                       ConcurrentChannel&   channel )
-    : m_conversationManager( conversationManager )
+    : m_logicalthreadManager( logicalthreadManager )
     , m_channel( channel )
 {
 }
@@ -184,7 +184,7 @@ void ConcurrentChannelReceiver::receive( boost::asio::yield_context& yield_ctx )
             if ( !ec )
             {
                 receivedMsg = ReceivedMsg{ m_connectionID, msg };
-                m_conversationManager.dispatch( receivedMsg );
+                m_logicalthreadManager.dispatch( receivedMsg );
             }
             else
             {

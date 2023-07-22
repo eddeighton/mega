@@ -49,8 +49,8 @@ set( MEGA_PYTHON_SRC_DIR ${MEGA_SRC_DIR}/service/python )
 set( MEGA_PYTHON_SOURCE 
     ${MEGA_PYTHON_SRC_DIR}/python.hpp
     ${MEGA_PYTHON_SRC_DIR}/python.cpp
-    ${MEGA_PYTHON_SRC_DIR}/mpo_conversation.hpp
-    ${MEGA_PYTHON_SRC_DIR}/mpo_conversation.cpp
+    ${MEGA_PYTHON_SRC_DIR}/mpo_logical_thread.hpp
+    ${MEGA_PYTHON_SRC_DIR}/mpo_logical_thread.cpp
     ${MEGA_PYTHON_SRC_DIR}/request.hpp
     ${MEGA_PYTHON_SRC_DIR}/routing.cpp
     ${MEGA_PYTHON_SRC_DIR}/status.cpp

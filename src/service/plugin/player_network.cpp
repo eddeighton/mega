@@ -29,9 +29,9 @@
 namespace mega::service
 {
 
-PlayerNetwork::PlayerNetwork( Executor& executor, const network::ConversationID& conversationID,
-                              network::ConversationBase& plugin )
-    : ExecutorRequestConversation( executor, conversationID, std::nullopt )
+PlayerNetwork::PlayerNetwork( Executor& executor, const network::LogicalThreadID& logicalthreadID,
+                              network::LogicalThreadBase& plugin )
+    : ExecutorRequestLogicalThread( executor, logicalthreadID, std::nullopt )
     , m_plugin( plugin )
 {
 }
@@ -41,7 +41,7 @@ network::Message PlayerNetwork::dispatchRequest( const network::Message& msg, bo
     network::Message result;
     if( result = network::player_network::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
+    return ExecutorRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
 void PlayerNetwork::dispatchResponse( const network::ConnectionID& connectionID,
@@ -55,7 +55,7 @@ void PlayerNetwork::dispatchResponse( const network::ConnectionID& connectionID,
     }
     else
     {
-        ExecutorRequestConversation::dispatchResponse( connectionID, msg, yield_ctx );
+        ExecutorRequestLogicalThread::dispatchResponse( connectionID, msg, yield_ctx );
     }
 }
 
@@ -68,7 +68,7 @@ void PlayerNetwork::error( const network::ReceivedMsg& msg, const std::string& s
     }
     else
     {
-        ExecutorRequestConversation::error( msg, strErrorMsg, yield_ctx );
+        ExecutorRequestLogicalThread::error( msg, strErrorMsg, yield_ctx );
     }
 }
 

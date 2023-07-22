@@ -17,13 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef CONVERSATION_24_MAY_2022
-#define CONVERSATION_24_MAY_2022
+#ifndef LOGICALTHREAD_24_MAY_2022
+#define LOGICALTHREAD_24_MAY_2022
 
 #include "service/network/sender_factory.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
-#include "service/protocol/common/conversation_base.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
+#include "service/protocol/common/logical_thread_base.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include "common/assert_verify.hpp"
@@ -39,18 +39,18 @@
 namespace mega::network
 {
 
-class ConversationManager;
+class LogicalThreadManager;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-class Conversation : public ConversationBase
+class LogicalThread : public LogicalThreadBase
 {
 public:
-    Conversation( ConversationManager& conversationManager, const ConversationID& conversationID,
-                  std::optional< ConnectionID > originatingConnectionID = std::nullopt );
-    virtual ~Conversation();
+    LogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID,
+                   std::optional< ConnectionID > originatingConnectionID = std::nullopt );
+    virtual ~LogicalThread();
 
-    const ConversationID&                getID() const { return m_conversationID; }
+    const LogicalThreadID&               getID() const { return m_logicalthreadID; }
     const std::optional< ConnectionID >& getOriginatingEndPointID() const
     {
         ASSERT( !m_originatingEndPoint.has_value() || ( m_originatingEndPoint.value() == m_stack.front() ) );
@@ -110,8 +110,8 @@ protected:
     void run_one( boost::asio::yield_context& yield_ctx );
 
 protected:
-    friend class ConversationManager;
-    // this is called by ConversationManager but can be overridden in initiating activities
+    friend class LogicalThreadManager;
+    // this is called by LogicalThreadManager but can be overridden in initiating activities
     virtual void    run( boost::asio::yield_context& yield_ctx );
     virtual Message dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
     virtual void    dispatchResponse( const ConnectionID& connectionID, const Message& msg,
@@ -128,8 +128,8 @@ protected:
     void dispatchRemaining( boost::asio::yield_context& yield_ctx );
 
 protected:
-    ConversationManager& m_conversationManager;
-    ConversationID       m_conversationID;
+    LogicalThreadManager& m_logicalthreadManager;
+    LogicalThreadID       m_logicalthreadID;
 
     std::optional< ConnectionID >         m_originatingEndPoint;
     std::vector< ConnectionID >           m_stack;
@@ -143,14 +143,14 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-class InThreadConversation : public Conversation
+class InThreadLogicalThread : public LogicalThread
 {
     using MessageChannel = boost::asio::experimental::channel< void( boost::system::error_code, ReceivedMsg ) >;
 
 public:
-    InThreadConversation( ConversationManager&          conversationManager,
-                          const ConversationID&         conversationID,
-                          std::optional< ConnectionID > originatingConnectionID = std::nullopt );
+    InThreadLogicalThread( LogicalThreadManager&         logicalthreadManager,
+                           const LogicalThreadID&        logicalthreadID,
+                           std::optional< ConnectionID > originatingConnectionID = std::nullopt );
 
 protected:
     virtual ReceivedMsg                  receive( boost::asio::yield_context& yield_ctx );
@@ -163,15 +163,15 @@ private:
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-class ConcurrentConversation : public Conversation
+class ConcurrentLogicalThread : public LogicalThread
 {
     using MessageChannel
         = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, ReceivedMsg ) >;
 
 public:
-    ConcurrentConversation( ConversationManager&          conversationManager,
-                            const ConversationID&         conversationID,
-                            std::optional< ConnectionID > originatingConnectionID = std::nullopt );
+    ConcurrentLogicalThread( LogicalThreadManager&         logicalthreadManager,
+                             const LogicalThreadID&        logicalthreadID,
+                             std::optional< ConnectionID > originatingConnectionID = std::nullopt );
 
 protected:
     virtual ReceivedMsg                  receive( boost::asio::yield_context& yield_ctx );
@@ -184,18 +184,18 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-class ExternalConversation : public ConversationBase
+class ExternalLogicalThread : public LogicalThreadBase
 {
     using MessageChannel = boost::asio::experimental::channel< void( boost::system::error_code, ReceivedMsg ) >;
 
 public:
-    using Ptr = std::shared_ptr< ExternalConversation >;
+    using Ptr = std::shared_ptr< ExternalLogicalThread >;
 
-    ExternalConversation( ConversationManager& conversationManager, const ConversationID& conversationID,
-                          boost::asio::io_context& ioContext );
+    ExternalLogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID,
+                           boost::asio::io_context& ioContext );
 
     // make this virtual so that windows can build...
-   virtual ReceivedMsg receive();
+    virtual ReceivedMsg receive();
 
     // Sender
     virtual ConnectionID getConnectionID() const
@@ -228,11 +228,11 @@ public:
         sendErrorResponse( msg, strErrorMsg );
     }
 
-    // ConversationBase
-    virtual const ID& getID() const { return m_conversationID; }
+    // LogicalThreadBase
+    virtual const ID& getID() const { return m_logicalthreadID; }
     virtual void      send( const ReceivedMsg& msg );
 
-    // NOT IMPLEMENTED - no stack or coroutine for external conversation
+    // NOT IMPLEMENTED - no stack or coroutine for external logicalthread
     virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
     virtual void               run( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
     virtual const std::string& getProcessName() const { THROW_TODO; }
@@ -242,8 +242,8 @@ public:
     virtual void               requestCompleted() { ; }
 
 protected:
-    ConversationManager&                  m_conversationManager;
-    ConversationID                        m_conversationID;
+    LogicalThreadManager&                 m_logicalthreadManager;
+    LogicalThreadID                       m_logicalthreadID;
     boost::asio::io_context&              m_ioContext;
     MessageChannel                        m_channel;
     mutable std::optional< ConnectionID > m_selfConnectionID;
@@ -251,4 +251,4 @@ protected:
 
 } // namespace mega::network
 
-#endif // CONVERSATION_24_MAY_2022
+#endif // LOGICALTHREAD_24_MAY_2022

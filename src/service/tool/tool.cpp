@@ -23,11 +23,11 @@
 
 #include "service/mpo_context.hpp"
 
-#include "service/network/conversation.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/memory.hxx"
@@ -50,16 +50,16 @@ namespace mega::service
 
 namespace
 {
-template < typename TConversationFunctor >
-class GenericConversation : public ToolRequestConversation, public mega::MPOContext
+template < typename TLogicalThreadFunctor >
+class GenericLogicalThread : public ToolRequestLogicalThread, public mega::MPOContext
 {
     Tool&                m_tool;
-    TConversationFunctor m_functor;
+    TLogicalThreadFunctor m_functor;
 
 public:
-    GenericConversation( Tool& tool, const network::ConversationID& conversationID, TConversationFunctor&& functor )
-        : ToolRequestConversation( tool, conversationID )
-        , mega::MPOContext( m_conversationID )
+    GenericLogicalThread( Tool& tool, const network::LogicalThreadID& logicalthreadID, TLogicalThreadFunctor&& functor )
+        : ToolRequestLogicalThread( tool, logicalthreadID )
+        , mega::MPOContext( m_logicalthreadID )
         , m_tool( tool )
         , m_functor( functor )
     {
@@ -68,7 +68,7 @@ public:
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        return ToolRequestConversation::dispatchRequest( msg, yield_ctx );
+        return ToolRequestLogicalThread::dispatchRequest( msg, yield_ctx );
     }
 
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx )
@@ -160,21 +160,21 @@ public:
     virtual network::Status GetStatus( const std::vector< network::Status >& childNodeStatus,
                                        boost::asio::yield_context&           yield_ctx ) override
     {
-        SPDLOG_TRACE( "ToolRequestConversation::GetStatus" );
+        SPDLOG_TRACE( "ToolRequestLogicalThread::GetStatus" );
 
         network::Status status{ childNodeStatus };
         {
-            std::vector< network::ConversationID > conversations;
+            std::vector< network::LogicalThreadID > logicalthreads;
             {
-                for( const auto& id : m_tool.reportConversations() )
+                for( const auto& id : m_tool.reportLogicalThreads() )
                 {
                     if( id != getID() )
                     {
-                        conversations.push_back( id );
+                        logicalthreads.push_back( id );
                     }
                 }
             }
-            status.setConversationID( conversations );
+            status.setLogicalThreadID( logicalthreads );
             status.setMPO( m_tool.getMPO() );
             status.setDescription( m_tool.getProcessName() );
 
@@ -202,7 +202,7 @@ public:
 } // namespace
 
 Tool::Tool( short daemonPortNumber )
-    : network::ConversationManager( network::makeProcessName( network::Node::Tool ), m_io_context )
+    : network::LogicalThreadManager( network::makeProcessName( network::Node::Tool ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf(
           [ &m_receiverChannel = m_receiverChannel ]()
@@ -229,11 +229,11 @@ void Tool::runComplete()
     m_receiverChannel.stop();
 }
 
-network::ConversationBase::Ptr Tool::joinConversation( const network::ConnectionID& originatingConnectionID,
+network::LogicalThreadBase::Ptr Tool::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                        const network::Message&      msg )
 {
-    return network::ConversationBase::Ptr(
-        new ToolRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr(
+        new ToolRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
 void Tool::run( Tool::Functor& function )
@@ -253,10 +253,10 @@ void Tool::run( Tool::Functor& function )
             }
         };
         // getLeafSender().getConnectionID()
-        network::ConversationBase::Ptr pConversation( new GenericConversation(
-            *this, createConversationID(), std::move( func ) ) );
+        network::LogicalThreadBase::Ptr pLogicalThread( new GenericLogicalThread(
+            *this, createLogicalThreadID(), std::move( func ) ) );
 
-        conversationInitiated( pConversation, getLeafSender() );
+        logicalthreadInitiated( pLogicalThread, getLeafSender() );
     }
 
     // run until m_tool.runComplete();

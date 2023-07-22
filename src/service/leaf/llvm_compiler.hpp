@@ -29,7 +29,7 @@ namespace mega
 {
 namespace network
 {
-class ConversationBase;
+class LogicalThreadBase;
 class Sender;
 } // namespace network
 namespace service
@@ -38,10 +38,10 @@ namespace service
 class LLVMCompilerImpl : public runtime::CodeGenerator::LLVMCompiler
 {
 public:
-    LLVMCompilerImpl( network::ConversationBase& conversation, network::Sender& sender,
+    LLVMCompilerImpl( network::LogicalThreadBase& logicalthread, network::Sender& sender,
                       const mega::MegastructureInstallation& megaInstall, const mega::Project& project,
                       boost::asio::yield_context& yield_ctx )
-        : m_conversation( conversation )
+        : m_logicalthread( logicalthread )
         , m_sender( sender )
         , m_megaInstall( megaInstall )
         , m_tempDir( project.getProjectTempDir() )
@@ -65,7 +65,7 @@ public:
     bool restore( const std::string& filePath, mega::U64 determinant ) const;
 
 private:
-    network::ConversationBase&      m_conversation;
+    network::LogicalThreadBase&      m_logicalthread;
     network::Sender&                m_sender;
     mega::MegastructureInstallation m_megaInstall;
     boost::filesystem::path         m_clangPath;

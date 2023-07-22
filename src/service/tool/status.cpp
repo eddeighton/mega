@@ -25,24 +25,24 @@ namespace mega::service
 {
 // network::project::Impl
 
-network::Status ToolRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+network::Status ToolRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                     boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "ToolRequestConversation::GetStatus" );
+    SPDLOG_TRACE( "ToolRequestLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
+        std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for( const auto& id : m_tool.reportConversations() )
+            for( const auto& id : m_tool.reportLogicalThreads() )
             {
                 if( id != getID() )
                 {
-                    conversations.push_back( id );
+                    logicalthreads.push_back( id );
                 }
             }
         }
-        status.setConversationID( conversations );
+        status.setLogicalThreadID( logicalthreads );
         status.setMPO( m_tool.getMPO() );
         status.setDescription( m_tool.getProcessName() );
     }
@@ -50,7 +50,7 @@ network::Status ToolRequestConversation::GetStatus( const std::vector< network::
     return status;
 }
 
-std::string ToolRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string ToolRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     using ::           operator<<;
     std::ostringstream os;

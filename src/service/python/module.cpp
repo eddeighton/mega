@@ -20,7 +20,7 @@
 
 #include "module.hpp"
 
-#include "mpo_conversation.hpp"
+#include "mpo_logical_thread.hpp"
 
 #include "python_reference.hpp"
 
@@ -295,14 +295,14 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
     , m_python( m_ioContext, daemonPort )
 {
     {
-        m_pExternalConversation = std::make_shared< network::ExternalConversation >(
-            m_python, m_python.createConversationID(), m_ioContext );
-        m_python.externalConversationInitiated( m_pExternalConversation );
+        m_pExternalLogicalThread = std::make_shared< network::ExternalLogicalThread >(
+            m_python, m_python.createLogicalThreadID(), m_ioContext );
+        m_python.externalLogicalThreadInitiated( m_pExternalLogicalThread );
     }
     {
-        m_mpoConversation = std::make_shared< MPOConversation >(
-            m_python, m_python.createConversationID() );
-        m_python.conversationInitiated( m_mpoConversation, m_python.getLeafSender() );
+        m_mpoLogicalThread = std::make_shared< MPOLogicalThread >(
+            m_python, m_python.createLogicalThreadID() );
+        m_python.logicalthreadInitiated( m_mpoLogicalThread, m_python.getLeafSender() );
     }
 
     {
@@ -403,20 +403,20 @@ PythonReference::PythonWrapperFunction PythonModule::getPythonFunctionWrapper( T
 void PythonModule::shutdown()
 {
     SPDLOG_TRACE( "PythonModule::shutdown" );
-    if( m_pExternalConversation )
+    if( m_pExternalLogicalThread )
     {
         pythonRequest().PythonShutdown();
-        m_python.conversationCompleted( m_pExternalConversation );
-        m_pExternalConversation.reset();
+        m_python.logicalthreadCompleted( m_pExternalLogicalThread );
+        m_pExternalLogicalThread.reset();
     }
-    if( std::shared_ptr< MPOConversation > pMPOCon = std::dynamic_pointer_cast< MPOConversation >( m_mpoConversation ) )
+    if( std::shared_ptr< MPOLogicalThread > pMPOCon = std::dynamic_pointer_cast< MPOLogicalThread >( m_mpoLogicalThread ) )
     {
         while( !pMPOCon->isRunComplete() )
         {
             run_one();
         }
     }
-    m_mpoConversation.reset();
+    m_mpoLogicalThread.reset();
 }
 
 void PythonModule::run_one()

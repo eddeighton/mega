@@ -25,24 +25,24 @@ namespace mega::service
 {
 
 // network::project::Impl
-network::Status LeafRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+network::Status LeafRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                     boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::GetStatus" );
+    SPDLOG_TRACE( "LeafRequestLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
+        std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for( const auto& [ id, pCon ] : m_leaf.m_conversations )
+            for( const auto& [ id, pCon ] : m_leaf.m_logicalthreads )
             {
                 if( id != getID() )
                 {
-                    conversations.push_back( id );
+                    logicalthreads.push_back( id );
                 }
             }
         }
-        status.setConversationID( conversations );
+        status.setLogicalThreadID( logicalthreads );
         status.setMP( m_leaf.m_mp );
         std::ostringstream os;
         os << m_leaf.getProcessName() << " of type: " << mega::network::Node::toStr( m_leaf.m_nodeType );
@@ -54,7 +54,7 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
     return status;
 }
 
-std::string LeafRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string LeafRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     using ::           operator<<;
     std::ostringstream os;

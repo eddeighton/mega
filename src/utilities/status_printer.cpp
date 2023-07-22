@@ -21,7 +21,7 @@
 
 #include "mega/type_id_io.hpp"
 #include "mega/reference_io.hpp"
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 namespace mega::utilities
 {
@@ -164,12 +164,12 @@ void StatusPrinter::printNodeInfo( const network::Status& status, std::ostream& 
         }
     }
 
-    if( m_config.m_bConversations )
+    if( m_config.m_bLogicalThreads )
     {
         using ::mega::network::operator<<;
-        for( const auto& conID : status.getConversations() )
+        for( const auto& threadID : status.getLogicalThreads() )
         {
-            line( os, indent ) << "ConID: " << conID << "\n";
+            line( os, indent ) << "ThreadID: " << threadID << "\n";
         }
     }
 

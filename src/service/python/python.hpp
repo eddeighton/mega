@@ -24,7 +24,7 @@
 #include "service/leaf.hpp"
 
 #include "service/network/client.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/sender_factory.hpp"
 #include "service/network/channel.hpp"
 
@@ -38,9 +38,9 @@
 namespace mega::service::python
 {
 
-class Python : public network::ConversationManager
+class Python : public network::LogicalThreadManager
 {
-    friend class PythonRequestConversation;
+    friend class PythonRequestLogicalThread;
 
 public:
     Python( boost::asio::io_context& io_context, short daemonPortNumber );
@@ -48,8 +48,8 @@ public:
 
     void shutdown();
 
-    // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+    // network::LogicalThreadManager
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                              const network::Message&      msg );
 
     network::Sender& getLeafSender() { return m_leaf; }

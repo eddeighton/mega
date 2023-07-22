@@ -28,7 +28,7 @@
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/stash.hxx"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "common/requireSemicolon.hpp"
 
@@ -37,13 +37,13 @@
 namespace mega::service
 {
 
-class LeafEnrole : public LeafRequestConversation
+class LeafEnrole : public LeafRequestLogicalThread
 {
     std::promise< void >& m_promise;
 
 public:
     LeafEnrole( Leaf& leaf, const network::ConnectionID& originatingConnectionID, std::promise< void >& promise )
-        : LeafRequestConversation( leaf, leaf.createConversationID(), originatingConnectionID )
+        : LeafRequestLogicalThread( leaf, leaf.createLogicalThreadID(), originatingConnectionID )
         , m_promise( promise )
     {
     }
@@ -101,7 +101,7 @@ public:
 };
 
 Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short daemonPortNumber )
-    : network::ConversationManager( network::makeProcessName( network::Node::Leaf ), m_io_context )
+    : network::LogicalThreadManager( network::makeProcessName( network::Node::Leaf ), m_io_context )
     , m_pSender( std::move( pSender ) )
     , m_nodeType( nodeType )
     , m_io_context( 1 ) // single threaded concurrency hint
@@ -119,7 +119,7 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short da
     {
         std::promise< void > promise;
         std::future< void >  future = promise.get_future();
-        conversationInitiated(
+        logicalthreadInitiated(
             std::make_shared< LeafEnrole >( *this, getDaemonSender().getConnectionID(), promise ), getDaemonSender() );
         future.get();
     }
@@ -228,8 +228,8 @@ void Leaf::setActiveProject( const Project& currentProject )
     }
 }
 
-// network::ConversationManager
-network::ConversationBase::Ptr Leaf::joinConversation( const network::ConnectionID& originatingConnectionID,
+// network::LogicalThreadManager
+network::LogicalThreadBase::Ptr Leaf::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                        const network::Message&      msg )
 {
     switch( m_nodeType )
@@ -240,8 +240,8 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
         case network::Node::Python:
         case network::Node::Executor:
         case network::Node::Plugin:
-            return network::ConversationBase::Ptr(
-                new LeafRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
+            return network::LogicalThreadBase::Ptr(
+                new LeafRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
             break;
         case network::Node::Daemon:
         case network::Node::Root:

@@ -32,11 +32,11 @@ namespace mega::network
 {
 
 Server::Connection::Connection( Server& server, boost::asio::io_context& ioContext,
-                                ConversationManager& conversationManager )
+                                LogicalThreadManager& logicalthreadManager )
     : m_server( server )
     , m_strand( boost::asio::make_strand( ioContext ) )
     , m_socket( m_strand )
-    , m_receiver( conversationManager, m_socket, [ this ] { disconnected(); } )
+    , m_receiver( logicalthreadManager, m_socket, [ this ] { disconnected(); } )
 {
 }
 
@@ -79,9 +79,9 @@ void Server::Connection::disconnected()
     m_server.onDisconnected( shared_from_this() );
 }
 
-Server::Server( boost::asio::io_context& ioContext, ConversationManager& conversationManager, short port )
+Server::Server( boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager, short port )
     : m_ioContext( ioContext )
-    , m_conversationManager( conversationManager )
+    , m_logicalthreadManager( logicalthreadManager )
     , m_acceptor( m_ioContext, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), port ) )
 {
 }
@@ -101,7 +101,7 @@ void Server::stop()
 void Server::waitForConnection()
 {
     using tcp                      = boost::asio::ip::tcp;
-    Connection::Ptr pNewConnection = std::make_shared< Connection >( *this, m_ioContext, m_conversationManager );
+    Connection::Ptr pNewConnection = std::make_shared< Connection >( *this, m_ioContext, m_logicalthreadManager );
     m_acceptor.async_accept( pNewConnection->getSocket(),
                              boost::asio::bind_executor( pNewConnection->getStrand(),
                                                          boost::bind( &Server::onConnect, this, pNewConnection,

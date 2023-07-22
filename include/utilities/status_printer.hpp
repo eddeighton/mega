@@ -34,7 +34,7 @@ class StatusPrinter
 public:
     struct Config
     {
-        bool m_bConversations   = false;
+        bool m_bLogicalThreads   = false;
         bool m_bMemory          = false;
         bool m_bLocks           = false;
         bool m_bLog             = false;

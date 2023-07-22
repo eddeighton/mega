@@ -21,13 +21,13 @@ msg JobStart
 {
     broadcast( mega::utilities::ToolChain    toolChain,
                mega::pipeline::Configuration configuration,
-               network::ConversationID       rootConversationID );
-    response( std::vector< network::ConversationID > jobs );
+               network::LogicalThreadID       rootLogicalThreadID );
+    response( std::vector< network::LogicalThreadID > jobs );
 }
 
 msg JobReadyForWork
 {
-    request( network::ConversationID rootConversationID );
+    request( network::LogicalThreadID rootLogicalThreadID );
     response();
 }
 

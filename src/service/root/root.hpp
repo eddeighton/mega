@@ -23,7 +23,7 @@
 #include "mpo_manager.hpp"
 
 #include "service/network/server.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread_manager.hpp"
 
 #include "utilities/megastructure_installation.hpp"
 #include "service/protocol/common/root_config.hpp"
@@ -35,10 +35,10 @@
 namespace mega::service
 {
 
-class Root : public network::ConversationManager
+class Root : public network::LogicalThreadManager
 {
-    friend class RootPipelineConversation;
-    friend class RootRequestConversation;
+    friend class RootPipelineLogicalThread;
+    friend class RootRequestLogicalThread;
     friend class RootSimulation;
 
     using StartupUUIDMap = std::map< std::string, MP >;
@@ -47,8 +47,8 @@ public:
     Root( boost::asio::io_context& ioContext, const boost::filesystem::path& stashFolder, short portNumber );
     void shutdown();
 
-    // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+    // network::LogicalThreadManager
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                              const network::Message&      msg );
 
     MegastructureInstallation getMegastructureInstallation();

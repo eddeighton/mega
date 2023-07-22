@@ -24,16 +24,16 @@
 namespace mega::service
 {
 
-ExecutorRequestConversation::ExecutorRequestConversation( Executor&                      executor,
-                                                          const network::ConversationID& conversationID,
+ExecutorRequestLogicalThread::ExecutorRequestLogicalThread( Executor&                      executor,
+                                                          const network::LogicalThreadID& logicalthreadID,
                                                           std::optional< network::ConnectionID >
                                                               originatingConnectionID )
-    : ConcurrentConversation( executor, conversationID, originatingConnectionID )
+    : ConcurrentLogicalThread( executor, logicalthreadID, originatingConnectionID )
     , m_executor( executor )
 {
 }
 
-network::Message ExecutorRequestConversation::dispatchRequest( const network::Message&     msg,
+network::Message ExecutorRequestLogicalThread::dispatchRequest( const network::Message&     msg,
                                                                boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
@@ -51,10 +51,10 @@ network::Message ExecutorRequestConversation::dispatchRequest( const network::Me
         return result;
     if ( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "ExecutorRequestConversation::dispatchRequest failed for: " << msg.getName() );
+    THROW_RTE( "ExecutorRequestLogicalThread::dispatchRequest failed for: " << msg.getName() );
 }
 
-void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
+void ExecutorRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID,
                                                     const network::Message&      msg,
                                                     boost::asio::yield_context&  yield_ctx )
 {
@@ -66,58 +66,58 @@ void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID&
     {
         m_executor.getLeafSender().send( msg, yield_ctx );
     }
-    else if ( network::ConversationBase::Ptr pConversation
-              = m_executor.findExistingConversation( msg.getReceiverID() ) )
+    else if ( network::LogicalThreadBase::Ptr pLogicalThread
+              = m_executor.findExistingLogicalThread( msg.getReceiverID() ) )
     {
         if( network::sim::MSG_SimClock_Response::ID == msg.getID() )
         {
             THROW_RTE( "SimClock response being routed back into simulation" );
         }
-        pConversation->send( network::ReceivedMsg{ connectionID, msg } );
+        pLogicalThread->send( network::ReceivedMsg{ connectionID, msg } );
     }
     else
     {
-        SPDLOG_ERROR( "ExecutorRequestConversation::dispatchResponse Cannot resolve connection for response: {}", connectionID );
-        THROW_RTE( "ExecutorRequestConversation::dispatchResponse Executor Critical error in response handler: " << connectionID );
+        SPDLOG_ERROR( "ExecutorRequestLogicalThread::dispatchResponse Cannot resolve connection for response: {}", connectionID );
+        THROW_RTE( "ExecutorRequestLogicalThread::dispatchResponse Executor Critical error in response handler: " << connectionID );
     }
 }
 
-void ExecutorRequestConversation::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
+void ExecutorRequestLogicalThread::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                          boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "ExecutorRequestConversation::error conid:{} msg:{} err:{}", msg.connectionID, msg.msg, strErrorMsg );
+    SPDLOG_TRACE( "ExecutorRequestLogicalThread::error conid:{} msg:{} err:{}", msg.connectionID, msg.msg, strErrorMsg );
     if ( ( m_executor.getLeafSender().getConnectionID() == msg.connectionID )
          || ( m_executor.m_receiverChannel.getSender()->getConnectionID() == msg.connectionID )  )
     {
         m_executor.getLeafSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
-    else if ( network::ConversationBase::Ptr pConversation
-              = m_executor.findExistingConversation( msg.msg.getSenderID() ) )
+    else if ( network::LogicalThreadBase::Ptr pLogicalThread
+              = m_executor.findExistingLogicalThread( msg.msg.getSenderID() ) )
     {
-        pConversation->sendErrorResponse( msg, strErrorMsg, yield_ctx );
+        pLogicalThread->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
     else
     {
-        SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection in error handler: {} msg:{} for error: {}",
+        SPDLOG_ERROR( "ExecutorRequestLogicalThread: Cannot resolve connection in error handler: {} msg:{} for error: {}",
                       msg.connectionID, msg.msg, strErrorMsg );
-        THROW_RTE( "ExecutorRequestConversation: Executor Critical error in error handler: " << msg.connectionID
+        THROW_RTE( "ExecutorRequestLogicalThread: Executor Critical error in error handler: " << msg.connectionID
                                                                                              << " : " << strErrorMsg );
     }
 }
 
-network::exe_leaf::Request_Sender ExecutorRequestConversation::getLeafRequest( boost::asio::yield_context& yield_ctx )
+network::exe_leaf::Request_Sender ExecutorRequestLogicalThread::getLeafRequest( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_executor.getLeafSender(), yield_ctx };
 }
-network::mpo::Request_Sender ExecutorRequestConversation::getMPRequest( boost::asio::yield_context& yield_ctx )
+network::mpo::Request_Sender ExecutorRequestLogicalThread::getMPRequest( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_executor.getLeafSender(), yield_ctx };
 }
 
-network::Message ExecutorRequestConversation::RootAllBroadcast( const network::Message&     request,
+network::Message ExecutorRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                                 boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "ExecutorRequestConversation::RootAllBroadcast" );
+    SPDLOG_TRACE( "ExecutorRequestLogicalThread::RootAllBroadcast" );
     std::vector< network::Message > responses;
     {
         std::vector< Simulation::Ptr > simulations;
@@ -128,7 +128,7 @@ network::Message ExecutorRequestConversation::RootAllBroadcast( const network::M
             {
                 case network::status::MSG_GetStatus_Request::ID:
                 {
-                    SPDLOG_TRACE( "ExecutorRequestConversation::RootAllBroadcast to sim: {}", pSimulation->getID() );
+                    SPDLOG_TRACE( "ExecutorRequestLogicalThread::RootAllBroadcast to sim: {}", pSimulation->getID() );
                     auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
                     network::status::Request_Sender rq( *this, pSimulation->getID(), *pSimulation, yield_ctx );
                     const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
@@ -145,7 +145,7 @@ network::Message ExecutorRequestConversation::RootAllBroadcast( const network::M
         }
     }
 
-    SPDLOG_TRACE( "ExecutorRequestConversation::RootAllBroadcast got: {} responses", responses.size() );
+    SPDLOG_TRACE( "ExecutorRequestLogicalThread::RootAllBroadcast got: {} responses", responses.size() );
 
     network::Message aggregateRequest = std::move( request );
     network::aggregate( aggregateRequest, responses );
@@ -154,24 +154,24 @@ network::Message ExecutorRequestConversation::RootAllBroadcast( const network::M
     return dispatchRequest( aggregateRequest, yield_ctx );
 }
 
-network::Message ExecutorRequestConversation::RootExeBroadcast( const network::Message&     request,
+network::Message ExecutorRequestLogicalThread::RootExeBroadcast( const network::Message&     request,
                                                                 boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
-network::Message ExecutorRequestConversation::RootExe( const network::Message&     request,
+network::Message ExecutorRequestLogicalThread::RootExe( const network::Message&     request,
                                                        boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message ExecutorRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message ExecutorRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
                                                       boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
-void ExecutorRequestConversation::EnroleDestroy( boost::asio::yield_context& )
+void ExecutorRequestLogicalThread::EnroleDestroy( boost::asio::yield_context& )
 {
     m_executor.shutdown();
 }

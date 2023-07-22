@@ -26,7 +26,7 @@
 
 #include "service/protocol/model/messages.hxx"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -43,8 +43,8 @@
 namespace mega::network
 {
 
-class ConversationBase;
-class ExternalConversation;
+class LogicalThreadBase;
+class ExternalLogicalThread;
 class Sender;
 
 namespace {{ filename }}
@@ -54,8 +54,8 @@ class Request_Encoder
 {
 public:
     using Sender = std::function< Message(const Message&) >;
-    Request_Encoder( Sender pSender, const ConversationID& sender );
-    Request_Encoder( Sender pSender, const ConversationID& sender, const ConversationID& receiver );
+    Request_Encoder( Sender pSender, const LogicalThreadID& sender );
+    Request_Encoder( Sender pSender, const LogicalThreadID& sender, const LogicalThreadID& receiver );
 {% for request in requests %}
     {{ request.return_type }} {{ request.name }}
     (
@@ -68,18 +68,18 @@ public:
 {% endfor %}
 private:
     Sender m_pSender;
-    const ConversationID m_sender;
-    const ConversationID m_receiver;
+    const LogicalThreadID m_sender;
+    const LogicalThreadID m_receiver;
 };
 
 class Request_Sender
 {
 public:
-    Request_Sender( ConversationBase& conversation,
+    Request_Sender( LogicalThreadBase& logicalthread,
                     Sender& sender,
                     boost::asio::yield_context&   yield_ctx );
-    Request_Sender( ConversationBase& conversation, 
-                    const ConversationID& receiver,
+    Request_Sender( LogicalThreadBase& logicalthread, 
+                    const LogicalThreadID& receiver,
                     Sender& sender,
                     boost::asio::yield_context&   yield_ctx );
 
@@ -95,8 +95,8 @@ public:
 {% endfor %}
 
 private:
-    ConversationBase&             m_conversation;
-    ConversationID                m_receiver;
+    LogicalThreadBase&             m_logicalthread;
+    LogicalThreadID                m_receiver;
     Sender&                       m_sender;
     boost::asio::yield_context&   m_yield_ctx;
 };
@@ -104,8 +104,8 @@ private:
 class External_Request_Sender
 {
 public:
-    External_Request_Sender( ConversationBase& sender, 
-                    ExternalConversation& receiver );
+    External_Request_Sender( LogicalThreadBase& sender, 
+                    ExternalLogicalThread& receiver );
 
 {% for request in requests %}
     {{ request.return_type }} {{ request.name }}
@@ -119,8 +119,8 @@ public:
 {% endfor %}
 
 private:
-    ConversationBase& m_sender;
-    ExternalConversation& m_receiver;
+    LogicalThreadBase& m_sender;
+    ExternalLogicalThread& m_receiver;
 };
 
 class Impl

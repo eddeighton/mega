@@ -24,14 +24,14 @@
 namespace mega::service
 {
 
-ToolRequestConversation::ToolRequestConversation( Tool& tool, const network::ConversationID& conversationID,
+ToolRequestLogicalThread::ToolRequestLogicalThread( Tool& tool, const network::LogicalThreadID& logicalthreadID,
                                                   std::optional< network::ConnectionID > originatingConnectionID )
-    : InThreadConversation( tool, conversationID, originatingConnectionID )
+    : InThreadLogicalThread( tool, logicalthreadID, originatingConnectionID )
     , m_tool( tool )
 {
 }
 
-network::Message ToolRequestConversation::dispatchRequest( const network::Message&     msg,
+network::Message ToolRequestLogicalThread::dispatchRequest( const network::Message&     msg,
                                                            boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
@@ -43,9 +43,9 @@ network::Message ToolRequestConversation::dispatchRequest( const network::Messag
         return result;
     if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "ToolRequestConversation::dispatchRequest failed: " << msg );
+    THROW_RTE( "ToolRequestLogicalThread::dispatchRequest failed: " << msg );
 }
-void ToolRequestConversation::dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
+void ToolRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
                                                 boost::asio::yield_context& yield_ctx )
 {
     if ( m_tool.getLeafSender().getConnectionID() == connectionID )
@@ -62,7 +62,7 @@ void ToolRequestConversation::dispatchResponse( const network::ConnectionID& con
     }
 }
 
-void ToolRequestConversation::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
+void ToolRequestLogicalThread::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                      boost::asio::yield_context& yield_ctx )
 {
     if ( m_tool.getLeafSender().getConnectionID() == msg.connectionID )
@@ -80,25 +80,25 @@ void ToolRequestConversation::error( const network::ReceivedMsg& msg, const std:
     }
 }
 
-network::tool_leaf::Request_Sender ToolRequestConversation::getToolRequest( boost::asio::yield_context& yield_ctx )
+network::tool_leaf::Request_Sender ToolRequestLogicalThread::getToolRequest( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_tool.getLeafSender(), yield_ctx };
 }
 
-network::Message ToolRequestConversation::RootAllBroadcast( const network::Message&     request,
+network::Message ToolRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                             boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message ToolRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message ToolRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( MP( m_tool.getMPO() ) == mp );
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message ToolRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
+network::Message ToolRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( MPO( m_tool.getMPO() ) == mpo );

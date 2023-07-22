@@ -20,7 +20,7 @@
 #ifndef EXECUTOR_REQUEST_22_JUNE_2022
 #define EXECUTOR_REQUEST_22_JUNE_2022
 
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 
 #include "service/protocol/model/leaf_exe.hxx"
 #include "service/protocol/model/exe_leaf.hxx"
@@ -36,7 +36,7 @@ namespace mega::service
 
 class Executor;
 
-class ExecutorRequestConversation : public network::ConcurrentConversation,
+class ExecutorRequestLogicalThread : public network::ConcurrentLogicalThread,
                                     public network::leaf_exe::Impl,
                                     public network::mpo::Impl,
                                     public network::job::Impl,
@@ -49,7 +49,7 @@ protected:
     Executor& m_executor;
 
 public:
-    ExecutorRequestConversation( Executor& executor, const network::ConversationID& conversationID,
+    ExecutorRequestLogicalThread( Executor& executor, const network::LogicalThreadID& logicalthreadID,
                                  std::optional< network::ConnectionID > originatingConnectionID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
@@ -98,12 +98,12 @@ public:
                                        boost::asio::yield_context&           yield_ctx ) override;
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
-    // network::job::Impl - note also in JobConversation
-    virtual std::vector< network::ConversationID >
+    // network::job::Impl - note also in JobLogicalThread
+    virtual std::vector< network::LogicalThreadID >
     JobStart( const utilities::ToolChain&                                  toolChain,
               const pipeline::Configuration&                               configuration,
-              const network::ConversationID&                               rootConversationID,
-              const std::vector< std::vector< network::ConversationID > >& jobs,
+              const network::LogicalThreadID&                               rootLogicalThreadID,
+              const std::vector< std::vector< network::LogicalThreadID > >& jobs,
               boost::asio::yield_context&                                  yield_ctx ) override;
 
     // network::sim::Impl

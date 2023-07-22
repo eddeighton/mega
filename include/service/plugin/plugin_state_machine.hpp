@@ -25,7 +25,7 @@
 
 #include "service/protocol/model/sim.hxx"
 
-#include "service/protocol/common/conversation_base.hpp"
+#include "service/protocol/common/logical_thread_base.hpp"
 
 #include <optional>
 #include <unordered_map>
@@ -46,7 +46,7 @@ class PluginStateMachine
             TOTAL_STATES
         };
         Type                       m_type;
-        network::ConversationBase* m_pSender;
+        network::LogicalThreadBase* m_pSender;
         Downstream                 m_downstream;
     };
     using MPOTable = std::unordered_map< MPO, State, MPO::Hash >;

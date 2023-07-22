@@ -24,9 +24,9 @@ namespace mega::service::python
 {
 
 // network::project::Impl
-void PythonRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
+void PythonRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "PythonRequestConversation::SetProject: {}", project.getProjectInstallPath().string() );
+    SPDLOG_TRACE( "PythonRequestLogicalThread::SetProject: {}", project.getProjectInstallPath().string() );
     
 }
 

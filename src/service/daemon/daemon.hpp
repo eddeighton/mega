@@ -22,7 +22,7 @@
 
 #include "service/network/client.hpp"
 #include "service/network/server.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread_manager.hpp"
 
 #include "service/network/network.hpp"
 
@@ -31,9 +31,9 @@
 namespace mega::service
 {
 
-class Daemon : public network::ConversationManager
+class Daemon : public network::LogicalThreadManager
 {
-    friend class DaemonRequestConversation;
+    friend class DaemonRequestLogicalThread;
     friend class DaemonEnrole;
 
 public:
@@ -45,8 +45,8 @@ public:
 
     void shutdown();
 
-    // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+    // network::LogicalThreadManager
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                              const network::Message&      msg );
 
     void                           setActiveProject( const Project& project );

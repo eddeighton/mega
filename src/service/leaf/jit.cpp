@@ -28,7 +28,7 @@ namespace mega::service
 
 // network::jit::Impl
 
-void LeafRequestConversation::GetAllocator( const mega::TypeID&         typeID,
+void LeafRequestLogicalThread::GetAllocator( const mega::TypeID&         typeID,
                                             const mega::U64&            jitAllocatorPtr,
                                             boost::asio::yield_context& yield_ctx )
 {
@@ -36,20 +36,20 @@ void LeafRequestConversation::GetAllocator( const mega::TypeID&         typeID,
     *pAllocatorPtr                         = m_leaf.m_pJIT->getAllocator( getLLVMCompiler( yield_ctx ), typeID );
 }
 
-void LeafRequestConversation::ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx )
 {
     auto llvmCompiler = getLLVMCompiler( yield_ctx );
     func( m_leaf.getJIT(), ( void* )&llvmCompiler );
 }
 
-TypeID LeafRequestConversation::GetInterfaceTypeID( const mega::TypeID& concreteTypeID, boost::asio::yield_context& )
+TypeID LeafRequestLogicalThread::GetInterfaceTypeID( const mega::TypeID& concreteTypeID, boost::asio::yield_context& )
 {
     VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
     return m_leaf.m_pJIT->getInterfaceTypeID( concreteTypeID );
 }
 
 std::unordered_map< std::string, mega::TypeID >
-LeafRequestConversation::GetIdentities( boost::asio::yield_context& yield_ctx )
+LeafRequestLogicalThread::GetIdentities( boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
     return m_leaf.m_pJIT->getIdentities();

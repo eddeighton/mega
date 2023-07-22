@@ -153,15 +153,15 @@ struct formatter< mega::network::Message >
 };
 
 template <>
-struct formatter< mega::network::ConversationID >
+struct formatter< mega::network::LogicalThreadID >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    inline auto format( const mega::network::ConversationID& conversationID, FormatContext& ctx )
+    inline auto format( const mega::network::LogicalThreadID& logicalthreadID, FormatContext& ctx )
         -> decltype( ctx.out() )
     {
         std::ostringstream os;
-        os << conversationID;
+        os << logicalthreadID;
         return fmt::format_to( ctx.out(), "{}", os.str() );
     }
 };

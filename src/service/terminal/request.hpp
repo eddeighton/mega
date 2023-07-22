@@ -29,7 +29,7 @@
 namespace mega::service
 {
 
-class TerminalRequestConversation : public network::InThreadConversation,
+class TerminalRequestLogicalThread : public network::InThreadLogicalThread,
                                     public network::leaf_term::Impl,
                                     public network::status::Impl,
                                     public network::project::Impl
@@ -38,7 +38,7 @@ protected:
     Terminal& m_terminal;
 
 public:
-    TerminalRequestConversation( Terminal& terminal, const network::ConversationID& conversationID,
+    TerminalRequestLogicalThread( Terminal& terminal, const network::LogicalThreadID& logicalthreadID,
                                  const network::ConnectionID& originatingConnectionID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,

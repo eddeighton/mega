@@ -21,11 +21,11 @@
 #define SERVER_24_MAY_2022
 
 #include "network.hpp"
-#include "conversation_manager.hpp"
+#include "logical_thread_manager.hpp"
 #include "receiver.hpp"
 #include "sender_factory.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include <boost/asio/strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -52,7 +52,7 @@ public:
         using Ptr    = std::shared_ptr< Connection >;
         using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;
 
-        Connection( Server& server, boost::asio::io_context& ioContext, ConversationManager& conversationManager );
+        Connection( Server& server, boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager );
         ~Connection();
 
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
@@ -105,7 +105,7 @@ public:
     using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;
 
 public:
-    Server( boost::asio::io_context& ioContext, ConversationManager& conversationManager, short port );
+    Server( boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager, short port );
 
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
     Connection::Ptr          getConnection( const ConnectionID& connectionID );
@@ -155,7 +155,7 @@ public:
 
 private:
     boost::asio::io_context& m_ioContext;
-    ConversationManager&     m_conversationManager;
+    LogicalThreadManager&     m_logicalthreadManager;
     Traits::Acceptor         m_acceptor;
     ConnectionMap            m_connections;
     ConnectionLabelMap       m_connectionLabels;

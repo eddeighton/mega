@@ -22,7 +22,7 @@
 
 #include "service/executor/request.hpp"
 
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 
 #include "pipeline/pipeline.hpp"
 
@@ -33,22 +33,22 @@ namespace mega::service
 
 class Executor;
 
-class JobConversation : public ExecutorRequestConversation,
+class JobLogicalThread : public ExecutorRequestLogicalThread,
                         public pipeline::Progress,
                         public pipeline::Stash,
                         public pipeline::DependencyProvider
 {
-    const network::ConversationID m_rootConversationID;
+    const network::LogicalThreadID m_rootLogicalThreadID;
     mega::pipeline::Pipeline::Ptr m_pPipeline;
     boost::asio::yield_context*   m_pYieldCtx = nullptr;
 
     std::optional< pipeline::PipelineResult > m_resultOpt;
 
 public:
-    using Ptr = std::shared_ptr< JobConversation >;
+    using Ptr = std::shared_ptr< JobLogicalThread >;
 
-    JobConversation( Executor& executor, const network::ConversationID& conversationID,
-                     mega::pipeline::Pipeline::Ptr pPipeline, const network::ConversationID& rootConversationID );
+    JobLogicalThread( Executor& executor, const network::LogicalThreadID& logicalthreadID,
+                     mega::pipeline::Pipeline::Ptr pPipeline, const network::LogicalThreadID& rootLogicalThreadID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;

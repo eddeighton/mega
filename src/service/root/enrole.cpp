@@ -33,10 +33,10 @@ namespace mega::service
 {
 
 // network::enrole::Impl
-MachineID RootRequestConversation::EnroleDaemon( boost::asio::yield_context& yield_ctx )
+MachineID RootRequestLogicalThread::EnroleDaemon( boost::asio::yield_context& yield_ctx )
 {
     const MachineID machineID = m_root.m_mpoManager.newDaemon();
-    SPDLOG_TRACE( "RootRequestConversation::EnroleDaemon: {}", machineID );
+    SPDLOG_TRACE( "RootRequestLogicalThread::EnroleDaemon: {}", machineID );
     network::Server::Connection::Ptr pConnection = m_root.m_server.getConnection( getOriginatingEndPointID().value() );
     pConnection->setDisconnectCallback( [ machineID, &root = m_root ]( const network::ConnectionID& connectionID )
                                         { root.onDaemonDisconnect( connectionID, machineID ); } );
@@ -49,11 +49,11 @@ MachineID RootRequestConversation::EnroleDaemon( boost::asio::yield_context& yie
     return machineID;
 }
 
-MP RootRequestConversation::EnroleLeafWithRoot( const std::string&          startupUUID,
+MP RootRequestLogicalThread::EnroleLeafWithRoot( const std::string&          startupUUID,
                                                 const MachineID&            machineID,
                                                 boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "RootRequestConversation::EnroleLeafWithRoot: {} {}", startupUUID, machineID );
+    SPDLOG_TRACE( "RootRequestLogicalThread::EnroleLeafWithRoot: {} {}", startupUUID, machineID );
 
     const MP mp = m_root.m_mpoManager.newLeaf( machineID );
 
@@ -65,9 +65,9 @@ MP RootRequestConversation::EnroleLeafWithRoot( const std::string&          star
     return mp;
 }
 
-void RootRequestConversation::EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx )
+void RootRequestLogicalThread::EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "RootRequestConversation::EnroleLeafDisconnect {}", mp );
+    SPDLOG_TRACE( "RootRequestLogicalThread::EnroleLeafDisconnect {}", mp );
     const auto terminatedMPOS = m_root.m_mpoManager.leafDisconnected( mp );
 
     auto stackCon = getOriginatingEndPointID();
@@ -84,22 +84,22 @@ void RootRequestConversation::EnroleLeafDisconnect( const MP& mp, boost::asio::y
     }
 }
 
-std::vector< MachineID > RootRequestConversation::EnroleGetDaemons( boost::asio::yield_context& yield_ctx )
+std::vector< MachineID > RootRequestLogicalThread::EnroleGetDaemons( boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMachines();
 }
-std::vector< MP > RootRequestConversation::EnroleGetProcesses( const MachineID&            machineID,
+std::vector< MP > RootRequestLogicalThread::EnroleGetProcesses( const MachineID&            machineID,
                                                                boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMachineProcesses( machineID );
 }
-std::vector< MPO > RootRequestConversation::EnroleGetMPO( const MP&                   machineProcess,
+std::vector< MPO > RootRequestLogicalThread::EnroleGetMPO( const MP&                   machineProcess,
                                                           boost::asio::yield_context& yield_ctx )
 {
     return m_root.m_mpoManager.getMPO( machineProcess );
 }
 
-MP RootRequestConversation::EnroleCreateExecutor( const MachineID&            daemonMachineID,
+MP RootRequestLogicalThread::EnroleCreateExecutor( const MachineID&            daemonMachineID,
                                                   boost::asio::yield_context& yield_ctx )
 {
     network::Server::Connection::Label label{ daemonMachineID };
@@ -122,7 +122,7 @@ MP RootRequestConversation::EnroleCreateExecutor( const MachineID&            da
     const std::chrono::time_point< std::chrono::steady_clock > timeoutTime = std::chrono::steady_clock::now() + 5s;
 
     SPDLOG_TRACE(
-        "RootRequestConversation::EnroleCreateExecutor Waiting for daemon: {} to create process with UUID: {}",
+        "RootRequestLogicalThread::EnroleCreateExecutor Waiting for daemon: {} to create process with UUID: {}",
         daemonMachineID, strStartupUUID );
 
     // start waiting with timeout for MP to register with startup UUID

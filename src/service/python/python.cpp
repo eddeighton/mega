@@ -20,15 +20,15 @@
 
 #include "python.hpp"
 
-#include "mpo_conversation.hpp"
+#include "mpo_logical_thread.hpp"
 
 #include "service/mpo_context.hpp"
 
-#include "service/network/conversation.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "python.hpp"
 #include "request.hpp"
@@ -45,7 +45,7 @@ namespace mega::service::python
 {
 
 Python::Python( boost::asio::io_context& io_context, short daemonPortNumber )
-    : network::ConversationManager( network::makeProcessName( network::Node::Python ), io_context )
+    : network::LogicalThreadManager( network::makeProcessName( network::Node::Python ), io_context )
     , m_io_context( io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf(
@@ -68,11 +68,11 @@ void Python::shutdown()
     // TODO ?
 }
 
-network::ConversationBase::Ptr Python::joinConversation( const network::ConnectionID& originatingConnectionID,
+network::LogicalThreadBase::Ptr Python::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                          const network::Message&      msg )
 {
-    return network::ConversationBase::Ptr(
-        new PythonRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr(
+        new PythonRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
 } // namespace mega::service::python

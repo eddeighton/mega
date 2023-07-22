@@ -37,7 +37,7 @@ namespace mega::service
 {
 
 // network::memory::Impl
-void LeafRequestConversation::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     if( m_leaf.m_pJIT.get() && m_leaf.m_pRemoteMemoryManager.get() )
     {
@@ -45,10 +45,10 @@ void LeafRequestConversation::MPODestroyed( const MPO& mpo, boost::asio::yield_c
     }
 }
 
-reference LeafRequestConversation::NetworkAllocate( const MPO& parent, const TypeID& objectTypeID,
+reference LeafRequestLogicalThread::NetworkAllocate( const MPO& parent, const TypeID& objectTypeID,
                                                     const TimeStamp& lockCycle, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::NetworkAllocate: {} {}", parent, objectTypeID );
+    SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkAllocate: {} {}", parent, objectTypeID );
 
     reference result;
 
@@ -75,10 +75,10 @@ reference LeafRequestConversation::NetworkAllocate( const MPO& parent, const Typ
     return m_leaf.m_pRemoteMemoryManager->networkToHeap( result, llvm );
 }
 
-reference LeafRequestConversation::NetworkToHeap( const reference& ref, const TimeStamp& lockCycle,
+reference LeafRequestLogicalThread::NetworkToHeap( const reference& ref, const TimeStamp& lockCycle,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::NetworkToHeap: {} {}", ref, lockCycle );
+    SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkToHeap: {} {}", ref, lockCycle );
 
     // short circuit if already got it
     if( ref.isHeapAddress() && ref.getLockCycle() == lockCycle )
@@ -112,12 +112,12 @@ reference LeafRequestConversation::NetworkToHeap( const reference& ref, const Ti
                     const network::Message& msg ) mutable { return leafRequest.MPOUp( msg, targetMPO ); },
                 getID() };
 
-            SPDLOG_TRACE( "LeafRequestConversation::NetworkToHeap: requesting snapshot for: {}",
+            SPDLOG_TRACE( "LeafRequestLogicalThread::NetworkToHeap: requesting snapshot for: {}",
                           heapAddress.getHeaderAddress() );
             Snapshot objectSnapshot = simRequest.SimObjectSnapshot( heapAddress.getHeaderAddress() );
             ASSERT( objectSnapshot.getTimeStamp() == lockCycle );
             SPDLOG_TRACE(
-                "LeafRequestConversation::NetworkToHeap: got snapshot for: {}", heapAddress.getHeaderAddress() );
+                "LeafRequestLogicalThread::NetworkToHeap: got snapshot for: {}", heapAddress.getHeaderAddress() );
             {
                 AddressTable& addressTable = objectSnapshot.getTable();
                 for( AddressTable::Index objectIndex : objectSnapshot.getObjects() )

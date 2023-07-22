@@ -25,14 +25,14 @@
 namespace mega::service::python
 {
 
-PythonRequestConversation::PythonRequestConversation( Python& python, const network::ConversationID& conversationID,
+PythonRequestLogicalThread::PythonRequestLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID,
                                                       std::optional< network::ConnectionID > originatingConnectionID )
-    : InThreadConversation( python, conversationID, originatingConnectionID )
+    : InThreadLogicalThread( python, logicalthreadID, originatingConnectionID )
     , m_python( python )
 {
 }
 
-network::Message PythonRequestConversation::dispatchRequest( const network::Message&     msg,
+network::Message PythonRequestLogicalThread::dispatchRequest( const network::Message&     msg,
                                                              boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
@@ -46,10 +46,10 @@ network::Message PythonRequestConversation::dispatchRequest( const network::Mess
         return result;
     if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "PythonRequestConversation::dispatchRequest failed: " << msg );
+    THROW_RTE( "PythonRequestLogicalThread::dispatchRequest failed: " << msg );
 }
 
-void PythonRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
+void PythonRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID,
                                                   const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     if( m_python.getLeafSender().getConnectionID() == connectionID )
@@ -60,18 +60,18 @@ void PythonRequestConversation::dispatchResponse( const network::ConnectionID& c
     {
         m_python.getLeafSender().send( msg, yield_ctx );
     }
-    else if( m_python.getExternalConversation()->getID() == msg.getSenderID() )
+    else if( m_python.getExternalLogicalThread()->getID() == msg.getSenderID() )
     {
-        m_python.getExternalConversation()->send( network::ReceivedMsg{ connectionID, msg } );
+        m_python.getExternalLogicalThread()->send( network::ReceivedMsg{ connectionID, msg } );
     }
     else
     {
-        SPDLOG_ERROR( "PythonRequestConversation::dispatchResponse cannot resolve connection: {} on error: {}",
+        SPDLOG_ERROR( "PythonRequestLogicalThread::dispatchResponse cannot resolve connection: {} on error: {}",
                       connectionID, msg );
     }
 }
 
-void PythonRequestConversation::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
+void PythonRequestLogicalThread::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                        boost::asio::yield_context& yield_ctx )
 {
     if( m_python.getLeafSender().getConnectionID() == msg.connectionID )
@@ -82,67 +82,67 @@ void PythonRequestConversation::error( const network::ReceivedMsg& msg, const st
     {
         m_python.m_receiverChannel.getSender()->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
-    else if( m_python.getExternalConversation()->getID() == msg.msg.getSenderID() )
+    else if( m_python.getExternalLogicalThread()->getID() == msg.msg.getSenderID() )
     {
-        m_python.getExternalConversation()->sendErrorResponse( msg, strErrorMsg );
+        m_python.getExternalLogicalThread()->sendErrorResponse( msg, strErrorMsg );
     }
-    else if( m_python.getExternalConversation()->getID() == msg.msg.getReceiverID() )
+    else if( m_python.getExternalLogicalThread()->getID() == msg.msg.getReceiverID() )
     {
-        m_python.getExternalConversation()->sendErrorResponse( msg, strErrorMsg );
+        m_python.getExternalLogicalThread()->sendErrorResponse( msg, strErrorMsg );
     }
     else
     {
         // This can happen when initiating request has received exception - in which case
-        SPDLOG_ERROR( "PythonRequestConversation::error cannot resolve connection: {} on error: {}", msg.connectionID,
+        SPDLOG_ERROR( "PythonRequestLogicalThread::error cannot resolve connection: {} on error: {}", msg.connectionID,
                       strErrorMsg );
     }
 }
 
 network::python_leaf::Request_Sender
-PythonRequestConversation::getPythonRequest( boost::asio::yield_context& yield_ctx )
+PythonRequestLogicalThread::getPythonRequest( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_python.getLeafSender(), yield_ctx };
 }
 
-network::Message PythonRequestConversation::RootAllBroadcast( const network::Message&     request,
+network::Message PythonRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                               boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message PythonRequestConversation::PythonRoot( const network::Message&     request,
+network::Message PythonRequestLogicalThread::PythonRoot( const network::Message&     request,
                                                         boost::asio::yield_context& yield_ctx )
 {
     return getPythonRequest( yield_ctx ).PythonRoot( request );
 }
-network::Message PythonRequestConversation::PythonDaemon( const network::Message&     request,
+network::Message PythonRequestLogicalThread::PythonDaemon( const network::Message&     request,
                                                           boost::asio::yield_context& yield_ctx )
 {
     return getPythonRequest( yield_ctx ).PythonDaemon( request );
 }
 
-network::Message PythonRequestConversation::MPRoot( const network::Message& request, const mega::MP& mp,
+network::Message PythonRequestLogicalThread::MPRoot( const network::Message& request, const mega::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
     return rq.MPRoot( request, mp );
 }
 
-network::Message PythonRequestConversation::MPUp( const network::Message& request, const mega::MP& mp,
+network::Message PythonRequestLogicalThread::MPUp( const network::Message& request, const mega::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender rq{ *this, m_python.getLeafSender(), yield_ctx };
     return rq.MPUp( request, mp );
 }
 
-network::Message PythonRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message PythonRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( mega::MP( m_python.getMPO() ) == mp );
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message PythonRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
+network::Message PythonRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                      boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( mega::MPO( m_python.getMPO() ) == mpo );

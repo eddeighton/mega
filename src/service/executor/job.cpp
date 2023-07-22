@@ -28,11 +28,11 @@
 namespace mega::service
 {
 
-std::vector< network::ConversationID >
-ExecutorRequestConversation::JobStart( const mega::utilities::ToolChain&                            toolChain,
+std::vector< network::LogicalThreadID >
+ExecutorRequestLogicalThread::JobStart( const mega::utilities::ToolChain&                            toolChain,
                                        const mega::pipeline::Configuration&                         configuration,
-                                       const network::ConversationID&                               rootConversationID,
-                                       const std::vector< std::vector< network::ConversationID > >& resultJobs,
+                                       const network::LogicalThreadID&                               rootLogicalThreadID,
+                                       const std::vector< std::vector< network::LogicalThreadID > >& resultJobs,
                                        boost::asio::yield_context&                                  yield_ctx )
 {
     mega::pipeline::Pipeline::Ptr pPipeline;
@@ -50,42 +50,42 @@ ExecutorRequestConversation::JobStart( const mega::utilities::ToolChain&        
         }
     }
 
-    std::vector< network::ConversationID > jobIDs;
-    std::vector< JobConversation::Ptr >    jobs;
+    std::vector< network::LogicalThreadID > jobIDs;
+    std::vector< JobLogicalThread::Ptr >    jobs;
     for ( int i = 0; i < m_executor.getNumThreads(); ++i )
     {
-        JobConversation::Ptr pJob = std::make_shared< JobConversation >(
-            m_executor, m_executor.createConversationID(), pPipeline,
-            rootConversationID );
+        JobLogicalThread::Ptr pJob = std::make_shared< JobLogicalThread >(
+            m_executor, m_executor.createLogicalThreadID(), pPipeline,
+            rootLogicalThreadID );
         jobIDs.push_back( pJob->getID() );
         jobs.push_back( pJob );
     }
 
-    for ( JobConversation::Ptr pJob : jobs )
+    for ( JobLogicalThread::Ptr pJob : jobs )
     {
-        m_executor.conversationInitiated( pJob, m_executor.getLeafSender() );
+        m_executor.logicalthreadInitiated( pJob, m_executor.getLeafSender() );
     }
 
     return jobIDs;
 }
 
-JobConversation::JobConversation( Executor& executor, const network::ConversationID& conversationID,
+JobLogicalThread::JobLogicalThread( Executor& executor, const network::LogicalThreadID& logicalthreadID,
                                   mega::pipeline::Pipeline::Ptr  pPipeline,
-                                  const network::ConversationID& rootConversationID )
-    : ExecutorRequestConversation( executor, conversationID, std::nullopt )
+                                  const network::LogicalThreadID& rootLogicalThreadID )
+    : ExecutorRequestLogicalThread( executor, logicalthreadID, std::nullopt )
     , m_pPipeline( pPipeline )
-    , m_rootConversationID( rootConversationID )
+    , m_rootLogicalThreadID( rootLogicalThreadID )
 {
     VERIFY_RTE( m_pPipeline );
 }
 
-network::Message JobConversation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message JobLogicalThread::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     // base already inherits job interface
-    return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
+    return ExecutorRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
-pipeline::PipelineResult JobConversation::JobStartTask( const mega::pipeline::TaskDescriptor& task,
+pipeline::PipelineResult JobLogicalThread::JobStartTask( const mega::pipeline::TaskDescriptor& task,
                                                        boost::asio::yield_context&           yield_ctx )
 {
     m_resultOpt.reset();
@@ -95,52 +95,52 @@ pipeline::PipelineResult JobConversation::JobStartTask( const mega::pipeline::Ta
 }
 
 // pipeline::DependencyProvider
-EG_PARSER_INTERFACE* JobConversation::getParser() { return m_executor.m_pParser.get(); }
+EG_PARSER_INTERFACE* JobLogicalThread::getParser() { return m_executor.m_pParser.get(); }
 
 // pipeline::Progress
 
-void JobConversation::onStarted( const std::string& strMsg )
+void JobLogicalThread::onStarted( const std::string& strMsg )
 {
     getRootRequest< network::job::Request_Encoder >( *m_pYieldCtx ).JobProgress( strMsg );
 }
 
-void JobConversation::onProgress( const std::string& strMsg )
+void JobLogicalThread::onProgress( const std::string& strMsg )
 {
     getRootRequest< network::job::Request_Encoder >( *m_pYieldCtx ).JobProgress( strMsg );
 }
 
-void JobConversation::onFailed( const std::string& strMsg )
+void JobLogicalThread::onFailed( const std::string& strMsg )
 {
     m_resultOpt = pipeline::PipelineResult( false, strMsg, {} );
 }
 
-void JobConversation::onCompleted( const std::string& strMsg )
+void JobLogicalThread::onCompleted( const std::string& strMsg )
 {
     m_resultOpt = pipeline::PipelineResult( true, strMsg, {} );
 }
 
 // pipeline::Stash
-task::FileHash JobConversation::getBuildHashCode( const boost::filesystem::path& filePath )
+task::FileHash JobLogicalThread::getBuildHashCode( const boost::filesystem::path& filePath )
 {
     return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).BuildGetHashCode( filePath );
 }
-void JobConversation::setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode )
+void JobLogicalThread::setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode )
 {
     getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).BuildSetHashCode( filePath, hashCode );
 }
-void JobConversation::stash( const boost::filesystem::path& file, task::DeterminantHash code )
+void JobLogicalThread::stash( const boost::filesystem::path& file, task::DeterminantHash code )
 {
     getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).StashStash( file, code );
 }
-bool JobConversation::restore( const boost::filesystem::path& file, task::DeterminantHash code )
+bool JobLogicalThread::restore( const boost::filesystem::path& file, task::DeterminantHash code )
 {
     return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).StashRestore( file, code );
 }
 
-void JobConversation::run( boost::asio::yield_context& yield_ctx )
+void JobLogicalThread::run( boost::asio::yield_context& yield_ctx )
 {
     m_pYieldCtx = &yield_ctx;
-    getRootRequest< network::job::Request_Encoder >( yield_ctx ).JobReadyForWork( m_rootConversationID );
+    getRootRequest< network::job::Request_Encoder >( yield_ctx ).JobReadyForWork( m_rootLogicalThreadID );
 }
 
 } // namespace mega::service

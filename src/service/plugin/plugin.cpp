@@ -43,13 +43,13 @@ Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
     SPDLOG_TRACE( "Plugin::Plugin()" );
     /*{
         m_pPlatform = std::make_shared< Platform >(
-            m_executor, m_executor.createConversationID(), *this );
-        m_executor.conversationInitiated( m_pPlatform, m_executor.getLeafSender() );
+            m_executor, m_executor.createLogicalThreadID(), *this );
+        m_executor.logicalthreadInitiated( m_pPlatform, m_executor.getLeafSender() );
     }
     {
         m_pPlayerNetwork = std::make_shared< PlayerNetwork >(
-            m_executor, m_executor.createConversationID(), *this );
-        m_executor.conversationInitiated( m_pPlayerNetwork, m_executor.getLeafSender() );
+            m_executor, m_executor.createLogicalThreadID(), *this );
+        m_executor.logicalthreadInitiated( m_pPlayerNetwork, m_executor.getLeafSender() );
     }*/
 }
 
@@ -139,7 +139,7 @@ void Plugin::unregisterMPO( network::SenderRef sender )
             sender.m_pSender->getID(), getID(), network::sim::MSG_SimUnregister_Request{ sender.m_mpo } ) } );
 }
 
-void Plugin::requestClock( network::ConversationBase* pSender, MPO mpo, log::Range range )
+void Plugin::requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range )
 {
     send( network::ReceivedMsg{
         pSender->getConnectionID(),
@@ -147,8 +147,8 @@ void Plugin::requestClock( network::ConversationBase* pSender, MPO mpo, log::Ran
             pSender->getID(), getID(), network::sim::MSG_SimClock_Request{ mpo, std::move( range ) } ) } );
 }
 
-// network::ConversationBase
-const network::ConversationID& Plugin::getID() const
+// network::LogicalThreadBase
+const network::LogicalThreadID& Plugin::getID() const
 {
     return m_conID;
 }

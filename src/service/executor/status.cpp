@@ -27,24 +27,24 @@ namespace mega::service
 {
 
 // network::project::Impl
-network::Status ExecutorRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+network::Status ExecutorRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                         boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "ExecutorRequestConversation::GetStatus" );
+    SPDLOG_TRACE( "ExecutorRequestLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
+        std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for ( const auto& id : m_executor.reportConversations() )
+            for ( const auto& id : m_executor.reportLogicalThreads() )
             {
                 if ( id != getID() )
                 {
-                    conversations.push_back( id );
+                    logicalthreads.push_back( id );
                 }
             }
         }
-        status.setConversationID( conversations );
+        status.setLogicalThreadID( logicalthreads );
 
         std::ostringstream os;
         os << m_executor.getProcessName() << " with threads: " << m_executor.getNumThreads();
@@ -54,7 +54,7 @@ network::Status ExecutorRequestConversation::GetStatus( const std::vector< netwo
     return status;
 }
 
-std::string ExecutorRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string ExecutorRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     using ::operator<<;
     std::ostringstream os;

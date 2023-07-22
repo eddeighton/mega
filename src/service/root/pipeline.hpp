@@ -30,12 +30,12 @@ namespace mega::service
 {
 class Root;
 
-class RootPipelineConversation : public RootRequestConversation,
+class RootPipelineLogicalThread : public RootRequestLogicalThread,
                                  public network::pipeline::Impl,
                                  public pipeline::Progress,
                                  public pipeline::Stash
 {
-    std::set< network::ConversationID > m_jobs;
+    std::set< network::LogicalThreadID > m_jobs;
 
     using TaskChannel = boost::asio::experimental::concurrent_channel< void(
         boost::system::error_code, mega::pipeline::TaskDescriptor ) >;
@@ -43,7 +43,7 @@ class RootPipelineConversation : public RootRequestConversation,
 
     struct TaskCompletion
     {
-        network::ConversationID        jobID;
+        network::LogicalThreadID        jobID;
         mega::pipeline::TaskDescriptor task;
         bool                           bSuccess;
     };
@@ -54,8 +54,8 @@ class RootPipelineConversation : public RootRequestConversation,
     static constexpr mega::U32 CHANNEL_SIZE = 256;
 
 public:
-    RootPipelineConversation( Root&                          root,
-                              const network::ConversationID& conversationID,
+    RootPipelineLogicalThread( Root&                          root,
+                              const network::LogicalThreadID& logicalthreadID,
                               const network::ConnectionID&   originatingConnectionID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,

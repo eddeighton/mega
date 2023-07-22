@@ -18,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "mpo_conversation.hpp"
+#include "mpo_logical_thread.hpp"
 
 #include "service/protocol/model/jit.hxx"
 
@@ -27,32 +27,32 @@
 namespace mega::service::python
 {
 
-MPOConversation::MPOConversation( Python& python, const network::ConversationID& conversationID )
-    : PythonRequestConversation( python, conversationID )
-    , mega::MPOContext( conversationID )
+MPOLogicalThread::MPOLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID )
+    : PythonRequestLogicalThread( python, logicalthreadID )
+    , mega::MPOContext( logicalthreadID )
     , m_python( python )
 {
 }
 
-network::Message MPOConversation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message MPOLogicalThread::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
     if( result = network::python::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    return PythonRequestConversation::dispatchRequest( msg, yield_ctx );
+    return PythonRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
-network::python_leaf::Request_Sender MPOConversation::getPythonRequest( boost::asio::yield_context& yield_ctx )
+network::python_leaf::Request_Sender MPOLogicalThread::getPythonRequest( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_python.getLeafSender(), yield_ctx };
 }
 
-network::mpo::Request_Sender MPOConversation::getMPRequest( boost::asio::yield_context& yield_ctx )
+network::mpo::Request_Sender MPOLogicalThread::getMPRequest( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_python.getLeafSender(), yield_ctx };
 }
 
-network::enrole::Request_Encoder MPOConversation::getRootEnroleRequest()
+network::enrole::Request_Encoder MPOLogicalThread::getRootEnroleRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getPythonRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
@@ -60,7 +60,7 @@ network::enrole::Request_Encoder MPOConversation::getRootEnroleRequest()
              getID() };
 }
 
-network::stash::Request_Encoder MPOConversation::getRootStashRequest()
+network::stash::Request_Encoder MPOLogicalThread::getRootStashRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getPythonRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
@@ -68,7 +68,7 @@ network::stash::Request_Encoder MPOConversation::getRootStashRequest()
              getID() };
 }
 
-network::memory::Request_Encoder MPOConversation::getDaemonMemoryRequest()
+network::memory::Request_Encoder MPOLogicalThread::getDaemonMemoryRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getPythonRequest( *m_pYieldContext ) ]( const network::Message& msg ) mutable
@@ -76,7 +76,7 @@ network::memory::Request_Encoder MPOConversation::getDaemonMemoryRequest()
              getID() };
 }
 
-network::sim::Request_Encoder MPOConversation::getMPOSimRequest( mega::MPO mpo )
+network::sim::Request_Encoder MPOLogicalThread::getMPOSimRequest( mega::MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
     return { [ leafRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
@@ -84,25 +84,25 @@ network::sim::Request_Encoder MPOConversation::getMPOSimRequest( mega::MPO mpo )
              getID() };
 }
 
-network::memory::Request_Sender MPOConversation::getLeafMemoryRequest()
+network::memory::Request_Sender MPOLogicalThread::getLeafMemoryRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { *this, m_python.getLeafSender(), *m_pYieldContext };
 }
 
-network::jit::Request_Sender MPOConversation::getLeafJITRequest()
+network::jit::Request_Sender MPOLogicalThread::getLeafJITRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return { *this, m_python.getLeafSender(), *m_pYieldContext };
 }
 
-network::mpo::Request_Sender MPOConversation::getMPRequest()
+network::mpo::Request_Sender MPOLogicalThread::getMPRequest()
 {
     VERIFY_RTE( m_pYieldContext );
     return getMPRequest( *m_pYieldContext );
 }
 
-network::Message MPOConversation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+network::Message MPOLogicalThread::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
     network::ReceivedMsg msg;
     while( true )
@@ -123,7 +123,7 @@ network::Message MPOConversation::dispatchRequestsUntilResponse( boost::asio::yi
                     if( m_disconnections.count( m_stack.back() ) )
                     {
                         SPDLOG_ERROR(
-                            "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
+                            "Generating disconnect on logicalthread: {} for connection: {}", getID(), m_stack.back() );
                         const network::ReceivedMsg rMsg{
                             m_stack.back(), network::make_error_msg( msg.msg.getReceiverID(), "Disconnection" ) };
                         send( rMsg );
@@ -157,9 +157,9 @@ network::Message MPOConversation::dispatchRequestsUntilResponse( boost::asio::yi
     return msg.msg;
 }
 
-void MPOConversation::run( boost::asio::yield_context& yield_ctx )
+void MPOLogicalThread::run( boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "PYTHON MPOConversation: run" );
+    SPDLOG_TRACE( "PYTHON MPOLogicalThread: run" );
     network::sim::Request_Encoder request(
         [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
         { return rootRequest.MPRoot( msg, mega::MP{} ); },
@@ -171,7 +171,7 @@ void MPOConversation::run( boost::asio::yield_context& yield_ctx )
     m_bRunComplete = true;
 }
 
-void MPOConversation::RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     m_mpo = mpo;
     m_python.setMPO( mpo );
@@ -193,7 +193,7 @@ void MPOConversation::RootSimRun( const Project& project, const mega::MPO& mpo, 
             }
             else
             {
-                THROW_RTE( "Unexpected pending message when starting up MPOConversation" );
+                THROW_RTE( "Unexpected pending message when starting up MPOLogicalThread" );
             }
         }
 
@@ -208,40 +208,40 @@ void MPOConversation::RootSimRun( const Project& project, const mega::MPO& mpo, 
     resetMPOContext();
 }
 
-TypeID MPOConversation::PythonGetInterfaceTypeID( const TypeID& concreteTypeID, boost::asio::yield_context& )
+TypeID MPOLogicalThread::PythonGetInterfaceTypeID( const TypeID& concreteTypeID, boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "MPOConversation::PythonGetInterfaceTypeID" );
+    SPDLOG_TRACE( "MPOLogicalThread::PythonGetInterfaceTypeID" );
     return getLeafJITRequest().GetInterfaceTypeID( concreteTypeID );
 }
 
-std::unordered_map< std::string, mega::TypeID > MPOConversation::PythonGetIdentities( boost::asio::yield_context& )
+std::unordered_map< std::string, mega::TypeID > MPOLogicalThread::PythonGetIdentities( boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "MPOConversation::PythonGetIdentities" );
+    SPDLOG_TRACE( "MPOLogicalThread::PythonGetIdentities" );
     return getLeafJITRequest().GetIdentities();
 }
 
-void MPOConversation::PythonExecuteJIT( const mega::runtime::JITFunctor& func, boost::asio::yield_context& )
+void MPOLogicalThread::PythonExecuteJIT( const mega::runtime::JITFunctor& func, boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "MPOConversation::PythonExecuteJIT" );
+    SPDLOG_TRACE( "MPOLogicalThread::PythonExecuteJIT" );
     getLeafJITRequest().ExecuteJIT( func );
 }
 
-TimeStamp MPOConversation::PythonCycle( boost::asio::yield_context& )
+TimeStamp MPOLogicalThread::PythonCycle( boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "MPOConversation::PythonCycle" );
+    SPDLOG_TRACE( "MPOLogicalThread::PythonCycle" );
     cycleComplete();
     return getLog().getTimeStamp();
 }
 
-void MPOConversation::PythonFunctor( const mega::runtime::Functor& functor, boost::asio::yield_context& )
+void MPOLogicalThread::PythonFunctor( const mega::runtime::Functor& functor, boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "MPOConversation::PythonFunctor" );
+    SPDLOG_TRACE( "MPOLogicalThread::PythonFunctor" );
     functor();
 }
 
-void MPOConversation::PythonShutdown( boost::asio::yield_context& yield_ctx )
+void MPOLogicalThread::PythonShutdown( boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "MPOConversation::PythonShutdown" );
+    SPDLOG_TRACE( "MPOLogicalThread::PythonShutdown" );
     m_bRunning = false;
 }
 

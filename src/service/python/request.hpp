@@ -22,7 +22,7 @@
 
 #include "python.hpp"
 
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 
 #include "service/protocol/model/leaf_python.hxx"
 #include "service/protocol/model/python_leaf.hxx"
@@ -35,19 +35,19 @@
 namespace mega::service::python
 {
 
-class PythonRequestConversation : public network::InThreadConversation,
-                                  public network::leaf_python::Impl,
-                                  public network::python_leaf::Impl,
-                                  public network::mpo::Impl,
-                                  public network::status::Impl,
-                                  public network::project::Impl
+class PythonRequestLogicalThread : public network::InThreadLogicalThread,
+                                   public network::leaf_python::Impl,
+                                   public network::python_leaf::Impl,
+                                   public network::mpo::Impl,
+                                   public network::status::Impl,
+                                   public network::project::Impl
 {
 protected:
     Python& m_python;
 
 public:
-    PythonRequestConversation( Python& python, const network::ConversationID& conversationID,
-                               std::optional< network::ConnectionID > originatingConnectionID = std::nullopt );
+    PythonRequestLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID,
+                                std::optional< network::ConnectionID > originatingConnectionID = std::nullopt );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
@@ -89,8 +89,8 @@ public:
     // network::mpo::Impl
     virtual network::Message MPRoot( const network::Message& request, const mega::MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPUp( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPUp( const network::Message& request, const mega::MP& mp,
+                                   boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message MPDown( const network::Message& request, const mega::MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message MPODown( const network::Message& request, const mega::MPO& mpo,

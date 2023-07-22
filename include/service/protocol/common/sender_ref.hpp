@@ -30,7 +30,7 @@
 namespace mega::network
 {
 
-class ConversationBase;
+class LogicalThreadBase;
 
 struct ClockTick
 {
@@ -55,7 +55,7 @@ public:
     }
 
     MPO               m_mpo;
-    ConversationBase* m_pSender;
+    LogicalThreadBase* m_pSender;
 
     struct AllocatorBase
     {

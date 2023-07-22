@@ -20,8 +20,8 @@
 #ifndef CLIENT_24_MAY_2022
 #define CLIENT_24_MAY_2022
 
-#include "service/network/conversation.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/receiver.hpp"
 #include "service/network/sender_factory.hpp"
 #include "service/network/network.hpp"
@@ -45,7 +45,7 @@ class Client : public Sender
     using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;
 
 public:
-    Client( boost::asio::io_context& ioContext, ConversationManager& conversationManager,
+    Client( boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager,
             const std::string& strServiceIP, short portNumber );
     ~Client();
 

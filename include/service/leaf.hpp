@@ -23,11 +23,11 @@
 #include "service/remote_memory_manager.hpp"
 
 #include "service/network/client.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/sender_factory.hpp"
 #include "service/network/channel.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/common/node.hpp"
 
 #include "jit/jit.hpp"
@@ -43,9 +43,9 @@ namespace mega::service
 
 class HeapMemory;
 
-class Leaf : public network::ConversationManager, public network::Sender
+class Leaf : public network::LogicalThreadManager, public network::Sender
 {
-    friend class LeafRequestConversation;
+    friend class LeafRequestLogicalThread;
     friend class LeafEnrole;
     friend class MPOEntry;
 
@@ -55,8 +55,8 @@ public:
     // void shutdown();
     bool running() { return !m_io_context.stopped(); }
 
-    // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+    // network::LogicalThreadManager
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                              const network::Message&      msg );
 
     network::Node::Type getType() const { return m_nodeType; }

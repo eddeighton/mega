@@ -17,8 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef CONVERSATION_ID_25_MAY_2022
-#define CONVERSATION_ID_25_MAY_2022
+#ifndef LOGICALTHREAD_ID_25_MAY_2022
+#define LOGICALTHREAD_ID_25_MAY_2022
 
 #include "common/hash.hpp"
 
@@ -39,31 +39,31 @@ namespace mega::network
 using MessageSize  = mega::U32;
 using ConnectionID = std::string;
 
-/// ConversationID
+/// LogicalThreadID
 /// This is a value type representing an OPAQUE value to identify a converation network-wide.
-class ConversationID
+class LogicalThreadID
 {
-    ConversationID( boost::uuids::uuid u )
+    LogicalThreadID( boost::uuids::uuid u )
         : m_uuid( std::move( u ) )
     {
     }
 
 public:
-    ConversationID()                                   = default;
-    ConversationID( ConversationID& )                  = default;
-    ConversationID( const ConversationID& )            = default;
-    ConversationID( ConversationID&& )                 = default;
-    ConversationID& operator=( ConversationID& )       = default;
-    ConversationID& operator=( const ConversationID& ) = default;
+    LogicalThreadID()                                   = default;
+    LogicalThreadID( LogicalThreadID& )                  = default;
+    LogicalThreadID( const LogicalThreadID& )            = default;
+    LogicalThreadID( LogicalThreadID&& )                 = default;
+    LogicalThreadID& operator=( LogicalThreadID& )       = default;
+    LogicalThreadID& operator=( const LogicalThreadID& ) = default;
 
-    static inline ConversationID fromUUID( const std::string& strUUID )
+    static inline LogicalThreadID fromUUID( const std::string& strUUID )
     {
         boost::uuids::uuid u;
         {
             std::istringstream is( strUUID );
             is >> u;
         }
-        return ConversationID{ u };
+        return LogicalThreadID{ u };
     }
 
     template < class Archive >
@@ -74,7 +74,7 @@ public:
 
     struct Hash
     {
-        inline mega::U64 operator()( const ConversationID& id ) const noexcept
+        inline mega::U64 operator()( const LogicalThreadID& id ) const noexcept
         {
             common::Hash hash;
             for( const auto& v : id.m_uuid )
@@ -87,24 +87,24 @@ public:
 
     inline std::string toStr() const { return boost::uuids::to_string( m_uuid ); }
 
-    inline bool operator==( const ConversationID& right ) const { return m_uuid == right.m_uuid; }
-    inline bool operator!=( const ConversationID& right ) const { return m_uuid != right.m_uuid; }
-    inline bool operator<( const ConversationID& right ) const { return m_uuid < right.m_uuid; }
+    inline bool operator==( const LogicalThreadID& right ) const { return m_uuid == right.m_uuid; }
+    inline bool operator!=( const LogicalThreadID& right ) const { return m_uuid != right.m_uuid; }
+    inline bool operator<( const LogicalThreadID& right ) const { return m_uuid < right.m_uuid; }
 
 private:
     boost::uuids::uuid m_uuid = boost::uuids::random_generator()();
 };
 
-inline std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID )
+inline std::ostream& operator<<( std::ostream& os, const LogicalThreadID& logicalthreadID )
 {
-    return os << conversationID.toStr();
+    return os << logicalthreadID.toStr();
 }
 
-inline std::istream& operator>>( std::istream& is, ConversationID& conversationID )
+inline std::istream& operator>>( std::istream& is, LogicalThreadID& logicalthreadID )
 {
     std::string str;
     is >> str;
-    conversationID = ConversationID::fromUUID( str );
+    logicalthreadID = LogicalThreadID::fromUUID( str );
     return is;
 }
 
@@ -112,4 +112,4 @@ using MessageID = mega::U32;
 
 } // namespace mega::network
 
-#endif // CONVERSATION_ID_25_MAY_2022
+#endif // LOGICALTHREAD_ID_25_MAY_2022

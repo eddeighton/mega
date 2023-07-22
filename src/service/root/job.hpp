@@ -30,18 +30,18 @@ namespace mega::service
 {
 class Root;
 
-class RootJobConversation : public RootRequestConversation
+class RootJobLogicalThread : public RootRequestLogicalThread
 {
 public:
-    RootJobConversation( Root&                          root,
-                         const network::ConversationID& conversationID,
+    RootJobLogicalThread( Root&                          root,
+                         const network::LogicalThreadID& logicalthreadID,
                          const network::ConnectionID&   originatingConnectionID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl
-    virtual void JobReadyForWork( const network::ConversationID& rootConversationID,
+    virtual void JobReadyForWork( const network::LogicalThreadID& rootLogicalThreadID,
                                   boost::asio::yield_context&    yield_ctx ) override;
     virtual void JobProgress( const std::string& message, boost::asio::yield_context& yield_ctx ) override;
 };

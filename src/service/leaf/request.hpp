@@ -50,7 +50,7 @@
 namespace mega::service
 {
 
-class LeafRequestConversation : public network::InThreadConversation,
+class LeafRequestLogicalThread : public network::InThreadLogicalThread,
                                 public network::term_leaf::Impl,
                                 public network::exe_leaf::Impl,
                                 public network::tool_leaf::Impl,
@@ -68,7 +68,7 @@ protected:
     Leaf& m_leaf;
 
 public:
-    LeafRequestConversation( Leaf& leaf, const network::ConversationID& conversationID,
+    LeafRequestLogicalThread( Leaf& leaf, const network::LogicalThreadID& logicalthreadID,
                              const network::ConnectionID& originatingConnectionID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
@@ -142,14 +142,14 @@ public:
     virtual std::string     Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl
-    virtual std::vector< network::ConversationID >
+    virtual std::vector< network::LogicalThreadID >
     JobStart( const utilities::ToolChain&                                  toolChain,
               const pipeline::Configuration&                               configuration,
-              const network::ConversationID&                               rootConversationID,
-              const std::vector< std::vector< network::ConversationID > >& jobs,
+              const network::LogicalThreadID&                               rootLogicalThreadID,
+              const std::vector< std::vector< network::LogicalThreadID > >& jobs,
               boost::asio::yield_context&                                  yield_ctx ) override
     {
-        std::vector< network::ConversationID > result;
+        std::vector< network::LogicalThreadID > result;
         for( const auto& j : jobs )
         {
             for( const auto& k : j )

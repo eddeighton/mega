@@ -24,11 +24,11 @@
 
 namespace mega::service
 {
-class RootSimulation : public RootRequestConversation
+class RootSimulation : public RootRequestLogicalThread
 {
 public:
     RootSimulation( Root&                          root,
-                    const network::ConversationID& conversationID,
+                    const network::LogicalThreadID& logicalthreadID,
                     const network::ConnectionID&   originatingConnectionID,
                     mega::MP                       leafMP );
 

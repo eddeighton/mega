@@ -23,7 +23,7 @@
 
 #include "service/executor/request.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "service/protocol/model/player_network.hxx"
 
@@ -34,13 +34,13 @@
 namespace mega::service
 {
 
-class PlayerNetwork : public ExecutorRequestConversation, public network::player_network::Impl
+class PlayerNetwork : public ExecutorRequestLogicalThread, public network::player_network::Impl
 {
 public:
     using Ptr = std::shared_ptr< PlayerNetwork >;
 
-    PlayerNetwork( Executor& executor, const network::ConversationID& conversationID,
-                   network::ConversationBase& plugin );
+    PlayerNetwork( Executor& executor, const network::LogicalThreadID& logicalthreadID,
+                   network::LogicalThreadBase& plugin );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
@@ -59,7 +59,7 @@ public:
     virtual void PlayerNetworkDestroyPlanet( boost::asio::yield_context& yield_ctx ) override;
 
 private:
-    network::ConversationBase&        m_plugin;
+    network::LogicalThreadBase&        m_plugin;
     boost::asio::yield_context*       m_pYieldContext = nullptr;
     network::Sender::Ptr              m_pRequestChannelSender;
     bool                              m_bRunning = true;

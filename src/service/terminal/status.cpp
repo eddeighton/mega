@@ -25,31 +25,31 @@ namespace mega::service
 {
 
 // network::project::Impl
-network::Status TerminalRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+network::Status TerminalRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                         boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "TerminalRequestConversation::GetStatus" );
+    SPDLOG_TRACE( "TerminalRequestLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
+        std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for ( const auto& id : m_terminal.reportConversations() )
+            for ( const auto& id : m_terminal.reportLogicalThreads() )
             {
                 if ( id != getID() )
                 {
-                    conversations.push_back( id );
+                    logicalthreads.push_back( id );
                 }
             }
         }
-        status.setConversationID( conversations );
+        status.setLogicalThreadID( logicalthreads );
         status.setDescription( m_terminal.m_strProcessName );
     }
 
     return status;
 }
 
-std::string TerminalRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string TerminalRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     using ::operator<<;
     std::ostringstream os;

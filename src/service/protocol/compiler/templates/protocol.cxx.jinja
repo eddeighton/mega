@@ -23,7 +23,7 @@
 #include "service/protocol/model/{{ filename }}.hxx"
 
 #include "service/network/network.hpp"
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
@@ -37,13 +37,13 @@ namespace mega::network
 namespace {{ filename }}
 {
 
-Request_Encoder::Request_Encoder( Sender pSender, const ConversationID& sender )
+Request_Encoder::Request_Encoder( Sender pSender, const LogicalThreadID& sender )
     :   m_pSender( pSender )
     ,   m_sender( sender )
     ,   m_receiver( sender )
 {
 }
-Request_Encoder::Request_Encoder( Sender pSender, const ConversationID& sender, const ConversationID& receiver )
+Request_Encoder::Request_Encoder( Sender pSender, const LogicalThreadID& sender, const LogicalThreadID& receiver )
     :   m_pSender( pSender )
     ,   m_sender( sender )
     ,   m_receiver( receiver )
@@ -75,21 +75,21 @@ Request_Encoder::Request_Encoder( Sender pSender, const ConversationID& sender, 
 }
 {% endfor %}
 
-Request_Sender::Request_Sender( ConversationBase& _conversation_,
+Request_Sender::Request_Sender( LogicalThreadBase& _logicalthread_,
                                 Sender& _sender_,
                                 boost::asio::yield_context&   _yield_ctx_ )
-    : m_conversation( _conversation_ )
-    , m_receiver( m_conversation.getID() )
+    : m_logicalthread( _logicalthread_ )
+    , m_receiver( m_logicalthread.getID() )
     , m_sender( _sender_ )
     , m_yield_ctx( _yield_ctx_ )
 {
 }
 
-Request_Sender::Request_Sender( ConversationBase& _conversation_, 
-                                const ConversationID& receiver,
+Request_Sender::Request_Sender( LogicalThreadBase& _logicalthread_, 
+                                const LogicalThreadID& receiver,
                                 Sender& _sender_,
                                 boost::asio::yield_context&   _yield_ctx_ )
-    : m_conversation( _conversation_ )
+    : m_logicalthread( _logicalthread_ )
     , m_receiver( receiver )
     , m_sender( _sender_ )
     , m_yield_ctx( _yield_ctx_ )
@@ -108,13 +108,13 @@ Request_Sender::Request_Sender( ConversationBase& _conversation_,
 {
     Message _response_;
     {
-        ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
-            m_conversation.shared_from_this(), m_sender.getConnectionID() );
+        LogicalThreadBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
+            m_logicalthread.shared_from_this(), m_sender.getConnectionID() );
 
         {
             const Message _msg_ = MSG_{{ request.name }}_Request::make
             (
-                m_conversation.getID(), m_receiver,
+                m_logicalthread.getID(), m_receiver,
                 MSG_{{ request.name }}_Request
                 {
 {%for p in request.params%}
@@ -130,7 +130,7 @@ Request_Sender::Request_Sender( ConversationBase& _conversation_,
             }
         }
 
-        _response_ = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
+        _response_ = m_logicalthread.dispatchRequestsUntilResponse( m_yield_ctx );
         if( _response_.getID() != {{ filename }}::MSG_{{ request.name }}_Response::ID )
         {
             switch( _response_.getID() )
@@ -162,8 +162,8 @@ Request_Sender::Request_Sender( ConversationBase& _conversation_,
 {% endfor %}
 
 
-External_Request_Sender::External_Request_Sender( ConversationBase& sender, 
-                                    ExternalConversation& receiver )
+External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, 
+                                    ExternalLogicalThread& receiver )
     : m_sender( sender )
     , m_receiver( receiver )
 {
@@ -179,7 +179,7 @@ External_Request_Sender::External_Request_Sender( ConversationBase& sender,
 {%endfor%} 
 )
 {
-    ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
+    LogicalThreadBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
         m_sender.shared_from_this(), m_sender.getConnectionID() );
 
     {

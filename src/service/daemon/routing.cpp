@@ -26,15 +26,15 @@
 namespace mega::service
 {
 
-DaemonRequestConversation::DaemonRequestConversation( Daemon&                        daemon,
-                                                      const network::ConversationID& conversationID,
+DaemonRequestLogicalThread::DaemonRequestLogicalThread( Daemon&                        daemon,
+                                                      const network::LogicalThreadID& logicalthreadID,
                                                       const network::ConnectionID&   originatingConnectionID )
-    : InThreadConversation( daemon, conversationID, originatingConnectionID )
+    : InThreadLogicalThread( daemon, logicalthreadID, originatingConnectionID )
     , m_daemon( daemon )
 {
 }
 
-network::Message DaemonRequestConversation::dispatchRequest( const network::Message&     msg,
+network::Message DaemonRequestLogicalThread::dispatchRequest( const network::Message&     msg,
                                                              boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
@@ -56,10 +56,10 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
         return result;
     if( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "DaemonRequestConversation::dispatchRequest failed: " << msg.getName() );
+    THROW_RTE( "DaemonRequestLogicalThread::dispatchRequest failed: " << msg.getName() );
 }
 
-void DaemonRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
+void DaemonRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID,
                                                   const network::Message&      msg,
                                                   boost::asio::yield_context&  yield_ctx )
 {
@@ -77,7 +77,7 @@ void DaemonRequestConversation::dispatchResponse( const network::ConnectionID& c
     }
 }
 
-void DaemonRequestConversation::error( const network::ReceivedMsg& msg,
+void DaemonRequestLogicalThread::error( const network::ReceivedMsg& msg,
                                        const std::string&          strErrorMsg,
                                        boost::asio::yield_context& yield_ctx )
 {
@@ -95,65 +95,65 @@ void DaemonRequestConversation::error( const network::ReceivedMsg& msg,
     }
 }
 
-network::Message DaemonRequestConversation::TermRoot( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::TermRoot( const network::Message&     request,
                                                       boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "DaemonRequestConversation::TermRoot" );
+    SPDLOG_TRACE( "DaemonRequestLogicalThread::TermRoot" );
     return getRootSender( yield_ctx ).TermRoot( request );
 }
 
-network::Message DaemonRequestConversation::ExeRoot( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::ExeRoot( const network::Message&     request,
                                                      boost::asio::yield_context& yield_ctx )
 {
     return getRootSender( yield_ctx ).ExeRoot( request );
 }
 
-network::Message DaemonRequestConversation::ToolRoot( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::ToolRoot( const network::Message&     request,
                                                       boost::asio::yield_context& yield_ctx )
 {
     return getRootSender( yield_ctx ).ToolRoot( request );
 }
 
-network::Message DaemonRequestConversation::ToolDaemon( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::ToolDaemon( const network::Message&     request,
                                                         boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message DaemonRequestConversation::PythonRoot( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::PythonRoot( const network::Message&     request,
                                                         boost::asio::yield_context& yield_ctx )
 {
     return getRootSender( yield_ctx ).PythonRoot( request );
 }
 
-network::Message DaemonRequestConversation::PythonDaemon( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::PythonDaemon( const network::Message&     request,
                                                           boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
-network::Message DaemonRequestConversation::LeafRoot( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::LeafRoot( const network::Message&     request,
                                                       boost::asio::yield_context& yield_ctx )
 {
     return getRootSender( yield_ctx ).LeafRoot( request );
 }
 
-network::Message DaemonRequestConversation::LeafDaemon( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::LeafDaemon( const network::Message&     request,
                                                         boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message DaemonRequestConversation::ExeDaemon( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::ExeDaemon( const network::Message&     request,
                                                        boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
 // network::root_daemon::Impl
-network::Message DaemonRequestConversation::RootAllBroadcast( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                               boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "DaemonRequestConversation::RootAllBroadcast" );
+    SPDLOG_TRACE( "DaemonRequestLogicalThread::RootAllBroadcast" );
     // dispatch to children
     std::vector< network::Message > responses;
     {
@@ -172,10 +172,10 @@ network::Message DaemonRequestConversation::RootAllBroadcast( const network::Mes
     return dispatchRequest( aggregateRequest, yield_ctx );
 }
 
-network::Message DaemonRequestConversation::RootExeBroadcast( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::RootExeBroadcast( const network::Message&     request,
                                                               boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "DaemonRequestConversation::RootExeBroadcast" );
+    SPDLOG_TRACE( "DaemonRequestLogicalThread::RootExeBroadcast" );
     // dispatch to children
     std::vector< network::Message > responses;
     {
@@ -198,7 +198,7 @@ network::Message DaemonRequestConversation::RootExeBroadcast( const network::Mes
     return dispatchRequest( aggregateRequest, yield_ctx );
 }
 
-network::Message DaemonRequestConversation::RootExe( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::RootExe( const network::Message&     request,
                                                      boost::asio::yield_context& yield_ctx )
 {
     auto stackCon = getOriginatingEndPointID();
@@ -212,7 +212,7 @@ network::Message DaemonRequestConversation::RootExe( const network::Message&    
 }
 
 // network::mpo::Impl
-network::Message DaemonRequestConversation::MPRoot( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::MPRoot( const network::Message&     request,
                                                     const MP&                   mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
@@ -220,7 +220,7 @@ network::Message DaemonRequestConversation::MPRoot( const network::Message&     
     return sender.MPRoot( request, mp );
 }
 
-network::Message DaemonRequestConversation::MPDown( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::MPDown( const network::Message&     request,
                                                     const MP&                   mp,
                                                     boost::asio::yield_context& yield_ctx )
 {
@@ -230,7 +230,7 @@ network::Message DaemonRequestConversation::MPDown( const network::Message&     
     return sender.MPDown( request, mp );
 }
 
-network::Message DaemonRequestConversation::MPUp( const network::Message& request, const MP& mp,
+network::Message DaemonRequestLogicalThread::MPUp( const network::Message& request, const MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp ) )
@@ -245,7 +245,7 @@ network::Message DaemonRequestConversation::MPUp( const network::Message& reques
     }
 }
 
-network::Message DaemonRequestConversation::MPODown( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::MPODown( const network::Message&     request,
                                                      const MPO&                  mpo,
                                                      boost::asio::yield_context& yield_ctx )
 {
@@ -260,7 +260,7 @@ network::Message DaemonRequestConversation::MPODown( const network::Message&    
         return network::Message{};
     }
 }
-network::Message DaemonRequestConversation::MPOUp( const network::Message&     request,
+network::Message DaemonRequestLogicalThread::MPOUp( const network::Message&     request,
                                                    const MPO&                  mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {

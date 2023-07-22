@@ -18,8 +18,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_March_09_mpo_conversation
-#define GUARD_2023_March_09_mpo_conversation
+#ifndef GUARD_2023_March_09_mpo_logicalthread
+#define GUARD_2023_March_09_mpo_logicalthread
 
 #include "request.hpp"
 
@@ -28,10 +28,10 @@
 namespace mega::service::python
 {
 
-class MPOConversation : public PythonRequestConversation, public network::python::Impl, public mega::MPOContext
+class MPOLogicalThread : public PythonRequestLogicalThread, public network::python::Impl, public mega::MPOContext
 {
 public:
-    MPOConversation( Python& python, const network::ConversationID& conversationID );
+    MPOLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
@@ -76,4 +76,4 @@ private:
 };
 } // namespace mega::service::python
 
-#endif // GUARD_2023_March_09_mpo_conversation
+#endif // GUARD_2023_March_09_mpo_logicalthread

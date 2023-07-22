@@ -29,7 +29,7 @@
 
 #include "service/executor/state_machine.hpp"
 #include "service/network/sender_factory.hpp"
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/stash.hxx"
@@ -43,12 +43,12 @@ namespace mega::service
 
 class Executor;
 
-class Simulation : public ExecutorRequestConversation, public MPOContext
+class Simulation : public ExecutorRequestLogicalThread, public MPOContext
 {
 public:
     using Ptr = std::shared_ptr< Simulation >;
 
-    Simulation( Executor& executor, const network::ConversationID& conversationID, ProcessClock& processClock );
+    Simulation( Executor& executor, const network::LogicalThreadID& logicalthreadID, ProcessClock& processClock );
 
     virtual network::Message     dispatchRequest( const network::Message&     msg,
                                                   boost::asio::yield_context& yield_ctx ) override;

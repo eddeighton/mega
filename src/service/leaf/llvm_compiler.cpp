@@ -25,7 +25,7 @@
 #include "service/protocol/model/leaf_daemon.hxx"
 #include "service/protocol/model/stash.hxx"
 
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 
 #include "common/file.hpp"
 #include "common/stash.hpp"
@@ -149,18 +149,18 @@ void LLVMCompilerImpl::compileToLLVMIR( const std::string& strName, const std::s
 
 void LLVMCompilerImpl::stash( const std::string& filePath, mega::U64 determinant ) const
 {
-    // Conversation
-    network::leaf_daemon::Request_Sender router( m_conversation, m_sender, m_yield_ctx );
+    // LogicalThread
+    network::leaf_daemon::Request_Sender router( m_logicalthread, m_sender, m_yield_ctx );
     network::stash::Request_Encoder      rq(
-        [ &router ]( const network::Message& msg ) { return router.LeafRoot( msg ); }, m_conversation.getID() );
+        [ &router ]( const network::Message& msg ) { return router.LeafRoot( msg ); }, m_logicalthread.getID() );
     rq.StashStash( filePath, determinant );
 }
 
 bool LLVMCompilerImpl::restore( const std::string& filePath, mega::U64 determinant ) const
 {
-    network::leaf_daemon::Request_Sender router( m_conversation, m_sender, m_yield_ctx );
+    network::leaf_daemon::Request_Sender router( m_logicalthread, m_sender, m_yield_ctx );
     network::stash::Request_Encoder      rq(
-        [ &router ]( const network::Message& msg ) { return router.LeafRoot( msg ); }, m_conversation.getID() );
+        [ &router ]( const network::Message& msg ) { return router.LeafRoot( msg ); }, m_logicalthread.getID() );
     return rq.StashRestore( filePath, determinant );
 }
 

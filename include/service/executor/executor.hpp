@@ -24,11 +24,11 @@
 
 #include "service/leaf.hpp"
 
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "utilities/megastructure_installation.hpp"
 
 #include "parser/parser.hpp"
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include <boost/asio/io_service.hpp>
 
@@ -43,10 +43,10 @@ namespace mega::service
 {
 class Simulation;
 
-class Executor : public network::ConversationManager
+class Executor : public network::LogicalThreadManager
 {
-    friend class ExecutorRequestConversation;
-    friend class JobConversation;
+    friend class ExecutorRequestLogicalThread;
+    friend class JobLogicalThread;
     friend class Simulation;
     friend class Platform;
     friend class PlayerNetwork;
@@ -65,17 +65,17 @@ public:
 
     U64 getNumThreads() const { return m_numThreads; }
 
-    // network::ConversationManager
-    network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+    // network::LogicalThreadManager
+    network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                      const network::Message&      msg ) override;
 
     network::Sender& getLeafSender() { return m_leaf; }
 
     void                          getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const;
     std::shared_ptr< Simulation > getSimulation( const mega::MPO& mpo ) const;
-    mega::MPO createSimulation( network::ConversationBase& callingConversation, boost::asio::yield_context& yield_ctx );
+    mega::MPO createSimulation( network::LogicalThreadBase& callingLogicalThread, boost::asio::yield_context& yield_ctx );
     void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );
-    void      conversationCompleted( network::ConversationBase::Ptr pConversation ) override;
+    void      logicalthreadCompleted( network::LogicalThreadBase::Ptr pLogicalThread ) override;
 
     void updateActiveProjectToClock();
 

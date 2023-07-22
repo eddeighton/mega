@@ -39,7 +39,7 @@ public:
     virtual void setActiveProject( const Project& project, U64 dbHashCode )                    = 0;
     virtual void registerMPO( network::SenderRef sender )                                      = 0;
     virtual void unregisterMPO( network::SenderRef sender )                                    = 0;
-    virtual void requestClock( network::ConversationBase* pSender, MPO mpo, log::Range range ) = 0;
+    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) = 0;
 };
 } // namespace mega::service
 

@@ -32,10 +32,10 @@ namespace mega::network
 class ReceiverChannel
 {
 public:
-    ReceiverChannel( boost::asio::io_context& ioContext, ConversationManager& conversationManager )
+    ReceiverChannel( boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager )
         : m_ioContext( ioContext )
         , m_channel( ioContext )
-        , m_receiver( conversationManager, m_channel )
+        , m_receiver( logicalthreadManager, m_channel )
     {
     }
 

@@ -37,7 +37,7 @@
 namespace mega::service
 {
 
-class DaemonRequestConversation : public network::InThreadConversation,
+class DaemonRequestLogicalThread : public network::InThreadLogicalThread,
                                   public network::leaf_daemon::Impl,
                                   public network::root_daemon::Impl,
                                   public network::mpo::Impl,
@@ -52,8 +52,8 @@ protected:
     Daemon& m_daemon;
 
 public:
-    DaemonRequestConversation( Daemon&                        daemon,
-                               const network::ConversationID& conversationID,
+    DaemonRequestLogicalThread( Daemon&                        daemon,
+                               const network::LogicalThreadID& logicalthreadID,
                                const network::ConnectionID&   originatingConnectionID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
@@ -136,14 +136,14 @@ public:
     virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl
-    virtual std::vector< network::ConversationID >
+    virtual std::vector< network::LogicalThreadID >
     JobStart( const utilities::ToolChain&                                  toolChain,
               const pipeline::Configuration&                               configuration,
-              const network::ConversationID&                               rootConversationID,
-              const std::vector< std::vector< network::ConversationID > >& jobs,
+              const network::LogicalThreadID&                               rootLogicalThreadID,
+              const std::vector< std::vector< network::LogicalThreadID > >& jobs,
               boost::asio::yield_context&                                  yield_ctx ) override
     {
-        std::vector< network::ConversationID > result;
+        std::vector< network::LogicalThreadID > result;
         for( const auto& j : jobs )
         {
             for( const auto& k : j )

@@ -30,10 +30,10 @@
 namespace mega::service
 {
 
-MPOLifetime::MPOLifetime( Leaf& leaf, LeafRequestConversation& conversation, const MPO& mpo,
+MPOLifetime::MPOLifetime( Leaf& leaf, LeafRequestLogicalThread& logicalthread, const MPO& mpo,
                           boost::asio::yield_context& yield_ctx )
     : m_leaf( leaf )
-    , m_conversation( conversation )
+    , m_logicalthread( logicalthread )
     , m_yield_ctx( yield_ctx )
     , m_mpo( mpo )
 {

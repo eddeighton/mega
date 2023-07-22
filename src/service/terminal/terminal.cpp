@@ -23,12 +23,12 @@
 
 #include "pipeline/configuration.hpp"
 
-#include "service/network/conversation.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "service/protocol/model/leaf_term.hxx"
 #include "service/protocol/model/term_leaf.hxx"
@@ -54,15 +54,15 @@
 namespace mega::service
 {
 
-template < typename TConversationFunctor >
-class GenericConversation : public TerminalRequestConversation
+template < typename TLogicalThreadFunctor >
+class GenericLogicalThread : public TerminalRequestLogicalThread
 {
-    TConversationFunctor m_functor;
+    TLogicalThreadFunctor m_functor;
 
 public:
-    GenericConversation( Terminal& terminal, const network::ConversationID& conversationID,
-                         const network::ConnectionID& originatingConnectionID, TConversationFunctor&& functor )
-        : TerminalRequestConversation( terminal, conversationID, originatingConnectionID )
+    GenericLogicalThread( Terminal& terminal, const network::LogicalThreadID& logicalthreadID,
+                         const network::ConnectionID& originatingConnectionID, TLogicalThreadFunctor&& functor )
+        : TerminalRequestLogicalThread( terminal, logicalthreadID, originatingConnectionID )
         , m_functor( functor )
     {
     }
@@ -70,7 +70,7 @@ public:
 };
 
 Terminal::Terminal( short daemonPortNumber )
-    : network::ConversationManager( network::makeProcessName( network::Node::Terminal ), m_io_context )
+    : network::LogicalThreadManager( network::makeProcessName( network::Node::Terminal ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf(
           // NOTE: must ensure the receiver connectionID is initialised before calling getSender
@@ -94,37 +94,37 @@ void Terminal::shutdown()
     m_receiverChannel.stop();
 }
 
-network::ConversationBase::Ptr Terminal::joinConversation( const network::ConnectionID& originatingConnectionID,
+network::LogicalThreadBase::Ptr Terminal::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                            const network::Message&      msg )
 {
-    return network::ConversationBase::Ptr(
-        new TerminalRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr(
+        new TerminalRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
-network::Message Terminal::routeGenericRequest( const network::ConversationID& conversationID,
+network::Message Terminal::routeGenericRequest( const network::LogicalThreadID& logicalthreadID,
                                                 const network::Message& message, RouterFactory router )
 {
     SPDLOG_TRACE( "Terminal::rootRequest" );
-    class RootConversation : public TerminalRequestConversation
+    class RootLogicalThread : public TerminalRequestLogicalThread
     {
     public:
         using ResultType = std::optional< std::variant< network::Message, std::exception_ptr > >;
 
-        RootConversation( Terminal& terminal, const network::ConversationID& conversationID,
+        RootLogicalThread( Terminal& terminal, const network::LogicalThreadID& logicalthreadID,
                           const network::ConnectionID& originatingConnectionID, const network::Message& msg,
                           RouterFactory& router, ResultType& result )
-            : TerminalRequestConversation( terminal, conversationID, originatingConnectionID )
+            : TerminalRequestLogicalThread( terminal, logicalthreadID, originatingConnectionID )
             , m_router( router )
             , m_message( msg )
             , m_result( result )
         {
-            SPDLOG_TRACE( "Terminal::rootRequest::RootConversation::ctor {}", m_message );
+            SPDLOG_TRACE( "Terminal::rootRequest::RootLogicalThread::ctor {}", m_message );
         }
         void run( boost::asio::yield_context& yield_ctx )
         {
             try
             {
-                SPDLOG_TRACE( "Terminal::rootRequest::RootConversation::run {}", m_message );
+                SPDLOG_TRACE( "Terminal::rootRequest::RootLogicalThread::run {}", m_message );
                 m_result = m_router( *this, m_terminal.getLeafSender(), yield_ctx )( m_message );
             }
             catch( std::exception& ex )
@@ -139,12 +139,12 @@ network::Message Terminal::routeGenericRequest( const network::ConversationID& c
         ResultType&      m_result;
     };
 
-    RootConversation::ResultType result;
+    RootLogicalThread::ResultType result;
     {
         auto& sender       = getLeafSender();
         auto  connectionID = sender.getConnectionID();
-        conversationInitiated( network::ConversationBase::Ptr( new RootConversation(
-                                   *this, conversationID, connectionID, message, router, result ) ),
+        logicalthreadInitiated( network::LogicalThreadBase::Ptr( new RootLogicalThread(
+                                   *this, logicalthreadID, connectionID, message, router, result ) ),
                                sender );
     }
 
@@ -163,7 +163,7 @@ network::Message Terminal::routeGenericRequest( const network::ConversationID& c
 
 Terminal::RouterFactory Terminal::makeTermRoot()
 {
-    return []( network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+    return []( network::LogicalThreadBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
     {
         return [ &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
         { return network::term_leaf::Request_Sender( con, sender, yield_ctx ).TermRoot( msg ); };
@@ -172,7 +172,7 @@ Terminal::RouterFactory Terminal::makeTermRoot()
 
 Terminal::RouterFactory Terminal::makeMP( mega::MP mp )
 {
-    return [ mp ]( network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+    return [ mp ]( network::LogicalThreadBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
     {
         return [ mp, &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
         { return network::mpo::Request_Sender( con, sender, yield_ctx ).MPUp( msg, mp ); };
@@ -181,7 +181,7 @@ Terminal::RouterFactory Terminal::makeMP( mega::MP mp )
 
 Terminal::RouterFactory Terminal::makeMPO( mega::MPO mpo )
 {
-    return [ mpo ]( network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+    return [ mpo ]( network::LogicalThreadBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
     {
         return [ mpo, &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
         { return network::mpo::Request_Sender( con, sender, yield_ctx ).MPOUp( msg, mpo ); };

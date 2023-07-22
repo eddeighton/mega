@@ -56,7 +56,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             ( "msg",     po::value< std::string >( &strMsg ),   "Message to send in ping" )
             ( "size",    po::value< int >( &msgSize ),          "Message size to generate ( instead of input msg )" )
 
-            ( "conv",    po::bool_switch( &m_config.m_bConversations ), "Response conversations status" )
+            ( "conv",    po::bool_switch( &m_config.m_bLogicalThreads ), "Response logicalthreads status" )
             ( "mem",     po::bool_switch( &m_config.m_bMemory        ), "Response memory status" )
             ( "locks",   po::bool_switch( &m_config.m_bLocks         ), "Response locks status" )
             ( "logs",    po::bool_switch( &m_config.m_bLog           ), "Response log status" )

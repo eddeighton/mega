@@ -58,7 +58,7 @@ void* getData( Message& message )
 {%endfor%}{# for namespace in message.namespaces #}
 {%if message.has_namespace%} { {%endif%}
 
-Message {{ message.name }}::make( const ConversationID& sender, const ConversationID& receiver, {{ message.name }}&& msg )
+Message {{ message.name }}::make( const LogicalThreadID& sender, const LogicalThreadID& receiver, {{ message.name }}&& msg )
 {
     if( sizeof( {{ message.name }} ) )
         return Message{ ID, sender, receiver, std::shared_ptr< void >( new {{ message.name }}{ std::move( msg ) }, []( {{ message.name }}* p ){ delete p; } ) };
@@ -77,7 +77,7 @@ const {{ message.name }}& {{ message.name }}::get( const Message& msg )
 {%if message.has_namespace%} } {%endif%} 
 {%endfor%}
 
-Message make_error_msg( const ConversationID& receiver, const std::string& strErrorMsg )
+Message make_error_msg( const LogicalThreadID& receiver, const std::string& strErrorMsg )
 {
     return Message{ MSG_Error_Response::ID, receiver, receiver, 
         std::shared_ptr< void >( new MSG_Error_Response{ strErrorMsg }, []( MSG_Error_Response* p ){ delete p; } ) };

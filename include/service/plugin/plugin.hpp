@@ -45,7 +45,7 @@
 namespace mega::service
 {
 
-class Plugin : public network::ConversationBase, public ProcessClock
+class Plugin : public network::LogicalThreadBase, public ProcessClock
 {
     using MessageChannel
         = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, network::ReceivedMsg ) >;
@@ -76,10 +76,10 @@ public:
     virtual void setActiveProject( const Project& project, U64 dbHashCode ) override;
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
-    virtual void requestClock( network::ConversationBase* pSender, MPO mpo, log::Range range ) override;
+    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) override;
 
-    // network::ConversationBase
-    virtual const network::ConversationID& getID() const override;
+    // network::LogicalThreadBase
+    virtual const network::LogicalThreadID& getID() const override;
     virtual void                           send( const network::ReceivedMsg& msg ) override;
 
     virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override
@@ -93,14 +93,14 @@ public:
     virtual void               requestStarted( const network::ConnectionID& connectionID ) override { ; }
     virtual void               requestCompleted() override { ; }
 
-    void send( ConversationBase& sender, network::Message&& requestMsg )
+    void send( LogicalThreadBase& sender, network::Message&& requestMsg )
     {
         // SPDLOG_TRACE( "plugin::send: {}", requestMsg.getName() );
         const network::ReceivedMsg rMsg{ sender.getConnectionID(), requestMsg };
         sender.send( rMsg );
     }
     template < typename MsgType >
-    void send( ConversationBase& sender, MsgType&& msg )
+    void send( LogicalThreadBase& sender, MsgType&& msg )
     {
         send( sender, MsgType::make( getID(), sender.getID(), std::move( msg ) ) );
     }
@@ -136,7 +136,7 @@ public:
     bool planet_current();
 
 private:
-    network::ConversationID m_conID;
+    network::LogicalThreadID m_conID;
     MessageChannel          m_channel;
     mega::service::Executor m_executor;
     // Platform::Ptr                                m_pPlatform;

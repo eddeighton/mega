@@ -44,7 +44,7 @@ class ProcessClockStandalone : public ProcessClock
             TOTAL_STATES
         };
         Type                       m_type;
-        network::ConversationBase* m_pSender;
+        network::LogicalThreadBase* m_pSender;
     };
     using MPOMap = std::unordered_map< MPO, State, MPO::Hash >;
 
@@ -61,12 +61,12 @@ public:
     virtual void setActiveProject( const Project& project, U64 dbHashCode ) override;
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
-    virtual void requestClock( network::ConversationBase* pSender, MPO mpo, log::Range ) override;
+    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range ) override;
 
 private:
     void registerMPOImpl( network::SenderRef sender );
     void unregisterMPOImpl( network::SenderRef sender );
-    void requestClockImpl( network::ConversationBase* pSender, MPO mpo );
+    void requestClockImpl( network::LogicalThreadBase* pSender, MPO mpo );
     void checkClock();
     void clock();
     void issueClock();

@@ -23,7 +23,7 @@
 #include "service/leaf.hpp"
 
 #include "service/network/client.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/sender_factory.hpp"
 #include "service/network/channel.hpp"
 
@@ -36,9 +36,9 @@
 
 namespace mega::service
 {
-class Tool : public network::ConversationManager
+class Tool : public network::LogicalThreadManager
 {
-    friend class ToolRequestConversation;
+    friend class ToolRequestLogicalThread;
 
 public:
     Tool( short daemonPortNumber );
@@ -47,8 +47,8 @@ public:
     void shutdown();
     void runComplete();
 
-    // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+    // network::LogicalThreadManager
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                              const network::Message&      msg );
 
     using Functor = std::function< void( boost::asio::yield_context& yield_ctx ) >;

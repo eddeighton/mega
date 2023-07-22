@@ -24,22 +24,22 @@
 namespace mega::service
 {
 // network::project::Impl
-network::Status DaemonRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+network::Status DaemonRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                       boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "DaemonRequestConversation::GetStatus" );
+    SPDLOG_TRACE( "DaemonRequestLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
-        for ( const auto& [ id, pCon ] : m_daemon.m_conversations )
+        std::vector< network::LogicalThreadID > logicalthreads;
+        for ( const auto& [ id, pCon ] : m_daemon.m_logicalthreads )
         {
             if ( id != getID() )
             {
-                conversations.push_back( id );
+                logicalthreads.push_back( id );
             }
         }
-        status.setConversationID( conversations );
+        status.setLogicalThreadID( logicalthreads );
         status.setMachineID( m_daemon.m_machineID );
         status.setDescription( m_daemon.m_strProcessName );
     }
@@ -47,7 +47,7 @@ network::Status DaemonRequestConversation::GetStatus( const std::vector< network
     return status;
 }
 
-std::string DaemonRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string DaemonRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
     os << "Ping reached: " << common::ProcessID::get() << " got: " << strMsg.size() << " bytes";

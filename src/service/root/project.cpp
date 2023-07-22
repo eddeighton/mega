@@ -26,12 +26,12 @@ namespace mega::service
 
 // network::project::Impl
 
-Project RootRequestConversation::GetProject( boost::asio::yield_context& yield_ctx )
+Project RootRequestLogicalThread::GetProject( boost::asio::yield_context& yield_ctx )
 {
     return m_root.getProject();
 }
 
-void RootRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
+void RootRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
 {
     m_root.setProject( project );
     m_root.saveConfig();
@@ -44,7 +44,7 @@ void RootRequestConversation::SetProject( const Project& project, boost::asio::y
 }
 
 mega::MegastructureInstallation
-RootRequestConversation::GetMegastructureInstallation( boost::asio::yield_context& yield_ctx )
+RootRequestLogicalThread::GetMegastructureInstallation( boost::asio::yield_context& yield_ctx )
 {
     return m_root.getMegastructureInstallation();
 }

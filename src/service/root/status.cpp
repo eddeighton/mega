@@ -25,28 +25,28 @@ namespace mega::service
 {
 
 // network::status::Impl
-network::Status RootRequestConversation::GetNetworkStatus( boost::asio::yield_context& yield_ctx )
+network::Status RootRequestLogicalThread::GetNetworkStatus( boost::asio::yield_context& yield_ctx )
 {
     return getAllBroadcastRequest< network::status::Request_Encoder >( yield_ctx ).GetStatus( {} );
 }
 
-network::Status RootRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+network::Status RootRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                     boost::asio::yield_context&           yield_ctx )
 {
-    // SPDLOG_TRACE( "RootRequestConversation::GetVersion" );
+    // SPDLOG_TRACE( "RootRequestLogicalThread::GetVersion" );
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
+        std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for ( const auto& [ id, pCon ] : m_root.m_conversations )
+            for ( const auto& [ id, pCon ] : m_root.m_logicalthreads )
             {
                 if ( id != getID() )
                 {
-                    conversations.push_back( id );
+                    logicalthreads.push_back( id );
                 }
             }
         }
-        status.setConversationID( conversations );
+        status.setLogicalThreadID( logicalthreads );
         status.setDescription( m_root.m_strProcessName );
     }
 

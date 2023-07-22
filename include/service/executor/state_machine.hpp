@@ -24,9 +24,9 @@
 
 #include "service/network/sender_factory.hpp"
 #include "service/network/log.hpp"
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/model/sim.hxx"
 
 #include <set>

@@ -24,15 +24,15 @@
 namespace mega::service
 {
 
-TerminalRequestConversation::TerminalRequestConversation( Terminal&                      terminal,
-                                                          const network::ConversationID& conversationID,
+TerminalRequestLogicalThread::TerminalRequestLogicalThread( Terminal&                      terminal,
+                                                          const network::LogicalThreadID& logicalthreadID,
                                                           const network::ConnectionID&   originatingConnectionID )
-    : InThreadConversation( terminal, conversationID, originatingConnectionID )
+    : InThreadLogicalThread( terminal, logicalthreadID, originatingConnectionID )
     , m_terminal( terminal )
 {
 }
 
-network::Message TerminalRequestConversation::dispatchRequest( const network::Message&     msg,
+network::Message TerminalRequestLogicalThread::dispatchRequest( const network::Message&     msg,
                                                                boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
@@ -42,9 +42,9 @@ network::Message TerminalRequestConversation::dispatchRequest( const network::Me
         return result;
     if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "TerminalRequestConversation::dispatchRequest failed" );
+    THROW_RTE( "TerminalRequestLogicalThread::dispatchRequest failed" );
 }
-void TerminalRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
+void TerminalRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID,
                                                     const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     if ( m_terminal.getLeafSender().getConnectionID() == connectionID )
@@ -62,7 +62,7 @@ void TerminalRequestConversation::dispatchResponse( const network::ConnectionID&
     }
 }
 
-void TerminalRequestConversation::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
+void TerminalRequestLogicalThread::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                          boost::asio::yield_context& yield_ctx )
 {
     if ( m_terminal.getLeafSender().getConnectionID() == msg.connectionID )
@@ -80,7 +80,7 @@ void TerminalRequestConversation::error( const network::ReceivedMsg& msg, const 
     }
 }
 
-network::Message TerminalRequestConversation::RootAllBroadcast( const network::Message&     request,
+network::Message TerminalRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                                 boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );

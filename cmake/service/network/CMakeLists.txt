@@ -42,8 +42,8 @@ set( MEGA_NETWORK_API
     ${MEGA_API_DIR}/service/network/client.hpp
     ${MEGA_API_DIR}/service/network/server.hpp
     ${MEGA_API_DIR}/service/network/receiver.hpp
-    ${MEGA_API_DIR}/service/network/conversation.hpp
-    ${MEGA_API_DIR}/service/network/conversation_manager.hpp
+    ${MEGA_API_DIR}/service/network/logical_thread.hpp
+    ${MEGA_API_DIR}/service/network/logical_thread_manager.hpp
 )
 
 set( MEGA_NETWORK_SRC 
@@ -54,8 +54,8 @@ set( MEGA_NETWORK_SRC
     ${MEGA_SRC_DIR}/service/network/client.cpp
     ${MEGA_SRC_DIR}/service/network/server.cpp
     ${MEGA_SRC_DIR}/service/network/receiver.cpp
-    ${MEGA_SRC_DIR}/service/network/conversation.cpp
-    ${MEGA_SRC_DIR}/service/network/conversation_manager.cpp
+    ${MEGA_SRC_DIR}/service/network/logical_thread.cpp
+    ${MEGA_SRC_DIR}/service/network/logical_thread_manager.cpp
 )
 
 add_library( network

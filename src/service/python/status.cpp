@@ -19,7 +19,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "request.hpp"
-#include "mpo_conversation.hpp"
+#include "mpo_logical_thread.hpp"
 
 #include "service/network/log.hpp"
 
@@ -28,24 +28,24 @@ namespace mega::service::python
 
 // network::project::Impl
 
-network::Status MPOConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                             boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "PythonRequestConversation::GetStatus" );
+    SPDLOG_TRACE( "PythonRequestLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
+        std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for( const auto& id : m_python.reportConversations() )
+            for( const auto& id : m_python.reportLogicalThreads() )
             {
                 if( id != getID() )
                 {
-                    conversations.push_back( id );
+                    logicalthreads.push_back( id );
                 }
             }
         }
-        status.setConversationID( conversations );
+        status.setLogicalThreadID( logicalthreads );
         status.setMPO( m_python.getMPO() );
         status.setDescription( m_python.getProcessName() );
 
@@ -70,24 +70,24 @@ network::Status MPOConversation::GetStatus( const std::vector< network::Status >
     return status;
 }
 
-network::Status PythonRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+network::Status PythonRequestLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                       boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "PythonRequestConversation::GetStatus" );
+    SPDLOG_TRACE( "PythonRequestLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
+        std::vector< network::LogicalThreadID > logicalthreads;
         {
-            for( const auto& id : m_python.reportConversations() )
+            for( const auto& id : m_python.reportLogicalThreads() )
             {
                 if( id != getID() )
                 {
-                    conversations.push_back( id );
+                    logicalthreads.push_back( id );
                 }
             }
         }
-        status.setConversationID( conversations );
+        status.setLogicalThreadID( logicalthreads );
         status.setMPO( m_python.getMPO() );
         status.setDescription( m_python.getProcessName() );
     }
@@ -95,7 +95,7 @@ network::Status PythonRequestConversation::GetStatus( const std::vector< network
     return status;
 }
 
-std::string PythonRequestConversation::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
+std::string PythonRequestLogicalThread::Ping( const std::string& strMsg, boost::asio::yield_context& yield_ctx )
 {
     using ::           operator<<;
     std::ostringstream os;

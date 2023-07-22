@@ -37,7 +37,7 @@
 #include "service/protocol/model/python.hxx"
 #include "service/protocol/model/python_leaf.hxx"
 
-#include "service/protocol/common/conversation_base.hpp"
+#include "service/protocol/common/logical_thread_base.hpp"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -137,31 +137,31 @@ public:
     Request rootRequest()
     {
         return Request(
-            [ mpoCon = m_mpoConversation,
-              extCon = m_pExternalConversation ]( const network::Message& msg ) mutable -> network::Message
+            [ mpoCon = m_mpoLogicalThread,
+              extCon = m_pExternalLogicalThread ]( const network::Message& msg ) mutable -> network::Message
             {
                 network::python_leaf::External_Request_Sender sender( *mpoCon, *extCon );
                 return sender.PythonRoot( msg );
             },
-            m_pExternalConversation->getID() );
+            m_pExternalLogicalThread->getID() );
     }
 
     template < typename Request >
     Request mpRequest( MP mp )
     {
         return Request(
-            [ mpoCon = m_mpoConversation, extCon = m_pExternalConversation, mp ](
+            [ mpoCon = m_mpoLogicalThread, extCon = m_pExternalLogicalThread, mp ](
                 const network::Message& msg ) mutable -> network::Message
             {
                 network::mpo::External_Request_Sender sender( *mpoCon, *extCon );
                 return sender.MPUp( msg, mp );
             },
-            m_pExternalConversation->getID() );
+            m_pExternalLogicalThread->getID() );
     }
 
     network::python::External_Request_Sender pythonRequest()
     {
-        return { *m_mpoConversation, *m_pExternalConversation };
+        return { *m_mpoLogicalThread, *m_pExternalLogicalThread };
     }
 
     const PythonReference::Registration& getPythonRegistration() const { return *m_pRegistration; }
@@ -174,8 +174,8 @@ private:
     LogConfig                                        m_logConfig;
     boost::asio::io_context                          m_ioContext;
     Python                                           m_python;
-    network::ExternalConversation::Ptr               m_pExternalConversation;
-    network::ConversationBase::Ptr                   m_mpoConversation;
+    network::ExternalLogicalThread::Ptr               m_pExternalLogicalThread;
+    network::LogicalThreadBase::Ptr                   m_mpoLogicalThread;
     std::unique_ptr< PythonReference::Registration > m_pRegistration;
     FunctionTable                                    m_functionTable;
     WrapperTable                                     m_wrapperTable;

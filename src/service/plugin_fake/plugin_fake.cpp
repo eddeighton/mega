@@ -72,7 +72,7 @@ public:
     {
         // do nothing
     }
-    virtual void requestClock( network::ConversationBase* pSender, MPO mpo, log::Range range )
+    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range )
     {
         // do nothing
     }

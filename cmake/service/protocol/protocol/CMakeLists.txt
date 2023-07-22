@@ -116,8 +116,8 @@ add_custom_command(
 
 set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/context.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/conversation_base.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/conversation_id.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/logical_thread_base.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/logical_thread_id.hpp  
     ${MEGA_API_DIR}/service/protocol/common/jit_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/mpo_context_interface.hpp  
     ${MEGA_API_DIR}/service/protocol/common/node.hpp
@@ -132,7 +132,7 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
 
 set( MEGA_PROTOCOL_COMMON_SOURCE
     ${MEGA_SRC_DIR}/service/protocol/common/context.cpp  
-    ${MEGA_SRC_DIR}/service/protocol/common/conversation_base.cpp  
+    ${MEGA_SRC_DIR}/service/protocol/common/logical_thread_base.cpp  
     ${MEGA_SRC_DIR}/service/protocol/common/node.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/root_config.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/transaction.cpp

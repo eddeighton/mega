@@ -27,24 +27,24 @@
 namespace mega::service
 {
 
-RootJobConversation::RootJobConversation( Root&                          root,
-                                          const network::ConversationID& conversationID,
+RootJobLogicalThread::RootJobLogicalThread( Root&                          root,
+                                          const network::LogicalThreadID& logicalthreadID,
                                           const network::ConnectionID&   originatingConnectionID )
-    : RootRequestConversation( root, conversationID, originatingConnectionID )
+    : RootRequestLogicalThread( root, logicalthreadID, originatingConnectionID )
 {
 }
 
-network::Message RootJobConversation::dispatchRequest( const network::Message&     msg,
+network::Message RootJobLogicalThread::dispatchRequest( const network::Message&     msg,
                                                        boost::asio::yield_context& yield_ctx )
 {
-    return RootRequestConversation::dispatchRequest( msg, yield_ctx );
+    return RootRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
-void RootJobConversation::JobReadyForWork( const network::ConversationID& rootConversationID,
+void RootJobLogicalThread::JobReadyForWork( const network::LogicalThreadID& rootLogicalThreadID,
                                            boost::asio::yield_context&    yield_ctx )
 {
-    std::shared_ptr< RootPipelineConversation > pCoordinator = std::dynamic_pointer_cast< RootPipelineConversation >(
-        m_root.findExistingConversation( rootConversationID ) );
+    std::shared_ptr< RootPipelineLogicalThread > pCoordinator = std::dynamic_pointer_cast< RootPipelineLogicalThread >(
+        m_root.findExistingLogicalThread( rootLogicalThreadID ) );
     VERIFY_RTE( pCoordinator );
 
     {
@@ -78,7 +78,7 @@ void RootJobConversation::JobReadyForWork( const network::ConversationID& rootCo
     }
 }
 
-void RootJobConversation::JobProgress( const std::string& message, boost::asio::yield_context& yield_ctx )
+void RootJobLogicalThread::JobProgress( const std::string& message, boost::asio::yield_context& yield_ctx )
 {
     network::logLinesInfo( message );
 }

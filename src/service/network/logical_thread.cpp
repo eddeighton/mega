@@ -17,8 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/network/conversation.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/log.hpp"
 
 #include "service/network/end_point.hpp"
@@ -34,38 +34,38 @@
 namespace mega::network
 {
 
-Conversation::Conversation( ConversationManager& conversationManager, const ConversationID& conversationID,
+LogicalThread::LogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID,
                             std::optional< ConnectionID > originatingConnectionID )
-    : m_conversationManager( conversationManager )
-    , m_conversationID( conversationID )
+    : m_logicalthreadManager( logicalthreadManager )
+    , m_logicalthreadID( logicalthreadID )
     , m_originatingEndPoint( originatingConnectionID )
 {
 }
 
-Conversation::~Conversation() = default;
+LogicalThread::~LogicalThread() = default;
 
-void Conversation::requestStarted( const ConnectionID& connectionID )
+void LogicalThread::requestStarted( const ConnectionID& connectionID )
 {
     //
     m_stack.push_back( connectionID );
 }
 
-void Conversation::requestCompleted()
+void LogicalThread::requestCompleted()
 {
     VERIFY_RTE( !m_stack.empty() );
     m_stack.pop_back();
     if( m_stack.empty() )
     {
-        // SPDLOG_TRACE( "Conversation::requestCompleted: {}", getID() );
-        m_conversationManager.conversationCompleted( shared_from_this() );
+        // SPDLOG_TRACE( "LogicalThread::requestCompleted: {}", getID() );
+        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
     }
 }
-const std::string& Conversation::getProcessName() const
+const std::string& LogicalThread::getProcessName() const
 {
-    return m_conversationManager.getProcessName();
+    return m_logicalthreadManager.getProcessName();
 }
 
-void Conversation::onDisconnect( const ConnectionID& connectionID )
+void LogicalThread::onDisconnect( const ConnectionID& connectionID )
 {
     for( const ConnectionID& existing : m_stack )
     {
@@ -78,13 +78,13 @@ void Conversation::onDisconnect( const ConnectionID& connectionID )
 
     if( !m_stack.empty() && m_stack.back() == connectionID )
     {
-        SPDLOG_ERROR( "Generating disconnect on conversation: {} for connection: {}", getID(), connectionID );
+        SPDLOG_ERROR( "Generating disconnect on logicalthread: {} for connection: {}", getID(), connectionID );
         const ReceivedMsg rMsg{ connectionID, make_error_msg( getID(), "Disconnection" ) };
         send( rMsg );
     }
 }
 
-ReceivedMsg Conversation::receiveDeferred( boost::asio::yield_context& yield_ctx )
+ReceivedMsg LogicalThread::receiveDeferred( boost::asio::yield_context& yield_ctx )
 {
     ReceivedMsg msg;
     while( true )
@@ -112,7 +112,7 @@ ReceivedMsg Conversation::receiveDeferred( boost::asio::yield_context& yield_ctx
     }
 }
 
-bool Conversation::queue( const ReceivedMsg& msg )
+bool LogicalThread::queue( const ReceivedMsg& msg )
 {
     if( m_bQueueing )
     {
@@ -125,7 +125,7 @@ bool Conversation::queue( const ReceivedMsg& msg )
     }
 }
 
-void Conversation::unqueue()
+void LogicalThread::unqueue()
 {
     if( m_bEnableQueueing )
     {
@@ -136,7 +136,7 @@ void Conversation::unqueue()
     }
 }
 
-void Conversation::run( boost::asio::yield_context& yield_ctx )
+void LogicalThread::run( boost::asio::yield_context& yield_ctx )
 {
     try
     {
@@ -147,25 +147,25 @@ void Conversation::run( boost::asio::yield_context& yield_ctx )
     }
     catch( std::exception& ex )
     {
-        SPDLOG_WARN( "Conversation: {} exception: {}", getID(), ex.what() );
-        m_conversationManager.conversationCompleted( shared_from_this() );
+        SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
+        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
     }
     catch( mega::runtime::JITException& ex )
     {
-        SPDLOG_WARN( "Conversation: {} exception: {}", getID(), ex.what() );
-        m_conversationManager.conversationCompleted( shared_from_this() );
+        SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
+        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
     }
 }
 
-void Conversation::run_one( boost::asio::yield_context& yield_ctx )
+void LogicalThread::run_one( boost::asio::yield_context& yield_ctx )
 {
-    // SPDLOG_TRACE( "Conversation::run_one" );
+    // SPDLOG_TRACE( "LogicalThread::run_one" );
     unqueue();
     const ReceivedMsg msg = receiveDeferred( yield_ctx );
     dispatchRequestImpl( msg, yield_ctx );
 }
 
-Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+Message LogicalThread::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
     ReceivedMsg msg;
     while( true )
@@ -183,7 +183,7 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
                 if( m_disconnections.count( m_stack.back() ) )
                 {
                     SPDLOG_ERROR(
-                        "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
+                        "Generating disconnect on logicalthread: {} for connection: {}", getID(), m_stack.back() );
                     const ReceivedMsg rMsg{
                         m_stack.back(), make_error_msg( msg.msg.getReceiverID(), "Disconnection" ) };
                     send( rMsg );
@@ -200,22 +200,22 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
         throw std::runtime_error( MSG_Error_Response::get( msg.msg ).what );
     }
 
-    // SPDLOG_TRACE( "Conversation::dispatchRequestsUntilResponse: returned {}", msg.msg );
+    // SPDLOG_TRACE( "LogicalThread::dispatchRequestsUntilResponse: returned {}", msg.msg );
     return msg.msg;
 }
 
-void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yield_context& yield_ctx )
+void LogicalThread::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yield_context& yield_ctx )
 {
-    // SPDLOG_TRACE( "Conversation::dispatchRequestImpl: {}", msg.msg );
+    // SPDLOG_TRACE( "LogicalThread::dispatchRequestImpl: {}", msg.msg );
 
-    ConversationBase::RequestStack stack( msg.msg.getName(), shared_from_this(), msg.connectionID );
+    LogicalThreadBase::RequestStack stack( msg.msg.getName(), shared_from_this(), msg.connectionID );
     try
     {
         VERIFY_RTE_MSG( isRequest( msg.msg ), "Dispatch request got response: " << msg.msg );
         network::Message result = dispatchRequest( msg.msg, yield_ctx );
         if( !result )
         {
-            SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
+            SPDLOG_ERROR( "Failed to dispatch request: {} on logicalthread: {}", msg.msg, getID() );
             THROW_RTE( "Failed to dispatch request message: " << msg.msg );
         }
         else
@@ -234,7 +234,7 @@ void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yie
     }
 }
 
-void Conversation::dispatchRemaining( boost::asio::yield_context& yield_ctx )
+void LogicalThread::dispatchRemaining( boost::asio::yield_context& yield_ctx )
 {
     bool bRemaining = true;
     while( bRemaining )
@@ -254,13 +254,13 @@ void Conversation::dispatchRemaining( boost::asio::yield_context& yield_ctx )
             bRemaining = true;
             if( isRequest( pendingMsgOpt.value().msg ) )
             {
-                SPDLOG_TRACE( "Conversation::dispatchRemaining {} got request: {}", getID(),
+                SPDLOG_TRACE( "LogicalThread::dispatchRemaining {} got request: {}", getID(),
                               pendingMsgOpt.value().msg.getName() );
                 dispatchRequestImpl( pendingMsgOpt.value(), yield_ctx );
             }
             else
             {
-                SPDLOG_TRACE( "Conversation::dispatchRemaining {} got response: {}", getID(),
+                SPDLOG_TRACE( "LogicalThread::dispatchRemaining {} got response: {}", getID(),
                               pendingMsgOpt.value().msg.getName() );
             }
         }
@@ -269,22 +269,22 @@ void Conversation::dispatchRemaining( boost::asio::yield_context& yield_ctx )
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-InThreadConversation::InThreadConversation( ConversationManager&  conversationManager,
-                                            const ConversationID& conversationID,
+InThreadLogicalThread::InThreadLogicalThread( LogicalThreadManager&  logicalthreadManager,
+                                            const LogicalThreadID& logicalthreadID,
                                             std::optional< ConnectionID >
                                                 originatingConnectionID /*= std::nullopt*/ )
-    : Conversation( conversationManager, conversationID, originatingConnectionID )
-    , m_channel( conversationManager.getIOContext() )
+    : LogicalThread( logicalthreadManager, logicalthreadID, originatingConnectionID )
+    , m_channel( logicalthreadManager.getIOContext() )
 {
 }
 
-ReceivedMsg InThreadConversation::receive( boost::asio::yield_context& yield_ctx )
+ReceivedMsg InThreadLogicalThread::receive( boost::asio::yield_context& yield_ctx )
 {
     mega::_MPOContextStack _mpoStack;
     return m_channel.async_receive( yield_ctx );
 }
 
-std::optional< ReceivedMsg > InThreadConversation::try_receive( boost::asio::yield_context& yield_ctx )
+std::optional< ReceivedMsg > InThreadLogicalThread::try_receive( boost::asio::yield_context& yield_ctx )
 {
     std::optional< ReceivedMsg > result;
 
@@ -304,7 +304,7 @@ std::optional< ReceivedMsg > InThreadConversation::try_receive( boost::asio::yie
     return result;
 }
 
-void InThreadConversation::send( const ReceivedMsg& msg )
+void InThreadLogicalThread::send( const ReceivedMsg& msg )
 {
     m_channel.async_send(
         boost::system::error_code(), msg,
@@ -335,22 +335,22 @@ void InThreadConversation::send( const ReceivedMsg& msg )
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-ConcurrentConversation::ConcurrentConversation( ConversationManager&  conversationManager,
-                                                const ConversationID& conversationID,
+ConcurrentLogicalThread::ConcurrentLogicalThread( LogicalThreadManager&  logicalthreadManager,
+                                                const LogicalThreadID& logicalthreadID,
                                                 std::optional< ConnectionID >
                                                     originatingConnectionID /*= std::nullopt*/ )
-    : Conversation( conversationManager, conversationID, originatingConnectionID )
-    , m_channel( conversationManager.getIOContext() )
+    : LogicalThread( logicalthreadManager, logicalthreadID, originatingConnectionID )
+    , m_channel( logicalthreadManager.getIOContext() )
 {
 }
 
-ReceivedMsg ConcurrentConversation::receive( boost::asio::yield_context& yield_ctx )
+ReceivedMsg ConcurrentLogicalThread::receive( boost::asio::yield_context& yield_ctx )
 {
     mega::_MPOContextStack _mpoStack;
     return m_channel.async_receive( yield_ctx );
 }
 
-std::optional< ReceivedMsg > ConcurrentConversation::try_receive( boost::asio::yield_context& yield_ctx )
+std::optional< ReceivedMsg > ConcurrentLogicalThread::try_receive( boost::asio::yield_context& yield_ctx )
 {
     std::optional< ReceivedMsg > result;
 
@@ -370,7 +370,7 @@ std::optional< ReceivedMsg > ConcurrentConversation::try_receive( boost::asio::y
     return result;
 }
 
-void ConcurrentConversation::send( const ReceivedMsg& msg )
+void ConcurrentLogicalThread::send( const ReceivedMsg& msg )
 {
     m_channel.async_send(
         boost::system::error_code(), msg,
@@ -402,16 +402,16 @@ void ConcurrentConversation::send( const ReceivedMsg& msg )
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-ExternalConversation::ExternalConversation( ConversationManager&  conversationManager,
-                                            const ConversationID& conversationID, boost::asio::io_context& ioContext )
-    : m_conversationManager( conversationManager )
-    , m_conversationID( conversationID )
+ExternalLogicalThread::ExternalLogicalThread( LogicalThreadManager&  logicalthreadManager,
+                                            const LogicalThreadID& logicalthreadID, boost::asio::io_context& ioContext )
+    : m_logicalthreadManager( logicalthreadManager )
+    , m_logicalthreadID( logicalthreadID )
     , m_ioContext( ioContext )
     , m_channel( m_ioContext )
 {
 }
 
-ReceivedMsg ExternalConversation::receive()
+ReceivedMsg ExternalLogicalThread::receive()
 {
     ReceivedMsg result;
     bool        bReceived = false;
@@ -436,7 +436,7 @@ ReceivedMsg ExternalConversation::receive()
     return result;
 }
 
-void ExternalConversation::send( const ReceivedMsg& msg )
+void ExternalLogicalThread::send( const ReceivedMsg& msg )
 {
     m_channel.async_send(
         boost::system::error_code(), msg,

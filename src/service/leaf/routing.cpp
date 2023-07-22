@@ -26,14 +26,14 @@
 namespace mega::service
 {
 
-LeafRequestConversation::LeafRequestConversation( Leaf& leaf, const network::ConversationID& conversationID,
+LeafRequestLogicalThread::LeafRequestLogicalThread( Leaf& leaf, const network::LogicalThreadID& logicalthreadID,
                                                   const network::ConnectionID& originatingConnectionID )
-    : InThreadConversation( leaf, conversationID, originatingConnectionID )
+    : InThreadLogicalThread( leaf, logicalthreadID, originatingConnectionID )
     , m_leaf( leaf )
 {
 }
 
-network::Message LeafRequestConversation::dispatchRequest( const network::Message&     msg,
+network::Message LeafRequestLogicalThread::dispatchRequest( const network::Message&     msg,
                                                            boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
@@ -61,10 +61,10 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
         return result;
     if( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "LeafRequestConversation::dispatchRequest failed on msg: " << msg );
+    THROW_RTE( "LeafRequestLogicalThread::dispatchRequest failed on msg: " << msg );
 }
 
-void LeafRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
+void LeafRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID,
                                                 const network::Message&      msg,
                                                 boost::asio::yield_context&  yield_ctx )
 {
@@ -83,7 +83,7 @@ void LeafRequestConversation::dispatchResponse( const network::ConnectionID& con
     }
 }
 
-void LeafRequestConversation::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
+void LeafRequestLogicalThread::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                      boost::asio::yield_context& yield_ctx )
 {
     if( ( m_leaf.getNodeChannelSender().getConnectionID() == msg.connectionID )
@@ -101,89 +101,89 @@ void LeafRequestConversation::error( const network::ReceivedMsg& msg, const std:
     }
 }
 
-network::leaf_daemon::Request_Sender LeafRequestConversation::getDaemonSender( boost::asio::yield_context& yield_ctx )
+network::leaf_daemon::Request_Sender LeafRequestLogicalThread::getDaemonSender( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_leaf.getDaemonSender(), yield_ctx };
 }
-network::leaf_exe::Request_Sender LeafRequestConversation::getExeSender( boost::asio::yield_context& yield_ctx )
+network::leaf_exe::Request_Sender LeafRequestLogicalThread::getExeSender( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
-network::leaf_tool::Request_Sender LeafRequestConversation::getToolSender( boost::asio::yield_context& yield_ctx )
+network::leaf_tool::Request_Sender LeafRequestLogicalThread::getToolSender( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
-network::leaf_python::Request_Sender LeafRequestConversation::getPythonSender( boost::asio::yield_context& yield_ctx )
+network::leaf_python::Request_Sender LeafRequestLogicalThread::getPythonSender( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
-network::leaf_term::Request_Sender LeafRequestConversation::getTermSender( boost::asio::yield_context& yield_ctx )
+network::leaf_term::Request_Sender LeafRequestLogicalThread::getTermSender( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
-network::mpo::Request_Sender LeafRequestConversation::getMPOUpSender( boost::asio::yield_context& yield_ctx )
+network::mpo::Request_Sender LeafRequestLogicalThread::getMPOUpSender( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_leaf.getDaemonSender(), yield_ctx };
 }
-network::mpo::Request_Sender LeafRequestConversation::getMPODownSender( boost::asio::yield_context& yield_ctx )
+network::mpo::Request_Sender LeafRequestLogicalThread::getMPODownSender( boost::asio::yield_context& yield_ctx )
 {
     return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
 // network::term_leaf::Impl
-network::Message LeafRequestConversation::TermRoot( const network::Message&     request,
+network::Message LeafRequestLogicalThread::TermRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::TermRoot" );
+    SPDLOG_TRACE( "LeafRequestLogicalThread::TermRoot" );
     return getDaemonSender( yield_ctx ).TermRoot( request );
 }
 
 // network::exe_leaf::Impl
-network::Message LeafRequestConversation::ExeRoot( const network::Message&     request,
+network::Message LeafRequestLogicalThread::ExeRoot( const network::Message&     request,
                                                    boost::asio::yield_context& yield_ctx )
 {
     return getDaemonSender( yield_ctx ).ExeRoot( request );
 }
-network::Message LeafRequestConversation::ExeDaemon( const network::Message&     request,
+network::Message LeafRequestLogicalThread::ExeDaemon( const network::Message&     request,
                                                      boost::asio::yield_context& yield_ctx )
 {
     return getDaemonSender( yield_ctx ).ExeDaemon( request );
 }
 
 // network::tool_leaf::Impl
-network::Message LeafRequestConversation::ToolRoot( const network::Message&     request,
+network::Message LeafRequestLogicalThread::ToolRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
 {
     return getDaemonSender( yield_ctx ).ToolRoot( request );
 }
 
-network::Message LeafRequestConversation::ToolDaemon( const network::Message&     request,
+network::Message LeafRequestLogicalThread::ToolDaemon( const network::Message&     request,
                                                       boost::asio::yield_context& yield_ctx )
 {
     return getDaemonSender( yield_ctx ).ToolDaemon( request );
 }
 
 // network::python_leaf::Impl
-network::Message LeafRequestConversation::PythonRoot( const network::Message&     request,
+network::Message LeafRequestLogicalThread::PythonRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
 {
     return getDaemonSender( yield_ctx ).PythonRoot( request );
 }
 
-network::Message LeafRequestConversation::PythonDaemon( const network::Message&     request,
+network::Message LeafRequestLogicalThread::PythonDaemon( const network::Message&     request,
                                                       boost::asio::yield_context& yield_ctx )
 {
     return getDaemonSender( yield_ctx ).PythonDaemon( request );
 }
 
 // network::mpo::Impl
-network::Message LeafRequestConversation::MPRoot( const network::Message&     request, const mega::MP&,
+network::Message LeafRequestLogicalThread::MPRoot( const network::Message&     request, const mega::MP&,
                                                   boost::asio::yield_context& yield_ctx )
 {
     // ignor the passed MP and use the leaf MP
-    SPDLOG_TRACE( "LeafRequestConversation::MPRoot: {}", m_leaf.m_mp );
+    SPDLOG_TRACE( "LeafRequestLogicalThread::MPRoot: {}", m_leaf.m_mp );
     return getMPOUpSender( yield_ctx ).MPRoot( request, m_leaf.m_mp );
 }
-network::Message LeafRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
+network::Message LeafRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
     switch( m_leaf.m_nodeType )
@@ -203,10 +203,10 @@ network::Message LeafRequestConversation::MPDown( const network::Message& reques
             THROW_RTE( "Unknown node type" );
     }
 }
-network::Message LeafRequestConversation::MPUp( const network::Message& request, const mega::MP& mp,
+network::Message LeafRequestLogicalThread::MPUp( const network::Message& request, const mega::MP& mp,
                                                 boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::MPUp: {} {}", mp, request.getName() );
+    SPDLOG_TRACE( "LeafRequestLogicalThread::MPUp: {} {}", mp, request.getName() );
     if( m_leaf.m_mp == mp )
     {
         return dispatchRequest( request, yield_ctx );
@@ -217,7 +217,7 @@ network::Message LeafRequestConversation::MPUp( const network::Message& request,
     }
 }
 
-network::Message LeafRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
+network::Message LeafRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
     ASSERT( m_leaf.m_mpos.count( mpo ) );
@@ -238,7 +238,7 @@ network::Message LeafRequestConversation::MPODown( const network::Message& reque
             THROW_RTE( "Unknown node type" );
     }
 }
-network::Message LeafRequestConversation::MPOUp( const network::Message& request, const mega::MPO& mpo,
+network::Message LeafRequestLogicalThread::MPOUp( const network::Message& request, const mega::MPO& mpo,
                                                  boost::asio::yield_context& yield_ctx )
 {
     if( m_leaf.m_mpos.count( mpo ) )
@@ -252,10 +252,10 @@ network::Message LeafRequestConversation::MPOUp( const network::Message& request
 }
 
 // network::daemon_leaf::Impl
-network::Message LeafRequestConversation::RootAllBroadcast( const network::Message&     request,
+network::Message LeafRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                             boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::RootAllBroadcast" );
+    SPDLOG_TRACE( "LeafRequestLogicalThread::RootAllBroadcast" );
     std::vector< network::Message > responses;
     {
         switch( m_leaf.m_nodeType )
@@ -298,7 +298,7 @@ network::Message LeafRequestConversation::RootAllBroadcast( const network::Messa
     return dispatchRequest( aggregateRequest, yield_ctx );
 }
 
-network::Message LeafRequestConversation::RootExeBroadcast( const network::Message&     request,
+network::Message LeafRequestLogicalThread::RootExeBroadcast( const network::Message&     request,
                                                             boost::asio::yield_context& yield_ctx )
 {
     switch( m_leaf.m_nodeType )
@@ -318,7 +318,7 @@ network::Message LeafRequestConversation::RootExeBroadcast( const network::Messa
             THROW_RTE( "Unknown node type" );
     }
 }
-network::Message LeafRequestConversation::RootExe( const network::Message&     request,
+network::Message LeafRequestLogicalThread::RootExe( const network::Message&     request,
                                                    boost::asio::yield_context& yield_ctx )
 {
     switch( m_leaf.m_nodeType )
@@ -339,9 +339,9 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
     }
 }
 
-void LeafRequestConversation::RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void LeafRequestLogicalThread::RootSimRun( const Project& project, const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", mpo );
+    SPDLOG_TRACE( "LeafRequestLogicalThread::RootSimRun {}", mpo );
     VERIFY_RTE_MSG( m_leaf.m_pJIT.get(), "JIT not initialised in RootSimRun" );
     switch( m_leaf.m_nodeType )
     {
@@ -373,10 +373,10 @@ void LeafRequestConversation::RootSimRun( const Project& project, const MPO& mpo
         default:
             THROW_RTE( "Unknown node type" );
     }
-    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun complete {}", mpo );
+    SPDLOG_TRACE( "LeafRequestLogicalThread::RootSimRun complete {}", mpo );
 }
 
-network::Message LeafRequestConversation::DaemonLeafBroadcast( const network::Message&     request,
+network::Message LeafRequestLogicalThread::DaemonLeafBroadcast( const network::Message&     request,
                                                                boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );

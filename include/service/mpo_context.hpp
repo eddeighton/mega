@@ -34,7 +34,7 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/context.hpp"
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/sim.hxx"
@@ -57,7 +57,7 @@ namespace mega
 class MPOContext : public Context
 {
 protected:
-    const network::ConversationID&                  m_conversationIDRef;
+    const network::LogicalThreadID&                  m_logicalthreadIDRef;
     std::optional< mega::MPO >                      m_mpo;
     std::unique_ptr< log::Storage >                 m_pLog;
     mega::service::LockTracker                      m_lockTracker;
@@ -69,8 +69,8 @@ protected:
 
     network::TransactionProducer::MovedObjects    m_movedObjects;
 public:
-    MPOContext( const network::ConversationID& conversationID )
-        : m_conversationIDRef( conversationID )
+    MPOContext( const network::LogicalThreadID& logicalthreadID )
+        : m_logicalthreadIDRef( logicalthreadID )
     {
     }
 

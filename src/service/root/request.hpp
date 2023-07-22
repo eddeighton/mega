@@ -20,7 +20,7 @@
 #ifndef REQUEST_22_SEPT_2022
 #define REQUEST_22_SEPT_2022
 
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
@@ -36,7 +36,7 @@ namespace mega::service
 {
 class Root;
 
-class RootRequestConversation : public network::InThreadConversation,
+class RootRequestLogicalThread : public network::InThreadLogicalThread,
                                 public network::daemon_root::Impl,
                                 public network::mpo::Impl,
                                 public network::project::Impl,
@@ -47,8 +47,8 @@ class RootRequestConversation : public network::InThreadConversation,
                                 public network::sim::Impl
 {
 public:
-    RootRequestConversation( Root&                          root,
-                             const network::ConversationID& conversationID,
+    RootRequestLogicalThread( Root&                          root,
+                             const network::LogicalThreadID& logicalthreadID,
                              const network::ConnectionID&   originatingConnectionID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
@@ -75,7 +75,7 @@ public:
     template < typename RequestEncoderType >
     RequestEncoderType getExeBroadcastRequest( boost::asio::yield_context& yield_ctx )
     {
-        RootRequestConversation* pThis = this;
+        RootRequestLogicalThread* pThis = this;
         return RequestEncoderType( [ pThis, &yield_ctx ]( const network::Message& msg ) mutable
                                    { return pThis->broadcastExe( msg, yield_ctx ); },
                                    getID() );
@@ -83,7 +83,7 @@ public:
     template < typename RequestEncoderType >
     RequestEncoderType getAllBroadcastRequest( boost::asio::yield_context& yield_ctx )
     {
-        RootRequestConversation* pThis = this;
+        RootRequestLogicalThread* pThis = this;
         return RequestEncoderType( [ pThis, &yield_ctx ]( const network::Message& msg ) mutable
                                    { return pThis->broadcastAll( msg, yield_ctx ); },
                                    getID() );
@@ -150,14 +150,14 @@ public:
                                              boost::asio::yield_context&    yield_ctx ) override;
 
     // network::job::Impl
-    virtual std::vector< network::ConversationID >
+    virtual std::vector< network::LogicalThreadID >
     JobStart( const utilities::ToolChain&                                  toolChain,
               const pipeline::Configuration&                               configuration,
-              const network::ConversationID&                               rootConversationID,
-              const std::vector< std::vector< network::ConversationID > >& jobs,
+              const network::LogicalThreadID&                               rootLogicalThreadID,
+              const std::vector< std::vector< network::LogicalThreadID > >& jobs,
               boost::asio::yield_context&                                  yield_ctx ) override
     {
-        std::vector< network::ConversationID > result;
+        std::vector< network::LogicalThreadID > result;
         for( const auto& j : jobs )
         {
             for( const auto& k : j )

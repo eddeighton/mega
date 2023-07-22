@@ -21,7 +21,7 @@
 #include "service/executor/executor.hpp"
 #include "service/executor/simulation.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "service/network/log.hpp"
 
@@ -30,9 +30,9 @@
 namespace mega::service
 {
 
-MPO ExecutorRequestConversation::SimCreate( boost::asio::yield_context& yield_ctx )
+MPO ExecutorRequestLogicalThread::SimCreate( boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "ExecutorRequestConversation::SimCreate {}", getID() );
+    SPDLOG_TRACE( "ExecutorRequestLogicalThread::SimCreate {}", getID() );
     return m_executor.createSimulation( *this, yield_ctx );
 }
 
@@ -104,7 +104,7 @@ MPO ExecutorRequestConversation::SimCreate( boost::asio::yield_context& yield_ct
     }                                                                                                        \
     break
 
-network::Message ExecutorRequestConversation::MPODown( const network::Message& request, const MPO& mpo,
+network::Message ExecutorRequestLogicalThread::MPODown( const network::Message& request, const MPO& mpo,
                                                        boost::asio::yield_context& yield_ctx )
 {
     using ::operator<<;

@@ -31,7 +31,7 @@
 namespace mega::service
 {
 
-class ToolRequestConversation : public network::InThreadConversation,
+class ToolRequestLogicalThread : public network::InThreadLogicalThread,
                                 public network::leaf_tool::Impl,
                                 public network::mpo::Impl,
                                 public network::status::Impl,
@@ -41,7 +41,7 @@ protected:
     Tool& m_tool;
 
 public:
-    ToolRequestConversation( Tool& tool, const network::ConversationID& conversationID,
+    ToolRequestLogicalThread( Tool& tool, const network::LogicalThreadID& logicalthreadID,
                              std::optional< network::ConnectionID > originatingConnectionID = std::nullopt );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,

@@ -23,7 +23,7 @@
 
 #include "service/executor/request.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 
 #include "service/protocol/model/platform.hxx"
 
@@ -34,12 +34,12 @@ namespace mega::service
 
 class Executor;
 
-class Platform : public ExecutorRequestConversation, public network::platform::Impl
+class Platform : public ExecutorRequestLogicalThread, public network::platform::Impl
 {
 public:
     using Ptr = std::shared_ptr< Platform >;
 
-    Platform( Executor& executor, const network::ConversationID& conversationID, network::ConversationBase& plugin );
+    Platform( Executor& executor, const network::LogicalThreadID& logicalthreadID, network::LogicalThreadBase& plugin );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
@@ -52,7 +52,7 @@ public:
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
 private:
-    network::ConversationBase&   m_plugin;
+    network::LogicalThreadBase&   m_plugin;
     boost::asio::yield_context*  m_pYieldContext = nullptr;
     network::Sender::Ptr         m_pRequestChannelSender;
     bool                         m_bRunning = true;

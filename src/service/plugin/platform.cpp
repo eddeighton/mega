@@ -27,9 +27,9 @@
 namespace mega::service
 {
 
-Platform::Platform( Executor& executor, const network::ConversationID& conversationID,
-                    network::ConversationBase& plugin )
-    : ExecutorRequestConversation( executor, conversationID, std::nullopt )
+Platform::Platform( Executor& executor, const network::LogicalThreadID& logicalthreadID,
+                    network::LogicalThreadBase& plugin )
+    : ExecutorRequestLogicalThread( executor, logicalthreadID, std::nullopt )
     , m_plugin( plugin )
 {
 }
@@ -39,7 +39,7 @@ network::Message Platform::dispatchRequest( const network::Message& msg, boost::
     network::Message result;
     if( result = network::platform::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
+    return ExecutorRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
 void Platform::dispatchResponse( const network::ConnectionID& connectionID,
@@ -53,7 +53,7 @@ void Platform::dispatchResponse( const network::ConnectionID& connectionID,
     }
     else
     {
-        ExecutorRequestConversation::dispatchResponse( connectionID, msg, yield_ctx );
+        ExecutorRequestLogicalThread::dispatchResponse( connectionID, msg, yield_ctx );
     }
 }
 
@@ -66,7 +66,7 @@ void Platform::error( const network::ReceivedMsg& msg, const std::string& strErr
     }
     else
     {
-        ExecutorRequestConversation::error( msg, strErrorMsg, yield_ctx );
+        ExecutorRequestLogicalThread::error( msg, strErrorMsg, yield_ctx );
     }
 }
 

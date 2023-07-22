@@ -28,10 +28,10 @@ namespace mega::service
 {
 
 RootSimulation::RootSimulation( Root&                          root,
-                                const network::ConversationID& conversationID,
+                                const network::LogicalThreadID& logicalthreadID,
                                 const network::ConnectionID&   originatingConnectionID,
                                 mega::MP                       leafMP )
-    : RootRequestConversation( root, conversationID, originatingConnectionID )
+    : RootRequestLogicalThread( root, logicalthreadID, originatingConnectionID )
     , m_leafMP( leafMP )
 {
 }
@@ -41,7 +41,7 @@ network::Message RootSimulation::dispatchRequest( const network::Message& msg, b
     network::Message result;
     if ( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    return RootRequestConversation::dispatchRequest( msg, yield_ctx );
+    return RootRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
 void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )

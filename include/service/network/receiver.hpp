@@ -20,8 +20,8 @@
 #ifndef RECEIVER_24_MAY_2022
 #define RECEIVER_24_MAY_2022
 
-#include "service/network/conversation.hpp"
-#include "service/network/conversation_manager.hpp"
+#include "service/network/logical_thread.hpp"
+#include "service/network/logical_thread_manager.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/network.hpp"
 
@@ -38,7 +38,7 @@ namespace mega::network
 class SocketReceiver
 {
 public:
-    SocketReceiver( ConversationManager& conversationManager, Traits::Socket& socket,
+    SocketReceiver( LogicalThreadManager& logicalthreadManager, Traits::Socket& socket,
                     std::function< void() > disconnectHandler );
     ~SocketReceiver();
 
@@ -46,12 +46,12 @@ public:
     void run( TExecutor& strandOrIOContext, const ConnectionID& connectionID )
     {
         m_connectionID = connectionID;
-        boost::asio::spawn( 
-            strandOrIOContext, 
-            [ this ]( boost::asio::yield_context yield ) { receive( yield ); }
+        boost::asio::spawn(
+            strandOrIOContext, [ this ]( boost::asio::yield_context yield ) { receive( yield ); }
         // segmented stacks do NOT work on windows
 #ifndef BOOST_USE_SEGMENTED_STACKS
-        , boost::coroutines::attributes(NON_SEGMENTED_STACK_SIZE)
+            ,
+            boost::coroutines::attributes( NON_SEGMENTED_STACK_SIZE )
 #endif
         );
     }
@@ -64,7 +64,7 @@ private:
 private:
     ConnectionID            m_connectionID;
     bool                    m_bContinue = true;
-    ConversationManager&    m_conversationManager;
+    LogicalThreadManager&   m_logicalthreadManager;
     Traits::Socket&         m_socket;
     std::function< void() > m_disconnectHandler;
 };
@@ -72,7 +72,7 @@ private:
 class ConcurrentChannelReceiver
 {
 public:
-    ConcurrentChannelReceiver( ConversationManager& conversationManager, ConcurrentChannel& channel );
+    ConcurrentChannelReceiver( LogicalThreadManager& logicalthreadManager, ConcurrentChannel& channel );
     ~ConcurrentChannelReceiver();
 
     template < typename TExecutor >
@@ -80,17 +80,19 @@ public:
     {
         m_connectionID                      = connectionID;
         ConcurrentChannelReceiver& receiver = *this;
-        boost::asio::spawn( strandOrIOContext,
-                            [ &receiver ]( boost::asio::yield_context yield )
-                            {
-                                //
-                                receiver.receive( yield );
-                            }
+        boost::asio::spawn(
+            strandOrIOContext,
+            [ &receiver ]( boost::asio::yield_context yield )
+            {
+                //
+                receiver.receive( yield );
+            }
         // segmented stacks do NOT work on windows
 #ifndef BOOST_USE_SEGMENTED_STACKS
-        , boost::coroutines::attributes(NON_SEGMENTED_STACK_SIZE)
+            ,
+            boost::coroutines::attributes( NON_SEGMENTED_STACK_SIZE )
 #endif
-                            );
+        );
     }
 
     void stop() { m_bContinue = false; }
@@ -100,10 +102,10 @@ private:
     void onError( const boost::system::error_code& ec );
 
 private:
-    ConnectionID         m_connectionID;
-    bool                 m_bContinue = true;
-    ConversationManager& m_conversationManager;
-    ConcurrentChannel&   m_channel;
+    ConnectionID          m_connectionID;
+    bool                  m_bContinue = true;
+    LogicalThreadManager& m_logicalthreadManager;
+    ConcurrentChannel&    m_channel;
 };
 
 } // namespace mega::network

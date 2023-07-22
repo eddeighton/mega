@@ -23,12 +23,12 @@
 #include "job.hpp"
 #include "simulation.hpp"
 
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 #include "utilities/megastructure_installation.hpp"
 
 #include "pipeline/pipeline_result.hpp"
@@ -58,7 +58,7 @@ namespace mega::service
 {
 
 Root::Root( boost::asio::io_context& ioContext, const boost::filesystem::path& stashFolder, short portNumber )
-    : network::ConversationManager( network::makeProcessName( network::Node::Root ), ioContext )
+    : network::LogicalThreadManager( network::makeProcessName( network::Node::Root ), ioContext )
     , m_server( ioContext, *this, portNumber )
     , m_stash( stashFolder )
 {
@@ -144,10 +144,10 @@ MegastructureInstallation Root::getMegastructureInstallation()
     return m_megastructureInstallationOpt.value();
 }
 
-network::ConversationBase::Ptr Root::joinConversation( const network::ConnectionID& originatingConnectionID,
+network::LogicalThreadBase::Ptr Root::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                        const network::Message&      msg )
 {
-    SPDLOG_TRACE( "Root::joinConversation {}", msg );
+    SPDLOG_TRACE( "Root::joinLogicalThread {}", msg );
     switch ( msg.getID() )
     {
         case network::mpo::MSG_MPRoot_Request::ID:
@@ -156,7 +156,7 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
             switch ( actualMsg.request.getID() )
             {
                 case network::sim::MSG_SimStart_Request::ID:
-                    return network::ConversationBase::Ptr(
+                    return network::LogicalThreadBase::Ptr(
                         new RootSimulation( *this, msg.getReceiverID(), originatingConnectionID, actualMsg.mp ) );
             }
         }
@@ -168,8 +168,8 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
             switch ( actualMsg.request.getID() )
             {
                 case network::job::MSG_JobReadyForWork_Request::ID:
-                    return network::ConversationBase::Ptr(
-                        new RootJobConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
+                    return network::LogicalThreadBase::Ptr(
+                        new RootJobLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
             }
         }
         break;
@@ -180,14 +180,14 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
             switch ( actualMsg.request.getID() )
             {
                 case network::pipeline::MSG_PipelineRun_Request::ID:
-                    return network::ConversationBase::Ptr(
-                        new RootPipelineConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
+                    return network::LogicalThreadBase::Ptr(
+                        new RootPipelineLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
             }
         }
         break;
     }
-    return network::ConversationBase::Ptr(
-        new RootRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr(
+        new RootRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
 } // namespace mega::service

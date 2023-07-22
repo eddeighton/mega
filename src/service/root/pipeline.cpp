@@ -28,25 +28,25 @@
 namespace mega::service
 {
 
-RootPipelineConversation::RootPipelineConversation( Root&                          root,
-                                                    const network::ConversationID& conversationID,
+RootPipelineLogicalThread::RootPipelineLogicalThread( Root&                          root,
+                                                    const network::LogicalThreadID& logicalthreadID,
                                                     const network::ConnectionID&   originatingConnectionID )
-    : RootRequestConversation( root, conversationID, originatingConnectionID )
+    : RootRequestLogicalThread( root, logicalthreadID, originatingConnectionID )
     , m_taskReady( root.getIOContext(), CHANNEL_SIZE )
     , m_taskComplete( root.getIOContext(), CHANNEL_SIZE )
 {
 }
 
-network::Message RootPipelineConversation::dispatchRequest( const network::Message&     msg,
+network::Message RootPipelineLogicalThread::dispatchRequest( const network::Message&     msg,
                                                             boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
     if ( result = network::pipeline::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    return RootRequestConversation::dispatchRequest( msg, yield_ctx );
+    return RootRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
-mega::pipeline::PipelineResult RootPipelineConversation::PipelineRun( const mega::pipeline::Configuration& configuration,
+mega::pipeline::PipelineResult RootPipelineLogicalThread::PipelineRun( const mega::pipeline::Configuration& configuration,
                                                                      boost::asio::yield_context&          yield_ctx )
 {
     if ( !m_root.m_megastructureInstallationOpt.has_value() )
@@ -75,10 +75,10 @@ mega::pipeline::PipelineResult RootPipelineConversation::PipelineRun( const mega
 
     // acquire jobs
     {
-        const std::vector< network::ConversationID > jobs
+        const std::vector< network::LogicalThreadID > jobs
             = getExeBroadcastRequest< network::job::Request_Encoder >( yield_ctx )
                   .JobStart( toolChain, configuration, getID(), {} );
-        for ( const network::ConversationID& id : jobs )
+        for ( const network::LogicalThreadID& id : jobs )
             m_jobs.insert( id );
     }
 
@@ -147,11 +147,11 @@ mega::pipeline::PipelineResult RootPipelineConversation::PipelineRun( const mega
     }
 
     // send termination task to each job
-    for ( const network::ConversationID& jobID : m_jobs )
+    for ( const network::LogicalThreadID& jobID : m_jobs )
     {
         m_taskReady.async_send( boost::system::error_code(), mega::pipeline::TaskDescriptor(), yield_ctx );
     }
-    for ( const network::ConversationID& jobID : m_jobs )
+    for ( const network::LogicalThreadID& jobID : m_jobs )
     {
         m_taskComplete.async_receive( yield_ctx );
     }

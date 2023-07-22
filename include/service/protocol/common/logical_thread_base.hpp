@@ -17,11 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef CONVERSATION_BASE_5_JAN_2023
-#define CONVERSATION_BASE_5_JAN_2023
+#ifndef LOGICALTHREAD_BASE_5_JAN_2023
+#define LOGICALTHREAD_BASE_5_JAN_2023
 
 #include "service/protocol/common/sender.hpp"
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include "common/assert_verify.hpp"
@@ -37,17 +37,17 @@
 namespace mega::network
 {
 
-class ConversationManager;
+class LogicalThreadManager;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-class ConversationBase : public std::enable_shared_from_this< ConversationBase >, public Sender
+class LogicalThreadBase : public std::enable_shared_from_this< LogicalThreadBase >, public Sender
 {
 public:
-    virtual ~ConversationBase() = default;
+    virtual ~LogicalThreadBase() = default;
 
-    using Ptr = std::shared_ptr< ConversationBase >;
-    using ID  = ConversationID;
+    using Ptr = std::shared_ptr< LogicalThreadBase >;
+    using ID  = LogicalThreadID;
 
     virtual const ID&          getID() const                                                          = 0;
     virtual void               send( const ReceivedMsg& msg )                                         = 0;
@@ -66,17 +66,17 @@ public:
     {
         const char* m_pszMsg;
         // boost::asio::steady_timer::time_point m_startTime;
-        ConversationBase::Ptr pConversation;
+        LogicalThreadBase::Ptr pLogicalThread;
         RequestStack( RequestStack& )            = delete;
         RequestStack& operator=( RequestStack& ) = delete;
 
     public:
-        RequestStack( const char* pszMsg, ConversationBase::Ptr pConversation, const ConnectionID& connectionID );
+        RequestStack( const char* pszMsg, LogicalThreadBase::Ptr pLogicalThread, const ConnectionID& connectionID );
         ~RequestStack();
     };
-    friend class ConversationBase::RequestStack;
+    friend class LogicalThreadBase::RequestStack;
 };
 
 }
 
-#endif //CONVERSATION_BASE_5_JAN_2023
+#endif //LOGICALTHREAD_BASE_5_JAN_2023

@@ -26,7 +26,7 @@
 namespace mega::service
 {
 // network::enrole::Impl
-MP DaemonRequestConversation::EnroleLeafWithDaemon( const std::string&               startupUUID,
+MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&               startupUUID,
                                                     const mega::network::Node::Type& type,
                                                     boost::asio::yield_context&      yield_ctx )
 {
@@ -46,7 +46,7 @@ MP DaemonRequestConversation::EnroleLeafWithDaemon( const std::string&          
     return leafMP;
 }
 
-void DaemonRequestConversation::EnroleDaemonSpawn( const std::string& strProgram, const std::string& strStartupUUID, boost::asio::yield_context& yield_ctx )
+void DaemonRequestLogicalThread::EnroleDaemonSpawn( const std::string& strProgram, const std::string& strStartupUUID, boost::asio::yield_context& yield_ctx )
 {
     auto env = boost::this_process::environment();
     env[ network::ENV_PROCESS_UUID ] = strStartupUUID;

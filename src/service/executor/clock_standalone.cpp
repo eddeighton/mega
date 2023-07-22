@@ -22,8 +22,8 @@
 
 #include "service/network/log.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
-#include "service/protocol/common/conversation_base.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
+#include "service/protocol/common/logical_thread_base.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include "mega/reference_io.hpp"
@@ -59,7 +59,7 @@ void ProcessClockStandalone::unregisterMPO( network::SenderRef sender )
     boost::asio::post( m_strand, [ pThis, sender ]() { pThis->unregisterMPOImpl( sender ); } );
 }
 
-void ProcessClockStandalone::requestClock( network::ConversationBase* pSender, MPO mpo, log::Range )
+void ProcessClockStandalone::requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range )
 {
     ProcessClockStandalone* pThis = this;
     boost::asio::post( m_strand, [ pThis, pSender, mpo ]() { pThis->requestClockImpl( pSender, mpo ); } );
@@ -82,7 +82,7 @@ void ProcessClockStandalone::unregisterMPOImpl( network::SenderRef sender )
     checkClock();
 }
 
-void ProcessClockStandalone::requestClockImpl( network::ConversationBase* pSender, MPO mpo )
+void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSender, MPO mpo )
 {
     {
         auto iFind = m_mpos.find( mpo );

@@ -28,7 +28,7 @@ namespace mega::service
 {
 
 // network::project::Impl
-void ExecutorRequestConversation::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
+void ExecutorRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
 {
     {
         std::vector< Simulation::Ptr > simulations;

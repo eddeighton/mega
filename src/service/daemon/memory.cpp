@@ -29,7 +29,7 @@ namespace mega::service
 {
 
 // network::memory::Impl
-void DaemonRequestConversation::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void DaemonRequestLogicalThread::MPODestroyed( const MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     for( auto& [ id, pCon ] : m_daemon.m_server.getConnections() )
     {
@@ -38,10 +38,10 @@ void DaemonRequestConversation::MPODestroyed( const MPO& mpo, boost::asio::yield
     }
 }
 
-void DaemonRequestConversation::RootSimRun( const Project& project, const MPO& mpo,
+void DaemonRequestLogicalThread::RootSimRun( const Project& project, const MPO& mpo,
                                             boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun: {}", mpo );
+    SPDLOG_TRACE( "DaemonRequestLogicalThread::RootSimRun: {}", mpo );
 
     auto stackCon = getOriginatingEndPointID();
     VERIFY_RTE( stackCon.has_value() );
@@ -56,10 +56,10 @@ void DaemonRequestConversation::RootSimRun( const Project& project, const MPO& m
     }
 }
 
-TimeStamp DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
+TimeStamp DaemonRequestLogicalThread::SimLockRead( const MPO& requestingMPO, const MPO& targetMPO,
                                                   boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "DaemonRequestConversation::SimLockRead from: {} to: {}", requestingMPO, targetMPO );
+    SPDLOG_TRACE( "DaemonRequestLogicalThread::SimLockRead from: {} to: {}", requestingMPO, targetMPO );
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
     {
         ASSERT( m_daemon.m_machineID == targetMPO.getMachineID() );
@@ -75,10 +75,10 @@ TimeStamp DaemonRequestConversation::SimLockRead( const MPO& requestingMPO, cons
     }
 }
 
-TimeStamp DaemonRequestConversation::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
+TimeStamp DaemonRequestLogicalThread::SimLockWrite( const MPO& requestingMPO, const MPO& targetMPO,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "DaemonRequestConversation::SimLockWrite from: {} to: {}", requestingMPO, targetMPO );
+    SPDLOG_TRACE( "DaemonRequestLogicalThread::SimLockWrite from: {} to: {}", requestingMPO, targetMPO );
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
     {
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );
@@ -91,12 +91,12 @@ TimeStamp DaemonRequestConversation::SimLockWrite( const MPO& requestingMPO, con
     }
 }
 
-void DaemonRequestConversation::SimLockRelease( const MPO&                  requestingMPO,
+void DaemonRequestLogicalThread::SimLockRelease( const MPO&                  requestingMPO,
                                                 const MPO&                  targetMPO,
                                                 const network::Transaction& transaction,
                                                 boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "DaemonRequestConversation::SimLockRelease from: {} to: {}", requestingMPO, targetMPO );
+    SPDLOG_TRACE( "DaemonRequestLogicalThread::SimLockRelease from: {} to: {}", requestingMPO, targetMPO );
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( targetMPO ) ) )
     {
         network::sim::Request_Sender sender( *this, *pConnection, yield_ctx );

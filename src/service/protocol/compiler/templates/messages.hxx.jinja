@@ -23,7 +23,7 @@
 #include "pipeline/task.hpp"
 #include "pipeline/pipeline.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/common/jit_base.hpp"
 #include "service/protocol/common/node.hpp"
 #include "service/protocol/common/platform_state.hpp"
@@ -71,12 +71,12 @@ class Message
     friend Message decode( boost::archive::binary_iarchive& archive );
 
     MessageID      index = 0; // MSG_Error_Dispatch
-    ConversationID sender, receiver;
+    LogicalThreadID sender, receiver;
     std::shared_ptr< void > data;
 
 public:
     Message() = default;
-    Message( MessageID index, ConversationID sender, ConversationID receiver, std::shared_ptr< void > data )
+    Message( MessageID index, LogicalThreadID sender, LogicalThreadID receiver, std::shared_ptr< void > data )
         : index( index )
         , sender( std::move( sender ) )
         , receiver( std::move( receiver ) )
@@ -85,8 +85,8 @@ public:
     }
 
     MessageID             getID() const { return index; }
-    const ConversationID& getReceiverID() const { return receiver; }
-    const ConversationID& getSenderID() const { return sender; }
+    const LogicalThreadID& getReceiverID() const { return receiver; }
+    const LogicalThreadID& getSenderID() const { return sender; }
     const char*           getName() const;
 
     operator bool() const { return index != 0; }
@@ -117,8 +117,8 @@ struct {{ message.name }}
 {%for member in message.members%}
     {{ member.type }} {{ member.name }}; 
 {%endfor%}
-    static Message make( const ConversationID& sender, const ConversationID& receiver, {{ message.name }}&& msg );
-    static inline Message make( const ConversationID& sender, {{ message.name }}&& msg ) { return make( sender, sender, std::move( msg ) ); }
+    static Message make( const LogicalThreadID& sender, const LogicalThreadID& receiver, {{ message.name }}&& msg );
+    static inline Message make( const LogicalThreadID& sender, {{ message.name }}&& msg ) { return make( sender, sender, std::move( msg ) ); }
     static const {{ message.name }}& get( const Message& msg );
 };
 
@@ -126,7 +126,7 @@ struct {{ message.name }}
 {%endfor%}
 
 
-Message make_error_msg( const ConversationID& receiver, const std::string& strErrorMsg );
+Message make_error_msg( const LogicalThreadID& receiver, const std::string& strErrorMsg );
 
 bool isRequest( const Message& msg );
 

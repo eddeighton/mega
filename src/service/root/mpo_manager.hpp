@@ -23,7 +23,7 @@
 #include "mega/allocator.hpp"
 #include "mega/reference_io.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 #include "service/network/log.hpp"
 
 #include "common/assert_verify.hpp"
@@ -88,7 +88,7 @@ class MPOManager
             return allocated;
         }
 
-        MPO newOwner( MP leafMP, const network::ConversationID& conversationID )
+        MPO newOwner( MP leafMP, const network::LogicalThreadID& logicalthreadID )
         {
             OwnerAllocator& alloc = m_owners[ leafMP.getProcessID() ];
             if( alloc.full() )
@@ -96,7 +96,7 @@ class MPOManager
                 THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
             }
             const MPO mpo( leafMP.getMachineID(), leafMP.getProcessID(), alloc.allocate() );
-            SPDLOG_TRACE( "MPOMgr: newOwner: {} {}", mpo, conversationID );
+            SPDLOG_TRACE( "MPOMgr: newOwner: {} {}", mpo, logicalthreadID );
 
             return mpo;
         }
@@ -177,9 +177,9 @@ public:
 
     std::vector< MPO > leafDisconnected( MP mp ) { return get( mp.getMachineID() ).leafDisconnected( mp ); }
 
-    MPO newOwner( MP leafMP, const network::ConversationID& conversationID )
+    MPO newOwner( MP leafMP, const network::LogicalThreadID& logicalthreadID )
     {
-        return get( leafMP.getMachineID() ).newOwner( leafMP, conversationID );
+        return get( leafMP.getMachineID() ).newOwner( leafMP, logicalthreadID );
     }
 
     void release( MPO mpo ) { return get( mpo.getMachineID() ).release( mpo ); }

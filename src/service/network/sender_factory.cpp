@@ -21,7 +21,7 @@
 #include "service/network/log.hpp"
 #include "service/network/network.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/common/sender.hpp"
 
 #include "service/protocol/model/messages.hxx"

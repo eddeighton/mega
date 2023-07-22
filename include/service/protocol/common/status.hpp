@@ -22,7 +22,7 @@
 
 #include "mega/reference.hpp"
 
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/common/sender_ref.hpp"
 
 #include "log/index.hpp"
@@ -50,7 +50,7 @@ public:
     const std::optional< MachineID >&             getMachineID() const { return m_machineID; }
     const std::optional< MP >&                    getMP() const { return m_mp; }
     const std::optional< MPO >&                   getMPO() const { return m_mpo; }
-    const std::vector< network::ConversationID >& getConversations() const { return m_conversationIDs; }
+    const std::vector< network::LogicalThreadID >& getLogicalThreads() const { return m_logicalthreadIDs; }
     const std::optional< log::IndexRecord >&      getLogIterator() const { return m_logIterator; }
     const std::optional< std::string >&           getLogFolder() const { return m_strLogFolder; }
     const std::optional< network::MemoryStatus >& getMemory() const { return m_memory; }
@@ -66,9 +66,9 @@ public:
     void setMachineID( MachineID machineID ) { m_machineID = machineID; }
     void setMP( MP mp ) { m_mp = mp; }
     void setMPO( MPO mpo ) { m_mpo = mpo; }
-    void setConversationID( const std::vector< network::ConversationID >& conversations )
+    void setLogicalThreadID( const std::vector< network::LogicalThreadID >& logicalthreads )
     {
-        m_conversationIDs = conversations;
+        m_logicalthreadIDs = logicalthreads;
     }
     void setLogIterator( const log::IndexRecord& iterator ) { m_logIterator = iterator; }
     void setLogFolder( const std::string& strLogFolder ) { m_strLogFolder = strLogFolder; }
@@ -87,7 +87,7 @@ public:
         archive& m_machineID;
         archive& m_mp;
         archive& m_mpo;
-        archive& m_conversationIDs;
+        archive& m_logicalthreadIDs;
         archive& m_logIterator;
         archive& m_strLogFolder;
         archive& m_memory;
@@ -105,7 +105,7 @@ private:
     std::optional< MachineID >             m_machineID;
     std::optional< MP >                    m_mp;
     std::optional< MPO >                   m_mpo;
-    std::vector< network::ConversationID > m_conversationIDs;
+    std::vector< network::LogicalThreadID > m_logicalthreadIDs;
     std::optional< log::IndexRecord >      m_logIterator;
     std::optional< std::string >           m_strLogFolder;
     std::optional< network::MemoryStatus > m_memory;

@@ -28,12 +28,12 @@
 namespace mega::service
 {
 
-class LeafRequestConversation;
+class LeafRequestLogicalThread;
 
 class MPOLifetime
 {
 public:
-    MPOLifetime( Leaf& leaf, LeafRequestConversation& conversation, const MPO& mpo,
+    MPOLifetime( Leaf& leaf, LeafRequestLogicalThread& logicalthread, const MPO& mpo,
                  boost::asio::yield_context& yield_ctx );
     ~MPOLifetime();
 
@@ -41,7 +41,7 @@ public:
 
 private:
     Leaf&                         m_leaf;
-    LeafRequestConversation&      m_conversation;
+    LeafRequestLogicalThread&      m_logicalthread;
     boost::asio::yield_context&   m_yield_ctx;
     MPO                           m_mpo;
 };

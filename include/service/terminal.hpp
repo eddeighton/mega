@@ -27,8 +27,8 @@
 
 #include "service/network/network.hpp"
 
-#include "service/network/conversation_manager.hpp"
-#include "service/protocol/common/conversation_id.hpp"
+#include "service/network/logical_thread_manager.hpp"
+#include "service/protocol/common/logical_thread_id.hpp"
 #include "utilities/megastructure_installation.hpp"
 
 #include <boost/asio/io_service.hpp>
@@ -44,9 +44,9 @@
 namespace mega::service
 {
 
-class Terminal : public network::ConversationManager
+class Terminal : public network::LogicalThreadManager
 {
-    friend class TerminalRequestConversation;
+    friend class TerminalRequestLogicalThread;
 
 public:
     Terminal( short daemonPortNumber = mega::network::MegaDaemonPort() );
@@ -54,8 +54,8 @@ public:
 
     void shutdown();
 
-    // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+    // network::LogicalThreadManager
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                              const network::Message&      msg );
 
     MegastructureInstallation GetMegastructureInstallation();
@@ -80,41 +80,41 @@ public:
 private:
     using Router        = std::function< network::Message( const network::Message& ) >;
     using RouterFactory = std::function< Router(
-        network::ConversationBase&, network::Sender&, boost::asio::yield_context& yield_ctx ) >;
+        network::LogicalThreadBase&, network::Sender&, boost::asio::yield_context& yield_ctx ) >;
 
     RouterFactory makeTermRoot();
     RouterFactory makeMP( mega::MP mp );
     RouterFactory makeMPO( mega::MPO mpo );
 
-    network::Message routeGenericRequest( const network::ConversationID& conversationID,
+    network::Message routeGenericRequest( const network::LogicalThreadID& logicalthreadID,
                                           const network::Message&        message,
                                           RouterFactory                  router );
 
     template < typename RequestType >
     RequestType getRequest()
     {
-        const network::ConversationID conversationID;
+        const network::LogicalThreadID logicalthreadID;
         using namespace std::placeholders;
         return RequestType(
-            std::bind( &Terminal::routeGenericRequest, this, conversationID, _1, makeTermRoot() ), conversationID );
+            std::bind( &Terminal::routeGenericRequest, this, logicalthreadID, _1, makeTermRoot() ), logicalthreadID );
     }
 
     template < typename RequestType >
     RequestType getMPRequest( mega::MP mp )
     {
-        const network::ConversationID conversationID;
+        const network::LogicalThreadID logicalthreadID;
         using namespace std::placeholders;
         return RequestType(
-            std::bind( &Terminal::routeGenericRequest, this, conversationID, _1, makeMP( mp ) ), conversationID );
+            std::bind( &Terminal::routeGenericRequest, this, logicalthreadID, _1, makeMP( mp ) ), logicalthreadID );
     }
 
     template < typename RequestType >
     RequestType getMPORequest( mega::MPO mpo )
     {
-        const network::ConversationID conversationID;
+        const network::LogicalThreadID logicalthreadID;
         using namespace std::placeholders;
         return RequestType(
-            std::bind( &Terminal::routeGenericRequest, this, conversationID, _1, makeMPO( mpo ) ), conversationID );
+            std::bind( &Terminal::routeGenericRequest, this, logicalthreadID, _1, makeMPO( mpo ) ), logicalthreadID );
     }
 
 private:

@@ -22,7 +22,7 @@
 
 #include "mega/operation_id.hpp"
 
-#include "service/network/conversation.hpp"
+#include "service/network/logical_thread.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
@@ -36,14 +36,14 @@ namespace mega::service
 
 ////////////////////////////////////////////////////////////////
 
-class DaemonEnrole : public DaemonRequestConversation
+class DaemonEnrole : public DaemonRequestLogicalThread
 {
     std::promise< void >& m_promise;
 
 public:
     DaemonEnrole( Daemon& daemon, const network::ConnectionID& originatingConnectionID, std::promise< void >& promise )
-        : DaemonRequestConversation(
-            daemon, daemon.createConversationID(), originatingConnectionID )
+        : DaemonRequestLogicalThread(
+            daemon, daemon.createLogicalThreadID(), originatingConnectionID )
         , m_promise( promise )
     {
     }
@@ -66,7 +66,7 @@ Daemon::Daemon( boost::asio::io_context& ioContext,
                 const std::string&       strRootIP,
                 short                    rootPortNumber,
                 short                    daemonPortNumber )
-    : network::ConversationManager( network::makeProcessName( network::Node::Daemon ), ioContext )
+    : network::LogicalThreadManager( network::makeProcessName( network::Node::Daemon ), ioContext )
     , m_rootClient( ioContext, *this, strRootIP, rootPortNumber )
     , m_server( ioContext, *this, daemonPortNumber )
 {
@@ -76,7 +76,7 @@ Daemon::Daemon( boost::asio::io_context& ioContext,
     {
         std::promise< void > promise;
         std::future< void >  future = promise.get_future();
-        conversationInitiated(
+        logicalthreadInitiated(
             std::make_shared< DaemonEnrole >( *this, m_rootClient.getConnectionID(), promise ), m_rootClient );
         using namespace std::chrono_literals;
         while( std::future_status::timeout == future.wait_for( 0s ) )
@@ -103,14 +103,14 @@ void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::
 
     onDisconnect( connectionID );
 
-    class DaemonLeafDisconnect : public DaemonRequestConversation
+    class DaemonLeafDisconnect : public DaemonRequestLogicalThread
     {
         mega::MP m_leafMP;
 
     public:
         DaemonLeafDisconnect( Daemon& daemon, const network::ConnectionID& originatingConnectionID, mega::MP leafMP )
-            : DaemonRequestConversation(
-                daemon, daemon.createConversationID(), originatingConnectionID )
+            : DaemonRequestLogicalThread(
+                daemon, daemon.createLogicalThreadID(), originatingConnectionID )
             , m_leafMP( leafMP )
         {
         }
@@ -120,7 +120,7 @@ void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::
             SPDLOG_TRACE( "DaemonLeafDisconnect {}", m_leafMP );
         }
     };
-    conversationInitiated(
+    logicalthreadInitiated(
         std::make_shared< DaemonLeafDisconnect >( *this, m_rootClient.getConnectionID(), leafMP ), m_rootClient );
 }
 
@@ -130,11 +130,11 @@ void Daemon::shutdown()
     m_server.stop();
 }
 
-network::ConversationBase::Ptr Daemon::joinConversation( const network::ConnectionID& originatingConnectionID,
+network::LogicalThreadBase::Ptr Daemon::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
                                                          const network::Message&      msg )
 {
-    return network::ConversationBase::Ptr(
-        new DaemonRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr(
+        new DaemonRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
 } // namespace mega::service

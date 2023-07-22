@@ -97,7 +97,7 @@ MPO MPOContext::constructMPO( MP machineProcess )
     network::sim::Request_Encoder request(
         [ mpoRequest = getMPRequest(), machineProcess ]( const network::Message& msg ) mutable
         { return mpoRequest.MPUp( msg, machineProcess ); },
-        m_conversationIDRef );
+        m_logicalthreadIDRef );
     return request.SimCreate();
 }
 
@@ -105,7 +105,7 @@ MP MPOContext::constructExecutor( MachineID daemonMachineID )
 {
     network::enrole::Request_Encoder request( [ mpoRequest = getMPRequest() ]( const network::Message& msg ) mutable
                                               { return mpoRequest.MPRoot( msg, MP{} ); },
-                                              m_conversationIDRef );
+                                              m_logicalthreadIDRef );
     return request.EnroleCreateExecutor( daemonMachineID );
 }
 
@@ -113,7 +113,7 @@ void MPOContext::destroyExecutor( MP mp )
 {
     network::enrole::Request_Encoder request( [ mpoRequest = getMPRequest(), mp ]( const network::Message& msg ) mutable
                                               { return mpoRequest.MPUp( msg, mp ); },
-                                              m_conversationIDRef );
+                                              m_logicalthreadIDRef );
     return request.EnroleDestroy();
 }
 
@@ -218,7 +218,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
         {
             using ::operator<<;
             os << "events/ev_" << mpo.getMachineID() << "-" << mpo.getProcessID() << "-"
-               << static_cast< mega::U32 >( mpo.getOwnerID() ) << "_" << m_conversationIDRef << "/";
+               << static_cast< mega::U32 >( mpo.getOwnerID() ) << "_" << m_logicalthreadIDRef << "/";
         }
 
         const boost::filesystem::path eventLogFolder = logFolder / os.str();

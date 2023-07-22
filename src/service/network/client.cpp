@@ -33,13 +33,13 @@
 namespace mega::network
 {
 
-Client::Client( boost::asio::io_context& ioContext, ConversationManager& conversationManager,
+Client::Client( boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager,
                 const std::string& strServiceIP, short portNumber )
     : m_ioContext( ioContext )
     , m_resolver( ioContext )
     , m_strand( boost::asio::make_strand( ioContext ) )
     , m_socket( m_strand )
-    , m_receiver( conversationManager, m_socket, [ this ] { disconnected(); } )
+    , m_receiver( logicalthreadManager, m_socket, [ this ] { disconnected(); } )
 {
     std::string strPort;
     {
