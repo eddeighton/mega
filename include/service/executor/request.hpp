@@ -37,29 +37,23 @@ namespace mega::service
 class Executor;
 
 class ExecutorRequestLogicalThread : public network::ConcurrentLogicalThread,
-                                    public network::leaf_exe::Impl,
-                                    public network::mpo::Impl,
-                                    public network::job::Impl,
-                                    public network::status::Impl,
-                                    public network::sim::Impl,
-                                    public network::project::Impl,
-                                    public network::enrole::Impl
+                                     public network::leaf_exe::Impl,
+                                     public network::mpo::Impl,
+                                     public network::job::Impl,
+                                     public network::status::Impl,
+                                     public network::sim::Impl,
+                                     public network::project::Impl,
+                                     public network::enrole::Impl
 {
 protected:
     Executor& m_executor;
 
 public:
-    ExecutorRequestLogicalThread( Executor& executor, const network::LogicalThreadID& logicalthreadID,
-                                 std::optional< network::ConnectionID > originatingConnectionID );
+    ExecutorRequestLogicalThread( Executor& executor, const network::LogicalThreadID& logicalthreadID );
+    virtual ~ExecutorRequestLogicalThread();
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void             dispatchResponse( const network::ConnectionID& connectionID,
-                                               const network::Message&      msg,
-                                               boost::asio::yield_context&  yield_ctx ) override;
-
-    virtual void error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                        boost::asio::yield_context& yield_ctx ) override;
 
     // helpers
     network::exe_leaf::Request_Sender getLeafRequest( boost::asio::yield_context& yield_ctx );
@@ -100,11 +94,11 @@ public:
 
     // network::job::Impl - note also in JobLogicalThread
     virtual std::vector< network::LogicalThreadID >
-    JobStart( const utilities::ToolChain&                                  toolChain,
-              const pipeline::Configuration&                               configuration,
+    JobStart( const utilities::ToolChain&                                   toolChain,
+              const pipeline::Configuration&                                configuration,
               const network::LogicalThreadID&                               rootLogicalThreadID,
               const std::vector< std::vector< network::LogicalThreadID > >& jobs,
-              boost::asio::yield_context&                                  yield_ctx ) override;
+              boost::asio::yield_context&                                   yield_ctx ) override;
 
     // network::sim::Impl
     virtual MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;

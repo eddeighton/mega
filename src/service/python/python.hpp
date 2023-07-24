@@ -26,7 +26,7 @@
 #include "service/network/client.hpp"
 #include "service/network/logical_thread_manager.hpp"
 #include "service/network/sender_factory.hpp"
-#include "service/network/channel.hpp"
+#include "service/network/receiver_channel.hpp"
 
 #include <boost/asio/io_service.hpp>
 
@@ -49,10 +49,9 @@ public:
     void shutdown();
 
     // network::LogicalThreadManager
-    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Message&      msg );
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
-    network::Sender& getLeafSender() { return m_leaf; }
+    network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
 
     MPO getMPO() const
     {

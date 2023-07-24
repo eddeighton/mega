@@ -41,9 +41,8 @@ class DaemonEnrole : public DaemonRequestLogicalThread
     std::promise< void >& m_promise;
 
 public:
-    DaemonEnrole( Daemon& daemon, const network::ConnectionID& originatingConnectionID, std::promise< void >& promise )
-        : DaemonRequestLogicalThread(
-            daemon, daemon.createLogicalThreadID(), originatingConnectionID )
+    DaemonEnrole( Daemon& daemon, std::promise< void >& promise )
+        : DaemonRequestLogicalThread( daemon, daemon.createLogicalThreadID() )
         , m_promise( promise )
     {
     }
@@ -76,8 +75,7 @@ Daemon::Daemon( boost::asio::io_context& ioContext,
     {
         std::promise< void > promise;
         std::future< void >  future = promise.get_future();
-        logicalthreadInitiated(
-            std::make_shared< DaemonEnrole >( *this, m_rootClient.getConnectionID(), promise ), m_rootClient );
+        logicalthreadInitiated( std::make_shared< DaemonEnrole >( *this, promise ) );
         using namespace std::chrono_literals;
         while( std::future_status::timeout == future.wait_for( 0s ) )
         {
@@ -97,20 +95,19 @@ void Daemon::setActiveProject( const Project& project )
     m_activeProject = project;
 }
 
-void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::MP leafMP )
+void Daemon::onLeafDisconnect( mega::MP leafMP )
 {
     m_server.unLabelConnection( leafMP );
 
-    onDisconnect( connectionID );
+    onDisconnect();
 
     class DaemonLeafDisconnect : public DaemonRequestLogicalThread
     {
         mega::MP m_leafMP;
 
     public:
-        DaemonLeafDisconnect( Daemon& daemon, const network::ConnectionID& originatingConnectionID, mega::MP leafMP )
-            : DaemonRequestLogicalThread(
-                daemon, daemon.createLogicalThreadID(), originatingConnectionID )
+        DaemonLeafDisconnect( Daemon& daemon, mega::MP leafMP )
+            : DaemonRequestLogicalThread( daemon, daemon.createLogicalThreadID() )
             , m_leafMP( leafMP )
         {
         }
@@ -120,8 +117,7 @@ void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::
             SPDLOG_TRACE( "DaemonLeafDisconnect {}", m_leafMP );
         }
     };
-    logicalthreadInitiated(
-        std::make_shared< DaemonLeafDisconnect >( *this, m_rootClient.getConnectionID(), leafMP ), m_rootClient );
+    logicalthreadInitiated( std::make_shared< DaemonLeafDisconnect >( *this, leafMP ) );
 }
 
 void Daemon::shutdown()
@@ -130,11 +126,9 @@ void Daemon::shutdown()
     m_server.stop();
 }
 
-network::LogicalThreadBase::Ptr Daemon::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                         const network::Message&      msg )
+network::LogicalThreadBase::Ptr Daemon::joinLogicalThread( const network::Message& msg )
 {
-    return network::LogicalThreadBase::Ptr(
-        new DaemonRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr( new DaemonRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
 }
 
 } // namespace mega::service

@@ -32,25 +32,20 @@ namespace mega::service
 {
 
 class ToolRequestLogicalThread : public network::InThreadLogicalThread,
-                                public network::leaf_tool::Impl,
-                                public network::mpo::Impl,
-                                public network::status::Impl,
-                                public network::project::Impl
+                                 public network::leaf_tool::Impl,
+                                 public network::mpo::Impl,
+                                 public network::status::Impl,
+                                 public network::project::Impl
 {
 protected:
     Tool& m_tool;
 
 public:
-    ToolRequestLogicalThread( Tool& tool, const network::LogicalThreadID& logicalthreadID,
-                             std::optional< network::ConnectionID > originatingConnectionID = std::nullopt );
+    ToolRequestLogicalThread( Tool& tool, const network::LogicalThreadID& logicalthreadID );
+    virtual ~ToolRequestLogicalThread();
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void             dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
-                                               boost::asio::yield_context& yield_ctx ) override;
-
-    virtual void error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                        boost::asio::yield_context& yield_ctx ) override;
 
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx );
 

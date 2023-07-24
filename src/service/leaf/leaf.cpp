@@ -42,8 +42,8 @@ class LeafEnrole : public LeafRequestLogicalThread
     std::promise< void >& m_promise;
 
 public:
-    LeafEnrole( Leaf& leaf, const network::ConnectionID& originatingConnectionID, std::promise< void >& promise )
-        : LeafRequestLogicalThread( leaf, leaf.createLogicalThreadID(), originatingConnectionID )
+    LeafEnrole( Leaf& leaf, std::promise< void >& promise )
+        : LeafRequestLogicalThread( leaf, leaf.createLogicalThreadID() )
         , m_promise( promise )
     {
     }
@@ -102,7 +102,7 @@ public:
 
 Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short daemonPortNumber )
     : network::LogicalThreadManager( network::makeProcessName( network::Node::Leaf ), m_io_context )
-    , m_pSender( std::move( pSender ) )
+    , m_pSender( pSender )
     , m_nodeType( nodeType )
     , m_io_context( 1 ) // single threaded concurrency hint
     , m_receiverChannel( m_io_context, *this )
@@ -110,19 +110,16 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short da
     , m_work_guard( m_io_context.get_executor() )
     , m_io_thread( [ &io_context = m_io_context ]() { io_context.run(); } )
 {
-    std::ostringstream osLeafConnectionID;
-    osLeafConnectionID << "LeafConn"; // << network::makeProcessName( network::Node::Leaf )
-    m_receiverChannel.run( osLeafConnectionID.str() );
-
+    m_receiverChannel.run( pSender );
     m_pSelfSender = m_receiverChannel.getSender();
+}
 
-    {
-        std::promise< void > promise;
-        std::future< void >  future = promise.get_future();
-        logicalthreadInitiated(
-            std::make_shared< LeafEnrole >( *this, getDaemonSender().getConnectionID(), promise ), getDaemonSender() );
-        future.get();
-    }
+void Leaf::startup()
+{
+    std::promise< void > promise;
+    std::future< void >  future = promise.get_future();
+    logicalthreadInitiated( std::make_shared< LeafEnrole >( *this, promise ) );
+    future.get();
 }
 
 Leaf::~Leaf()
@@ -179,13 +176,13 @@ void Leaf::setActiveProject( const Project& currentProject )
                     }
                     catch( mega::io::DatabaseVersionException& ex )
                     {
-                        SPDLOG_ERROR(
-                            "Database version exception: {}", currentProject.getProjectInstallPath().string(), ex.what() );
+                        SPDLOG_ERROR( "Database version exception: {}", currentProject.getProjectInstallPath().string(),
+                                      ex.what() );
                     }
                     catch( std::exception& ex )
                     {
-                        SPDLOG_ERROR( "Leaf: {} setActiveProject failed to initialise project: {} error: {}",
-                                    m_mp, currentProject.getProjectInstallPath().string(), ex.what() );
+                        SPDLOG_ERROR( "Leaf: {} setActiveProject failed to initialise project: {} error: {}", m_mp,
+                                      currentProject.getProjectInstallPath().string(), ex.what() );
                         throw;
                     }
                 }
@@ -193,12 +190,11 @@ void Leaf::setActiveProject( const Project& currentProject )
                 {
                     m_pJIT.reset();
                     SPDLOG_WARN( "JIT uninitialised.  Active project: {} has no database",
-                                currentProject.getProjectInstallPath().string() );
+                                 currentProject.getProjectInstallPath().string() );
                 }
                 m_activeProject = currentProject;
                 {
-                    const boost::filesystem::path unityDatabasePath
-                        = currentProject.getProjectUnityDatabase();
+                    const boost::filesystem::path unityDatabasePath = currentProject.getProjectUnityDatabase();
                     if( boost::filesystem::exists( unityDatabasePath ) )
                     {
                         m_unityDatabaseHashCode = task::FileHash( unityDatabasePath );
@@ -229,8 +225,7 @@ void Leaf::setActiveProject( const Project& currentProject )
 }
 
 // network::LogicalThreadManager
-network::LogicalThreadBase::Ptr Leaf::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                       const network::Message&      msg )
+network::LogicalThreadBase::Ptr Leaf::joinLogicalThread( const network::Message& msg )
 {
     switch( m_nodeType )
     {
@@ -240,8 +235,7 @@ network::LogicalThreadBase::Ptr Leaf::joinLogicalThread( const network::Connecti
         case network::Node::Python:
         case network::Node::Executor:
         case network::Node::Plugin:
-            return network::LogicalThreadBase::Ptr(
-                new LeafRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
+            return network::LogicalThreadBase::Ptr( new LeafRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
             break;
         case network::Node::Daemon:
         case network::Node::Root:

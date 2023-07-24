@@ -37,28 +37,21 @@ namespace mega::service
 class Root;
 
 class RootRequestLogicalThread : public network::InThreadLogicalThread,
-                                public network::daemon_root::Impl,
-                                public network::mpo::Impl,
-                                public network::project::Impl,
-                                public network::enrole::Impl,
-                                public network::status::Impl,
-                                public network::stash::Impl,
-                                public network::job::Impl,
-                                public network::sim::Impl
+                                 public network::daemon_root::Impl,
+                                 public network::mpo::Impl,
+                                 public network::project::Impl,
+                                 public network::enrole::Impl,
+                                 public network::status::Impl,
+                                 public network::stash::Impl,
+                                 public network::job::Impl,
+                                 public network::sim::Impl
 {
 public:
-    RootRequestLogicalThread( Root&                          root,
-                             const network::LogicalThreadID& logicalthreadID,
-                             const network::ConnectionID&   originatingConnectionID );
+    RootRequestLogicalThread( Root& root, const network::LogicalThreadID& logicalthreadID );
+    virtual ~RootRequestLogicalThread();
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void             dispatchResponse( const network::ConnectionID& connectionID,
-                                               const network::Message&      msg,
-                                               boost::asio::yield_context&  yield_ctx ) override;
-    virtual void             error( const network::ReceivedMsg& msg,
-                                    const std::string&          strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx ) override;
 
     // helpers
     network::root_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx );
@@ -151,11 +144,11 @@ public:
 
     // network::job::Impl
     virtual std::vector< network::LogicalThreadID >
-    JobStart( const utilities::ToolChain&                                  toolChain,
-              const pipeline::Configuration&                               configuration,
+    JobStart( const utilities::ToolChain&                                   toolChain,
+              const pipeline::Configuration&                                configuration,
               const network::LogicalThreadID&                               rootLogicalThreadID,
               const std::vector< std::vector< network::LogicalThreadID > >& jobs,
-              boost::asio::yield_context&                                  yield_ctx ) override
+              boost::asio::yield_context&                                   yield_ctx ) override
     {
         std::vector< network::LogicalThreadID > result;
         for( const auto& j : jobs )

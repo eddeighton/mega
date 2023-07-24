@@ -25,10 +25,12 @@
 namespace mega::service::python
 {
 
-PythonRequestLogicalThread::PythonRequestLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID,
-                                                      std::optional< network::ConnectionID > originatingConnectionID )
-    : InThreadLogicalThread( python, logicalthreadID, originatingConnectionID )
+PythonRequestLogicalThread::PythonRequestLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID )
+    : InThreadLogicalThread( python, logicalthreadID )
     , m_python( python )
+{
+}
+PythonRequestLogicalThread::~PythonRequestLogicalThread()
 {
 }
 
@@ -47,55 +49,6 @@ network::Message PythonRequestLogicalThread::dispatchRequest( const network::Mes
     if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "PythonRequestLogicalThread::dispatchRequest failed: " << msg );
-}
-
-void PythonRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID,
-                                                  const network::Message& msg, boost::asio::yield_context& yield_ctx )
-{
-    if( m_python.getLeafSender().getConnectionID() == connectionID )
-    {
-        m_python.getLeafSender().send( msg, yield_ctx );
-    }
-    else if( m_python.m_receiverChannel.getSender()->getConnectionID() == connectionID )
-    {
-        m_python.getLeafSender().send( msg, yield_ctx );
-    }
-    else if( m_python.getExternalLogicalThread()->getID() == msg.getSenderID() )
-    {
-        m_python.getExternalLogicalThread()->send( network::ReceivedMsg{ connectionID, msg } );
-    }
-    else
-    {
-        SPDLOG_ERROR( "PythonRequestLogicalThread::dispatchResponse cannot resolve connection: {} on error: {}",
-                      connectionID, msg );
-    }
-}
-
-void PythonRequestLogicalThread::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                       boost::asio::yield_context& yield_ctx )
-{
-    if( m_python.getLeafSender().getConnectionID() == msg.connectionID )
-    {
-        m_python.getLeafSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-    else if( m_python.m_receiverChannel.getSender()->getConnectionID() == msg.connectionID )
-    {
-        m_python.m_receiverChannel.getSender()->sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-    else if( m_python.getExternalLogicalThread()->getID() == msg.msg.getSenderID() )
-    {
-        m_python.getExternalLogicalThread()->sendErrorResponse( msg, strErrorMsg );
-    }
-    else if( m_python.getExternalLogicalThread()->getID() == msg.msg.getReceiverID() )
-    {
-        m_python.getExternalLogicalThread()->sendErrorResponse( msg, strErrorMsg );
-    }
-    else
-    {
-        // This can happen when initiating request has received exception - in which case
-        SPDLOG_ERROR( "PythonRequestLogicalThread::error cannot resolve connection: {} on error: {}", msg.connectionID,
-                      strErrorMsg );
-    }
 }
 
 network::python_leaf::Request_Sender

@@ -25,6 +25,7 @@
 
 #include <boost/bind/bind.hpp>
 #include <boost/asio/placeholders.hpp>
+#include <boost/asio/strand.hpp>
 
 #include <iostream>
 
@@ -38,25 +39,21 @@ Server::Connection::Connection( Server& server, boost::asio::io_context& ioConte
     , m_socket( m_strand )
     , m_receiver( logicalthreadManager, m_socket, [ this ] { disconnected(); } )
 {
+    SPDLOG_TRACE( "Server::Connection::Connection" );
 }
 
-Server::Connection::~Connection() = default;
+Server::Connection::~Connection()
+{
+    SPDLOG_TRACE( "Server::Connection::~Connection" );
+}
 
 void Server::Connection::start()
 {
-    m_connectionID = makeConnectionID( m_socket );
-    m_pSender      = make_socket_sender( m_socket, m_connectionID.value() );
+    VERIFY_RTE_MSG( !weak_from_this().expired(), "Server::Connection bad weak_ptr" );
 
-    // calculate name
-    {
-        std::ostringstream os;
-        os << m_connectionID.value();
-        m_strName = os.str();
-    }
-
-    m_receiver.run( m_strand, m_connectionID.value() );
-
-    SPDLOG_TRACE( "New connection started: {}", m_strName );
+    m_pSender = make_socket_sender( m_socket );
+    m_receiver.run( m_strand, m_pSender );
+    SPDLOG_TRACE( "Server::Connection::start connection started" );
 }
 
 void Server::Connection::stop()
@@ -67,6 +64,8 @@ void Server::Connection::stop()
 
 void Server::Connection::disconnected()
 {
+    SPDLOG_TRACE( "Server::Connection::disconnected" );
+
     if( m_socket.is_open() )
     {
         boost::system::error_code ec;
@@ -74,7 +73,7 @@ void Server::Connection::disconnected()
     }
     if( m_disconnectCallback.has_value() )
     {
-        ( *m_disconnectCallback )( m_connectionID.value() );
+        ( *m_disconnectCallback )();
     }
     m_server.onDisconnected( shared_from_this() );
 }
@@ -91,7 +90,7 @@ void Server::stop()
     m_acceptor.close();
     {
         ConnectionMap temp = m_connections;
-        for( auto& [ id, pConnection ] : temp )
+        for( auto& pConnection : temp )
         {
             pConnection->stop();
         }
@@ -113,7 +112,7 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
     if( !ec )
     {
         pNewConnection->start();
-        m_connections.insert( std::make_pair( pNewConnection->getSocketConnectionID(), pNewConnection ) );
+        m_connections.insert( pNewConnection );
     }
     if( m_acceptor.is_open() )
         waitForConnection();
@@ -121,7 +120,7 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
 
 void Server::onDisconnected( Connection::Ptr pConnection )
 {
-    m_connections.erase( pConnection->getSocketConnectionID() );
+    m_connections.erase( pConnection );
 
     for( auto i = m_connectionLabels.begin(), iEnd = m_connectionLabels.end(); i != iEnd; ++i )
     {
@@ -130,19 +129,6 @@ void Server::onDisconnected( Connection::Ptr pConnection )
             m_connectionLabels.erase( i );
             break;
         }
-    }
-}
-
-Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID )
-{
-    auto iFind = m_connections.find( connectionID );
-    if( iFind != m_connections.end() )
-    {
-        return iFind->second;
-    }
-    else
-    {
-        return {};
     }
 }
 

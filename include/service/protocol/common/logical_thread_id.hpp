@@ -37,7 +37,6 @@ namespace mega::network
 {
 
 using MessageSize  = mega::U32;
-using ConnectionID = std::string;
 
 /// LogicalThreadID
 /// This is a value type representing an OPAQUE value to identify a converation network-wide.

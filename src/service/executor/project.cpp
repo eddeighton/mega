@@ -35,7 +35,7 @@ void ExecutorRequestLogicalThread::SetProject( const Project& project, boost::as
         m_executor.getSimulations( simulations );
         for( Simulation::Ptr pSim : simulations )
         {
-            network::project::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
+            network::project::Request_Sender rq( *this, pSim, yield_ctx );
             rq.SetProject( project );
         }
     }

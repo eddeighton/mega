@@ -24,64 +24,31 @@
 namespace mega::service
 {
 
-TerminalRequestLogicalThread::TerminalRequestLogicalThread( Terminal&                      terminal,
-                                                          const network::LogicalThreadID& logicalthreadID,
-                                                          const network::ConnectionID&   originatingConnectionID )
-    : InThreadLogicalThread( terminal, logicalthreadID, originatingConnectionID )
+TerminalRequestLogicalThread::TerminalRequestLogicalThread( Terminal&                       terminal,
+                                                            const network::LogicalThreadID& logicalthreadID )
+    : InThreadLogicalThread( terminal, logicalthreadID )
     , m_terminal( terminal )
 {
 }
 
+TerminalRequestLogicalThread::~TerminalRequestLogicalThread()
+{
+}
+
 network::Message TerminalRequestLogicalThread::dispatchRequest( const network::Message&     msg,
-                                                               boost::asio::yield_context& yield_ctx )
+                                                                boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if ( result = network::leaf_term::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::leaf_term::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "TerminalRequestLogicalThread::dispatchRequest failed" );
 }
-void TerminalRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID,
-                                                    const network::Message& msg, boost::asio::yield_context& yield_ctx )
-{
-    if ( m_terminal.getLeafSender().getConnectionID() == connectionID )
-    {
-        m_terminal.getLeafSender().send( msg, yield_ctx );
-    }
-    else if ( m_terminal.m_receiverChannel.getSender()->getConnectionID() == connectionID )
-    {
-        m_terminal.getLeafSender().send( msg, yield_ctx );
-    }
-    else
-    {
-        // This can happen when initiating request has received exception - in which case
-        SPDLOG_ERROR( "Terminal cannot resolve connection: {} on error: {}", connectionID, msg );
-    }
-}
-
-void TerminalRequestLogicalThread::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                         boost::asio::yield_context& yield_ctx )
-{
-    if ( m_terminal.getLeafSender().getConnectionID() == msg.connectionID )
-    {
-        m_terminal.getLeafSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-    else if ( m_terminal.m_receiverChannel.getSender()->getConnectionID() == msg.connectionID )
-    {
-        m_terminal.m_receiverChannel.getSender()->sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-    else
-    {
-        // This can happen when initiating request has received exception - in which case
-        SPDLOG_ERROR( "Terminal cannot resolve connection: {} on error: {}", msg.connectionID, strErrorMsg );
-    }
-}
-
 network::Message TerminalRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
-                                                                boost::asio::yield_context& yield_ctx )
+                                                                 boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }

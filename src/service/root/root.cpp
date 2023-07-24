@@ -71,7 +71,7 @@ Root::Root( boost::asio::io_context& ioContext, const boost::filesystem::path& s
 void Root::loadConfig()
 {
     const boost::filesystem::path configFile = boost::filesystem::current_path() / "config.xml";
-    if ( boost::filesystem::exists( configFile ) )
+    if( boost::filesystem::exists( configFile ) )
     {
         std::unique_ptr< boost::filesystem::ifstream > pFileStream
             = boost::filesystem::createBinaryInputFileStream( configFile );
@@ -113,11 +113,11 @@ std::optional< MP > Root::getAndResetStartupUUID( const std::string& strUUID )
     return result;
 }
 
-void Root::onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MachineID machineID )
+void Root::onDaemonDisconnect( mega::MachineID machineID )
 {
-    SPDLOG_TRACE( "Root::onDaemonDisconnect {} {}", connectionID, machineID );
+    SPDLOG_TRACE( "Root::onDaemonDisconnect {}", machineID );
     m_server.unLabelConnection( machineID );
-    onDisconnect( connectionID );
+    onDisconnect();
     m_mpoManager.daemonDisconnect( machineID );
 }
 
@@ -129,7 +129,7 @@ void Root::shutdown()
 
 MegastructureInstallation Root::getMegastructureInstallation()
 {
-    if ( !m_megastructureInstallationOpt.has_value() )
+    if( !m_megastructureInstallationOpt.has_value() )
     {
         const boost::filesystem::path currentProcessPath = boost::dll::program_location();
         VERIFY_RTE( !currentProcessPath.empty() );
@@ -144,20 +144,19 @@ MegastructureInstallation Root::getMegastructureInstallation()
     return m_megastructureInstallationOpt.value();
 }
 
-network::LogicalThreadBase::Ptr Root::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                       const network::Message&      msg )
+network::LogicalThreadBase::Ptr Root::joinLogicalThread( const network::Message& msg )
 {
-    SPDLOG_TRACE( "Root::joinLogicalThread {}", msg );
-    switch ( msg.getID() )
+    SPDLOG_TRACE( "Root::joinLogicalThread {}", msg.getLogicalThreadID() );
+    switch( msg.getID() )
     {
         case network::mpo::MSG_MPRoot_Request::ID:
         {
             const network::mpo::MSG_MPRoot_Request& actualMsg = network::mpo::MSG_MPRoot_Request::get( msg );
-            switch ( actualMsg.request.getID() )
+            switch( actualMsg.request.getID() )
             {
                 case network::sim::MSG_SimStart_Request::ID:
                     return network::LogicalThreadBase::Ptr(
-                        new RootSimulation( *this, msg.getReceiverID(), originatingConnectionID, actualMsg.mp ) );
+                        new RootSimulation( *this, msg.getLogicalThreadID(), actualMsg.mp ) );
             }
         }
         break;
@@ -165,11 +164,11 @@ network::LogicalThreadBase::Ptr Root::joinLogicalThread( const network::Connecti
         {
             const network::daemon_root::MSG_ExeRoot_Request& actualMsg
                 = network::daemon_root::MSG_ExeRoot_Request::get( msg );
-            switch ( actualMsg.request.getID() )
+            switch( actualMsg.request.getID() )
             {
                 case network::job::MSG_JobReadyForWork_Request::ID:
                     return network::LogicalThreadBase::Ptr(
-                        new RootJobLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
+                        new RootJobLogicalThread( *this, msg.getLogicalThreadID() ) );
             }
         }
         break;
@@ -177,17 +176,16 @@ network::LogicalThreadBase::Ptr Root::joinLogicalThread( const network::Connecti
         {
             const network::daemon_root::MSG_TermRoot_Request& actualMsg
                 = network::daemon_root::MSG_TermRoot_Request::get( msg );
-            switch ( actualMsg.request.getID() )
+            switch( actualMsg.request.getID() )
             {
                 case network::pipeline::MSG_PipelineRun_Request::ID:
                     return network::LogicalThreadBase::Ptr(
-                        new RootPipelineLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
+                        new RootPipelineLogicalThread( *this, msg.getLogicalThreadID() ) );
             }
         }
         break;
     }
-    return network::LogicalThreadBase::Ptr(
-        new RootRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr( new RootRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
 }
 
 } // namespace mega::service

@@ -104,7 +104,7 @@ network::mpo::Request_Sender MPOLogicalThread::getMPRequest()
 
 network::Message MPOLogicalThread::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
-    network::ReceivedMsg msg;
+    network::ReceivedMessage msg;
     while( true )
     {
         msg = receive( yield_ctx );
@@ -123,10 +123,11 @@ network::Message MPOLogicalThread::dispatchRequestsUntilResponse( boost::asio::y
                     if( m_disconnections.count( m_stack.back() ) )
                     {
                         SPDLOG_ERROR(
-                            "Generating disconnect on logicalthread: {} for connection: {}", getID(), m_stack.back() );
-                        const network::ReceivedMsg rMsg{
-                            m_stack.back(), network::make_error_msg( msg.msg.getReceiverID(), "Disconnection" ) };
-                        send( rMsg );
+                            "Generating disconnect on logicalthread: {}", getID() );
+                        const network::ReceivedMessage rMsg{
+                            m_stack.back(), network::make_error_msg( msg.msg.getLogicalThreadID(), "Disconnection" ) };
+                        THROW_TODO;
+                        // send( rMsg );
                     }
                 }
             }

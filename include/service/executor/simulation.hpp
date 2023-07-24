@@ -50,11 +50,11 @@ public:
 
     Simulation( Executor& executor, const network::LogicalThreadID& logicalthreadID, ProcessClock& processClock );
 
-    virtual network::Message     dispatchRequest( const network::Message&     msg,
-                                                  boost::asio::yield_context& yield_ctx ) override;
-    virtual void                 unqueue() override;
-    virtual bool                 queue( const network::ReceivedMsg& msg ) override;
-    virtual void                 run( boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message dispatchRequest( const network::Message&     msg,
+                                              boost::asio::yield_context& yield_ctx ) override;
+    virtual void             unqueue() override;
+    virtual bool             queue( const network::ReceivedMessage& msg ) override;
+    virtual void             run( boost::asio::yield_context& yield_ctx ) override;
 
     // MPOContext
     virtual network::mpo::Request_Sender     getMPRequest() override;
@@ -77,7 +77,8 @@ public:
     virtual MPO  SimCreate( boost::asio::yield_context& ) override;
     virtual void SimDestroy( boost::asio::yield_context& ) override;
     virtual void SimDestroyBlocking( boost::asio::yield_context& ) override;
-    virtual void SimMove( const reference& source, const reference& targetParent, boost::asio::yield_context&) override;
+    virtual void
+    SimMove( const reference& source, const reference& targetParent, boost::asio::yield_context& ) override;
 
     // network::project::Impl
     virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
@@ -96,6 +97,7 @@ private:
 
     // bool m_bSendingMoveRequests = false;
     void sendMoveRequests();
+
 private:
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     ProcessClock&                                        m_processClock;
@@ -113,10 +115,10 @@ private:
         }
         ~QueueStackDepth() { --stackDepth; }
     };
-    std::string                           m_strSimCreateError;
-    std::optional< network::ReceivedMsg > m_simCreateMsgOpt;
-    bool                                  m_bShuttingDown = false;
-    std::optional< StateMachine::Msg >    m_blockDestroyMsgOpt;
+    std::string                               m_strSimCreateError;
+    std::optional< network::ReceivedMessage > m_simCreateMsgOpt;
+    bool                                      m_bShuttingDown = false;
+    std::optional< StateMachine::Msg >        m_blockDestroyMsgOpt;
 };
 
 } // namespace mega::service

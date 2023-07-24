@@ -71,7 +71,7 @@ public:
 private:
     bool                                m_bRunning = true;
     Python&                             m_python;
-    std::vector< network::ReceivedMsg > m_messageQueue;
+    std::vector< network::ReceivedMessage > m_messageQueue;
     bool                                m_bRunComplete = false;
 };
 } // namespace mega::service::python

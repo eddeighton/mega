@@ -25,6 +25,7 @@
 
 #include <boost/bind/bind.hpp>
 #include <boost/asio/connect.hpp>
+#include <boost/asio/strand.hpp>
 
 #include <exception>
 #include <future>
@@ -56,46 +57,20 @@ Client::Client( boost::asio::io_context& ioContext, LogicalThreadManager& logica
         THROW_RTE( "Failed to resolve ip: " << strServiceIP << " port: " << portNumber );
     }
 
-    m_endPoint     = boost::asio::connect( m_socket, endpoints );
-    m_connectionID = makeConnectionID( m_socket );
-
-    SPDLOG_TRACE( "Client connected to: {}", m_connectionID );
-
-    m_receiver.run( ioContext, m_connectionID );
-
-    m_pSender = make_socket_sender( m_socket, m_connectionID );
+    m_endPoint = boost::asio::connect( m_socket, endpoints );
+    m_pSender  = make_socket_sender( m_socket );
+    m_receiver.run( ioContext, m_pSender );
 }
 
 void Client::stop()
 {
     boost::system::error_code ec;
-
-    // shutdown_receive leaving work around when shutdown on windows
-    // m_socket.shutdown( m_socket.shutdown_receive, ec );
-    m_socket.shutdown( m_socket.shutdown_both, ec);
-
-    //m_ioContext.post(
-    //     [ this ]()
-    //     {
-    //         boost::system::error_code ec;
-    //         m_socket.shutdown( m_socket.shutdown_both, ec );
-    //         m_socket.close();
-    //     } );
-
-    //m_strand.post(
-    //    [ this ]()
-    //    {
-    //        boost::system::error_code ec;
-    //        m_socket.shutdown( m_socket.shutdown_receive, ec );
-    //        m_socket.close();
-    //    },
-    //    std::allocator<char>() );
-    //   m_ioContext.run_one();
+    m_socket.shutdown( m_socket.shutdown_both, ec );
 }
 
 void Client::disconnected()
 {
-    SPDLOG_TRACE( "Client disconnected from: {}", m_connectionID );
+    SPDLOG_TRACE( "Client disconnected" );
 }
 
 Client::~Client() = default;

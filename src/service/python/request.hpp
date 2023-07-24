@@ -46,16 +46,11 @@ protected:
     Python& m_python;
 
 public:
-    PythonRequestLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID,
-                                std::optional< network::ConnectionID > originatingConnectionID = std::nullopt );
+    PythonRequestLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID );
+    virtual ~PythonRequestLogicalThread();
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void             dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
-                                               boost::asio::yield_context& yield_ctx ) override;
-
-    virtual void error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                        boost::asio::yield_context& yield_ctx ) override;
 
     network::python_leaf::Request_Sender getPythonRequest( boost::asio::yield_context& yield_ctx );
 

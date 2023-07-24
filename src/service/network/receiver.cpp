@@ -49,28 +49,31 @@ SocketReceiver::SocketReceiver( LogicalThreadManager& logicalthreadManager, Trai
 {
 }
 
-SocketReceiver::~SocketReceiver() { m_bContinue = false; }
+SocketReceiver::~SocketReceiver()
+{
+    m_bContinue = false;
+}
 
 void SocketReceiver::onError( const boost::system::error_code& ec )
 {
-    if ( ec.value() == boost::asio::error::eof )
+    if( ec.value() == boost::asio::error::eof )
     {
         //  This is what happens when close socket normally
     }
-    else if ( ec.value() == boost::asio::error::operation_aborted )
+    else if( ec.value() == boost::asio::error::operation_aborted )
     {
         //  This is what happens when close socket normally
     }
-    else if ( ec.value() == boost::asio::error::connection_reset )
+    else if( ec.value() == boost::asio::error::connection_reset )
     {
     }
-    else if (ec.failed())
+    else if( ec.failed() )
     {
-        SPDLOG_ERROR( "SocketReceiver: Connection: {} closed. Error: {}", m_connectionID, ec.what() );
+        SPDLOG_ERROR( "SocketReceiver: Error: {}", ec.what() );
     }
 }
 
-void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
+void SocketReceiver::receive( Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
 {
     static const mega::U64 MessageSizeSize = sizeof( network::MessageSize );
     using ReceiveBuffer                    = std::vector< char >;
@@ -80,27 +83,27 @@ void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
     std::array< char, MessageSizeSize > buf;
     MessageID                           messageID;
 
-    if ( m_bContinue && m_socket.is_open() )
+    if( m_bContinue && m_socket.is_open() )
     {
-        while ( m_bContinue && m_socket.is_open() )
+        while( m_bContinue && m_socket.is_open() )
         {
             // read message size
             network::MessageSize size = 0U;
             {
-                while ( m_bContinue && m_socket.is_open() )
+                while( m_bContinue && m_socket.is_open() )
                 {
                     szBytesTransferred
                         = boost::asio::async_read( m_socket, boost::asio::buffer( buf ), yield_ctx[ ec ] );
-                    if ( !ec )
+                    if( !ec )
                     {
-                        if ( szBytesTransferred == MessageSizeSize )
+                        if( szBytesTransferred == MessageSizeSize )
                         {
                             size = *reinterpret_cast< const network::MessageSize* >( buf.data() );
                             break;
                         }
                         else
                         {
-                            SPDLOG_ERROR( "Socket: {} error reading message size", m_connectionID );
+                            SPDLOG_ERROR( "Socket: error reading message size" );
                             m_bContinue = false;
                         }
                     }
@@ -113,12 +116,12 @@ void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
             }
 
             // read message
-            if ( m_bContinue && m_socket.is_open() )
+            if( m_bContinue && m_socket.is_open() )
             {
                 buffer.resize( size );
                 szBytesTransferred
                     = boost::asio::async_read( m_socket, boost::asio::buffer( buffer ), yield_ctx[ ec ] );
-                if ( !ec )
+                if( !ec )
                 {
                     VERIFY_RTE( size == szBytesTransferred );
                     Message msg;
@@ -126,7 +129,7 @@ void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
                         boost::interprocess::basic_vectorbuf< ReceiveBuffer > is( buffer );
                         decode( is, msg );
                     }
-                    const ReceivedMsg receivedMsg{ m_connectionID, std::move( msg ) };
+                    const ReceivedMessage receivedMsg{ pSender, std::move( msg ) };
                     m_logicalthreadManager.dispatch( receivedMsg );
                 }
                 else // if( ec.failed() )
@@ -141,49 +144,52 @@ void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
 }
 
 ConcurrentChannelReceiver::ConcurrentChannelReceiver( LogicalThreadManager& logicalthreadManager,
-                                                      ConcurrentChannel&   channel )
+                                                      ConcurrentChannel&    channel )
     : m_logicalthreadManager( logicalthreadManager )
     , m_channel( channel )
 {
 }
 
-ConcurrentChannelReceiver::~ConcurrentChannelReceiver() { m_bContinue = false; }
+ConcurrentChannelReceiver::~ConcurrentChannelReceiver()
+{
+    m_bContinue = false;
+}
 
 void ConcurrentChannelReceiver::onError( const boost::system::error_code& ec )
 {
-    if ( ec.value() == boost::asio::error::eof )
+    if( ec.value() == boost::asio::error::eof )
     {
         //  This is what happens when close socket normally
     }
-    else if ( ec.value() == boost::asio::error::operation_aborted )
+    else if( ec.value() == boost::asio::error::operation_aborted )
     {
         //  This is what happens when close socket normally
     }
-    else if ( ec.value() == boost::asio::experimental::error::channel_closed )
+    else if( ec.value() == boost::asio::experimental::error::channel_closed )
     {
     }
-    else if ( ec.value() == boost::asio::experimental::error::channel_cancelled )
+    else if( ec.value() == boost::asio::experimental::error::channel_cancelled )
     {
     }
-    else if ( ec.failed() )
+    else if( ec.failed() )
     {
-        SPDLOG_ERROR( "ConcurrentChannelReceiver: Connection: {} closed. Error: {}", m_connectionID, ec.what() );
+        SPDLOG_ERROR( "ConcurrentChannelReceiver: Error: {}", ec.what() );
     }
 }
 
-void ConcurrentChannelReceiver::receive( boost::asio::yield_context& yield_ctx )
+void ConcurrentChannelReceiver::receive( Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
 {
     ChannelMsg                msg;
-    ReceivedMsg               receivedMsg;
+    ReceivedMessage           receivedMsg;
     boost::system::error_code ec;
-    if ( m_bContinue && m_channel.is_open() )
+    if( m_bContinue && m_channel.is_open() )
     {
-        while ( m_bContinue && m_channel.is_open() )
+        while( m_bContinue && m_channel.is_open() )
         {
             msg = m_channel.async_receive( yield_ctx[ ec ] );
-            if ( !ec )
+            if( !ec )
             {
-                receivedMsg = ReceivedMsg{ m_connectionID, msg };
+                receivedMsg = ReceivedMessage{ pSender, msg };
                 m_logicalthreadManager.dispatch( receivedMsg );
             }
             else

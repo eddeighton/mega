@@ -36,9 +36,9 @@ void RootRequestLogicalThread::SetProject( const Project& project, boost::asio::
     m_root.setProject( project );
     m_root.saveConfig();
 
-    for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+    for ( auto pConnection : m_root.m_server.getConnections() )
     {
-        network::project::Request_Sender rq( *this, *pConnection, yield_ctx );
+        network::project::Request_Sender rq( *this, pConnection->getSender(), yield_ctx );
         rq.SetProject( project );
     }
 }

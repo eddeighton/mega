@@ -24,7 +24,6 @@
 #include "end_point.hpp"
 
 #include "service/protocol/common/sender.hpp"
-#include "service/protocol/model/messages.hxx"
 
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/experimental/concurrent_channel.hpp>
@@ -35,9 +34,9 @@
 namespace mega::network
 {
 
-Sender::Ptr make_socket_sender( Traits::Socket& socket, const ConnectionID& connectionID );
-Sender::Ptr make_concurrent_channel_sender( ConcurrentChannel& channel, const ConnectionID& connectionID );
-Sender::Ptr make_channel_sender( Channel& channel, const ConnectionID& connectionID );
+Sender::Ptr make_socket_sender( Traits::Socket& socket );
+Sender::Ptr make_concurrent_channel_sender( ConcurrentChannel& channel );
+Sender::Ptr make_channel_sender( Channel& channel );
 
 } // namespace mega::network
 

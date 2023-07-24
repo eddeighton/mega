@@ -30,24 +30,19 @@ namespace mega::service
 {
 
 class TerminalRequestLogicalThread : public network::InThreadLogicalThread,
-                                    public network::leaf_term::Impl,
-                                    public network::status::Impl,
-                                    public network::project::Impl
+                                     public network::leaf_term::Impl,
+                                     public network::status::Impl,
+                                     public network::project::Impl
 {
 protected:
     Terminal& m_terminal;
 
 public:
-    TerminalRequestLogicalThread( Terminal& terminal, const network::LogicalThreadID& logicalthreadID,
-                                 const network::ConnectionID& originatingConnectionID );
+    TerminalRequestLogicalThread( Terminal& terminal, const network::LogicalThreadID& logicalthreadID );
+    virtual ~TerminalRequestLogicalThread();
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void             dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
-                                               boost::asio::yield_context& yield_ctx ) override;
-
-    virtual void error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                        boost::asio::yield_context& yield_ctx ) override;
 
     // network::leaf_term::Impl
     virtual network::Message RootAllBroadcast( const network::Message&     request,

@@ -38,37 +38,30 @@ namespace mega::service
 {
 
 class DaemonRequestLogicalThread : public network::InThreadLogicalThread,
-                                  public network::leaf_daemon::Impl,
-                                  public network::root_daemon::Impl,
-                                  public network::mpo::Impl,
-                                  public network::enrole::Impl,
-                                  public network::status::Impl,
-                                  public network::job::Impl,
-                                  public network::memory::Impl,
-                                  public network::project::Impl,
-                                  public network::sim::Impl
+                                   public network::leaf_daemon::Impl,
+                                   public network::root_daemon::Impl,
+                                   public network::mpo::Impl,
+                                   public network::enrole::Impl,
+                                   public network::status::Impl,
+                                   public network::job::Impl,
+                                   public network::memory::Impl,
+                                   public network::project::Impl,
+                                   public network::sim::Impl
 {
 protected:
     Daemon& m_daemon;
 
 public:
-    DaemonRequestLogicalThread( Daemon&                        daemon,
-                               const network::LogicalThreadID& logicalthreadID,
-                               const network::ConnectionID&   originatingConnectionID );
+    DaemonRequestLogicalThread( Daemon& daemon, const network::LogicalThreadID& logicalthreadID );
+    virtual ~DaemonRequestLogicalThread();
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void             dispatchResponse( const network::ConnectionID& connectionID,
-                                               const network::Message&      msg,
-                                               boost::asio::yield_context&  yield_ctx ) override;
-    virtual void             error( const network::ReceivedMsg& msg,
-                                    const std::string&          strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx ) override;
 
     // helpers
     network::daemon_root::Request_Sender getRootSender( boost::asio::yield_context& yield_ctx )
     {
-        return network::daemon_root::Request_Sender( *this, m_daemon.m_rootClient, yield_ctx );
+        return network::daemon_root::Request_Sender( *this, m_daemon.m_rootClient.getSender(), yield_ctx );
     }
 
     template < typename RequestEncoderType >
@@ -120,9 +113,10 @@ public:
                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
-    virtual MP EnroleLeafWithDaemon( const std::string& startupUUID, const network::Node::Type& type,
-                                     boost::asio::yield_context& yield_ctx ) override;
-    virtual void EnroleDaemonSpawn( const std::string& strProgram, const std::string& startupUUID, boost::asio::yield_context& yield_ctx ) override;
+    virtual MP   EnroleLeafWithDaemon( const std::string& startupUUID, const network::Node::Type& type,
+                                       boost::asio::yield_context& yield_ctx ) override;
+    virtual void EnroleDaemonSpawn( const std::string& strProgram, const std::string& startupUUID,
+                                    boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
@@ -137,11 +131,11 @@ public:
 
     // network::job::Impl
     virtual std::vector< network::LogicalThreadID >
-    JobStart( const utilities::ToolChain&                                  toolChain,
-              const pipeline::Configuration&                               configuration,
+    JobStart( const utilities::ToolChain&                                   toolChain,
+              const pipeline::Configuration&                                configuration,
               const network::LogicalThreadID&                               rootLogicalThreadID,
               const std::vector< std::vector< network::LogicalThreadID > >& jobs,
-              boost::asio::yield_context&                                  yield_ctx ) override
+              boost::asio::yield_context&                                   yield_ctx ) override
     {
         std::vector< network::LogicalThreadID > result;
         for( const auto& j : jobs )

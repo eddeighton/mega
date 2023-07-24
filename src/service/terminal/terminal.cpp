@@ -61,8 +61,8 @@ class GenericLogicalThread : public TerminalRequestLogicalThread
 
 public:
     GenericLogicalThread( Terminal& terminal, const network::LogicalThreadID& logicalthreadID,
-                         const network::ConnectionID& originatingConnectionID, TLogicalThreadFunctor&& functor )
-        : TerminalRequestLogicalThread( terminal, logicalthreadID, originatingConnectionID )
+                          TLogicalThreadFunctor&& functor )
+        : TerminalRequestLogicalThread( terminal, logicalthreadID )
         , m_functor( functor )
     {
     }
@@ -72,15 +72,10 @@ public:
 Terminal::Terminal( short daemonPortNumber )
     : network::LogicalThreadManager( network::makeProcessName( network::Node::Terminal ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
-    , m_leaf(
-          // NOTE: must ensure the receiver connectionID is initialised before calling getSender
-          [ &m_receiverChannel = m_receiverChannel ]()
-          {
-              m_receiverChannel.run( network::makeProcessName( network::Node::Terminal ) );
-              return m_receiverChannel.getSender();
-          }(),
-          network::Node::Terminal, daemonPortNumber )
+    , m_leaf( m_receiverChannel.getSender(), network::Node::Terminal, daemonPortNumber )
 {
+    m_receiverChannel.run( m_leaf.getLeafSender() );
+    m_leaf.startup();
 }
 
 Terminal::~Terminal()
@@ -94,11 +89,9 @@ void Terminal::shutdown()
     m_receiverChannel.stop();
 }
 
-network::LogicalThreadBase::Ptr Terminal::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                           const network::Message&      msg )
+network::LogicalThreadBase::Ptr Terminal::joinLogicalThread( const network::Message& msg )
 {
-    return network::LogicalThreadBase::Ptr(
-        new TerminalRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr( new TerminalRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
 }
 
 network::Message Terminal::routeGenericRequest( const network::LogicalThreadID& logicalthreadID,
@@ -111,9 +104,8 @@ network::Message Terminal::routeGenericRequest( const network::LogicalThreadID& 
         using ResultType = std::optional< std::variant< network::Message, std::exception_ptr > >;
 
         RootLogicalThread( Terminal& terminal, const network::LogicalThreadID& logicalthreadID,
-                          const network::ConnectionID& originatingConnectionID, const network::Message& msg,
-                          RouterFactory& router, ResultType& result )
-            : TerminalRequestLogicalThread( terminal, logicalthreadID, originatingConnectionID )
+                           const network::Message& msg, RouterFactory& router, ResultType& result )
+            : TerminalRequestLogicalThread( terminal, logicalthreadID )
             , m_router( router )
             , m_message( msg )
             , m_result( result )
@@ -141,11 +133,8 @@ network::Message Terminal::routeGenericRequest( const network::LogicalThreadID& 
 
     RootLogicalThread::ResultType result;
     {
-        auto& sender       = getLeafSender();
-        auto  connectionID = sender.getConnectionID();
-        logicalthreadInitiated( network::LogicalThreadBase::Ptr( new RootLogicalThread(
-                                   *this, logicalthreadID, connectionID, message, router, result ) ),
-                               sender );
+        logicalthreadInitiated( network::LogicalThreadBase::Ptr(
+            new RootLogicalThread( *this, logicalthreadID, message, router, result ) ) );
     }
 
     while( !result.has_value() )
@@ -163,65 +152,67 @@ network::Message Terminal::routeGenericRequest( const network::LogicalThreadID& 
 
 Terminal::RouterFactory Terminal::makeTermRoot()
 {
-    return []( network::LogicalThreadBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+    return []( network::LogicalThreadBase& con, network::Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
     {
-        return [ &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
-        { return network::term_leaf::Request_Sender( con, sender, yield_ctx ).TermRoot( msg ); };
+        return [ &con, pSender, &yield_ctx ]( const network::Message& msg ) -> network::Message
+        { return network::term_leaf::Request_Sender( con, pSender, yield_ctx ).TermRoot( msg ); };
     };
 }
 
 Terminal::RouterFactory Terminal::makeMP( mega::MP mp )
 {
-    return [ mp ]( network::LogicalThreadBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+    return
+        [ mp ]( network::LogicalThreadBase& con, network::Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
     {
-        return [ mp, &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
-        { return network::mpo::Request_Sender( con, sender, yield_ctx ).MPUp( msg, mp ); };
+        return [ mp, &con, pSender, &yield_ctx ]( const network::Message& msg ) -> network::Message
+        { return network::mpo::Request_Sender( con, pSender, yield_ctx ).MPUp( msg, mp ); };
     };
 }
 
 Terminal::RouterFactory Terminal::makeMPO( mega::MPO mpo )
 {
-    return [ mpo ]( network::LogicalThreadBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+    return
+        [ mpo ]( network::LogicalThreadBase& con, network::Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
     {
-        return [ mpo, &con, &sender, &yield_ctx ]( const network::Message& msg ) -> network::Message
-        { return network::mpo::Request_Sender( con, sender, yield_ctx ).MPOUp( msg, mpo ); };
+        return [ mpo, &con, pSender, &yield_ctx ]( const network::Message& msg ) -> network::Message
+        { return network::mpo::Request_Sender( con, pSender, yield_ctx ).MPOUp( msg, mpo ); };
     };
 }
 
 MegastructureInstallation Terminal::GetMegastructureInstallation()
 {
     //
-    return getRequest< network::project::Request_Encoder >().GetMegastructureInstallation();
+    return getRootRequest< network::project::Request_Encoder >().GetMegastructureInstallation();
 }
 Project Terminal::GetProject()
 {
     //
-    return getRequest< network::project::Request_Encoder >().GetProject();
+    return getRootRequest< network::project::Request_Encoder >().GetProject();
 }
 void Terminal::SetProject( const Project& project )
 {
     //
-    getRequest< network::project::Request_Encoder >().SetProject( project );
+    getRootRequest< network::project::Request_Encoder >().SetProject( project );
 }
 void Terminal::ClearStash()
 {
     //
-    getRequest< network::stash::Request_Encoder >().StashClear();
+    getRootRequest< network::stash::Request_Encoder >().StashClear();
 }
 
 network::Status Terminal::GetNetworkStatus()
 {
-    return getRequest< network::status::Request_Encoder >().GetNetworkStatus();
+    return getRootRequest< network::status::Request_Encoder >().GetNetworkStatus();
 }
 
 pipeline::PipelineResult Terminal::PipelineRun( const pipeline::Configuration& pipelineConfig )
 {
-    return getRequest< network::pipeline::Request_Encoder >().PipelineRun( pipelineConfig );
+    return getRootRequest< network::pipeline::Request_Encoder >().PipelineRun( pipelineConfig );
 }
 
 mega::MP Terminal::ExecutorCreate( mega::MachineID daemonMachineID )
 {
-    return getRequest< network::enrole::Request_Encoder >().EnroleCreateExecutor( daemonMachineID );
+    return getRootRequest< network::enrole::Request_Encoder >().EnroleCreateExecutor( daemonMachineID );
 }
 void Terminal::ExecutorDestroy( const mega::MP& mp )
 {

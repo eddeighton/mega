@@ -25,7 +25,7 @@
 #include "service/network/client.hpp"
 #include "service/network/logical_thread_manager.hpp"
 #include "service/network/sender_factory.hpp"
-#include "service/network/channel.hpp"
+#include "service/network/receiver_channel.hpp"
 
 #include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/common/node.hpp"
@@ -43,7 +43,7 @@ namespace mega::service
 
 class HeapMemory;
 
-class Leaf : public network::LogicalThreadManager, public network::Sender
+class Leaf : public network::LogicalThreadManager
 {
     friend class LeafRequestLogicalThread;
     friend class LeafEnrole;
@@ -52,30 +52,21 @@ class Leaf : public network::LogicalThreadManager, public network::Sender
 public:
     Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short daemonPortNumber );
     ~Leaf();
+
+    void startup();
+
     // void shutdown();
     bool running() { return !m_io_context.stopped(); }
 
     // network::LogicalThreadManager
-    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Message&      msg );
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
-    network::Node::Type getType() const { return m_nodeType; }
-    network::Sender&    getDaemonSender() { return m_client; }
-    network::Sender&    getNodeChannelSender() { return *m_pSender; }
+    network::Node::Type  getType() const { return m_nodeType; }
+    network::Sender::Ptr getDaemonSender() { return m_client.getSender(); }
+    network::Sender::Ptr getNodeChannelSender() { return m_pSender; }
+    network::Sender::Ptr getLeafSender() { return m_pSelfSender; }
 
     // network::Sender
-    virtual network::ConnectionID     getConnectionID() const { return m_pSelfSender->getConnectionID(); }
-    virtual boost::system::error_code send( const network::Message& msg, boost::asio::yield_context& yield_ctx )
-    {
-        return m_pSelfSender->send( msg, yield_ctx );
-    }
-    virtual void sendErrorResponse( const network::ReceivedMsg& msg,
-                                    const std::string&          strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx )
-    {
-        m_pSelfSender->sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-
     void setActiveProject( const Project& project );
 
     const MegastructureInstallation& getMegastructureInstallation() const

@@ -50,18 +50,20 @@ class SocketSender : public Sender
     using SendBuffer = std::vector< char >;
 
     Traits::Socket& m_socket;
-    ConnectionID    m_connectionID;
 
 public:
-    SocketSender( Traits::Socket& socket, ConnectionID connectionID )
+    SocketSender( Traits::Socket& socket )
         : m_socket( socket )
-        , m_connectionID( std::move( connectionID ) )
     {
     }
 
     virtual ~SocketSender() = default;
 
-    virtual ConnectionID getConnectionID() const { return m_connectionID; }
+    virtual boost::system::error_code send( const Message& msg )
+    {
+        THROW_RTE( "non async send called on SocketSender" );
+        UNREACHABLE;
+    }
 
     virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
@@ -87,43 +89,31 @@ public:
             return ec;
         }
     }
-
-    virtual void sendErrorResponse( const network::ReceivedMsg& receivedMsg,
-                                    const std::string&          strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx )
-    {
-        Message msg = make_error_msg( receivedMsg.msg.getReceiverID(), strErrorMsg );
-        if( const boost::system::error_code ec = send( msg, yield_ctx ) )
-        {
-            THROW_RTE( "Error sending: " << ec.what() );
-        }
-        else
-        {
-            SPDLOG_TRACE( "Sent error response for msg: {}", strErrorMsg );
-        }
-    }
+    
 };
 
-Sender::Ptr make_socket_sender( Traits::Socket& socket, const ConnectionID& connectionID )
+Sender::Ptr make_socket_sender( Traits::Socket& socket )
 {
-    return std::make_unique< SocketSender >( socket, connectionID );
+    return std::make_shared< SocketSender >( socket );
 }
 
 class ConcurrentChannelSender : public Sender
 {
     ConcurrentChannel& m_channel;
-    ConnectionID       m_connectionID;
 
 public:
-    ConcurrentChannelSender( ConcurrentChannel& channel, ConnectionID connectionID )
+    ConcurrentChannelSender( ConcurrentChannel& channel )
         : m_channel( channel )
-        , m_connectionID( std::move( connectionID ) )
     {
     }
 
     virtual ~ConcurrentChannelSender() = default;
 
-    virtual ConnectionID getConnectionID() const { return m_connectionID; }
+    virtual boost::system::error_code send( const Message& msg )
+    {
+        THROW_RTE( "non async send called on ConcurrentChannelSender" );
+        UNREACHABLE;
+    }
 
     virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
@@ -154,44 +144,32 @@ public:
         }
         return ec;
     }
-
-    virtual void sendErrorResponse( const network::ReceivedMsg& receivedMsg,
-                                    const std::string&          strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx )
-    {
-        Message msg = make_error_msg( receivedMsg.msg.getReceiverID(), strErrorMsg );
-        if( const boost::system::error_code ec = send( msg, yield_ctx ) )
-        {
-            THROW_RTE( "Error sending: " << ec.what() );
-        }
-        else
-        {
-            SPDLOG_TRACE( "Sent error response for msg: {}", strErrorMsg );
-        }
-    }
+    
 };
 
-Sender::Ptr make_concurrent_channel_sender( ConcurrentChannel& channel, const ConnectionID& connectionID )
+Sender::Ptr make_concurrent_channel_sender( ConcurrentChannel& channel )
 {
-    return std::make_unique< ConcurrentChannelSender >( channel, connectionID );
+    return std::make_shared< ConcurrentChannelSender >( channel );
 }
 
 class ChannelSender : public Sender
 {
     Channel&     m_channel;
-    ConnectionID m_connectionID;
 
 public:
-    ChannelSender( Channel& channel, ConnectionID connectionID )
+    ChannelSender( Channel& channel )
         : m_channel( channel )
-        , m_connectionID( std::move( connectionID ) )
     {
     }
 
     virtual ~ChannelSender() = default;
 
-    virtual ConnectionID getConnectionID() const { return m_connectionID; }
-
+    virtual boost::system::error_code send( const Message& msg )
+    {
+        THROW_RTE( "non async send called on ChannelSender" );
+        UNREACHABLE;
+    }
+    
     virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
         boost::system::error_code ec;
@@ -215,26 +193,12 @@ public:
 
         return ec;
     }
-
-    virtual void sendErrorResponse( const network::ReceivedMsg& receivedMsg,
-                                    const std::string&          strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx )
-    {
-        Message msg = make_error_msg( receivedMsg.msg.getReceiverID(), strErrorMsg );
-        if( const boost::system::error_code ec = send( msg, yield_ctx ) )
-        {
-            THROW_RTE( "Error sending: " << ec.what() );
-        }
-        else
-        {
-            SPDLOG_TRACE( "Sent error response for msg: {}", strErrorMsg );
-        }
-    }
+    
 };
 
-Sender::Ptr make_channel_sender( Channel& channel, const ConnectionID& connectionID )
+Sender::Ptr make_channel_sender( Channel& channel )
 {
-    return std::make_unique< ChannelSender >( channel, connectionID );
+    return std::make_shared< ChannelSender >( channel );
 }
 
 } // namespace mega::network

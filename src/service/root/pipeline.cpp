@@ -28,28 +28,27 @@
 namespace mega::service
 {
 
-RootPipelineLogicalThread::RootPipelineLogicalThread( Root&                          root,
-                                                    const network::LogicalThreadID& logicalthreadID,
-                                                    const network::ConnectionID&   originatingConnectionID )
-    : RootRequestLogicalThread( root, logicalthreadID, originatingConnectionID )
+RootPipelineLogicalThread::RootPipelineLogicalThread( Root& root, const network::LogicalThreadID& logicalthreadID )
+    : RootRequestLogicalThread( root, logicalthreadID )
     , m_taskReady( root.getIOContext(), CHANNEL_SIZE )
     , m_taskComplete( root.getIOContext(), CHANNEL_SIZE )
 {
 }
 
 network::Message RootPipelineLogicalThread::dispatchRequest( const network::Message&     msg,
-                                                            boost::asio::yield_context& yield_ctx )
+                                                             boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if ( result = network::pipeline::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::pipeline::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     return RootRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
-mega::pipeline::PipelineResult RootPipelineLogicalThread::PipelineRun( const mega::pipeline::Configuration& configuration,
-                                                                     boost::asio::yield_context&          yield_ctx )
+mega::pipeline::PipelineResult
+RootPipelineLogicalThread::PipelineRun( const mega::pipeline::Configuration& configuration,
+                                        boost::asio::yield_context&          yield_ctx )
 {
-    if ( !m_root.m_megastructureInstallationOpt.has_value() )
+    if( !m_root.m_megastructureInstallationOpt.has_value() )
         m_root.m_megastructureInstallationOpt = m_root.getMegastructureInstallation();
     VERIFY_RTE_MSG(
         m_root.m_megastructureInstallationOpt.has_value(), "Megastructure Installation Toolchain unspecified" );
@@ -60,7 +59,7 @@ mega::pipeline::PipelineResult RootPipelineLogicalThread::PipelineRun( const meg
     {
         std::ostringstream osLog;
         pPipeline = pipeline::Registry::getPipeline( toolChain, configuration, osLog );
-        if ( !pPipeline )
+        if( !pPipeline )
         {
             SPDLOG_ERROR( "Failed to load pipeline: {}", configuration.getPipelineID() );
             THROW_RTE( "Root: Failed to load pipeline: " << configuration.get() );
@@ -78,11 +77,11 @@ mega::pipeline::PipelineResult RootPipelineLogicalThread::PipelineRun( const meg
         const std::vector< network::LogicalThreadID > jobs
             = getExeBroadcastRequest< network::job::Request_Encoder >( yield_ctx )
                   .JobStart( toolChain, configuration, getID(), {} );
-        for ( const network::LogicalThreadID& id : jobs )
+        for( const network::LogicalThreadID& id : jobs )
             m_jobs.insert( id );
     }
 
-    if ( m_jobs.empty() )
+    if( m_jobs.empty() )
     {
         SPDLOG_WARN( "Failed to find executors for pipeline: {}", configuration.getPipelineID() );
         THROW_RTE( "Root: Failed to find executors for pipeline" );
@@ -93,14 +92,14 @@ mega::pipeline::PipelineResult RootPipelineLogicalThread::PipelineRun( const meg
     std::set< mega::pipeline::TaskDescriptor > scheduledTasks, activeTasks;
     bool                                       bScheduleFailed = false;
     {
-        while ( !schedule.isComplete() && !bScheduleFailed )
+        while( !schedule.isComplete() && !bScheduleFailed )
         {
-            for ( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
+            for( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
             {
                 VERIFY_RTE( task != mega::pipeline::TaskDescriptor() );
-                if ( activeTasks.size() < CHANNEL_SIZE )
+                if( activeTasks.size() < CHANNEL_SIZE )
                 {
-                    if ( !scheduledTasks.count( task ) )
+                    if( !scheduledTasks.count( task ) )
                     {
                         scheduledTasks.insert( task );
                         VERIFY_RTE( activeTasks.insert( task ).second );
@@ -111,11 +110,11 @@ mega::pipeline::PipelineResult RootPipelineLogicalThread::PipelineRun( const meg
                     break;
             }
 
-            while ( !activeTasks.empty() )
+            while( !activeTasks.empty() )
             {
                 const TaskCompletion taskCompletion = m_taskComplete.async_receive( yield_ctx );
                 VERIFY_RTE( activeTasks.erase( taskCompletion.task ) == 1U );
-                if ( taskCompletion.bSuccess )
+                if( taskCompletion.bSuccess )
                 {
                     schedule.complete( taskCompletion.task );
                 }
@@ -125,18 +124,18 @@ mega::pipeline::PipelineResult RootPipelineLogicalThread::PipelineRun( const meg
                     bScheduleFailed = true;
                     break;
                 }
-                if ( !m_taskComplete.ready() )
+                if( !m_taskComplete.ready() )
                     break;
             }
         }
     }
 
     // close out remaining active tasks
-    while ( !activeTasks.empty() )
+    while( !activeTasks.empty() )
     {
         TaskCompletion taskCompletion = m_taskComplete.async_receive( yield_ctx );
         VERIFY_RTE( activeTasks.erase( taskCompletion.task ) == 1U );
-        if ( taskCompletion.bSuccess )
+        if( taskCompletion.bSuccess )
         {
             schedule.complete( taskCompletion.task );
         }
@@ -147,18 +146,18 @@ mega::pipeline::PipelineResult RootPipelineLogicalThread::PipelineRun( const meg
     }
 
     // send termination task to each job
-    for ( const network::LogicalThreadID& jobID : m_jobs )
+    for( const network::LogicalThreadID& jobID : m_jobs )
     {
         m_taskReady.async_send( boost::system::error_code(), mega::pipeline::TaskDescriptor(), yield_ctx );
     }
-    for ( const network::LogicalThreadID& jobID : m_jobs )
+    for( const network::LogicalThreadID& jobID : m_jobs )
     {
         m_taskComplete.async_receive( yield_ctx );
     }
 
     {
         std::ostringstream os;
-        if ( bScheduleFailed )
+        if( bScheduleFailed )
         {
             SPDLOG_WARN( "FAILURE: Pipeline {} failed: {}", configuration.getPipelineID(),
                          std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );

@@ -50,7 +50,7 @@ public:
         TERM,
         WAIT
     };
-    using Msg       = network::ReceivedMsg;
+    using Msg       = network::ReceivedMessage;
     using MsgVector = std::vector< Msg >;
     using AckVector = MsgVector;
 

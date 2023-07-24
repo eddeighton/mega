@@ -43,16 +43,11 @@ public:
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void             dispatchResponse( const network::ConnectionID& connectionID,
-                                               const network::Message&      msg,
-                                               boost::asio::yield_context&  yield_ctx ) override;
-    virtual void             error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx ) override;
 
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
 private:
-    network::LogicalThreadBase&   m_plugin;
+    network::LogicalThreadBase&  m_plugin;
     boost::asio::yield_context*  m_pYieldContext = nullptr;
     network::Sender::Ptr         m_pRequestChannelSender;
     bool                         m_bRunning = true;

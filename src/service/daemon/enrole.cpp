@@ -27,28 +27,30 @@ namespace mega::service
 {
 // network::enrole::Impl
 MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&               startupUUID,
-                                                    const mega::network::Node::Type& type,
-                                                    boost::asio::yield_context&      yield_ctx )
+                                                     const mega::network::Node::Type& type,
+                                                     boost::asio::yield_context&      yield_ctx )
 {
     network::Server::Connection::Ptr pConnection
-        = m_daemon.m_server.getConnection( getOriginatingEndPointID().value() );
+        = m_daemon.m_server.getConnection( getOriginatingStackResponseSender() );
     VERIFY_RTE( pConnection );
     pConnection->setType( type );
 
-    const mega::MP leafMP
-        = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleLeafWithRoot( startupUUID, m_daemon.m_machineID );
+    const mega::MP leafMP = getRootRequest< network::enrole::Request_Encoder >( yield_ctx )
+                                .EnroleLeafWithRoot( startupUUID, m_daemon.m_machineID );
     SPDLOG_TRACE( "Leaf enroled as {}", leafMP );
 
     m_daemon.m_server.labelConnection( leafMP, pConnection );
-    pConnection->setDisconnectCallback( [ leafMP, &daemon = m_daemon ]( const network::ConnectionID& connectionID )
-                                        { daemon.onLeafDisconnect( connectionID, leafMP ); } );
+    pConnection->setDisconnectCallback( [ leafMP, &daemon = m_daemon ]()
+                                        { daemon.onLeafDisconnect( leafMP ); } );
 
     return leafMP;
 }
 
-void DaemonRequestLogicalThread::EnroleDaemonSpawn( const std::string& strProgram, const std::string& strStartupUUID, boost::asio::yield_context& yield_ctx )
+void DaemonRequestLogicalThread::EnroleDaemonSpawn( const std::string&          strProgram,
+                                                    const std::string&          strStartupUUID,
+                                                    boost::asio::yield_context& yield_ctx )
 {
-    auto env = boost::this_process::environment();
+    auto env                         = boost::this_process::environment();
     env[ network::ENV_PROCESS_UUID ] = strStartupUUID;
     boost::process::spawn( strProgram, env );
 }

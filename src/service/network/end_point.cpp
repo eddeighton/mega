@@ -24,11 +24,4 @@
 namespace mega::network
 {
 
-ConnectionID makeConnectionID( Traits::Socket& socket )
-{
-    std::ostringstream os;
-    os << socket.local_endpoint() << "-" << socket.remote_endpoint();
-    return os.str();
-}
-
 } // namespace mega::network

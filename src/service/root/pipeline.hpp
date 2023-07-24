@@ -31,9 +31,9 @@ namespace mega::service
 class Root;
 
 class RootPipelineLogicalThread : public RootRequestLogicalThread,
-                                 public network::pipeline::Impl,
-                                 public pipeline::Progress,
-                                 public pipeline::Stash
+                                  public network::pipeline::Impl,
+                                  public pipeline::Progress,
+                                  public pipeline::Stash
 {
     std::set< network::LogicalThreadID > m_jobs;
 
@@ -43,7 +43,7 @@ class RootPipelineLogicalThread : public RootRequestLogicalThread,
 
     struct TaskCompletion
     {
-        network::LogicalThreadID        jobID;
+        network::LogicalThreadID       jobID;
         mega::pipeline::TaskDescriptor task;
         bool                           bSuccess;
     };
@@ -54,9 +54,7 @@ class RootPipelineLogicalThread : public RootRequestLogicalThread,
     static constexpr mega::U32 CHANNEL_SIZE = 256;
 
 public:
-    RootPipelineLogicalThread( Root&                          root,
-                              const network::LogicalThreadID& logicalthreadID,
-                              const network::ConnectionID&   originatingConnectionID );
+    RootPipelineLogicalThread( Root& root, const network::LogicalThreadID& logicalthreadID );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
@@ -87,7 +85,7 @@ public:
 
     // network::pipeline::Impl
     virtual mega::pipeline::PipelineResult PipelineRun( const mega::pipeline::Configuration& configuration,
-                                                       boost::asio::yield_context&          yield_ctx ) override;
+                                                        boost::asio::yield_context&          yield_ctx ) override;
 
     mega::pipeline::TaskDescriptor getTask( boost::asio::yield_context& yield_ctx )
     {

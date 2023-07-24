@@ -58,12 +58,12 @@ void* getData( Message& message )
 {%endfor%}{# for namespace in message.namespaces #}
 {%if message.has_namespace%} { {%endif%}
 
-Message {{ message.name }}::make( const LogicalThreadID& sender, const LogicalThreadID& receiver, {{ message.name }}&& msg )
+Message {{ message.name }}::make( const LogicalThreadID& logicalThreadID, {{ message.name }}&& msg )
 {
     if( sizeof( {{ message.name }} ) )
-        return Message{ ID, sender, receiver, std::shared_ptr< void >( new {{ message.name }}{ std::move( msg ) }, []( {{ message.name }}* p ){ delete p; } ) };
+        return Message{ ID, logicalThreadID, std::shared_ptr< void >( new {{ message.name }}{ std::move( msg ) }, []( {{ message.name }}* p ){ delete p; } ) };
     else
-        return Message{ ID, sender, receiver, std::shared_ptr< void >{} };
+        return Message{ ID, logicalThreadID, std::shared_ptr< void >{} };
 }
 
 const {{ message.name }}& {{ message.name }}::get( const Message& msg )
@@ -77,9 +77,9 @@ const {{ message.name }}& {{ message.name }}::get( const Message& msg )
 {%if message.has_namespace%} } {%endif%} 
 {%endfor%}
 
-Message make_error_msg( const LogicalThreadID& receiver, const std::string& strErrorMsg )
+Message make_error_msg( const LogicalThreadID& logicalThreadID, const std::string& strErrorMsg )
 {
-    return Message{ MSG_Error_Response::ID, receiver, receiver, 
+    return Message{ MSG_Error_Response::ID, logicalThreadID, 
         std::shared_ptr< void >( new MSG_Error_Response{ strErrorMsg }, []( MSG_Error_Response* p ){ delete p; } ) };
 }
 
@@ -106,8 +106,7 @@ Message decode( boost::archive::binary_iarchive& _archive_ )
 {
     Message header;
     _archive_& header.index;
-    _archive_& header.sender;
-    _archive_& header.receiver;
+    _archive_& header.logicalThreadID;
     switch ( header.index )
     {
 {%for message in messages%}
@@ -118,7 +117,7 @@ Message decode( boost::archive::binary_iarchive& _archive_ )
             _archive_& msg.{{ member.name }}; 
 {%endfor%}
             return {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::make( 
-                header.sender, header.receiver, std::move( msg ) );
+                header.logicalThreadID, std::move( msg ) );
         }
         break;
 {%endfor%}
@@ -132,8 +131,7 @@ Message decode( boost::archive::binary_iarchive& _archive_ )
 void encode( boost::archive::binary_oarchive& _archive_, const Message& _message_ )
 {
     _archive_& _message_.index;
-    _archive_& _message_.sender;
-    _archive_& _message_.receiver;
+    _archive_& _message_.logicalThreadID;
     switch( _message_.index )
     {
 {%for message in messages%}

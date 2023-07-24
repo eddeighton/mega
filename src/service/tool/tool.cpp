@@ -53,7 +53,7 @@ namespace
 template < typename TLogicalThreadFunctor >
 class GenericLogicalThread : public ToolRequestLogicalThread, public mega::MPOContext
 {
-    Tool&                m_tool;
+    Tool&                 m_tool;
     TLogicalThreadFunctor m_functor;
 
 public:
@@ -204,14 +204,10 @@ public:
 Tool::Tool( short daemonPortNumber )
     : network::LogicalThreadManager( network::makeProcessName( network::Node::Tool ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
-    , m_leaf(
-          [ &m_receiverChannel = m_receiverChannel ]()
-          {
-              m_receiverChannel.run( network::makeProcessName( network::Node::Tool ) );
-              return m_receiverChannel.getSender();
-          }(),
-          network::Node::Tool, daemonPortNumber )
+    , m_leaf( m_receiverChannel.getSender(), network::Node::Tool, daemonPortNumber )
 {
+    m_receiverChannel.run( m_leaf.getLeafSender() );
+    m_leaf.startup();
 }
 
 Tool::~Tool()
@@ -229,11 +225,9 @@ void Tool::runComplete()
     m_receiverChannel.stop();
 }
 
-network::LogicalThreadBase::Ptr Tool::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                       const network::Message&      msg )
+network::LogicalThreadBase::Ptr Tool::joinLogicalThread( const network::Message& msg )
 {
-    return network::LogicalThreadBase::Ptr(
-        new ToolRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr( new ToolRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
 }
 
 void Tool::run( Tool::Functor& function )
@@ -252,11 +246,9 @@ void Tool::run( Tool::Functor& function )
                 exceptionResult = std::current_exception();
             }
         };
-        // getLeafSender().getConnectionID()
-        network::LogicalThreadBase::Ptr pLogicalThread( new GenericLogicalThread(
-            *this, createLogicalThreadID(), std::move( func ) ) );
-
-        logicalthreadInitiated( pLogicalThread, getLeafSender() );
+        network::LogicalThreadBase::Ptr pLogicalThread(
+            new GenericLogicalThread( *this, createLogicalThreadID(), std::move( func ) ) );
+        logicalthreadInitiated( pLogicalThread );
     }
 
     // run until m_tool.runComplete();

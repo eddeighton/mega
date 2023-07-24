@@ -22,6 +22,7 @@
 
 #include "service/network/sender_factory.hpp"
 
+#include "service/protocol/common/received_message.hpp"
 #include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/common/logical_thread_base.hpp"
 #include "service/protocol/model/messages.hxx"
@@ -46,65 +47,51 @@ class LogicalThreadManager;
 class LogicalThread : public LogicalThreadBase
 {
 public:
-    LogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID,
-                   std::optional< ConnectionID > originatingConnectionID = std::nullopt );
-    virtual ~LogicalThread();
+    LogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID );
 
-    const LogicalThreadID&               getID() const { return m_logicalthreadID; }
-    const std::optional< ConnectionID >& getOriginatingEndPointID() const
+    inline std::shared_ptr< LogicalThread > shared_from_this()
     {
-        ASSERT( !m_originatingEndPoint.has_value() || ( m_originatingEndPoint.value() == m_stack.front() ) );
-        return m_originatingEndPoint;
+        return std::dynamic_pointer_cast< LogicalThread >( LogicalThreadBase::shared_from_this() );
     }
-    std::optional< ConnectionID > getStackConnectionID() const
+
+    // Sender
+    // NOTE: sender implemented to enable logical thread to receive responses in inter-thread communication
+    virtual boost::system::error_code send( const Message& responseMessage ) override;
+    virtual boost::system::error_code send( const Message& responseMessage, boost::asio::yield_context& ) override;
+
+    // LogicalThreadBase
+    const LogicalThreadID&     getID() const override { return m_logicalthreadID; }
+    virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
+    virtual const std::string& getProcessName() const override;
+    virtual U64                getStackSize() const override { return m_stack.size(); }
+    virtual void               onDisconnect( Sender::Ptr pRequestResponseSender ) override;
+
+    inline Sender::Ptr getStackResponseSender() const
     {
         if( !m_stack.empty() )
             return m_stack.back();
         else
             return {};
     }
+    inline Sender::Ptr getOriginatingStackResponseSender() const
+    {
+        if( !m_stack.empty() )
+            return m_stack.front();
+        else
+            return {};
+    }
 
-    ReceivedMsg receiveDeferred( boost::asio::yield_context& yield_ctx );
+    ReceivedMessage receiveDeferred( boost::asio::yield_context& yield_ctx );
 
 protected:
-    virtual void                         unqueue();
-    virtual bool                         queue( const ReceivedMsg& msg );
-    virtual ReceivedMsg                  receive( boost::asio::yield_context& yield_ctx )     = 0;
-    virtual std::optional< ReceivedMsg > try_receive( boost::asio::yield_context& yield_ctx ) = 0;
-
-public:
-    virtual void send( const ReceivedMsg& msg ) = 0;
-
-    // Sender
-    virtual ConnectionID getConnectionID() const
-    {
-        if( m_selfConnectionID.has_value() )
-            return m_selfConnectionID.value();
-        // synthesize a connectionID value
-        std::ostringstream os;
-        os << "self_" << getID();
-        m_selfConnectionID = os.str();
-        return m_selfConnectionID.value();
-    }
-    virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
-    {
-        const ReceivedMsg rMsg{ getConnectionID(), msg };
-        send( rMsg );
-        return boost::system::error_code{};
-    }
-    virtual void sendErrorResponse( const ReceivedMsg& msg, const std::string& strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx )
-    {
-        const ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.getReceiverID(), strErrorMsg ) };
-        send( rMsg );
-    }
+    virtual void                             unqueue();
+    virtual bool                             queue( const ReceivedMessage& msg );
+    virtual ReceivedMessage                  receive( boost::asio::yield_context& yield_ctx )     = 0;
+    virtual std::optional< ReceivedMessage > try_receive( boost::asio::yield_context& yield_ctx ) = 0;
 
 protected:
-    virtual void               requestStarted( const ConnectionID& connectionID );
-    virtual void               requestCompleted();
-    virtual const std::string& getProcessName() const;
-    virtual U64                getStackSize() const { return m_stack.size(); }
-    virtual void               onDisconnect( const ConnectionID& connectionID );
+    virtual void requestStarted( Sender::Ptr pRequestResponseSender ) override;
+    virtual void requestCompleted() override;
 
 protected:
     void run_one( boost::asio::yield_context& yield_ctx );
@@ -112,50 +99,38 @@ protected:
 protected:
     friend class LogicalThreadManager;
     // this is called by LogicalThreadManager but can be overridden in initiating activities
-    virtual void    run( boost::asio::yield_context& yield_ctx );
+    virtual void    run( boost::asio::yield_context& yield_ctx ) override;
     virtual Message dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
-    virtual void    dispatchResponse( const ConnectionID& connectionID, const Message& msg,
-                                      boost::asio::yield_context& yield_ctx )
-        = 0;
-    virtual void error( const ReceivedMsg& msg, const std::string& strErrorMsg, boost::asio::yield_context& yield_ctx )
-        = 0;
-
-public:
-    virtual Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx );
 
 protected:
-    void dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yield_context& yield_ctx );
+    void dispatchRequestImpl( const ReceivedMessage& msg, boost::asio::yield_context& yield_ctx );
     void dispatchRemaining( boost::asio::yield_context& yield_ctx );
 
 protected:
     LogicalThreadManager& m_logicalthreadManager;
     LogicalThreadID       m_logicalthreadID;
 
-    std::optional< ConnectionID >         m_originatingEndPoint;
-    std::vector< ConnectionID >           m_stack;
-    std::set< ConnectionID >              m_disconnections;
-    mutable std::optional< ConnectionID > m_selfConnectionID;
-    bool                                  m_bQueueing = false;
-    std::vector< network::ReceivedMsg >   m_deferedMessages;
-    std::vector< network::ReceivedMsg >   m_unqueuedMessages;
-    bool                                  m_bEnableQueueing = false;
+    std::vector< Sender::Ptr >              m_stack;
+    std::set< Sender::Ptr >                 m_disconnections;
+    bool                                    m_bQueueing = false;
+    std::vector< network::ReceivedMessage > m_deferedMessages;
+    std::vector< network::ReceivedMessage > m_unqueuedMessages;
+    bool                                    m_bEnableQueueing = false;
 };
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 class InThreadLogicalThread : public LogicalThread
 {
-    using MessageChannel = boost::asio::experimental::channel< void( boost::system::error_code, ReceivedMsg ) >;
+    using MessageChannel = boost::asio::experimental::channel< void( boost::system::error_code, ReceivedMessage ) >;
 
 public:
-    InThreadLogicalThread( LogicalThreadManager&         logicalthreadManager,
-                           const LogicalThreadID&        logicalthreadID,
-                           std::optional< ConnectionID > originatingConnectionID = std::nullopt );
+    InThreadLogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID );
 
 protected:
-    virtual ReceivedMsg                  receive( boost::asio::yield_context& yield_ctx );
-    virtual std::optional< ReceivedMsg > try_receive( boost::asio::yield_context& yield_ctx );
-    virtual void                         send( const ReceivedMsg& msg );
+    virtual ReceivedMessage                  receive( boost::asio::yield_context& yield_ctx ) override;
+    virtual std::optional< ReceivedMessage > try_receive( boost::asio::yield_context& yield_ctx ) override;
+    virtual void                             receive( const ReceivedMessage& msg ) override;
 
 private:
     MessageChannel m_channel;
@@ -166,17 +141,15 @@ private:
 class ConcurrentLogicalThread : public LogicalThread
 {
     using MessageChannel
-        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, ReceivedMsg ) >;
+        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, ReceivedMessage ) >;
 
 public:
-    ConcurrentLogicalThread( LogicalThreadManager&         logicalthreadManager,
-                             const LogicalThreadID&        logicalthreadID,
-                             std::optional< ConnectionID > originatingConnectionID = std::nullopt );
+    ConcurrentLogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID );
 
 protected:
-    virtual ReceivedMsg                  receive( boost::asio::yield_context& yield_ctx );
-    virtual std::optional< ReceivedMsg > try_receive( boost::asio::yield_context& yield_ctx );
-    virtual void                         send( const ReceivedMsg& msg );
+    virtual ReceivedMessage                  receive( boost::asio::yield_context& yield_ctx ) override;
+    virtual std::optional< ReceivedMessage > try_receive( boost::asio::yield_context& yield_ctx ) override;
+    virtual void                             receive( const ReceivedMessage& msg ) override;
 
 protected:
     MessageChannel m_channel;
@@ -186,7 +159,7 @@ protected:
 ////////////////////////////////////////////////////////////////////////
 class ExternalLogicalThread : public LogicalThreadBase
 {
-    using MessageChannel = boost::asio::experimental::channel< void( boost::system::error_code, ReceivedMsg ) >;
+    using MessageChannel = boost::asio::experimental::channel< void( boost::system::error_code, ReceivedMessage ) >;
 
 public:
     using Ptr = std::shared_ptr< ExternalLogicalThread >;
@@ -194,59 +167,34 @@ public:
     ExternalLogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID,
                            boost::asio::io_context& ioContext );
 
+    virtual boost::system::error_code send( const Message& responseMessage ) override { THROW_TODO; }
+    virtual boost::system::error_code send( const Message& responseMessage, boost::asio::yield_context& ) override
+    {
+        THROW_TODO;
+    }
+
     // make this virtual so that windows can build...
-    virtual ReceivedMsg receive();
-
-    // Sender
-    virtual ConnectionID getConnectionID() const
-    {
-        if( m_selfConnectionID.has_value() )
-            return m_selfConnectionID.value();
-        // synthesize a connectionID value
-        std::ostringstream os;
-        os << "self_" << getID();
-        m_selfConnectionID = os.str();
-        return m_selfConnectionID.value();
-    }
-
-    virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
-    {
-        const ReceivedMsg rMsg{ getConnectionID(), msg };
-        send( rMsg );
-        return boost::system::error_code{};
-    }
-
-    void sendErrorResponse( const ReceivedMsg& msg, const std::string& strErrorMsg )
-    {
-        const ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.getReceiverID(), strErrorMsg ) };
-        send( rMsg );
-    }
-
-    virtual void sendErrorResponse( const ReceivedMsg& msg, const std::string& strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx )
-    {
-        sendErrorResponse( msg, strErrorMsg );
-    }
+    virtual ReceivedMessage receive();
 
     // LogicalThreadBase
-    virtual const ID& getID() const { return m_logicalthreadID; }
-    virtual void      send( const ReceivedMsg& msg );
+    virtual const LogicalThreadID& getID() const override { return m_logicalthreadID; }
+    // virtual void      send( const ReceivedMessage& msg );
 
     // NOT IMPLEMENTED - no stack or coroutine for external logicalthread
-    virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
-    virtual void               run( boost::asio::yield_context& yield_ctx ) { THROW_TODO; }
-    virtual const std::string& getProcessName() const { THROW_TODO; }
-    virtual U64                getStackSize() const { THROW_TODO; }
-    virtual void               onDisconnect( const ConnectionID& connectionID ) { THROW_TODO; }
-    virtual void               requestStarted( const ConnectionID& connectionID ) { ; }
-    virtual void               requestCompleted() { ; }
+    virtual Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
+    virtual void    run( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
+    virtual const std::string& getProcessName() const override { THROW_TODO; }
+    virtual U64                getStackSize() const override { THROW_TODO; }
+    virtual void               onDisconnect( Sender::Ptr pRequestResponseSender ) override { THROW_TODO; }
+    virtual void               requestStarted( Sender::Ptr pRequestResponseSender ) override { ; }
+    virtual void               requestCompleted() override { ; }
+    virtual void               receive( const ReceivedMessage& msg ) override;
 
 protected:
-    LogicalThreadManager&                 m_logicalthreadManager;
-    LogicalThreadID                       m_logicalthreadID;
-    boost::asio::io_context&              m_ioContext;
-    MessageChannel                        m_channel;
-    mutable std::optional< ConnectionID > m_selfConnectionID;
+    LogicalThreadManager&    m_logicalthreadManager;
+    LogicalThreadID          m_logicalthreadID;
+    boost::asio::io_context& m_ioContext;
+    MessageChannel           m_channel;
 };
 
 } // namespace mega::network

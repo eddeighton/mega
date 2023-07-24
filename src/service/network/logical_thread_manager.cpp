@@ -44,12 +44,12 @@ boost::asio::io_context& LogicalThreadManager::getIOContext() const
     return m_ioContext;
 }
 
-void LogicalThreadManager::onDisconnect( const ConnectionID& connectionID )
+void LogicalThreadManager::onDisconnect()
 {
     WriteLock lock( m_mutex );
     for( const auto& [ id, pLogicalThread ] : m_logicalthreads )
     {
-        pLogicalThread->onDisconnect( connectionID );
+        pLogicalThread->onDisconnect( {} );
     }
 }
 
@@ -71,15 +71,15 @@ LogicalThreadID LogicalThreadManager::createLogicalThreadID() const
     return {};
 }
 
-void LogicalThreadManager::spawnInitiatedLogicalThread( LogicalThreadBase::Ptr pLogicalThread, Sender& parentSender )
+void LogicalThreadManager::spawnInitiatedLogicalThread( LogicalThreadBase::Ptr pLogicalThread )
 {
     // clang-format off
     boost::asio::spawn
     (
         m_ioContext, 
-        [pLogicalThread, &parentSender](boost::asio::yield_context yield_ctx)
+        [ pLogicalThread ](boost::asio::yield_context yield_ctx)
         {
-            LogicalThreadBase::RequestStack stack("spawnInitiatedLogicalThread", pLogicalThread, parentSender.getConnectionID());
+            LogicalThreadBase::RequestStack stack("spawnInitiatedLogicalThread", pLogicalThread, Sender::Ptr{} );
             pLogicalThread->run(yield_ctx);
         }
         // segmented stacks do NOT work on windows
@@ -99,12 +99,12 @@ void LogicalThreadManager::externalLogicalThreadInitiated( ExternalLogicalThread
     m_pExternalLogicalThread = pLogicalThread;
 }
 
-void LogicalThreadManager::logicalthreadInitiated( LogicalThreadBase::Ptr pLogicalThread, Sender& parentSender )
+void LogicalThreadManager::logicalthreadInitiated( LogicalThreadBase::Ptr pLogicalThread )
 {
     SPDLOG_TRACE( "LogicalThreadManager::logicalthreadInitiated: {} {}", m_strProcessName, pLogicalThread->getID() );
     WriteLock lock( m_mutex );
     m_logicalthreads.insert( std::make_pair( pLogicalThread->getID(), pLogicalThread ) );
-    spawnInitiatedLogicalThread( pLogicalThread, parentSender );
+    spawnInitiatedLogicalThread( pLogicalThread );
 }
 
 void LogicalThreadManager::logicalthreadJoined( LogicalThreadBase::Ptr pLogicalThread )
@@ -165,20 +165,15 @@ ExternalLogicalThread::Ptr LogicalThreadManager::getExternalLogicalThread() cons
     return m_pExternalLogicalThread;
 }
 
-void LogicalThreadManager::dispatch( const ReceivedMsg& msg )
+void LogicalThreadManager::dispatch( const ReceivedMessage& msg )
 {
-    // SPDLOG_TRACE( "LogicalThreadManager::dispatch: {} {}", m_strProcessName, msg.msg.getReceiverID() );
-    LogicalThreadBase::Ptr pLogicalThread = findExistingLogicalThread( msg.msg.getReceiverID() );
+    LogicalThreadBase::Ptr pLogicalThread = findExistingLogicalThread( msg.msg.getLogicalThreadID() );
     if( !pLogicalThread )
     {
-        pLogicalThread = joinLogicalThread( msg.connectionID, msg.msg );
+        pLogicalThread = joinLogicalThread( msg.msg );
         logicalthreadJoined( pLogicalThread );
     }
-    else
-    {
-        //
-    }
-    pLogicalThread->send( msg );
+    pLogicalThread->receive( msg );
 }
 
 } // namespace mega::network

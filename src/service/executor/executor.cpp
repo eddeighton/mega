@@ -50,14 +50,11 @@ Executor::Executor( boost::asio::io_context& io_context, U64 numThreads, short d
     , m_numThreads( numThreads )
     , m_processClock( processClock )
     , m_receiverChannel( m_io_context, *this )
-    , m_leaf(
-          [ &m_receiverChannel = m_receiverChannel ]()
-          {
-              m_receiverChannel.run( network::makeProcessName( network::Node::Leaf ) );
-              return m_receiverChannel.getSender();
-          }(),
-          nodeType, daemonPortNumber )
+    , m_leaf( m_receiverChannel.getSender(), nodeType, daemonPortNumber )
 {
+    m_receiverChannel.run( m_leaf.getLeafSender() );
+    m_leaf.startup();
+
     m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
         m_leaf.getMegastructureInstallation().getParserPath(), "g_parserSymbol" );
 
@@ -100,7 +97,7 @@ class ExecutorShutdown : public ExecutorRequestLogicalThread
 
 public:
     ExecutorShutdown( Executor& exe, std::promise< void >& promise, std::vector< Simulation::Ptr > simulations )
-        : ExecutorRequestLogicalThread( exe, exe.createLogicalThreadID(), {} )
+        : ExecutorRequestLogicalThread( exe, exe.createLogicalThreadID() )
         , m_promise( promise )
         , m_simulations( simulations )
     {
@@ -110,7 +107,7 @@ public:
         SPDLOG_TRACE( "ExecutorShutdown run" );
         for( Simulation::Ptr pSim : m_simulations )
         {
-            network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
+            network::sim::Request_Sender rq( *this, pSim, yield_ctx );
             rq.SimDestroyBlocking();
         }
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
@@ -125,10 +122,10 @@ void Executor::shutdown()
     if( !simulations.empty() )
     {
         SPDLOG_WARN( "Simulations still running when shutting executor down" );
-        std::promise< void >           promise;
-        std::future< void >            future = promise.get_future();
+        std::promise< void >            promise;
+        std::future< void >             future = promise.get_future();
         network::LogicalThreadBase::Ptr pShutdown( new ExecutorShutdown( *this, promise, simulations ) );
-        logicalthreadInitiated( pShutdown, getLeafSender() );
+        logicalthreadInitiated( pShutdown );
         future.get();
     }
 
@@ -136,12 +133,10 @@ void Executor::shutdown()
     SPDLOG_TRACE( "Executor shutdown completed" );
 }
 
-network::LogicalThreadBase::Ptr Executor::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                           const network::Message&      msg )
+network::LogicalThreadBase::Ptr Executor::joinLogicalThread( const network::Message& msg )
 {
-    SPDLOG_TRACE( "Executor::joinLogicalThread {}", msg.getReceiverID() );
-    return network::LogicalThreadBase::Ptr(
-        new ExecutorRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
+    SPDLOG_TRACE( "Executor::joinLogicalThread {}", msg.getLogicalThreadID() );
+    return network::LogicalThreadBase::Ptr( new ExecutorRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
 }
 
 void Executor::getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const
@@ -164,7 +159,7 @@ std::shared_ptr< Simulation > Executor::getSimulation( const mega::MPO& mpo ) co
         return Simulation::Ptr{};
 }
 
-mega::MPO Executor::createSimulation( network::LogicalThreadBase&  callingLogicalThread,
+mega::MPO Executor::createSimulation( network::LogicalThreadBase& callingLogicalThread,
                                       boost::asio::yield_context& yield_ctx )
 {
     Simulation::Ptr pSimulation;
@@ -175,18 +170,16 @@ mega::MPO Executor::createSimulation( network::LogicalThreadBase&  callingLogica
         SPDLOG_TRACE( "Executor::createSimulation {} {}", m_strProcessName, id );
         pSimulation = std::make_shared< Simulation >( *this, id, m_processClock );
         m_logicalthreads.insert( std::make_pair( pSimulation->getID(), pSimulation ) );
-        spawnInitiatedLogicalThread( pSimulation, getLeafSender() );
+        spawnInitiatedLogicalThread( pSimulation );
     }
 
-    network::sim::Request_Sender rq( callingLogicalThread, pSimulation->getID(), *pSimulation, yield_ctx );
+    network::sim::Request_Sender rq( callingLogicalThread, pSimulation, yield_ctx );
     const mega::MPO              simMPO = rq.SimCreate();
     SPDLOG_TRACE( "Executor::createSimulation SimCreate returned {}", simMPO );
-
     {
         WriteLock lock( m_mutex );
         m_simulations.insert( { simMPO, pSimulation } );
     }
-
     return simMPO;
 }
 

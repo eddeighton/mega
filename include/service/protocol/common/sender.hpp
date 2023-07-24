@@ -20,7 +20,6 @@
 #ifndef SENDER_1_JAN_2023
 #define SENDER_1_JAN_2023
 
-#include "logical_thread_id.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include <boost/asio/spawn.hpp>
@@ -30,17 +29,14 @@
 namespace mega::network
 {
 
-class Sender
+class Sender : public std::enable_shared_from_this< Sender >
 {
 public:
-    using Ptr         = std::unique_ptr< Sender >;
+    using Ptr         = std::shared_ptr< Sender >;
     virtual ~Sender() = 0;
 
-    virtual ConnectionID              getConnectionID() const                                           = 0;
+    virtual boost::system::error_code send( const Message& msg ) = 0;
     virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
-    virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx )
-        = 0;
 };
 
 }

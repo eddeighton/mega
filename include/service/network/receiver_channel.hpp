@@ -17,34 +17,45 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef ROOT_JOB_23_SEPT_2022
-#define ROOT_JOB_23_SEPT_2022
+#ifndef CHANNEL_16_JUNE_2022
+#define CHANNEL_16_JUNE_2022
 
-#include "request.hpp"
+#include "end_point.hpp"
+#include "receiver.hpp"
+#include "sender_factory.hpp"
 
-#include "service/network/log.hpp"
+#include <optional>
 
-#include "service/protocol/model/job.hxx"
-
-namespace mega::service
+namespace mega::network
 {
-class Root;
 
-class RootJobLogicalThread : public RootRequestLogicalThread
+class ReceiverChannel
 {
 public:
-    RootJobLogicalThread( Root&                          root,
-                         const network::LogicalThreadID& logicalthreadID );
+    ReceiverChannel( boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager )
+        : m_ioContext( ioContext )
+        , m_channel( ioContext )
+        , m_receiver( logicalthreadManager, m_channel )
+    {
+    }
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+    void run( Sender::Ptr pSender ) { m_receiver.run( m_ioContext, pSender ); }
 
-    // network::job::Impl
-    virtual void JobReadyForWork( const network::LogicalThreadID& rootLogicalThreadID,
-                                  boost::asio::yield_context&    yield_ctx ) override;
-    virtual void JobProgress( const std::string& message, boost::asio::yield_context& yield_ctx ) override;
+    void stop()
+    {
+        m_receiver.stop();
+        m_channel.cancel();
+        m_channel.close();
+    }
+
+    Sender::Ptr getSender() { return make_concurrent_channel_sender( m_channel ); }
+
+private:
+    boost::asio::io_context&  m_ioContext;
+    ConcurrentChannel         m_channel;
+    ConcurrentChannelReceiver m_receiver;
 };
 
-} // namespace mega::service
+} // namespace mega::network
 
-#endif // ROOT_JOB_23_SEPT_2022
+#endif // CHANNEL_16_JUNE_2022

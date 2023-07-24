@@ -28,9 +28,8 @@ namespace mega::service
 {
 
 RootJobLogicalThread::RootJobLogicalThread( Root&                          root,
-                                          const network::LogicalThreadID& logicalthreadID,
-                                          const network::ConnectionID&   originatingConnectionID )
-    : RootRequestLogicalThread( root, logicalthreadID, originatingConnectionID )
+                                          const network::LogicalThreadID& logicalthreadID )
+    : RootRequestLogicalThread( root, logicalthreadID )
 {
 }
 

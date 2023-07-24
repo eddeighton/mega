@@ -17,29 +17,33 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/protocol/common/logical_thread_base.hpp"
 
 #include "service/network/log.hpp"
 
 namespace mega::network
 {
+Sender::~Sender() = default;
+
+LogicalThreadBase::~LogicalThreadBase() = default;
 
 LogicalThreadBase::RequestStack::RequestStack( const char* pszMsg, LogicalThreadBase::Ptr pLogicalThread,
-                                              const ConnectionID& connectionID )
+                                               Sender::Ptr pRequestResponseSender )
     : m_pszMsg( pszMsg )
     //, m_startTime( std::chrono::steady_clock::now() )
     , pLogicalThread( pLogicalThread )
 {
-    // SPDLOG_DEBUG( "RequestStack::ctor prc:{} conv:{} conid:{} msg:{} stack:{}", pLogicalThread->getProcessName(), pLogicalThread->getID(), connectionID, m_pszMsg, pLogicalThread->getStackSize() + 1 );
-    pLogicalThread->requestStarted( connectionID );
+    // SPDLOG_DEBUG( "RequestStack::ctor prc:{} conv:{} conid:{} msg:{} stack:{}", pLogicalThread->getProcessName(),
+    // pLogicalThread->getID(), m_pszMsg, pLogicalThread->getStackSize() + 1 );
+    pLogicalThread->requestStarted( pRequestResponseSender );
 }
 LogicalThreadBase::RequestStack::~RequestStack()
 {
-    // SPDLOG_DEBUG( "RequestStack::dtor prc:{} conv:{} msg:{} stack:{}", pLogicalThread->getProcessName(), pLogicalThread->getID(), m_pszMsg, pLogicalThread->getStackSize() );
-    // const auto timeDelta = std::chrono::steady_clock::now() - m_startTime;
-    // SPDLOG_DEBUG( "{} {} {} {}", logicalthread.getProcessName(), logicalthread.getID(), m_pszMsg, timeDelta );
+    // SPDLOG_DEBUG( "RequestStack::dtor prc:{} conv:{} msg:{} stack:{}", pLogicalThread->getProcessName(),
+    // pLogicalThread->getID(), m_pszMsg, pLogicalThread->getStackSize() ); const auto timeDelta =
+    // std::chrono::steady_clock::now() - m_startTime; SPDLOG_DEBUG( "{} {} {} {}", logicalthread.getProcessName(),
+    // logicalthread.getID(), m_pszMsg, timeDelta );
     pLogicalThread->requestCompleted();
 }
 
-}
+} // namespace mega::network

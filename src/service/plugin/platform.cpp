@@ -29,7 +29,7 @@ namespace mega::service
 
 Platform::Platform( Executor& executor, const network::LogicalThreadID& logicalthreadID,
                     network::LogicalThreadBase& plugin )
-    : ExecutorRequestLogicalThread( executor, logicalthreadID, std::nullopt )
+    : ExecutorRequestLogicalThread( executor, logicalthreadID )
     , m_plugin( plugin )
 {
 }
@@ -42,61 +42,34 @@ network::Message Platform::dispatchRequest( const network::Message& msg, boost::
     return ExecutorRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
 
-void Platform::dispatchResponse( const network::ConnectionID& connectionID,
-                                 const network::Message&      msg,
-                                 boost::asio::yield_context&  yield_ctx )
-
-{
-    if( msg.getReceiverID() == m_plugin.getID() )
-    {
-        m_plugin.send( network::ReceivedMsg{ connectionID, msg } );
-    }
-    else
-    {
-        ExecutorRequestLogicalThread::dispatchResponse( connectionID, msg, yield_ctx );
-    }
-}
-
-void Platform::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                      boost::asio::yield_context& yield_ctx )
-{
-    if( msg.msg.getSenderID() == m_plugin.getID() )
-    {
-        m_plugin.sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-    else
-    {
-        ExecutorRequestLogicalThread::error( msg, strErrorMsg, yield_ctx );
-    }
-}
-
 void Platform::run( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "Platform::run" );
 
     m_pYieldContext = &yield_ctx;
 
-    network::platform::Request_Sender rq( *this, m_plugin.getID(), m_plugin, yield_ctx );
-
-    try
-    {
-        while( m_bRunning )
-        {
-            // update available networks
-            m_state.m_availableNetworks = { "Single Player" };
-
-            // send status update to plugin
-            m_bRunning = rq.PlatformStatus( m_state );
-        }
-    }
-    catch( std::exception& ex )
-    {
-        SPDLOG_ERROR( ex.what() );
-    }
-
-    dispatchRemaining( yield_ctx );
-    
-    SPDLOG_TRACE( "Platform::run complete" );
+    THROW_TODO;
+    //network::platform::Request_Sender rq( *this, m_plugin.getID(), m_plugin.shared_from_this(), yield_ctx );
+//
+    //try
+    //{
+    //    while( m_bRunning )
+    //    {
+    //        // update available networks
+    //        m_state.m_availableNetworks = { "Single Player" };
+//
+    //        // send status update to plugin
+    //        m_bRunning = rq.PlatformStatus( m_state );
+    //    }
+    //}
+    //catch( std::exception& ex )
+    //{
+    //    SPDLOG_ERROR( ex.what() );
+    //}
+//
+    //dispatchRemaining( yield_ctx );
+    //
+    //SPDLOG_TRACE( "Platform::run complete" );
 }
 
 } // namespace mega::service

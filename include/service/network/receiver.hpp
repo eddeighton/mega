@@ -35,6 +35,8 @@
 namespace mega::network
 {
 
+class Sender;
+
 class SocketReceiver
 {
 public:
@@ -43,11 +45,10 @@ public:
     ~SocketReceiver();
 
     template < typename TExecutor >
-    void run( TExecutor& strandOrIOContext, const ConnectionID& connectionID )
+    void run( TExecutor& strandOrIOContext, Sender::Ptr pSender )
     {
-        m_connectionID = connectionID;
         boost::asio::spawn(
-            strandOrIOContext, [ this ]( boost::asio::yield_context yield ) { receive( yield ); }
+            strandOrIOContext, [ this, pSender ]( boost::asio::yield_context yield ) { receive( pSender, yield ); }
         // segmented stacks do NOT work on windows
 #ifndef BOOST_USE_SEGMENTED_STACKS
             ,
@@ -58,11 +59,10 @@ public:
     void stop() { m_bContinue = false; }
 
 private:
-    void receive( boost::asio::yield_context& yield_ctx );
+    void receive( Sender::Ptr pSender, boost::asio::yield_context& yield_ctx );
     void onError( const boost::system::error_code& ec );
 
 private:
-    ConnectionID            m_connectionID;
     bool                    m_bContinue = true;
     LogicalThreadManager&   m_logicalthreadManager;
     Traits::Socket&         m_socket;
@@ -76,16 +76,15 @@ public:
     ~ConcurrentChannelReceiver();
 
     template < typename TExecutor >
-    void run( TExecutor& strandOrIOContext, const ConnectionID& connectionID )
+    void run( TExecutor& strandOrIOContext, Sender::Ptr pSender )
     {
-        m_connectionID                      = connectionID;
         ConcurrentChannelReceiver& receiver = *this;
         boost::asio::spawn(
             strandOrIOContext,
-            [ &receiver ]( boost::asio::yield_context yield )
+            [ &receiver, pSender ]( boost::asio::yield_context yield )
             {
                 //
-                receiver.receive( yield );
+                receiver.receive( pSender, yield );
             }
         // segmented stacks do NOT work on windows
 #ifndef BOOST_USE_SEGMENTED_STACKS
@@ -98,11 +97,10 @@ public:
     void stop() { m_bContinue = false; }
 
 private:
-    void receive( boost::asio::yield_context& yield_ctx );
+    void receive( Sender::Ptr pSender, boost::asio::yield_context& yield_ctx );
     void onError( const boost::system::error_code& ec );
 
 private:
-    ConnectionID          m_connectionID;
     bool                  m_bContinue = true;
     LogicalThreadManager& m_logicalthreadManager;
     ConcurrentChannel&    m_channel;

@@ -27,7 +27,6 @@ void LeafRequestLogicalThread::SetProject( const Project& project, boost::asio::
 {
     network::project::Request_Sender rq( *this, m_leaf.getNodeChannelSender(), yield_ctx );
     rq.SetProject( project );
-
     m_leaf.setActiveProject( project );
 }
 

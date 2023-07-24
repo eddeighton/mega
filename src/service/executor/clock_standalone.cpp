@@ -126,7 +126,7 @@ void ProcessClockStandalone::clock()
             using namespace network::sim;
             auto msg = MSG_SimClock_Response::make(
                 state.m_pSender->getID(), std::move( MSG_SimClock_Response{ m_clockTick } ) );
-            state.m_pSender->send( network::ReceivedMsg{ network::ConnectionID{}, std::move( msg ) } );
+            state.m_pSender->send( msg );
             state.m_type = State::eWaitingForRequest;
         }
     }

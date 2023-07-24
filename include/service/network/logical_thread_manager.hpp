@@ -42,24 +42,23 @@ public:
     const std::string&       getProcessName() const { return m_strProcessName; }
     boost::asio::io_context& getIOContext() const;
 
-    void onDisconnect( const ConnectionID& connectionID );
+    void onDisconnect();
 
     std::vector< LogicalThreadID > reportLogicalThreads() const;
     LogicalThreadID                createLogicalThreadID() const;
     void                           externalLogicalThreadInitiated( ExternalLogicalThread::Ptr pLogicalThread );
-    void         logicalthreadInitiated( LogicalThreadBase::Ptr pLogicalThread, Sender& parentSender );
+    void         logicalthreadInitiated( LogicalThreadBase::Ptr pLogicalThread );
     void         logicalthreadJoined( LogicalThreadBase::Ptr pLogicalThread );
     virtual void logicalthreadCompleted( LogicalThreadBase::Ptr pLogicalThread );
 
     LogicalThreadBase::Ptr     findExistingLogicalThread( const network::LogicalThreadID& logicalthreadID ) const;
     ExternalLogicalThread::Ptr getExternalLogicalThread() const;
 
-    virtual LogicalThreadBase::Ptr joinLogicalThread( const ConnectionID& originatingConnectionID, const Message& msg )
-        = 0;
-    virtual void dispatch( const ReceivedMsg& msg );
+    virtual LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg ) = 0;
+    virtual void                   dispatch( const ReceivedMessage& msg );
 
 protected:
-    void spawnInitiatedLogicalThread( LogicalThreadBase::Ptr pLogicalThread, Sender& parentSender );
+    void spawnInitiatedLogicalThread( LogicalThreadBase::Ptr pLogicalThread );
 
 protected:
     boost::asio::io_context&   m_ioContext;

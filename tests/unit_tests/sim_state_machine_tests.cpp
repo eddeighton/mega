@@ -33,9 +33,7 @@ using SM = mega::service::StateMachine;
 
 SM::Msg makeMsg( const mega::MPO& id, const mega::network::Message& msg )
 {
-    std::ostringstream os;
-    os << id;
-    return mega::network::ReceivedMsg{ os.str(), msg };
+    return mega::network::ReceivedMessage{ mega::network::Sender::Ptr{}, msg };
 }
 
 SM::Msg makeClock( const mega::MPO& id )

@@ -48,14 +48,10 @@ Python::Python( boost::asio::io_context& io_context, short daemonPortNumber )
     : network::LogicalThreadManager( network::makeProcessName( network::Node::Python ), io_context )
     , m_io_context( io_context )
     , m_receiverChannel( m_io_context, *this )
-    , m_leaf(
-          [ &m_receiverChannel = m_receiverChannel ]()
-          {
-              m_receiverChannel.run( network::makeProcessName( network::Node::Python ) );
-              return m_receiverChannel.getSender();
-          }(),
-          network::Node::Python, daemonPortNumber )
+    , m_leaf( m_receiverChannel.getSender(), network::Node::Python, daemonPortNumber )
 {
+    m_receiverChannel.run( m_leaf.getLeafSender() );
+    m_leaf.startup();
 }
 
 Python::~Python()
@@ -68,12 +64,9 @@ void Python::shutdown()
     // TODO ?
 }
 
-network::LogicalThreadBase::Ptr Python::joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                         const network::Message&      msg )
+network::LogicalThreadBase::Ptr Python::joinLogicalThread( const network::Message& msg )
 {
-    return network::LogicalThreadBase::Ptr(
-        new PythonRequestLogicalThread( *this, msg.getReceiverID(), originatingConnectionID ) );
+    return network::LogicalThreadBase::Ptr( new PythonRequestLogicalThread( *this, msg.getLogicalThreadID() ) );
 }
 
 } // namespace mega::service::python
-

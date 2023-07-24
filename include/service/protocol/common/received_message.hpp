@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,54 +18,22 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef CHANNEL_16_JUNE_2022
-#define CHANNEL_16_JUNE_2022
+#ifndef GUARD_2023_July_22_received_message
+#define GUARD_2023_July_22_received_message
 
-#include "end_point.hpp"
-#include "receiver.hpp"
-#include "sender_factory.hpp"
-
-#include <optional>
+#include "service/protocol/model/messages.hxx"
+#include "service/protocol/common/sender.hpp"
 
 namespace mega::network
 {
 
-class ReceiverChannel
+struct ReceivedMessage
 {
-public:
-    ReceiverChannel( boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager )
-        : m_ioContext( ioContext )
-        , m_channel( ioContext )
-        , m_receiver( logicalthreadManager, m_channel )
-    {
-    }
-
-    void run( const ConnectionID& connectionID )
-    {
-        m_connectionIDOpt = connectionID;
-        m_receiver.run( m_ioContext, m_connectionIDOpt.value() );
-    }
-
-    void stop()
-    {
-        m_receiver.stop();
-        m_channel.cancel();
-        m_channel.close();
-    }
-
-    Sender::Ptr getSender()
-    {
-        VERIFY_RTE( m_connectionIDOpt.has_value() );
-        return make_concurrent_channel_sender( m_channel, m_connectionIDOpt.value() );
-    }
-
-private:
-    boost::asio::io_context&      m_ioContext;
-    ConcurrentChannel             m_channel;
-    ConcurrentChannelReceiver     m_receiver;
-    std::optional< ConnectionID > m_connectionIDOpt;
+    // Sender with which to send response - may be null for response message
+    Sender::Ptr pResponseSender;
+    Message msg;
 };
 
 } // namespace mega::network
 
-#endif // CHANNEL_16_JUNE_2022
+#endif // GUARD_2023_July_22_received_message

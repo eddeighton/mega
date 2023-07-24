@@ -65,29 +65,27 @@ namespace mega::network
 
 class Message
 {
-    friend const void* getData( const Message& message );
-    friend void* getData( Message& message );
-    friend void    encode( boost::archive::binary_oarchive& archive, const Message& message );
-    friend Message decode( boost::archive::binary_iarchive& archive );
+    friend const void*  getData( const Message& message );
+    friend void*        getData( Message& message );
+    friend void         encode( boost::archive::binary_oarchive& archive, const Message& message );
+    friend Message      decode( boost::archive::binary_iarchive& archive );
 
-    MessageID      index = 0; // MSG_Error_Dispatch
-    LogicalThreadID sender, receiver;
+    MessageID               index = 0; // MSG_Error_Dispatch
+    LogicalThreadID         logicalThreadID;
     std::shared_ptr< void > data;
 
 public:
     Message() = default;
-    Message( MessageID index, LogicalThreadID sender, LogicalThreadID receiver, std::shared_ptr< void > data )
+    Message( MessageID index, LogicalThreadID logicalThreadID, std::shared_ptr< void > data )
         : index( index )
-        , sender( std::move( sender ) )
-        , receiver( std::move( receiver ) )
+        , logicalThreadID( std::move( logicalThreadID ) )
         , data( std::move( data ) )
     {
     }
 
-    MessageID             getID() const { return index; }
-    const LogicalThreadID& getReceiverID() const { return receiver; }
-    const LogicalThreadID& getSenderID() const { return sender; }
-    const char*           getName() const;
+    MessageID               getID() const { return index; }
+    const LogicalThreadID&  getLogicalThreadID() const { return logicalThreadID; }
+    const char*             getName() const;
 
     operator bool() const { return index != 0; }
 
@@ -97,12 +95,6 @@ public:
     template < typename Archive >
     void load( Archive& ar, const unsigned int version );
     BOOST_SERIALIZATION_SPLIT_MEMBER()
-};
-
-struct ReceivedMsg
-{
-    ConnectionID connectionID;
-    Message      msg;
 };
 
 {%for message in messages%}
@@ -117,8 +109,7 @@ struct {{ message.name }}
 {%for member in message.members%}
     {{ member.type }} {{ member.name }}; 
 {%endfor%}
-    static Message make( const LogicalThreadID& sender, const LogicalThreadID& receiver, {{ message.name }}&& msg );
-    static inline Message make( const LogicalThreadID& sender, {{ message.name }}&& msg ) { return make( sender, sender, std::move( msg ) ); }
+    static Message make( const LogicalThreadID& logicalThreadID, {{ message.name }}&& msg );
     static const {{ message.name }}& get( const Message& msg );
 };
 
@@ -126,7 +117,7 @@ struct {{ message.name }}
 {%endfor%}
 
 
-Message make_error_msg( const LogicalThreadID& receiver, const std::string& strErrorMsg );
+Message make_error_msg( const LogicalThreadID& logicalThreadID, const std::string& strErrorMsg );
 
 bool isRequest( const Message& msg );
 

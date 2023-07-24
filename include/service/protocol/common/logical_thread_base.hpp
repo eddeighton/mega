@@ -20,6 +20,7 @@
 #ifndef LOGICALTHREAD_BASE_5_JAN_2023
 #define LOGICALTHREAD_BASE_5_JAN_2023
 
+#include "service/protocol/common/received_message.hpp"
 #include "service/protocol/common/sender.hpp"
 #include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/model/messages.hxx"
@@ -41,25 +42,29 @@ class LogicalThreadManager;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-class LogicalThreadBase : public std::enable_shared_from_this< LogicalThreadBase >, public Sender
+class LogicalThreadBase : public Sender
 {
 public:
-    virtual ~LogicalThreadBase() = default;
-
     using Ptr = std::shared_ptr< LogicalThreadBase >;
-    using ID  = LogicalThreadID;
 
-    virtual const ID&          getID() const                                                          = 0;
-    virtual void               send( const ReceivedMsg& msg )                                         = 0;
-    virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
-    virtual void               run( boost::asio::yield_context& yield_ctx )                           = 0;
-    virtual const std::string& getProcessName() const                                                 = 0;
-    virtual U64                getStackSize() const                                                   = 0;
-    virtual void               onDisconnect( const ConnectionID& connectionID )                       = 0;
+    inline Ptr shared_from_this()
+    {
+        return std::dynamic_pointer_cast< LogicalThreadBase >( Sender::shared_from_this() );
+    }
+
+    virtual ~LogicalThreadBase();
+
+    virtual const LogicalThreadID& getID() const                                                          = 0;
+    virtual Message                dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
+    virtual const std::string&     getProcessName() const                                                 = 0;
+    virtual U64                    getStackSize() const                                                   = 0;
+    virtual void                   onDisconnect( Sender::Ptr pRequestResponseSender )                     = 0;
+    virtual void                   receive( const ReceivedMessage& msg )                                  = 0;
+    virtual void                   run( boost::asio::yield_context& yield_ctx )                           = 0;
 
 protected:
-    virtual void requestStarted( const ConnectionID& connectionID ) = 0;
-    virtual void requestCompleted()                                 = 0;
+    virtual void requestStarted( Sender::Ptr pRequestResponseSender ) = 0;
+    virtual void requestCompleted()                                   = 0;
 
 public:
     class RequestStack
@@ -71,12 +76,12 @@ public:
         RequestStack& operator=( RequestStack& ) = delete;
 
     public:
-        RequestStack( const char* pszMsg, LogicalThreadBase::Ptr pLogicalThread, const ConnectionID& connectionID );
+        RequestStack( const char* pszMsg, LogicalThreadBase::Ptr pLogicalThread, Sender::Ptr pRequestResponseSender );
         ~RequestStack();
     };
     friend class LogicalThreadBase::RequestStack;
 };
 
-}
+} // namespace mega::network
 
-#endif //LOGICALTHREAD_BASE_5_JAN_2023
+#endif // LOGICALTHREAD_BASE_5_JAN_2023

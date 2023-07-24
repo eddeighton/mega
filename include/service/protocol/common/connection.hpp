@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,34 +18,19 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef ROOT_JOB_23_SEPT_2022
-#define ROOT_JOB_23_SEPT_2022
+#ifndef GUARD_2023_July_22_connection
+#define GUARD_2023_July_22_connection
 
-#include "request.hpp"
+#include <memory>
 
-#include "service/network/log.hpp"
-
-#include "service/protocol/model/job.hxx"
-
-namespace mega::service
+namespace mega
 {
-class Root;
-
-class RootJobLogicalThread : public RootRequestLogicalThread
+class Connection
 {
 public:
-    RootJobLogicalThread( Root&                          root,
-                         const network::LogicalThreadID& logicalthreadID );
+    using Ptr = std::shared_ptr< Connection >;
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
-
-    // network::job::Impl
-    virtual void JobReadyForWork( const network::LogicalThreadID& rootLogicalThreadID,
-                                  boost::asio::yield_context&    yield_ctx ) override;
-    virtual void JobProgress( const std::string& message, boost::asio::yield_context& yield_ctx ) override;
 };
+}
 
-} // namespace mega::service
-
-#endif // ROOT_JOB_23_SEPT_2022
+#endif //GUARD_2023_July_22_connection

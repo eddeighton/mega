@@ -81,70 +81,56 @@ Plugin::~Plugin()
     }*/
 }
 
-network::ConnectionID Plugin::getConnectionID() const
+boost::system::error_code Plugin::send( const network::Message& msg )
 {
-    if( m_selfConnectionID.has_value() )
-        return m_selfConnectionID.value();
-    // synthesize a connectionID value
-    std::ostringstream os;
-    os << "self_" << getID();
-    m_selfConnectionID = os.str();
-    return m_selfConnectionID.value();
+    THROW_TODO;
 }
 
 boost::system::error_code Plugin::send( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
+    THROW_TODO;
     // SPDLOG_TRACE( "Plugin::send()" );
-    const network::ReceivedMsg rMsg{ getConnectionID(), msg };
+    /*const network::ReceivedMessage rMsg{ (), msg };
     send( rMsg );
-    return boost::system::error_code{};
-}
-
-void Plugin::sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg )
-{
-    SPDLOG_TRACE( "Plugin::sendErrorResponse()" );
-    const network::ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.getReceiverID(), strErrorMsg ) };
-    send( rMsg );
-}
-
-void Plugin::sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                boost::asio::yield_context& yield_ctx )
-{
-    sendErrorResponse( msg, strErrorMsg );
+    return boost::system::error_code{};*/
 }
 
 // ProcessClock
 void Plugin::setActiveProject( const Project& project, U64 unityDBHashCode )
 {
-    using namespace network::project;
-    const network::ReceivedMsg rMsg{
-        getConnectionID(),
+    THROW_TODO;
+    /*using namespace network::project;
+    const network::ReceivedMessage rMsg{
+        (),
         MSG_SetUnityProject_Request::make( getID(), MSG_SetUnityProject_Request{ project, unityDBHashCode } ) };
-    send( rMsg );
+    send( rMsg );*/
 }
 
 void Plugin::registerMPO( network::SenderRef sender )
 {
-    send( network::ReceivedMsg{
-        sender.m_pSender->getConnectionID(),
+    THROW_TODO;
+    /*send( network::ReceivedMessage{
+        sender.m_pSender->(),
         network::sim::MSG_SimRegister_Request::make(
-            sender.m_pSender->getID(), getID(), network::sim::MSG_SimRegister_Request{ std::move( sender ) } ) } );
+            sender.m_pSender->getID(), getID(), network::sim::MSG_SimRegister_Request{ std::move( sender ) } ) } );*/
 }
 
 void Plugin::unregisterMPO( network::SenderRef sender )
 {
-    send( network::ReceivedMsg{
-        sender.m_pSender->getConnectionID(),
+    THROW_TODO;
+    /*send( network::ReceivedMessage{
+        sender.m_pSender->(),
         network::sim::MSG_SimUnregister_Request::make(
-            sender.m_pSender->getID(), getID(), network::sim::MSG_SimUnregister_Request{ sender.m_mpo } ) } );
+            sender.m_pSender->getID(), getID(), network::sim::MSG_SimUnregister_Request{ sender.m_mpo } ) } );*/
 }
 
 void Plugin::requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range )
 {
-    send( network::ReceivedMsg{
-        pSender->getConnectionID(),
+    THROW_TODO;
+    /*send( network::ReceivedMessage{
+        pSender->(),
         network::sim::MSG_SimClock_Request::make(
-            pSender->getID(), getID(), network::sim::MSG_SimClock_Request{ mpo, std::move( range ) } ) } );
+            pSender->getID(), getID(), network::sim::MSG_SimClock_Request{ mpo, std::move( range ) } ) } );*/
 }
 
 // network::LogicalThreadBase
@@ -152,8 +138,8 @@ const network::LogicalThreadID& Plugin::getID() const
 {
     return m_conID;
 }
-
-void Plugin::send( const network::ReceivedMsg& msg )
+/*
+void Plugin::send( const network::ReceivedMessage& msg )
 {
     // SPDLOG_TRACE( "Plugin::send" );
     m_channel.async_send(
@@ -182,15 +168,15 @@ void Plugin::send( const network::ReceivedMsg& msg )
             }
         } );
 }
-
+*/
 void Plugin::runOne()
 {
     if( !tryRun() )
     {
-        std::promise< network::ReceivedMsg > pro;
-        std::future< network::ReceivedMsg >  fut = pro.get_future();
+        std::promise< network::ReceivedMessage > pro;
+        std::future< network::ReceivedMessage >  fut = pro.get_future();
         m_channel.async_receive(
-            [ &pro ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+            [ &pro ]( boost::system::error_code ec, const network::ReceivedMessage& msg )
             {
                 if( ec )
                 {
@@ -234,9 +220,9 @@ bool Plugin::tryRun()
     bool bDispatchedMsg = false;
     while( true )
     {
-        std::optional< network::ReceivedMsg > result;
+        std::optional< network::ReceivedMessage > result;
         m_channel.try_receive(
-            [ &optMsg = result ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
+            [ &optMsg = result ]( boost::system::error_code ec, const network::ReceivedMessage& msg )
             {
                 if( !ec )
                 {

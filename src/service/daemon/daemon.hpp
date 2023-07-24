@@ -46,14 +46,13 @@ public:
     void shutdown();
 
     // network::LogicalThreadManager
-    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Message&      msg );
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
     void                           setActiveProject( const Project& project );
     const std::optional< Project > getActiveProject() const { return m_activeProject; }
 
 private:
-    void onLeafDisconnect( const network::ConnectionID& connectionID, mega::MP mp );
+    void onLeafDisconnect( mega::MP mp );
 
     network::Client          m_rootClient;
     network::Server          m_server;

@@ -26,10 +26,12 @@
 namespace mega::service
 {
 
-LeafRequestLogicalThread::LeafRequestLogicalThread( Leaf& leaf, const network::LogicalThreadID& logicalthreadID,
-                                                  const network::ConnectionID& originatingConnectionID )
-    : InThreadLogicalThread( leaf, logicalthreadID, originatingConnectionID )
+LeafRequestLogicalThread::LeafRequestLogicalThread( Leaf& leaf, const network::LogicalThreadID& logicalthreadID )
+    : InThreadLogicalThread( leaf, logicalthreadID )
     , m_leaf( leaf )
+{
+}
+LeafRequestLogicalThread::~LeafRequestLogicalThread()
 {
 }
 
@@ -62,43 +64,6 @@ network::Message LeafRequestLogicalThread::dispatchRequest( const network::Messa
     if( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "LeafRequestLogicalThread::dispatchRequest failed on msg: " << msg );
-}
-
-void LeafRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID,
-                                                const network::Message&      msg,
-                                                boost::asio::yield_context&  yield_ctx )
-{
-    if( ( m_leaf.getNodeChannelSender().getConnectionID() == connectionID )
-        || ( m_leaf.m_pSelfSender->getConnectionID() == connectionID ) )
-    {
-        m_leaf.getNodeChannelSender().send( msg, yield_ctx );
-    }
-    else if( m_leaf.getDaemonSender().getConnectionID() == connectionID )
-    {
-        m_leaf.getDaemonSender().send( msg, yield_ctx );
-    }
-    else
-    {
-        SPDLOG_ERROR( "Leaf cannot resolve connection: {} on response: {}", connectionID, msg );
-    }
-}
-
-void LeafRequestLogicalThread::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                     boost::asio::yield_context& yield_ctx )
-{
-    if( ( m_leaf.getNodeChannelSender().getConnectionID() == msg.connectionID )
-        || ( m_leaf.m_pSelfSender->getConnectionID() == msg.connectionID ) )
-    {
-        m_leaf.getNodeChannelSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-    else if( m_leaf.getDaemonSender().getConnectionID() == msg.connectionID )
-    {
-        m_leaf.getDaemonSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-    else
-    {
-        SPDLOG_ERROR( "Leaf cannot resolve connection: {} on error: {}", msg.connectionID, strErrorMsg );
-    }
 }
 
 network::leaf_daemon::Request_Sender LeafRequestLogicalThread::getDaemonSender( boost::asio::yield_context& yield_ctx )

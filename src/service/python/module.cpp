@@ -302,7 +302,7 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
     {
         m_mpoLogicalThread = std::make_shared< MPOLogicalThread >(
             m_python, m_python.createLogicalThreadID() );
-        m_python.logicalthreadInitiated( m_mpoLogicalThread, m_python.getLeafSender() );
+        m_python.logicalthreadInitiated( m_mpoLogicalThread );
     }
 
     {

@@ -48,9 +48,7 @@ namespace mega::service
 class Plugin : public network::LogicalThreadBase, public ProcessClock
 {
     using MessageChannel
-        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, network::ReceivedMsg ) >;
-
-    mutable std::optional< network::ConnectionID > m_selfConnectionID;
+        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, network::ReceivedMessage ) >;
 
 public:
     using Ptr = std::shared_ptr< Plugin >;
@@ -65,12 +63,8 @@ public:
     Plugin& operator=( Plugin&& )      = delete;
 
     // Sender
-    virtual network::ConnectionID     getConnectionID() const override;
-    virtual boost::system::error_code send( const network::Message&     msg,
-                                            boost::asio::yield_context& yield_ctx ) override;
-    void         sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg );
-    virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx ) override;
+    virtual boost::system::error_code send( const network::Message& msg );
+    virtual boost::system::error_code send( const network::Message& msg, boost::asio::yield_context& yield_ctx );
 
     // ProcessClock
     virtual void setActiveProject( const Project& project, U64 dbHashCode ) override;
@@ -80,7 +74,6 @@ public:
 
     // network::LogicalThreadBase
     virtual const network::LogicalThreadID& getID() const override;
-    virtual void                           send( const network::ReceivedMsg& msg ) override;
 
     virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override
     {
@@ -89,21 +82,26 @@ public:
     virtual void               run( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
     virtual const std::string& getProcessName() const override { THROW_TODO; }
     virtual U64                getStackSize() const override { THROW_TODO; }
-    virtual void               onDisconnect( const network::ConnectionID& connectionID ) override { THROW_TODO; }
-    virtual void               requestStarted( const network::ConnectionID& connectionID ) override { ; }
+    virtual void               onDisconnect( network::Sender::Ptr pRequestResponseSender ) override { THROW_TODO; }
+    virtual void               requestStarted( network::Sender::Ptr pRequestResponseSender ) override { ; }
     virtual void               requestCompleted() override { ; }
 
-    void send( LogicalThreadBase& sender, network::Message&& requestMsg )
+    virtual void                   receive( const network::ReceivedMessage& msg )   override
     {
-        // SPDLOG_TRACE( "plugin::send: {}", requestMsg.getName() );
-        const network::ReceivedMsg rMsg{ sender.getConnectionID(), requestMsg };
-        sender.send( rMsg );
+        THROW_TODO;
     }
-    template < typename MsgType >
-    void send( LogicalThreadBase& sender, MsgType&& msg )
-    {
-        send( sender, MsgType::make( getID(), sender.getID(), std::move( msg ) ) );
-    }
+    /*
+        void send( LogicalThreadBase& sender, network::Message&& requestMsg )
+        {
+            // SPDLOG_TRACE( "plugin::send: {}", requestMsg.getName() );
+            const network::ReceivedMessage rMsg{ , requestMsg };
+            sender.send( rMsg );
+        }
+        template < typename MsgType >
+        void send( LogicalThreadBase& sender, MsgType&& msg )
+        {
+            send( sender, MsgType::make( getID(), sender.getID(), std::move( msg ) ) );
+        }*/
 
     U64         database_hashcode() { return m_databaseHashcode; }
     const char* database() { return m_strDatabasePath.c_str(); }
@@ -137,8 +135,8 @@ public:
 
 private:
     network::LogicalThreadID m_conID;
-    MessageChannel          m_channel;
-    mega::service::Executor m_executor;
+    MessageChannel           m_channel;
+    mega::service::Executor  m_executor;
     // Platform::Ptr                                m_pPlatform;
     // PlayerNetwork::Ptr                           m_pPlayerNetwork;
     // std::optional< network::PlatformState >      m_platformStateOpt;

@@ -25,7 +25,7 @@
 #include "service/network/client.hpp"
 #include "service/network/logical_thread_manager.hpp"
 #include "service/network/sender_factory.hpp"
-#include "service/network/channel.hpp"
+#include "service/network/receiver_channel.hpp"
 
 #include <boost/asio/io_service.hpp>
 
@@ -48,23 +48,26 @@ public:
     void runComplete();
 
     // network::LogicalThreadManager
-    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Message&      msg );
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
     using Functor = std::function< void( boost::asio::yield_context& yield_ctx ) >;
 
     void run( Functor& function );
 
-    network::Sender& getLeafSender() { return m_leaf; }
+    network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
 
-    MPO getMPO() const { VERIFY_RTE( m_mpo.has_value() ); return m_mpo.value(); }
+    MPO getMPO() const
+    {
+        VERIFY_RTE( m_mpo.has_value() );
+        return m_mpo.value();
+    }
     void setMPO( MPO mpo ) { m_mpo = mpo; }
 
 private:
-    boost::asio::io_context          m_io_context;
-    network::ReceiverChannel         m_receiverChannel;
-    Leaf                             m_leaf;
-    std::optional< mega::MPO >       m_mpo;
+    boost::asio::io_context    m_io_context;
+    network::ReceiverChannel   m_receiverChannel;
+    Leaf                       m_leaf;
+    std::optional< mega::MPO > m_mpo;
 };
 
 } // namespace mega::service

@@ -20,16 +20,11 @@
 #ifndef ENDPOINT_25_MAY_2022
 #define ENDPOINT_25_MAY_2022
 
-#include "network.hpp"
-
-#include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/experimental/concurrent_channel.hpp>
 #include <boost/asio/experimental/channel.hpp>
-
-#include <boost/archive/binary_oarchive.hpp>
 
 #include <cstddef>
 #include <vector>
@@ -43,7 +38,11 @@ using ConcurrentChannel
     = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, ChannelMsg ) >;
 using Channel = boost::asio::experimental::channel< void( boost::system::error_code, ChannelMsg ) >;
 
-ConnectionID makeConnectionID( Traits::Socket& socket );
+class EndPoint
+{
+public:
+    using Ptr = std::shared_ptr< EndPoint >;
+};
 
 } // namespace mega::network
 

@@ -37,16 +37,9 @@ namespace mega::network
 namespace {{ filename }}
 {
 
-Request_Encoder::Request_Encoder( Sender pSender, const LogicalThreadID& sender )
+Request_Encoder::Request_Encoder( SenderFunctor pSender, const LogicalThreadID& logicalThreadID )
     :   m_pSender( pSender )
-    ,   m_sender( sender )
-    ,   m_receiver( sender )
-{
-}
-Request_Encoder::Request_Encoder( Sender pSender, const LogicalThreadID& sender, const LogicalThreadID& receiver )
-    :   m_pSender( pSender )
-    ,   m_sender( sender )
-    ,   m_receiver( receiver )
+    ,   m_logicalThreadID( logicalThreadID )
 {
 }
 {% for request in requests %}
@@ -61,7 +54,7 @@ Request_Encoder::Request_Encoder( Sender pSender, const LogicalThreadID& sender,
 {
     Message result = m_pSender( MSG_{{ request.name }}_Request::make
     (
-        m_sender, m_receiver,
+        m_logicalThreadID,
         MSG_{{ request.name }}_Request
         {
 {%for p in request.params%}
@@ -75,23 +68,11 @@ Request_Encoder::Request_Encoder( Sender pSender, const LogicalThreadID& sender,
 }
 {% endfor %}
 
-Request_Sender::Request_Sender( LogicalThreadBase& _logicalthread_,
-                                Sender& _sender_,
-                                boost::asio::yield_context&   _yield_ctx_ )
+Request_Sender::Request_Sender( LogicalThreadBase&          _logicalthread_,
+                                std::shared_ptr< Sender >   _pSender,
+                                boost::asio::yield_context& _yield_ctx_ )
     : m_logicalthread( _logicalthread_ )
-    , m_receiver( m_logicalthread.getID() )
-    , m_sender( _sender_ )
-    , m_yield_ctx( _yield_ctx_ )
-{
-}
-
-Request_Sender::Request_Sender( LogicalThreadBase& _logicalthread_, 
-                                const LogicalThreadID& receiver,
-                                Sender& _sender_,
-                                boost::asio::yield_context&   _yield_ctx_ )
-    : m_logicalthread( _logicalthread_ )
-    , m_receiver( receiver )
-    , m_sender( _sender_ )
+    , m_pSender( _pSender )
     , m_yield_ctx( _yield_ctx_ )
 {
 }
@@ -108,13 +89,14 @@ Request_Sender::Request_Sender( LogicalThreadBase& _logicalthread_,
 {
     Message _response_;
     {
+        // make out-going request
         LogicalThreadBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
-            m_logicalthread.shared_from_this(), m_sender.getConnectionID() );
+            m_logicalthread.shared_from_this(), network::Sender::Ptr{} );
 
         {
             const Message _msg_ = MSG_{{ request.name }}_Request::make
             (
-                m_logicalthread.getID(), m_receiver,
+                m_logicalthread.getID(),
                 MSG_{{ request.name }}_Request
                 {
 {%for p in request.params%}
@@ -123,11 +105,25 @@ Request_Sender::Request_Sender( LogicalThreadBase& _logicalthread_,
                 }
             );
 
-            mega::_MPOContextStack _mpoStack;
-            if ( const boost::system::error_code ec = m_sender.send( _msg_, m_yield_ctx ) )
+            // if performing inter-thread communication then post a ReceivedMessage
+            // that has the responseSender of the calling thread
+            if( LogicalThreadBase::Ptr pInterThread = 
+                std::dynamic_pointer_cast< LogicalThreadBase >( m_pSender ) )
             {
-                THROW_RTE( "Error writing: " << ec.what() );
+                mega::_MPOContextStack _mpoStack;
+                ReceivedMessage _receivedMessage( m_logicalthread.shared_from_this(), _msg_ );
+                pInterThread->receive( _receivedMessage );
             }
+            else
+            {
+                // otherwise just send to the sender
+                mega::_MPOContextStack _mpoStack;
+                if ( const boost::system::error_code ec = m_pSender->send( _msg_, m_yield_ctx ) )
+                {
+                    THROW_RTE( "Error writing: " << ec.what() );
+                }
+            }
+
         }
 
         _response_ = m_logicalthread.dispatchRequestsUntilResponse( m_yield_ctx );
@@ -162,8 +158,7 @@ Request_Sender::Request_Sender( LogicalThreadBase& _logicalthread_,
 {% endfor %}
 
 
-External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, 
-                                    ExternalLogicalThread& receiver )
+External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, ExternalLogicalThread& receiver )
     : m_sender( sender )
     , m_receiver( receiver )
 {
@@ -179,8 +174,9 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender,
 {%endfor%} 
 )
 {
+    /*
     LogicalThreadBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
-        m_sender.shared_from_this(), m_sender.getConnectionID() );
+        m_sender.shared_from_this(), m_receiver.getSender() );
 
     {
         const Message _msg_ = MSG_{{ request.name }}_Request::make
@@ -194,11 +190,11 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender,
             }
         );
 
-        const network::ReceivedMsg rMsg{ m_receiver.getConnectionID(), _msg_ };
+        const network::ReceivedMessage rMsg{ m_receiver, _msg_ };
         m_sender.send( rMsg );
     }
 
-    const network::ReceivedMsg result = m_receiver.receive();
+    const network::ReceivedMessage result = m_receiver.receive();
 
     const Message _response_ = result.msg;
     if( _response_.getID() != {{ filename }}::MSG_{{ request.name }}_Response::ID )
@@ -227,6 +223,8 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender,
 {%if request.return_type != "void" %}
     return {{ filename }}::MSG_{{ request.name }}_Response::get( _response_ ).{{ request.return_msg_member }};
 {% endif %}
+    */
+    THROW_TODO;
 }
 {% endfor %}
 
@@ -250,13 +248,13 @@ Message Impl::dispatchRequest( const Message& _message_, boost::asio::yield_cont
             );
             return MSG_{{ request.name }}_Response::make
             (
-                _message_.getReceiverID(), _message_.getSenderID(),
+                _message_.getLogicalThreadID(),
                 MSG_{{ request.name }}_Response{}
             );
 {% else %}
             return MSG_{{ request.name }}_Response::make
             (
-                _message_.getReceiverID(), _message_.getSenderID(),
+                _message_.getLogicalThreadID(),
                 MSG_{{ request.name }}_Response
                 {
                     {{ request.name }}

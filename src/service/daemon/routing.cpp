@@ -26,16 +26,18 @@
 namespace mega::service
 {
 
-DaemonRequestLogicalThread::DaemonRequestLogicalThread( Daemon&                        daemon,
-                                                      const network::LogicalThreadID& logicalthreadID,
-                                                      const network::ConnectionID&   originatingConnectionID )
-    : InThreadLogicalThread( daemon, logicalthreadID, originatingConnectionID )
+DaemonRequestLogicalThread::DaemonRequestLogicalThread( Daemon&                         daemon,
+                                                        const network::LogicalThreadID& logicalthreadID )
+    : InThreadLogicalThread( daemon, logicalthreadID )
     , m_daemon( daemon )
+{
+}
+DaemonRequestLogicalThread::~DaemonRequestLogicalThread()
 {
 }
 
 network::Message DaemonRequestLogicalThread::dispatchRequest( const network::Message&     msg,
-                                                             boost::asio::yield_context& yield_ctx )
+                                                              boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
     if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
@@ -59,107 +61,71 @@ network::Message DaemonRequestLogicalThread::dispatchRequest( const network::Mes
     THROW_RTE( "DaemonRequestLogicalThread::dispatchRequest failed: " << msg.getName() );
 }
 
-void DaemonRequestLogicalThread::dispatchResponse( const network::ConnectionID& connectionID,
-                                                  const network::Message&      msg,
-                                                  boost::asio::yield_context&  yield_ctx )
-{
-    if( m_daemon.m_rootClient.getConnectionID() == connectionID )
-    {
-        m_daemon.m_rootClient.send( msg, yield_ctx );
-    }
-    else if( network::Server::Connection::Ptr pLeafConnection = m_daemon.m_server.getConnection( connectionID ) )
-    {
-        pLeafConnection->send( msg, yield_ctx );
-    }
-    else
-    {
-        SPDLOG_ERROR( "Daemon cannot resolve response connection: {}", connectionID );
-    }
-}
-
-void DaemonRequestLogicalThread::error( const network::ReceivedMsg& msg,
-                                       const std::string&          strErrorMsg,
-                                       boost::asio::yield_context& yield_ctx )
-{
-    if( m_daemon.m_rootClient.getConnectionID() == msg.connectionID )
-    {
-        m_daemon.m_rootClient.sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-    else if( network::Server::Connection::Ptr pLeafConnection = m_daemon.m_server.getConnection( msg.connectionID ) )
-    {
-        pLeafConnection->sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
-    else
-    {
-        SPDLOG_ERROR( "Daemon cannot resolve connection: {} on error: {}", msg.connectionID, strErrorMsg );
-    }
-}
-
 network::Message DaemonRequestLogicalThread::TermRoot( const network::Message&     request,
-                                                      boost::asio::yield_context& yield_ctx )
+                                                       boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::TermRoot" );
     return getRootSender( yield_ctx ).TermRoot( request );
 }
 
 network::Message DaemonRequestLogicalThread::ExeRoot( const network::Message&     request,
-                                                     boost::asio::yield_context& yield_ctx )
+                                                      boost::asio::yield_context& yield_ctx )
 {
     return getRootSender( yield_ctx ).ExeRoot( request );
 }
 
 network::Message DaemonRequestLogicalThread::ToolRoot( const network::Message&     request,
-                                                      boost::asio::yield_context& yield_ctx )
+                                                       boost::asio::yield_context& yield_ctx )
 {
     return getRootSender( yield_ctx ).ToolRoot( request );
 }
 
 network::Message DaemonRequestLogicalThread::ToolDaemon( const network::Message&     request,
-                                                        boost::asio::yield_context& yield_ctx )
+                                                         boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
 network::Message DaemonRequestLogicalThread::PythonRoot( const network::Message&     request,
-                                                        boost::asio::yield_context& yield_ctx )
+                                                         boost::asio::yield_context& yield_ctx )
 {
     return getRootSender( yield_ctx ).PythonRoot( request );
 }
 
 network::Message DaemonRequestLogicalThread::PythonDaemon( const network::Message&     request,
-                                                          boost::asio::yield_context& yield_ctx )
+                                                           boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 network::Message DaemonRequestLogicalThread::LeafRoot( const network::Message&     request,
-                                                      boost::asio::yield_context& yield_ctx )
+                                                       boost::asio::yield_context& yield_ctx )
 {
     return getRootSender( yield_ctx ).LeafRoot( request );
 }
 
 network::Message DaemonRequestLogicalThread::LeafDaemon( const network::Message&     request,
-                                                        boost::asio::yield_context& yield_ctx )
+                                                         boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
 network::Message DaemonRequestLogicalThread::ExeDaemon( const network::Message&     request,
-                                                       boost::asio::yield_context& yield_ctx )
+                                                        boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 
 // network::root_daemon::Impl
 network::Message DaemonRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
-                                                              boost::asio::yield_context& yield_ctx )
+                                                               boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::RootAllBroadcast" );
     // dispatch to children
     std::vector< network::Message > responses;
     {
-        for( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
+        for( auto pConnection : m_daemon.m_server.getConnections() )
         {
-            network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
+            network::daemon_leaf::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
             const network::Message               response = sender.RootAllBroadcast( request );
             responses.push_back( response );
         }
@@ -173,18 +139,18 @@ network::Message DaemonRequestLogicalThread::RootAllBroadcast( const network::Me
 }
 
 network::Message DaemonRequestLogicalThread::RootExeBroadcast( const network::Message&     request,
-                                                              boost::asio::yield_context& yield_ctx )
+                                                               boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestLogicalThread::RootExeBroadcast" );
     // dispatch to children
     std::vector< network::Message > responses;
     {
-        for( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
+        for( auto pConnection : m_daemon.m_server.getConnections() )
         {
             if( pConnection->getTypeOpt().value() == network::Node::Executor
                 || pConnection->getTypeOpt().value() == network::Node::Plugin )
             {
-                network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
+                network::daemon_leaf::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
                 const network::Message               response = sender.RootExeBroadcast( request );
                 responses.push_back( response );
             }
@@ -199,59 +165,59 @@ network::Message DaemonRequestLogicalThread::RootExeBroadcast( const network::Me
 }
 
 network::Message DaemonRequestLogicalThread::RootExe( const network::Message&     request,
-                                                     boost::asio::yield_context& yield_ctx )
+                                                      boost::asio::yield_context& yield_ctx )
 {
-    auto stackCon = getOriginatingEndPointID();
-    VERIFY_RTE( stackCon.has_value() );
-    auto pConnection = m_daemon.m_server.getConnection( stackCon.value() );
+    auto pOriginalRequestResponseSender = getOriginatingStackResponseSender();
+    VERIFY_RTE( pOriginalRequestResponseSender );
+    auto pConnection = m_daemon.m_server.getConnection( pOriginalRequestResponseSender );
     VERIFY_RTE( pConnection );
     VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor
                 || pConnection->getTypeOpt().value() == network::Node::Plugin );
-    network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
+    network::daemon_leaf::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
     return sender.RootExe( request );
 }
 
 // network::mpo::Impl
 network::Message DaemonRequestLogicalThread::MPRoot( const network::Message&     request,
-                                                    const MP&                   mp,
-                                                    boost::asio::yield_context& yield_ctx )
+                                                     const MP&                   mp,
+                                                     boost::asio::yield_context& yield_ctx )
 {
-    network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+    network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient.getSender(), yield_ctx );
     return sender.MPRoot( request, mp );
 }
 
 network::Message DaemonRequestLogicalThread::MPDown( const network::Message&     request,
-                                                    const MP&                   mp,
-                                                    boost::asio::yield_context& yield_ctx )
+                                                     const MP&                   mp,
+                                                     boost::asio::yield_context& yield_ctx )
 {
     network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp );
     VERIFY_RTE_MSG( pConnection, "Failed to locate connection for mp: " << mp );
-    network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
+    network::mpo::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
     return sender.MPDown( request, mp );
 }
 
 network::Message DaemonRequestLogicalThread::MPUp( const network::Message& request, const MP& mp,
-                                                  boost::asio::yield_context& yield_ctx )
+                                                   boost::asio::yield_context& yield_ctx )
 {
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp ) )
     {
-        network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
+        network::mpo::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
         return sender.MPDown( request, mp );
     }
     else
     {
-        network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+        network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient.getSender(), yield_ctx );
         return sender.MPUp( request, mp );
     }
 }
 
 network::Message DaemonRequestLogicalThread::MPODown( const network::Message&     request,
-                                                     const MPO&                  mpo,
-                                                     boost::asio::yield_context& yield_ctx )
+                                                      const MPO&                  mpo,
+                                                      boost::asio::yield_context& yield_ctx )
 {
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( mpo ) ) )
     {
-        network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
+        network::mpo::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
         return sender.MPODown( request, mpo );
     }
     else
@@ -261,17 +227,17 @@ network::Message DaemonRequestLogicalThread::MPODown( const network::Message&   
     }
 }
 network::Message DaemonRequestLogicalThread::MPOUp( const network::Message&     request,
-                                                   const MPO&                  mpo,
-                                                   boost::asio::yield_context& yield_ctx )
+                                                    const MPO&                  mpo,
+                                                    boost::asio::yield_context& yield_ctx )
 {
     if( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( MP( mpo ) ) )
     {
-        network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
+        network::mpo::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
         return sender.MPODown( request, mpo );
     }
     else
     {
-        network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+        network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient.getSender(), yield_ctx );
         return sender.MPOUp( request, mpo );
     }
 }

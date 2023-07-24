@@ -41,38 +41,28 @@ namespace mega::network
 class Server
 {
 public:
-    class Connection : public std::enable_shared_from_this< Connection >, public Sender
+    class Connection : public std::enable_shared_from_this< Connection >
     {
         friend class Server;
 
-        using DisconnectCallback = std::function< void( const ConnectionID& connectionID ) >;
+        using DisconnectCallback = std::function< void() >;
+        using Strand             = boost::asio::strand< boost::asio::io_context::executor_type >;
 
     public:
-        using Label  = std::variant< MachineID, MP, MPO >;
-        using Ptr    = std::shared_ptr< Connection >;
-        using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;
+        using Label = std::variant< MachineID, MP, MPO >;
+        using Ptr   = std::shared_ptr< Connection >;
 
         Connection( Server& server, boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager );
         ~Connection();
 
+        bool        isSender( Sender::Ptr pSender ) { return m_pSender == pSender; }
+        Sender::Ptr getSender() const { return m_pSender; }
+
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
         const std::optional< Label >&      getLabel() const { return m_labelOpt; }
-        const std::string&                 getName() const { return m_strName; }
 
         void setType( Node::Type type ) { m_typeOpt = type; }
         void setLabel( Label label ) { m_labelOpt = label; }
-
-        // Sender
-        virtual ConnectionID              getConnectionID() const { return m_pSender->getConnectionID(); }
-        virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
-        {
-            return m_pSender->send( msg, yield_ctx );
-        }
-        virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                        boost::asio::yield_context& yield_ctx )
-        {
-            m_pSender->sendErrorResponse( msg, strErrorMsg, yield_ctx );
-        }
 
         template < typename TFunctor >
         void setDisconnectCallback( TFunctor&& functor )
@@ -82,41 +72,49 @@ public:
         }
 
     protected:
-        const ConnectionID& getSocketConnectionID() const { return m_connectionID.value(); }
-        Strand&             getStrand() { return m_strand; }
-        Traits::Socket&     getSocket() { return m_socket; }
-        void                start();
-        void                stop();
-        void                disconnected();
+        Strand&         getStrand() { return m_strand; }
+        Traits::Socket& getSocket() { return m_socket; }
+        void            start();
+        void            stop();
+        void            disconnected();
 
     private:
         Server&                             m_server;
         Strand                              m_strand;
         Traits::Socket                      m_socket;
         SocketReceiver                      m_receiver;
-        std::optional< ConnectionID >       m_connectionID;
-        std::string                         m_strName;
         Sender::Ptr                         m_pSender;
         std::optional< Node::Type >         m_typeOpt;
         std::optional< DisconnectCallback > m_disconnectCallback;
         std::optional< Label >              m_labelOpt;
     };
 
-    using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;
+    using ConnectionMap = std::set< Connection::Ptr >;
 
 public:
     Server( boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager, short port );
 
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
-    Connection::Ptr          getConnection( const ConnectionID& connectionID );
     const ConnectionMap&     getConnections() const { return m_connections; }
+
+    Connection::Ptr getConnection( Sender::Ptr pSender )
+    {
+        for( auto pCon : m_connections )
+        {
+            if( pCon->isSender( pSender ) )
+            {
+                return pCon;
+            }
+        }
+        return {};
+    }
 
     using ConnectionLabelMap = std::map< Connection::Label, Connection::Ptr >;
 
     Connection::Ptr findConnection( Connection::Label label )
     {
         auto iFind = m_connectionLabels.find( label );
-        if ( iFind != m_connectionLabels.end() )
+        if( iFind != m_connectionLabels.end() )
             return iFind->second;
         else
             return {};
@@ -128,10 +126,7 @@ public:
         m_connectionLabels.insert( { label, pConnection } );
     }
 
-    void unLabelConnection( Connection::Label label ) 
-    { 
-        m_connectionLabels.erase( label ); 
-    }
+    void unLabelConnection( Connection::Label label ) { m_connectionLabels.erase( label ); }
 
     struct ConnectionLabelRAII
     {
@@ -155,7 +150,7 @@ public:
 
 private:
     boost::asio::io_context& m_ioContext;
-    LogicalThreadManager&     m_logicalthreadManager;
+    LogicalThreadManager&    m_logicalthreadManager;
     Traits::Acceptor         m_acceptor;
     ConnectionMap            m_connections;
     ConnectionLabelMap       m_connectionLabels;

@@ -55,8 +55,7 @@ public:
     void shutdown();
 
     // network::LogicalThreadManager
-    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Message&      msg );
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
     MegastructureInstallation GetMegastructureInstallation();
     Project                   GetProject();
@@ -75,23 +74,23 @@ public:
     std::string               PingMPO( const mega::MPO& mpo, const std::string& strMsg );
     void                      SimErrorCheck( const mega::MPO& mpo );
 
-    network::Sender& getLeafSender() { return m_leaf; }
+    network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
 
 private:
     using Router        = std::function< network::Message( const network::Message& ) >;
     using RouterFactory = std::function< Router(
-        network::LogicalThreadBase&, network::Sender&, boost::asio::yield_context& yield_ctx ) >;
+        network::LogicalThreadBase&, network::Sender::Ptr, boost::asio::yield_context& yield_ctx ) >;
 
     RouterFactory makeTermRoot();
     RouterFactory makeMP( mega::MP mp );
     RouterFactory makeMPO( mega::MPO mpo );
 
     network::Message routeGenericRequest( const network::LogicalThreadID& logicalthreadID,
-                                          const network::Message&        message,
-                                          RouterFactory                  router );
+                                          const network::Message&         message,
+                                          RouterFactory                   router );
 
     template < typename RequestType >
-    RequestType getRequest()
+    RequestType getRootRequest()
     {
         const network::LogicalThreadID logicalthreadID;
         using namespace std::placeholders;

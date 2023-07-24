@@ -63,7 +63,7 @@ ExecutorRequestLogicalThread::JobStart( const mega::utilities::ToolChain&       
 
     for ( JobLogicalThread::Ptr pJob : jobs )
     {
-        m_executor.logicalthreadInitiated( pJob, m_executor.getLeafSender() );
+        m_executor.logicalthreadInitiated( pJob );
     }
 
     return jobIDs;
@@ -72,7 +72,7 @@ ExecutorRequestLogicalThread::JobStart( const mega::utilities::ToolChain&       
 JobLogicalThread::JobLogicalThread( Executor& executor, const network::LogicalThreadID& logicalthreadID,
                                   mega::pipeline::Pipeline::Ptr  pPipeline,
                                   const network::LogicalThreadID& rootLogicalThreadID )
-    : ExecutorRequestLogicalThread( executor, logicalthreadID, std::nullopt )
+    : ExecutorRequestLogicalThread( executor, logicalthreadID )
     , m_pPipeline( pPipeline )
     , m_rootLogicalThreadID( rootLogicalThreadID )
 {

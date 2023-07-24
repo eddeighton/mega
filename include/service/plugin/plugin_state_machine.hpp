@@ -99,7 +99,8 @@ public:
         for( auto& [ mpo, state ] : m_sims )
         {
             ASSERT( state.m_type == State::eWaitingForUpstream );
-            m_sender.send( *state.m_pSender, network::sim::MSG_SimClock_Response{ clockTick } );
+            THROW_TODO;
+            // m_sender.send( *state.m_pSender, network::sim::MSG_SimClock_Response{ clockTick } );
             state.m_type = State::eWaitingForClock;
         }
     }

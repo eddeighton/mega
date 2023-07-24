@@ -53,74 +53,45 @@ namespace {{ filename }}
 class Request_Encoder
 {
 public:
-    using Sender = std::function< Message(const Message&) >;
-    Request_Encoder( Sender pSender, const LogicalThreadID& sender );
-    Request_Encoder( Sender pSender, const LogicalThreadID& sender, const LogicalThreadID& receiver );
+    using SenderFunctor = std::function< Message(const Message&) >;
+    Request_Encoder( SenderFunctor pSender, const LogicalThreadID& logicalThreadID );
 {% for request in requests %}
-    {{ request.return_type }} {{ request.name }}
-    (
-{%for p in request.params%}
-    const {{p.type}}& 
-    {{p.name}}
-    {% if not loop.is_last %}, {%endif%}
-{%endfor%}
-    );
+    {{ request.return_type }} {{ request.name }}({%for p in request.params%}const {{p.type}}& {{p.name}}{% if not loop.is_last %}, {%endif%}{%endfor%});
 {% endfor %}
 private:
-    Sender m_pSender;
-    const LogicalThreadID m_sender;
-    const LogicalThreadID m_receiver;
+    SenderFunctor m_pSender;
+    const LogicalThreadID m_logicalThreadID;
 };
 
 class Request_Sender
 {
 public:
-    Request_Sender( LogicalThreadBase& logicalthread,
-                    Sender& sender,
-                    boost::asio::yield_context&   yield_ctx );
-    Request_Sender( LogicalThreadBase& logicalthread, 
-                    const LogicalThreadID& receiver,
-                    Sender& sender,
-                    boost::asio::yield_context&   yield_ctx );
+    Request_Sender( LogicalThreadBase&          logicalthread,
+                    std::shared_ptr< Sender >   _pSender,
+                    boost::asio::yield_context& yield_ctx );
 
 {% for request in requests %}
-    {{ request.return_type }} {{ request.name }}
-    (
-{%for p in request.params%}
-    const {{p.type}}& 
-    {{p.name}}
-    {% if not loop.is_last %}, {%endif%}
-{%endfor%}
-    );
+    {{ request.return_type }} {{ request.name }}({%for p in request.params%}const {{p.type}}& {{p.name}}{% if not loop.is_last %}, {%endif%}{%endfor%});
 {% endfor %}
 
 private:
-    LogicalThreadBase&             m_logicalthread;
-    LogicalThreadID                m_receiver;
-    Sender&                       m_sender;
-    boost::asio::yield_context&   m_yield_ctx;
+    LogicalThreadBase&          m_logicalthread;
+    std::shared_ptr< Sender >   m_pSender;
+    boost::asio::yield_context& m_yield_ctx;
 };
 
 class External_Request_Sender
 {
 public:
-    External_Request_Sender( LogicalThreadBase& sender, 
-                    ExternalLogicalThread& receiver );
+    External_Request_Sender( LogicalThreadBase& sender, ExternalLogicalThread& receiver );
 
 {% for request in requests %}
-    {{ request.return_type }} {{ request.name }}
-    (
-{%for p in request.params%}
-    const {{p.type}}& 
-    {{p.name}}
-    {% if not loop.is_last %}, {%endif%}
-{%endfor%}
-    );
+    {{ request.return_type }} {{ request.name }}({%for p in request.params%}const {{p.type}}& {{p.name}}{% if not loop.is_last %}, {%endif%}{%endfor%});
 {% endfor %}
 
 private:
-    LogicalThreadBase& m_sender;
-    ExternalLogicalThread& m_receiver;
+    LogicalThreadBase&      m_sender;
+    ExternalLogicalThread&  m_receiver;
 };
 
 class Impl
@@ -129,14 +100,7 @@ public:
     Message dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx );
 
 {% for request in requests %}
-    virtual {{ request.return_type }} {{ request.name }}
-    (
-{%for p in request.params%}
-        const {{p.type}}& 
-        {{p.name}},
-{%endfor%}
-        boost::asio::yield_context& yield_ctx
-    ) 
+    virtual {{ request.return_type }} {{ request.name }}( {%for p in request.params%}const {{p.type}}& {{p.name}},{%endfor%}boost::asio::yield_context& yield_ctx ) 
     {
         THROW_RTE( "{{ request.name }} called when NOT implemented" );
     }

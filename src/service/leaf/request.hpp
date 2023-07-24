@@ -68,16 +68,11 @@ protected:
     Leaf& m_leaf;
 
 public:
-    LeafRequestLogicalThread( Leaf& leaf, const network::LogicalThreadID& logicalthreadID,
-                             const network::ConnectionID& originatingConnectionID );
+    LeafRequestLogicalThread( Leaf& leaf, const network::LogicalThreadID& logicalthreadID );
+    virtual ~LeafRequestLogicalThread();
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void             dispatchResponse( const network::ConnectionID& connectionID,
-                                               const network::Message&      msg,
-                                               boost::asio::yield_context&  yield_ctx ) override;
-    virtual void             error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx ) override;
 
     network::leaf_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx );
     network::leaf_exe::Request_Sender    getExeSender( boost::asio::yield_context& yield_ctx );

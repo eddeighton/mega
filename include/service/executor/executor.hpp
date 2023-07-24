@@ -66,10 +66,9 @@ public:
     U64 getNumThreads() const { return m_numThreads; }
 
     // network::LogicalThreadManager
-    network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                     const network::Message&      msg ) override;
+    network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg ) override;
 
-    network::Sender& getLeafSender() { return m_leaf; }
+    network::Sender::Ptr getLeafSender() { return m_leaf.getLeafSender(); }
 
     void                          getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const;
     std::shared_ptr< Simulation > getSimulation( const mega::MPO& mpo ) const;

@@ -42,7 +42,7 @@ namespace mega::service
 {
 
 Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logicalthreadID, ProcessClock& processClock )
-    : ExecutorRequestLogicalThread( executor, logicalthreadID, std::nullopt )
+    : ExecutorRequestLogicalThread( executor, logicalthreadID )
     , MPOContext( m_logicalthreadID )
     , m_processClock( processClock )
 {
@@ -180,7 +180,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 ASSERT( m_queueStack == 0 );
                 unqueue();
-                const network::ReceivedMsg msg = receiveDeferred( yield_ctx );
+                const network::ReceivedMessage msg = receiveDeferred( yield_ctx );
                 switch( StateMachine::getMsgID( msg ) )
                 {
                     case StateMachine::Read::ID:
@@ -271,7 +271,7 @@ void Simulation::unqueue()
     }
 }
 
-bool Simulation::queue( const network::ReceivedMsg& msg )
+bool Simulation::queue( const network::ReceivedMessage& msg )
 {
     if( m_bShuttingDown )
     {

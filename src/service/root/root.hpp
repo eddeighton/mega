@@ -48,8 +48,7 @@ public:
     void shutdown();
 
     // network::LogicalThreadManager
-    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Message&      msg );
+    virtual network::LogicalThreadBase::Ptr joinLogicalThread( const network::Message& msg );
 
     MegastructureInstallation getMegastructureInstallation();
     const Project&            getProject() const { return m_config.getProject(); }
@@ -62,7 +61,7 @@ private:
     void loadConfig();
     void saveConfig();
 
-    void onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MachineID machineID );
+    void onDaemonDisconnect( mega::MachineID machineID );
 
 private:
     network::Server                            m_server;

@@ -115,13 +115,15 @@ add_custom_command(
     )
 
 set( MEGA_PROTOCOL_COMMON_HEADERS
+    ${MEGA_API_DIR}/service/protocol/common/connection.hpp  
     ${MEGA_API_DIR}/service/protocol/common/context.hpp  
+    ${MEGA_API_DIR}/service/protocol/common/jit_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/logical_thread_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/logical_thread_id.hpp  
-    ${MEGA_API_DIR}/service/protocol/common/jit_base.hpp  
     ${MEGA_API_DIR}/service/protocol/common/mpo_context_interface.hpp  
     ${MEGA_API_DIR}/service/protocol/common/node.hpp
     ${MEGA_API_DIR}/service/protocol/common/platform_state.hpp
+    ${MEGA_API_DIR}/service/protocol/common/received_message.hpp  
     ${MEGA_API_DIR}/service/protocol/common/root_config.hpp
     ${MEGA_API_DIR}/service/protocol/common/sender_ref.hpp
     ${MEGA_API_DIR}/service/protocol/common/sender.hpp  

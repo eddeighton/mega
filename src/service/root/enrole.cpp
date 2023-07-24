@@ -35,11 +35,13 @@ namespace mega::service
 // network::enrole::Impl
 MachineID RootRequestLogicalThread::EnroleDaemon( boost::asio::yield_context& yield_ctx )
 {
+    auto pOriginalRequestResponseSender = getOriginatingStackResponseSender();
+    VERIFY_RTE( pOriginalRequestResponseSender );
     const MachineID machineID = m_root.m_mpoManager.newDaemon();
     SPDLOG_TRACE( "RootRequestLogicalThread::EnroleDaemon: {}", machineID );
-    network::Server::Connection::Ptr pConnection = m_root.m_server.getConnection( getOriginatingEndPointID().value() );
-    pConnection->setDisconnectCallback( [ machineID, &root = m_root ]( const network::ConnectionID& connectionID )
-                                        { root.onDaemonDisconnect( connectionID, machineID ); } );
+    network::Server::Connection::Ptr pConnection = m_root.m_server.getConnection( pOriginalRequestResponseSender );
+    pConnection->setDisconnectCallback( [ machineID, &root = m_root ]()
+                                        { root.onDaemonDisconnect( machineID ); } );
 
     network::Server::Connection::Label label{ machineID };
     VERIFY_RTE_MSG( std::get< MachineID >( label ) == machineID, "std::variant sucks!" );
@@ -70,14 +72,14 @@ void RootRequestLogicalThread::EnroleLeafDisconnect( const MP& mp, boost::asio::
     SPDLOG_TRACE( "RootRequestLogicalThread::EnroleLeafDisconnect {}", mp );
     const auto terminatedMPOS = m_root.m_mpoManager.leafDisconnected( mp );
 
-    auto stackCon = getOriginatingEndPointID();
-    VERIFY_RTE( stackCon.has_value() );
-    auto pConnection = m_root.m_server.getConnection( stackCon.value() );
+    auto pOriginalRequestResponseSender = getOriginatingStackResponseSender();
+    VERIFY_RTE( pOriginalRequestResponseSender );
+    auto pConnection = m_root.m_server.getConnection( pOriginalRequestResponseSender );
     VERIFY_RTE( pConnection );
     VERIFY_RTE( pConnection->getLabel().has_value() );
     VERIFY_RTE( std::get< MachineID >( pConnection->getLabel().value() ) == mp.getMachineID() );
 
-    network::memory::Request_Sender sender( *this, *pConnection, yield_ctx );
+    network::memory::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
     for( MPO mpo : terminatedMPOS )
     {
         sender.MPODestroyed( mpo );
@@ -105,7 +107,7 @@ MP RootRequestLogicalThread::EnroleCreateExecutor( const MachineID&            d
     network::Server::Connection::Label label{ daemonMachineID };
     auto                               pDaemonConnection = m_root.m_server.findConnection( label );
     VERIFY_RTE_MSG( pDaemonConnection, "Failed to locate daemon: " << daemonMachineID );
-    network::enrole::Request_Sender sender( *this, *pDaemonConnection, yield_ctx );
+    network::enrole::Request_Sender sender( *this, pDaemonConnection->getSender(), yield_ctx );
 
     const std::string strStartupUUID = common::uuid();
 
@@ -135,6 +137,7 @@ MP RootRequestLogicalThread::EnroleCreateExecutor( const MachineID&            d
         boost::asio::post( yield_ctx );
     }
     THROW_RTE( "Timeout waiting for executor to start on damon: " << daemonMachineID );
+    return {}; // warning
 }
 
 } // namespace mega::service

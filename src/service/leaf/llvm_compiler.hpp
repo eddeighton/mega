@@ -38,11 +38,11 @@ namespace service
 class LLVMCompilerImpl : public runtime::CodeGenerator::LLVMCompiler
 {
 public:
-    LLVMCompilerImpl( network::LogicalThreadBase& logicalthread, network::Sender& sender,
+    LLVMCompilerImpl( network::LogicalThreadBase& logicalthread, std::shared_ptr< mega::network::Sender > pSender,
                       const mega::MegastructureInstallation& megaInstall, const mega::Project& project,
                       boost::asio::yield_context& yield_ctx )
         : m_logicalthread( logicalthread )
-        , m_sender( sender )
+        , m_pSender( pSender )
         , m_megaInstall( megaInstall )
         , m_tempDir( project.getProjectTempDir() )
         , m_clangPath( megaInstall.getClangPath() )
@@ -65,12 +65,12 @@ public:
     bool restore( const std::string& filePath, mega::U64 determinant ) const;
 
 private:
-    network::LogicalThreadBase&      m_logicalthread;
-    network::Sender&                m_sender;
-    mega::MegastructureInstallation m_megaInstall;
-    boost::filesystem::path         m_clangPath;
-    boost::filesystem::path         m_tempDir;
-    boost::asio::yield_context&     m_yield_ctx;
+    network::LogicalThreadBase&              m_logicalthread;
+    std::shared_ptr< mega::network::Sender > m_pSender;
+    mega::MegastructureInstallation          m_megaInstall;
+    boost::filesystem::path                  m_clangPath;
+    boost::filesystem::path                  m_tempDir;
+    boost::asio::yield_context&              m_yield_ctx;
 };
 } // namespace service
 } // namespace mega

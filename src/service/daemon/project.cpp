@@ -28,9 +28,9 @@ namespace mega::service
 
 void DaemonRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
 {
-    for ( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
+    for ( auto pConnection : m_daemon.m_server.getConnections() )
     {
-        network::project::Request_Sender rq( *this, *pConnection, yield_ctx );
+        network::project::Request_Sender rq( *this, pConnection->getSender(), yield_ctx );
         rq.SetProject( project );
     }
 

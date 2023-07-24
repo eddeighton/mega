@@ -27,11 +27,8 @@
 namespace mega::service
 {
 
-RootSimulation::RootSimulation( Root&                          root,
-                                const network::LogicalThreadID& logicalthreadID,
-                                const network::ConnectionID&   originatingConnectionID,
-                                mega::MP                       leafMP )
-    : RootRequestLogicalThread( root, logicalthreadID, originatingConnectionID )
+RootSimulation::RootSimulation( Root& root, const network::LogicalThreadID& logicalthreadID, mega::MP leafMP )
+    : RootRequestLogicalThread( root, logicalthreadID )
     , m_leafMP( leafMP )
 {
 }
@@ -39,7 +36,7 @@ RootSimulation::RootSimulation( Root&                          root,
 network::Message RootSimulation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if ( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     return RootRequestLogicalThread::dispatchRequest( msg, yield_ctx );
 }
@@ -51,23 +48,23 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
     SPDLOG_TRACE( "RootSimulation::SimStart: {}", simulationMPO );
 
     {
-        auto stackCon = getOriginatingEndPointID();
-        VERIFY_RTE( stackCon.has_value() );
-        auto pConnection = m_root.m_server.getConnection( stackCon.value() );
+        auto pOriginalRequestResponseSender = getOriginatingStackResponseSender();
+        VERIFY_RTE( pOriginalRequestResponseSender );
+        auto pConnection = m_root.m_server.getConnection( pOriginalRequestResponseSender);
         VERIFY_RTE( pConnection );
 
         // simulation runs entirely on the stack in this scope!
         {
             // network::Server::ConnectionLabelRAII connectionLabel( m_root.m_server, simulationMPO, pConnection );
-            network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
+            network::root_daemon::Request_Sender sender( *this, pConnection->getSender(), yield_ctx );
             SPDLOG_TRACE( "RootSimulation::SimStart: sending RootSimRun for {}", simulationMPO );
             sender.RootSimRun( m_root.getProject(), simulationMPO );
         }
 
         // notify to release
-        for ( auto& [ id, pCon ] : m_root.m_server.getConnections() )
+        for( auto pCon : m_root.m_server.getConnections() )
         {
-            network::memory::Request_Sender sender( *this, *pCon, yield_ctx );
+            network::memory::Request_Sender sender( *this, pCon->getSender(), yield_ctx );
             sender.MPODestroyed( simulationMPO );
         }
     }

@@ -40,7 +40,7 @@
 namespace mega::network
 {
 
-class Client : public Sender
+class Client
 {
     using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;
 
@@ -50,21 +50,10 @@ public:
     ~Client();
 
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
+    Sender::Ptr              getSender() const { return m_pSender; }
 
     void stop();
     void disconnected();
-
-    // Sender
-    virtual ConnectionID              getConnectionID() const { return m_pSender->getConnectionID(); }
-    virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
-    {
-        return m_pSender->send( msg, yield_ctx );
-    }
-    virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
-                                    boost::asio::yield_context& yield_ctx )
-    {
-        m_pSender->sendErrorResponse( msg, strErrorMsg, yield_ctx );
-    }
 
 private:
     boost::asio::io_context& m_ioContext;
@@ -73,7 +62,6 @@ private:
     Traits::Socket           m_socket;
     Traits::EndPoint         m_endPoint;
     SocketReceiver           m_receiver;
-    ConnectionID             m_connectionID;
     Sender::Ptr              m_pSender;
 };
 
