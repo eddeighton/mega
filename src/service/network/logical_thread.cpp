@@ -34,126 +34,16 @@
 namespace mega::network
 {
 
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
 LogicalThread::LogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID )
-    : m_logicalthreadManager( logicalthreadManager )
-    , m_logicalthreadID( logicalthreadID )
+    : LogicalThreadBase( logicalthreadManager, logicalthreadID )
 {
-}
-
-boost::system::error_code LogicalThread::send( const Message& responseMessage )
-{
-    VERIFY_RTE_MSG(
-        !network::isRequest( responseMessage ), "Logical thread sent request: " << responseMessage.getName() );
-    ReceivedMessage    receivedMessage{ Sender::Ptr{}, responseMessage };
-    LogicalThreadBase* pThis = this;
-    pThis->receive( receivedMessage );
-    return {};
-}
-
-boost::system::error_code LogicalThread::send( const Message& responseMessage, boost::asio::yield_context& )
-{
-    VERIFY_RTE_MSG(
-        !network::isRequest( responseMessage ), "Logical thread sent request: " << responseMessage.getName() );
-    ReceivedMessage    receivedMessage{ Sender::Ptr{}, responseMessage };
-    LogicalThreadBase* pThis = this;
-    pThis->receive( receivedMessage );
-    return {};
-}
-
-void LogicalThread::requestStarted( Sender::Ptr pRequestResponseSender )
-{
-    //
-    m_stack.push_back( pRequestResponseSender );
-}
-
-void LogicalThread::requestCompleted()
-{
-    VERIFY_RTE( !m_stack.empty() );
-    m_stack.pop_back();
-    if( m_stack.empty() )
-    {
-        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
-    }
 }
 
 ReceivedMessage LogicalThread::receiveDeferred( boost::asio::yield_context& yield_ctx )
 {
-    ReceivedMessage msg;
-    while( true )
-    {
-        if( m_bEnableQueueing && !m_unqueuedMessages.empty() )
-        {
-            msg = m_unqueuedMessages.back();
-            m_unqueuedMessages.pop_back();
-        }
-        else
-        {
-            msg = receive( yield_ctx );
-        }
-        if( m_bEnableQueueing )
-        {
-            if( !queue( msg ) )
-            {
-                return msg;
-            }
-        }
-        else
-        {
-            return msg;
-        }
-    }
-}
-
-bool LogicalThread::queue( const ReceivedMessage& msg )
-{
-    if( m_bQueueing )
-    {
-        m_deferedMessages.push_back( msg );
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-void LogicalThread::unqueue()
-{
-    if( m_bEnableQueueing )
-    {
-        m_bQueueing = false;
-        VERIFY_RTE( m_unqueuedMessages.empty() );
-        m_deferedMessages.swap( m_unqueuedMessages );
-        std::reverse( m_unqueuedMessages.begin(), m_unqueuedMessages.end() );
-    }
-}
-
-void LogicalThread::run( boost::asio::yield_context& yield_ctx )
-{
-    try
-    {
-        do
-        {
-            run_one( yield_ctx );
-        } while( !m_stack.empty() );
-    }
-    catch( std::exception& ex )
-    {
-        SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
-        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
-    }
-    catch( mega::runtime::JITException& ex )
-    {
-        SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
-        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
-    }
-}
-
-void LogicalThread::run_one( boost::asio::yield_context& yield_ctx )
-{
-    unqueue();
-    const ReceivedMessage msg = receiveDeferred( yield_ctx );
-    acknowledgeInboundRequest( msg, yield_ctx );
+    return receive( yield_ctx );
 }
 
 Message LogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
@@ -169,16 +59,7 @@ Message LogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_
         }
         else if( msg.msg.getID() == MSG_Error_Disconnect::ID )
         {
-            // ignor the disconnect unless for active sender
-            ASSERT( msg.pResponseSender );
-
-            for( auto pActiveSender : m_stack )
-            {
-                if( pActiveSender == msg.pResponseSender )
-                {
-                    throw std::runtime_error( MSG_Error_Disconnect::get( msg.msg ).what );
-                }
-            }
+            throw std::runtime_error( MSG_Error_Disconnect::get( msg.msg ).what );
         }
         else
         {
@@ -190,35 +71,6 @@ Message LogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_
         throw std::runtime_error( MSG_Error_Response::get( msg.msg ).what );
     }
     return msg.msg;
-}
-
-void LogicalThread::acknowledgeInboundRequest( const ReceivedMessage& msg, boost::asio::yield_context& yield_ctx )
-{
-    // handling in-coming request
-    LogicalThreadBase::InBoundRequestStack stack( shared_from_this(), msg.pResponseSender );
-    try
-    {
-        VERIFY_RTE_MSG( isRequest( msg.msg ), "Dispatch request got response: " << msg.msg );
-        network::Message response = dispatchInBoundRequest( msg.msg, yield_ctx );
-        if( !response )
-        {
-            SPDLOG_ERROR( "Failed to dispatch request: {} on logicalthread: {}", msg.msg, getID() );
-            THROW_RTE( "Failed to dispatch request message: " << msg.msg );
-        }
-        else
-        {
-            ASSERT( msg.pResponseSender );
-            msg.pResponseSender->send( response, yield_ctx );
-        }
-    }
-    catch( std::exception& ex )
-    {
-        msg.pResponseSender->send( make_response_error_msg( getID(), ex.what() ), yield_ctx );
-    }
-    catch( mega::runtime::JITException& ex )
-    {
-        msg.pResponseSender->send( make_response_error_msg( getID(), ex.what() ), yield_ctx );
-    }
 }
 
 void LogicalThread::dispatchRemaining( boost::asio::yield_context& yield_ctx )
@@ -254,11 +106,206 @@ void LogicalThread::dispatchRemaining( boost::asio::yield_context& yield_ctx )
     }
 }
 
+void LogicalThread::acknowledgeInboundRequest( const ReceivedMessage& msg, boost::asio::yield_context& yield_ctx )
+{
+    // handling in-coming request
+    LogicalThreadBase::InBoundRequestStack stack( shared_from_this(), msg.pResponseSender );
+    try
+    {
+        VERIFY_RTE_MSG( isRequest( msg.msg ), "Dispatch request got response: " << msg.msg );
+        network::Message response = dispatchInBoundRequest( msg.msg, yield_ctx );
+        if( !response )
+        {
+            SPDLOG_ERROR( "Failed to dispatch request: {} on logicalthread: {}", msg.msg, getID() );
+            THROW_RTE( "Failed to dispatch request message: " << msg.msg );
+        }
+        else
+        {
+            ASSERT( msg.pResponseSender );
+            msg.pResponseSender->send( response, yield_ctx );
+        }
+    }
+    catch( std::exception& ex )
+    {
+        msg.pResponseSender->send( make_response_error_msg( getID(), ex.what() ), yield_ctx );
+    }
+    catch( mega::runtime::JITException& ex )
+    {
+        msg.pResponseSender->send( make_response_error_msg( getID(), ex.what() ), yield_ctx );
+    }
+}
+
+
+void LogicalThread::run( boost::asio::yield_context& yield_ctx )
+{
+    try
+    {
+        run_one( yield_ctx );
+    }
+    catch( std::exception& ex )
+    {
+        SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
+        getThreadManager().logicalthreadCompleted( shared_from_this() );
+    }
+    catch( mega::runtime::JITException& ex )
+    {
+        SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
+        getThreadManager().logicalthreadCompleted( shared_from_this() );
+    }
+}
+
+void LogicalThread::run_one( boost::asio::yield_context& yield_ctx )
+{
+    const ReceivedMessage msg = receiveDeferred( yield_ctx );
+    acknowledgeInboundRequest( msg, yield_ctx );
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+StackfulLogicalThread::StackfulLogicalThread( LogicalThreadManager& logicalthreadManager, const LogicalThreadID& logicalthreadID )
+:   LogicalThread( logicalthreadManager, logicalthreadID )
+{
+
+}
+
+void StackfulLogicalThread::requestStarted( Sender::Ptr pRequestResponseSender )
+{
+    //
+    m_stack.push_back( pRequestResponseSender );
+}
+
+void StackfulLogicalThread::requestCompleted()
+{
+    VERIFY_RTE( !m_stack.empty() );
+    m_stack.pop_back();
+    if( m_stack.empty() )
+    {
+        getThreadManager().logicalthreadCompleted( shared_from_this() );
+    }
+}
+
+ReceivedMessage StackfulLogicalThread::receiveDeferred( boost::asio::yield_context& yield_ctx )
+{
+    ReceivedMessage msg;
+    while( true )
+    {
+        if( m_bEnableQueueing && !m_unqueuedMessages.empty() )
+        {
+            msg = m_unqueuedMessages.back();
+            m_unqueuedMessages.pop_back();
+        }
+        else
+        {
+            msg = receive( yield_ctx );
+        }
+        if( m_bEnableQueueing )
+        {
+            if( !queue( msg ) )
+            {
+                return msg;
+            }
+        }
+        else
+        {
+            return msg;
+        }
+    }
+}
+
+Message StackfulLogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+{
+    ReceivedMessage msg;
+    while( true )
+    {
+        msg = receiveDeferred( yield_ctx );
+
+        if( isRequest( msg.msg ) )
+        {
+            acknowledgeInboundRequest( msg, yield_ctx );
+        }
+        else if( msg.msg.getID() == MSG_Error_Disconnect::ID )
+        {
+            // ignor the disconnect unless for active sender
+            ASSERT( msg.pResponseSender );
+
+            for( auto pActiveSender : m_stack )
+            {
+                if( pActiveSender == msg.pResponseSender )
+                {
+                    throw std::runtime_error( MSG_Error_Disconnect::get( msg.msg ).what );
+                }
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+    if( msg.msg.getID() == MSG_Error_Response::ID )
+    {
+        throw std::runtime_error( MSG_Error_Response::get( msg.msg ).what );
+    }
+    return msg.msg;
+}
+
+bool StackfulLogicalThread::queue( const ReceivedMessage& msg )
+{
+    if( m_bQueueing )
+    {
+        m_deferedMessages.push_back( msg );
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void StackfulLogicalThread::unqueue()
+{
+    if( m_bEnableQueueing )
+    {
+        m_bQueueing = false;
+        VERIFY_RTE( m_unqueuedMessages.empty() );
+        m_deferedMessages.swap( m_unqueuedMessages );
+        std::reverse( m_unqueuedMessages.begin(), m_unqueuedMessages.end() );
+    }
+}
+
+
+void StackfulLogicalThread::run( boost::asio::yield_context& yield_ctx )
+{
+    try
+    {
+        do
+        {
+            run_one( yield_ctx );
+        } while( !m_stack.empty() );
+    }
+    catch( std::exception& ex )
+    {
+        SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
+        getThreadManager().logicalthreadCompleted( shared_from_this() );
+    }
+    catch( mega::runtime::JITException& ex )
+    {
+        SPDLOG_WARN( "LogicalThread: {} exception: {}", getID(), ex.what() );
+        getThreadManager().logicalthreadCompleted( shared_from_this() );
+    }
+}
+
+void StackfulLogicalThread::run_one( boost::asio::yield_context& yield_ctx )
+{
+    unqueue();
+    const ReceivedMessage msg = receiveDeferred( yield_ctx );
+    acknowledgeInboundRequest( msg, yield_ctx );
+}
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 InThreadLogicalThread::InThreadLogicalThread( LogicalThreadManager&  logicalthreadManager,
                                               const LogicalThreadID& logicalthreadID )
-    : LogicalThread( logicalthreadManager, logicalthreadID )
+    : StackfulLogicalThread( logicalthreadManager, logicalthreadID )
     , m_channel( logicalthreadManager.getIOContext() )
 {
 }
@@ -322,7 +369,7 @@ void InThreadLogicalThread::receive( const ReceivedMessage& msg )
 ////////////////////////////////////////////////////////////////////////
 ConcurrentLogicalThread::ConcurrentLogicalThread( LogicalThreadManager&  logicalthreadManager,
                                                   const LogicalThreadID& logicalthreadID )
-    : LogicalThread( logicalthreadManager, logicalthreadID )
+    : StackfulLogicalThread( logicalthreadManager, logicalthreadID )
     , m_channel( logicalthreadManager.getIOContext() )
 {
 }
@@ -385,11 +432,10 @@ void ConcurrentLogicalThread::receive( const ReceivedMessage& msg )
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-ExternalLogicalThread::ExternalLogicalThread( LogicalThreadManager&    logicalthreadManager,
-                                              const LogicalThreadID&   logicalthreadID,
+ExternalLogicalThread::ExternalLogicalThread( LogicalThreadManager&    logicalThreadManager,
+                                              const LogicalThreadID&   logicalThreadID,
                                               boost::asio::io_context& ioContext )
-    : m_logicalthreadManager( logicalthreadManager )
-    , m_logicalthreadID( logicalthreadID )
+    : LogicalThreadBase( logicalThreadManager, logicalThreadID )
     , m_ioContext( ioContext )
     , m_channel( m_ioContext )
 {

@@ -23,6 +23,8 @@
 
 #include "jit/code_generator.hpp"
 
+#include "service/network/logical_thread.hpp"
+
 #include <boost/filesystem/operations.hpp>
 
 namespace mega
@@ -38,7 +40,7 @@ namespace service
 class LLVMCompilerImpl : public runtime::CodeGenerator::LLVMCompiler
 {
 public:
-    LLVMCompilerImpl( network::LogicalThreadBase& logicalthread, std::shared_ptr< mega::network::Sender > pSender,
+    LLVMCompilerImpl( network::LogicalThread& logicalthread, std::shared_ptr< mega::network::Sender > pSender,
                       const mega::MegastructureInstallation& megaInstall, const mega::Project& project,
                       boost::asio::yield_context& yield_ctx )
         : m_logicalthread( logicalthread )
@@ -65,7 +67,7 @@ public:
     bool restore( const std::string& filePath, mega::U64 determinant ) const;
 
 private:
-    network::LogicalThreadBase&              m_logicalthread;
+    network::LogicalThread&                  m_logicalthread;
     std::shared_ptr< mega::network::Sender > m_pSender;
     mega::MegastructureInstallation          m_megaInstall;
     boost::filesystem::path                  m_clangPath;

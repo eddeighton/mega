@@ -43,7 +43,7 @@ namespace mega::network
 {
 SocketReceiver::SocketReceiver( LogicalThreadManager& logicalthreadManager, Traits::Socket& socket,
                                 std::function< void() > disconnectHandler )
-    : m_logicalthreadManager( logicalthreadManager )
+    : m_logicalThreadManager( logicalthreadManager )
     , m_socket( socket )
     , m_disconnectHandler( std::move( disconnectHandler ) )
 {
@@ -130,7 +130,7 @@ void SocketReceiver::receive( Sender::Ptr pSender, boost::asio::yield_context& y
                         decode( is, msg );
                     }
                     const ReceivedMessage receivedMsg{ pSender, std::move( msg ) };
-                    m_logicalthreadManager.dispatch( receivedMsg );
+                    m_logicalThreadManager.dispatch( receivedMsg );
                 }
                 else // if( ec.failed() )
                 {
@@ -145,7 +145,7 @@ void SocketReceiver::receive( Sender::Ptr pSender, boost::asio::yield_context& y
 
 ConcurrentChannelReceiver::ConcurrentChannelReceiver( LogicalThreadManager& logicalthreadManager,
                                                       ConcurrentChannel&    channel )
-    : m_logicalthreadManager( logicalthreadManager )
+    : m_logicalThreadManager( logicalthreadManager )
     , m_channel( channel )
 {
 }
@@ -190,7 +190,7 @@ void ConcurrentChannelReceiver::receive( Sender::Ptr pSender, boost::asio::yield
             if( !ec )
             {
                 receivedMsg = ReceivedMessage{ pSender, msg };
-                m_logicalthreadManager.dispatch( receivedMsg );
+                m_logicalThreadManager.dispatch( receivedMsg );
             }
             else
             {

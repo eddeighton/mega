@@ -83,6 +83,7 @@ def getFirstRoot():
 mega = megastructure
 
 REMOVE = mega.WriteOperation.REMOVE
+RESET = mega.WriteOperation.RESET
 
 def COPYME():
     r = mpo.getRoot()

@@ -73,7 +73,7 @@ LogicalThreadID LogicalThreadManager::createLogicalThreadID() const
     return {};
 }
 
-void LogicalThreadManager::spawnInitiatedLogicalThread( LogicalThreadBase::Ptr pLogicalThread )
+void LogicalThreadManager::spawnInitiatedLogicalThread( LogicalThread::Ptr pLogicalThread )
 {
     // clang-format off
     boost::asio::spawn
@@ -101,7 +101,7 @@ void LogicalThreadManager::externalLogicalThreadInitiated( ExternalLogicalThread
     m_pExternalLogicalThread = pLogicalThread;
 }
 
-void LogicalThreadManager::logicalthreadInitiated( LogicalThreadBase::Ptr pLogicalThread )
+void LogicalThreadManager::logicalthreadInitiated( LogicalThread::Ptr pLogicalThread )
 {
     SPDLOG_TRACE( "LogicalThreadManager::logicalthreadInitiated: {} {}", m_strProcessName, pLogicalThread->getID() );
     WriteLock lock( m_mutex );
@@ -109,7 +109,7 @@ void LogicalThreadManager::logicalthreadInitiated( LogicalThreadBase::Ptr pLogic
     spawnInitiatedLogicalThread( pLogicalThread );
 }
 
-void LogicalThreadManager::logicalthreadJoined( LogicalThreadBase::Ptr pLogicalThread )
+void LogicalThreadManager::logicalthreadJoined( LogicalThread::Ptr pLogicalThread )
 {
     // SPDLOG_TRACE( "LogicalThreadManager::logicalthreadJoined: {} {}", m_strProcessName, pLogicalThread->getID() );
     {
@@ -173,7 +173,9 @@ void LogicalThreadManager::dispatch( const ReceivedMessage& msg )
     if( !pLogicalThread )
     {
         pLogicalThread = joinLogicalThread( msg.msg );
-        logicalthreadJoined( pLogicalThread );
+        LogicalThread::Ptr pJoinedThread = std::dynamic_pointer_cast< LogicalThread >( pLogicalThread );
+        ASSERT( pJoinedThread );
+        logicalthreadJoined( pJoinedThread );
     }
     pLogicalThread->receive( msg );
 }

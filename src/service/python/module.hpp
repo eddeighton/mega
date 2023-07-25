@@ -174,8 +174,8 @@ private:
     LogConfig                                        m_logConfig;
     boost::asio::io_context                          m_ioContext;
     Python                                           m_python;
-    network::ExternalLogicalThread::Ptr               m_pExternalLogicalThread;
-    network::LogicalThreadBase::Ptr                   m_mpoLogicalThread;
+    network::ExternalLogicalThread::Ptr              m_pExternalLogicalThread;
+    network::LogicalThread::Ptr                      m_mpoLogicalThread;
     std::unique_ptr< PythonReference::Registration > m_pRegistration;
     FunctionTable                                    m_functionTable;
     WrapperTable                                     m_wrapperTable;

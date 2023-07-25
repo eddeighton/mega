@@ -79,7 +79,7 @@ public:
 private:
     using Router        = std::function< network::Message( const network::Message& ) >;
     using RouterFactory = std::function< Router(
-        network::LogicalThreadBase&, network::Sender::Ptr, boost::asio::yield_context& yield_ctx ) >;
+        network::LogicalThread&, network::Sender::Ptr, boost::asio::yield_context& yield_ctx ) >;
 
     RouterFactory makeTermRoot();
     RouterFactory makeMP( mega::MP mp );

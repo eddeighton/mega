@@ -149,7 +149,7 @@ public:
 
 private:
     boost::asio::io_context& m_ioContext;
-    LogicalThreadManager&    m_logicalthreadManager;
+    LogicalThreadManager&    m_logicalThreadManager;
     Traits::Acceptor         m_acceptor;
     ConnectionMap            m_connections;
     ConnectionLabelMap       m_connectionLabels;

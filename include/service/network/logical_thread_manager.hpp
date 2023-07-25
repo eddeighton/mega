@@ -47,9 +47,9 @@ public:
     std::vector< LogicalThreadID > reportLogicalThreads() const;
     LogicalThreadID                createLogicalThreadID() const;
     void                           externalLogicalThreadInitiated( ExternalLogicalThread::Ptr pLogicalThread );
-    void         logicalthreadInitiated( LogicalThreadBase::Ptr pLogicalThread );
-    void         logicalthreadJoined( LogicalThreadBase::Ptr pLogicalThread );
-    virtual void logicalthreadCompleted( LogicalThreadBase::Ptr pLogicalThread );
+    void                           logicalthreadInitiated( LogicalThread::Ptr pLogicalThread );
+    void                           logicalthreadJoined( LogicalThread::Ptr pLogicalThread );
+    virtual void                   logicalthreadCompleted( LogicalThreadBase::Ptr pLogicalThread );
 
     LogicalThreadBase::Ptr     findExistingLogicalThread( const network::LogicalThreadID& logicalthreadID ) const;
     ExternalLogicalThread::Ptr getExternalLogicalThread() const;
@@ -58,7 +58,7 @@ public:
     virtual void                   dispatch( const ReceivedMessage& msg );
 
 protected:
-    void spawnInitiatedLogicalThread( LogicalThreadBase::Ptr pLogicalThread );
+    void spawnInitiatedLogicalThread( LogicalThread::Ptr pLogicalThread );
 
 protected:
     boost::asio::io_context&   m_ioContext;

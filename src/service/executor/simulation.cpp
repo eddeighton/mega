@@ -43,7 +43,7 @@ namespace mega::service
 
 Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logicalthreadID, ProcessClock& processClock )
     : ExecutorRequestLogicalThread( executor, logicalthreadID )
-    , MPOContext( m_logicalthreadID )
+    , MPOContext( getID() )
     , m_processClock( processClock )
 {
     m_bEnableQueueing = true;
@@ -211,12 +211,12 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
     catch( std::exception& ex )
     {
         SPDLOG_WARN( "SIM: LogicalThread: {} exception: {}", getID(), ex.what() );
-        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
+        getThreadManager().logicalthreadCompleted( shared_from_this() );
     }
     catch( mega::runtime::JITException& ex )
     {
         SPDLOG_WARN( "SIM: LogicalThread: {} exception: {}", getID(), ex.what() );
-        m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
+        getThreadManager().logicalthreadCompleted( shared_from_this() );
     }
 }
 

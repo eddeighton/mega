@@ -133,8 +133,8 @@ network::Message Terminal::routeGenericRequest( const network::LogicalThreadID& 
 
     RootLogicalThread::ResultType result;
     {
-        logicalthreadInitiated( network::LogicalThreadBase::Ptr(
-            new RootLogicalThread( *this, logicalthreadID, message, router, result ) ) );
+        logicalthreadInitiated(
+            std::make_shared< RootLogicalThread >( *this, logicalthreadID, message, router, result ) );
     }
 
     while( !result.has_value() )
@@ -152,7 +152,7 @@ network::Message Terminal::routeGenericRequest( const network::LogicalThreadID& 
 
 Terminal::RouterFactory Terminal::makeTermRoot()
 {
-    return []( network::LogicalThreadBase& con, network::Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
+    return []( network::LogicalThread& con, network::Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
     {
         return [ &con, pSender, &yield_ctx ]( const network::Message& msg ) -> network::Message
         { return network::term_leaf::Request_Sender( con, pSender, yield_ctx ).TermRoot( msg ); };
@@ -161,8 +161,7 @@ Terminal::RouterFactory Terminal::makeTermRoot()
 
 Terminal::RouterFactory Terminal::makeMP( mega::MP mp )
 {
-    return
-        [ mp ]( network::LogicalThreadBase& con, network::Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
+    return [ mp ]( network::LogicalThread& con, network::Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
     {
         return [ mp, &con, pSender, &yield_ctx ]( const network::Message& msg ) -> network::Message
         { return network::mpo::Request_Sender( con, pSender, yield_ctx ).MPUp( msg, mp ); };
@@ -171,8 +170,7 @@ Terminal::RouterFactory Terminal::makeMP( mega::MP mp )
 
 Terminal::RouterFactory Terminal::makeMPO( mega::MPO mpo )
 {
-    return
-        [ mpo ]( network::LogicalThreadBase& con, network::Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
+    return [ mpo ]( network::LogicalThread& con, network::Sender::Ptr pSender, boost::asio::yield_context& yield_ctx )
     {
         return [ mpo, &con, pSender, &yield_ctx ]( const network::Message& msg ) -> network::Message
         { return network::mpo::Request_Sender( con, pSender, yield_ctx ).MPOUp( msg, mpo ); };

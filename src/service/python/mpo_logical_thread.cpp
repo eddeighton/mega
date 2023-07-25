@@ -29,7 +29,7 @@ namespace mega::service::python
 
 MPOLogicalThread::MPOLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID )
     : PythonRequestLogicalThread( python, logicalthreadID )
-    , mega::MPOContext( logicalthreadID )
+    , mega::MPOContext( getID() )
     , m_python( python )
 {
 }

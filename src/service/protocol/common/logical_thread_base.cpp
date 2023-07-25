@@ -25,7 +25,32 @@ namespace mega::network
 {
 Sender::~Sender() = default;
 
+LogicalThreadBase::LogicalThreadBase( LogicalThreadManager& logicalThreadManager, const LogicalThreadID& logicalthreadID )
+    : m_logicalThreadManager( logicalThreadManager )
+    , m_logicalThreadID( logicalthreadID )
+{
+}
 LogicalThreadBase::~LogicalThreadBase() = default;
+
+boost::system::error_code LogicalThreadBase::send( const Message& responseMessage )
+{
+    VERIFY_RTE_MSG(
+        !network::isRequest( responseMessage ), "Logical thread sent request: " << responseMessage.getName() );
+    ReceivedMessage    receivedMessage{ Sender::Ptr{}, responseMessage };
+    LogicalThreadBase* pThis = this;
+    pThis->receive( receivedMessage );
+    return {};
+}
+
+boost::system::error_code LogicalThreadBase::send( const Message& responseMessage, boost::asio::yield_context& )
+{
+    VERIFY_RTE_MSG(
+        !network::isRequest( responseMessage ), "Logical thread sent request: " << responseMessage.getName() );
+    ReceivedMessage    receivedMessage{ Sender::Ptr{}, responseMessage };
+    LogicalThreadBase* pThis = this;
+    pThis->receive( receivedMessage );
+    return {};
+}
 
 LogicalThreadBase::InitiatedRequestStack::InitiatedRequestStack( LogicalThreadBase::Ptr pLogicalThread )
     : pLogicalThread( pLogicalThread )

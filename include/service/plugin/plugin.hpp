@@ -21,17 +21,10 @@
 #ifndef GUARD_2023_March_07_plugin
 #define GUARD_2023_March_07_plugin
 
-#include "service/plugin/platform.hpp"
-#include "service/plugin/player_network.hpp"
 #include "service/plugin/plugin_state_machine.hpp"
 
 #include "service/executor/clock.hpp"
 #include "service/executor/executor.hpp"
-
-#include "service/protocol/common/platform_state.hpp"
-
-#include "common/assert_verify.hpp"
-#include "common/stash.hpp"
 
 #include <boost/asio/io_context.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -63,8 +56,6 @@ public:
     Plugin& operator=( Plugin&& )      = delete;
 
     // Sender
-    virtual boost::system::error_code send( const network::Message& msg );
-    virtual boost::system::error_code send( const network::Message& msg, boost::asio::yield_context& yield_ctx );
 
     // ProcessClock
     virtual void setActiveProject( const Project& project, U64 dbHashCode ) override;
@@ -73,18 +64,7 @@ public:
     virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) override;
 
     // network::LogicalThreadBase
-    virtual const network::LogicalThreadID& getID() const override;
-
-    virtual network::Message dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override
-    {
-        THROW_TODO;
-    }
-    virtual void run( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
-    // virtual void               onDisconnect( network::Sender::Ptr pRequestResponseSender ) override { THROW_TODO; }
-    virtual void requestStarted( network::Sender::Ptr pRequestResponseSender ) override { ; }
-    virtual void requestCompleted() override { ; }
-
-    virtual void receive( const network::ReceivedMessage& msg ) override { THROW_TODO; }
+    virtual void receive( const network::ReceivedMessage& msg ) override;
     /*
         void send( LogicalThreadBase& sender, network::Message&& requestMsg )
         {

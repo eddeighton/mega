@@ -124,8 +124,7 @@ void Executor::shutdown()
         SPDLOG_WARN( "Simulations still running when shutting executor down" );
         std::promise< void >            promise;
         std::future< void >             future = promise.get_future();
-        network::LogicalThreadBase::Ptr pShutdown( new ExecutorShutdown( *this, promise, simulations ) );
-        logicalthreadInitiated( pShutdown );
+        logicalthreadInitiated( std::make_shared< ExecutorShutdown >( *this, promise, simulations ) );
         future.get();
     }
 
@@ -159,7 +158,7 @@ std::shared_ptr< Simulation > Executor::getSimulation( const mega::MPO& mpo ) co
         return Simulation::Ptr{};
 }
 
-mega::MPO Executor::createSimulation( network::LogicalThreadBase& callingLogicalThread,
+mega::MPO Executor::createSimulation( network::LogicalThread& callingLogicalThread,
                                       boost::asio::yield_context& yield_ctx )
 {
     Simulation::Ptr pSimulation;

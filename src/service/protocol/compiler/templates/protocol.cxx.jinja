@@ -68,7 +68,7 @@ Request_Encoder::Request_Encoder( SenderFunctor pSender, const LogicalThreadID& 
 }
 {% endfor %}
 
-Request_Sender::Request_Sender( LogicalThreadBase&          _logicalthread_,
+Request_Sender::Request_Sender( LogicalThread&              _logicalthread_,
                                 std::shared_ptr< Sender >   _pSender,
                                 boost::asio::yield_context& _yield_ctx_ )
     : m_logicalthread( _logicalthread_ )
@@ -171,13 +171,12 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, Ext
 {%endfor%} 
 )
 {
-    /*
-    LogicalThreadBase::OutBoundRequestStack stack( m_sender.shared_from_this(), m_receiver.getSender() );
+    LogicalThreadBase::OutBoundRequestStack stack( m_receiver.shared_from_this() );
 
     {
         const Message _msg_ = MSG_{{ request.name }}_Request::make
         (
-            m_sender.getID(), m_receiver.getID(),
+            m_receiver.getID(),
             MSG_{{ request.name }}_Request
             {
 {%for p in request.params%}
@@ -186,8 +185,8 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, Ext
             }
         );
 
-        const network::ReceivedMessage rMsg{ m_receiver, _msg_ };
-        m_sender.send( rMsg );
+        const network::ReceivedMessage rMsg{ m_receiver.shared_from_this(), _msg_ };
+        m_sender.receive( rMsg );
     }
 
     const network::ReceivedMessage result = m_receiver.receive();
@@ -219,8 +218,6 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, Ext
 {%if request.return_type != "void" %}
     return {{ filename }}::MSG_{{ request.name }}_Response::get( _response_ ).{{ request.return_msg_member }};
 {% endif %}
-    */
-    THROW_TODO;
 }
 {% endfor %}
 

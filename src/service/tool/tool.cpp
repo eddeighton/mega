@@ -59,14 +59,14 @@ class GenericLogicalThread : public ToolRequestLogicalThread, public mega::MPOCo
 public:
     GenericLogicalThread( Tool& tool, const network::LogicalThreadID& logicalthreadID, TLogicalThreadFunctor&& functor )
         : ToolRequestLogicalThread( tool, logicalthreadID )
-        , mega::MPOContext( m_logicalthreadID )
+        , mega::MPOContext( getID() )
         , m_tool( tool )
         , m_functor( functor )
     {
     }
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override
+                                                     boost::asio::yield_context& yield_ctx ) override
     {
         return ToolRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
     }
@@ -246,9 +246,8 @@ void Tool::run( Tool::Functor& function )
                 exceptionResult = std::current_exception();
             }
         };
-        network::LogicalThreadBase::Ptr pLogicalThread(
-            new GenericLogicalThread( *this, createLogicalThreadID(), std::move( func ) ) );
-        logicalthreadInitiated( pLogicalThread );
+        logicalthreadInitiated( std::make_shared< GenericLogicalThread< decltype( func ) > >(
+            *this, createLogicalThreadID(), std::move( func ) ) );
     }
 
     // run until m_tool.runComplete();

@@ -36,7 +36,8 @@ namespace mega::service
 {
 
 Plugin::Plugin( boost::asio::io_context& ioContext, U64 uiNumThreads )
-    : m_channel( ioContext )
+    : network::LogicalThreadBase( m_executor, m_executor.createLogicalThreadID() )
+    , m_channel( ioContext )
     , m_executor( ioContext, uiNumThreads, mega::network::MegaDaemonPort(), *this, network::Node::Plugin )
     , m_stateMachine( *this )
 {
@@ -81,18 +82,10 @@ Plugin::~Plugin()
     }*/
 }
 
-boost::system::error_code Plugin::send( const network::Message& msg )
+void Plugin::receive( const network::ReceivedMessage& msg )
 {
+    //
     THROW_TODO;
-}
-
-boost::system::error_code Plugin::send( const network::Message& msg, boost::asio::yield_context& yield_ctx )
-{
-    THROW_TODO;
-    // SPDLOG_TRACE( "Plugin::send()" );
-    /*const network::ReceivedMessage rMsg{ (), msg };
-    send( rMsg );
-    return boost::system::error_code{};*/
 }
 
 // ProcessClock
@@ -134,10 +127,6 @@ void Plugin::requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Ra
 }
 
 // network::LogicalThreadBase
-const network::LogicalThreadID& Plugin::getID() const
-{
-    return m_conID;
-}
 /*
 void Plugin::send( const network::ReceivedMessage& msg )
 {

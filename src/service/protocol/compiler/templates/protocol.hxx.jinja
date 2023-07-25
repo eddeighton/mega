@@ -44,6 +44,7 @@ namespace mega::network
 {
 
 class LogicalThreadBase;
+class LogicalThread;
 class ExternalLogicalThread;
 class Sender;
 
@@ -66,7 +67,7 @@ private:
 class Request_Sender
 {
 public:
-    Request_Sender( LogicalThreadBase&          logicalthread,
+    Request_Sender( LogicalThread&              _logicalthread,
                     std::shared_ptr< Sender >   _pSender,
                     boost::asio::yield_context& yield_ctx );
 
@@ -75,7 +76,7 @@ public:
 {% endfor %}
 
 private:
-    LogicalThreadBase&          m_logicalthread;
+    LogicalThread&              m_logicalthread;
     std::shared_ptr< Sender >   m_pSender;
     boost::asio::yield_context& m_yield_ctx;
 };

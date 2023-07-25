@@ -25,13 +25,6 @@
 #include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/model/messages.hxx"
 
-#include "common/assert_verify.hpp"
-
-#include <boost/asio/spawn.hpp>
-#include <boost/asio/steady_timer.hpp>
-#include <boost/asio/experimental/concurrent_channel.hpp>
-#include <boost/asio/experimental/channel.hpp>
-
 #include <cstddef>
 #include <memory>
 
@@ -44,6 +37,9 @@ class LogicalThreadManager;
 ////////////////////////////////////////////////////////////////////////
 class LogicalThreadBase : public Sender
 {
+    LogicalThreadManager& m_logicalThreadManager;
+    const LogicalThreadID m_logicalThreadID;
+
 public:
     using Ptr = std::shared_ptr< LogicalThreadBase >;
 
@@ -52,16 +48,22 @@ public:
         return std::dynamic_pointer_cast< LogicalThreadBase >( Sender::shared_from_this() );
     }
 
+    LogicalThreadBase( LogicalThreadManager& logicalThreadManager, const LogicalThreadID& logicalthreadID );
     virtual ~LogicalThreadBase();
 
-    virtual const LogicalThreadID& getID() const                                                                 = 0;
-    virtual Message                dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
-    virtual void                   receive( const ReceivedMessage& msg )                                         = 0;
-    virtual void                   run( boost::asio::yield_context& yield_ctx )                                  = 0;
+    inline LogicalThreadManager&  getThreadManager() const { return m_logicalThreadManager; }
+    inline const LogicalThreadID& getID() const { return m_logicalThreadID; }
+
+    // Sender
+    // NOTE: sender implemented to enable logical thread to receive responses in inter-thread communication
+    virtual boost::system::error_code send( const Message& responseMessage ) override;
+    virtual boost::system::error_code send( const Message& responseMessage, boost::asio::yield_context& ) override;
+
+    virtual void receive( const ReceivedMessage& msg ) = 0;
 
 protected:
-    virtual void requestStarted( Sender::Ptr pRequestResponseSender ) = 0;
-    virtual void requestCompleted()                                   = 0;
+    virtual void requestStarted( Sender::Ptr pRequestResponseSender ){};
+    virtual void requestCompleted(){};
 
 public:
     class InitiatedRequestStack

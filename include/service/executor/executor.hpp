@@ -72,7 +72,7 @@ public:
 
     void                          getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const;
     std::shared_ptr< Simulation > getSimulation( const mega::MPO& mpo ) const;
-    mega::MPO createSimulation( network::LogicalThreadBase& callingLogicalThread, boost::asio::yield_context& yield_ctx );
+    mega::MPO createSimulation( network::LogicalThread& callingLogicalThread, boost::asio::yield_context& yield_ctx );
     void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );
     void      logicalthreadCompleted( network::LogicalThreadBase::Ptr pLogicalThread ) override;
 

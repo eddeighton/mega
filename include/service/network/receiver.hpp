@@ -64,7 +64,7 @@ private:
 
 private:
     bool                    m_bContinue = true;
-    LogicalThreadManager&   m_logicalthreadManager;
+    LogicalThreadManager&   m_logicalThreadManager;
     Traits::Socket&         m_socket;
     std::function< void() > m_disconnectHandler;
 };
@@ -102,7 +102,7 @@ private:
 
 private:
     bool                  m_bContinue = true;
-    LogicalThreadManager& m_logicalthreadManager;
+    LogicalThreadManager& m_logicalThreadManager;
     ConcurrentChannel&    m_channel;
 };
 
