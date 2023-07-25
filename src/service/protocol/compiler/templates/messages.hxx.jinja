@@ -70,7 +70,7 @@ class Message
     friend void         encode( boost::archive::binary_oarchive& archive, const Message& message );
     friend Message      decode( boost::archive::binary_iarchive& archive );
 
-    MessageID               index = 0; // MSG_Error_Dispatch
+    MessageID               index = 0; // MSG_Error_Disconnect
     LogicalThreadID         logicalThreadID;
     std::shared_ptr< void > data;
 
@@ -116,8 +116,8 @@ struct {{ message.name }}
 {%if message.has_namespace%} } {%endif%} 
 {%endfor%}
 
-
-Message make_error_msg( const LogicalThreadID& logicalThreadID, const std::string& strErrorMsg );
+Message make_disconnect_error_msg( const LogicalThreadID& logicalThreadID, const std::string& strErrorMsg );
+Message make_response_error_msg( const LogicalThreadID& logicalThreadID, const std::string& strErrorMsg );
 
 bool isRequest( const Message& msg );
 

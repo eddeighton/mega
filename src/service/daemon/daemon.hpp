@@ -41,7 +41,6 @@ public:
             const std::string&       strRootIP,
             short                    rootPortNumber   = mega::network::MegaRootPort(),
             short                    daemonPortNumber = mega::network::MegaDaemonPort() );
-    ~Daemon();
 
     void shutdown();
 

@@ -44,12 +44,14 @@ boost::asio::io_context& LogicalThreadManager::getIOContext() const
     return m_ioContext;
 }
 
-void LogicalThreadManager::onDisconnect()
+void LogicalThreadManager::onDisconnect( network::Sender::Ptr pConnectionSender )
 {
+    // send error message to ALL active logical threads with the connection sender
     WriteLock lock( m_mutex );
     for( const auto& [ id, pLogicalThread ] : m_logicalthreads )
     {
-        pLogicalThread->onDisconnect( {} );
+        ReceivedMessage receivedMessage{ pConnectionSender, network::make_disconnect_error_msg( id, "Disconnection" ) };
+        pLogicalThread->receive( receivedMessage );
     }
 }
 

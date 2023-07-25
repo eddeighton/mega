@@ -53,7 +53,6 @@ public:
         using Ptr   = std::shared_ptr< Connection >;
 
         Connection( Server& server, boost::asio::io_context& ioContext, LogicalThreadManager& logicalthreadManager );
-        ~Connection();
 
         bool        isSender( Sender::Ptr pSender ) { return m_pSender == pSender; }
         Sender::Ptr getSender() const { return m_pSender; }

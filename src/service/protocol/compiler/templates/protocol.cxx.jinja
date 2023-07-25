@@ -131,10 +131,10 @@ Request_Sender::Request_Sender( LogicalThreadBase&          _logicalthread_,
         {
             switch( _response_.getID() )
             {
-                case MSG_Error_Dispatch::ID:
+                case MSG_Error_Disconnect::ID:
                 {
-                    THROW_RTE( "Dispatch error received instead of MSG_{{ request.name }}_Response: " << 
-                        MSG_Error_Dispatch::get( _response_ ).what );
+                    THROW_RTE( "Disconnect error received instead of MSG_{{ request.name }}_Response: " << 
+                        MSG_Error_Disconnect::get( _response_ ).what );
                 }
                 break;
                 case MSG_Error_Response::ID:
@@ -201,10 +201,10 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, Ext
     {
         switch( _response_.getID() )
         {
-            case MSG_Error_Dispatch::ID:
+            case MSG_Error_Disconnect::ID:
             {
-                THROW_RTE( "Dispatch error received instead of MSG_{{ request.name }}_Response: " << 
-                    MSG_Error_Dispatch::get( _response_ ).what );
+                THROW_RTE( "Disconnect error received instead of MSG_{{ request.name }}_Response: " << 
+                    MSG_Error_Disconnect::get( _response_ ).what );
             }
             break;
             case MSG_Error_Response::ID:

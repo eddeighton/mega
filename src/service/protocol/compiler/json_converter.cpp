@@ -141,7 +141,7 @@ void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std
 
     {
         nlohmann::json errorResponse( { { "has_namespace", false },
-                                        { "name", "MSG_Error_Dispatch" },
+                                        { "name", "MSG_Error_Disconnect" },
                                         { "is_request", false },
                                         { "is_broadcast", false },
                                         { "id", idCounter++ },

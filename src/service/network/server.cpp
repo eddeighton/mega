@@ -39,12 +39,6 @@ Server::Connection::Connection( Server& server, boost::asio::io_context& ioConte
     , m_socket( m_strand )
     , m_receiver( logicalthreadManager, m_socket, [ this ] { disconnected(); } )
 {
-    SPDLOG_TRACE( "Server::Connection::Connection" );
-}
-
-Server::Connection::~Connection()
-{
-    SPDLOG_TRACE( "Server::Connection::~Connection" );
 }
 
 void Server::Connection::start()

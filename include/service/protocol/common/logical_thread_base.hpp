@@ -56,9 +56,7 @@ public:
 
     virtual const LogicalThreadID& getID() const                                                          = 0;
     virtual Message                dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
-    virtual const std::string&     getProcessName() const                                                 = 0;
-    virtual U64                    getStackSize() const                                                   = 0;
-    virtual void                   onDisconnect( Sender::Ptr pRequestResponseSender )                     = 0;
+    //virtual void                   onDisconnect( Sender::Ptr pRequestResponseSender )                     = 0;
     virtual void                   receive( const ReceivedMessage& msg )                                  = 0;
     virtual void                   run( boost::asio::yield_context& yield_ctx )                           = 0;
 

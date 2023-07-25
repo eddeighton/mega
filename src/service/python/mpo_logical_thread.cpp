@@ -115,21 +115,6 @@ network::Message MPOLogicalThread::dispatchRequestsUntilResponse( boost::asio::y
             if( m_mpo.has_value() || ( msg.msg.getID() == network::leaf_python::MSG_RootSimRun_Request::ID ) )
             {
                 dispatchRequestImpl( msg, yield_ctx );
-
-                // check if connection has disconnected
-                if( !m_disconnections.empty() )
-                {
-                    ASSERT( !m_stack.empty() );
-                    if( m_disconnections.count( m_stack.back() ) )
-                    {
-                        SPDLOG_ERROR(
-                            "Generating disconnect on logicalthread: {}", getID() );
-                        const network::ReceivedMessage rMsg{
-                            m_stack.back(), network::make_error_msg( msg.msg.getLogicalThreadID(), "Disconnection" ) };
-                        THROW_TODO;
-                        // send( rMsg );
-                    }
-                }
             }
             else
             {
@@ -143,10 +128,10 @@ network::Message MPOLogicalThread::dispatchRequestsUntilResponse( boost::asio::y
             break;
         }
     }
-    if( msg.msg.getID() == network::MSG_Error_Dispatch::ID )
+    if( msg.msg.getID() == network::MSG_Error_Disconnect::ID )
     {
-        const std::string& strError = network::MSG_Error_Dispatch::get( msg.msg ).what;
-        SPDLOG_ERROR( "Got error dispatch: {}", strError );
+        const std::string& strError = network::MSG_Error_Disconnect::get( msg.msg ).what;
+        SPDLOG_ERROR( "Got error disconnect: {}", strError );
         throw std::runtime_error( strError );
     }
     else if( msg.msg.getID() == network::MSG_Error_Response::ID )

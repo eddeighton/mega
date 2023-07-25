@@ -77,7 +77,14 @@ const {{ message.name }}& {{ message.name }}::get( const Message& msg )
 {%if message.has_namespace%} } {%endif%} 
 {%endfor%}
 
-Message make_error_msg( const LogicalThreadID& logicalThreadID, const std::string& strErrorMsg )
+
+Message make_disconnect_error_msg( const LogicalThreadID& logicalThreadID, const std::string& strErrorMsg )
+{
+    return Message{ MSG_Error_Disconnect::ID, logicalThreadID, 
+        std::shared_ptr< void >( new MSG_Error_Disconnect{ strErrorMsg }, []( MSG_Error_Disconnect* p ){ delete p; } ) };
+}
+
+Message make_response_error_msg( const LogicalThreadID& logicalThreadID, const std::string& strErrorMsg )
 {
     return Message{ MSG_Error_Response::ID, logicalThreadID, 
         std::shared_ptr< void >( new MSG_Error_Response{ strErrorMsg }, []( MSG_Error_Response* p ){ delete p; } ) };

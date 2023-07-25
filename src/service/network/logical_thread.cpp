@@ -72,32 +72,7 @@ void LogicalThread::requestCompleted()
     m_stack.pop_back();
     if( m_stack.empty() )
     {
-        // SPDLOG_TRACE( "LogicalThread::requestCompleted: {}", getID() );
         m_logicalthreadManager.logicalthreadCompleted( shared_from_this() );
-    }
-}
-const std::string& LogicalThread::getProcessName() const
-{
-    return m_logicalthreadManager.getProcessName();
-}
-
-void LogicalThread::onDisconnect( Sender::Ptr pRequestResponseSender )
-{
-    for( Sender::Ptr pSender : m_stack )
-    {
-        if( pSender == pRequestResponseSender )
-        {
-            m_disconnections.insert( pRequestResponseSender );
-            break;
-        }
-    }
-
-    if( !m_stack.empty() && m_stack.back() == pRequestResponseSender )
-    {
-        SPDLOG_ERROR( "Generating disconnect on logicalthread: {}", getID() );
-        const ReceivedMessage rMsg{ pRequestResponseSender, make_error_msg( getID(), "Disconnection" ) };
-        // THROW_TODO;
-        // send( rMsg );
     }
 }
 
@@ -176,7 +151,6 @@ void LogicalThread::run( boost::asio::yield_context& yield_ctx )
 
 void LogicalThread::run_one( boost::asio::yield_context& yield_ctx )
 {
-    // SPDLOG_TRACE( "LogicalThread::run_one" );
     unqueue();
     const ReceivedMessage msg = receiveDeferred( yield_ctx );
     dispatchRequestImpl( msg, yield_ctx );
@@ -192,21 +166,17 @@ Message LogicalThread::dispatchRequestsUntilResponse( boost::asio::yield_context
         if( isRequest( msg.msg ) )
         {
             dispatchRequestImpl( msg, yield_ctx );
+        }
+        else if( msg.msg.getID() == MSG_Error_Disconnect::ID )
+        {
+            // ignor the disconnect unless for active sender
+            ASSERT( msg.pResponseSender );
 
-            // check if connection has disconnected
-            THROW_TODO;  // Sort out disconnections in general!!!
-            if( !m_disconnections.empty() )
+            for( auto pActiveSender : m_stack )
             {
-                ASSERT( !m_stack.empty() );
-                if( m_disconnections.count( m_stack.back() ) )
+                if( pActiveSender == msg.pResponseSender )
                 {
-                    SPDLOG_ERROR( "Generating disconnect on logicalthread: {}", getID() );
-                    // const ReceivedMessage rMsg{
-                    //     m_stack.back(), make_error_msg( msg.msg.getLogicalThreadID(), "Disconnection" ) };
-                    // THROW_TODO;
-                    // send( rMsg );
-                    m_stack.back()->send( make_error_msg( msg.msg.getLogicalThreadID(), "Disconnection" ), yield_ctx );
-                    THROW_TODO;
+                    throw std::runtime_error( MSG_Error_Disconnect::get( msg.msg ).what );
                 }
             }
         }
@@ -219,14 +189,11 @@ Message LogicalThread::dispatchRequestsUntilResponse( boost::asio::yield_context
     {
         throw std::runtime_error( MSG_Error_Response::get( msg.msg ).what );
     }
-
-    // SPDLOG_TRACE( "LogicalThread::dispatchRequestsUntilResponse: returned {}", msg.msg );
     return msg.msg;
 }
 
 void LogicalThread::dispatchRequestImpl( const ReceivedMessage& msg, boost::asio::yield_context& yield_ctx )
 {
-    // SPDLOG_TRACE( "LogicalThread::dispatchRequestImpl: {}", msg.msg );
     // handling in-coming request
     LogicalThreadBase::RequestStack stack( msg.msg.getName(), shared_from_this(), msg.pResponseSender );
     try
@@ -246,11 +213,11 @@ void LogicalThread::dispatchRequestImpl( const ReceivedMessage& msg, boost::asio
     }
     catch( std::exception& ex )
     {
-        msg.pResponseSender->send( make_error_msg( getID(), ex.what() ), yield_ctx );
+        msg.pResponseSender->send( make_response_error_msg( getID(), ex.what() ), yield_ctx );
     }
     catch( mega::runtime::JITException& ex )
     {
-        msg.pResponseSender->send( make_error_msg( getID(), ex.what() ), yield_ctx );
+        msg.pResponseSender->send( make_response_error_msg( getID(), ex.what() ), yield_ctx );
     }
 }
 

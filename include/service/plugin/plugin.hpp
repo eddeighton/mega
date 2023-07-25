@@ -80,9 +80,7 @@ public:
         THROW_TODO;
     }
     virtual void               run( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
-    virtual const std::string& getProcessName() const override { THROW_TODO; }
-    virtual U64                getStackSize() const override { THROW_TODO; }
-    virtual void               onDisconnect( network::Sender::Ptr pRequestResponseSender ) override { THROW_TODO; }
+    //virtual void               onDisconnect( network::Sender::Ptr pRequestResponseSender ) override { THROW_TODO; }
     virtual void               requestStarted( network::Sender::Ptr pRequestResponseSender ) override { ; }
     virtual void               requestCompleted() override { ; }
 

@@ -42,7 +42,7 @@ public:
     const std::string&       getProcessName() const { return m_strProcessName; }
     boost::asio::io_context& getIOContext() const;
 
-    void onDisconnect();
+    void onDisconnect( network::Sender::Ptr pConnectionSender );
 
     std::vector< LogicalThreadID > reportLogicalThreads() const;
     LogicalThreadID                createLogicalThreadID() const;

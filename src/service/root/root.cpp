@@ -117,7 +117,7 @@ void Root::onDaemonDisconnect( mega::MachineID machineID )
 {
     SPDLOG_TRACE( "Root::onDaemonDisconnect {}", machineID );
     m_server.unLabelConnection( machineID );
-    onDisconnect();
+    //onDisconnect();
     m_mpoManager.daemonDisconnect( machineID );
 }
 

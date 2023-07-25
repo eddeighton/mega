@@ -84,12 +84,6 @@ Daemon::Daemon( boost::asio::io_context& ioContext,
     }
 }
 
-Daemon::~Daemon()
-{
-    //
-    // SPDLOG_TRACE( "Daemon shutdown" );
-}
-
 void Daemon::setActiveProject( const Project& project )
 {
     m_activeProject = project;
@@ -99,7 +93,7 @@ void Daemon::onLeafDisconnect( mega::MP leafMP )
 {
     m_server.unLabelConnection( leafMP );
 
-    onDisconnect();
+    //onDisconnect();
 
     class DaemonLeafDisconnect : public DaemonRequestLogicalThread
     {

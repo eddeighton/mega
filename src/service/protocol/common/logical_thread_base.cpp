@@ -33,15 +33,15 @@ LogicalThreadBase::RequestStack::RequestStack( const char* pszMsg, LogicalThread
     //, m_startTime( std::chrono::steady_clock::now() )
     , pLogicalThread( pLogicalThread )
 {
-    // SPDLOG_DEBUG( "RequestStack::ctor prc:{} conv:{} conid:{} msg:{} stack:{}", pLogicalThread->getProcessName(),
-    // pLogicalThread->getID(), m_pszMsg, pLogicalThread->getStackSize() + 1 );
+    // SPDLOG_DEBUG( "RequestStack::ctor conv:{} conid:{} msg:{}",
+    // pLogicalThread->getID(), m_pszMsg );
     pLogicalThread->requestStarted( pRequestResponseSender );
 }
 LogicalThreadBase::RequestStack::~RequestStack()
 {
-    // SPDLOG_DEBUG( "RequestStack::dtor prc:{} conv:{} msg:{} stack:{}", pLogicalThread->getProcessName(),
-    // pLogicalThread->getID(), m_pszMsg, pLogicalThread->getStackSize() ); const auto timeDelta =
-    // std::chrono::steady_clock::now() - m_startTime; SPDLOG_DEBUG( "{} {} {} {}", logicalthread.getProcessName(),
+    // SPDLOG_DEBUG( "RequestStack::dtor conv:{} msg:{}",
+    // pLogicalThread->getID(), m_pszMsg ); const auto timeDelta =
+    // std::chrono::steady_clock::now() - m_startTime; SPDLOG_DEBUG( "{} {} {}",
     // logicalthread.getID(), m_pszMsg, timeDelta );
     pLogicalThread->requestCompleted();
 }
