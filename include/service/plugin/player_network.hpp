@@ -42,7 +42,7 @@ public:
     PlayerNetwork( Executor& executor, const network::LogicalThreadID& logicalthreadID,
                    network::LogicalThreadBase& plugin );
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
     virtual void run( boost::asio::yield_context& yield_ctx ) override;

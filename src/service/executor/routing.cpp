@@ -34,25 +34,25 @@ ExecutorRequestLogicalThread::~ExecutorRequestLogicalThread()
 {
 }
 
-network::Message ExecutorRequestLogicalThread::dispatchRequest( const network::Message&     msg,
+network::Message ExecutorRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
                                                                 boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::leaf_exe::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::job::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::mpo::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::sim::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::status::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::project::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::enrole::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "ExecutorRequestLogicalThread::dispatchRequest failed for: " << msg.getName() );
+    THROW_RTE( "ExecutorRequestLogicalThread::dispatchInBoundRequest failed for: " << msg.getName() );
 }
 
 network::exe_leaf::Request_Sender ExecutorRequestLogicalThread::getLeafRequest( boost::asio::yield_context& yield_ctx )
@@ -101,24 +101,24 @@ network::Message ExecutorRequestLogicalThread::RootAllBroadcast( const network::
     network::aggregate( aggregateRequest, responses );
 
     // dispatch to this
-    return dispatchRequest( aggregateRequest, yield_ctx );
+    return dispatchInBoundRequest( aggregateRequest, yield_ctx );
 }
 
 network::Message ExecutorRequestLogicalThread::RootExeBroadcast( const network::Message&     request,
                                                                  boost::asio::yield_context& yield_ctx )
 {
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 network::Message ExecutorRequestLogicalThread::RootExe( const network::Message&     request,
                                                         boost::asio::yield_context& yield_ctx )
 {
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message ExecutorRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
                                                        boost::asio::yield_context& yield_ctx )
 {
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 void ExecutorRequestLogicalThread::EnroleDestroy( boost::asio::yield_context& )

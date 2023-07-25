@@ -61,7 +61,7 @@ public:
 
     // LogicalThreadBase
     const LogicalThreadID& getID() const override { return m_logicalthreadID; }
-    virtual Message        dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
+    virtual Message        dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
 
     inline Sender::Ptr getStackResponseSender() const
     {
@@ -97,10 +97,10 @@ protected:
     friend class LogicalThreadManager;
     // this is called by LogicalThreadManager but can be overridden in initiating activities
     virtual void    run( boost::asio::yield_context& yield_ctx ) override;
-    virtual Message dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
+    virtual Message dispatchInBoundRequest( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
 
 protected:
-    void dispatchRequestImpl( const ReceivedMessage& msg, boost::asio::yield_context& yield_ctx );
+    void acknowledgeInboundRequest( const ReceivedMessage& msg, boost::asio::yield_context& yield_ctx );
     void dispatchRemaining( boost::asio::yield_context& yield_ctx );
 
 protected:
@@ -176,11 +176,14 @@ public:
     virtual const LogicalThreadID& getID() const override { return m_logicalthreadID; }
 
     // NOT IMPLEMENTED - no stack or coroutine for external logicalthread
-    virtual Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
-    virtual void    run( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
-    virtual void    requestStarted( Sender::Ptr pRequestResponseSender ) override { ; }
-    virtual void    requestCompleted() override { ; }
-    virtual void    receive( const ReceivedMessage& msg ) override;
+    virtual Message dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override
+    {
+        THROW_TODO;
+    }
+    virtual void run( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
+    virtual void requestStarted( Sender::Ptr pRequestResponseSender ) override { ; }
+    virtual void requestCompleted() override { ; }
+    virtual void receive( const ReceivedMessage& msg ) override;
 
 protected:
     LogicalThreadManager&    m_logicalthreadManager;

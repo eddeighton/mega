@@ -35,22 +35,22 @@ TerminalRequestLogicalThread::~TerminalRequestLogicalThread()
 {
 }
 
-network::Message TerminalRequestLogicalThread::dispatchRequest( const network::Message&     msg,
+network::Message TerminalRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
                                                                 boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if( result = network::leaf_term::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::leaf_term::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::status::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::project::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "TerminalRequestLogicalThread::dispatchRequest failed" );
+    THROW_RTE( "TerminalRequestLogicalThread::dispatchInBoundRequest failed" );
 }
 network::Message TerminalRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                                  boost::asio::yield_context& yield_ctx )
 {
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 } // namespace mega::service

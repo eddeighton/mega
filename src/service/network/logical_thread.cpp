@@ -153,10 +153,10 @@ void LogicalThread::run_one( boost::asio::yield_context& yield_ctx )
 {
     unqueue();
     const ReceivedMessage msg = receiveDeferred( yield_ctx );
-    dispatchRequestImpl( msg, yield_ctx );
+    acknowledgeInboundRequest( msg, yield_ctx );
 }
 
-Message LogicalThread::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+Message LogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
     ReceivedMessage msg;
     while( true )
@@ -165,7 +165,7 @@ Message LogicalThread::dispatchRequestsUntilResponse( boost::asio::yield_context
 
         if( isRequest( msg.msg ) )
         {
-            dispatchRequestImpl( msg, yield_ctx );
+            acknowledgeInboundRequest( msg, yield_ctx );
         }
         else if( msg.msg.getID() == MSG_Error_Disconnect::ID )
         {
@@ -192,14 +192,14 @@ Message LogicalThread::dispatchRequestsUntilResponse( boost::asio::yield_context
     return msg.msg;
 }
 
-void LogicalThread::dispatchRequestImpl( const ReceivedMessage& msg, boost::asio::yield_context& yield_ctx )
+void LogicalThread::acknowledgeInboundRequest( const ReceivedMessage& msg, boost::asio::yield_context& yield_ctx )
 {
     // handling in-coming request
-    LogicalThreadBase::RequestStack stack( msg.msg.getName(), shared_from_this(), msg.pResponseSender );
+    LogicalThreadBase::InBoundRequestStack stack( shared_from_this(), msg.pResponseSender );
     try
     {
         VERIFY_RTE_MSG( isRequest( msg.msg ), "Dispatch request got response: " << msg.msg );
-        network::Message response = dispatchRequest( msg.msg, yield_ctx );
+        network::Message response = dispatchInBoundRequest( msg.msg, yield_ctx );
         if( !response )
         {
             SPDLOG_ERROR( "Failed to dispatch request: {} on logicalthread: {}", msg.msg, getID() );
@@ -243,7 +243,7 @@ void LogicalThread::dispatchRemaining( boost::asio::yield_context& yield_ctx )
             {
                 SPDLOG_TRACE( "LogicalThread::dispatchRemaining {} got request: {}", getID(),
                               pendingMsgOpt.value().msg.getName() );
-                dispatchRequestImpl( pendingMsgOpt.value(), yield_ctx );
+                acknowledgeInboundRequest( pendingMsgOpt.value(), yield_ctx );
             }
             else
             {

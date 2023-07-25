@@ -33,10 +33,10 @@ RootJobLogicalThread::RootJobLogicalThread( Root&                          root,
 {
 }
 
-network::Message RootJobLogicalThread::dispatchRequest( const network::Message&     msg,
+network::Message RootJobLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
                                                        boost::asio::yield_context& yield_ctx )
 {
-    return RootRequestLogicalThread::dispatchRequest( msg, yield_ctx );
+    return RootRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
 
 void RootJobLogicalThread::JobReadyForWork( const network::LogicalThreadID& rootLogicalThreadID,

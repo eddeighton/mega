@@ -33,19 +33,19 @@ ToolRequestLogicalThread::~ToolRequestLogicalThread()
 {
 }
 
-network::Message ToolRequestLogicalThread::dispatchRequest( const network::Message&     msg,
+network::Message ToolRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
                                                             boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if( result = network::leaf_tool::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::leaf_tool::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::mpo::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::status::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::project::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "ToolRequestLogicalThread::dispatchRequest failed: " << msg );
+    THROW_RTE( "ToolRequestLogicalThread::dispatchInBoundRequest failed: " << msg );
 }
 
 network::tool_leaf::Request_Sender ToolRequestLogicalThread::getToolRequest( boost::asio::yield_context& yield_ctx )
@@ -56,21 +56,21 @@ network::tool_leaf::Request_Sender ToolRequestLogicalThread::getToolRequest( boo
 network::Message ToolRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                              boost::asio::yield_context& yield_ctx )
 {
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message ToolRequestLogicalThread::MPDown( const network::Message& request, const mega::MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( MP( m_tool.getMPO() ) == mp );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message ToolRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                     boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( MPO( m_tool.getMPO() ) == mpo );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 } // namespace mega::service

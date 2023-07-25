@@ -65,10 +65,10 @@ public:
     {
     }
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        return ToolRequestLogicalThread::dispatchRequest( msg, yield_ctx );
+        return ToolRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
     }
 
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx )

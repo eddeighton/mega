@@ -49,9 +49,9 @@ Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logi
     m_bEnableQueueing = true;
 }
 
-network::Message Simulation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message Simulation::dispatchInBoundRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
-    return ExecutorRequestLogicalThread::dispatchRequest( msg, yield_ctx );
+    return ExecutorRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
 
 // MPOContext
@@ -130,7 +130,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     }
                     else
                     {
-                        dispatchRequestImpl( msg, yield_ctx );
+                        acknowledgeInboundRequest( msg, yield_ctx );
                     }
                 }
                 m_stateMachine.resetAcks();
@@ -201,7 +201,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     default:
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
-                        dispatchRequestImpl( msg, yield_ctx );
+                        acknowledgeInboundRequest( msg, yield_ctx );
                     }
                     break;
                 }
@@ -356,7 +356,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     if( m_blockDestroyMsgOpt.has_value() )
     {
         // acknowledge block destroy
-        dispatchRequestImpl( m_blockDestroyMsgOpt.value(), yield_ctx );
+        acknowledgeInboundRequest( m_blockDestroyMsgOpt.value(), yield_ctx );
     }
 }
 

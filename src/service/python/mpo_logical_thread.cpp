@@ -34,12 +34,13 @@ MPOLogicalThread::MPOLogicalThread( Python& python, const network::LogicalThread
 {
 }
 
-network::Message MPOLogicalThread::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message MPOLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
+                                                           boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if( result = network::python::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::python::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    return PythonRequestLogicalThread::dispatchRequest( msg, yield_ctx );
+    return PythonRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
 
 network::python_leaf::Request_Sender MPOLogicalThread::getPythonRequest( boost::asio::yield_context& yield_ctx )
@@ -102,7 +103,7 @@ network::mpo::Request_Sender MPOLogicalThread::getMPRequest()
     return getMPRequest( *m_pYieldContext );
 }
 
-network::Message MPOLogicalThread::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+network::Message MPOLogicalThread::dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
     network::ReceivedMessage msg;
     while( true )
@@ -114,12 +115,12 @@ network::Message MPOLogicalThread::dispatchRequestsUntilResponse( boost::asio::y
         {
             if( m_mpo.has_value() || ( msg.msg.getID() == network::leaf_python::MSG_RootSimRun_Request::ID ) )
             {
-                dispatchRequestImpl( msg, yield_ctx );
+                acknowledgeInboundRequest( msg, yield_ctx );
             }
             else
             {
                 // queue the messages while waiting for RootSim run to complete
-                SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse queued: {}", msg.msg );
+                SPDLOG_TRACE( "SIM::dispatchInBoundRequestsUntilResponse queued: {}", msg.msg );
                 m_messageQueue.push_back( msg );
             }
         }
@@ -175,7 +176,7 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
             if( msg.msg.getID() == network::python::MSG_PythonGetIdentities_Request::ID )
             {
                 SPDLOG_TRACE( "PYTHON RootSimRun: run got network::python::MSG_PythonGetIdentities_Request::ID" );
-                dispatchRequestImpl( msg, yield_ctx );
+                acknowledgeInboundRequest( msg, yield_ctx );
             }
             else
             {

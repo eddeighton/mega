@@ -50,7 +50,7 @@ public:
     JobLogicalThread( Executor& executor, const network::LogicalThreadID& logicalthreadID,
                      mega::pipeline::Pipeline::Ptr pPipeline, const network::LogicalThreadID& rootLogicalThreadID );
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl,

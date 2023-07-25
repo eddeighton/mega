@@ -81,7 +81,7 @@ void LogicalThreadManager::spawnInitiatedLogicalThread( LogicalThreadBase::Ptr p
         m_ioContext, 
         [ pLogicalThread ](boost::asio::yield_context yield_ctx)
         {
-            LogicalThreadBase::RequestStack stack("spawnInitiatedLogicalThread", pLogicalThread, Sender::Ptr{} );
+            LogicalThreadBase::InitiatedRequestStack stack( pLogicalThread );
             pLogicalThread->run(yield_ctx);
         }
         // segmented stacks do NOT work on windows

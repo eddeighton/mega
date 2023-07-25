@@ -90,8 +90,7 @@ Request_Sender::Request_Sender( LogicalThreadBase&          _logicalthread_,
     Message _response_;
     {
         // make out-going request
-        LogicalThreadBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
-            m_logicalthread.shared_from_this(), network::Sender::Ptr{} );
+        LogicalThreadBase::OutBoundRequestStack stack( m_logicalthread.shared_from_this() );
 
         {
             const Message _msg_ = MSG_{{ request.name }}_Request::make
@@ -110,7 +109,6 @@ Request_Sender::Request_Sender( LogicalThreadBase&          _logicalthread_,
             if( LogicalThreadBase::Ptr pInterThread = 
                 std::dynamic_pointer_cast< LogicalThreadBase >( m_pSender ) )
             {
-                mega::_MPOContextStack _mpoStack;
                 ReceivedMessage _receivedMessage( m_logicalthread.shared_from_this(), _msg_ );
                 pInterThread->receive( _receivedMessage );
             }
@@ -123,10 +121,9 @@ Request_Sender::Request_Sender( LogicalThreadBase&          _logicalthread_,
                     THROW_RTE( "Error writing: " << ec.what() );
                 }
             }
-
         }
 
-        _response_ = m_logicalthread.dispatchRequestsUntilResponse( m_yield_ctx );
+        _response_ = m_logicalthread.dispatchInBoundRequestsUntilResponse( m_yield_ctx );
         if( _response_.getID() != {{ filename }}::MSG_{{ request.name }}_Response::ID )
         {
             switch( _response_.getID() )
@@ -175,8 +172,7 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, Ext
 )
 {
     /*
-    LogicalThreadBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", 
-        m_sender.shared_from_this(), m_receiver.getSender() );
+    LogicalThreadBase::OutBoundRequestStack stack( m_sender.shared_from_this(), m_receiver.getSender() );
 
     {
         const Message _msg_ = MSG_{{ request.name }}_Request::make
@@ -229,7 +225,7 @@ External_Request_Sender::External_Request_Sender( LogicalThreadBase& sender, Ext
 {% endfor %}
 
 
-Message Impl::dispatchRequest( const Message& _message_, boost::asio::yield_context& _yield_ctx_ )
+Message Impl::dispatchInBoundRequest( const Message& _message_, boost::asio::yield_context& _yield_ctx_ )
 {
     switch( _message_.getID() )
     {

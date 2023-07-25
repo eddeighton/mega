@@ -55,7 +55,7 @@ public:
     DaemonRequestLogicalThread( Daemon& daemon, const network::LogicalThreadID& logicalthreadID );
     virtual ~DaemonRequestLogicalThread();
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
     // helpers

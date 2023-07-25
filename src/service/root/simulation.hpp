@@ -29,7 +29,7 @@ class RootSimulation : public RootRequestLogicalThread
 public:
     RootSimulation( Root& root, const network::LogicalThreadID& logicalthreadID, mega::MP leafMP );
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
     virtual void SimStart( boost::asio::yield_context& yield_ctx ) override;

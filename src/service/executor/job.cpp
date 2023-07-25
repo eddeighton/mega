@@ -79,10 +79,10 @@ JobLogicalThread::JobLogicalThread( Executor& executor, const network::LogicalTh
     VERIFY_RTE( m_pPipeline );
 }
 
-network::Message JobLogicalThread::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message JobLogicalThread::dispatchInBoundRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     // base already inherits job interface
-    return ExecutorRequestLogicalThread::dispatchRequest( msg, yield_ctx );
+    return ExecutorRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
 
 pipeline::PipelineResult JobLogicalThread::JobStartTask( const mega::pipeline::TaskDescriptor& task,

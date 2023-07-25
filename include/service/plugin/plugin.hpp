@@ -75,19 +75,16 @@ public:
     // network::LogicalThreadBase
     virtual const network::LogicalThreadID& getID() const override;
 
-    virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override
+    virtual network::Message dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override
     {
         THROW_TODO;
     }
-    virtual void               run( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
-    //virtual void               onDisconnect( network::Sender::Ptr pRequestResponseSender ) override { THROW_TODO; }
-    virtual void               requestStarted( network::Sender::Ptr pRequestResponseSender ) override { ; }
-    virtual void               requestCompleted() override { ; }
+    virtual void run( boost::asio::yield_context& yield_ctx ) override { THROW_TODO; }
+    // virtual void               onDisconnect( network::Sender::Ptr pRequestResponseSender ) override { THROW_TODO; }
+    virtual void requestStarted( network::Sender::Ptr pRequestResponseSender ) override { ; }
+    virtual void requestCompleted() override { ; }
 
-    virtual void                   receive( const network::ReceivedMessage& msg )   override
-    {
-        THROW_TODO;
-    }
+    virtual void receive( const network::ReceivedMessage& msg ) override { THROW_TODO; }
     /*
         void send( LogicalThreadBase& sender, network::Message&& requestMsg )
         {

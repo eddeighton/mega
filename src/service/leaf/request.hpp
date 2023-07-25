@@ -71,7 +71,7 @@ public:
     LeafRequestLogicalThread( Leaf& leaf, const network::LogicalThreadID& logicalthreadID );
     virtual ~LeafRequestLogicalThread();
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
     network::leaf_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx );

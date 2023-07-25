@@ -50,7 +50,7 @@ public:
 
     Simulation( Executor& executor, const network::LogicalThreadID& logicalthreadID, ProcessClock& processClock );
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
     virtual void             unqueue() override;
     virtual bool             queue( const network::ReceivedMessage& msg ) override;

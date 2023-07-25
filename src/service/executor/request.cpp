@@ -44,8 +44,8 @@ network::Message ExecutorRequestLogicalThread::MPODown( const network::Message& 
     {
         network::ReceivedMessage receivedMsg{ shared_from_this(), request };
         pSim->receive( receivedMsg );
-        LogicalThreadBase::RequestStack stack( "ExecutorRequestLogicalThread::MPODown", shared_from_this(), {} );
-        return dispatchRequestsUntilResponse( yield_ctx );
+        LogicalThreadBase::OutBoundRequestStack stack( shared_from_this() );
+        return dispatchInBoundRequestsUntilResponse( yield_ctx );
     }
     THROW_RTE( "Failed to resolve simulation: " << mpo );
     return {}; // prevent warning

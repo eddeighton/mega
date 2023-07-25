@@ -97,7 +97,7 @@ private:
 class Impl
 {
 public:
-    Message dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx );
+    Message dispatchInBoundRequest( const Message& msg, boost::asio::yield_context& yield_ctx );
 
 {% for request in requests %}
     virtual {{ request.return_type }} {{ request.name }}( {%for p in request.params%}const {{p.type}}& {{p.name}},{%endfor%}boost::asio::yield_context& yield_ctx ) 

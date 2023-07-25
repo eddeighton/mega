@@ -33,12 +33,12 @@ RootSimulation::RootSimulation( Root& root, const network::LogicalThreadID& logi
 {
 }
 
-network::Message RootSimulation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message RootSimulation::dispatchInBoundRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::sim::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    return RootRequestLogicalThread::dispatchRequest( msg, yield_ctx );
+    return RootRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
 
 void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )

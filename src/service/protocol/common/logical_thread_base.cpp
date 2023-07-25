@@ -27,23 +27,35 @@ Sender::~Sender() = default;
 
 LogicalThreadBase::~LogicalThreadBase() = default;
 
-LogicalThreadBase::RequestStack::RequestStack( const char* pszMsg, LogicalThreadBase::Ptr pLogicalThread,
-                                               Sender::Ptr pRequestResponseSender )
-    : m_pszMsg( pszMsg )
-    //, m_startTime( std::chrono::steady_clock::now() )
-    , pLogicalThread( pLogicalThread )
+LogicalThreadBase::InitiatedRequestStack::InitiatedRequestStack( LogicalThreadBase::Ptr pLogicalThread )
+    : pLogicalThread( pLogicalThread )
 {
-    // SPDLOG_DEBUG( "RequestStack::ctor conv:{} conid:{} msg:{}",
-    // pLogicalThread->getID(), m_pszMsg );
-    pLogicalThread->requestStarted( pRequestResponseSender );
+    pLogicalThread->requestStarted( Sender::Ptr{} );
 }
-LogicalThreadBase::RequestStack::~RequestStack()
+LogicalThreadBase::InitiatedRequestStack::~InitiatedRequestStack()
 {
-    // SPDLOG_DEBUG( "RequestStack::dtor conv:{} msg:{}",
-    // pLogicalThread->getID(), m_pszMsg ); const auto timeDelta =
-    // std::chrono::steady_clock::now() - m_startTime; SPDLOG_DEBUG( "{} {} {}",
-    // logicalthread.getID(), m_pszMsg, timeDelta );
     pLogicalThread->requestCompleted();
 }
 
+LogicalThreadBase::OutBoundRequestStack::OutBoundRequestStack( LogicalThreadBase::Ptr pLogicalThread )
+    : pLogicalThread( pLogicalThread )
+{
+    pLogicalThread->requestStarted( Sender::Ptr{} );
+}
+LogicalThreadBase::OutBoundRequestStack::~OutBoundRequestStack()
+{
+    pLogicalThread->requestCompleted();
+}
+
+LogicalThreadBase::InBoundRequestStack::InBoundRequestStack( LogicalThreadBase::Ptr pLogicalThread,
+                                                             Sender::Ptr            pRequestResponseSender )
+    : pLogicalThread( pLogicalThread )
+{
+    ASSERT( pRequestResponseSender );
+    pLogicalThread->requestStarted( pRequestResponseSender );
+}
+LogicalThreadBase::InBoundRequestStack::~InBoundRequestStack()
+{
+    pLogicalThread->requestCompleted();
+}
 } // namespace mega::network

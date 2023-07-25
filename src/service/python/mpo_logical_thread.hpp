@@ -33,9 +33,9 @@ class MPOLogicalThread : public PythonRequestLogicalThread, public network::pyth
 public:
     MPOLogicalThread( Python& python, const network::LogicalThreadID& logicalthreadID );
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
+                                                     boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
 
     network::python_leaf::Request_Sender     getPythonRequest( boost::asio::yield_context& yield_ctx );
     network::mpo::Request_Sender             getMPRequest( boost::asio::yield_context& yield_ctx );
@@ -69,10 +69,10 @@ public:
     bool isRunComplete() const { return m_bRunComplete; }
 
 private:
-    bool                                m_bRunning = true;
-    Python&                             m_python;
+    bool                                    m_bRunning = true;
+    Python&                                 m_python;
     std::vector< network::ReceivedMessage > m_messageQueue;
-    bool                                m_bRunComplete = false;
+    bool                                    m_bRunComplete = false;
 };
 } // namespace mega::service::python
 

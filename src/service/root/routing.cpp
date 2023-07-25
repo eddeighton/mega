@@ -39,28 +39,28 @@ RootRequestLogicalThread::~RootRequestLogicalThread()
 {
 }
 
-network::Message RootRequestLogicalThread::dispatchRequest( const network::Message&     msg,
+network::Message RootRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
                                                             boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "RootRequestLogicalThread::dispatchRequest {}", msg );
+    SPDLOG_TRACE( "RootRequestLogicalThread::dispatchInBoundRequest {}", msg );
     network::Message result;
-    if( result = network::daemon_root::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::daemon_root::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::mpo::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::project::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::enrole::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::status::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::stash::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::stash::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::job::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::sim::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "RootRequestLogicalThread::dispatchRequest failed: " << msg );
+    THROW_RTE( "RootRequestLogicalThread::dispatchInBoundRequest failed: " << msg );
     UNREACHABLE;
 }
 
@@ -92,7 +92,7 @@ network::Message RootRequestLogicalThread::broadcastAll( const network::Message&
     network::aggregate( aggregateRequest, responses );
 
     // dispatch to this
-    return dispatchRequest( aggregateRequest, yield_ctx );
+    return dispatchInBoundRequest( aggregateRequest, yield_ctx );
 }
 
 network::Message RootRequestLogicalThread::broadcastExe( const network::Message&     msg,
@@ -113,55 +113,55 @@ network::Message RootRequestLogicalThread::broadcastExe( const network::Message&
     network::aggregate( aggregateRequest, responses );
 
     // dispatch to this
-    return dispatchRequest( aggregateRequest, yield_ctx );
+    return dispatchInBoundRequest( aggregateRequest, yield_ctx );
 }
 // network::daemon_root::Impl
 network::Message RootRequestLogicalThread::TermRoot( const network::Message&     request,
                                                      boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::TermRoot" );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message RootRequestLogicalThread::ExeRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::ExeRoot" );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message RootRequestLogicalThread::ToolRoot( const network::Message&     request,
                                                      boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::ToolRoot" );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message RootRequestLogicalThread::PythonRoot( const network::Message&     request,
                                                        boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::PythonRoot" );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message RootRequestLogicalThread::LeafRoot( const network::Message&     request,
                                                      boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::LeafRoot" );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message RootRequestLogicalThread::DaemonRoot( const network::Message&     request,
                                                        boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestLogicalThread::DaemonRoot" );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message RootRequestLogicalThread::MPRoot( const network::Message& request, const MP& mp,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 network::Message RootRequestLogicalThread::MPDown( const network::Message& request, const MP& mp,
                                                    boost::asio::yield_context& yield_ctx )

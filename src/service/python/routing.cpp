@@ -34,21 +34,21 @@ PythonRequestLogicalThread::~PythonRequestLogicalThread()
 {
 }
 
-network::Message PythonRequestLogicalThread::dispatchRequest( const network::Message&     msg,
+network::Message PythonRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
                                                              boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if( result = network::leaf_python::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::leaf_python::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::python_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::python_leaf::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::mpo::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::project::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    if( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::status::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "PythonRequestLogicalThread::dispatchRequest failed: " << msg );
+    THROW_RTE( "PythonRequestLogicalThread::dispatchInBoundRequest failed: " << msg );
 }
 
 network::python_leaf::Request_Sender
@@ -60,7 +60,7 @@ PythonRequestLogicalThread::getPythonRequest( boost::asio::yield_context& yield_
 network::Message PythonRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                               boost::asio::yield_context& yield_ctx )
 {
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message PythonRequestLogicalThread::PythonRoot( const network::Message&     request,
@@ -92,14 +92,14 @@ network::Message PythonRequestLogicalThread::MPDown( const network::Message& req
                                                     boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( mega::MP( m_python.getMPO() ) == mp );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 network::Message PythonRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                      boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE( mega::MPO( m_python.getMPO() ) == mpo );
-    return dispatchRequest( request, yield_ctx );
+    return dispatchInBoundRequest( request, yield_ctx );
 }
 
 } // namespace mega::service::python

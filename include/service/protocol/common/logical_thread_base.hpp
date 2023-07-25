@@ -54,30 +54,43 @@ public:
 
     virtual ~LogicalThreadBase();
 
-    virtual const LogicalThreadID& getID() const                                                          = 0;
-    virtual Message                dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
-    //virtual void                   onDisconnect( Sender::Ptr pRequestResponseSender )                     = 0;
-    virtual void                   receive( const ReceivedMessage& msg )                                  = 0;
-    virtual void                   run( boost::asio::yield_context& yield_ctx )                           = 0;
+    virtual const LogicalThreadID& getID() const                                                                 = 0;
+    virtual Message                dispatchInBoundRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
+    virtual void                   receive( const ReceivedMessage& msg )                                         = 0;
+    virtual void                   run( boost::asio::yield_context& yield_ctx )                                  = 0;
 
 protected:
     virtual void requestStarted( Sender::Ptr pRequestResponseSender ) = 0;
     virtual void requestCompleted()                                   = 0;
 
 public:
-    class RequestStack
+    class InitiatedRequestStack
     {
-        const char* m_pszMsg;
-        // boost::asio::steady_timer::time_point m_startTime;
         LogicalThreadBase::Ptr pLogicalThread;
-        RequestStack( RequestStack& )            = delete;
-        RequestStack& operator=( RequestStack& ) = delete;
 
     public:
-        RequestStack( const char* pszMsg, LogicalThreadBase::Ptr pLogicalThread, Sender::Ptr pRequestResponseSender );
-        ~RequestStack();
+        InitiatedRequestStack( LogicalThreadBase::Ptr pLogicalThread );
+        ~InitiatedRequestStack();
     };
-    friend class LogicalThreadBase::RequestStack;
+    friend class LogicalThreadBase::InitiatedRequestStack;
+    class OutBoundRequestStack
+    {
+        LogicalThreadBase::Ptr pLogicalThread;
+
+    public:
+        OutBoundRequestStack( LogicalThreadBase::Ptr pLogicalThread );
+        ~OutBoundRequestStack();
+    };
+    friend class LogicalThreadBase::OutBoundRequestStack;
+    class InBoundRequestStack
+    {
+        LogicalThreadBase::Ptr pLogicalThread;
+
+    public:
+        InBoundRequestStack( LogicalThreadBase::Ptr pLogicalThread, Sender::Ptr pRequestResponseSender );
+        ~InBoundRequestStack();
+    };
+    friend class LogicalThreadBase::InBoundRequestStack;
 };
 
 } // namespace mega::network

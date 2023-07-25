@@ -34,12 +34,12 @@ Platform::Platform( Executor& executor, const network::LogicalThreadID& logicalt
 {
 }
 
-network::Message Platform::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message Platform::dispatchInBoundRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if( result = network::platform::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::platform::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    return ExecutorRequestLogicalThread::dispatchRequest( msg, yield_ctx );
+    return ExecutorRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
 
 void Platform::run( boost::asio::yield_context& yield_ctx )

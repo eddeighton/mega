@@ -41,7 +41,7 @@ public:
     TerminalRequestLogicalThread( Terminal& terminal, const network::LogicalThreadID& logicalthreadID );
     virtual ~TerminalRequestLogicalThread();
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
     // network::leaf_term::Impl

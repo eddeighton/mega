@@ -36,12 +36,12 @@ PlayerNetwork::PlayerNetwork( Executor& executor, const network::LogicalThreadID
 {
 }
 
-network::Message PlayerNetwork::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message PlayerNetwork::dispatchInBoundRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    if( result = network::player_network::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if( result = network::player_network::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
         return result;
-    return ExecutorRequestLogicalThread::dispatchRequest( msg, yield_ctx );
+    return ExecutorRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
 
 void PlayerNetwork::run( boost::asio::yield_context& yield_ctx )

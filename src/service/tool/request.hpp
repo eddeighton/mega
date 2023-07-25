@@ -44,7 +44,7 @@ public:
     ToolRequestLogicalThread( Tool& tool, const network::LogicalThreadID& logicalthreadID );
     virtual ~ToolRequestLogicalThread();
 
-    virtual network::Message dispatchRequest( const network::Message&     msg,
+    virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx );
