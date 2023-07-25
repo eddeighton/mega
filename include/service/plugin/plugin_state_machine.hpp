@@ -33,7 +33,7 @@
 namespace mega::service
 {
 
-template < typename Sender >
+template < typename Plugin >
 class PluginStateMachine
 {
     struct State
@@ -45,15 +45,15 @@ class PluginStateMachine
             eWaitingForUpstream,
             TOTAL_STATES
         };
-        Type                       m_type;
+        Type                        m_type;
         network::LogicalThreadBase* m_pSender;
-        Downstream                 m_downstream;
+        Downstream                  m_downstream;
     };
     using MPOTable = std::unordered_map< MPO, State, MPO::Hash >;
 
 public:
-    PluginStateMachine( Sender& sender )
-        : m_sender( sender )
+    PluginStateMachine( Plugin& plugin )
+        : m_plugin( plugin )
     {
     }
 
@@ -88,7 +88,7 @@ public:
             // invoke blocking wait
             if( bRemaining )
             {
-                m_sender.runOne();
+                m_plugin.runOne();
             }
         }
         return nullptr;
@@ -99,8 +99,9 @@ public:
         for( auto& [ mpo, state ] : m_sims )
         {
             ASSERT( state.m_type == State::eWaitingForUpstream );
-            THROW_TODO;
-            // m_sender.send( *state.m_pSender, network::sim::MSG_SimClock_Response{ clockTick } );
+            state.m_pSender->send(
+                network::sim::MSG_SimClock_Response::make(
+                    m_plugin.getLogicalThreadID(), network::sim::MSG_SimClock_Response{ clockTick } ) );
             state.m_type = State::eWaitingForClock;
         }
     }
@@ -128,7 +129,7 @@ public:
     }
 
 private:
-    Sender&  m_sender;
+    Plugin&  m_plugin;
     MPOTable m_sims;
 };
 } // namespace mega::service

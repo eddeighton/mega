@@ -38,10 +38,10 @@
 namespace mega::service
 {
 
-class Plugin : public network::LogicalThreadBase, public ProcessClock
+class Plugin : public ProcessClock
 {
     using MessageChannel
-        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, network::ReceivedMessage ) >;
+        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, network::Message ) >;
 
 public:
     using Ptr = std::shared_ptr< Plugin >;
@@ -55,7 +55,7 @@ public:
     Plugin& operator=( const Plugin& ) = delete;
     Plugin& operator=( Plugin&& )      = delete;
 
-    // Sender
+    void send( const network::Message& msg );
 
     // ProcessClock
     virtual void setActiveProject( const Project& project, U64 dbHashCode ) override;
@@ -63,20 +63,7 @@ public:
     virtual void unregisterMPO( network::SenderRef sender ) override;
     virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) override;
 
-    // network::LogicalThreadBase
-    virtual void receive( const network::ReceivedMessage& msg ) override;
-    /*
-        void send( LogicalThreadBase& sender, network::Message&& requestMsg )
-        {
-            // SPDLOG_TRACE( "plugin::send: {}", requestMsg.getName() );
-            const network::ReceivedMessage rMsg{ , requestMsg };
-            sender.send( rMsg );
-        }
-        template < typename MsgType >
-        void send( LogicalThreadBase& sender, MsgType&& msg )
-        {
-            send( sender, MsgType::make( getID(), sender.getID(), std::move( msg ) ) );
-        }*/
+    const network::LogicalThreadID& getLogicalThreadID() const { return m_logicalThreadID; }
 
     U64         database_hashcode() { return m_databaseHashcode; }
     const char* database() { return m_strDatabasePath.c_str(); }
@@ -98,35 +85,14 @@ public:
     bool tryRun();
     void dispatch( const network::Message& msg );
 
-    U64         network_count();
-    const char* network_name( U64 networkID );
-    void        network_connect( U64 networkID );
-    void        network_disconnect();
-    U64         network_current();
-
-    void planet_create();
-    void planet_destroy();
-    bool planet_current();
-
 private:
-    network::LogicalThreadID m_conID;
-    MessageChannel           m_channel;
-    mega::service::Executor  m_executor;
-    // Platform::Ptr                                m_pPlatform;
-    // PlayerNetwork::Ptr                           m_pPlayerNetwork;
-    // std::optional< network::PlatformState >      m_platformStateOpt;
-    // std::optional< network::PlayerNetworkState > m_networkStateOpt;
-    U64         m_databaseHashcode = 0U; // MUS BE zero for interop to do nothing
-    std::string m_strDatabasePath;
-    U64         m_memoryHashcode;
-    // MemoryDescription                            m_memoryDescription;
-    mega::TimeStamp m_cycle = 0;
-    float           m_ct    = 0.0f;
-    // float                        m_statusRate       = 1.0f;
-    // bool                         m_bNetworkRequest  = false;
-    // bool                         m_bPlatformRequest = false;
-    // std::optional< float >       m_lastPlatformStatus;
-    // std::optional< float >       m_lastNetworkStatus;
+    network::LogicalThreadID     m_logicalThreadID;
+    MessageChannel               m_channel;
+    mega::service::Executor      m_executor;
+    U64                          m_databaseHashcode = 0U; // MUST BE zero for interop to do nothing
+    std::string                  m_strDatabasePath;
+    mega::TimeStamp              m_cycle = 0;
+    float                        m_ct    = 0.0f;
     PluginStateMachine< Plugin > m_stateMachine;
 };
 } // namespace mega::service

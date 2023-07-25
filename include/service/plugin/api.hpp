@@ -52,18 +52,6 @@ extern "C"
 
     MEGA_PLUGIN_EXPORT const void* mp_downstream();
     MEGA_PLUGIN_EXPORT void mp_upstream( float delta, void* pRange );
-
-    // network connection
-    MEGA_PLUGIN_EXPORT MEGA_64 mp_network_count();
-    MEGA_PLUGIN_EXPORT const char* mp_network_name( MEGA_64 networkID );
-    MEGA_PLUGIN_EXPORT void mp_network_connect( MEGA_64 networkID );
-    MEGA_PLUGIN_EXPORT void mp_network_disconnect();
-    MEGA_PLUGIN_EXPORT MEGA_64 mp_network_current();
-
-    // planet
-    MEGA_PLUGIN_EXPORT void mp_planet_create();
-    MEGA_PLUGIN_EXPORT void mp_planet_destroy();
-    MEGA_PLUGIN_EXPORT bool mp_planet_current();
 }
 
 #endif //GUARD_2023_March_21_api

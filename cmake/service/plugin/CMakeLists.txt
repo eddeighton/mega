@@ -47,16 +47,12 @@ set( PLUGIN_SRC_DIR ${MEGA_SRC_DIR}/service/plugin )
 
 set( PLUGIN_API
     ${MEGA_API_DIR}/service/plugin/api.hpp 
-    ${MEGA_API_DIR}/service/plugin/platform.hpp 
-    ${MEGA_API_DIR}/service/plugin/player_network.hpp 
     ${MEGA_API_DIR}/service/plugin/plugin_state_machine.hpp 
     ${MEGA_API_DIR}/service/plugin/plugin.hpp 
     )
 
 set( PLUGIN_SOURCE 
     ${MEGA_SRC_DIR}/service/plugin/api.cpp 
-    ${MEGA_SRC_DIR}/service/plugin/platform.cpp 
-    ${MEGA_SRC_DIR}/service/plugin/player_network.cpp 
     ${MEGA_SRC_DIR}/service/plugin/plugin.cpp 
     )
 
