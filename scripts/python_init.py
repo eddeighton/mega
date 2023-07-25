@@ -35,6 +35,8 @@ sys.path.append( MEGA_BIN )
 
 import megastructure
 
+mega = megastructure
+
 def run():
     megastructure.run_one()
 
