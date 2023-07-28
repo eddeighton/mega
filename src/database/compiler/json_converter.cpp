@@ -733,7 +733,9 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
         else if( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
         {
             model::Object::Ptr pObject = pRef->m_object;
-            VERIFY_RTE_MSG( pStage->isInterface( pObject ), "Stage missing interface for object" );
+            VERIFY_RTE_MSG( pStage->isInterface( pObject ),
+                            "Stage: " << pStage->m_strName
+                                      << " missing interface for object: " << pObject->delimitTypeName( "." ) );
             model::Interface::Ptr pInterface = pStage->getInterface( pObject );
             osFunctionBody << "return toView( m_factory, " << strData << " );";
         }

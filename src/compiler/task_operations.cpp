@@ -38,253 +38,25 @@
 #include <vector>
 #include <string>
 
+namespace OperationsStage
+{
+using namespace OperationsStage;
+using namespace OperationsStage::Interface;
+#include "compiler/generator_operations.hpp"
+} // namespace OperationsStage
+
 namespace mega::compiler
 {
-
-struct CleverUtility
-{
-    using IDList = std::vector< std::string >;
-    IDList& theList;
-    CleverUtility( IDList& theList, const std::string& strID )
-        : theList( theList )
-    {
-        theList.push_back( strID );
-    }
-    ~CleverUtility() { theList.pop_back(); }
-};
 
 class Task_Operations : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
-
-    class TemplateEngine
-    {
-        const mega::io::StashEnvironment& m_environment;
-        ::inja::Environment&              m_injaEnvironment;
-        ::inja::Template                  m_operationsTemplate;
-
-    public:
-        TemplateEngine( const mega::io::StashEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
-            : m_environment( buildEnvironment )
-            , m_injaEnvironment( injaEnv )
-            , m_operationsTemplate( m_injaEnvironment.parse_template( m_environment.OperationsTemplate().string() ) )
-        {
-        }
-
-        void renderOperations( const nlohmann::json& data, std::ostream& os ) const
-        {
-            m_injaEnvironment.render_to( os, m_operationsTemplate, data );
-        }
-    };
-
-    template < typename T >
-    nlohmann::json generateBlock( T* pNode, mega::U64 blockID, std::ostream& osBody )
-    {
-        using namespace OperationsStage;
-        std::ostringstream os;
-        {
-            for( auto pNode : pNode->get_nodes() )
-            {
-                if( auto pLit = db_cast< Automata::Literal >( pNode ) )
-                {
-                    os << pLit->get_value();
-                    osBody << pLit->get_value();
-                }
-            }
-        }
-        return nlohmann::json( { { "id", blockID }, { "body", os.str() } } );
-    }
-
-    void generateAutomataRecurse( OperationsStage::Automata::Block* pBlock, nlohmann::json& data, std::ostream& osBody )
-    {
-        using namespace OperationsStage;
-
-        data[ "blocks" ].push_back( generateBlock( pBlock, pBlock->get_id(), osBody ) );
-
-        for( auto pNode : pBlock->get_nodes() )
-        {
-            if( auto pNestedBlock = db_cast< Automata::Block >( pNode ) )
-            {
-                generateAutomataRecurse( pNestedBlock, data, osBody );
-            }
-        }
-    }
 
 public:
     Task_Operations( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
-    }
-
-    void recurse( OperationsStage::Interface::IContext* pContext,
-                  nlohmann::json&                       data,
-                  CleverUtility::IDList&                namespaces,
-                  CleverUtility::IDList&                types )
-    {
-        using namespace OperationsStage;
-        using namespace OperationsStage::Interface;
-
-        if( auto pNamespace = db_cast< Namespace >( pContext ) )
-        {
-            /*if ( pNamespace->get_is_global() )
-            {
-                CleverUtility c( namespaces, pNamespace->get_identifier() );
-                for ( IContext* pNestedContext : pNamespace->get_children() )
-                {
-                    recurse( pNestedContext, data, namespaces, types );
-                }
-            }
-            else*/
-            {
-                CleverUtility c( types, pNamespace->get_identifier() );
-                for( IContext* pNestedContext : pNamespace->get_children() )
-                {
-                    recurse( pNestedContext, data, namespaces, types );
-                }
-            }
-        }
-        else if( auto pAbstract = db_cast< Abstract >( pContext ) )
-        {
-            CleverUtility c( types, pAbstract->get_identifier() );
-            for( IContext* pNestedContext : pAbstract->get_children() )
-            {
-                recurse( pNestedContext, data, namespaces, types );
-            }
-        }
-        else if( Interface::Action* pAction = db_cast< Interface::Action >( pContext ) )
-        {
-            CleverUtility c( types, pAction->get_identifier() );
-
-            if( auto pStartState = db_cast< Automata::Start >( pAction ) )
-            {
-                nlohmann::json operation( {
-
-                    { "automata", true },
-                    { "return_type", "mega::ActionCoroutine" },
-                    { "body", "" },
-                    { "hash", "" },
-                    { "typeID", pAction->get_interface_id().getSymbolID() },
-                    { "has_namespaces", !namespaces.empty() },
-                    { "namespaces", namespaces },
-                    { "types", types },
-                    { "params_string", "mega::U64 _blockID" },
-                    { "params", nlohmann::json::array() },
-                    { "blocks", nlohmann::json::array() } } );
-
-                {
-                    nlohmann::json param( { { "type", "mega::U64" }, { "name", "_blockID" } } );
-                    operation[ "params" ].push_back( param );
-                }
-
-                std::ostringstream osBody;
-                generateAutomataRecurse( pStartState->get_sequence(), operation, osBody );
-                operation[ "hash" ] = common::Hash{ osBody.str() }.toHexString();
-
-                data[ "operations" ].push_back( operation );
-            }
-            else
-            {
-                std::ostringstream osBody;
-                for( auto pDef : pAction->get_action_defs() )
-                {
-                    if( !pDef->get_body().empty() )
-                    {
-                        osBody << pDef->get_body();
-                        break;
-                    }
-                }
-
-                osBody << "\nco_return mega::done();";
-
-                nlohmann::json operation( {
-
-                    { "automata", false },
-                    { "return_type", "mega::ActionCoroutine" },
-                    { "body", osBody.str() },
-                    { "hash", common::Hash{ osBody.str() }.toHexString() },
-                    { "typeID", pAction->get_interface_id().getSymbolID() },
-                    { "has_namespaces", !namespaces.empty() },
-                    { "namespaces", namespaces },
-                    { "types", types },
-                    { "params_string", "" },
-                    { "params", nlohmann::json::array() } } );
-
-                data[ "operations" ].push_back( operation );
-            }
-
-            for( IContext* pNestedContext : pAction->get_children() )
-            {
-                recurse( pNestedContext, data, namespaces, types );
-            }
-        }
-        else if( auto pEvent = db_cast< Event >( pContext ) )
-        {
-        }
-        else if( auto pFunction = db_cast< Function >( pContext ) )
-        {
-            CleverUtility c( types, pFunction->get_identifier() );
-
-            std::string strBody;
-            {
-                for( auto pDef : pFunction->get_function_defs() )
-                {
-                    if( !pDef->get_body().empty() )
-                    {
-                        strBody = pDef->get_body();
-                        break;
-                    }
-                }
-            }
-
-            nlohmann::json operation( {
-
-                { "automata", false },
-                { "return_type", pFunction->get_return_type_trait()->get_str() },
-                { "body", strBody },
-                { "hash", common::Hash{ strBody }.toHexString() },
-                { "typeID", pFunction->get_interface_id().getSymbolID() },
-                { "has_namespaces", !namespaces.empty() },
-                { "namespaces", namespaces },
-                { "types", types },
-                { "params_string", pFunction->get_arguments_trait()->get_str() },
-                { "params", nlohmann::json::array() } } );
-            {
-                int iParamCounter = 1;
-                for( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )
-                {
-                    std::ostringstream osParamName;
-                    osParamName << "p_" << iParamCounter++;
-                    nlohmann::json param( { { "type", strParamType }, { "name", osParamName.str() } } );
-                    operation[ "params" ].push_back( param );
-                }
-            }
-
-            data[ "operations" ].push_back( operation );
-        }
-        else if( auto pObject = db_cast< Object >( pContext ) )
-        {
-            CleverUtility c( types, pObject->get_identifier() );
-            for( IContext* pNestedContext : pObject->get_children() )
-            {
-                recurse( pNestedContext, data, namespaces, types );
-            }
-        }
-        else if( auto pLink = db_cast< Link >( pContext ) )
-        {
-            CleverUtility c( types, pLink->get_identifier() );
-            for( IContext* pNestedContext : pLink->get_children() )
-            {
-                recurse( pNestedContext, data, namespaces, types );
-            }
-        }
-        else if( auto pBuffer = db_cast< Buffer >( pContext ) )
-        {
-        }
-        else
-        {
-            THROW_RTE( "Unknown context type" );
-        }
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
@@ -295,7 +67,7 @@ public:
         start( taskProgress, "Task_Operations", m_sourceFilePath.path(), operationsFile.path() );
 
         task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.OperationsTemplate(),
+            { m_toolChain.toolChainHash, m_environment.OperationsTemplate(), m_environment.OperationsExternsTemplate(),
               m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ),
               m_environment.getBuildHashCode(
                   m_environment.ConcreteTypeRollout_PerSourceConcreteTable( m_sourceFilePath ) ),
@@ -313,30 +85,19 @@ public:
             using namespace OperationsStage::Interface;
 
             Database database( m_environment, m_sourceFilePath );
+            // NOTE: MUST ensure automata analysis loaded
+            database.many< Automata::Start >( m_sourceFilePath );
 
-            std::ostringstream os;
+            std::string strOperations;
             {
                 ::inja::Environment injaEnvironment;
                 {
                     injaEnvironment.set_trim_blocks( true );
                 }
-                TemplateEngine templateEngine( m_environment, injaEnvironment );
-
-                nlohmann::json data( { { "operations", nlohmann::json::array() } } );
-
-                // NOTE: MUST ensure automata analysis loaded
-                database.many< Automata::Start >( m_sourceFilePath );
-
-                Interface::Root*      pRoot = database.one< Interface::Root >( m_sourceFilePath );
-                CleverUtility::IDList namespaces, types;
-                for( IContext* pContext : pRoot->get_children() )
-                {
-                    recurse( pContext, data, namespaces, types );
-                }
-
-                templateEngine.renderOperations( data, os );
+                OperationsGen::TemplateEngine templateEngine( m_environment, injaEnvironment );
+                Interface::Root*              pRoot = database.one< Interface::Root >( m_sourceFilePath );
+                strOperations                       = OperationsGen::generate( templateEngine, pRoot, true );
             }
-            std::string strOperations = os.str();
             mega::utilities::clang_format( strOperations, std::optional< boost::filesystem::path >() );
             boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
         }

@@ -354,6 +354,7 @@ stage ValueSpaceStage
 
     file ValueSpace;
 
+    persource accessor array< ref< Interface::InvocationContext > >;
     persource accessor array< ref< Automata::Start > >;
     persource accessor ref< Operations::Invocations >;
 }
@@ -385,79 +386,6 @@ stage UnityStageView
     global accessor array< ref< HyperGraph::Relation > >;
     global accessor array< ref< MegaMangle::Mangle > >;
 }
-/*
-stage SchematicParseStage
-{
-    source .sch;
-    dependency UnityStage;
-
-    file SchematicParse;
-}
-
-stage SchematicContoursStage
-{
-    source .sch;
-    dependency SchematicParseStage;
-
-    file SchematicContours;
-}
-
-stage SchematicExtrusionsStage
-{
-    source .sch;
-    dependency SchematicContoursStage;
-
-    file SchematicExtrusions;
-}
-
-stage SchematicConnectionsStage
-{
-    source .sch;
-    dependency SchematicExtrusionsStage;
-
-    file SchematicConnections;
-}
-
-stage SchematicWallSectionsStage
-{
-    source .sch;
-    dependency SchematicConnectionsStage;
-
-    file SchematicWallSections;
-}
-
-stage SchematicFloorPlanStage
-{
-    source .sch;
-    dependency SchematicWallSectionsStage;
-
-    file SchematicFloorPlan;
-}
-
-stage SchematicVisibilityStage
-{
-    source .sch;
-    dependency SchematicFloorPlanStage;
-
-    file SchematicVisibility;
-}
-
-stage SchematicValueSpaceStage
-{
-    source .sch;
-    dependency SchematicVisibilityStage;
-
-    file SchematicValueSpace;
-}
-
-stage SchematicSpawnPointsStage
-{
-    source .sch;
-    dependency SchematicValueSpaceStage;
-
-    file SchematicSpawnPoints;
-}
-*/
 
 stage FinalStage
 {
@@ -471,6 +399,7 @@ stage FinalStage
     global accessor array< ref< MemoryLayout::MemoryMap > >;
     
     persource accessor ref< Interface::Root >;
+    persource accessor ref< Interface::IContext >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Operations::Invocations >;
     persource accessor array< ref< Concrete::Link > >;

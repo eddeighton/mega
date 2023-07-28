@@ -77,6 +77,7 @@ public:
     Path ContextTemplate() const;
     Path InterfaceTemplate() const;
     Path OperationsTemplate() const;
+    Path OperationsExternsTemplate() const;
     Path PythonWrapperTemplate() const;
     Path InitialiserTemplate() const;
     Path ImplementationTemplate() const;

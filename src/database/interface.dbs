@@ -88,6 +88,18 @@ namespace Interface
         array< ref< Concrete::Context > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
     }
 
+    object InvocationInstance -> ValueSpaceStage::ValueSpace
+    {
+        ref< Operations::Invocation > invocation;
+        value< mega::SourceLocation > source_location;
+    }
+
+    object InvocationContext : IContext -> InterfaceStage::Tree
+    {
+        array< ref< InvocationInstance > > invocation_instances -> ValueSpaceStage::ValueSpace;
+        value< mega::SourceLocation > source_location -> ValueSpaceStage::ValueSpace;
+    }
+
     // main context types
     object Namespace : IContext -> InterfaceStage::Tree
     {
@@ -102,7 +114,7 @@ namespace Interface
         late< opt< ref< InheritanceTrait > > > inheritance_trait;
         late< opt< ref< SizeTrait > > > size_trait;
     }
-    object Action : IContext -> InterfaceStage::Tree
+    object Action : InvocationContext -> InterfaceStage::Tree
     {
         array< ref< Parser::ActionDef > > action_defs;
         late< array< ref< DimensionTrait > > > dimension_traits;
@@ -116,7 +128,7 @@ namespace Interface
         late< opt< ref< InheritanceTrait > > > inheritance_trait;
         late< opt< ref< SizeTrait > > > size_trait;
     }
-    object Function : IContext -> InterfaceStage::Tree
+    object Function : InvocationContext -> InterfaceStage::Tree
     {
         array< ref< Parser::FunctionDef > > function_defs;
         late< ref< ReturnTypeTrait > > return_type_trait;

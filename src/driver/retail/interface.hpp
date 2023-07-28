@@ -76,6 +76,15 @@ getDimensionTraits( CleverUtility::IDList& typenames, TContextType* pContext,
     return traits;
 }
 
+std::string generateInvocationName( const FinalStage::Operations::Invocation* pInvocation )
+{
+    std::ostringstream os;
+
+    os << "_" << pInvocation->get_id();
+
+    return os.str();
+}
+
 void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols::SymbolTable* pSymbolTable,
                        TemplateEngine& templateEngine, CleverUtility::IDList& namespaces, CleverUtility::IDList& types,
                        FinalStage::Interface::IContext* pContext, std::ostream& os, nlohmann::json& interfaceOperations,
@@ -92,22 +101,17 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
                           interfaceOperations, traitStructs );
     }
 
-    InvocationTree tree( pSymbolTable );
+    nlohmann::json contextInvocations = nlohmann::json::array();
     {
         for( auto i    = invocationInfo.contextInvocations.lower_bound( pContext ),
                   iEnd = invocationInfo.contextInvocations.upper_bound( pContext );
              i != iEnd;
              ++i )
         {
-            tree.add( i->second );
+            const Operations::Invocation* pInvocation = i->second;
+            nlohmann::json                invocation  = { { "name", generateInvocationName( pInvocation ) } };
+            contextInvocations.push_back( invocation );
         }
-    }
-
-    std::ostringstream osInvocations;
-    for( const auto& [ pSymbol, childNode ] : tree.m_root.m_children )
-    {
-        recurseInvocations( templateEngine, namespaces, types, childNode, osInvocations, interfaceOperations, true,
-                            pContext->get_identifier() );
     }
 
     nlohmann::json context( {
@@ -115,10 +119,8 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
         { "name", pContext->get_identifier() },
         { "typeid", toHex( pContext->get_interface_id() ) },
         { "has_operation", false },
-        { "operation_has_args", false },
-        { "operation_has_args_explicit", false },
         { "operation_params_string", "" },
-        { "invocations", osInvocations.str() },
+        { "invocations", contextInvocations },
         { "nested", osNested.str() },
         { "trait_structs", nlohmann::json::array() }
 
@@ -152,15 +154,12 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
 
         if( auto pStartState = db_cast< Meta::Automata >( pAction ) )
         {
-            context[ "operation_return_type" ] = "mega::ActionCoroutine";
-            context[ "operation_parameters" ]  = "mega::U64 _blockID";
-            context[ "operation_has_args" ]    = true;
+            context[ "operation_return_type" ]   = "mega::ActionCoroutine";
+            context[ "operation_params_string" ] = "mega::U64 _blockID";
         }
         else
         {
             context[ "operation_return_type" ] = "mega::ActionCoroutine";
-            context[ "operation_parameters" ]  = "";
-            context[ "operation_has_args" ]    = false;
         }
     }
     else if( Interface::Event* pEvent = db_cast< Interface::Event >( pContext ) )
@@ -173,11 +172,9 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
     }
     else if( Interface::Function* pFunction = db_cast< Interface::Function >( pContext ) )
     {
-        context[ "has_operation" ]               = true;
-        context[ "operation_has_args" ]          = true;
-        context[ "operation_has_args_explicit" ] = true;
-        context[ "operation_return_type" ]       = pFunction->get_return_type_trait()->get_str();
-        context[ "operation_params_string" ]     = pFunction->get_arguments_trait()->get_str();
+        context[ "has_operation" ]           = true;
+        context[ "operation_return_type" ]   = pFunction->get_return_type_trait()->get_str();
+        context[ "operation_params_string" ] = pFunction->get_arguments_trait()->get_str();
     }
     else if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
     {

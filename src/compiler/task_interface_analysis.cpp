@@ -38,7 +38,7 @@
 namespace InterfaceAnalysisStage
 {
 using namespace InterfaceAnalysisStage::Interface;
-#include "interface.hpp"
+#include "compiler/generator_interface.hpp"
 } // namespace InterfaceAnalysisStage
 
 namespace mega::compiler

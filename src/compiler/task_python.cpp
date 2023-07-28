@@ -19,6 +19,8 @@
 
 #include "base_task.hpp"
 
+#include "compiler/generator_utility.hpp"
+
 #include "database/types/clang_compilation.hpp"
 
 #include "database/model/ConcreteStage.hxx"
@@ -43,18 +45,6 @@
 
 namespace mega::compiler
 {
-
-struct CleverUtility
-{
-    using IDList = std::vector< std::string >;
-    IDList& theList;
-    CleverUtility( IDList& theList, const std::string& strID )
-        : theList( theList )
-    {
-        theList.push_back( strID );
-    }
-    ~CleverUtility() { theList.pop_back(); }
-};
 
 class Task_PythonWrapper : public BaseTask
 {

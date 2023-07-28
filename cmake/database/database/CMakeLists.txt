@@ -198,6 +198,7 @@ set( MEGA_TYPES_HEADERS
     ${MEGA_API_DIR}/database/types/modes.hpp
     ${MEGA_API_DIR}/database/types/operation.hpp
     ${MEGA_API_DIR}/database/types/ownership.hpp
+    ${MEGA_API_DIR}/database/types/source_location.hpp
     ${MEGA_API_DIR}/database/types/sources.hpp
     ${MEGA_API_DIR}/database/types/type_id.hpp
     

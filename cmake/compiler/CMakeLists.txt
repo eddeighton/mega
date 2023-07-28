@@ -42,6 +42,11 @@ include( ../preprocess_cpp.cmake )
 set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/configuration.hpp
     ${MEGA_API_DIR}/compiler/build_report.hpp
+
+    # reusable code generators
+    ${MEGA_API_DIR}/compiler/generator_utility.hpp
+    ${MEGA_API_DIR}/compiler/generator_interface.hpp
+    ${MEGA_API_DIR}/compiler/generator_operations.hpp
 )
 
 set( COMPILER_LIB_SOURCE
@@ -79,6 +84,7 @@ set( JINJA_TEMPLATES
     ${MEGA_SRC_DIR}/compiler/templates/context.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/operations_externs.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/impl.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/python_wrapper.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/initialiser.jinja 
@@ -107,16 +113,6 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_operations.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
     ${MEGA_SRC_DIR}/compiler/task_python.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_connection.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_contour.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_extrusion.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_floor_plan.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_map_file.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_parse.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_spawn_points.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_value_space.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_visibility.cpp
-    #${MEGA_SRC_DIR}/compiler/task_schematic_wall_sections.cpp
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
     ${MEGA_SRC_DIR}/compiler/task_unity.cpp
     ${MEGA_SRC_DIR}/compiler/task_value_space.cpp

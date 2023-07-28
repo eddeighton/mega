@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,36 +18,28 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-{% for operation in operations %}
+#ifndef GUARD_2023_July_28_generator_utility
+#define GUARD_2023_July_28_generator_utility
 
-{% if operation.has_namespaces %} 
-{% for namespace in operation.namespaces %}{% if loop.is_first%}namespace {%else%}::{% endif %}{{namespace}}{% endfor %}
-{ 
-{% endif %}
-{{ operation.return_type }} {% for type in operation.types %}{{type}}::{% endfor %}operator()({{ operation.params_string }}) const
+inline std::string toHex( mega::TypeID typeID )
 {
-//_MEGAOPERATIONBEGIN{{ operation.typeID }}
-{% if operation.automata %}
-    switch( _blockID )
-    {
-{% for block in operation.blocks %}
-        case {{ block.id }}:
-        //_MEGABEGIN{{block.id}}
-        {
-            {{ block.body }}
-        }
-        //_MEGAEND{{block.id}}
-        break;
-{% endfor %}
-    }
-    co_return mega::done();
-{% else %}
-    {{ operation.body }}
-{% endif %}
-//_MEGAOPERATIONEND{{ operation.typeID }}
+    std::ostringstream os;
+    os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << 
+        static_cast< mega::U32 >( typeID.getSymbolID() );
+    return os.str();
 }
-{% if operation.has_namespaces %} 
-} 
-{% endif %}
 
-{% endfor %}
+struct CleverUtility
+{
+    using IDList = std::vector< std::string >;
+    IDList& theList;
+    CleverUtility( IDList& theList, const std::string& strID )
+        : theList( theList )
+    {
+        theList.push_back( strID );
+    }
+    ~CleverUtility() { theList.pop_back(); }
+};
+
+
+#endif //GUARD_2023_July_28_generator_utility

@@ -407,7 +407,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Save* pSave )
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
 
-    THROW_TODO;
+    //THROW_TODO;
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -976,33 +976,33 @@ generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Vari
 }
 
 void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& namespaces,
-                         CleverUtility::IDList& types, const InvocationTree::Node& node, std::ostream& os,
+                         CleverUtility::IDList& types, std::ostream& os,
                          nlohmann::json& interfaceOperations, bool bFirstLevelDeep, const std::string& strContext )
 {
     std::ostringstream osTypeName;
-    osTypeName << "_" << node.pSymbol->get_symbol();
+    //osTypeName << "_" << node.pSymbol->get_symbol();
 
     CleverUtility c( types, osTypeName.str() );
 
     std::ostringstream osNested;
-    for( const auto& [ pSymbol, childNode ] : node.m_children )
+    /*for( const auto& [ pSymbol, childNode ] : node.m_children )
     {
         recurseInvocations(
             templateEngine, namespaces, types, childNode, osNested, interfaceOperations, false, strContext );
-    }
+    }*/
 
     nlohmann::json invocation( {
 
         { "context", strContext },
         { "first_level_deep", bFirstLevelDeep },
         { "type", osTypeName.str() },
-        { "symbol", node.pSymbol->get_symbol() },
+        //{ "symbol", node.pSymbol->get_symbol() },
         { "nested", osNested.str() },
         { "operations", nlohmann::json::array() }
 
     } );
 
-    for( const auto& [ opType, pInvocation ] : node.m_operations )
+    /*for( const auto& [ opType, pInvocation ] : node.m_operations )
     {
         std::ostringstream osType;
         osType << "_" << mega::getExplicitOperationString( opType );
@@ -1015,6 +1015,9 @@ void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& 
             }
         }
 
+        
+        
+
         nlohmann::json operation( {
 
             { "automata", false },
@@ -1026,7 +1029,8 @@ void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& 
             { "has_namespaces", !namespaces.empty() },
             { "namespaces", namespaces },
             { "types", types },
-            { "symbol", mega::getExplicitOperationString( opType ) },
+            { "symbol", mega::getOperationString( pInvocation->get_operation() ) },
+            //{ "symbol_explicit", mega::getExplicitOperationString( opType ) },
             { "return_type", pInvocation->get_return_type_str() },
             { "params_string", "" },
             { "body", "THROW_RTE( \"NOT IMPLEMENTED\" );\n" }
@@ -1065,7 +1069,7 @@ R"TEMPLATE(
         interfaceOperations.push_back( operation );
     }
 
-    templateEngine.renderInvocation( invocation, os );
+    templateEngine.renderInvocation( invocation, os );*/
 }
 
 } // namespace driver::retail

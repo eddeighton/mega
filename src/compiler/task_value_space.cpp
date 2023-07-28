@@ -23,14 +23,63 @@
 #include "database/model/ValueSpaceStage.hxx"
 
 #include "database/types/sources.hpp"
+#include "database/types/source_location.hpp"
 
 #include <common/stash.hpp>
 
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 namespace mega::compiler
 {
+namespace
+{
+inline bool isNewLine( std::string::const_iterator i )
+{
+    if( *i == '\n' )
+        return true;
+    if( ( *i == '\r' ) && ( *( i + 1 ) == '\n' ) )
+        return true;
+    return false;
+}
+
+template < typename KeyType, typename ResultType, typename KeyParserFunctor >
+void parseRanges( const std::string& str, const std::string& strBegin, const std::string& strEnd,
+                  KeyParserFunctor&& parser, ResultType& ranges )
+{
+    for( auto i = str.cbegin(), iBegin = str.cbegin(), iEnd = str.cend(); i != iEnd; )
+    {
+        i = std::search( i, iEnd, strBegin.cbegin(), strBegin.cend() );
+        if( i != iEnd )
+        {
+            const std::string::const_iterator iStart = i;
+            i += strBegin.size();
+
+            // get key from the line
+            KeyType key;
+            {
+                auto iLineEnd = i + 1;
+                while( !isNewLine( iLineEnd ) )
+                {
+                    ++iLineEnd;
+                }
+                key = parser( i, iLineEnd );
+                i   = iLineEnd;
+            }
+
+            i = std::search( i, iEnd, strEnd.cbegin(), strEnd.cend() );
+            VERIFY_RTE_MSG( i != iEnd, "Failed to locate block end" );
+            i += strEnd.size();
+
+            const U64 distToStart = static_cast< U64 >( std::distance( iBegin, iStart ) );
+            const U64 distToEnd   = static_cast< U64 >( std::distance( iBegin, i ) );
+
+            VERIFY_RTE( ranges.insert( { key, SourceLocation{ distToStart, distToEnd } } ).second );
+        }
+    }
+}
+} // namespace
 
 class Task_ValueSpace : public BaseTask
 {
@@ -44,19 +93,19 @@ public:
     }
 
 private:
-    using BlockRange  = std::pair< mega::U64, mega::U64 >;
-    using BlockRanges = std::unordered_map< mega::U64, BlockRange >;
+    using BlockID     = mega::U64;
+    using BlockRanges = std::unordered_map< BlockID, SourceLocation >;
 
     void recurseBlocks( ValueSpaceStage::Database& database, ValueSpaceStage::Operations::Invocations* pInvocations,
                         const BlockRanges& blockRanges, ValueSpaceStage::Automata::Block* pBlock )
     {
         using namespace ValueSpaceStage;
 
-        const mega::U64 id    = pBlock->get_id();
-        auto            iFind = blockRanges.find( id );
+        const BlockID id    = pBlock->get_id();
+        auto          iFind = blockRanges.find( id );
         VERIFY_RTE_MSG( iFind != blockRanges.end(), "Failed to locate block: " << id );
-        const BlockRange& blockRange = iFind->second;
-        ASSERT( blockRange.second > blockRange.first );
+        const SourceLocation& blockRange = iFind->second;
+        ASSERT( blockRange.isValid() );
 
         using Actions = std::vector< Interface::Action* >;
         Actions blockActions;
@@ -65,9 +114,9 @@ private:
             {
                 if( pInvocation->get_explicit_operation() == id_exp_Start )
                 {
-                    for( const auto offset : pInvocation->get_file_offsets() )
+                    for( const SourceLocation& sourceLocation : pInvocation->get_file_offsets() )
                     {
-                        if( ( offset >= blockRange.first ) && ( offset <= blockRange.second ) )
+                        if( blockRange.contains( sourceLocation ) )
                         {
                             // is this invocation for an automata action or animation action?
                             Actions actions;
@@ -134,45 +183,42 @@ public:
 
         const io::GeneratedHPPSourceFilePath operationsHeader = m_environment.Operations( m_sourceFilePath );
 
+        std::string strOperationsHeaderText;
+        boost::filesystem::loadAsciiFile( m_environment.FilePath( operationsHeader ), strOperationsHeaderText );
+
+        using OperationRanges = std::unordered_map< TypeID, SourceLocation, TypeID::Hash >;
+        OperationRanges operationRanges;
+        {
+            using namespace std::string_literals;
+            parseRanges< TypeID, OperationRanges >(
+                strOperationsHeaderText, "//_MEGAOPERATIONBEGIN"s, "//_MEGAOPERATIONEND"s,
+                []( std::string::const_iterator i, std::string::const_iterator iEnd ) -> TypeID
+                {
+                    std::string        strView( i, iEnd );
+                    std::istringstream is( strView );
+                    TypeID             typeID;
+                    using ::           operator>>;
+                    is >> typeID;
+                    return typeID;
+                },
+                operationRanges );
+        }
+
         // find all blocks
         BlockRanges blockRanges;
         {
-            std::string strOperationsHeaderText;
-            boost::filesystem::loadAsciiFile( m_environment.FilePath( operationsHeader ), strOperationsHeaderText );
-
-            static const std::string strBlockBegin = "//_MEGABEGIN";
-            static const std::string strBlockEnd   = "//_MEGAEND";
-            for( auto i = strOperationsHeaderText.cbegin(), iBegin = strOperationsHeaderText.cbegin(),
-                      iEnd = strOperationsHeaderText.cend();
-                 i != iEnd; )
-            {
-                i = std::search( i, iEnd, strBlockBegin.cbegin(), strBlockBegin.cend() );
-                if( i != iEnd )
+            using namespace std::string_literals;
+            parseRanges< BlockID, BlockRanges >(
+                strOperationsHeaderText, "//_MEGABEGIN"s, "//_MEGAEND"s,
+                []( std::string::const_iterator i, std::string::const_iterator iEnd ) -> BlockID
                 {
-                    const std::string::const_iterator iStart = i;
-                    i += strBlockBegin.size();
-
-                    mega::U64 blockID;
-                    {
-                        std::stringstream os;
-                        while( std::isalnum( *i ) )
-                        {
-                            os << *i;
-                            ++i;
-                        }
-                        os >> blockID;
-                    }
-
-                    i = std::search( i, iEnd, strBlockEnd.cbegin(), strBlockEnd.cend() );
-                    VERIFY_RTE_MSG( i != iEnd, "Failed to locate block end" );
-                    i += strBlockEnd.size();
-
-                    VERIFY_RTE(
-                        blockRanges
-                            .insert( { blockID, { std::distance( iBegin, iStart ), std::distance( iBegin, i ) } } )
-                            .second );
-                }
-            }
+                    std::string        strView( i, iEnd );
+                    std::istringstream is( strView );
+                    BlockID            blockID;
+                    is >> blockID;
+                    return blockID;
+                },
+                blockRanges );
         }
 
         Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );

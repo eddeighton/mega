@@ -538,7 +538,8 @@ public:
         return false;
     }
 
-    void recordInvocationLocs( const clang::SourceLocation& loc, const clang::UnaryTransformType* pUnaryTransformType )
+    void recordInvocationLocs( const clang::SourceLocation& beginLoc, const clang::SourceLocation& endLoc,
+                               const clang::UnaryTransformType* pUnaryTransformType )
     {
         if( pUnaryTransformType->getUTTKind() == clang::UnaryTransformType::EGResultType )
         {
@@ -550,24 +551,25 @@ public:
                     clang::QualType context       = pTemplateType->getArg( 0U ).getAsType();
                     clang::QualType typePath      = pTemplateType->getArg( 1U ).getAsType();
                     clang::QualType operationType = pTemplateType->getArg( 2U ).getAsType();
-                    auto            invocationID  = getInvocationID( loc, context, typePath, operationType );
+                    auto            invocationID  = getInvocationID( beginLoc, context, typePath, operationType );
                     if( invocationID.has_value() )
                     {
                         using ::operator<<;
-                        //std::cout << "Found invocation id: " << invocationID.value() << std::endl;
+                        // std::cout << "Found invocation id: " << invocationID.value() << std::endl;
                         using namespace OperationsStage;
 
                         auto iFind = m_invocationsMap.find( invocationID.value() );
                         if( iFind != m_invocationsMap.end() )
                         {
                             Operations::Invocation* pInvocation = iFind->second;
-                            const auto              fileOffset  = pASTContext->getSourceManager().getFileOffset( loc );
-                            pInvocation->push_back_file_offsets( fileOffset );
+                            const auto beginFileOffset = pASTContext->getSourceManager().getFileOffset( beginLoc );
+                            const auto endFileOffset   = pASTContext->getSourceManager().getFileOffset( endLoc );
+                            pInvocation->push_back_file_offsets( mega::SourceLocation( beginFileOffset, endFileOffset ) );
                         }
                         else
                         {
                             CLANG_PLUGIN_LOG( "Failed to locate invocation id: " << invocationID.value() );
-                            pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
+                            pASTContext->getDiagnostics().Report( beginLoc, clang::diag::err_mega_generic_error )
                                 << "Failed to locate invocation";
                             m_bError = true;
                         }
@@ -594,7 +596,7 @@ public:
                 {
                     if( clang::CXXMethodDecl* pMethod = llvm::dyn_cast< clang::CXXMethodDecl >( de ) )
                     {
-                        //std::cout << "Method: " << pMethod->getThisType().getAsString() << std::endl;
+                        // std::cout << "Method: " << pMethod->getThisType().getAsString() << std::endl;
                         {
                             auto results = match(
                                 cxxMethodDecl( hasDescendant( findAll( cxxMemberCallExpr().bind( "invocation" ) ) ) ),
@@ -620,8 +622,8 @@ public:
                                                         = pTypeAliasDecl->getUnderlyingType()
                                                               ->getAs< clang::UnaryTransformType >() )
                                                     {
-                                                        recordInvocationLocs(
-                                                            pCall->getExprLoc(), pUnaryTransformType );
+                                                        recordInvocationLocs( pCall->getBeginLoc(), pCall->getEndLoc(),
+                                                                              pUnaryTransformType );
                                                     }
                                                 }
                                             }

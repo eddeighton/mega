@@ -23,6 +23,8 @@
 
 #include "database/model/FinalStage.hxx"
 
+#include "compiler/generator_utility.hpp"
+
 #include "utilities/clang_format.hpp"
 
 #include "common/assert_verify.hpp"
@@ -82,25 +84,6 @@ public:
     }
 };
 
-inline std::string toHex( mega::TypeID typeID )
-{
-    std::ostringstream os;
-    os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << static_cast< mega::U32 >( typeID.getSymbolID() );
-    return os.str();
-}
-
-struct CleverUtility
-{
-    using IDList = std::vector< std::string >;
-    IDList& theList;
-    CleverUtility( IDList& theList, const std::string& strID )
-        : theList( theList )
-    {
-        theList.push_back( strID );
-    }
-    ~CleverUtility() { theList.pop_back(); }
-};
-
 struct InvocationInfo
 {
     using IContextMap
@@ -110,7 +93,7 @@ struct InvocationInfo
     IContextMap  contextInvocations;
     DimensionMap dimensionInvocations;
 };
-
+/*
 struct InvocationTree
 {
     struct Node
@@ -179,7 +162,7 @@ struct InvocationTree
         VERIFY_RTE_MSG( ib.second, "Duplicate invocation found" );
     }
 };
-
+*/
 }
 
 #endif //GUARD_2023_May_23_templates

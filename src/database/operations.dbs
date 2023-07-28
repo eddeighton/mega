@@ -99,7 +99,7 @@ namespace Operations
         late< value< bool > > singular;
         late< value< bool > > is_function_call;
         
-        late< array< value< mega::U64 > > > file_offsets;
+        late< array< value< mega::SourceLocation > > > file_offsets;
     }
 
     object Invocations -> OperationsStage::Operations

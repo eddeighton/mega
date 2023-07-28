@@ -49,7 +49,7 @@
 namespace DerivationAnalysisView
 {
 using namespace DerivationAnalysisView::Interface;
-#include "interface.hpp"
+#include "compiler/generator_interface.hpp"
 } // namespace DerivationAnalysisView
 
 namespace mega::compiler

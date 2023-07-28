@@ -105,6 +105,14 @@ BuildEnvironment::Path BuildEnvironment::OperationsTemplate() const
     return result;
 }
 
+BuildEnvironment::Path BuildEnvironment::OperationsExternsTemplate() const
+{
+    VERIFY_RTE( !m_directories.templatesDir.empty() );
+    Path result = m_directories.templatesDir / "operations_externs.jinja";
+    VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+    return result;
+}
+
 BuildEnvironment::Path BuildEnvironment::PythonWrapperTemplate() const
 {
     VERIFY_RTE( !m_directories.templatesDir.empty() );

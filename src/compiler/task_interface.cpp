@@ -90,7 +90,8 @@ public:
                     Name parentName = name;
                     parentName.pop_back();
                     pParent = findContextGroup( parentName, namedContexts );
-                    VERIFY_PARSER( pParent, "Failed to locate parent for: " << toString( name ), pContextDef->get_id() );
+                    VERIFY_PARSER(
+                        pParent, "Failed to locate parent for: " << toString( name ), pContextDef->get_id() );
                 }
                 pInterfaceContextGroup = constructorFunctor( database, name.back(), pParent, pComponent, pContextDef );
                 pParent->push_back_children( pInterfaceContextGroup );
@@ -163,7 +164,8 @@ public:
                             Name parentName = name;
                             parentName.pop_back();
                             pParent = findContextGroup( parentName, namedContexts );
-                            VERIFY_PARSER( pParent, "Failed to locate parent for: " << toString( name ), pContextDef->get_id() );
+                            VERIFY_PARSER(
+                                pParent, "Failed to locate parent for: " << toString( name ), pContextDef->get_id() );
                         }
 
                         const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
@@ -225,10 +227,10 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Components::Component* pComponent, Parser::ActionDef* pActionDef ) -> Action*
                     {
-                        return database.construct< Action >(
-                            Action::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
-                                                          pParent, pComponent ),
-                                          { pActionDef } ) );
+                        return database.construct< Action >( Action::Args(
+                            InvocationContext::Args( IContext::Args(
+                                ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ) ),
+                            { pActionDef } ) );
                     },
                     []( Action* pAction, Parser::ActionDef* pActionDef )
                     { pAction->push_back_action_defs( pActionDef ); } );
@@ -254,10 +256,10 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Components::Component* pComponent, Parser::FunctionDef* pFunctionDef ) -> Function*
                     {
-                        return database.construct< Function >(
-                            Function::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
-                                                            pParent, pComponent ),
-                                            { pFunctionDef } ) );
+                        return database.construct< Function >( Function::Args(
+                            InvocationContext::Args( IContext::Args(
+                                ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ) ),
+                            { pFunctionDef } ) );
                     },
                     []( Function* pFunction, Parser::FunctionDef* pFunctionDef )
                     { pFunction->push_back_function_defs( pFunctionDef ); } );

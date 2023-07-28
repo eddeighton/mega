@@ -23,7 +23,6 @@
 
 namespace mega::network
 {
-Sender::~Sender() = default;
 
 LogicalThreadBase::LogicalThreadBase( LogicalThreadManager& logicalThreadManager, const LogicalThreadID& logicalthreadID )
     : m_logicalThreadManager( logicalThreadManager )

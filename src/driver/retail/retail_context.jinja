@@ -19,8 +19,7 @@ struct {{ name }} : public mega::reference
     }
     
 {% if has_operation %}
-    template< typename... Args >
-    inline typename _result_type< {{ name }}, Args... >::Type operator()({%if operation_has_args%}{% if operation_has_args_explicit %}{{operation_params_string}}{% else %}Args... args{% endif %}{% endif %}) const;
+    {{operation_return_type}} operator()({{operation_params_string}}) const;
 {% endif %}
 
     // traits
@@ -29,7 +28,10 @@ struct {{ name }} : public mega::reference
 {% endfor %}
 
     // invocations
-    {{ invocations }}
+{% for invocation in invocations %}
+    template< typename... Args >
+    typename _result_type< {{ name }}, Args... >::type {{invocation.name}}( Args... args ) const;
+{% endfor %}
 
     // subtree
     {{ nested }}

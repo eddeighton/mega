@@ -17,14 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-inline std::string toHex( mega::TypeID typeID )
-{
-    std::ostringstream os;
-    os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << 
-        static_cast< mega::U32 >( typeID.getSymbolID() );
-    return os.str();
-}
+#include "generator_utility.hpp"
 
 class InterfaceGen
 {
@@ -40,7 +33,7 @@ public:
         PtrVector     children;
         IdentifierMap identifiers;
     };
-
+    
     static void buildInterfaceTree( InterfaceNode::Ptr pNode, IContext* pContext )
     {
         InterfaceNode::Ptr pChildNode;
@@ -95,7 +88,7 @@ public:
             m_injaEnvironment.render_to( os, m_interfaceTemplate, data );
         }
     };
-
+private:
     template < typename TContextType >
     static std::vector< nlohmann::json > getInheritanceTraits( const nlohmann::json& typenames, TContextType* pContext,
                                                                InheritanceTrait* pInheritanceTrait )
@@ -232,7 +225,7 @@ public:
 
         return trait_struct;
     }
-
+public:
     static void recurse( TemplateEngine& templateEngine, InterfaceNode::Ptr pInterfaceNode, nlohmann::json& structs,
                          const nlohmann::json& parentTypeNames, std::ostream& os )
     {

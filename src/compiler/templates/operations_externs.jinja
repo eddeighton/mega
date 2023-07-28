@@ -1,0 +1,18 @@
+{% for operation in operations %}
+extern "C"
+{
+{{ operation.return_type }} _c{{ operation.hash }}_{{ operation.typeID }}( mega::reference* _p{% for param in operation.params %}, {{param.type}} {{param.name}}{% endfor %} )
+{
+{% if operation.return_type != "void" %}
+    return 
+{% endif %}
+    reinterpret_cast
+    <
+        {% for namespace in operation.namespaces %}::{{namespace}}{% endfor %}{% for type in operation.types %}::{{type}}{% endfor %}*
+    >( _p )->operator()
+    ( {% for param in operation.params %}{{param.name}}{% if not loop.is_last%}, {% endif %}{% endfor %} );
+}
+}
+BOOST_DLL_ALIAS_SECTIONED( _c{{ operation.hash }}_{{ operation.typeID }}, _ca{{ operation.hash }}_{{ operation.typeID }}, mega )
+
+{% endfor %}
