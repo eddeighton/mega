@@ -388,7 +388,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                             dependencies.add( initialiser, concreteTypeRolloutTasks );
                             dependencies.add( operationsPCH, TskDescVec{ operations } );
                             dependencies.add( valueSpace, TskDescVec{ operationsPCH } );
-                            dependencies.add( implementation, TskDescVec{ operationsPCH } );
+                            dependencies.add( implementation, TskDescVec{ valueSpace } );
                             dependencies.add( implementationObj, TskDescVec{ implementation } );
                             dependencies.add( pythonObj, TskDescVec{ pythonWrapper } );
                             dependencies.add( initialiserObj, TskDescVec{ initialiser } );

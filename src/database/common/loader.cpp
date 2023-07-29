@@ -60,7 +60,7 @@ Loader::Loader( const FileSystem& fileSystem, const CompilationFilePath& filePat
         if ( fileHeader.getVersion() != Environment::getVersion() )
         {
             std::ostringstream os;
-            os << "Compilation file: " << filePath.path().string() << "has version: " << fileHeader.getVersion()
+            os << "Compilation file: " << filePath.path().string() << " has version: " << fileHeader.getVersion()
                << " when current version is: " << Environment::getVersion();
             throw mega::io::DatabaseVersionException( os.str() );
         }

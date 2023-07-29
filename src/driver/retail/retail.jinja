@@ -83,11 +83,6 @@ struct {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endi
 };
 {% endfor %}
 
-// result types
-{% for result_type in result_types %}
-{{ result_type }}
-{% endfor %}
-
 // invocations
 {% for invocation in invocations %}
 {{ invocation }}

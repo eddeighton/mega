@@ -96,7 +96,7 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
     {
         for( const auto& [ _, pInvocation ] : invocationInfo.contextInvocations[ pContext ] )
         {
-            nlohmann::json invocation = { { "name", generateInvocationName( invocationInfo, pInvocation ) },
+            nlohmann::json invocation = { { "name", invocationInfo.generateInvocationName( pInvocation ) },
                                           { "result_type_id", invocationInfo.generateResultTypeID( pInvocation ) }
 
             };

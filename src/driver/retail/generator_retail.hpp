@@ -43,12 +43,12 @@ namespace driver::retail
 {
 class RetailGen
 {
-    static void generateDataStructures( const mega::io::Manifest& manifest, Database& database, nlohmann::json& data )
+    static void generateDataStructures( const auto& megaFilesTopological, Database& database, nlohmann::json& data )
     {
         using ConcreteNames = std::map< Concrete::Context*, std::string >;
         ConcreteNames concreteNames;
         {
-            for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
+            for( const auto& megaSrcFile : megaFilesTopological )
             {
                 for( Concrete::Object* pObject : database.many< Concrete::Object >( megaSrcFile ) )
                 {
@@ -180,7 +180,6 @@ public:
                                { "interface", "" },
                                { "objects", nlohmann::json::array() },
                                { "trait_structs", nlohmann::json::array() },
-                               { "result_types", nlohmann::json::array() },
                                { "invocations", nlohmann::json::array() },
                                { "operation_bodies", nlohmann::json::array() }
 
@@ -188,12 +187,22 @@ public:
 
         const InvocationInfo invocationInfo( manifest, database );
 
-        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
+        Symbols::SymbolTable*   pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
+        Dependencies::Analysis* pDependencies
+            = database.one< Dependencies::Analysis >( environment.project_manifest() );
+
+        const auto megaFilesTopological = pDependencies->get_topological_mega_files();
+        std::cout << "Generating for mega source files:\n";
+        for( const auto& megaFile : megaFilesTopological )
+        {
+            std::cout << megaFile.path().string() << "\n";
+        }
+        std::cout << std::endl;
 
         // user includes
         {
             std::set< boost::filesystem::path > cppIncludes;
-            for( const mega::io::megaFilePath& megaFile : manifest.getMegaSourceFiles() )
+            for( const mega::io::megaFilePath& megaFile : megaFilesTopological )
             {
                 for( Parser::CPPInclude* pCPPInclude : database.many< Parser::CPPInclude >( megaFile ) )
                 {
@@ -209,7 +218,7 @@ public:
         // system includes
         {
             std::set< std::string > systemIncludes;
-            for( const mega::io::megaFilePath& megaFile : manifest.getMegaSourceFiles() )
+            for( const mega::io::megaFilePath& megaFile : megaFilesTopological )
             {
                 for( Parser::SystemInclude* pSystemInclude : database.many< Parser::SystemInclude >( megaFile ) )
                 {
@@ -229,7 +238,7 @@ public:
             nlohmann::json     traitStructs;
             {
                 // NOTE: need to observe dependency order of source files
-                for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
+                for( const auto& megaSrcFile : megaFilesTopological )
                 {
                     Interface::Root*      pRoot = database.one< Interface::Root >( megaSrcFile );
                     CleverUtility::IDList namespaces, types;
@@ -247,35 +256,32 @@ public:
 
         // concrete data structures
         {
-            generateDataStructures( manifest, database, data );
+            generateDataStructures( megaFilesTopological, database, data );
         }
 
         // traits
 
-        // result types and invocations
+        // invocations
         {
-            nlohmann::json resultTypes = nlohmann::json::array();
             nlohmann::json invocations = nlohmann::json::array();
             {
                 // NOTE: need to observe dependency order of source files
-                for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
+                for( const auto& megaSrcFile : megaFilesTopological )
                 {
                     Interface::Root*      pRoot = database.one< Interface::Root >( megaSrcFile );
                     CleverUtility::IDList namespaces, types;
                     for( Interface::IContext* pContext : pRoot->get_children() )
                     {
-                        recurseInvocations(
-                            invocationInfo, templateEngine, namespaces, types, pContext, resultTypes, invocations );
+                        recurseInvocations( invocationInfo, templateEngine, namespaces, types, pContext, invocations );
                     }
                 }
             }
-            data[ "result_types" ] = resultTypes;
-            data[ "invocations" ]  = invocations;
+            data[ "invocations" ] = invocations;
         }
 
         // operation bodies
         {
-            for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
+            for( const auto& megaSrcFile : megaFilesTopological )
             {
                 ::inja::Environment injaEnvironment;
                 {
@@ -295,10 +301,8 @@ public:
                         auto pInvocation = pInvocationInstance->get_invocation();
                         auto sourceLoc   = pInvocationInstance->get_source_location();
 
-                        VERIFY_RTE_MSG(
-                            rewrites.insert( { sourceLoc, pInvocation } )
-                                .second,
-                            "Found duplicate rewrite location for: " << pInvocation->get_id() );
+                        VERIFY_RTE_MSG( rewrites.insert( { sourceLoc, pInvocation } ).second,
+                                        "Found duplicate rewrite location for: " << pInvocation->get_id() );
                     }
                 }
 
@@ -331,8 +335,8 @@ public:
                                     ++iUntilRParen;
                                 }
                             }*/
-                            
-                            osReWrite << generateInvocationUse( invocationInfo, iReWrite->second );
+
+                            osReWrite << invocationInfo.generateInvocationUse( iReWrite->second );
                             ++iReWrite;
                         }
                         else

@@ -565,7 +565,8 @@ public:
                             Operations::Invocation* pInvocation = iFind->second;
                             const auto beginFileOffset = pASTContext->getSourceManager().getFileOffset( beginLoc );
                             const auto endFileOffset   = pASTContext->getSourceManager().getFileOffset( endLoc );
-                            pInvocation->push_back_file_offsets( mega::SourceLocation( beginFileOffset, endFileOffset ) );
+                            pInvocation->push_back_file_offsets(
+                                mega::SourceLocation( beginFileOffset, endFileOffset ) );
                         }
                         else
                         {
@@ -623,7 +624,13 @@ public:
                                                         = pTypeAliasDecl->getUnderlyingType()
                                                               ->getAs< clang::UnaryTransformType >() )
                                                     {
-                                                        recordInvocationLocs( pCall->getBeginLoc(), pCall->getEndLoc(),
+                                                        const clang::MemberExpr* pMemberExpr
+                                                            = llvm::dyn_cast< MemberExpr >( pCall->getCallee() );
+                                                        VERIFY_RTE_MSG(
+                                                            pMemberExpr,
+                                                            "Failed to resolve member expression for invocation" );
+                                                        recordInvocationLocs( pMemberExpr->getMemberLoc(),
+                                                                              pCall->getEndLoc(),
                                                                               pUnaryTransformType );
                                                     }
                                                 }

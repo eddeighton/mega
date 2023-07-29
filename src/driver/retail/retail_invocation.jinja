@@ -10,6 +10,106 @@ struct _result_type< {{ result_type_id }} >
 {% for namespace in namespaces %}{% if loop.is_first%}namespace {%else%}::{% endif %}{{namespace}}{% endfor %}
 { 
 {% endif %}
+
+
+{% if explicit_operation == "Read" %}
+// Read
+template < std::size_t InvocationUUID >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}() const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "Write" %}
+// Write
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... args ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "ReadLink" %}
+// ReadLink
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "WriteLink" %}
+// WriteLink
+template < std::size_t InvocationUUID >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( WriteOperation overload ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+template < std::size_t InvocationUUID, typename T >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( const T& interfaceRef ) const
+{
+    WriteOperation overload = WriteOperation::DEFAULT;
+
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+template < std::size_t InvocationUUID, typename T >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( WriteOperation overload, const T& interfaceRef ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "Allocate" %}
+// Allocate
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "Call" %}
+// Call
 template < std::size_t InvocationUUID, typename... Args >
 typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... args ) const
 {
@@ -21,7 +121,115 @@ typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{
     {{ assignment }}
     {% endfor %}
 
+    {% if return_type == "void" %}
+    {% else %}
+    {% endif %}
 }
+
+{% else if explicit_operation == "Start" %}
+// Start
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... args ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "Stop" %}
+// Stop
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "Save" %}
+// Save
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... args ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "Load" %}
+// Load
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... args ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "Move" %}
+// Move
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... args ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "GetAction" %}
+// GetAction
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "GetDimension" %}
+// GetDimension
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+}
+
+{% else if explicit_operation == "Range" %}
+        // Range
+{% else if explicit_operation == "Raw" %}
+        // Raw
+{% endif %}
+
 {% if has_namespaces %} 
 } 
 {% endif %}

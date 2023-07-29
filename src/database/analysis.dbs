@@ -46,6 +46,7 @@ namespace Dependencies
 
         map< value< mega::io::megaFilePath >, ref< TransitiveDependencies > > mega_dependencies;
         map< value< mega::io::cppFilePath >, ref< TransitiveDependencies > > cpp_dependencies;
+        array< value< mega::io::megaFilePath > > topological_mega_files;
     }
 }
 

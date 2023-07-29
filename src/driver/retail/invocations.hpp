@@ -22,6 +22,7 @@
 #define GUARD_2023_May_23_invocations
 
 #include "driver/retail/templates.hpp"
+#include "driver/retail/invocation_info.hpp"
 
 namespace driver::retail
 {
@@ -175,7 +176,7 @@ static const char* szTemplate =
 R"TEMPLATE(
 {
     // o_{{ concrete_type_id }}* p = new o_{{ concrete_type_id }}{};
-    mega::reference allocatedRef = mega::runtime::allocate( {{ instance }}, mega::TypeID{ {{ concrete_type_id }} } );
+    // mega::reference allocatedRef = mega::runtime::allocate( {{ instance }}, mega::TypeID{ {{ concrete_type_id }} } );
 {% if has_owning_link %}
     //static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
     //function( {{ link_source }}, {{ link_target }} );
@@ -963,7 +964,7 @@ generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Vari
             {
                 // generate initial assignment
                 std::ostringstream os;
-                os << osName.str() << " = _ref;";
+                os << osName.str() << " = *this;";
                 data[ "assignments" ].push_back( os.str() );
             }
         }
@@ -975,104 +976,9 @@ generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Vari
     return variables;
 }
 
-struct InvocationInfo
-{
-    using InvocationIDMap   = std::map< mega::InvocationID, const FinalStage::Operations::Invocation* >;
-    using IContextMap       = std::map< const FinalStage::Interface::IContext*, InvocationIDMap >;
-    using VariantMap        = std::map< std::set< const FinalStage::Interface::IContext* >, InvocationIDMap >;
-    using InvocationUUIDMap = std::map< mega::InvocationID, int >;
-
-    mutable IContextMap contextInvocations;
-    mutable VariantMap  variantInvocations;
-    InvocationUUIDMap   invocationUUIDs;
-
-    std::string generateResultTypeID( const FinalStage::Operations::Invocation* pInvocation ) const
-    {
-        auto iFind = invocationUUIDs.find( pInvocation->get_id() );
-        VERIFY_RTE( iFind != invocationUUIDs.end() );
-        // pInvocation->get_id()
-        std::ostringstream os;
-        os << iFind->second;
-        return os.str();
-    }
-
-    InvocationInfo( const mega::io::Manifest& manifest, FinalStage::Database& database )
-    {
-        using namespace FinalStage;
-
-        mega::U64 uuid = 1;
-        for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
-        {
-            Operations::Invocations* pInvocations = database.one< Operations::Invocations >( megaSrcFile );
-
-            for( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
-            {
-                const auto context = pInvocation->get_context();
-
-                std::set< const Interface::IContext* >       uniqueInterfaceContexts;
-                std::set< const Interface::DimensionTrait* > uniqueDimensionContexts;
-
-                for( const auto vec : context->get_vectors() )
-                {
-                    for( const auto element : vec->get_elements() )
-                    {
-                        auto interfaceContext = element->get_interface();
-                        if( interfaceContext->get_context().has_value() )
-                        {
-                            uniqueInterfaceContexts.insert( interfaceContext->get_context().value() );
-                        }
-                        else
-                        {
-                            uniqueDimensionContexts.insert( interfaceContext->get_dimension().value() );
-                        }
-                    }
-                }
-
-                VERIFY_RTE( uniqueDimensionContexts.empty() );
-                VERIFY_RTE( !uniqueInterfaceContexts.empty() );
-
-                if( uniqueInterfaceContexts.size() == 1 )
-                {
-                    auto pContext = *uniqueInterfaceContexts.begin();
-                    if( contextInvocations[ pContext ].insert( { id, pInvocation } ).second )
-                    {
-                        invocationUUIDs[ id ] = uuid++;
-                    }
-                }
-                else
-                {
-                    // variant
-                    if( variantInvocations[ uniqueInterfaceContexts ].insert( { id, pInvocation } ).second )
-                    {
-                        invocationUUIDs[ id ] = uuid++;
-                    }
-                }
-            }
-        }
-    }
-};
-
-std::string generateInvocationName( const InvocationInfo&                     invocationInfo,
-                                    const FinalStage::Operations::Invocation* pInvocation )
-{
-    std::ostringstream os;
-    os << '_' << invocationInfo.generateResultTypeID( pInvocation );
-    return os.str();
-}
-
-std::string generateInvocationUse( const InvocationInfo&                     invocationInfo,
-                                   const FinalStage::Operations::Invocation* pInvocation )
-{
-    auto id = invocationInfo.generateResultTypeID( pInvocation );
-    std::ostringstream os;
-    os << '_' << id << '<' << id << '>';
-    return os.str();
-}
-
 void recurseInvocations( const InvocationInfo& invocationInfo, TemplateEngine& templateEngine,
                          CleverUtility::IDList& namespaces, CleverUtility::IDList& types,
-                         FinalStage::Interface::IContext* pContext, nlohmann::json& resultTypes,
-                         nlohmann::json& invocations )
+                         FinalStage::Interface::IContext* pContext, nlohmann::json& invocations )
 {
     using namespace FinalStage;
 
@@ -1081,8 +987,7 @@ void recurseInvocations( const InvocationInfo& invocationInfo, TemplateEngine& t
     std::ostringstream osNested;
     for( Interface::IContext* pChildContext : pContext->get_children() )
     {
-        recurseInvocations(
-            invocationInfo, templateEngine, namespaces, types, pChildContext, resultTypes, invocations );
+        recurseInvocations( invocationInfo, templateEngine, namespaces, types, pChildContext, invocations );
     }
 
     nlohmann::json contextInvocations = nlohmann::json::array();
@@ -1092,11 +997,12 @@ void recurseInvocations( const InvocationInfo& invocationInfo, TemplateEngine& t
             {
                 std::ostringstream osInvocation;
 
-                nlohmann::json invocation( { { "name", generateInvocationName( invocationInfo, pInvocation ) },
+                nlohmann::json invocation( { { "name", invocationInfo.generateInvocationName( pInvocation ) },
                                              { "return_type", pInvocation->get_return_type_str() },
                                              { "result_type_id", invocationInfo.generateResultTypeID( pInvocation ) },
+                                             { "explicit_operation", mega::getExplicitOperationString(
+                                                                         pInvocation->get_explicit_operation() ) },
 
-                                             { "variables", nlohmann::json::array() },
                                              { "has_namespaces", !namespaces.empty() },
                                              { "namespaces", namespaces },
                                              { "types", types },
@@ -1106,24 +1012,18 @@ void recurseInvocations( const InvocationInfo& invocationInfo, TemplateEngine& t
 
                 } );
 
-                templateEngine.renderInvocation( invocation, osInvocation );
-
-                resultTypes.push_back( osInvocation.str() );
-            }
-
-            {
-                nlohmann::json    invocationData;
                 const VariableMap variables = generateVariables(
-                    pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), invocationData );
+                    pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), invocation );
 
                 RetailDatabase database;
                 for( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
                 {
-                    generateInstructions( database, pInstruction, variables, invocationData, templateEngine );
+                    generateInstructions( database, pInstruction, variables, invocation, templateEngine );
                 }
 
-                using namespace FinalStage;
-                using namespace FinalStage::Invocations;
+                templateEngine.renderInvocation( invocation, osInvocation );
+
+                invocations.push_back( osInvocation.str() );
             }
         }
     }

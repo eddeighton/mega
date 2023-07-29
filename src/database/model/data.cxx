@@ -2990,10 +2990,11 @@ namespace DPGraph
     Dependencies_Analysis::Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_Analysis >( loader, this ) )    {
     }
-    Dependencies_Analysis::Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& objects, const std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& mega_dependencies, const std::map< mega::io::cppFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& cpp_dependencies)
+    Dependencies_Analysis::Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& objects, const std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& mega_dependencies, const std::map< mega::io::cppFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& cpp_dependencies, const std::vector< mega::io::megaFilePath >& topological_mega_files)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_Analysis >( loader, this ) )          , objects( objects )
           , mega_dependencies( mega_dependencies )
           , cpp_dependencies( cpp_dependencies )
+          , topological_mega_files( topological_mega_files )
     {
     }
     bool Dependencies_Analysis::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -3008,12 +3009,14 @@ namespace DPGraph
         loader.load( objects );
         loader.load( mega_dependencies );
         loader.load( cpp_dependencies );
+        loader.load( topological_mega_files );
     }
     void Dependencies_Analysis::store( mega::io::Storer& storer ) const
     {
         storer.store( objects );
         storer.store( mega_dependencies );
         storer.store( cpp_dependencies );
+        storer.store( topological_mega_files );
     }
     void Dependencies_Analysis::to_json( nlohmann::json& _part__ ) const
     {
@@ -3039,6 +3042,11 @@ namespace DPGraph
         {
             nlohmann::json property = nlohmann::json::object({
                 { "cpp_dependencies", cpp_dependencies } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "topological_mega_files", topological_mega_files } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -9683,6 +9691,18 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& 
         }
     }
 }
+std::vector< mega::io::megaFilePath >& Dependencies_Analysis_push_back_topological_mega_files(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::DPGraph::Dependencies_Analysis::Object_Part_Type_ID:
+            return data::convert< data::DPGraph::Dependencies_Analysis >( m_data )->topological_mega_files;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& Dependencies_SourceFileDependencies_push_back_globs(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -11125,13 +11145,13 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Concrete_Conte
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         default:
         {
@@ -11155,11 +11175,11 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& g
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         default:
         {
@@ -11211,11 +11231,11 @@ data::Ptr< data::Components::Components_Component >& get_Concrete_Context_compon
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         default:
         {
@@ -11295,11 +11315,11 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_Concrete_Context
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         default:
         {
@@ -11323,11 +11343,11 @@ data::Ptr< data::Tree::Interface_IContext >& get_Concrete_Context_interface(data
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Buffer::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         default:
         {
@@ -11793,6 +11813,18 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& 
     {
         case data::DPGraph::Dependencies_Analysis::Object_Part_Type_ID:
             return data::convert< data::DPGraph::Dependencies_Analysis >( m_data )->objects;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< mega::io::megaFilePath >& get_Dependencies_Analysis_topological_mega_files(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::DPGraph::Dependencies_Analysis::Object_Part_Type_ID:
+            return data::convert< data::DPGraph::Dependencies_Analysis >( m_data )->topological_mega_files;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -16085,6 +16117,18 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& 
     {
         case data::DPGraph::Dependencies_Analysis::Object_Part_Type_ID:
             return data::convert< data::DPGraph::Dependencies_Analysis >( m_data )->objects;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< mega::io::megaFilePath >& set_Dependencies_Analysis_topological_mega_files(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::DPGraph::Dependencies_Analysis::Object_Part_Type_ID:
+            return data::convert< data::DPGraph::Dependencies_Analysis >( m_data )->topological_mega_files;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );

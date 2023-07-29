@@ -228,6 +228,8 @@ public:
         using CPPFileDependencyMap = std::map< mega::io::cppFilePath, MegaFileDependencies::Ptr >;
         CPPFileDependencyMap cppFileDependencies;
 
+        std::set< mega::io::megaFilePath > allMegaFiles;
+
         // collect all initial component wide dependencies first
         std::vector< Components::Component* > components
             = database.many< Components::Component >( m_environment.project_manifest() );
@@ -245,6 +247,8 @@ public:
 
             for( const mega::io::megaFilePath& megaFile : pComponent->get_mega_source_files() )
             {
+                VERIFY_RTE( allMegaFiles.insert( megaFile ).second );
+
                 MegaFileDependencies::Ptr pDep( new MegaFileDependencies );
                 pDep->m_file    = megaFile;
                 pDep->m_initial = dependencies;
@@ -316,7 +320,48 @@ public:
             cppFileTransitiveMap.insert( std::make_pair( filePath, pTransitive ) );
         }
 
-        database.construct< Analysis >( Analysis::Args{ dependencies, megaFileTransitiveMap, cppFileTransitiveMap } );
+        std::vector< mega::io::megaFilePath > topologicalMegaFiles;
+        {
+            // calculate the topological sort of the mega source files based on their transitive dependencies
+            VERIFY_RTE( megaFileDependencies.size() == allMegaFiles.size() );
+            while( !allMegaFiles.empty() )
+            {
+                bool bMadeProgress = false;
+                for( auto& megaFile : allMegaFiles )
+                {
+                    bool                    bFoundOutstandingDependency = false;
+                    TransitiveDependencies* pDependencies               = megaFileTransitiveMap[ megaFile ];
+                    for( auto& dependency : pDependencies->get_mega_source_files() )
+                    {
+                        if( allMegaFiles.contains( dependency ) )
+                        {
+                            bFoundOutstandingDependency = true;
+                            break;
+                        }
+                    }
+                    if( !bFoundOutstandingDependency )
+                    {
+                        topologicalMegaFiles.push_back( megaFile );
+                        allMegaFiles.erase( megaFile );
+                        bMadeProgress = true;
+                        break;
+                    }
+                }
+                if( !bMadeProgress )
+                {
+                    std::ostringstream osError;
+                    osError << "Failed to solve topological sort of dependencies with remaining mega files of: ";
+                    for( auto& megaFile : allMegaFiles )
+                    {
+                        osError << megaFile.path().string() << " ";
+                    }
+                    THROW_RTE( osError.str() );
+                }
+            }
+        }
+
+        database.construct< Analysis >(
+            Analysis::Args{ dependencies, megaFileTransitiveMap, cppFileTransitiveMap, topologicalMegaFiles } );
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
