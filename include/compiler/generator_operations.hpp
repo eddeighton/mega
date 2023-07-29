@@ -266,7 +266,7 @@ private:
     }
 
 public:
-    static std::string generate( TemplateEngine& templateEngine, Interface::Root* pRoot, bool bRenderExterns = false )
+    static std::string generate( TemplateEngine& templateEngine, Interface::Root* pRoot, bool bRenderExterns )
     {
         nlohmann::json data( { { "operations", nlohmann::json::array() } } );
 

@@ -223,6 +223,36 @@ public:
 
         Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );
 
+        for( auto pInvocationContext : database.many< Interface::InvocationContext >( m_sourceFilePath ) )
+        {
+            auto iFind = operationRanges.find( pInvocationContext->get_interface_id() );
+            VERIFY_RTE_MSG( iFind != operationRanges.end(),
+                            "Failed to locate operation body for: " << pInvocationContext->get_interface_id() );
+            const SourceLocation& operationLoc = iFind->second;
+
+            std::vector< Interface::InvocationInstance* > invocationInstances;
+            {
+                for( const auto& [ invocationID, pInvocation ] : pInvocations->get_invocations() )
+                {
+                    std::vector< SourceLocation > instances;
+                    for( const auto& invocationLoc : pInvocation->get_file_offsets() )
+                    {
+                        if( operationLoc.contains( invocationLoc ) )
+                        {
+                            instances.push_back( invocationLoc );
+                        }
+                    }
+                    for( const auto& instanceLoc : instances )
+                    {
+                        invocationInstances.push_back( database.construct< Interface::InvocationInstance >(
+                            Interface::InvocationInstance::Args{ pInvocation, instanceLoc } ) );
+                    }
+                }
+            }
+            database.construct< Interface::InvocationContext >(
+                Interface::InvocationContext::Args{ pInvocationContext, invocationInstances, operationLoc } );
+        }
+
         for( auto pStart : database.many< Automata::Start >( m_sourceFilePath ) )
         {
             recurseBlocks( database, pInvocations, blockRanges, pStart->get_sequence() );

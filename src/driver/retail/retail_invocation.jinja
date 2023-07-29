@@ -1,20 +1,27 @@
-struct {{ type }}
+
+
+template<>
+struct _result_type< {{ result_type_id }} >
 {
-    {{ context }}& _ref;
-    inline {{ type }}({{ context }}& ref):_ref(ref){}
-{% for operation in operations %}
-{% if operation.implicit %}
-    template< typename... Args >
-    inline typename _result_type< {{ type }}, Args... >::Type operator()({% if operation.has_args %}Args... args{% endif %}) const;
-{% else %}
-    struct {{ operation.type }}
-    {
-        {{ context }}& _ref;
-        {{ operation.type }}({{ context }}& ref):_ref(ref){}
-        template< typename... Args >
-        inline typename _result_type< {{ operation.type }}, Args... >::Type operator()({% if operation.has_args %}Args... args{% endif %}) const;
-    } {{ operation.symbol }} = {{ operation.type }}(_ref);
+    using Type = {{ return_type }};
+};
+
+{% if has_namespaces %} 
+{% for namespace in namespaces %}{% if loop.is_first%}namespace {%else%}::{% endif %}{{namespace}}{% endfor %}
+{ 
 {% endif %}
-{% endfor %}
-    {{ nested }}
-} {{ symbol }} = {{ type }}({% if first_level_deep %}*this{% else %}_ref{% endif %} );
+template < std::size_t InvocationUUID, typename... Args >
+typename _result_type< InvocationUUID >::Type {% for type in types %}{{type}}::{% endfor %}{{ name }}( Args... args ) const
+{
+    {% for variable in variables %}
+    {{ variable }}
+    {% endfor %}
+
+    {% for assignment in assignments %}
+    {{ assignment }}
+    {% endfor %}
+
+}
+{% if has_namespaces %} 
+} 
+{% endif %}

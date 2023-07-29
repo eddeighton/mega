@@ -28,6 +28,7 @@
 #include "mega/invocation_io.hpp"
 #include "mega/common_strings.hpp"
 #include "mega/invocation_id.hpp"
+#include "database/types/source_location.hpp"
 
 #include "clang/Basic/SourceLocation.h"
 

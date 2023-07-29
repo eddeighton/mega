@@ -84,15 +84,6 @@ public:
     }
 };
 
-struct InvocationInfo
-{
-    using IContextMap
-        = std::multimap< const FinalStage::Interface::IContext*, const FinalStage::Operations::Invocation* >;
-    using DimensionMap
-        = std::multimap< const FinalStage::Interface::DimensionTrait*, const FinalStage::Operations::Invocation* >;
-    IContextMap  contextInvocations;
-    DimensionMap dimensionInvocations;
-};
 /*
 struct InvocationTree
 {

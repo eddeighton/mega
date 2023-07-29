@@ -76,15 +76,6 @@ getDimensionTraits( CleverUtility::IDList& typenames, TContextType* pContext,
     return traits;
 }
 
-std::string generateInvocationName( const FinalStage::Operations::Invocation* pInvocation )
-{
-    std::ostringstream os;
-
-    os << "_" << pInvocation->get_id();
-
-    return os.str();
-}
-
 void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols::SymbolTable* pSymbolTable,
                        TemplateEngine& templateEngine, CleverUtility::IDList& namespaces, CleverUtility::IDList& types,
                        FinalStage::Interface::IContext* pContext, std::ostream& os, nlohmann::json& interfaceOperations,
@@ -103,13 +94,12 @@ void recurseInterface( const InvocationInfo& invocationInfo, FinalStage::Symbols
 
     nlohmann::json contextInvocations = nlohmann::json::array();
     {
-        for( auto i    = invocationInfo.contextInvocations.lower_bound( pContext ),
-                  iEnd = invocationInfo.contextInvocations.upper_bound( pContext );
-             i != iEnd;
-             ++i )
+        for( const auto& [ _, pInvocation ] : invocationInfo.contextInvocations[ pContext ] )
         {
-            const Operations::Invocation* pInvocation = i->second;
-            nlohmann::json                invocation  = { { "name", generateInvocationName( pInvocation ) } };
+            nlohmann::json invocation = { { "name", generateInvocationName( invocationInfo, pInvocation ) },
+                                          { "result_type_id", invocationInfo.generateResultTypeID( pInvocation ) }
+
+            };
             contextInvocations.push_back( invocation );
         }
     }

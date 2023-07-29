@@ -407,7 +407,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Save* pSave )
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
 
-    //THROW_TODO;
+    // THROW_TODO;
     // clang-format off
 static const char* szTemplate =
 R"TEMPLATE(
@@ -975,101 +975,158 @@ generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Vari
     return variables;
 }
 
-void recurseInvocations( TemplateEngine& templateEngine, CleverUtility::IDList& namespaces,
-                         CleverUtility::IDList& types, std::ostream& os,
-                         nlohmann::json& interfaceOperations, bool bFirstLevelDeep, const std::string& strContext )
+struct InvocationInfo
 {
-    std::ostringstream osTypeName;
-    //osTypeName << "_" << node.pSymbol->get_symbol();
+    using InvocationIDMap   = std::map< mega::InvocationID, const FinalStage::Operations::Invocation* >;
+    using IContextMap       = std::map< const FinalStage::Interface::IContext*, InvocationIDMap >;
+    using VariantMap        = std::map< std::set< const FinalStage::Interface::IContext* >, InvocationIDMap >;
+    using InvocationUUIDMap = std::map< mega::InvocationID, int >;
 
-    CleverUtility c( types, osTypeName.str() );
+    mutable IContextMap contextInvocations;
+    mutable VariantMap  variantInvocations;
+    InvocationUUIDMap   invocationUUIDs;
 
-    std::ostringstream osNested;
-    /*for( const auto& [ pSymbol, childNode ] : node.m_children )
+    std::string generateResultTypeID( const FinalStage::Operations::Invocation* pInvocation ) const
     {
-        recurseInvocations(
-            templateEngine, namespaces, types, childNode, osNested, interfaceOperations, false, strContext );
-    }*/
-
-    nlohmann::json invocation( {
-
-        { "context", strContext },
-        { "first_level_deep", bFirstLevelDeep },
-        { "type", osTypeName.str() },
-        //{ "symbol", node.pSymbol->get_symbol() },
-        { "nested", osNested.str() },
-        { "operations", nlohmann::json::array() }
-
-    } );
-
-    /*for( const auto& [ opType, pInvocation ] : node.m_operations )
-    {
-        std::ostringstream osType;
-        osType << "_" << mega::getExplicitOperationString( opType );
-
-        std::unique_ptr< CleverUtility > pOptionalNesting;
-        {
-            if( !mega::isOperationImplicit( pInvocation->get_operation() ) )
-            {
-                pOptionalNesting = std::make_unique< CleverUtility >( types, osType.str() );
-            }
-        }
-
-        
-        
-
-        nlohmann::json operation( {
-
-            { "automata", false },
-            { "first_level_deep", false },
-            { "implicit", mega::isOperationImplicit( pInvocation->get_operation() ) },
-            { "has_args", mega::isOperationArgs( pInvocation->get_operation() ) },
-            { "has_args_explicit", false },
-            { "type", osType.str() },
-            { "has_namespaces", !namespaces.empty() },
-            { "namespaces", namespaces },
-            { "types", types },
-            { "symbol", mega::getOperationString( pInvocation->get_operation() ) },
-            //{ "symbol_explicit", mega::getExplicitOperationString( opType ) },
-            { "return_type", pInvocation->get_return_type_str() },
-            { "params_string", "" },
-            { "body", "THROW_RTE( \"NOT IMPLEMENTED\" );\n" }
-
-        } );
-
-        {
-            nlohmann::json    invocationData;
-            const VariableMap variables = generateVariables(
-                pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), invocationData );
-
-            RetailDatabase database;
-            for( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
-            {
-                generateInstructions( database, pInstruction, variables, invocationData, templateEngine );
-            }
-
-            using namespace FinalStage;
-            using namespace FinalStage::Invocations;
-
-            // clang-format off
-static const char* szTemplate =
-R"TEMPLATE(
-{% for variable in variables %}
-{{ variable }}
-{% endfor %}
-
-{% for assignment in assignments %}
-{{ assignment }}
-{% endfor %}
-)TEMPLATE";
-            operation[ "body" ] = templateEngine.render( szTemplate, invocationData );
-        }
-
-        invocation[ "operations" ].push_back( operation );
-        interfaceOperations.push_back( operation );
+        auto iFind = invocationUUIDs.find( pInvocation->get_id() );
+        VERIFY_RTE( iFind != invocationUUIDs.end() );
+        // pInvocation->get_id()
+        std::ostringstream os;
+        os << iFind->second;
+        return os.str();
     }
 
-    templateEngine.renderInvocation( invocation, os );*/
+    InvocationInfo( const mega::io::Manifest& manifest, FinalStage::Database& database )
+    {
+        using namespace FinalStage;
+
+        mega::U64 uuid = 1;
+        for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
+        {
+            Operations::Invocations* pInvocations = database.one< Operations::Invocations >( megaSrcFile );
+
+            for( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+            {
+                const auto context = pInvocation->get_context();
+
+                std::set< const Interface::IContext* >       uniqueInterfaceContexts;
+                std::set< const Interface::DimensionTrait* > uniqueDimensionContexts;
+
+                for( const auto vec : context->get_vectors() )
+                {
+                    for( const auto element : vec->get_elements() )
+                    {
+                        auto interfaceContext = element->get_interface();
+                        if( interfaceContext->get_context().has_value() )
+                        {
+                            uniqueInterfaceContexts.insert( interfaceContext->get_context().value() );
+                        }
+                        else
+                        {
+                            uniqueDimensionContexts.insert( interfaceContext->get_dimension().value() );
+                        }
+                    }
+                }
+
+                VERIFY_RTE( uniqueDimensionContexts.empty() );
+                VERIFY_RTE( !uniqueInterfaceContexts.empty() );
+
+                if( uniqueInterfaceContexts.size() == 1 )
+                {
+                    auto pContext = *uniqueInterfaceContexts.begin();
+                    if( contextInvocations[ pContext ].insert( { id, pInvocation } ).second )
+                    {
+                        invocationUUIDs[ id ] = uuid++;
+                    }
+                }
+                else
+                {
+                    // variant
+                    if( variantInvocations[ uniqueInterfaceContexts ].insert( { id, pInvocation } ).second )
+                    {
+                        invocationUUIDs[ id ] = uuid++;
+                    }
+                }
+            }
+        }
+    }
+};
+
+std::string generateInvocationName( const InvocationInfo&                     invocationInfo,
+                                    const FinalStage::Operations::Invocation* pInvocation )
+{
+    std::ostringstream os;
+    os << '_' << invocationInfo.generateResultTypeID( pInvocation );
+    return os.str();
+}
+
+std::string generateInvocationUse( const InvocationInfo&                     invocationInfo,
+                                   const FinalStage::Operations::Invocation* pInvocation )
+{
+    auto id = invocationInfo.generateResultTypeID( pInvocation );
+    std::ostringstream os;
+    os << '_' << id << '<' << id << '>';
+    return os.str();
+}
+
+void recurseInvocations( const InvocationInfo& invocationInfo, TemplateEngine& templateEngine,
+                         CleverUtility::IDList& namespaces, CleverUtility::IDList& types,
+                         FinalStage::Interface::IContext* pContext, nlohmann::json& resultTypes,
+                         nlohmann::json& invocations )
+{
+    using namespace FinalStage;
+
+    CleverUtility c( types, pContext->get_identifier() );
+
+    std::ostringstream osNested;
+    for( Interface::IContext* pChildContext : pContext->get_children() )
+    {
+        recurseInvocations(
+            invocationInfo, templateEngine, namespaces, types, pChildContext, resultTypes, invocations );
+    }
+
+    nlohmann::json contextInvocations = nlohmann::json::array();
+    {
+        for( const auto& [ id, pInvocation ] : invocationInfo.contextInvocations[ pContext ] )
+        {
+            {
+                std::ostringstream osInvocation;
+
+                nlohmann::json invocation( { { "name", generateInvocationName( invocationInfo, pInvocation ) },
+                                             { "return_type", pInvocation->get_return_type_str() },
+                                             { "result_type_id", invocationInfo.generateResultTypeID( pInvocation ) },
+
+                                             { "variables", nlohmann::json::array() },
+                                             { "has_namespaces", !namespaces.empty() },
+                                             { "namespaces", namespaces },
+                                             { "types", types },
+
+                                             { "variables", nlohmann::json::array() },
+                                             { "assignments", nlohmann::json::array() }
+
+                } );
+
+                templateEngine.renderInvocation( invocation, osInvocation );
+
+                resultTypes.push_back( osInvocation.str() );
+            }
+
+            {
+                nlohmann::json    invocationData;
+                const VariableMap variables = generateVariables(
+                    pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), invocationData );
+
+                RetailDatabase database;
+                for( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
+                {
+                    generateInstructions( database, pInstruction, variables, invocationData, templateEngine );
+                }
+
+                using namespace FinalStage;
+                using namespace FinalStage::Invocations;
+            }
+        }
+    }
 }
 
 } // namespace driver::retail

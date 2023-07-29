@@ -69,7 +69,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         VERIFY_RTE_MSG(
             boost::filesystem::exists( templateDir ), "Failed to locate template directory: " << templateDir.string() );
         const boost::filesystem::path retailCodeTemplateFilePath = templateDir / "retail.jinja";
-        const boost::filesystem::path contextTemplateFilePath    = templateDir / "retail_context.jinja";
+        const boost::filesystem::path contextTemplateFilePath    = templateDir / "retail_interface.jinja";
         const boost::filesystem::path invocationTemplateFilePath = templateDir / "retail_invocation.jinja";
         const boost::filesystem::path operationsTemplateFilePath = templateDir / "operations.jinja";
 

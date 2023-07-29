@@ -48,7 +48,7 @@
 namespace
 {
 
-template< typename T, typename... Args  >
+template< std::size_t >
 struct _result_type;
 
 template< typename To, typename From >
@@ -84,9 +84,19 @@ struct {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endi
 {% endfor %}
 
 // result types
+{% for result_type in result_types %}
+{{ result_type }}
+{% endfor %}
 
+// invocations
+{% for invocation in invocations %}
+{{ invocation }}
+{% endfor %}
 
-{{ operation_bodies }}
+// operation_bodies
+{% for operation_body in operation_bodies %}
+{{ operation_body }}
+{% endfor %}
 
 }
 

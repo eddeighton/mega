@@ -22,15 +22,14 @@ struct {{ name }} : public mega::reference
     {{operation_return_type}} operator()({{operation_params_string}}) const;
 {% endif %}
 
+{% for invocation in invocations %}
+    template < std::size_t InvocationUUID, typename... Args >
+    typename _result_type< InvocationUUID >::Type {{ invocation.name }}( Args... args ) const;
+{% endfor %}
+
     // traits
 {% for trait_struct in trait_structs %}
     struct {{ trait_struct.name }};
-{% endfor %}
-
-    // invocations
-{% for invocation in invocations %}
-    template< typename... Args >
-    typename _result_type< {{ name }}, Args... >::type {{invocation.name}}( Args... args ) const;
 {% endfor %}
 
     // subtree

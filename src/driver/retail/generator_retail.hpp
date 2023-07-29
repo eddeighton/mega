@@ -43,40 +43,6 @@ namespace driver::retail
 {
 class RetailGen
 {
-    static InvocationInfo getInvocationInfo( const mega::io::Manifest& manifest, Database& database )
-    {
-        InvocationInfo invocationInfo;
-
-        for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
-        {
-            Operations::Invocations* pInvocations = database.one< Operations::Invocations >( megaSrcFile );
-
-            for( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
-            {
-                const auto context = pInvocation->get_context();
-
-                for( const auto vec : context->get_vectors() )
-                {
-                    for( const auto element : vec->get_elements() )
-                    {
-                        auto interfaceContext = element->get_interface();
-                        if( interfaceContext->get_context().has_value() )
-                        {
-                            invocationInfo.contextInvocations.insert(
-                                { interfaceContext->get_context().value(), pInvocation } );
-                        }
-                        else
-                        {
-                            invocationInfo.dimensionInvocations.insert(
-                                { interfaceContext->get_dimension().value(), pInvocation } );
-                        }
-                    }
-                }
-            }
-        }
-        return invocationInfo;
-    }
-
     static void generateDataStructures( const mega::io::Manifest& manifest, Database& database, nlohmann::json& data )
     {
         using ConcreteNames = std::map< Concrete::Context*, std::string >;
@@ -208,40 +174,23 @@ public:
                                  const mega::io::Manifest& manifest, Database& database,
                                  const boost::filesystem::path& operationsTemplateFilePath )
     {
-        const InvocationInfo invocationInfo = getInvocationInfo( manifest, database );
-
-        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
-
-        std::ostringstream osInterface;
-        nlohmann::json     interfaceOperations = nlohmann::json::array();
-        nlohmann::json     traitStructs;
-        {
-            // NOTE: need to observe dependency order of source files
-            for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
-            {
-                Interface::Root*      pRoot = database.one< Interface::Root >( megaSrcFile );
-                CleverUtility::IDList namespaces, types;
-                for( Interface::IContext* pContext : pRoot->get_children() )
-                {
-                    recurseInterface( invocationInfo, pSymbolTable, templateEngine, namespaces, types, pContext,
-                                      osInterface, interfaceOperations, traitStructs );
-                }
-            }
-        }
-
         nlohmann::json data( { { "cppIncludes", nlohmann::json::array() },
                                { "systemIncludes", nlohmann::json::array() },
                                { "result_types", nlohmann::json::array() },
-                               { "interface", osInterface.str() },
+                               { "interface", "" },
                                { "objects", nlohmann::json::array() },
-                               { "trait_structs", traitStructs },
-                               { "operations", interfaceOperations },
-                               { "operation_bodies", "" }
+                               { "trait_structs", nlohmann::json::array() },
+                               { "result_types", nlohmann::json::array() },
+                               { "invocations", nlohmann::json::array() },
+                               { "operation_bodies", nlohmann::json::array() }
 
         } );
 
-        generateDataStructures( manifest, database, data );
+        const InvocationInfo invocationInfo( manifest, database );
 
+        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
+
+        // user includes
         {
             std::set< boost::filesystem::path > cppIncludes;
             for( const mega::io::megaFilePath& megaFile : manifest.getMegaSourceFiles() )
@@ -256,6 +205,8 @@ public:
                 data[ "cppIncludes" ].push_back( cppInclude.string() );
             }
         }
+
+        // system includes
         {
             std::set< std::string > systemIncludes;
             for( const mega::io::megaFilePath& megaFile : manifest.getMegaSourceFiles() )
@@ -271,8 +222,59 @@ public:
             }
         }
 
+        // interface and traits
         {
-            std::ostringstream osOperations;
+            std::ostringstream osInterface;
+            nlohmann::json     interfaceOperations = nlohmann::json::array();
+            nlohmann::json     traitStructs;
+            {
+                // NOTE: need to observe dependency order of source files
+                for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
+                {
+                    Interface::Root*      pRoot = database.one< Interface::Root >( megaSrcFile );
+                    CleverUtility::IDList namespaces, types;
+                    for( Interface::IContext* pContext : pRoot->get_children() )
+                    {
+                        recurseInterface( invocationInfo, pSymbolTable, templateEngine, namespaces, types, pContext,
+                                          osInterface, interfaceOperations, traitStructs );
+                    }
+                }
+            }
+            data[ "interface" ] = osInterface.str();
+            // data[ "operations" ]    = interfaceOperations;
+            data[ "trait_structs" ] = traitStructs;
+        }
+
+        // concrete data structures
+        {
+            generateDataStructures( manifest, database, data );
+        }
+
+        // traits
+
+        // result types and invocations
+        {
+            nlohmann::json resultTypes = nlohmann::json::array();
+            nlohmann::json invocations = nlohmann::json::array();
+            {
+                // NOTE: need to observe dependency order of source files
+                for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
+                {
+                    Interface::Root*      pRoot = database.one< Interface::Root >( megaSrcFile );
+                    CleverUtility::IDList namespaces, types;
+                    for( Interface::IContext* pContext : pRoot->get_children() )
+                    {
+                        recurseInvocations(
+                            invocationInfo, templateEngine, namespaces, types, pContext, resultTypes, invocations );
+                    }
+                }
+            }
+            data[ "result_types" ] = resultTypes;
+            data[ "invocations" ]  = invocations;
+        }
+
+        // operation bodies
+        {
             for( const auto& megaSrcFile : manifest.getMegaSourceFiles() )
             {
                 ::inja::Environment injaEnvironment;
@@ -281,28 +283,67 @@ public:
                 }
                 OperationsGen::TemplateEngine templateEngine(
                     environment, injaEnvironment, operationsTemplateFilePath );
-                Interface::Root* pRoot         = database.one< Interface::Root >( megaSrcFile );
-                std::string      strOperations = OperationsGen::generate( templateEngine, pRoot );
+                Interface::Root*  pRoot         = database.one< Interface::Root >( megaSrcFile );
+                const std::string strOperations = OperationsGen::generate( templateEngine, pRoot, false );
 
-                // rewrite invocations
-                for( Interface::IContext* pContext : database.many< Interface::IContext >( megaSrcFile ) )
+                std::map< mega::SourceLocation, Operations::Invocation* > rewrites;
+
+                for( auto pInvocationContext : database.many< Interface::InvocationContext >( megaSrcFile ) )
                 {
-                    for( auto i    = invocationInfo.contextInvocations.lower_bound( pContext ),
-                              iEnd = invocationInfo.contextInvocations.upper_bound( pContext );
-                         i != iEnd;
-                         ++i )
+                    for( auto pInvocationInstance : pInvocationContext->get_invocation_instances() )
                     {
-                        const Operations::Invocation*              pInvocation     = i->second;
-                        const std::vector< mega::SourceLocation >& sourceLocations = pInvocation->get_file_offsets();
+                        auto pInvocation = pInvocationInstance->get_invocation();
+                        auto sourceLoc   = pInvocationInstance->get_source_location();
 
-                        nlohmann::json invocation = { { "name", generateInvocationName( pInvocation ) } };
-                        // contextInvocations.push_back( invocation );
+                        VERIFY_RTE_MSG(
+                            rewrites.insert( { sourceLoc, pInvocation } )
+                                .second,
+                            "Found duplicate rewrite location for: " << pInvocation->get_id() );
                     }
                 }
 
-                osOperations << strOperations;
+                std::ostringstream osReWrite;
+                {
+                    auto iReWrite = rewrites.begin(), iReWriteEnd = rewrites.end();
+                    for( auto i = strOperations.begin(), iEnd = strOperations.end(); i != iEnd; )
+                    {
+                        if( iReWrite != iReWriteEnd )
+                        {
+                            VERIFY_RTE_MSG(
+                                iReWrite->first.getBegin() < strOperations.size(), "Invalid range in operation" );
+                            auto iRewriteStart = strOperations.begin() + iReWrite->first.getBegin();
+                            osReWrite << std::string_view( i, iRewriteStart );
+
+                            // increment to just after the openning parenthesis
+                            i = std::find( iRewriteStart, iEnd, '(' );
+
+                            /*bool bAddComma = false;
+                            {
+                                // need to deterime if the invocation has additional arguments or not
+                                auto iUntilRParen = i;
+                                while( *iUntilRParen != ')' )
+                                {
+                                    if( !std::iswspace( *iUntilRParen ) )
+                                    {
+                                        bAddComma = true;
+                                        break;
+                                    }
+                                    ++iUntilRParen;
+                                }
+                            }*/
+                            
+                            osReWrite << generateInvocationUse( invocationInfo, iReWrite->second );
+                            ++iReWrite;
+                        }
+                        else
+                        {
+                            osReWrite << std::string_view( i, iEnd );
+                            i = iEnd;
+                        }
+                    }
+                }
+                data[ "operation_bodies" ].push_back( osReWrite.str() );
             }
-            data[ "operation_bodies" ] = osOperations.str();
         }
 
         std::ostringstream os;

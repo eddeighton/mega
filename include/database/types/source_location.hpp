@@ -55,6 +55,16 @@ public:
         return isValid() && other.isValid() && ( m_begin <= other.m_begin ) && ( other.m_end <= m_end );
     }
 
+    inline bool operator==( const SourceLocation& other ) const
+    {
+        return ( m_begin == other.m_begin ) && ( m_end == other.m_end );
+    }
+    inline bool operator!=( const SourceLocation& other ) const { return !this->operator==( other ); }
+    inline bool operator<( const SourceLocation& other ) const
+    {
+        return ( m_begin != other.m_begin ) ? ( m_begin < other.m_begin ) : ( m_end < other.m_end );
+    }
+
 private:
     mega::U64 m_begin = 0U;
     mega::U64 m_end   = 0U;

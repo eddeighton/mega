@@ -358,7 +358,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    TskDescVec operationsTasks;
+    TskDescVec unityDependencyTasks;
     TskDescVec componentTasks;
     {
         for( ComponentListingView::Components::Component* pComponent : components )
@@ -393,7 +393,8 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                             dependencies.add( pythonObj, TskDescVec{ pythonWrapper } );
                             dependencies.add( initialiserObj, TskDescVec{ initialiser } );
 
-                            operationsTasks.push_back( operationsPCH );
+                            unityDependencyTasks.push_back( operationsPCH );
+                            unityDependencyTasks.push_back( valueSpace );
                             binaryTasks.push_back( implementationObj );
                             binaryTasks.push_back( pythonObj );
                             binaryTasks.push_back( initialiserObj );
@@ -438,7 +439,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                             dependencies.add( cppCPPImplementation, TskDescVec{ cppPCH } );
                             dependencies.add( cppObj, TskDescVec{ cppCPPImplementation } );
 
-                            operationsTasks.push_back( cppPCH );
+                            unityDependencyTasks.push_back( cppPCH );
                             binaryTasks.push_back( cppObj );
                         }
                     }
@@ -459,45 +460,14 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     TskDesc unityAnalysis   = encode( Task{ eTask_UnityAnalysis, manifestFilePath } );
     TskDesc unity           = encode( Task{ eTask_Unity, manifestFilePath } );
     TskDesc unityDatabase   = encode( Task{ eTask_UnityDatabase, manifestFilePath } );
-    dependencies.add( unityReflection, operationsTasks );
+    dependencies.add( unityReflection, unityDependencyTasks );
     dependencies.add( unityAnalysis, TskDescVec{ unityReflection } );
     dependencies.add( unity, TskDescVec{ unityAnalysis } );
     dependencies.add( unityDatabase, TskDescVec{ unity } );
 
-    /*TskDescVec schematicMapTasks;
-    for( const mega::io::schFilePath& schematicFilePath : manifest.getSchematicSourceFiles() )
-    {
-        TskDesc schematicParse        = encode( Task{ eTask_SchematicParse, schematicFilePath } );
-        TskDesc schematicContours     = encode( Task{ eTask_SchematicContours, schematicFilePath } );
-        TskDesc schematicExtrusions   = encode( Task{ eTask_SchematicExtrusions, schematicFilePath } );
-        TskDesc schematicConnections  = encode( Task{ eTask_SchematicConnections, schematicFilePath } );
-        TskDesc schematicWallSections = encode( Task{ eTask_SchematicWallSections, schematicFilePath } );
-        TskDesc schematicFloorPlan    = encode( Task{ eTask_SchematicFloorPlan, schematicFilePath } );
-        TskDesc schematicVisibility   = encode( Task{ eTask_SchematicVisibility, schematicFilePath } );
-        TskDesc schematicValueSpace   = encode( Task{ eTask_SchematicValueSpace, schematicFilePath } );
-        TskDesc schematicSpawnPoints  = encode( Task{ eTask_SchematicSpawnPoints, schematicFilePath } );
-        TskDesc schematicMapFile      = encode( Task{ eTask_SchematicMapFile, schematicFilePath } );
-
-        dependencies.add( schematicParse, TskDescVec{ unityDatabase } );
-
-        dependencies.add( schematicContours, TskDescVec{ schematicParse } );
-        dependencies.add( schematicExtrusions, TskDescVec{ schematicContours } );
-        dependencies.add( schematicConnections, TskDescVec{ schematicExtrusions } );
-        dependencies.add( schematicWallSections, TskDescVec{ schematicConnections } );
-        dependencies.add( schematicFloorPlan, TskDescVec{ schematicWallSections } );
-        dependencies.add( schematicVisibility, TskDescVec{ schematicFloorPlan } );
-        dependencies.add( schematicValueSpace, TskDescVec{ schematicVisibility } );
-        dependencies.add( schematicSpawnPoints, TskDescVec{ schematicValueSpace } );
-        dependencies.add( schematicMapFile, TskDescVec{ schematicSpawnPoints } );
-
-        schematicMapTasks.push_back( schematicMapFile );
-    }*/
-
     {
         TskDescVec completionTasks = componentTasks;
         completionTasks.push_back( unityDatabase );
-        // std::copy( schematicMapTasks.begin(), schematicMapTasks.end(), std::back_inserter( completionTasks ) );
-
         TskDesc complete = encode( Task{ eTask_Complete, manifestFilePath } );
         dependencies.add( complete, completionTasks );
     }

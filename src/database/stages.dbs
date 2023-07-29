@@ -400,6 +400,7 @@ stage FinalStage
     
     persource accessor ref< Interface::Root >;
     persource accessor ref< Interface::IContext >;
+    persource accessor array< ref< Interface::InvocationContext > >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Operations::Invocations >;
     persource accessor array< ref< Concrete::Link > >;
