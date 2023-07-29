@@ -50,8 +50,9 @@ namespace
 
 struct _ObjHdr
 {
-    U64             _index;
-    mega::OwnerID   _ownerID;
+    U64                         _index;
+    mega::OwnerID               _ownerID;
+    mega::TypeID::SubValueType  _typeID;
 };
 
 template< std::size_t >
@@ -100,14 +101,14 @@ _ObjHdr* allocateObject( mega::TypeID::SubValueType objectTypeID )
     }
 }
 
-void deallocateObject( const mega::reference& ref )
+void deallocateObject( _ObjHdr* pHeader )
 {
-    switch( ref.getType().getObjectID() )
+    switch( pHeader->_typeID )
     {
 {% for object in objects %} 
         case {{ object.object_type_id }}:
         {
-            {{ object.type }}* p = reinterpret_cast< {{ object.type }}* >( ref.getHeap() );
+            {{ object.type }}* p = reinterpret_cast< {{ object.type }}* >( pHeader );
             delete p;
         }
         break;

@@ -175,7 +175,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Allocate* pAllocate )
 static const char* szTemplate =
 R"TEMPLATE(
 {
-    mega::reference allocatedRef = Thread::thisThread()->m_memoryManager.allocate( mega::TypeID{ {{ concrete_type_id }} } );
+    mega::reference allocatedRef = Thread::thisThread()->m_memoryManager.allocate( {{ object_type_id }} );
 {% if has_owning_link %}
     //static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
     //function( {{ link_source }}, {{ link_target }} );
@@ -190,7 +190,7 @@ R"TEMPLATE(
         Variables::Instance* pInstance       = pAllocate->get_instance();
         Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
 
-        nlohmann::json templateData( { { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
+        nlohmann::json templateData( { { "object_type_id", pConcreteTarget->get_concrete_id().getObjectID() },
                                        { "instance", args.get( pInstance ) },
                                        { "has_owning_link", false },
                                        { "link_source", "" },
