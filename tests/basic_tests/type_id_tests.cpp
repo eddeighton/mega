@@ -78,7 +78,7 @@ TEST( TypeID, FlagIsSignedBit )
 TEST( TypeID, MakeObjectZeroesSubObject )
 {
     const mega::TypeID def    = mega::TypeID::make_context( mega::max_object_id, mega::max_sub_object_id );
-    const mega::TypeID zeroed = mega::TypeID::make_object_type( def );
+    const mega::TypeID zeroed = mega::TypeID::make_object_from_typeID( def );
     ASSERT_EQ( zeroed, mega::TypeID::make_context( mega::max_object_id ) );
     ASSERT_EQ( zeroed.getSubObjectID(), 0U );
     ASSERT_EQ( zeroed.getObjectID(), mega::max_object_id );
@@ -171,7 +171,7 @@ INSTANTIATE_TEST_SUITE_P( TypeIDIO, TypeIDIOTest,
             TypeIDTestData{ mega::max_typeID_context },
             TypeIDTestData{ mega::min_typeID_context },
 
-            TypeIDTestData{ mega::TypeID::make_object_type( mega::ROOT_TYPE_ID ) },
-            TypeIDTestData{ mega::TypeID::make_object_type( mega::TypeID::make_context( mega::max_object_id, mega::max_sub_object_id )) }
+            TypeIDTestData{ mega::TypeID::make_object_from_typeID( mega::ROOT_TYPE_ID ) },
+            TypeIDTestData{ mega::TypeID::make_object_from_typeID( mega::TypeID::make_context( mega::max_object_id, mega::max_sub_object_id )) }
         ));
 // clang-format on

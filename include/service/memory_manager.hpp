@@ -165,7 +165,7 @@ public:
     inline reference New( TypeID typeID )
     {
         // must acquire allocator EVERYTIME for now - which means request to JIT
-        const TypeID   objectType = TypeID::make_object_type( typeID );
+        const TypeID   objectType = TypeID::make_object_from_typeID( typeID );
         Allocator::Ptr pAllocator = m_getAllocatorFPtr( objectType );
         auto           iFind      = m_allocatorsMap.find( objectType );
         if( iFind != m_allocatorsMap.end() )

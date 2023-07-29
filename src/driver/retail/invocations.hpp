@@ -175,8 +175,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Allocate* pAllocate )
 static const char* szTemplate =
 R"TEMPLATE(
 {
-    // o_{{ concrete_type_id }}* p = new o_{{ concrete_type_id }}{};
-    // mega::reference allocatedRef = mega::runtime::allocate( {{ instance }}, mega::TypeID{ {{ concrete_type_id }} } );
+    mega::reference allocatedRef = Thread::thisThread()->m_memoryManager.allocate( mega::TypeID{ {{ concrete_type_id }} } );
 {% if has_owning_link %}
     //static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
     //function( {{ link_source }}, {{ link_target }} );

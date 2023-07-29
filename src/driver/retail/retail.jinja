@@ -48,6 +48,12 @@
 namespace
 {
 
+struct _ObjHdr
+{
+    U64             _index;
+    mega::OwnerID   _ownerID;
+};
+
 template< std::size_t >
 struct _result_type;
 
@@ -65,13 +71,53 @@ static bool mega_stopped( const Context& context );
 
 // concrete
 {% for object in objects %}
-struct {{ object.type }}
+// {{ object.name }}
+struct {{ object.type }} : public _ObjHdr
 {
 {% for member in object.members %}
     {{ member.type }} {{ member.name }};
 {% endfor %}
 };
 {% endfor %}
+
+// object factory
+_ObjHdr* allocateObject( mega::TypeID::SubValueType objectTypeID )
+{
+    switch( objectTypeID )
+    {
+{% for object in objects %} 
+        case {{ object.object_type_id }}:
+        {
+            // {{ object.name }}
+            return new {{ object.type }};
+        }
+        break;
+{% endfor %}
+        default:
+        {
+            RETAIL_FATAL;
+        }
+    }
+}
+
+void deallocateObject( const mega::reference& ref )
+{
+    switch( ref.getType().getObjectID() )
+    {
+{% for object in objects %} 
+        case {{ object.object_type_id }}:
+        {
+            {{ object.type }}* p = reinterpret_cast< {{ object.type }}* >( ref.getHeap() );
+            delete p;
+        }
+        break;
+{% endfor %}
+        default:
+        {
+            RETAIL_FATAL;
+        }
+    }
+}
 
 // traits
 {% for struct in trait_structs %}

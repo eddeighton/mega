@@ -104,9 +104,13 @@ public:
     {
         return TypeID{ ContextID{ subObjectID, objectID, eType } };
     }
-    constexpr static inline TypeID make_object_type( TypeID typeID )
+    constexpr static inline TypeID make_object_from_typeID( TypeID typeID )
     {
         return TypeID{ ContextID{ 0U, typeID.getObjectID(), eType } };
+    }
+    constexpr static inline TypeID make_object_from_objectID( SubValueType objectID )
+    {
+        return TypeID{ ContextID{ 0U, objectID, eType } };
     }
 
 #ifndef MEGAJIT

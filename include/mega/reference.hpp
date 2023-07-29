@@ -317,7 +317,7 @@ inline reference reference::getNetworkAddress() const
 
 inline reference reference::getObjectAddress() const
 {
-    return reference::make( *this, TypeID::make_object_type( getType() ) );
+    return reference::make( *this, TypeID::make_object_from_typeID( getType() ) );
 }
 
 constexpr inline AllocationID reference::getAllocationID() const

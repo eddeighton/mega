@@ -56,7 +56,11 @@ class RetailGen
                     os << "o_" << pObject->get_concrete_id().getObjectID();
                     concreteNames.insert( { ( Concrete::Context* )pObject, os.str() } );
 
-                    nlohmann::json object( { { "type", os.str() }, { "members", nlohmann::json::array() }
+                    nlohmann::json object( { 
+                        { "type", os.str() }, 
+                        { "name", pObject->get_interface_object()->get_identifier() }, 
+                        { "members", nlohmann::json::array() },
+                        { "object_type_id", pObject->get_concrete_id().getObjectID() }
 
                     } );
 
@@ -320,22 +324,6 @@ public:
 
                             // increment to just after the openning parenthesis
                             i = std::find( iRewriteStart, iEnd, '(' );
-
-                            /*bool bAddComma = false;
-                            {
-                                // need to deterime if the invocation has additional arguments or not
-                                auto iUntilRParen = i;
-                                while( *iUntilRParen != ')' )
-                                {
-                                    if( !std::iswspace( *iUntilRParen ) )
-                                    {
-                                        bAddComma = true;
-                                        break;
-                                    }
-                                    ++iUntilRParen;
-                                }
-                            }*/
-
                             osReWrite << invocationInfo.generateInvocationUse( iReWrite->second );
                             ++iReWrite;
                         }

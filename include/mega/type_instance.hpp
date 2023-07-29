@@ -55,7 +55,7 @@ struct TypeInstance
     {
     }
 
-    static constexpr TypeInstance make_object( TypeID type ) { return { TypeID::make_object_type( type ), 0 }; }
+    static constexpr TypeInstance make_object( TypeID type ) { return { TypeID::make_object_from_typeID( type ), 0 }; }
     static constexpr TypeInstance make_root() { return make_object( ROOT_TYPE_ID ); }
 
     constexpr inline bool operator==( const TypeInstance& cmp ) const
