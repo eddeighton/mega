@@ -27,8 +27,9 @@
 #include "mega/type_id_limits.hpp"
 
 #include "log/filename.hpp"
-#include "log/file_log.hpp"
 #include "log/records.hxx"
+#include "log/file_log.hpp"
+#include "log/memory_log.hpp"
 
 #include <boost/filesystem/operations.hpp>
 
@@ -95,6 +96,48 @@ INSTANTIATE_TEST_SUITE_P( TestFileNames, FileNamesReject,
             Path{ "/tmp/a/b/c/TEST_1234567890" } 
         ));
 // clang-format on
+
+TEST( MemoryLogTests, Basic )
+{
+    using namespace mega::log;
+
+    MemoryStorage log;
+
+    // clang-format off
+    std::vector< Log::Type > types = 
+    {
+        Log::eTrace,
+        Log::eDebug,
+        Log::eInfo, 
+        Log::eWarn, 
+        Log::eError,
+        Log::eFatal
+    };
+    std::vector< std::string > msgs =
+    {
+        "Test Log Msg with Log::eTrace",
+        "Test Log Msg with Log::eDebug",
+        "Test Log Msg with Log::eInfo",
+        "Test Log Msg with Log::eWarn",
+        "Test Log Msg with Log::eError",
+        "Test Log Msg with Log::eFatal"
+    };
+    // clang-format on
+    const int iTests = types.size();
+    for( int i = 0; i < iTests; ++i )
+    {
+        log.record( Log::Write( types[ i ], msgs[ i ] ) );
+    }
+
+    int index = 0;
+    for( auto i = log.begin< Log::Read >(), iEnd = log.end< Log::Read >(); i != iEnd; ++i, ++index )
+    {
+        Log::Read r = *i;
+        ASSERT_EQ( r.getType(), types[ index ] );
+        ASSERT_EQ( r.getMessage(), msgs[ index ] );
+    }
+
+}
 
 namespace bfs = boost::filesystem;
 

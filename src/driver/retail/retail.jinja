@@ -25,11 +25,9 @@
 #include "mega/reference.hpp"
 #include "mega/operation_id.hpp"
 #include "mega/types/traits.hpp"
+
 //#include "mega/type_path.hpp" // has array
-
-
 //#include "mega/variant.hpp"
-
 
 #include "mega/event.hpp"
 #include "mega/clock.hpp"
@@ -40,6 +38,8 @@
 #include "mega/coroutine.hpp" // has stl dependencies
 #include "mega/scheduler.hpp" // has stl dependencies
 #include "mega/maths_types.hpp" // has boost math stuff
+
+#include "mangle.hpp"
 
 {% for include in systemIncludes %}
 #include <{{include}}>
@@ -53,6 +53,7 @@ struct _ObjHdr
     U64                         _index;
     mega::OwnerID               _ownerID;
     mega::TypeID::SubValueType  _typeID;
+    U32                         _refCount;
 };
 
 template< std::size_t >
@@ -75,8 +76,13 @@ static bool mega_stopped( const Context& context );
 // {{ object.name }}
 struct {{ object.type }} : public _ObjHdr
 {
-{% for member in object.members %}
-    {{ member.type }} {{ member.name }};
+{% for part in object.parts %}
+    struct _{{ part.name }}
+    {
+{% for member in part.members %}
+        {{ member.type }} {{ member.name }};
+{% endfor %}
+    } {{ part.name }}{% if not part.singular %}[ {{ part.total_domain_size }} ]{%endif%};
 {% endfor %}
 };
 {% endfor %}
@@ -128,6 +134,11 @@ struct {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endi
     {{ trait }};
 {% endfor %}
 };
+{% endfor %}
+
+// relations
+{% for relation in relations %}
+{{ relation }}
 {% endfor %}
 
 // invocations

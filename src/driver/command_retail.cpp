@@ -71,6 +71,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         const boost::filesystem::path retailCodeTemplateFilePath = templateDir / "retail.jinja";
         const boost::filesystem::path contextTemplateFilePath    = templateDir / "retail_interface.jinja";
         const boost::filesystem::path invocationTemplateFilePath = templateDir / "retail_invocation.jinja";
+        const boost::filesystem::path relationsTemplateFilePath  = templateDir / "retail_relation.jinja";
         const boost::filesystem::path operationsTemplateFilePath = templateDir / "operations.jinja";
 
         VERIFY_RTE_MSG( boost::filesystem::exists( retailCodeTemplateFilePath ),
@@ -79,6 +80,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
                         "Failed to locate retail code template file: " << contextTemplateFilePath.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( invocationTemplateFilePath ),
                         "Failed to locate retail code template file: " << invocationTemplateFilePath.string() );
+        VERIFY_RTE_MSG( boost::filesystem::exists( relationsTemplateFilePath ),
+                        "Failed to locate retail code template file: " << relationsTemplateFilePath.string() );
         VERIFY_RTE_MSG( boost::filesystem::exists( operationsTemplateFilePath ),
                         "Failed to locate retail code template file: " << operationsTemplateFilePath.string() );
 
@@ -90,8 +93,11 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 injaEnvironment.set_trim_blocks( true );
             }
 
-            TemplateEngine templateEngine(
-                injaEnvironment, retailCodeTemplateFilePath, contextTemplateFilePath, invocationTemplateFilePath );
+            TemplateEngine templateEngine( injaEnvironment,
+                                           retailCodeTemplateFilePath,
+                                           contextTemplateFilePath,
+                                           invocationTemplateFilePath,
+                                           relationsTemplateFilePath );
 
             mega::io::ArchiveEnvironment environment( inputArchiveFilePath );
             const mega::io::Manifest     manifest( environment, environment.project_manifest() );

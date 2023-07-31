@@ -46,16 +46,19 @@ class TemplateEngine
     ::inja::Template     m_retailCodeTemplate;
     ::inja::Template     m_contextCodeTemplate;
     ::inja::Template     m_invocationCodeTemplate;
+    ::inja::Template     m_relationsCodeTemplate;
 
 public:
     TemplateEngine( ::inja::Environment&           injaEnv,
                     const boost::filesystem::path& retailCodeTemplatePath,
                     const boost::filesystem::path& contextCodeTemplatePath,
-                    const boost::filesystem::path& invocationCodeTemplatePath )
+                    const boost::filesystem::path& invocationCodeTemplatePath,
+                    const boost::filesystem::path& relationsCodeTemplatePath  )
         : m_injaEnvironment( injaEnv )
         , m_retailCodeTemplate( m_injaEnvironment.parse_template( retailCodeTemplatePath.string() ) )
         , m_contextCodeTemplate( m_injaEnvironment.parse_template( contextCodeTemplatePath.string() ) )
         , m_invocationCodeTemplate( m_injaEnvironment.parse_template( invocationCodeTemplatePath.string() ) )
+        , m_relationsCodeTemplate( m_injaEnvironment.parse_template( relationsCodeTemplatePath.string() ) )
     {
     }
     void renderInvocation( const nlohmann::json& data, std::ostream& os ) const
@@ -69,6 +72,10 @@ public:
     void renderRetail( const nlohmann::json& data, std::ostream& os ) const
     {
         m_injaEnvironment.render_to( os, m_retailCodeTemplate, data );
+    }
+    void renderRelation( const nlohmann::json& data, std::ostream& os ) const
+    {
+        m_injaEnvironment.render_to( os, m_relationsCodeTemplate, data );
     }
     
     std::string render( const std::string& strTemplate, const nlohmann::json& data )

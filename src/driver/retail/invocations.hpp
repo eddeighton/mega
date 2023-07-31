@@ -22,6 +22,7 @@
 #define GUARD_2023_May_23_invocations
 
 #include "driver/retail/templates.hpp"
+#include "driver/retail/naming.hpp"
 #include "driver/retail/invocation_info.hpp"
 
 namespace driver::retail
@@ -40,7 +41,54 @@ static inline std::string megaMangle( const std::string& str )
 
 struct RetailDatabase
 {
-    int getLocalDomainSize( const mega::TypeID targetType ) const { return 1; }
+    FinalStage::Symbols::SymbolTable* m_pSymbolTable;
+    using ConcreteTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
+    ConcreteTypeIDMap m_concreteTypeIDs;
+
+    RetailDatabase( const mega::io::Manifest& manifest, FinalStage::Database& database )
+        : m_pSymbolTable( database.one< FinalStage::Symbols::SymbolTable >( manifest.getManifestFilePath() ) )
+        , m_concreteTypeIDs( m_pSymbolTable->get_concrete_type_ids() )
+    {
+    }
+
+    mega::U64 getLocalDomainSize( mega::TypeID concreteID ) const
+    {
+        VERIFY_RTE_MSG( concreteID != mega::TypeID{}, "Null TypeID in getLocalDomainSize" );
+        using namespace FinalStage;
+
+        auto iFind = m_concreteTypeIDs.find( concreteID );
+        VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteID );
+        auto pConcreteTypeID = iFind->second;
+
+        if( pConcreteTypeID->get_context().has_value() )
+        {
+            auto pContext = pConcreteTypeID->get_context().value();
+            if( auto pObject = db_cast< Concrete::Object >( pContext ) )
+            {
+                return 1;
+            }
+            else if( auto pEvent = db_cast< Concrete::Event >( pContext ) )
+            {
+                return pEvent->get_local_size();
+            }
+            else if( auto pAction = db_cast< Concrete::Action >( pContext ) )
+            {
+                return pAction->get_local_size();
+            }
+            else if( auto pLink = db_cast< Concrete::Link >( pContext ) )
+            {
+                return 1;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        else
+        {
+            THROW_RTE( "Unreachable" );
+        }
+    }
 };
 
 using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
@@ -51,6 +99,7 @@ struct Args
     const VariableMap&    variables;
     nlohmann::json&       data;
     TemplateEngine&       inja;
+    DataNaming&           naming;
 
     static std::string get( const VariableMap& variables, const FinalStage::Invocations::Variables::Variable* pVar )
     {
@@ -177,8 +226,7 @@ R"TEMPLATE(
 {
     mega::reference allocatedRef = Thread::thisThread()->m_memoryManager.allocate( {{ object_type_id }} );
 {% if has_owning_link %}
-    //static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
-    //function( {{ link_source }}, {{ link_target }} );
+    link_make_{{ owning_relation_id }}( {{ link_source }}, {{ link_target }} );
 {% endif %}
     return allocatedRef;
 }
@@ -254,7 +302,7 @@ R"TEMPLATE(
 
                 const mega::RelationID& relationID = pRelation->get_id();
                 std::ostringstream      osRelationID;
-                osRelationID << relationID.getLower() << ',' << relationID.getUpper();
+                osRelationID << relationID.getID();
 
                 templateData[ "owning_relation_id" ] = osRelationID.str();
                 templateData[ "has_owning_link" ]    = true;
@@ -544,7 +592,11 @@ static const char* szTemplate =
 R"TEMPLATE(
 {
     // Read
-    return static_cast< o_{{ concrete_type_id }}* >( {{ instance }}.getHeap() )->m_{{ member_type_id }};
+{% if singular %}
+    return reinterpret_cast< {{ concrete_object_name }}* >( {{ instance }}.getHeap() )->{{ part_name }}.{{ member_name }};
+{% else %}
+    return reinterpret_cast< {{ concrete_object_name }}* >( {{ instance }}.getHeap() )->{{ part_name }}[ {{ instance }}.getInstance() ].{{ member_name }};
+{% endif %}
 }
 )TEMPLATE";
     // clang-format on
@@ -554,9 +606,15 @@ R"TEMPLATE(
         Variables::Instance*        pInstance  = pRead->get_instance();
 
         nlohmann::json templateData(
-            { { "concrete_type_id", pInstance->get_concrete()->get_concrete_id().getObjectID() },
-              { "member_type_id", pDimension->get_concrete_id().getSubObjectID() },
-              { "instance", args.get( pInstance ) } } );
+
+            { { "instance", args.get( pInstance ) },
+              { "concrete_object_name",
+                args.naming.objectName( pInstance->get_concrete()->get_concrete_object().value() ) },
+              { "part_name", args.naming.partName( pDimension->get_part() ) },
+              { "member_name", args.naming.userName( pDimension ) },
+              { "singular", pDimension->get_part()->get_total_domain_size() == 1 }
+
+            } );
 
         os << args.inja.render( szTemplate, templateData );
     }
@@ -576,10 +634,17 @@ static const char* szTemplate =
 R"TEMPLATE(
 {
     // Write
-    auto& target = static_cast< o_{{ concrete_type_id }}* >( {{ instance }}.getHeap() )->m_{{ member_type_id }};
-    target = decltype( target ){ args... };
-
-    // mega::mangle::save_record
+{% if singular %}
+    auto& target = reinterpret_cast< {{ concrete_object_name }}* >( {{ instance }}.getHeap() )->{{ part_name }}.{{ member_name }};
+{% else %}
+    auto& target = reinterpret_cast< {{ concrete_object_name }}* >( {{ instance }}.getHeap() )->{{ part_name }}[ {{ instance }}.getInstance() ].{{ member_name }};
+{% endif %}
+    using T = {{ cpp_type }};
+    target = T{ args... };
+{% if simple %}
+    Thread::thisThread()->m_log.record( mega::log::Memory::Write( {{ instance }}, 
+        std::string_view( reinterpret_cast< const char* >( &target ), sizeof( T ) ) ) );
+{% endif %}
     return {{ instance }};
 }
 )TEMPLATE";
@@ -592,9 +657,16 @@ R"TEMPLATE(
         const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
 
         nlohmann::json templateData(
-            { { "concrete_type_id", pInstance->get_concrete()->get_concrete_id().getObjectID() },
-              { "member_type_id", pDimension->get_concrete_id().getSubObjectID() },
-              { "instance", args.get( pInstance ) } } );
+            { { "instance", args.get( pInstance ) },
+              { "concrete_object_name",
+                args.naming.objectName( pInstance->get_concrete()->get_concrete_object().value() ) },
+              { "part_name", args.naming.partName( pDimension->get_part() ) },
+              { "member_name", args.naming.userName( pDimension ) },
+              { "singular", pDimension->get_part()->get_total_domain_size() == 1 },
+              { "cpp_type", pDimension->get_interface_dimension()->get_canonical_type() },
+              { "simple", bSimple }
+
+            } );
 
         os << args.inja.render( szTemplate, templateData );
     }
@@ -613,8 +685,12 @@ void gen( Args args, FinalStage::Invocations::Operations::ReadLink* pReadLink )
 static const char* szTemplate =
 R"TEMPLATE(
 {
-    // ReadLink
-    return static_cast< o_{{ concrete_type_id }}* >( {{ instance }}.getHeap() )->m_{{ member_type_id }};
+    // Read
+{% if singular %}
+    return reinterpret_cast< {{ concrete_object_name }}* >( {{ instance }}.getHeap() )->{{ part_name }}.{{ member_name }};
+{% else %}
+    return reinterpret_cast< {{ concrete_object_name }}* >( {{ instance }}.getHeap() )->{{ part_name }}[ {{ instance }}.getInstance() ].{{ member_name }};
+{% endif %}
 }
 )TEMPLATE";
     // clang-format on
@@ -626,9 +702,14 @@ R"TEMPLATE(
         MemoryLayout::Part*  pPart          = pLinkReference->get_part();
 
         nlohmann::json templateData(
-            { { "concrete_type_id", pInstance->get_concrete()->get_concrete_id().getObjectID() },
-              { "member_type_id", pLinkReference->get_concrete_id().getSubObjectID() },
-              { "instance", args.get( pInstance ) } } );
+            { { "instance", args.get( pInstance ) },
+              { "concrete_object_name",
+                args.naming.objectName( pInstance->get_concrete()->get_concrete_object().value() ) },
+              { "part_name", args.naming.partName( pPart ) },
+              { "member_name", args.naming.linkName( pLinkReference ) },
+              { "singular", pPart->get_total_domain_size() == 1 }
+
+            } );
 
         os << args.inja.render( szTemplate, templateData );
     }
@@ -651,22 +732,22 @@ R"TEMPLATE(
     {
         case WriteOperation::DEFAULT:
         {
-            //mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} }
+            link_make_{{ relation_id }}( {{ instance }}, target );
         }
         break;
         case WriteOperation::REMOVE:
         {
-            //mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} }
+            link_break{{ relation_id }}( {{ instance }}, target );
         }
         break;
         case WriteOperation::RESET:
         {
-            //mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} }
+            link_reset{{ relation_id }}( {{ instance }} );
         }
         break;
         case WriteOperation::TOTAL_WRITE_OPERATIONS:
         default:
-            throw mega::runtime::JITException{ "Unrecognised write link overload" };
+            RETAIL_FATAL_MSG{ "Unrecognised write link overload" };
         break;
     }
 }
@@ -683,9 +764,13 @@ return {{ instance }};
 
         VERIFY_RTE_MSG( pInstance->get_concrete() == pLink, "Something is wrong!!" );
 
-        nlohmann::json templateData( { { "relation_id_lower", printTypeID( relationID.getLower() ) },
-                                       { "relation_id_upper", printTypeID( relationID.getUpper() ) },
-                                       { "instance", args.get( pInstance ) }
+        std::ostringstream osRelationID;
+        {
+            using ::operator<<;
+            osRelationID << relationID.getID();
+        }
+
+        nlohmann::json templateData( { { "relation_id", osRelationID.str() }, { "instance", args.get( pInstance ) }
 
         } );
 
@@ -707,11 +792,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Range* pRange )
 
 } // namespace
 
-void generateInstructions( const RetailDatabase&                               database,
-                           FinalStage::Invocations::Instructions::Instruction* pInstruction,
-                           const VariableMap&                                  variables,
-                           nlohmann::json&                                     data,
-                           TemplateEngine&                                     templateEngine )
+void generateInstructions( FinalStage::Invocations::Instructions::Instruction* pInstruction, Args& args )
 {
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
@@ -721,27 +802,27 @@ void generateInstructions( const RetailDatabase&                               d
         bool bTailRecursion = true;
         if( auto pParentDerivation = db_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pParentDerivation );
+            gen( args, pParentDerivation );
         }
         else if( auto pChildDerivation = db_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pChildDerivation );
+            gen( args, pChildDerivation );
         }
         else if( auto pEnumDerivation = db_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pEnumDerivation );
+            gen( args, pEnumDerivation );
         }
         else if( auto pEnumeration = db_cast< Instructions::Enumeration >( pInstructionGroup ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pEnumeration );
+            gen( args, pEnumeration );
         }
         else if( auto pDimensionReferenceRead = db_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pDimensionReferenceRead );
+            gen( args, pDimensionReferenceRead );
         }
         else if( auto pMonoReference = db_cast< Instructions::MonoReference >( pInstructionGroup ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pMonoReference );
+            gen( args, pMonoReference );
         }
         else if( auto pPolyReference = db_cast< Instructions::PolyReference >( pInstructionGroup ) )
         {
@@ -752,22 +833,22 @@ void generateInstructions( const RetailDatabase&                               d
                 os << "// PolyReference\n";
                 const Variables::Reference* pReference = pPolyReference->get_from_reference();
 
-                os << "switch( " << Args::get( variables, pReference ) << ".getType() )\n";
+                os << "switch( " << Args::get( args.variables, pReference ) << ".getType() )\n";
                 os << "{";
-                data[ "assignments" ].push_back( os.str() );
+                args.data[ "assignments" ].push_back( os.str() );
             }
 
             {
                 for( auto pChildInstruction : pInstructionGroup->get_children() )
                 {
-                    generateInstructions( database, pChildInstruction, variables, data, templateEngine );
+                    generateInstructions( pChildInstruction, args );
                 }
             }
 
             {
                 std::ostringstream os;
                 os << "}";
-                data[ "assignments" ].push_back( os.str() );
+                args.data[ "assignments" ].push_back( os.str() );
             }
         }
         else if( auto pPolyCase = db_cast< Instructions::PolyCase >( pInstructionGroup ) )
@@ -783,23 +864,23 @@ void generateInstructions( const RetailDatabase&                               d
 
                 os << "case " << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << " :\n";
                 os << "{\n";
-                os << Args::get( variables, pInstance ) << " = mega::reference::make( "
-                   << Args::get( variables, pReference ) << ", "
+                os << Args::get( args.variables, pInstance ) << " = mega::reference::make( "
+                   << Args::get( args.variables, pReference ) << ", "
                    << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << " );\n";
-                data[ "assignments" ].push_back( os.str() );
+                args.data[ "assignments" ].push_back( os.str() );
             }
 
             {
                 for( auto pChildInstruction : pInstructionGroup->get_children() )
                 {
-                    generateInstructions( database, pChildInstruction, variables, data, templateEngine );
+                    generateInstructions( pChildInstruction, args );
                 }
             }
 
             {
                 std::ostringstream os;
                 os << "}";
-                data[ "assignments" ].push_back( os.str() );
+                args.data[ "assignments" ].push_back( os.str() );
             }
         }
         else if( db_cast< Instructions::Elimination >( pInstructionGroup ) )
@@ -823,7 +904,7 @@ void generateInstructions( const RetailDatabase&                               d
         {
             for( auto pChildInstruction : pInstructionGroup->get_children() )
             {
-                generateInstructions( database, pChildInstruction, variables, data, templateEngine );
+                generateInstructions( pChildInstruction, args );
             }
         }
     }
@@ -833,27 +914,27 @@ void generateInstructions( const RetailDatabase&                               d
 
         if( auto pAllocate = db_cast< Allocate >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pAllocate );
+            gen( args, pAllocate );
         }
         else if( auto pCall = db_cast< Call >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pCall );
+            gen( args, pCall );
         }
         else if( auto pStart = db_cast< Start >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pStart );
+            gen( args, pStart );
         }
         else if( auto pStop = db_cast< Stop >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pStop );
+            gen( args, pStop );
         }
         else if( auto pSave = db_cast< Save >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pSave );
+            gen( args, pSave );
         }
         else if( auto pLoad = db_cast< Load >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pLoad );
+            gen( args, pLoad );
         }
         else if( auto pFiles = db_cast< Move >( pOperation ) )
         {
@@ -861,31 +942,31 @@ void generateInstructions( const RetailDatabase&                               d
         }
         else if( auto pGet = db_cast< GetAction >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pGet );
+            gen( args, pGet );
         }
         else if( auto pGetDimension = db_cast< GetDimension >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pGetDimension );
+            gen( args, pGetDimension );
         }
         else if( auto pRead = db_cast< Read >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pRead );
+            gen( args, pRead );
         }
         else if( auto pWrite = db_cast< Write >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pWrite );
+            gen( args, pWrite );
         }
         else if( auto pReadLink = db_cast< ReadLink >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pReadLink );
+            gen( args, pReadLink );
         }
         else if( auto pWriteLink = db_cast< WriteLink >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pWriteLink );
+            gen( args, pWriteLink );
         }
         else if( auto pRange = db_cast< Range >( pOperation ) )
         {
-            gen( Args{ database, variables, data, templateEngine }, pRange );
+            gen( args, pRange );
         }
         else
         {
@@ -975,8 +1056,8 @@ generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Vari
     return variables;
 }
 
-void recurseInvocations( const InvocationInfo& invocationInfo, TemplateEngine& templateEngine,
-                         CleverUtility::IDList& namespaces, CleverUtility::IDList& types,
+void recurseInvocations( RetailDatabase& database, const InvocationInfo& invocationInfo, TemplateEngine& templateEngine,
+                         DataNaming& dataNaming, CleverUtility::IDList& namespaces, CleverUtility::IDList& types,
                          FinalStage::Interface::IContext* pContext, nlohmann::json& invocations )
 {
     using namespace FinalStage;
@@ -986,7 +1067,8 @@ void recurseInvocations( const InvocationInfo& invocationInfo, TemplateEngine& t
     std::ostringstream osNested;
     for( Interface::IContext* pChildContext : pContext->get_children() )
     {
-        recurseInvocations( invocationInfo, templateEngine, namespaces, types, pChildContext, invocations );
+        recurseInvocations(
+            database, invocationInfo, templateEngine, dataNaming, namespaces, types, pChildContext, invocations );
     }
 
     nlohmann::json contextInvocations = nlohmann::json::array();
@@ -1014,10 +1096,11 @@ void recurseInvocations( const InvocationInfo& invocationInfo, TemplateEngine& t
                 const VariableMap variables = generateVariables(
                     pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), invocation );
 
-                RetailDatabase database;
+                Args args{ database, variables, invocation, templateEngine, dataNaming };
+
                 for( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
                 {
-                    generateInstructions( database, pInstruction, variables, invocation, templateEngine );
+                    generateInstructions( pInstruction, args );
                 }
 
                 templateEngine.renderInvocation( invocation, osInvocation );

@@ -24,6 +24,7 @@
 #include "templates.hpp"
 #include "invocations.hpp"
 #include "interface.hpp"
+#include "naming.hpp"
 
 #include "database/common/environment_archive.hpp"
 #include "database/types/source_location.hpp"
@@ -43,133 +44,195 @@ namespace driver::retail
 {
 class RetailGen
 {
-    static void generateDataStructures( const auto& megaFilesTopological, Database& database, nlohmann::json& data )
+    static void generateDataStructures( const auto& megaFilesTopological, Database& database, DataNaming& dataNaming,
+                                        nlohmann::json& data )
     {
-        using ConcreteNames = std::map< Concrete::Context*, std::string >;
-        ConcreteNames concreteNames;
+        for( const auto& megaSrcFile : megaFilesTopological )
         {
-            for( const auto& megaSrcFile : megaFilesTopological )
+            for( Concrete::Object* pObject : database.many< Concrete::Object >( megaSrcFile ) )
             {
-                for( Concrete::Object* pObject : database.many< Concrete::Object >( megaSrcFile ) )
+                nlohmann::json object( { { "type", dataNaming.objectName( pObject ) },
+                                         { "name", pObject->get_interface_object()->get_identifier() },
+                                         { "object_type_id", pObject->get_concrete_id().getObjectID() },
+                                         { "parts", nlohmann::json::array() }
+
+                } );
+
+                for( auto pBuffer : pObject->get_buffers() )
                 {
-                    std::ostringstream os;
-                    os << "o_" << pObject->get_concrete_id().getObjectID();
-                    concreteNames.insert( { ( Concrete::Context* )pObject, os.str() } );
-
-                    nlohmann::json object( { 
-                        { "type", os.str() }, 
-                        { "name", pObject->get_interface_object()->get_identifier() }, 
-                        { "members", nlohmann::json::array() },
-                        { "object_type_id", pObject->get_concrete_id().getObjectID() }
-
-                    } );
-
-                    for( auto pBuffer : pObject->get_buffers() )
+                    for( auto pPart : pBuffer->get_parts() )
                     {
-                        for( auto pPart : pBuffer->get_parts() )
+                        nlohmann::json part( { { "name", dataNaming.partName( pPart ) },
+                                               { "total_domain_size", pPart->get_total_domain_size() },
+                                               { "singular", pPart->get_total_domain_size() == 1 },
+                                               { "members", nlohmann::json::array() }
+
+                        } );
+
+                        for( auto pAllocation : pPart->get_allocation_dimensions() )
                         {
-                            for( auto pAllocation : pPart->get_allocation_dimensions() )
+                            auto pAllocatorDim = db_cast< Concrete::Dimensions::Allocator >( pAllocation );
+                            VERIFY_RTE( pAllocatorDim );
+
+                            auto getLocalDomainSize = []( Concrete::Context* pContext ) -> mega::U64
                             {
-                                auto pAllocatorDim = db_cast< Concrete::Dimensions::Allocator >( pAllocation );
-                                VERIFY_RTE( pAllocatorDim );
-
-                                auto getLocalDomainSize = []( Concrete::Context* pContext ) -> mega::U64
+                                if( auto pObject = db_cast< Concrete::Object >( pContext ) )
                                 {
-                                    if( auto pObject = db_cast< Concrete::Object >( pContext ) )
-                                    {
-                                        return 1U;
-                                    }
-                                    else if( auto pEvent = db_cast< Concrete::Event >( pContext ) )
-                                    {
-                                        return pEvent->get_local_size();
-                                    }
-                                    else if( auto pAction = db_cast< Concrete::Action >( pContext ) )
-                                    {
-                                        return pAction->get_local_size();
-                                    }
-                                    else if( auto pLink = db_cast< Concrete::Link >( pContext ) )
-                                    {
-                                        return 1U;
-                                    }
-                                    else
-                                    {
-                                        return 1U;
-                                    }
-                                };
-
-                                std::ostringstream     osTypeName;
-                                Allocators::Allocator* pAllocator = pAllocatorDim->get_allocator();
-                                if( auto pAlloc = db_cast< Allocators::Nothing >( pAllocator ) )
-                                {
-                                    // do nothing
-                                    THROW_RTE( "Unreachable" );
+                                    return 1U;
                                 }
-                                else if( auto pAlloc = db_cast< Allocators::Singleton >( pAllocator ) )
+                                else if( auto pEvent = db_cast< Concrete::Event >( pContext ) )
                                 {
-                                    osTypeName << "bool";
+                                    return pEvent->get_local_size();
                                 }
-                                else if( auto pAlloc = db_cast< Allocators::Range32 >( pAllocator ) )
+                                else if( auto pAction = db_cast< Concrete::Action >( pContext ) )
                                 {
-                                    osTypeName << "mega::Bitmask32Allocator< "
-                                               << getLocalDomainSize( pAlloc->get_allocated_context() ) << " >";
+                                    return pAction->get_local_size();
                                 }
-                                else if( auto pAlloc = db_cast< Allocators::Range64 >( pAllocator ) )
+                                else if( auto pLink = db_cast< Concrete::Link >( pContext ) )
                                 {
-                                    osTypeName << "mega::Bitmask64Allocator< "
-                                               << getLocalDomainSize( pAlloc->get_allocated_context() ) << " >";
-                                }
-                                else if( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocator ) )
-                                {
-                                    osTypeName << "mega::RingAllocator< mega::Instance, "
-                                               << getLocalDomainSize( pAlloc->get_allocated_context() ) << " >";
+                                    return 1U;
                                 }
                                 else
                                 {
-                                    THROW_RTE( "Unknown allocator type" );
+                                    return 1U;
                                 }
+                            };
 
-                                std::ostringstream osName;
-                                osName << "m_" << pAllocation->get_concrete_id().getSubObjectID();
-                                nlohmann::json member( { { "type", osTypeName.str() }, { "name", osName.str() } } );
-                                object[ "members" ].push_back( member );
-                                concreteNames.insert( { ( Concrete::Context* )pAllocation, osName.str() } );
-                            }
-                            for( auto pLink : pPart->get_link_dimensions() )
+                            std::ostringstream     osTypeName;
+                            Allocators::Allocator* pAllocator = pAllocatorDim->get_allocator();
+                            if( auto pAlloc = db_cast< Allocators::Nothing >( pAllocator ) )
                             {
-                                std::ostringstream osType;
-                                if( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLink ) )
-                                {
-                                    osType << "mega::reference";
-                                }
-                                else if( auto pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( pLink ) )
-                                {
-                                    osType << "std::vector< mega::reference >";
-                                }
-                                else
-                                {
-                                    THROW_RTE( "Unknown link reference type" );
-                                }
-                                std::ostringstream osName;
-                                osName << "m_" << pLink->get_concrete_id().getSubObjectID();
-                                nlohmann::json member( { { "type", osType.str() }, { "name", osName.str() } } );
-                                object[ "members" ].push_back( member );
-                                concreteNames.insert( { ( Concrete::Context* )pLink, osName.str() } );
+                                // do nothing
+                                THROW_RTE( "Unreachable" );
                             }
-                            for( auto pDim : pPart->get_user_dimensions() )
+                            else if( auto pAlloc = db_cast< Allocators::Singleton >( pAllocator ) )
                             {
-                                std::ostringstream osName;
-                                osName << "m_" << pDim->get_concrete_id().getSubObjectID();
-                                nlohmann::json member(
-                                    { { "type", pDim->get_interface_dimension()->get_canonical_type() },
-                                      { "name", osName.str() } } );
-                                object[ "members" ].push_back( member );
-                                concreteNames.insert( { ( Concrete::Context* )pDim, osName.str() } );
+                                osTypeName << "bool";
                             }
+                            else if( auto pAlloc = db_cast< Allocators::Range32 >( pAllocator ) )
+                            {
+                                osTypeName << "mega::Bitmask32Allocator< "
+                                           << getLocalDomainSize( pAlloc->get_allocated_context() ) << " >";
+                            }
+                            else if( auto pAlloc = db_cast< Allocators::Range64 >( pAllocator ) )
+                            {
+                                osTypeName << "mega::Bitmask64Allocator< "
+                                           << getLocalDomainSize( pAlloc->get_allocated_context() ) << " >";
+                            }
+                            else if( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocator ) )
+                            {
+                                osTypeName << "mega::RingAllocator< mega::Instance, "
+                                           << getLocalDomainSize( pAlloc->get_allocated_context() ) << " >";
+                            }
+                            else
+                            {
+                                THROW_RTE( "Unknown allocator type" );
+                            }
+
+                            nlohmann::json member(
+                                { { "type", osTypeName.str() }, { "name", dataNaming.allocatorName( pAllocation ) } } );
+                            part[ "members" ].push_back( member );
                         }
+                        for( auto pLink : pPart->get_link_dimensions() )
+                        {
+                            std::ostringstream osType;
+                            if( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLink ) )
+                            {
+                                osType << "mega::reference";
+                            }
+                            else if( auto pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( pLink ) )
+                            {
+                                osType << "std::vector< mega::reference >";
+                            }
+                            else
+                            {
+                                THROW_RTE( "Unknown link reference type" );
+                            }
+
+                            nlohmann::json member(
+                                { { "type", osType.str() }, { "name", dataNaming.linkName( pLink ) } } );
+                            part[ "members" ].push_back( member );
+                        }
+                        for( auto pDim : pPart->get_user_dimensions() )
+                        {
+                            nlohmann::json member( { { "type", pDim->get_interface_dimension()->get_canonical_type() },
+                                                     { "name", dataNaming.userName( pDim ) } } );
+                            part[ "members" ].push_back( member );
+                        }
+
+                        object[ "parts" ].push_back( part );
                     }
-                    data[ "objects" ].push_back( object );
+                }
+                data[ "objects" ].push_back( object );
+            }
+        }
+    }
+
+    static void generateRelations( TemplateEngine& templateEngine, Database& database,
+                                   mega::io::ArchiveEnvironment& environment, DataNaming& dataNaming,
+                                   nlohmann::json& data )
+    {
+        for( const HyperGraph::Relation* pRelation :
+             database.many< HyperGraph::Relation >( environment.project_manifest() ) )
+        {
+            const bool bSourceSingular
+                = !pRelation->get_source_interface()->get_link_trait()->get_cardinality().maximum().isMany();
+            const bool bTargetSingular
+                = !pRelation->get_target_interface()->get_link_trait()->get_cardinality().maximum().isMany();
+
+            const auto ownership = pRelation->get_ownership();
+
+            std::ostringstream osRelationID;
+            {
+                using ::operator<<;
+                osRelationID << pRelation->get_id().getID();
+            }
+
+            nlohmann::json relation( { { "relationID", osRelationID.str() },
+                                       { "source_singular", bSourceSingular },
+                                       { "target_singular", bTargetSingular },
+                                       { "source_owned", ownership.get() == mega::Ownership::eOwnSource },
+                                       { "target_owned", ownership.get() == mega::Ownership::eOwnTarget },
+                                       { "sources", nlohmann::json::array() },
+                                       { "targets", nlohmann::json::array() }
+
+            } );
+
+            auto makeLink = [ &dataNaming ]( Concrete::Link* pLink ) -> nlohmann::json
+            {
+                auto                pLinkReference = pLink->get_link_reference();
+                MemoryLayout::Part* pPart          = pLinkReference->get_part();
+                VERIFY_RTE( pLink->get_concrete_object().has_value() );
+                Concrete::Object* pObject = pLink->get_concrete_object().value();
+
+                nlohmann::json link( { { "type", printTypeID( pLink->get_concrete_id() ) },
+                                       { "object_type", dataNaming.objectName( pObject ) },
+                                       { "part", dataNaming.partName( pPart ) },
+                                       { "part_is_singular", pPart->get_total_domain_size() == 1 },
+                                       { "link_ref", dataNaming.linkName( pLinkReference ) }
+
+                } );
+                return link;
+            };
+            for( Interface::Link* pSource : pRelation->get_sources() )
+            {
+                for( auto pConcrete : pSource->get_concrete() )
+                {
+                    relation[ "sources" ].push_back( makeLink( db_cast< Concrete::Link >( pConcrete ) ) );
                 }
             }
+            for( auto pTarget : pRelation->get_targets() )
+            {
+                for( auto pConcrete : pTarget->get_concrete() )
+                {
+                    relation[ "targets" ].push_back( makeLink( db_cast< Concrete::Link >( pConcrete ) ) );
+                }
+            }
+
+            std::ostringstream osRelation;
+            templateEngine.renderRelation( relation, osRelation );
+
+            data[ "relations" ].push_back( osRelation.str() );
         }
     }
 
@@ -183,6 +246,7 @@ public:
                                { "result_types", nlohmann::json::array() },
                                { "interface", "" },
                                { "objects", nlohmann::json::array() },
+                               { "relations", nlohmann::json::array() },
                                { "trait_structs", nlohmann::json::array() },
                                { "invocations", nlohmann::json::array() },
                                { "operation_bodies", nlohmann::json::array() }
@@ -253,22 +317,29 @@ public:
                     }
                 }
             }
-            data[ "interface" ] = osInterface.str();
-            // data[ "operations" ]    = interfaceOperations;
+            data[ "interface" ]     = osInterface.str();
             data[ "trait_structs" ] = traitStructs;
         }
 
+        DataNaming dataNaming;
+
         // concrete data structures
         {
-            generateDataStructures( megaFilesTopological, database, data );
+            generateDataStructures( megaFilesTopological, database, dataNaming, data );
         }
 
         // traits
+
+        // relations
+        {
+            generateRelations( templateEngine, database, environment, dataNaming, data );
+        }
 
         // invocations
         {
             nlohmann::json invocations = nlohmann::json::array();
             {
+                RetailDatabase retailDatabase( manifest, database );
                 // NOTE: need to observe dependency order of source files
                 for( const auto& megaSrcFile : megaFilesTopological )
                 {
@@ -276,7 +347,8 @@ public:
                     CleverUtility::IDList namespaces, types;
                     for( Interface::IContext* pContext : pRoot->get_children() )
                     {
-                        recurseInvocations( invocationInfo, templateEngine, namespaces, types, pContext, invocations );
+                        recurseInvocations( retailDatabase, invocationInfo, templateEngine, dataNaming, namespaces,
+                                            types, pContext, invocations );
                     }
                 }
             }

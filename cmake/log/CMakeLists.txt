@@ -47,6 +47,7 @@ set( LOG_HEADERS
     ${MEGA_API_DIR}/log/filename.hpp
     ${MEGA_API_DIR}/log/index_record.hpp
     ${MEGA_API_DIR}/log/iterator.hpp
+    ${MEGA_API_DIR}/log/memory_log.hpp
     ${MEGA_API_DIR}/log/offset.hpp
     ${MEGA_API_DIR}/log/range.hpp
     ${MEGA_API_DIR}/log/records.hxx

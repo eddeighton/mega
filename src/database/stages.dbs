@@ -370,8 +370,8 @@ stage UnityStage
 
     persource accessor ref< Concrete::Context >;
     persource accessor array< ref< Concrete::Dimensions::User > >;
-    persource accessor array< ref< HyperGraph::Relation > >;
-    persource accessor ref< HyperGraph::Graph >;
+    global accessor array< ref< HyperGraph::Relation > >;
+    global accessor ref< HyperGraph::Graph >;
     global accessor array< ref< MegaMangle::Mangle > >;
 }
 
@@ -397,6 +397,8 @@ stage FinalStage
     global accessor ref< Dependencies::Analysis >;
     global accessor array< ref< UnityAnalysis::Binding > >;
     global accessor array< ref< MemoryLayout::MemoryMap > >;
+    global accessor ref< HyperGraph::Graph >;
+    global accessor array< ref< HyperGraph::Relation > >;
     
     persource accessor ref< Interface::Root >;
     persource accessor ref< Interface::IContext >;
@@ -410,8 +412,6 @@ stage FinalStage
     persource accessor array< ref< Concrete::Dimensions::User > >;
     persource accessor array< ref< Concrete::Dimensions::LinkReference > >;
     persource accessor array< ref< Concrete::Dimensions::Allocation > >;
-    persource accessor array< ref< HyperGraph::Relation > >;
-    persource accessor ref< HyperGraph::Graph >;
     persource accessor array< ref< Automata::Start > >;
     
 }

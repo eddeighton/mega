@@ -54,6 +54,7 @@ set( JINJA_TEMPLATES
 	${DRIVER_SOURCE_DIR}/retail/retail.jinja 
 	${DRIVER_SOURCE_DIR}/retail/retail_interface.jinja 
 	${DRIVER_SOURCE_DIR}/retail/retail_invocation.jinja 
+	${DRIVER_SOURCE_DIR}/retail/retail_relation.jinja 
 	)
 
 set( DRIVER_SOURCES
