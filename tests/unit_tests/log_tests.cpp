@@ -27,7 +27,7 @@
 #include "mega/type_id_limits.hpp"
 
 #include "log/filename.hpp"
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 #include "log/records.hxx"
 
 #include <boost/filesystem/operations.hpp>
@@ -38,10 +38,10 @@ using Path = boost::filesystem::path;
 
 struct LogFilenameTestData
 {
-    Path                 root;
-    std::string          name;
-    mega::log::FileIndex index;
-    Path                 expected;
+    Path                   root;
+    std::string            name;
+    mega::log::BufferIndex index;
+    Path                   expected;
 };
 
 class FileNamesAccept : public ::testing::TestWithParam< LogFilenameTestData >
@@ -54,8 +54,8 @@ TEST_P( FileNamesAccept, AcceptedFileNames )
 {
     const LogFilenameTestData data = GetParam();
     ASSERT_EQ( mega::log::toFilePath( data.root, data.name, data.index ), data.expected );
-    std::string          strFileType;
-    mega::log::FileIndex index;
+    std::string            strFileType;
+    mega::log::BufferIndex index;
     ASSERT_TRUE( mega::log::fromFilePath( data.expected, strFileType, index ) );
     ASSERT_EQ( strFileType, data.name );
     ASSERT_EQ( data.index, index );
@@ -78,8 +78,8 @@ class FileNamesReject : public ::testing::TestWithParam< Path >
 
 TEST_P( FileNamesReject, RejectedFileNames )
 {
-    std::string          strFileType;
-    mega::log::FileIndex index;
+    std::string            strFileType;
+    mega::log::BufferIndex index;
     ASSERT_FALSE( mega::log::fromFilePath( GetParam(), strFileType, index ) );
 }
 
@@ -110,15 +110,16 @@ protected:
 
 TEST_F( BasicLogTest, Cycles )
 {
-    mega::log::Storage log( m_folder / "basic" );
+    const boost::filesystem::path logPath = m_folder / "basic";
+    mega::log::FileStorage        log( logPath, false );
 
     using namespace mega::log;
 
     // fill first log file
-    for( int i = 0; i < impl::Index::RecordsPerFile * 3; ++i )
+    for( int i = 0; i < mega::log::FileStorage::IndexType::RecordsPerFile * 3; ++i )
     {
         ASSERT_EQ( log.getTimeStamp(), i );
-        ASSERT_EQ( log.get( TrackType::eLog ), Offset{} );
+        ASSERT_EQ( log.get( TrackID::eLog ), Offset{} );
         log.cycle();
     }
 }
@@ -149,7 +150,8 @@ TEST_F( BasicLogTest, LogMsg )
     // clang-format on
     const int iTests = types.size();
 
-    Storage log( m_folder / "LogMsg" );
+    const boost::filesystem::path logPath = m_folder / "LogMsg";
+    FileStorage                   log( logPath, false );
 
     for( int i = 0; i < iTests; ++i )
     {
@@ -205,7 +207,8 @@ TEST_F( BasicLogTest, StructureMsg )
     // clang-format on
     const int iTests = types.size();
 
-    Storage log( m_folder / "StructureMsg" );
+    const boost::filesystem::path logPath = m_folder / "StructureMsg";
+    FileStorage                   log( logPath, false );
 
     for( int i = 0; i < iTests; ++i )
     {
@@ -227,7 +230,8 @@ TEST_F( BasicLogTest, MemoryMsg )
 {
     using namespace mega::log;
 
-    Storage log( m_folder / "MemoryMsg" );
+    const boost::filesystem::path logPath = m_folder / "MemoryMsg";
+    FileStorage                   log( logPath, false );
 }
 
 #pragma pack( 1 )
@@ -243,7 +247,8 @@ TEST_F( BasicLogTest, Range )
 {
     using namespace mega::log;
 
-    Storage log( m_folder / "Range" );
+    const boost::filesystem::path logPath = m_folder / "Range";
+    FileStorage                   log( logPath, false );
 
     std::string      strTest = "test string";
     std::string_view strView( strTest );
@@ -304,7 +309,8 @@ TEST_F( BasicLogTest, LogMsgMany_ )
         }
     }
 
-    Storage log( m_folder / "LogMsgMany" );
+    const boost::filesystem::path logPath = m_folder / "LogMsgMany";
+    FileStorage log( logPath, false );
 
     int               iCounter     = 0;
     const int         msgsPerCycle = 1000;
@@ -314,12 +320,12 @@ TEST_F( BasicLogTest, LogMsgMany_ )
         if ( ( iCounter != 0 ) && ( iCounter % msgsPerCycle == 0 ) )
         {
             const mega::TimeStamp   lastCycle         = log.getTimeStamp();
-            const mega::log::Offset oldOffset         = log.get( mega::log::TrackType::Log, lastCycle );
-            const mega::log::Offset expectedNewOffset = log.get( mega::log::TrackType::Log );
+            const mega::log::Offset oldOffset         = log.get( mega::log::TrackID::Log, lastCycle );
+            const mega::log::Offset expectedNewOffset = log.get( mega::log::TrackID::Log );
 
             log.cycle();
             const mega::TimeStamp   newCycle  = log.getTimeStamp();
-            const mega::log::Offset newOffset = log.get( mega::log::TrackType::Log, newCycle );
+            const mega::log::Offset newOffset = log.get( mega::log::TrackID::Log, newCycle );
 
             ASSERT_EQ( newOffset, expectedNewOffset )
                 << "iCounter:" << iCounter << " lastCycle:" << lastCycle << " newCycle:" << newCycle

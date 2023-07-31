@@ -225,7 +225,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
         SPDLOG_TRACE( "MPOContext::createRoot: mpo: {} project: {} event log: {}", mpo,
                       project.getProjectInstallPath().string(), eventLogFolder.string() );
 
-        m_pLog                 = std::make_unique< log::Storage >( eventLogFolder );
+        m_pLog                 = std::make_unique< log::FileStorage >( eventLogFolder, false );
         m_pTransactionProducer = std::make_unique< network::TransactionProducer >( *m_pLog );
     }
 

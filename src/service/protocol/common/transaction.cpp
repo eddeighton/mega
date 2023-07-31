@@ -23,7 +23,7 @@
 namespace mega::network
 {
 
-TransactionProducer::TransactionProducer( mega::log::Storage& log )
+TransactionProducer::TransactionProducer( mega::log::FileStorage& log )
     : m_log( log )
     , m_iteratorEnd( m_log.getIterator() )
     , m_iterator( m_log.getIterator() )
@@ -32,9 +32,9 @@ TransactionProducer::TransactionProducer( mega::log::Storage& log )
 void TransactionProducer::generateStructure( MPOTransactions& transactions, UnparentedSet& unparented,
                                              MovedObjects& movedObjects )
 {
-    using RecordType                    = log::Structure::Read;
-    log::Iterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-    log::Iterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
+    using RecordType                        = log::Structure::Read;
+    log::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
+    log::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
     for( ; iter != iterEnd; ++iter )
     {
         const RecordType r = *iter;
@@ -101,9 +101,9 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
 }
 void TransactionProducer::generateScheduling( MPOTransactions& transactions )
 {
-    using RecordType                    = log::Scheduling::Read;
-    log::Iterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-    log::Iterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
+    using RecordType                        = log::Scheduling::Read;
+    log::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
+    log::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
     for( ; iter != iterEnd; ++iter )
     {
         const RecordType r = *iter;
@@ -112,9 +112,9 @@ void TransactionProducer::generateScheduling( MPOTransactions& transactions )
 }
 void TransactionProducer::generateMemory( MPOTransactions& transactions )
 {
-    using RecordType                    = log::Memory::Read;
-    log::Iterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
-    log::Iterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
+    using RecordType                        = log::Memory::Read;
+    log::FileIterator< RecordType > iter    = m_log.begin< RecordType >( m_iterator );
+    log::FileIterator< RecordType > iterEnd = m_log.begin< RecordType >( m_iteratorEnd );
     for( ; iter != iterEnd; ++iter )
     {
         const RecordType r = *iter;

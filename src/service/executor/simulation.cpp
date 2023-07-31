@@ -516,7 +516,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
             status.setDescription( os.str() );
         }
         status.setLogIterator( getLog().getIterator() );
-        status.setLogFolder( getLog().getFolder().string() );
+        status.setLogFolder( getLog().getLogFolderPath().string() );
 
         using MPOTimeStampVec = std::vector< std::pair< MPO, TimeStamp > >;
         using MPOVec          = std::vector< MPO >;

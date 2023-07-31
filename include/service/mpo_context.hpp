@@ -45,7 +45,7 @@
 
 #include "service/protocol/common/transaction.hpp"
 
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 
 #include <boost/filesystem.hpp>
 
@@ -57,9 +57,9 @@ namespace mega
 class MPOContext : public Context
 {
 protected:
-    const network::LogicalThreadID&                  m_logicalthreadIDRef;
+    const network::LogicalThreadID&                 m_logicalthreadIDRef;
     std::optional< mega::MPO >                      m_mpo;
-    std::unique_ptr< log::Storage >                 m_pLog;
+    std::unique_ptr< log::FileStorage >             m_pLog;
     mega::service::LockTracker                      m_lockTracker;
     std::unique_ptr< network::TransactionProducer > m_pTransactionProducer;
     boost::asio::yield_context*                     m_pYieldContext = nullptr;
@@ -67,7 +67,8 @@ protected:
     std::unique_ptr< runtime::MPODatabase >         m_pDatabase;
     std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
 
-    network::TransactionProducer::MovedObjects    m_movedObjects;
+    network::TransactionProducer::MovedObjects m_movedObjects;
+
 public:
     MPOContext( const network::LogicalThreadID& logicalthreadID )
         : m_logicalthreadIDRef( logicalthreadID )
@@ -117,7 +118,7 @@ public:
     virtual void            yield() override;
 
     // log
-    virtual log::Storage& getLog() override
+    virtual log::FileStorage& getLog() override
     {
         ASSERT( m_pLog );
         return *m_pLog;

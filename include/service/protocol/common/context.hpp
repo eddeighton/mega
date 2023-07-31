@@ -31,7 +31,16 @@ namespace mega
 {
 namespace log
 {
+
+template < class BufferFactory >
 class Storage;
+
+namespace impl
+{
+    class FileBufferFactory;
+}
+
+using FileStorage = Storage< impl::FileBufferFactory >;
 }
 
 class Context
@@ -57,7 +66,7 @@ public:
     virtual void yield()                         = 0;
 
     // log
-    virtual log::Storage& getLog() = 0;
+    virtual log::FileStorage& getLog() = 0;
 
     static Context* get();
 };

@@ -23,7 +23,7 @@
 
 #include "mega/reference.hpp"
 
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 
 #include <boost/serialization/split_member.hpp>
 
@@ -135,7 +135,7 @@ public:
     using UnparentedSet   = std::unordered_set< reference, reference::Hash >;
     using MovedObjects    = std::unordered_map< MPO, std::pair< reference, reference >, MPO::Hash >;
 
-    TransactionProducer( mega::log::Storage& log );
+    TransactionProducer( mega::log::FileStorage& log );
 
     void generateStructure( MPOTransactions& transactions, UnparentedSet& unparented, MovedObjects& movedObjects );
     void generateScheduling( MPOTransactions& transactions );
@@ -143,7 +143,7 @@ public:
     void generate( MPOTransactions& transactions, UnparentedSet& unparented, MovedObjects& movedObjects );
 
 private:
-    mega::log::Storage&           m_log;
+    mega::log::FileStorage&       m_log;
     const mega::log::IndexRecord& m_iteratorEnd;
     mega::log::IndexRecord        m_iterator;
 };

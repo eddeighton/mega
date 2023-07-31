@@ -81,7 +81,7 @@ public:
 };
 
 boost::filesystem::path toFilePath( const boost::filesystem::path& logFolderPath, const std::string& strFileType,
-                                    FileIndex fileIndex )
+                                    BufferIndex fileIndex )
 {
     std::ostringstream os;
     os << strFileType << '_' << std::setfill( '0' ) << std::setw( LogFileIndexDigits ) << fileIndex.get()
@@ -89,7 +89,7 @@ boost::filesystem::path toFilePath( const boost::filesystem::path& logFolderPath
     return logFolderPath / os.str();
 }
 
-bool fromFilePath( const boost::filesystem::path& logFilePath, std::string& strFileType, FileIndex& index )
+bool fromFilePath( const boost::filesystem::path& logFilePath, std::string& strFileType, BufferIndex& index )
 {
     const std::string                              strFileName = logFilePath.filename().string();
     FileNameGrammar< std::string::const_iterator > filenameGrammar;

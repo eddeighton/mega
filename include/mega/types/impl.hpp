@@ -32,7 +32,7 @@
 #include "service/protocol/common/context.hpp"
 
 #include "log/records.hxx"
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 
 #include <boost/interprocess/streams/bufferstream.hpp>
 
@@ -81,7 +81,7 @@ struct SimpleDimension
     static inline void save_memory_record( const mega::reference& ref, const T& value )
     {
         VERIFY_RTE_MSG( ref.isHeapAddress(), "save_memory_record passed network address " );
-        mega::log::Storage& log = mega::Context::get()->getLog();
+        mega::log::FileStorage& log = mega::Context::get()->getLog();
         log.record( mega::log::Memory::Write{
             ref, std::string_view( reinterpret_cast< const char* >( &value ), sizeof( T ) ) } );
     }
@@ -140,7 +140,7 @@ struct NonSimpleDimension
         RecordSaveArchive recordSaveArchive;
         recordSaveArchive.save( value );
 
-        mega::log::Storage& log = mega::Context::get()->getLog();
+        mega::log::FileStorage& log = mega::Context::get()->getLog();
         log.record( mega::log::Memory::Write{ ref, recordSaveArchive.get() } );
     }
     static inline void load_memory_record( const void* pData, mega::U64 size, T& value )

@@ -32,50 +32,50 @@ namespace mega::log
 static const U64 LogFileSize        = 1 << 26;
 static const int LogFileIndexDigits = std::numeric_limits< U32 >::digits10 + 1;
 
-class FileIndex
+class BufferIndex
 {
 public:
-    inline FileIndex()                                        = default;
-    inline FileIndex( const FileIndex& fileIndex )            = default;
-    inline FileIndex& operator=( const FileIndex& fileIndex ) = default;
-    inline FileIndex( U32 index )
+    inline BufferIndex()                                        = default;
+    inline BufferIndex( const BufferIndex& fileIndex )            = default;
+    inline BufferIndex& operator=( const BufferIndex& fileIndex ) = default;
+    inline BufferIndex( U32 index )
         : m_index( index )
     {
     }
     inline U32 get() const { return m_index; }
 
-    inline bool operator<( const FileIndex& cmp ) const { return m_index < cmp.m_index; }
-    inline bool operator==( const FileIndex& cmp ) const { return m_index == cmp.m_index; }
-    inline bool operator!=( const FileIndex& cmp ) const { return !this->operator==( cmp ); }
+    inline bool operator<( const BufferIndex& cmp ) const { return m_index < cmp.m_index; }
+    inline bool operator==( const BufferIndex& cmp ) const { return m_index == cmp.m_index; }
+    inline bool operator!=( const BufferIndex& cmp ) const { return !this->operator==( cmp ); }
 
     struct Hash
     {
-        std::size_t operator()( const FileIndex& fileIndex ) const { return std::hash< U32 >{}( fileIndex.m_index ); }
+        std::size_t operator()( const BufferIndex& fileIndex ) const { return std::hash< U32 >{}( fileIndex.m_index ); }
     };
 
 private:
     U32 m_index = 0U;
 };
 
-class InterFileOffset
+class InterBufferOffset
 {
 public:
-    inline InterFileOffset()                                           = default;
-    inline InterFileOffset( const InterFileOffset& offset )            = default;
-    inline InterFileOffset& operator=( const InterFileOffset& offset ) = default;
-    inline InterFileOffset( U64 offset )
+    inline InterBufferOffset()                                           = default;
+    inline InterBufferOffset( const InterBufferOffset& offset )            = default;
+    inline InterBufferOffset& operator=( const InterBufferOffset& offset ) = default;
+    inline InterBufferOffset( U64 offset )
         : m_index( offset )
     {
     }
     inline U64 get() const { return m_index; }
 
-    inline bool operator<( const InterFileOffset& cmp ) const { return m_index < cmp.m_index; }
-    inline bool operator==( const InterFileOffset& cmp ) const { return m_index == cmp.m_index; }
-    inline bool operator!=( const InterFileOffset& cmp ) const { return !this->operator==( cmp ); }
+    inline bool operator<( const InterBufferOffset& cmp ) const { return m_index < cmp.m_index; }
+    inline bool operator==( const InterBufferOffset& cmp ) const { return m_index == cmp.m_index; }
+    inline bool operator!=( const InterBufferOffset& cmp ) const { return !this->operator==( cmp ); }
 
-    inline InterFileOffset operator++() { return ++m_index; }
-    inline InterFileOffset operator++( int ) { return m_index++; }
-    inline InterFileOffset operator+=( InterFileOffset amt ) { return m_index += amt.get(); }
+    inline InterBufferOffset operator++() { return ++m_index; }
+    inline InterBufferOffset operator++( int ) { return m_index++; }
+    inline InterBufferOffset operator+=( InterBufferOffset amt ) { return m_index += amt.get(); }
 
 private:
     U64 m_index = 0U;
@@ -87,12 +87,12 @@ public:
     inline Offset()                                  = default;
     inline Offset( const Offset& offset )            = default;
     inline Offset& operator=( const Offset& offset ) = default;
-    inline Offset( const FileIndex& fileIndex, const InterFileOffset& interFileOffset )
+    inline Offset( const BufferIndex& fileIndex, const InterBufferOffset& interFileOffset )
         : m_offset( fileIndex.get() * LogFileSize + interFileOffset.get() )
     {
     }
-    inline operator FileIndex() const { return FileIndex{ static_cast< U32 >( m_offset / LogFileSize ) }; }
-    inline operator InterFileOffset() const { return InterFileOffset{ m_offset % LogFileSize }; }
+    inline operator BufferIndex() const { return BufferIndex{ static_cast< U32 >( m_offset / LogFileSize ) }; }
+    inline operator InterBufferOffset() const { return InterBufferOffset{ m_offset % LogFileSize }; }
 
     inline bool operator<( const Offset& cmp ) const { return m_offset < cmp.m_offset; }
     inline bool operator==( const Offset& cmp ) const { return m_offset == cmp.m_offset; }
@@ -110,24 +110,24 @@ private:
     U64 m_offset = 0U;
 };
 
-class FileOffset
+class BufferOffset
 {
 public:
-    inline FileOffset()                                          = default;
-    inline FileOffset( const FileOffset& fileOffset )            = default;
-    inline FileOffset& operator=( const FileOffset& fileOffset ) = default;
-    inline FileOffset( const Offset& offset )
+    inline BufferOffset()                                          = default;
+    inline BufferOffset( const BufferOffset& fileOffset )            = default;
+    inline BufferOffset& operator=( const BufferOffset& fileOffset ) = default;
+    inline BufferOffset( const Offset& offset )
         : m_fileIndex( offset )
         , m_offset( offset )
     {
     }
-    inline const FileIndex&      getFileIndex() const { return m_fileIndex; }
-    inline const InterFileOffset getInterFileOffset() const { return m_offset; }
+    inline const BufferIndex&      getFileIndex() const { return m_fileIndex; }
+    inline const InterBufferOffset getInterFileOffset() const { return m_offset; }
     inline                       operator Offset() const { return Offset{ m_fileIndex, m_offset }; }
 
 private:
-    FileIndex       m_fileIndex = 0U;
-    InterFileOffset m_offset    = 0U;
+    BufferIndex       m_fileIndex = 0U;
+    InterBufferOffset m_offset    = 0U;
 };
 
 } // namespace mega::log

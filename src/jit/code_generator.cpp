@@ -22,7 +22,7 @@
 
 #include "database/model/FinalStage.hxx"
 
-#include "log/index.hpp"
+#include "log/index_record.hpp"
 
 #include "service/network/log.hpp"
 #include "service/mpo_context.hpp"

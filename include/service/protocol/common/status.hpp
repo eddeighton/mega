@@ -25,7 +25,7 @@
 #include "service/protocol/common/logical_thread_id.hpp"
 #include "service/protocol/common/sender_ref.hpp"
 
-#include "log/index.hpp"
+#include "log/index_record.hpp"
 
 #include <utility>
 #include <vector>

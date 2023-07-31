@@ -19,7 +19,7 @@
 
 #include "service/terminal.hpp"
 
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 
 #include "service/network/log.hpp"
 

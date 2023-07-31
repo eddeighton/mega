@@ -62,7 +62,7 @@ network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status 
         }
 
         status.setLogIterator( getLog().getIterator() );
-        status.setLogFolder( getLog().getFolder().string() );
+        status.setLogFolder( getLog().getLogFolderPath().string() );
 
         status.setMemory( m_pMemoryManager->getStatus() );
     }

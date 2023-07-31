@@ -25,7 +25,7 @@
 
 #include "service/protocol/common/jit_base.hpp"
 
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 
 #include "mega/coroutine.hpp"
 
@@ -67,7 +67,7 @@ class Scheduler
     using ActivationMap = std::unordered_map< mega::reference, Activation, mega::reference::Hash >;
 
 public:
-    Scheduler( log::Storage& log );
+    Scheduler( log::FileStorage& log );
 
     void cycle();
 
@@ -75,8 +75,8 @@ private:
     const ActionFunction& getActionFunction( TypeID concreteTypeID );
 
 private:
-    log::Storage&                          m_log;
-    log::Iterator< log::Scheduling::Read > m_schedulingIter;
+    log::FileStorage&                          m_log;
+    log::FileIterator< log::Scheduling::Read > m_schedulingIter;
 
     ActionFunctionMap m_actionFunctions;
     ActivationMap     m_activations;

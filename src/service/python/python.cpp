@@ -33,7 +33,7 @@
 #include "python.hpp"
 #include "request.hpp"
 
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 
 #include <spdlog/spdlog.h>
 

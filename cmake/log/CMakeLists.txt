@@ -42,16 +42,19 @@ add_custom_target( generate_log_records
 )
 
 set( LOG_HEADERS
-    ${MEGA_API_DIR}/log/records.hxx
+    ${MEGA_API_DIR}/log/buffer.hpp
+    ${MEGA_API_DIR}/log/file_log.hpp
     ${MEGA_API_DIR}/log/filename.hpp
-    ${MEGA_API_DIR}/log/index.hpp
-    ${MEGA_API_DIR}/log/log.hpp
+    ${MEGA_API_DIR}/log/index_record.hpp
+    ${MEGA_API_DIR}/log/iterator.hpp
     ${MEGA_API_DIR}/log/offset.hpp
     ${MEGA_API_DIR}/log/range.hpp
+    ${MEGA_API_DIR}/log/records.hxx
+    ${MEGA_API_DIR}/log/storage.hpp
 )
 
 set( LOG_SOURCE
-    ${MEGA_SRC_DIR}/log/log.cpp
+    ${MEGA_SRC_DIR}/log/file_log.cpp
     ${MEGA_SRC_DIR}/log/filename.cpp
 )
 

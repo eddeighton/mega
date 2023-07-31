@@ -21,11 +21,8 @@
 #ifndef GUARD_2022_October_01_index
 #define GUARD_2022_October_01_index
 
-#include "offset.hpp"
-#include "records.hxx"
-
-#include "mega/reference.hpp"
-#include "mega/event.hpp"
+#include "log/offset.hpp"
+#include "log/records.hxx"
 
 #include <utility>
 #include <vector>
@@ -38,15 +35,15 @@ namespace mega::log
 
 class IndexRecord
 {
-    static_assert( toInt( TrackType::TOTAL ) == 8, "Unexpected number of tracks" );
+    static_assert( toInt( TrackID::TOTAL ) == 8, "Unexpected number of tracks" );
 
 public:
 
-    template< TrackType trackType >
+    template< TrackID trackType >
     inline const Offset& get() const { return m_offsets[ toInt( trackType ) ]; }
 
-    inline const Offset& get( TrackType track ) const { return m_offsets[ toInt( track ) ]; }
-    inline Offset&       get( TrackType track ) { return m_offsets[ toInt( track ) ]; }
+    inline const Offset& get( TrackID track ) const { return m_offsets[ toInt( track ) ]; }
+    inline Offset&       get( TrackID track ) { return m_offsets[ toInt( track ) ]; }
 
     inline bool operator==( const IndexRecord& cmp ) const { return m_offsets == cmp.m_offsets; }
     inline bool operator!=( const IndexRecord& cmp ) const { return m_offsets != cmp.m_offsets; }
@@ -55,14 +52,14 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int )
     {
-        for( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
+        for( auto i = 0; i != log::toInt( log::TrackID::TOTAL ); ++i )
         {
             archive& m_offsets[ i ];
         }
     }
 
 private:
-    std::array< Offset, toInt( TrackType::TOTAL ) > m_offsets;
+    std::array< Offset, toInt( TrackID::TOTAL ) > m_offsets;
 };
 
 } // namespace mega::log

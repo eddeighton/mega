@@ -39,7 +39,7 @@
 namespace mega::log
 {
 
-enum class TrackType : U8
+enum class TrackID : U8
 {
 {% for record in records %}
     e{{ record.type }},
@@ -47,21 +47,21 @@ enum class TrackType : U8
     TOTAL
 };
 
-inline constexpr typename std::underlying_type< TrackType >::type toInt( TrackType e ) noexcept
+inline constexpr typename std::underlying_type< TrackID >::type toInt( TrackID e ) noexcept
 {
-    return static_cast< typename std::underlying_type< TrackType >::type >( e );
+    return static_cast< typename std::underlying_type< TrackID >::type >( e );
 }
 
-inline const std::string& toName( TrackType trackType )
+inline const std::string& toName( TrackID trackType )
 {
     using namespace std::string_literals;
-    static const std::array< std::string, toInt( TrackType::TOTAL ) > strings
+    static const std::array< std::string, toInt( TrackID::TOTAL ) + 1 > strings
         // clang-format off
     = { 
 {% for record in records %}
-        "{{ record.type }}"s{% if not loop.is_last%},{% endif %}
-
+        "{{ record.type }}"s,
 {% endfor %}
+        "index"s
     };
     // clang-format on
     return strings[ toInt( trackType ) ];
@@ -140,7 +140,7 @@ namespace {{ record.type }}
     class Read
     {
     public:
-        static constexpr TrackType Track = TrackType::e{{ record.type }};
+        static constexpr TrackID TRACKID = TrackID::e{{ record.type }};
         static constexpr bool Variable = {{ record.has_buffer }};
 
         Read( const void* pData )
@@ -217,7 +217,7 @@ namespace {{ record.type }}
     class Write
     {
     public:
-        static constexpr TrackType Track = TrackType::e{{ record.type }};
+        static constexpr TrackID TRACKID = TrackID::e{{ record.type }};
         static constexpr bool Variable = {{ record.has_buffer }};
 
         Write( const Data& data 

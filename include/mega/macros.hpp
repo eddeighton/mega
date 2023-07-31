@@ -20,7 +20,7 @@
 #ifndef EG_MACROS_2_NOV_2022
 #define EG_MACROS_2_NOV_2022
 
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 
 #include <sstream>
 

@@ -45,7 +45,7 @@ runtime::JITBase::ActionInfo getActionFPtr( TypeID typeID, void** pFunction )
 }
 } // namespace
 
-Scheduler::Scheduler( log::Storage& log )
+Scheduler::Scheduler( log::FileStorage& log )
     : m_log( log )
     , m_schedulingIter( m_log.begin< log::Scheduling::Read >() )
 {

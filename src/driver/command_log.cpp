@@ -19,7 +19,7 @@
 
 #include "service/terminal.hpp"
 
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 
 #include "service/network/log.hpp"
 
@@ -90,7 +90,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             VERIFY_RTE_MSG(
                 boost::filesystem::exists( logFolderPath ), "Failed to locate folder: " << logFolderPath.string() );
-            mega::log::Storage log( logFolderPath, true );
+            mega::log::FileStorage log( logFolderPath, true );
             SPDLOG_INFO( "Loaded log folder: {}", logFolderPath.string() );
 
             if( bShowLogRecords )

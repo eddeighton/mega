@@ -36,7 +36,7 @@
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
 
-#include "log/log.hpp"
+#include "log/file_log.hpp"
 
 #include "common/requireSemicolon.hpp"
 
@@ -191,7 +191,7 @@ public:
             }
 
             status.setLogIterator( getLog().getIterator() );
-            status.setLogFolder( getLog().getFolder().string() );
+            status.setLogFolder( getLog().getLogFolderPath().string() );
 
             status.setMemory( m_pMemoryManager->getStatus() );
         }

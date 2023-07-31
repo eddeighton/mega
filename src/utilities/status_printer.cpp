@@ -97,12 +97,12 @@ void StatusPrinter::printNodeInfo( const network::Status& status, std::ostream& 
         if( status.getLogIterator().has_value() )
         {
             const log::IndexRecord& iter = status.getLogIterator().value();
-            for( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
+            for( auto i = 0; i != log::toInt( log::TrackID::TOTAL ); ++i )
             {
-                if( auto amt = iter.get( log::TrackType( i ) ).get(); amt > 0 )
+                if( auto amt = iter.get( log::TrackID( i ) ).get(); amt > 0 )
                 {
-                    line( os, indent ) << "  " << log::toName( log::TrackType( i ) ) << ": "
-                                       << iter.get( log::TrackType( i ) ).get() << "\n";
+                    line( os, indent ) << "  " << log::toName( log::TrackID( i ) ) << ": "
+                                       << iter.get( log::TrackID( i ) ).get() << "\n";
                 }
             }
         }
