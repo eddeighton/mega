@@ -37,7 +37,7 @@
 #include "write_operation.hpp"
 
 #include "coroutine.hpp" // has stl dependencies
-#include "scheduler.hpp" // has stl dependencies
+#include "resumption.hpp" // has stl dependencies
 #include "maths_types.hpp" // has boost math stuff
 
 #endif //EG_STANDARD_STUFF

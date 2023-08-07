@@ -104,6 +104,14 @@ public:
             return *p + *( p + 1 );
         }
     };
+    struct HashHeap
+    {
+        inline U64 operator()( const reference& ref ) const noexcept
+        {
+            const U64* p = reinterpret_cast< const U64* >( &ref );
+            return *p + *( p + 1 );
+        }
+    };
 
     // heap only
     constexpr inline HeapAddress getHeap() const
@@ -190,14 +198,13 @@ public:
     constexpr inline bool operator==( const reference& cmp ) const
     {
         // clang-format off
-        // if( isHeapAddress() && cmp.isHeapAddress() )
-        // {
-        //     return prc.m_heap == cmp.prc.m_heap &&
-        //            prc.m_ownerID == cmp.prc.m_ownerID &&
-        //            prc.m_flags == cmp.prc.m_flags &&
-        //            prc.m_type == cmp.prc.m_type;
-        // }
-        if( isNetworkAddress() && cmp.isNetworkAddress() )
+        if( isHeapAddress() && cmp.isHeapAddress() )
+        {
+            return prc.m_heap == cmp.prc.m_heap &&
+                   prc.m_flags == cmp.prc.m_flags &&
+                   prc.m_type == cmp.prc.m_type;
+        }
+        else if( isNetworkAddress() && cmp.isNetworkAddress() )
         {
             return net.m_allocationID == cmp.net.m_allocationID &&
                    net.m_machineID == cmp.net.m_machineID &&
@@ -221,13 +228,13 @@ public:
     constexpr inline bool operator<( const reference& cmp ) const
     {
         // clang-format off
-        // if( isHeapAddress() && cmp.isHeapAddress() )
-        // {
-        //     return ( prc.m_heap     != cmp.prc.m_heap  )    ?   ( prc.m_heap        < cmp.prc.m_heap        ) : 
-        //            ( prc.m_ownerID  != cmp.prc.m_ownerID )  ?   ( prc.m_ownerID     < cmp.prc.m_ownerID     ) : 
-        //            ( prc.m_flags    != cmp.prc.m_flags )    ?   ( prc.m_flags       < cmp.prc.m_flags       ) : 
-        //                                                         ( prc.m_type        < cmp.prc.m_type        ) ;
-        // }
+        //if( isHeapAddress() && cmp.isHeapAddress() )
+        //{
+        //    return ( prc.m_heap     != cmp.prc.m_heap  )    ?   ( prc.m_heap        < cmp.prc.m_heap        ) : 
+        //           ( prc.m_flags    != cmp.prc.m_flags )    ?   ( prc.m_flags       < cmp.prc.m_flags       ) : 
+        //                                                        ( prc.m_type        < cmp.prc.m_type        ) ;
+        //}
+        //else 
         if( isNetworkAddress() && cmp.isNetworkAddress() )
         {
             // important to compare MPO first - since this is used by some algorithms 

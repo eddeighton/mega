@@ -25,8 +25,6 @@
 #include "schematic/compilation_stage.hpp"
 #include "schematic/glyphSpecProducer.hpp"
 
-#include "common/scheduler.hpp"
-
 #include <bitset>
 #include <atomic>
 

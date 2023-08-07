@@ -49,7 +49,6 @@
 
 #include "utilities/cmake.hpp"
 
-#include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
 

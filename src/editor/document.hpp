@@ -9,7 +9,6 @@
 #include "schematic/compilation_stage.hpp"
 
 #include "common/tick.hpp"
-#include "common/scheduler.hpp"
 
 #include "boost/filesystem/path.hpp"
 

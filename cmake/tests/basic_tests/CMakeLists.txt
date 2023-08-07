@@ -43,6 +43,7 @@ set( BASIC_UNIT_TESTS
 	${BASIC_UNIT_TESTS_DIR}/type_id_tests.cpp
 	${BASIC_UNIT_TESTS_DIR}/reference_tests.cpp
 	${BASIC_UNIT_TESTS_DIR}/relation_id_tests.cpp
+	${BASIC_UNIT_TESTS_DIR}/scheduler_tests.cpp
 	)
 
 enable_testing()

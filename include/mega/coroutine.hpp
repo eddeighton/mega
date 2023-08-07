@@ -17,14 +17,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef EG_COROUTINE
 #define EG_COROUTINE
 
-#include "operation_id.hpp"
-#include "event.hpp"
-
+#include "return_reason.hpp"
 
 #ifdef __gnu_linux__
 #ifdef __cpp_impl_coroutine
@@ -34,59 +30,9 @@
 #endif
 
 #include <coroutine>
-#include <chrono>
-#include <optional>
-#include <vector>
 
 namespace mega
 {
-enum Reason
-{
-    eReason_Wait,
-    eReason_Wait_All,
-    eReason_Wait_Any,
-    eReason_Sleep,
-    eReason_Sleep_All,
-    eReason_Sleep_Any,
-    eReason_Timeout,
-    eReason_Terminated
-};
-
-struct ReturnReason
-{
-    Reason                                                 reason;
-    std::vector< Event >                                   events;
-    std::optional< std::chrono::steady_clock::time_point > timeout;
-
-    ReturnReason()
-        : reason( eReason_Terminated )
-    {
-    }
-
-    ReturnReason( Reason _reason )
-        : reason( _reason )
-    {
-    }
-
-    ReturnReason( Reason _reason, const Event& event )
-        : reason( _reason )
-        , events( 1, event )
-    {
-    }
-
-    ReturnReason( Reason _reason, std::initializer_list< Event > _events )
-        : reason( _reason )
-        , events( _events )
-    {
-    }
-
-    ReturnReason( const std::chrono::steady_clock::time_point& _timeout )
-        : reason( eReason_Timeout )
-        , timeout( _timeout )
-    {
-    }
-};
-
 struct ActionCoroutine
 {
     struct promise_type
@@ -100,7 +46,10 @@ struct ActionCoroutine
 
         auto initial_suspend() { return std::suspend_always{}; } // suspend_never
         auto final_suspend() noexcept { return std::suspend_always{}; }
-        void unhandled_exception() {}
+        void unhandled_exception() 
+        {
+            throw std::current_exception();
+        }
 
         auto return_value( ReturnReason reason )
         {
@@ -117,16 +66,19 @@ struct ActionCoroutine
     ReturnReason*                         m_pReason = nullptr;
     std::coroutine_handle< promise_type > m_coroutine;
 
-    const ReturnReason getReason() const
+    const ReturnReason& getReason() const
     {
-        if ( m_pReason )
+        if( m_pReason )
             return *m_pReason;
         else
-            return ReturnReason();
+        {
+            static ReturnReason defaultReturnReason;
+            return defaultReturnReason;
+        }
     }
 
-    ActionCoroutine()                         = default;
-    ActionCoroutine( ActionCoroutine const& ) = delete;
+    ActionCoroutine()                                    = default;
+    ActionCoroutine( ActionCoroutine const& )            = delete;
     ActionCoroutine& operator=( ActionCoroutine const& ) = delete;
 
     explicit ActionCoroutine( std::coroutine_handle< promise_type > coroutine, ReturnReason* pReason )
@@ -144,7 +96,7 @@ struct ActionCoroutine
 
     ActionCoroutine& operator=( ActionCoroutine&& other )
     {
-        if ( &other != this )
+        if( &other != this )
         {
             m_coroutine       = other.m_coroutine;
             m_pReason         = other.m_pReason;
@@ -155,7 +107,7 @@ struct ActionCoroutine
 
     ~ActionCoroutine()
     {
-        if ( m_coroutine && !m_coroutine.done() )
+        if( m_coroutine && !m_coroutine.done() )
         {
             m_coroutine.destroy();
             m_coroutine = nullptr;
@@ -164,13 +116,13 @@ struct ActionCoroutine
 
     void resume()
     {
-        if ( m_coroutine )
+        if( m_coroutine )
             m_coroutine.resume();
     }
 
     void destroy()
     {
-        if ( m_coroutine )
+        if( m_coroutine )
         {
             m_coroutine.destroy();
             m_coroutine = nullptr;
@@ -181,7 +133,7 @@ struct ActionCoroutine
 
     bool done()
     {
-        if ( m_coroutine )
+        if( m_coroutine )
             return m_coroutine.done();
         else
             return true;

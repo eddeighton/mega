@@ -15,8 +15,6 @@
 #include "toolbox.hpp"
 #include "document.hpp"
 
-#include "common/scheduler.hpp"
-
 #include "boost/asio/spawn.hpp"
 
 #include <map>

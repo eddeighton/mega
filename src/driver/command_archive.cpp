@@ -26,7 +26,6 @@
 #include "database/common/environment_archive.hpp"
 #include "database/common/archive.hpp"
 
-#include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
 

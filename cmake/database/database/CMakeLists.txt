@@ -165,6 +165,7 @@ set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/environment_stash.hpp
     ${MEGA_API_DIR}/database/common/exception.hpp
     ${MEGA_API_DIR}/database/common/file_header.hpp
+    ${MEGA_API_DIR}/database/common/file_store.hpp
     ${MEGA_API_DIR}/database/common/file_system.hpp
     ${MEGA_API_DIR}/database/common/file.hpp
     ${MEGA_API_DIR}/database/common/generics.hpp

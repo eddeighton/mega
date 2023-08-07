@@ -30,7 +30,6 @@
 #include "database/types/sources.hpp"
 #include "utilities/cmake.hpp"
 
-#include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
 #include "common/requireSemicolon.hpp"

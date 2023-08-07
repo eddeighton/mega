@@ -19,7 +19,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "mega/coroutine.hpp"
-#include "mega/scheduler.hpp"
+#include "mega/resumption.hpp"
 
 #include "service/executor/scheduler.hpp"
 
@@ -49,8 +49,6 @@ void stopper( mega::Instance instance )
 TEST( Scheduler, Basic )
 {
     mega::Scheduler scheduler;
-
-    
 
     int state = 0;
 

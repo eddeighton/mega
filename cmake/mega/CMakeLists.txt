@@ -138,6 +138,8 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/relation_id.hpp
     ${MEGA_API_DIR}/mega/relation_io.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
+    ${MEGA_API_DIR}/mega/resumption.hpp
+    ${MEGA_API_DIR}/mega/return_reason.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
     ${MEGA_API_DIR}/mega/tag_parser.hpp
