@@ -77,6 +77,11 @@ namespace Parser
         value< std::string > str;
     }
 
+    object Successor -> ParserStage::AST
+    {
+        value< std::string > str;
+    }
+
     object Inheritance -> ParserStage::AST
     {
         array< value< std::string > > strings;
@@ -107,6 +112,11 @@ namespace Parser
         ref< Identifier > id;
         value< std::string > type;
         opt< ref< Initialiser > > initialiser;
+    }
+
+    object Requirement -> ParserStage::AST
+    {
+        ref< ArgumentList > argumentList;
     }
 
     object Include -> ParserStage::AST
@@ -149,6 +159,7 @@ namespace Parser
         array< ref< Dimension > > dimensions;
         array< ref< Include > > includes;
         array< ref< Dependency > > dependencies;
+        array< ref< Requirement > > requirements;
         value< std::string > body -> ParserStage::Body;
     }
 
@@ -166,12 +177,19 @@ namespace Parser
     {
         ref< Size > size;
         ref< Inheritance > inheritance;
+        ref< Successor > successor;
     }
 
     object EventDef : ContextDef -> ParserStage::AST
     {
         ref< Size > size;
         ref< Inheritance > inheritance;
+    }
+
+    object InteruptDef : ContextDef -> ParserStage::AST
+    {
+        ref< ArgumentList > argumentList;
+        ref< Successor > successor;
     }
 
     object FunctionDef : ContextDef -> ParserStage::AST
@@ -194,16 +212,6 @@ namespace Parser
     object LinkInterfaceDef : LinkDef -> ParserStage::AST
     {
         ref< LinkInterface > link_interface;
-    }
-
-    object BufferDef : ContextDef -> ParserStage::AST
-    {
-        
-    }
-
-    object MetaDef : ContextDef -> ParserStage::AST
-    {
-        
     }
 
     object SourceRoot  -> ParserStage::AST

@@ -124,6 +124,9 @@ public:
         else if( auto pEvent = db_cast< Event >( pContext ) )
         {
         }
+        else if( auto pInterupt = db_cast< Interupt >( pContext ) )
+        {
+        }
         else if( auto pFunction = db_cast< Function >( pContext ) )
         {
             CleverUtility c( types, pFunction->get_identifier() );
@@ -170,9 +173,6 @@ public:
             {
                 recurse( pNestedContext, data, namespaces, types );
             }
-        }
-        else if( auto pBuffer = db_cast< Buffer >( pContext ) )
-        {
         }
         else
         {

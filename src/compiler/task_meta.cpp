@@ -62,7 +62,7 @@ public:
         Database database( m_environment, m_sourceFilePath );
 
         using namespace std::string_literals;
-        static const std::vector< std::string > metaTypes = { "IAutomata"s, "IPlan"s };
+        static const std::vector< std::string > metaTypes = { "IStack"s, "IPlan"s };
 
         for( Interface::Action* pAction : database.many< Interface::Action >( m_sourceFilePath ) )
         {
@@ -87,15 +87,15 @@ public:
 
             if( iMetaTypeIter == metaTypes.end() )
             {
-                database.construct< Meta::Animation >( Meta::Animation::Args{ pAction } );
+                database.construct< Meta::SequenceAction >( Meta::SequenceAction::Args{ pAction } );
             }
             else if( std::distance( metaTypes.begin(), iMetaTypeIter ) == 0 )
             {
-                database.construct< Meta::Automata >( Meta::Automata::Args{ pAction } );
+                database.construct< Meta::StackAction >( Meta::StackAction::Args{ pAction } );
             }
             else if( std::distance( metaTypes.begin(), iMetaTypeIter ) == 1 )
             {
-                database.construct< Meta::Plan >( Meta::Plan::Args{ pAction } );
+                database.construct< Meta::PlanAction >( Meta::PlanAction::Args{ pAction } );
             }
             else
             {

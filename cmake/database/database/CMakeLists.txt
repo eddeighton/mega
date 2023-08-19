@@ -69,17 +69,9 @@ set( MEGA_DATABASE_INTERFACE_NAMES
     InterfaceStage
     MemoryStage
     MetaStage
+    OperationsLocs
     OperationsStage
     ParserStage
-    #SchematicConnectionsStage
-    #SchematicContoursStage
-    #SchematicExtrusionsStage
-    #SchematicFloorPlanStage
-    #SchematicParseStage
-    #SchematicSpawnPointsStage
-    #SchematicValueSpaceStage
-    #SchematicVisibilityStage
-    #SchematicWallSectionsStage
     SymbolAnalysis
     SymbolAnalysisView
     SymbolRollout

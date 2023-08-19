@@ -53,6 +53,7 @@ TASK(Allocators,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const 
 TASK(Operations,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(Automata,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(OperationsPCH,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
+TASK(OperationsLocs,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 TASK(ValueSpace,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)
 
 TASK(Implementation,std::get< mega::io::megaFilePath >( task.sourceFilePath ),const mega::io::megaFilePath&)

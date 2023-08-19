@@ -50,6 +50,7 @@ namespace mega
     static const char* EG_INVOKE_MEMBER_FUNCTION_NAME = "invoke";
     static const char* EG_RESULT_TRAIT_TYPE = "__eg_result_type";
     static const char* EG_FUNCTION_TRAIT_TYPE = "__FTraits";
+    static const char* EG_INTERUPT_TRAIT_TYPE = "__ITraits";
     static const char* EG_BASE_PREFIX_TRAIT_TYPE = "__Base";
     static const char* EG_SIZE_PREFIX_TRAIT_TYPE = "__Size";
     static const char* EG_TRAITS_SIZE = "Size";

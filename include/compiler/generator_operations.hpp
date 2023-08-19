@@ -70,35 +70,6 @@ public:
     };
 
 private:
-    template < typename T >
-    static nlohmann::json generateBlock( T* pNode, mega::U64 blockID, std::ostream& osBody )
-    {
-        std::ostringstream os;
-        {
-            for( auto pNode : pNode->get_nodes() )
-            {
-                if( auto pLit = db_cast< Automata::Literal >( pNode ) )
-                {
-                    os << pLit->get_value();
-                    osBody << pLit->get_value();
-                }
-            }
-        }
-        return nlohmann::json( { { "id", blockID }, { "body", os.str() } } );
-    }
-
-    static void generateAutomataRecurse( Automata::Block* pBlock, nlohmann::json& data, std::ostream& osBody )
-    {
-        data[ "blocks" ].push_back( generateBlock( pBlock, pBlock->get_id(), osBody ) );
-
-        for( auto pNode : pBlock->get_nodes() )
-        {
-            if( auto pNestedBlock = db_cast< Automata::Block >( pNode ) )
-            {
-                generateAutomataRecurse( pNestedBlock, data, osBody );
-            }
-        }
-    }
 
     static void recurse( IContext* pContext, nlohmann::json& data, CleverUtility::IDList& namespaces,
                          CleverUtility::IDList& types )
@@ -134,62 +105,31 @@ private:
         {
             CleverUtility c( types, pAction->get_identifier() );
 
-            if( auto pStartState = db_cast< Automata::Start >( pAction ) )
+            std::ostringstream osBody;
+            for( auto pDef : pAction->get_action_defs() )
             {
-                nlohmann::json operation( {
-
-                    { "automata", true },
-                    { "return_type", "mega::ActionCoroutine" },
-                    { "body", "" },
-                    { "hash", "" },
-                    { "typeID", pAction->get_interface_id().getSymbolID() },
-                    { "has_namespaces", !namespaces.empty() },
-                    { "namespaces", namespaces },
-                    { "types", types },
-                    { "params_string", "mega::U64 _blockID" },
-                    { "params", nlohmann::json::array() },
-                    { "blocks", nlohmann::json::array() } } );
-
+                if( !pDef->get_body().empty() )
                 {
-                    nlohmann::json param( { { "type", "mega::U64" }, { "name", "_blockID" } } );
-                    operation[ "params" ].push_back( param );
+                    osBody << pDef->get_body();
+                    break;
                 }
-
-                std::ostringstream osBody;
-                generateAutomataRecurse( pStartState->get_sequence(), operation, osBody );
-                operation[ "hash" ] = common::Hash{ osBody.str() }.toHexString();
-
-                data[ "operations" ].push_back( operation );
             }
-            else
-            {
-                std::ostringstream osBody;
-                for( auto pDef : pAction->get_action_defs() )
-                {
-                    if( !pDef->get_body().empty() )
-                    {
-                        osBody << pDef->get_body();
-                        break;
-                    }
-                }
 
-                osBody << "\nco_return mega::done();";
+            osBody << "\nco_return mega::done();";
 
-                nlohmann::json operation( {
+            nlohmann::json operation( {
 
-                    { "automata", false },
-                    { "return_type", "mega::ActionCoroutine" },
-                    { "body", osBody.str() },
-                    { "hash", common::Hash{ osBody.str() }.toHexString() },
-                    { "typeID", pAction->get_interface_id().getSymbolID() },
-                    { "has_namespaces", !namespaces.empty() },
-                    { "namespaces", namespaces },
-                    { "types", types },
-                    { "params_string", "" },
-                    { "params", nlohmann::json::array() } } );
+                { "return_type", "mega::ActionCoroutine" },
+                { "body", osBody.str() },
+                { "hash", common::Hash{ osBody.str() }.toHexString() },
+                { "typeID", pAction->get_interface_id().getSymbolID() },
+                { "has_namespaces", !namespaces.empty() },
+                { "namespaces", namespaces },
+                { "types", types },
+                { "params_string", "" },
+                { "params", nlohmann::json::array() } } );
 
-                data[ "operations" ].push_back( operation );
-            }
+            data[ "operations" ].push_back( operation );
 
             for( IContext* pNestedContext : pAction->get_children() )
             {
@@ -198,6 +138,52 @@ private:
         }
         else if( auto pEvent = db_cast< Event >( pContext ) )
         {
+        }
+        else if( auto pInterupt = db_cast< Interupt >( pContext ) )
+        {
+            CleverUtility c( types, pInterupt->get_identifier() );
+
+            std::string strBody;
+            {
+                for( auto pDef : pInterupt->get_interupt_defs() )
+                {
+                    if( !pDef->get_body().empty() )
+                    {
+                        strBody = pDef->get_body();
+                        break;
+                    }
+                }
+            }
+
+            if( strBody.empty() )
+            {
+                // auto generate interupt handler body...
+                
+            }
+
+            nlohmann::json operation( {
+
+                { "return_type", "void" },
+                { "body", strBody },
+                { "hash", common::Hash{ strBody }.toHexString() },
+                { "typeID", pInterupt->get_interface_id().getSymbolID() },
+                { "has_namespaces", !namespaces.empty() },
+                { "namespaces", namespaces },
+                { "types", types },
+                { "params_string", "" },
+                { "params", nlohmann::json::array() } } );
+            /*{
+                int iParamCounter = 1;
+                for( const std::string& strParamType : pInterupt->get_arguments_trait()->get_canonical_types() )
+                {
+                    std::ostringstream osParamName;
+                    osParamName << "p_" << iParamCounter++;
+                    nlohmann::json param( { { "type", strParamType }, { "name", osParamName.str() } } );
+                    operation[ "params" ].push_back( param );
+                }
+            }*/
+
+            data[ "operations" ].push_back( operation );
         }
         else if( auto pFunction = db_cast< Function >( pContext ) )
         {
@@ -217,7 +203,6 @@ private:
 
             nlohmann::json operation( {
 
-                { "automata", false },
                 { "return_type", pFunction->get_return_type_trait()->get_str() },
                 { "body", strBody },
                 { "hash", common::Hash{ strBody }.toHexString() },
@@ -255,9 +240,6 @@ private:
             {
                 recurse( pNestedContext, data, namespaces, types );
             }
-        }
-        else if( auto pBuffer = db_cast< Buffer >( pContext ) )
-        {
         }
         else
         {

@@ -249,6 +249,21 @@ public:
                     },
                     []( Event* pEvent, Parser::EventDef* pEventDef ) { pEvent->push_back_event_defs( pEventDef ); } );
             }
+            else if( auto pInteruptDef = db_cast< Parser::InteruptDef >( pChildContext ) )
+            {
+                constructOrAggregate< Parser::InteruptDef, Interupt >(
+                    database, pComponent, pRoot, pInteruptDef, currentName, namedContexts,
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::InteruptDef* pInteruptDef ) -> Interupt*
+                    {
+                        return database.construct< Interupt >( Interupt::Args(
+                            InvocationContext::Args( IContext::Args(
+                                ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ) ),
+                            { pInteruptDef } ) );
+                    },
+                    []( Interupt* pBuffer, Parser::InteruptDef* pInteruptDef )
+                    { pBuffer->push_back_interupt_defs( pInteruptDef ); } );
+            }
             else if( auto pFunctionDef = db_cast< Parser::FunctionDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::FunctionDef, Function >(
@@ -309,21 +324,6 @@ public:
                     },
                     []( Link* pLink, Parser::LinkDef* pLinkDef ) { pLink->push_back_link_defs( pLinkDef ); } );
             }
-            else if( auto pBufferDef = db_cast< Parser::BufferDef >( pChildContext ) )
-            {
-                constructOrAggregate< Parser::BufferDef, Buffer >(
-                    database, pComponent, pRoot, pBufferDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent,
-                        Components::Component* pComponent, Parser::BufferDef* pBufferDef ) -> Buffer*
-                    {
-                        return database.construct< Buffer >(
-                            Buffer::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
-                                                          pParent, pComponent ),
-                                          { pBufferDef } ) );
-                    },
-                    []( Buffer* pBuffer, Parser::BufferDef* pBufferDef )
-                    { pBuffer->push_back_buffer_defs( pBufferDef ); } );
-            }
             else
             {
                 THROW_RTE( "Unknown context type" );
@@ -378,6 +378,21 @@ public:
         }
     }
 
+    template < typename TParserType >
+    void collectSuccessorTrait( InterfaceStage::Database& database, TParserType* pContextDef,
+                                std::optional< InterfaceStage::Interface::SuccessorTypeTrait* >& successor )
+    {
+        using namespace InterfaceStage;
+        Parser::Successor* pSuccessor = pContextDef->get_successor();
+        const std::string& str        = pSuccessor->get_str();
+        if( !str.empty() )
+        {
+            VERIFY_PARSER( !successor.has_value(), "Duplicate successor specified", pContextDef->get_id() );
+            successor = database.construct< Interface::SuccessorTypeTrait >(
+                Interface::SuccessorTypeTrait::Args{ pSuccessor } );
+        }
+    }
+
     void onNamespace( InterfaceStage::Database& database, InterfaceStage::Interface::Namespace* pNamespace )
     {
         using namespace InterfaceStage;
@@ -427,16 +442,19 @@ public:
         std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
         std::optional< Interface::InheritanceTrait* >             inheritance;
         std::optional< Interface::SizeTrait* >                    size;
+        std::optional< Interface::SuccessorTypeTrait* >           successor;
         for( Parser::ActionDef* pDef : pAction->get_action_defs() )
         {
             collectDimensionTraits( database, pAction, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
+            collectSuccessorTrait( database, pDef, successor );
         }
 
         pAction->set_dimension_traits( dimensions );
         pAction->set_inheritance_trait( inheritance );
         pAction->set_size_trait( size );
+        pAction->set_successor_trait( successor );
     }
     void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent )
     {
@@ -454,6 +472,65 @@ public:
         pEvent->set_dimension_traits( dimensions );
         pEvent->set_inheritance_trait( inheritance );
         pEvent->set_size_trait( size );
+    }
+    void onInterupt( InterfaceStage::Database& database, InterfaceStage::Interface::Interupt* pInterupt )
+    {
+        using namespace InterfaceStage;
+
+        Interface::EventTypeTrait*                      pEventsTrait = nullptr;
+        std::optional< Interface::ArgumentListTrait* >  argumentsListTrait;
+        std::optional< Interface::SuccessorTypeTrait* > successor;
+
+        std::string strArguments, strSuccessor;
+        for( Parser::InteruptDef* pDef : pInterupt->get_interupt_defs() )
+        {
+            Parser::ArgumentList* pArguments = pDef->get_argumentList();
+            {
+                if( !pEventsTrait )
+                {
+                    strArguments         = pArguments->get_str();
+                    bool bIsArgumentList = false;
+
+                    std::string strEvents;
+                    {
+                        // determine if the argument list specifies a manually handled event
+                        // OR an interupt type list
+                        if( strArguments.starts_with( "Event" ) )
+                        {
+                            bIsArgumentList = true;
+                            auto iStart     = strArguments.find_first_of( '<' );
+                            auto iEnd       = strArguments.find_last_of( '>' );
+                            VERIFY_RTE_MSG( iStart < iEnd, "Invalid Events string: " << strArguments );
+                            strEvents = strArguments.substr( iStart + 1, iEnd );
+                        }
+                        else
+                        {
+                            strEvents = strArguments;
+                        }
+                    }
+                    pEventsTrait = database.construct< Interface::EventTypeTrait >(
+                        Interface::EventTypeTrait::Args{ strEvents } );
+
+                    if( bIsArgumentList )
+                    {
+                        argumentsListTrait = database.construct< Interface::ArgumentListTrait >(
+                            Interface::ArgumentListTrait::Args{ pArguments } );
+                    }
+                }
+                else
+                {
+                    VERIFY_PARSER(
+                        strArguments == pArguments->get_str(), "Function arguments mismatch", pDef->get_id() );
+                }
+            }
+            collectSuccessorTrait( database, pDef, successor );
+        }
+
+        VERIFY_PARSER( pEventsTrait, "Interupt missing events list", pInterupt->get_interupt_defs().front()->get_id() );
+
+        pInterupt->set_events_trait( pEventsTrait );
+        pInterupt->set_opt_arguments_trait( argumentsListTrait );
+        pInterupt->set_successor_trait( successor );
     }
     void onFunction( InterfaceStage::Database& database, InterfaceStage::Interface::Function* pFunction )
     {
@@ -556,10 +633,6 @@ public:
             pLink->set_link_interface( pInheritance );
         }
     }
-    void onBuffer( InterfaceStage::Database& database, InterfaceStage::Interface::Buffer* pBuffer )
-    {
-        THROW_RTE( "Buffer NOT IMPLEMENTED!" );
-    }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
@@ -622,9 +695,9 @@ public:
         {
             onLink( database, pLink );
         }
-        for( Interface::Buffer* pBuffer : database.many< Interface::Buffer >( m_sourceFilePath ) )
+        for( Interface::Interupt* pInterupt : database.many< Interface::Interupt >( m_sourceFilePath ) )
         {
-            onBuffer( database, pBuffer );
+            onInterupt( database, pInterupt );
         }
 
         const task::FileHash fileHashCode = database.save_Tree_to_temp();

@@ -361,6 +361,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     TskDescVec unityDependencyTasks;
     TskDescVec componentTasks;
     {
+        TskDescVec valueSpaceTasks;
         for( ComponentListingView::Components::Component* pComponent : components )
         {
             switch( pComponent->get_type().get() )
@@ -371,30 +372,57 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                     {
                         for( const mega::io::megaFilePath& sourceFilePath : pComponent->get_mega_source_files() )
                         {
-                            const TskDesc automata          = encode( Task{ eTask_Automata, sourceFilePath } );
-                            const TskDesc operations        = encode( Task{ eTask_Operations, sourceFilePath } );
-                            const TskDesc pythonWrapper     = encode( Task{ eTask_PythonWrapper, sourceFilePath } );
-                            const TskDesc initialiser       = encode( Task{ eTask_Initialiser, sourceFilePath } );
-                            const TskDesc operationsPCH     = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
-                            const TskDesc valueSpace        = encode( Task{ eTask_ValueSpace, sourceFilePath } );
-                            const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
-                            const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
-                            const TskDesc initialiserObj    = encode( Task{ eTask_InitialiserObject, sourceFilePath } );
-                            const TskDesc pythonObj         = encode( Task{ eTask_PythonObject, sourceFilePath } );
+                            const TskDesc automata       = encode( Task{ eTask_Automata, sourceFilePath } );
+                            const TskDesc operations     = encode( Task{ eTask_Operations, sourceFilePath } );
+                            const TskDesc operationsPCH  = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
+                            const TskDesc operationsLocs = encode( Task{ eTask_OperationsLocs, sourceFilePath } );
+                            const TskDesc valueSpace     = encode( Task{ eTask_ValueSpace, sourceFilePath } );
 
                             dependencies.add( automata, concreteTypeRolloutTasks );
                             dependencies.add( operations, TskDescVec{ automata } );
+                            dependencies.add( operationsPCH, TskDescVec{ operations } );
+                            dependencies.add( operationsLocs, TskDescVec{ operationsPCH } );
+                            dependencies.add( valueSpace, TskDescVec{ operationsLocs } );
+
+                            unityDependencyTasks.push_back( operationsLocs );
+                            unityDependencyTasks.push_back( valueSpace );
+                            valueSpaceTasks.push_back( valueSpace );
+                            binaryTasks.push_back( operationsPCH );
+                        }
+                    }
+                    const TskDesc interfaceComponent
+                        = encode( Task{ eTask_InterfaceComponent, pComponent->get_name() } );
+                    dependencies.add( interfaceComponent, binaryTasks );
+                    componentTasks.push_back( interfaceComponent );
+                }
+                break;
+            }
+        }
+
+        for( ComponentListingView::Components::Component* pComponent : components )
+        {
+            switch( pComponent->get_type().get() )
+            {
+                case mega::ComponentType::eInterface:
+                {
+                    TskDescVec binaryTasks;
+                    {
+                        for( const mega::io::megaFilePath& sourceFilePath : pComponent->get_mega_source_files() )
+                        {
+                            const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
+                            const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
+                            const TskDesc initialiserObj    = encode( Task{ eTask_InitialiserObject, sourceFilePath } );
+                            const TskDesc pythonWrapper     = encode( Task{ eTask_PythonWrapper, sourceFilePath } );
+                            const TskDesc pythonObj         = encode( Task{ eTask_PythonObject, sourceFilePath } );
+                            const TskDesc initialiser       = encode( Task{ eTask_Initialiser, sourceFilePath } );
+
                             dependencies.add( pythonWrapper, concreteTypeRolloutTasks );
                             dependencies.add( initialiser, concreteTypeRolloutTasks );
-                            dependencies.add( operationsPCH, TskDescVec{ operations } );
-                            dependencies.add( valueSpace, TskDescVec{ operationsPCH } );
-                            dependencies.add( implementation, TskDescVec{ valueSpace } );
+                            dependencies.add( implementation, valueSpaceTasks );
                             dependencies.add( implementationObj, TskDescVec{ implementation } );
                             dependencies.add( pythonObj, TskDescVec{ pythonWrapper } );
                             dependencies.add( initialiserObj, TskDescVec{ initialiser } );
 
-                            unityDependencyTasks.push_back( operationsPCH );
-                            unityDependencyTasks.push_back( valueSpace );
                             binaryTasks.push_back( implementationObj );
                             binaryTasks.push_back( pythonObj );
                             binaryTasks.push_back( initialiserObj );
@@ -426,7 +454,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                         dependencies.add( objectInterfaceGeneration, deps );
                         dependencies.add( objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration } );
 
-                        TskDescVec tasks = concreteTypeRolloutTasks;
+                        TskDescVec tasks = valueSpaceTasks;
                         tasks.push_back( objectInterfaceAnalysis );
 
                         for( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )

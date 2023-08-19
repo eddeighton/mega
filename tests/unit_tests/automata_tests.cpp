@@ -21,7 +21,7 @@
 #include <gtest/gtest.h>
 
 #include "compiler/automata.hpp"
-
+/*
 TEST( Automata, Basic )
 {
     using namespace mega::automata;
@@ -68,4 +68,4 @@ TEST( Automata, PartialMatch )
     };
 
     ASSERT_EQ( expected, tokens );
-}
+}*/

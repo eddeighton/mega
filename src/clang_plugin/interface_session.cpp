@@ -498,6 +498,14 @@ public:
             }
         }
         {
+            if( auto pInterupt = db_cast< Interupt >( pContext ) )
+            {
+                
+
+                bProcess = true;
+            }
+        }
+        {
             if( auto pFunction = db_cast< Function >( pContext ) )
             {
                 auto pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );

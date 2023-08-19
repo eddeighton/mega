@@ -33,13 +33,13 @@ public:
         PtrVector     children;
         IdentifierMap identifiers;
     };
-    
+
     static void buildInterfaceTree( InterfaceNode::Ptr pNode, IContext* pContext )
     {
         InterfaceNode::Ptr pChildNode;
         {
             auto iFind = pNode->identifiers.find( pContext->get_identifier() );
-            if ( iFind == pNode->identifiers.end() )
+            if( iFind == pNode->identifiers.end() )
             {
                 pChildNode = std::make_shared< InterfaceNode >();
                 pNode->identifiers.insert( std::make_pair( pContext->get_identifier(), pChildNode ) );
@@ -56,7 +56,7 @@ public:
         VERIFY_RTE( pChildNode );
         pChildNode->contexts.push_back( pContext );
 
-        for ( IContext* pChild : pContext->get_children() )
+        for( IContext* pChild : pContext->get_children() )
         {
             buildInterfaceTree( pChildNode, pChild );
         }
@@ -88,6 +88,7 @@ public:
             m_injaEnvironment.render_to( os, m_interfaceTemplate, data );
         }
     };
+
 private:
     template < typename TContextType >
     static std::vector< nlohmann::json > getInheritanceTraits( const nlohmann::json& typenames, TContextType* pContext,
@@ -95,7 +96,7 @@ private:
     {
         std::vector< nlohmann::json > traits;
         int                           iCounter = 0;
-        for ( const std::string& strType : pInheritanceTrait->get_strings() )
+        for( const std::string& strType : pInheritanceTrait->get_strings() )
         {
             nlohmann::json     traitNames = typenames;
             std::ostringstream os;
@@ -122,7 +123,7 @@ private:
                                                              const std::vector< DimensionTrait* >& dimensionTraits )
     {
         std::vector< nlohmann::json > traits;
-        for ( DimensionTrait* pDimensionTrait : dimensionTraits )
+        for( DimensionTrait* pDimensionTrait : dimensionTraits )
         {
             const std::string& strType = pDimensionTrait->get_type();
 
@@ -225,6 +226,30 @@ private:
 
         return trait_struct;
     }
+
+    template < typename TContextType >
+    static nlohmann::json getInteruptTraits( const nlohmann::json& typenames, TContextType* pInterupt )
+    {
+
+        nlohmann::json     traitNames = typenames;
+        std::ostringstream os;
+        os << mega::EG_INTERUPT_TRAIT_TYPE;
+        traitNames.push_back( os.str() );
+
+        nlohmann::json trait_struct( { { "name", os.str() },
+                                       { "typeid", toHex( pInterupt->get_interface_id() ) },
+                                       { "types", traitNames },
+                                       { "traits", nlohmann::json::array() } } );
+        {
+            std::ostringstream osTrait;
+            osTrait << "using Events  = __eg_type_path< " << pInterupt->get_events_trait()->get_type_list_str() << " >";
+            trait_struct[ "traits" ].push_back( osTrait.str() );
+        }
+
+        return trait_struct;
+    }
+
+
 public:
     static void recurse( TemplateEngine& templateEngine, InterfaceNode::Ptr pInterfaceNode, nlohmann::json& structs,
                          const nlohmann::json& parentTypeNames, std::ostream& os )
@@ -236,7 +261,7 @@ public:
 
         mega::TypeID id;
         {
-            if ( pInterfaceNode->contexts.size() > 1 )
+            if( pInterfaceNode->contexts.size() > 1 )
             {
                 id = pFirstContext->get_symbol_id();
             }
@@ -247,7 +272,7 @@ public:
         }
 
         std::ostringstream osNested;
-        for ( InterfaceNode::Ptr pChild : pInterfaceNode->children )
+        for( InterfaceNode::Ptr pChild : pInterfaceNode->children )
         {
             recurse( templateEngine, pChild, structs, typenames, osNested );
         }
@@ -263,17 +288,17 @@ public:
         } );
 
         // if ( pInterfaceNode->bCreateTraits )
-        for ( IContext* pContext : pInterfaceNode->contexts )
+        for( IContext* pContext : pInterfaceNode->contexts )
         {
             bool bFoundType = false;
 
             {
-                if ( Namespace* pNamespace = db_cast< Namespace >( pContext ) )
+                if( Namespace* pNamespace = db_cast< Namespace >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
-                    for ( const nlohmann::json& trait :
-                          getDimensionTraits( typenames, pNamespace, pNamespace->get_dimension_traits() ) )
+                    for( const nlohmann::json& trait :
+                         getDimensionTraits( typenames, pNamespace, pNamespace->get_dimension_traits() ) )
                     {
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
@@ -282,25 +307,25 @@ public:
                 }
             }
             {
-                if ( Abstract* pAbstract = db_cast< Abstract >( pContext ) )
+                if( Abstract* pAbstract = db_cast< Abstract >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
-                    if ( auto opt = pAbstract->get_inheritance_trait() )
+                    if( auto opt = pAbstract->get_inheritance_trait() )
                     {
-                        for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAbstract, opt.value() ) )
+                        for( const nlohmann::json& trait : getInheritanceTraits( typenames, pAbstract, opt.value() ) )
                         {
                             contextData[ "trait_structs" ].push_back( trait );
                             structs.push_back( trait );
                         }
                     }
-                    for ( const nlohmann::json& trait :
-                          getDimensionTraits( typenames, pAbstract, pAbstract->get_dimension_traits() ) )
+                    for( const nlohmann::json& trait :
+                         getDimensionTraits( typenames, pAbstract, pAbstract->get_dimension_traits() ) )
                     {
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
-                    if ( pAbstract->get_size_trait().has_value() )
+                    if( pAbstract->get_size_trait().has_value() )
                     {
                         const nlohmann::json& trait
                             = getSizeTrait( typenames, pAbstract, pAbstract->get_size_trait().value() );
@@ -311,38 +336,30 @@ public:
                 }
             }
             {
-                if ( Action* pAction = db_cast< Action >( pContext ) )
+                if( Action* pAction = db_cast< Action >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType                     = true;
                     contextData[ "has_operation" ] = true;
 
-                    if( auto pStartState = db_cast< Meta::Automata >( pAction ) )
-                    {
-                        contextData[ "operation_return_type" ] = "mega::ActionCoroutine";
-                        contextData[ "operation_parameters" ]  = "mega::U64 _blockID";
-                    }
-                    else
-                    {
-                        contextData[ "operation_return_type" ] = "mega::ActionCoroutine";
-                        contextData[ "operation_parameters" ]  = "";
-                    }
+                    contextData[ "operation_return_type" ] = "mega::ActionCoroutine";
+                    contextData[ "operation_parameters" ]  = "";
 
-                    if ( auto opt = pAction->get_inheritance_trait() )
+                    if( auto opt = pAction->get_inheritance_trait() )
                     {
-                        for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAction, opt.value() ) )
+                        for( const nlohmann::json& trait : getInheritanceTraits( typenames, pAction, opt.value() ) )
                         {
                             contextData[ "trait_structs" ].push_back( trait );
                             structs.push_back( trait );
                         }
                     }
-                    for ( const nlohmann::json& trait :
-                          getDimensionTraits( typenames, pAction, pAction->get_dimension_traits() ) )
+                    for( const nlohmann::json& trait :
+                         getDimensionTraits( typenames, pAction, pAction->get_dimension_traits() ) )
                     {
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
-                    if ( pAction->get_size_trait().has_value() )
+                    if( pAction->get_size_trait().has_value() )
                     {
                         const nlohmann::json& trait
                             = getSizeTrait( typenames, pAction, pAction->get_size_trait().value() );
@@ -353,25 +370,25 @@ public:
                 }
             }
             {
-                if ( Event* pEvent = db_cast< Event >( pContext ) )
+                if( Event* pEvent = db_cast< Event >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
-                    if ( auto opt = pEvent->get_inheritance_trait() )
+                    if( auto opt = pEvent->get_inheritance_trait() )
                     {
-                        for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pEvent, opt.value() ) )
+                        for( const nlohmann::json& trait : getInheritanceTraits( typenames, pEvent, opt.value() ) )
                         {
                             contextData[ "trait_structs" ].push_back( trait );
                             structs.push_back( trait );
                         }
                     }
-                    for ( const nlohmann::json& trait :
-                          getDimensionTraits( typenames, pEvent, pEvent->get_dimension_traits() ) )
+                    for( const nlohmann::json& trait :
+                         getDimensionTraits( typenames, pEvent, pEvent->get_dimension_traits() ) )
                     {
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
-                    if ( pEvent->get_size_trait().has_value() )
+                    if( pEvent->get_size_trait().has_value() )
                     {
                         const nlohmann::json& trait
                             = getSizeTrait( typenames, pEvent, pEvent->get_size_trait().value() );
@@ -382,7 +399,30 @@ public:
                 }
             }
             {
-                if ( Function* pFunction = db_cast< Function >( pContext ) )
+                if( Interupt* pInterupt = db_cast< Interupt >( pContext ) )
+                {
+                    VERIFY_RTE( !bFoundType );
+                    bFoundType                             = true;
+                    contextData[ "has_operation" ]         = true;
+                    contextData[ "operation_return_type" ] = "void";
+
+                    if( pInterupt->get_opt_arguments_trait().has_value() )
+                    {
+                        contextData[ "operation_parameters" ] = pInterupt->get_opt_arguments_trait().value()->get_str();
+                    }
+                    else
+                    {
+                        contextData[ "operation_parameters" ] = "";
+                    }
+                    const nlohmann::json& trait = getInteruptTraits( typenames, pInterupt );
+                    contextData[ "trait_structs" ].push_back( trait );
+                    structs.push_back( trait );
+
+                    templateEngine.renderContext( contextData, os );
+                }
+            }
+            {
+                if( Function* pFunction = db_cast< Function >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType                             = true;
@@ -390,8 +430,8 @@ public:
                     contextData[ "operation_return_type" ] = pFunction->get_return_type_trait()->get_str();
                     contextData[ "operation_parameters" ]  = pFunction->get_arguments_trait()->get_str();
 
-                    if ( !pFunction->get_return_type_trait()->get_str().empty()
-                         || !pFunction->get_arguments_trait()->get_str().empty() )
+                    if( !pFunction->get_return_type_trait()->get_str().empty()
+                        || !pFunction->get_arguments_trait()->get_str().empty() )
                     {
                         const nlohmann::json& trait
                             = getFunctionTraits( typenames, pFunction, pFunction->get_return_type_trait() );
@@ -403,25 +443,25 @@ public:
                 }
             }
             {
-                if ( Object* pObject = db_cast< Object >( pContext ) )
+                if( Object* pObject = db_cast< Object >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
-                    if ( auto opt = pObject->get_inheritance_trait() )
+                    if( auto opt = pObject->get_inheritance_trait() )
                     {
-                        for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pObject, opt.value() ) )
+                        for( const nlohmann::json& trait : getInheritanceTraits( typenames, pObject, opt.value() ) )
                         {
                             contextData[ "trait_structs" ].push_back( trait );
                             structs.push_back( trait );
                         }
                     }
-                    for ( const nlohmann::json& trait :
-                          getDimensionTraits( typenames, pObject, pObject->get_dimension_traits() ) )
+                    for( const nlohmann::json& trait :
+                         getDimensionTraits( typenames, pObject, pObject->get_dimension_traits() ) )
                     {
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
-                    if ( pObject->get_size_trait().has_value() )
+                    if( pObject->get_size_trait().has_value() )
                     {
                         const nlohmann::json& trait
                             = getSizeTrait( typenames, pObject, pObject->get_size_trait().value() );
@@ -432,12 +472,12 @@ public:
                 }
             }
             {
-                if ( Link* pLink = db_cast< Link >( pContext ) )
+                if( Link* pLink = db_cast< Link >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
-                    for ( const nlohmann::json& trait :
-                          getInheritanceTraits( typenames, pLink, pLink->get_link_interface() ) )
+                    for( const nlohmann::json& trait :
+                         getInheritanceTraits( typenames, pLink, pLink->get_link_interface() ) )
                     {
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
@@ -446,7 +486,7 @@ public:
                     templateEngine.renderContext( contextData, os );
                 }
             }
-            VERIFY_RTE( bFoundType );
+            VERIFY_RTE_MSG( bFoundType, "Missing implementation for interface type" );
         }
     }
 };

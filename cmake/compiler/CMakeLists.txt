@@ -111,6 +111,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_manifest.cpp
     ${MEGA_SRC_DIR}/compiler/task_meta.cpp
     ${MEGA_SRC_DIR}/compiler/task_operations.cpp
+    ${MEGA_SRC_DIR}/compiler/task_operations_locs.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
     ${MEGA_SRC_DIR}/compiler/task_python.cpp
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp

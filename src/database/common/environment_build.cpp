@@ -58,7 +58,7 @@ BuildEnvironment::Path BuildEnvironment::UnityDatabase() const
 
 void BuildEnvironment::copyToTargetPath( const boost::filesystem::path& from, const boost::filesystem::path& to ) const
 {
-    VERIFY_RTE( boost::filesystem::exists( from ) );
+    VERIFY_RTE_MSG( boost::filesystem::exists( from ), "Failed to locate file: " << from.string() );
     if( boost::filesystem::exists( to ) )
     {
         boost::filesystem::remove( to );

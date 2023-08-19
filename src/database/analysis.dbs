@@ -221,13 +221,13 @@ namespace MemoryLayout
 
 namespace Meta
 {
-    object Plan : Interface::Action -> MetaStage::MetaAnalysis
+    object SequenceAction : Interface::Action -> MetaStage::MetaAnalysis
     {
     }
-    object Animation : Interface::Action -> MetaStage::MetaAnalysis
+    object StackAction : Interface::Action -> MetaStage::MetaAnalysis
     {
     }
-    object Automata : Interface::Action -> MetaStage::MetaAnalysis
+    object PlanAction : Interface::Action -> MetaStage::MetaAnalysis
     {
     }
 }

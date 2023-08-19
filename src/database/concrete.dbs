@@ -112,6 +112,11 @@ namespace Concrete
         value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
     }
 
+    object Interupt : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Interupt > interface_interupt;
+    }
+
     object Function : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Function > interface_function;
@@ -139,14 +144,6 @@ namespace Concrete
 
         value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
         ref< Dimensions::LinkReference > link_reference -> MemoryStage::MemoryLayout;
-    }
-
-    object Buffer : Context -> ConcreteStage::Concrete
-    {
-        ref< Interface::Buffer > interface_buffer;
-        array< ref< Dimensions::User > > dimensions;
-
-        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Root : ContextGroup -> ConcreteStage::Concrete

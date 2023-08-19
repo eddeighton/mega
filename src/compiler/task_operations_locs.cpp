@@ -20,7 +20,7 @@
 
 #include "base_task.hpp"
 
-#include "database/model/ValueSpaceStage.hxx"
+#include "database/model/OperationsLocs.hxx"
 
 #include "database/types/sources.hpp"
 #include "database/types/source_location.hpp"
@@ -81,12 +81,12 @@ void parseRanges( const std::string& str, const std::string& strBegin, const std
 }
 } // namespace
 
-class Task_ValueSpace : public BaseTask
+class Task_OperationsLocs : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
 
 public:
-    Task_ValueSpace( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+    Task_OperationsLocs( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
@@ -100,8 +100,8 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath compilationFile
-            = m_environment.ValueSpaceStage_ValueSpace( m_sourceFilePath );
-        start( taskProgress, "Task_ValueSpace", m_sourceFilePath.path(), compilationFile.path() );
+            = m_environment.OperationsLocs_Locations( m_sourceFilePath );
+        start( taskProgress, "Task_OperationsLocs", m_sourceFilePath.path(), compilationFile.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( m_environment.Operations( m_sourceFilePath ) ),
@@ -114,12 +114,65 @@ public:
             return;
         }
 
-        using namespace ValueSpaceStage;
+        using namespace OperationsLocs;
         Database database( m_environment, m_sourceFilePath );
 
-        // TODO
+        const io::GeneratedHPPSourceFilePath operationsHeader = m_environment.Operations( m_sourceFilePath );
 
-        const task::FileHash fileHashCode = database.save_ValueSpace_to_temp();
+        std::string strOperationsHeaderText;
+        boost::filesystem::loadAsciiFile( m_environment.FilePath( operationsHeader ), strOperationsHeaderText );
+
+        using OperationRanges = std::unordered_map< TypeID, SourceLocation, TypeID::Hash >;
+        OperationRanges operationRanges;
+        {
+            using namespace std::string_literals;
+            parseRanges< TypeID, OperationRanges >(
+                strOperationsHeaderText, "//_MEGAOPERATIONBEGIN"s, "//_MEGAOPERATIONEND"s,
+                []( std::string::const_iterator i, std::string::const_iterator iEnd ) -> TypeID
+                {
+                    std::string        strView( i, iEnd );
+                    std::istringstream is( strView );
+                    TypeID             typeID;
+                    using ::           operator>>;
+                    is >> typeID;
+                    return typeID;
+                },
+                operationRanges );
+        }
+
+        Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );
+
+        for( auto pInvocationContext : database.many< Interface::InvocationContext >( m_sourceFilePath ) )
+        {
+            auto iFind = operationRanges.find( pInvocationContext->get_interface_id() );
+            VERIFY_RTE_MSG( iFind != operationRanges.end(),
+                            "Failed to locate operation body for: " << pInvocationContext->get_interface_id() );
+            const SourceLocation& operationLoc = iFind->second;
+
+            std::vector< Interface::InvocationInstance* > invocationInstances;
+            {
+                for( const auto& [ invocationID, pInvocation ] : pInvocations->get_invocations() )
+                {
+                    std::vector< SourceLocation > instances;
+                    for( const auto& invocationLoc : pInvocation->get_file_offsets() )
+                    {
+                        if( operationLoc.contains( invocationLoc ) )
+                        {
+                            instances.push_back( invocationLoc );
+                        }
+                    }
+                    for( const auto& instanceLoc : instances )
+                    {
+                        invocationInstances.push_back( database.construct< Interface::InvocationInstance >(
+                            Interface::InvocationInstance::Args{ pInvocation, instanceLoc } ) );
+                    }
+                }
+            }
+            database.construct< Interface::InvocationContext >(
+                Interface::InvocationContext::Args{ pInvocationContext, invocationInstances, operationLoc } );
+        }
+
+        const task::FileHash fileHashCode = database.save_Locations_to_temp();
         m_environment.setBuildHashCode( compilationFile, fileHashCode );
         m_environment.temp_to_real( compilationFile );
         m_environment.stash( compilationFile, determinant );
@@ -128,9 +181,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_ValueSpace( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_OperationsLocs( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
 {
-    return std::make_unique< Task_ValueSpace >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_OperationsLocs >( taskArguments, sourceFilePath );
 }
 
 } // namespace mega::compiler

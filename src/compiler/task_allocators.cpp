@@ -249,6 +249,9 @@ void Task_Allocators::createallocators(
 
         pEvent = database.construct< Event >( Event::Args{ pEvent, szDomainSize, szTotalSize } );
     }
+    else if( auto pInterupt = db_cast< Interupt >( pContext ) )
+    {
+    }
     else if ( auto pFunction = db_cast< Function >( pContext ) )
     {
     }
@@ -271,11 +274,6 @@ void Task_Allocators::createallocators(
                 Concrete::Dimensions::LinkReference::Args{ pParentContext, pLink } } );
         }
         pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize, pLinkRef } );
-    }
-    else if ( auto pBuffer = db_cast< Buffer >( pContext ) )
-    {
-        szDomainSize = 1U;
-        pBuffer      = database.construct< Buffer >( Buffer::Args{ pBuffer, szTotalSize } );
     }
     else
     {
@@ -580,9 +578,9 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
             szTotalDomainSize = pLink->get_total_size();
             simple.link.push_back( pLink->get_link_reference() );
         }
-        else if ( Concrete::Buffer* pBuffer = db_cast< Concrete::Buffer >( pContext ) )
+        else if ( Concrete::Interupt* pFunction = db_cast< Concrete::Interupt >( pContext ) )
         {
-            szTotalDomainSize = pBuffer->get_total_size();
+            szTotalDomainSize = 1U;
         }
         else if ( Concrete::Function* pFunction = db_cast< Concrete::Function >( pContext ) )
         {
@@ -736,12 +734,12 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
             else if ( auto pFunction = db_cast< Function >( pContext ) )
             {
             }
+            else if ( auto pInterupt = db_cast< Interupt >( pContext ) )
+            {
+            }
             else if ( Link* pLink = db_cast< Link >( pContext ) )
             {
                 createParts( database, pLink, pParts );
-            }
-            else if ( auto pBuffer = db_cast< Buffer >( pContext ) )
-            {
             }
             else
             {

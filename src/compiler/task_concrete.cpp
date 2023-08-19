@@ -136,6 +136,10 @@ public:
                 }
             }
         }
+        else if( auto pInterupt = db_cast< Interface::Interupt >( pContext ) )
+        {
+            // do nothing
+        }
         else if( auto pFunction = db_cast< Interface::Function >( pContext ) )
         {
             // do nothing
@@ -162,10 +166,6 @@ public:
             {
                 // do nothing
             }
-        }
-        else if( auto pBuffer = db_cast< Interface::Buffer >( pContext ) )
-        {
-            collectDimensions( database, pBuffer, identifierMap );
         }
         else
         {
@@ -306,6 +306,37 @@ public:
                 return nullptr;
             }
         }
+        else if( auto pInterupt = db_cast< Interface::Interupt >( pContext ) )
+        {
+            if( concreteObjectOpt.has_value() )
+            {
+                Interupt* pConcrete = database.construct< Interupt >( Interupt::Args{
+                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pInterupt, {} },
+                    pInterupt } );
+                pParentContextGroup->push_back_children( pConcrete );
+                pConcrete->set_concrete_object( concreteObjectOpt );
+
+                IdentifierMap inheritedContexts;
+                {
+                    recurseInheritance( database, pConcrete, pInterupt, inheritedContexts );
+                    pConcrete->set_inheritance( inheritedContexts.inherited );
+                }
+
+                std::vector< ConcreteStage::Concrete::Context* >          childContexts;
+                std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
+                constructElements(
+                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
+                VERIFY_RTE( dimensions.empty() );
+
+                pConcrete->set_children( childContexts );
+
+                return pConcrete;
+            }
+            else
+            {
+                return nullptr;
+            }
+        }
         else if( auto pFunction = db_cast< Interface::Function >( pContext ) )
         {
             if( concreteObjectOpt.has_value() )
@@ -388,38 +419,6 @@ public:
                 IdentifierMap inheritedContexts;
                 {
                     recurseInheritance( database, pConcrete, pLink, inheritedContexts );
-                    pConcrete->set_inheritance( inheritedContexts.inherited );
-                }
-
-                std::vector< ConcreteStage::Concrete::Context* >          childContexts;
-                std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-                constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
-                VERIFY_RTE( dimensions.empty() );
-
-                pConcrete->set_children( childContexts );
-
-                return pConcrete;
-            }
-            else
-            {
-                return nullptr;
-            }
-        }
-        else if( auto pBuffer = db_cast< Interface::Buffer >( pContext ) )
-        {
-            if( concreteObjectOpt.has_value() )
-            {
-                Buffer* pConcrete = database.construct< Buffer >( Buffer::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pBuffer, {} },
-                    pBuffer,
-                    {} } );
-                pParentContextGroup->push_back_children( pConcrete );
-                pConcrete->set_concrete_object( concreteObjectOpt );
-
-                IdentifierMap inheritedContexts;
-                {
-                    recurseInheritance( database, pConcrete, pBuffer, inheritedContexts );
                     pConcrete->set_inheritance( inheritedContexts.inherited );
                 }
 

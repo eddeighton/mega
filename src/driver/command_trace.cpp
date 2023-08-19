@@ -76,10 +76,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         std::atomic< bool >         bContinue = true;
         std::mutex                  mut;
-        mega::compiler::BuildStatus buildState;
+        //mega::compiler::BuildStatus buildState;
 
         std::thread inputThread(
-            [ &buildState, &mut, &bContinue, &bShowUI, &bShowMsgs, &bShowStart ]()
+            [ &mut, &bContinue, &bShowUI, &bShowMsgs, &bShowStart ]()
             {
                 while( bContinue )
                 {
@@ -102,7 +102,6 @@ void command( bool bHelp, const std::vector< std::string >& args )
                         if( bReadReport )
                         {
                             std::lock_guard< std::mutex > lock( mut );
-                            buildState.progress( report );
                             if( !bShowUI )
                             {
                                 const char* pDrawColour = nullptr;

@@ -352,9 +352,6 @@ void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete
     {
         data[ "elements" ].push_back( linkData.value() );
     }
-    else if( auto pBuffer = db_cast< Buffer >( pContext ) )
-    {
-    }
     else
     {
         THROW_RTE( "Unknown context type" );

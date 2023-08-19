@@ -67,7 +67,7 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::LinkInterface > >;
     persource accessor array< ref< Interface::Link > >;
-    persource accessor array< ref< Interface::Buffer > >;
+    persource accessor array< ref< Interface::Interupt > >;
 }
 
 stage MetaStage
@@ -81,6 +81,7 @@ stage MetaStage
     persource accessor array< ref< Interface::Function > >;
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::Event > >;
+    persource accessor array< ref< Interface::Interupt > >;
     persource accessor array< ref< Interface::DimensionTrait > >;
 }
 
@@ -157,7 +158,6 @@ stage InterfaceAnalysisStage
     persource accessor ref< Interface::Root >;
     persource accessor array< ref< Parser::SystemInclude > >;
     persource accessor array< ref< Parser::CPPInclude > >;
-    persource accessor array< ref< Meta::Automata > >;
 }
 
 stage ConcreteStage
@@ -197,8 +197,6 @@ stage DerivationAnalysisView
     global accessor array< ref< Components::Component > >;
     persource accessor ref< Interface::Root >;
     global accessor ref< Symbols::SymbolTable >;
-
-    global accessor array< ref< Meta::Automata > >;
 }
 
 stage DerivationAnalysisRollout
@@ -324,8 +322,6 @@ stage AutomataStage
     dependency ConcreteTypeRollout;
 
     file AutomataAnalysis;
-
-    persource accessor array< ref< Meta::Automata > >;
 }
 
 stage OperationsStage
@@ -343,19 +339,29 @@ stage OperationsStage
     global accessor ref< Derivation::Mapping >;
 
     persource accessor ref< Interface::Root >;
-    persource accessor array< ref< Automata::Start > >;
+}
+
+stage OperationsLocs
+{
+    source .mega;
+
+    dependency OperationsStage;
+
+    file Locations;
+
+    persource accessor array< ref< Interface::InvocationContext > >;
+    persource accessor ref< Operations::Invocations >;
 }
 
 stage ValueSpaceStage
 {
     source .mega;
 
-    dependency OperationsStage;
+    dependency OperationsLocs;
 
     file ValueSpace;
 
     persource accessor array< ref< Interface::InvocationContext > >;
-    persource accessor array< ref< Automata::Start > >;
     persource accessor ref< Operations::Invocations >;
 }
 
@@ -413,6 +419,5 @@ stage FinalStage
     persource accessor array< ref< Concrete::Dimensions::User > >;
     persource accessor array< ref< Concrete::Dimensions::LinkReference > >;
     persource accessor array< ref< Concrete::Dimensions::Allocation > >;
-    persource accessor array< ref< Automata::Start > >;
     
 }

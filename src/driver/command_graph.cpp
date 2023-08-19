@@ -387,11 +387,6 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
         os << "Link: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
     }
-    else if( Buffer* pBuffer = db_cast< Buffer >( pContext ) )
-    {
-        os << "Buffer: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
-        node[ "label" ] = os.str();
-    }
     else
     {
         THROW_RTE( "Unknown context type" );
@@ -623,9 +618,6 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
         {
             THROW_RTE( "Invalid relation" );
         }
-    }
-    else if( Buffer* pBuffer = db_cast< Buffer >( pContext ) )
-    {
     }
     else
     {
@@ -928,7 +920,7 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
 
     os << data;
 }
-
+/*
 std::string getBlockName( FinalStage::Automata::Block* pBlock )
 {
     using namespace FinalStage;
@@ -966,8 +958,8 @@ std::string getBlockID( const std::string& strAutomataName, FinalStage::Automata
     osBlockID << strAutomataName << pBlock->get_id();
     return osBlockID.str();
 }
-
-
+*/
+/*
 void automataRecurse( nlohmann::json& data, const std::string& strAutomataName, 
     std::unordered_set< std::string >& actions, FinalStage::Automata::Block* pBlock )
 {
@@ -1013,7 +1005,7 @@ void automataRecurse( nlohmann::json& data, const std::string& strAutomataName,
         }
     }
 }
-
+*/
 void generateAutomataGraphViz( std::ostream& os, mega::io::Environment& environment, mega::io::Manifest& manifest )
 {
     using namespace FinalStage;
@@ -1027,7 +1019,7 @@ void generateAutomataGraphViz( std::ostream& os, mega::io::Environment& environm
     {
         Database database( environment, sourceFilePath );
 
-        for( Automata::Start* pAutomata : database.many< Automata::Start >( sourceFilePath ) )
+        /*for( Automata::Start* pAutomata : database.many< Automata::Start >( sourceFilePath ) )
         {
             std::ostringstream osAutomataName;
             osAutomataName << "automata_" << getContextFullTypeName( pAutomata );
@@ -1050,7 +1042,7 @@ void generateAutomataGraphViz( std::ostream& os, mega::io::Environment& environm
                 nlohmann::json::object( { { "from", osAutomataName.str() },
                                           { "to", getBlockID( osAutomataName.str(), pAutomata->get_sequence() ) },
                                           { "colour", "000000" } } ) );
-        }
+        }*/
     }
 
     os << data;

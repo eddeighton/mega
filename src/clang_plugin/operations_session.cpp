@@ -136,9 +136,22 @@ public:
                     pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, pContext->get_identifier() );
                 if( !declLocType.pDeclContext )
                 {
+                    std::ostringstream osFullType;
+                    bool               bFirst = true;
+                    for( auto i : path )
+                    {
+                        if( auto pContext = db_cast< Interface::IContext >( i ) )
+                        {
+                            if( bFirst )
+                                bFirst = false;
+                            else
+                                osFullType << "::";
+                            osFullType << pContext->get_identifier();
+                        }
+                    }
                     CLANG_PLUGIN_LOG(
-                        "buildDimensionReturnType failed to resolve interface type: " << pContext->get_identifier() );
-                    THROW_RTE( "Failed to resolve interface context" );
+                        "buildDimensionReturnType failed to resolve interface type: " << osFullType.str() );
+                    THROW_RTE( "Failed to resolve interface context: " << osFullType.str() );
                 }
             }
         }

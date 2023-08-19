@@ -85,8 +85,6 @@ public:
             using namespace OperationsStage::Interface;
 
             Database database( m_environment, m_sourceFilePath );
-            // NOTE: MUST ensure automata analysis loaded
-            database.many< Automata::Start >( m_sourceFilePath );
 
             std::string strOperations;
             {
