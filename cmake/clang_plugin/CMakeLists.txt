@@ -43,6 +43,7 @@ set( CLANG_PLUGIN_SOURCES
     ${MEGA_SRC_DIR}/clang_plugin/session.hpp
     ${MEGA_SRC_DIR}/clang_plugin/interface_session.cpp
     ${MEGA_SRC_DIR}/clang_plugin/operations_session.cpp
+    ${MEGA_SRC_DIR}/clang_plugin/library_session.cpp
     )
 
 add_definitions(-DMEGA_CLANG_PLUGIN_MODULE)

@@ -99,7 +99,7 @@ public:
     {
     }
 
-    virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
+    virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const override
     {
         if ( mega::getOperationName( strIdentifier ) != mega::HIGHEST_OPERATION_TYPE )
         {

@@ -70,7 +70,6 @@ public:
     };
 
 private:
-
     static void recurse( IContext* pContext, nlohmann::json& data, CleverUtility::IDList& namespaces,
                          CleverUtility::IDList& types )
     {
@@ -127,7 +126,10 @@ private:
                 { "namespaces", namespaces },
                 { "types", types },
                 { "params_string", "" },
-                { "params", nlohmann::json::array() } } );
+                { "params", nlohmann::json::array() },
+                { "requires_extern", true }
+
+            } );
 
             data[ "operations" ].push_back( operation );
 
@@ -142,6 +144,19 @@ private:
         else if( auto pInterupt = db_cast< Interupt >( pContext ) )
         {
             CleverUtility c( types, pInterupt->get_identifier() );
+
+            std::ostringstream osArgs;
+            auto               pEvents = pInterupt->get_events_trait();
+            const auto&        args    = pEvents->get_args();
+            {
+                std::ostringstream osParameters;
+                for( int i = 0; i != args.size(); ++i )
+                {
+                    if( i > 0 )
+                        osParameters << ", ";
+                    osArgs << "const mega::reference& _p" << i;
+                }
+            }
 
             std::string strBody;
             {
@@ -158,7 +173,6 @@ private:
             if( strBody.empty() )
             {
                 // auto generate interupt handler body...
-                
             }
 
             nlohmann::json operation( {
@@ -170,8 +184,11 @@ private:
                 { "has_namespaces", !namespaces.empty() },
                 { "namespaces", namespaces },
                 { "types", types },
-                { "params_string", "" },
-                { "params", nlohmann::json::array() } } );
+                { "params_string", osArgs.str() },
+                { "params", nlohmann::json::array() },
+                { "requires_extern", false }
+
+            } );
             /*{
                 int iParamCounter = 1;
                 for( const std::string& strParamType : pInterupt->get_arguments_trait()->get_canonical_types() )
@@ -202,7 +219,7 @@ private:
             }
 
             std::ostringstream osArgs;
-            osArgs << pFunction->get_arguments_trait();
+            osArgs << pFunction->get_arguments_trait()->get_args();
 
             nlohmann::json operation( {
 
@@ -214,7 +231,10 @@ private:
                 { "namespaces", namespaces },
                 { "types", types },
                 { "params_string", osArgs.str() },
-                { "params", nlohmann::json::array() } } );
+                { "params", nlohmann::json::array() },
+                { "requires_extern", false }
+
+            } );
             {
                 int iParamCounter = 1;
                 for( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )

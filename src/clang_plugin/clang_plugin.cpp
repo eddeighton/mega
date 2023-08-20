@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "clang_plugin/clang_plugin.hpp"
 
 #include "database/common/exception.hpp"
@@ -54,11 +53,8 @@ extern Session::Ptr make_interface_session( clang::ASTContext* pASTContext, clan
 extern Session::Ptr make_operations_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir,
                                              const char* strBuildDir, const char* strSourceFile );
 
-Session::Ptr make_library_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir,
-                                     const char* strBuildDir, const char* strSourceFile )
-{
-    return std::make_unique< AnalysisSession >( pASTContext, pSema, strSrcDir, strBuildDir, strSourceFile );
-}
+Session::Ptr make_library_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir,
+                                   const char* strSourceFile );
 
 } // namespace clang
 
@@ -74,64 +70,61 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
         g_pSema       = pSema;
         VERIFY_RTE( g_pASTContext );
         VERIFY_RTE( g_pSema );
-        if ( g_pSession )
+        if( g_pSession )
         {
             g_pSession->setContext( g_pASTContext, g_pSema );
         }
-        
+
         g_pASTContext->getEGTypePathName();
         g_pASTContext->getEGInvocationTypeName();
         g_pASTContext->getEGVariantName();
         g_pASTContext->getEGInvokeName();
     }
 
-    virtual void onMegaPragma()
-    {
-        g_bMegaEnabled = !g_bMegaEnabled;
-    }
-    
+    virtual void onMegaPragma() { g_bMegaEnabled = !g_bMegaEnabled; }
+
     virtual void setMode( const char* strMode, const char* strSrcDir, const char* strBuildDir,
                           const char* strSourceFile )
     {
         try
         {
             const mega::CompilationMode compilationMode = mega::CompilationMode::fromStr( strMode );
-            switch ( compilationMode.get() )
+            switch( compilationMode.get() )
             {
                 case mega::CompilationMode::eInterface:
                     g_bMegaEnabled = true;
-                    g_pSession = clang::make_interface_session(
+                    g_pSession     = clang::make_interface_session(
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eLibrary:
                     g_bMegaEnabled = true;
-                    g_pSession = clang::make_library_session(
-                        g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
+                    g_pSession
+                        = clang::make_library_session( g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eOperations:
                     g_bMegaEnabled = true;
-                    g_pSession = clang::make_operations_session(
+                    g_pSession     = clang::make_operations_session(
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eCPP:
                     g_bMegaEnabled = false;
-                    g_pSession = clang::make_operations_session(
+                    g_pSession     = clang::make_operations_session(
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eNormal:
                 case mega::CompilationMode::TOTAL_COMPILATION_MODES:
                 default:
                     g_bMegaEnabled = false;
-                    g_pSession = std::make_unique< clang::Session >( g_pASTContext, g_pSema );
+                    g_pSession     = std::make_unique< clang::Session >( g_pASTContext, g_pSema );
                     return;
             }
         }
-        catch ( mega::io::DatabaseVersionException& ex )
+        catch( mega::io::DatabaseVersionException& ex )
         {
             g_pSession = nullptr;
             std::ostringstream os;
             os << "DatabaseVersion Exception constructing session for: " << strSourceFile << " : " << ex.what();
-            if ( g_pASTContext )
+            if( g_pASTContext )
             {
                 g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
             }
@@ -140,12 +133,12 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
                 g_error = os.str();
             }
         }
-        catch ( std::exception& ex )
+        catch( std::exception& ex )
         {
             g_pSession = nullptr;
             std::ostringstream os;
             os << "Exception for: " << strSourceFile << " constructing session: " << ex.what();
-            if ( g_pASTContext )
+            if( g_pASTContext )
             {
                 g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
             }
@@ -158,19 +151,19 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
 
     virtual void runFinalAnalysis()
     {
-        if ( !g_error.empty() )
+        if( !g_error.empty() )
         {
             std::ostringstream os;
             os << "Error in clang_plugin::runFinalAnalysis: " << g_error;
             g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
         }
-        else if ( g_pSession )
+        else if( g_pSession )
         {
             try
             {
                 g_pSession->runFinalAnalysis();
             }
-            catch ( std::exception& ex )
+            catch( std::exception& ex )
             {
                 std::ostringstream os;
                 os << "Error in clang_plugin::runFinalAnalysis: " << ex.what();
@@ -181,7 +174,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
 
     virtual bool isEGEnabled()
     {
-        if ( g_pSession )
+        if( g_pSession )
         {
             return g_bMegaEnabled;
         }
@@ -193,9 +186,9 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
 
     virtual bool isEGType( const clang::QualType& type )
     {
-        if ( g_pSession )
+        if( g_pSession )
         {
-            if ( clang::getMegaTypeID( g_pSession->getASTContext(), type ) )
+            if( clang::getMegaTypeID( g_pSession->getASTContext(), type ) )
                 return true;
             else
                 return false;
@@ -208,17 +201,17 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
 
     virtual bool isPossibleEGType( const clang::QualType& type )
     {
-        if ( type.getTypePtrOrNull() )
+        if( type.getTypePtrOrNull() )
         {
-            if ( type->isDependentType() )
+            if( type->isDependentType() )
             {
                 return true;
             }
             else
             {
-                if ( g_pSession )
+                if( g_pSession )
                 {
-                    if ( clang::getMegaTypeID( g_pSession->getASTContext(), type ) )
+                    if( clang::getMegaTypeID( g_pSession->getASTContext(), type ) )
                         return true;
                     else
                         return false;
@@ -237,22 +230,22 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
 
     virtual bool isPossibleEGTypeIdentifier( const clang::Token& token )
     {
-        if ( g_pSession )
+        if( g_pSession )
         {
-            if ( token.is( clang::tok::identifier ) )
+            if( token.is( clang::tok::identifier ) )
             {
                 const clang::IdentifierInfo* pIdentifierInfo = token.getIdentifierInfo();
                 return g_pSession->isPossibleEGTypeIdentifier( pIdentifierInfo->getName().str() );
             }
-            else if ( token.is( clang::tok::annot_template_id ) )
+            else if( token.is( clang::tok::annot_template_id ) )
             {
                 // const clang::TemplateIdAnnotation* Annot
                 //     = static_cast< const clang::TemplateIdAnnotation* >( token.getAnnotationValue() );
             }
-            else if ( token.is( clang::tok::annot_typename ) )
+            else if( token.is( clang::tok::annot_typename ) )
             {
                 clang::ParsedType parsedType = clang::ParsedType::getFromOpaquePtr( token.getAnnotationValue() );
-                if ( g_pSession )
+                if( g_pSession )
                 {
                     return isPossibleEGType( g_pSession->getSema()->GetTypeFromParser( parsedType ) );
                 }
@@ -268,9 +261,9 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
 
     virtual int isPossibleEGTypeIdentifierDecl( const clang::Token& token, bool bIsTypePathParsing )
     {
-        if ( isPossibleEGTypeIdentifier( token ) )
+        if( isPossibleEGTypeIdentifier( token ) )
         {
-            if ( !bIsTypePathParsing )
+            if( !bIsTypePathParsing )
             {
                 return 0;
             }
@@ -289,23 +282,23 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
                                              bool bHasArguments, clang::QualType& operationType )
     {
         // determine the operation type...
-        if ( g_pSession )
+        if( g_pSession )
         {
-            if ( const clang::IdentifierInfo* pIdentifierInfo
-                 = clang::getOperationID( g_pSession->getASTContext(), typePathType, bHasArguments ) )
+            if( const clang::IdentifierInfo* pIdentifierInfo
+                = clang::getOperationID( g_pSession->getASTContext(), typePathType, bHasArguments ) )
             {
-                //std::cout << "getInvocationOperationType: " << typePathType.getAsString() << std::endl;
-                // return the type
+                // std::cout << "getInvocationOperationType: " << typePathType.getAsString() << std::endl;
+                //  return the type
                 clang::TagDecl* operatorClassDecl = nullptr;
                 {
                     clang::LookupResult Result( *g_pSession->getSema(), pIdentifierInfo, clang::SourceLocation(),
                                                 clang::Sema::LookupOrdinaryName );
-                    if ( g_pSession->getSema()->LookupName( Result, g_pSession->getSema()->getCurScope() ) )
+                    if( g_pSession->getSema()->LookupName( Result, g_pSession->getSema()->getCurScope() ) )
                     {
                         operatorClassDecl = llvm::dyn_cast< clang::TagDecl >( Result.getFoundDecl() );
                     }
                 }
-                if ( operatorClassDecl )
+                if( operatorClassDecl )
                 {
                     operationType = g_pSession->getASTContext()->getTagDeclType( operatorClassDecl );
                     return true;
@@ -328,7 +321,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
     virtual bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& type,
                                           clang::QualType& resultType )
     {
-        if ( g_pSession )
+        if( g_pSession )
         {
             return g_pSession->getInvocationResultType( loc, type, resultType );
         }

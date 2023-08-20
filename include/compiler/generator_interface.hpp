@@ -241,9 +241,17 @@ private:
                                        { "traits", nlohmann::json::array() } } );
         {
             std::ostringstream osTrait;
-            // osTrait << "using Events  = __eg_type_path< " << pInterupt->get_events_trait()->get_type_list_str() << "
-            // >";
-            THROW_TODO;
+            osTrait << "using Events = __eg_type_path< ";
+            bool bFirst = true;
+            for( const auto& arg : pInterupt->get_events_trait()->get_args() )
+            {
+                if( bFirst )
+                    bFirst = false;
+                else
+                    osTrait << ", ";
+                osTrait << arg.getType();
+            }
+            osTrait << " >";
             trait_struct[ "traits" ].push_back( osTrait.str() );
         }
 
@@ -406,10 +414,9 @@ public:
                     contextData[ "has_operation" ]         = true;
                     contextData[ "operation_return_type" ] = "void";
 
-                    auto        pEvents = pInterupt->get_events_trait();
-                    const auto& args    = pEvents->get_args();
-
+                    auto pEvents = pInterupt->get_events_trait();
                     {
+                        const auto&        args = pEvents->get_args();
                         std::ostringstream osParameters;
                         for( int i = 0; i != args.size(); ++i )
                         {
@@ -434,8 +441,9 @@ public:
                     bFoundType                             = true;
                     contextData[ "has_operation" ]         = true;
                     contextData[ "operation_return_type" ] = pFunction->get_return_type_trait()->get_str();
+
                     std::ostringstream osArgs;
-                    osArgs << pFunction->get_arguments_trait();
+                    osArgs << pFunction->get_arguments_trait()->get_args();
                     contextData[ "operation_parameters" ] = osArgs.str();
 
                     if( !pFunction->get_return_type_trait()->get_str().empty() || !osArgs.str().empty() )
