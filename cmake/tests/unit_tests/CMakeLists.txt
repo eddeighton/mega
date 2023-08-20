@@ -40,6 +40,7 @@ set( COMPILER_SRC
 
 set( MEGA_UNIT_TESTS
 	#${MEGA_UNIT_TESTS_DIR}/scheduler_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/arguments_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/asio_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/automata_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/compiler_pipeline_tests.cpp
@@ -52,9 +53,9 @@ set( MEGA_UNIT_TESTS
 	${MEGA_UNIT_TESTS_DIR}/pipeline_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/protocol_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/schema_grammar_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/schematic_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/sim_state_machine_tests.cpp
 	${MEGA_UNIT_TESTS_DIR}/xml_tag_parser_tests.cpp
-	${MEGA_UNIT_TESTS_DIR}/schematic_tests.cpp
 	)
 
 set( MEGA_UNIT_TESTS_DATA

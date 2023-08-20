@@ -24,11 +24,12 @@
 #include "parser/parser.hpp"
 #include "clang.hpp"
 
-#include "database/types/ownership.hpp"
-#include "database/types/derivation.hpp"
-#include "database/types/sources.hpp"
+#include "database/types/arguments.hpp"
 #include "database/types/cardinality.hpp"
+#include "database/types/derivation.hpp"
 #include "database/types/ownership.hpp"
+#include "database/types/ownership.hpp"
+#include "database/types/sources.hpp"
 
 #include "database/model/ParserStage.hxx"
 #include "database/model/environment.hxx"
@@ -157,7 +158,11 @@ public:
 
             T.consumeClose();
         }
-        return database.construct< ArgumentList >( ArgumentList::Args( strArguments ) );
+
+        mega::Argument::Vector args;
+        mega::parse( strArguments, args );
+
+        return database.construct< ArgumentList >( ArgumentList::Args( args ) );
     }
 
     void parse_comment()

@@ -184,6 +184,7 @@ set( MEGA_DATABASE_SOURCES
 
 set( MEGA_TYPES_HEADERS
     
+    ${MEGA_API_DIR}/database/types/arguments.hpp
     ${MEGA_API_DIR}/database/types/cardinality.hpp
     ${MEGA_API_DIR}/database/types/clang_compilation.hpp
     ${MEGA_API_DIR}/database/types/component_type.hpp
@@ -200,6 +201,7 @@ set( MEGA_TYPES_HEADERS
 )
 
 set( MEGA_TYPES_SOURCES
+    ${MEGA_SRC_DIR}/database/types/arguments.cpp
     ${MEGA_SRC_DIR}/database/types/cardinality.cpp
     ${MEGA_SRC_DIR}/database/types/operation.cpp
     ${MEGA_SRC_DIR}/database/types/ownership.cpp

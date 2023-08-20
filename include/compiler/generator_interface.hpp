@@ -230,7 +230,6 @@ private:
     template < typename TContextType >
     static nlohmann::json getInteruptTraits( const nlohmann::json& typenames, TContextType* pInterupt )
     {
-
         nlohmann::json     traitNames = typenames;
         std::ostringstream os;
         os << mega::EG_INTERUPT_TRAIT_TYPE;
@@ -242,13 +241,14 @@ private:
                                        { "traits", nlohmann::json::array() } } );
         {
             std::ostringstream osTrait;
-            osTrait << "using Events  = __eg_type_path< " << pInterupt->get_events_trait()->get_type_list_str() << " >";
+            // osTrait << "using Events  = __eg_type_path< " << pInterupt->get_events_trait()->get_type_list_str() << "
+            // >";
+            THROW_TODO;
             trait_struct[ "traits" ].push_back( osTrait.str() );
         }
 
         return trait_struct;
     }
-
 
 public:
     static void recurse( TemplateEngine& templateEngine, InterfaceNode::Ptr pInterfaceNode, nlohmann::json& structs,
@@ -406,14 +406,20 @@ public:
                     contextData[ "has_operation" ]         = true;
                     contextData[ "operation_return_type" ] = "void";
 
-                    if( pInterupt->get_opt_arguments_trait().has_value() )
+                    auto        pEvents = pInterupt->get_events_trait();
+                    const auto& args    = pEvents->get_args();
+
                     {
-                        contextData[ "operation_parameters" ] = pInterupt->get_opt_arguments_trait().value()->get_str();
+                        std::ostringstream osParameters;
+                        for( int i = 0; i != args.size(); ++i )
+                        {
+                            if( i > 0 )
+                                osParameters << ", ";
+                            osParameters << "const mega::reference& _p" << i;
+                        }
+                        contextData[ "operation_parameters" ] = osParameters.str();
                     }
-                    else
-                    {
-                        contextData[ "operation_parameters" ] = "";
-                    }
+
                     const nlohmann::json& trait = getInteruptTraits( typenames, pInterupt );
                     contextData[ "trait_structs" ].push_back( trait );
                     structs.push_back( trait );
@@ -428,10 +434,11 @@ public:
                     bFoundType                             = true;
                     contextData[ "has_operation" ]         = true;
                     contextData[ "operation_return_type" ] = pFunction->get_return_type_trait()->get_str();
-                    contextData[ "operation_parameters" ]  = pFunction->get_arguments_trait()->get_str();
+                    std::ostringstream osArgs;
+                    osArgs << pFunction->get_arguments_trait();
+                    contextData[ "operation_parameters" ] = osArgs.str();
 
-                    if( !pFunction->get_return_type_trait()->get_str().empty()
-                        || !pFunction->get_arguments_trait()->get_str().empty() )
+                    if( !pFunction->get_return_type_trait()->get_str().empty() || !osArgs.str().empty() )
                     {
                         const nlohmann::json& trait
                             = getFunctionTraits( typenames, pFunction, pFunction->get_return_type_trait() );

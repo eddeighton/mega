@@ -478,49 +478,22 @@ public:
         using namespace InterfaceStage;
 
         Interface::EventTypeTrait*                      pEventsTrait = nullptr;
-        std::optional< Interface::ArgumentListTrait* >  argumentsListTrait;
         std::optional< Interface::SuccessorTypeTrait* > successor;
 
-        std::string strArguments, strSuccessor;
+        mega::Argument::Vector args;
         for( Parser::InteruptDef* pDef : pInterupt->get_interupt_defs() )
         {
             Parser::ArgumentList* pArguments = pDef->get_argumentList();
             {
                 if( !pEventsTrait )
                 {
-                    strArguments         = pArguments->get_str();
-                    bool bIsArgumentList = false;
-
-                    std::string strEvents;
-                    {
-                        // determine if the argument list specifies a manually handled event
-                        // OR an interupt type list
-                        if( strArguments.starts_with( "Event" ) )
-                        {
-                            bIsArgumentList = true;
-                            auto iStart     = strArguments.find_first_of( '<' );
-                            auto iEnd       = strArguments.find_last_of( '>' );
-                            VERIFY_RTE_MSG( iStart < iEnd, "Invalid Events string: " << strArguments );
-                            strEvents = strArguments.substr( iStart + 1, iEnd );
-                        }
-                        else
-                        {
-                            strEvents = strArguments;
-                        }
-                    }
                     pEventsTrait = database.construct< Interface::EventTypeTrait >(
-                        Interface::EventTypeTrait::Args{ strEvents } );
-
-                    if( bIsArgumentList )
-                    {
-                        argumentsListTrait = database.construct< Interface::ArgumentListTrait >(
-                            Interface::ArgumentListTrait::Args{ pArguments } );
-                    }
+                        Interface::EventTypeTrait::Args{ pArguments } );
+                    args = pArguments->get_args();
                 }
                 else
                 {
-                    VERIFY_PARSER(
-                        strArguments == pArguments->get_str(), "Function arguments mismatch", pDef->get_id() );
+                    VERIFY_PARSER( args == pArguments->get_args(), "Function arguments mismatch", pDef->get_id() );
                 }
             }
             collectSuccessorTrait( database, pDef, successor );
@@ -529,7 +502,6 @@ public:
         VERIFY_PARSER( pEventsTrait, "Interupt missing events list", pInterupt->get_interupt_defs().front()->get_id() );
 
         pInterupt->set_events_trait( pEventsTrait );
-        pInterupt->set_opt_arguments_trait( argumentsListTrait );
         pInterupt->set_successor_trait( successor );
     }
     void onFunction( InterfaceStage::Database& database, InterfaceStage::Interface::Function* pFunction )
@@ -539,24 +511,23 @@ public:
         Interface::ArgumentListTrait* pArgumentListTrait = nullptr;
         Interface::ReturnTypeTrait*   pReturnTypeTrait   = nullptr;
 
-        std::string strArguments, strReturnType;
+        mega::Argument::Vector args;
+        std::string            strReturnType;
         for( Parser::FunctionDef* pDef : pFunction->get_function_defs() )
         {
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
 
             Parser::ArgumentList* pArguments = pDef->get_argumentList();
-            // if ( !pArguments->get_str().empty() )
             {
                 if( !pArgumentListTrait )
                 {
                     pArgumentListTrait = database.construct< Interface::ArgumentListTrait >(
                         Interface::ArgumentListTrait::Args{ pArguments } );
-                    strArguments = pArguments->get_str();
+                    args = pArguments->get_args();
                 }
                 else
                 {
-                    VERIFY_PARSER(
-                        strArguments == pArguments->get_str(), "Function arguments mismatch", pDef->get_id() );
+                    VERIFY_PARSER( args == pArguments->get_args(), "Function arguments mismatch", pDef->get_id() );
                 }
             }
 

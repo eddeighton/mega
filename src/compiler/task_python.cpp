@@ -137,13 +137,16 @@ public:
                 hash ^= strParamType;
             }
 
+            std::ostringstream osArgs;
+            osArgs << pFunction->get_arguments_trait()->get_args();
+
             nlohmann::json operation( { { "return_type", pFunction->get_return_type_trait()->get_str() },
                                         { "hash", hash.toHexString() },
                                         { "typeID", pFunction->get_interface_id().getSymbolID() },
                                         { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },
                                         { "types", types },
-                                        { "params_string", pFunction->get_arguments_trait()->get_str() },
+                                        { "params_string", osArgs.str() },
                                         { "params", nlohmann::json::array() } } );
             {
                 int iParamCounter = 1;
@@ -307,8 +310,7 @@ public:
         using namespace FinalStage;
         using namespace FinalStage::Interface;
 
-        const mega::io::GeneratedCPPSourceFilePath implementationFile
-            = m_environment.PythonWrapper( m_sourceFilePath );
+        const mega::io::GeneratedCPPSourceFilePath implementationFile = m_environment.PythonWrapper( m_sourceFilePath );
 
         const mega::io::ObjectFilePath implementationObj = m_environment.PythonObj( m_sourceFilePath );
 
@@ -317,7 +319,7 @@ public:
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( implementationFile ) } );
 
-        if ( m_environment.restore( implementationObj, determinant ) )
+        if( m_environment.restore( implementationObj, determinant ) )
         {
             m_environment.setBuildHashCode( implementationObj );
             cached( taskProgress );
@@ -332,13 +334,13 @@ public:
             getComponent< Components::Component >( database, m_sourceFilePath ),
             m_sourceFilePath );
 
-        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
+        if( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             failed( taskProgress );
             return;
         }
 
-        if ( m_environment.exists( implementationObj ) )
+        if( m_environment.exists( implementationObj ) )
         {
             m_environment.setBuildHashCode( implementationObj );
             m_environment.stash( implementationObj, determinant );
@@ -352,7 +354,7 @@ public:
 };
 
 BaseTask::Ptr create_Task_PythonObject( const TaskArguments&          taskArguments,
-                                             const mega::io::megaFilePath& sourceFilePath )
+                                        const mega::io::megaFilePath& sourceFilePath )
 {
     return std::make_unique< Task_PythonObject >( taskArguments, sourceFilePath );
 }

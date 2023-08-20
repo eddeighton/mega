@@ -246,7 +246,9 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
         node[ "label" ] = os.str();
         {
             nlohmann::json arguments;
-            PROP( arguments, "arguments", pFunction->get_arguments_trait()->get_str() );
+            std::ostringstream osArgs;
+            osArgs << pFunction->get_arguments_trait()->get_args();
+            PROP( arguments, "arguments", osArgs.str() );
             node[ "properties" ].push_back( arguments );
         }
         {
@@ -366,8 +368,10 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
         os << "Function: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         {
+            std::ostringstream osArgs;
+            osArgs << pFunction->get_interface_function()->get_arguments_trait()->get_args();
             nlohmann::json arguments;
-            PROP( arguments, "arguments", pFunction->get_interface_function()->get_arguments_trait()->get_str() );
+            PROP( arguments, "arguments", osArgs.str() );
             node[ "properties" ].push_back( arguments );
         }
         {

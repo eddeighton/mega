@@ -500,6 +500,15 @@ public:
         {
             if( auto pInterupt = db_cast< Interupt >( pContext ) )
             {
+                auto pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
+                if( !pCXXRecordDecl )
+                {
+                    std::ostringstream os;
+                    os << "Invalid invocation context type: " << pContext->get_identifier() << "("
+                       << pContext->get_interface_id() << ")";
+                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                    return false;
+                }
                 
 
                 bProcess = true;

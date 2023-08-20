@@ -201,6 +201,9 @@ private:
                 }
             }
 
+            std::ostringstream osArgs;
+            osArgs << pFunction->get_arguments_trait();
+
             nlohmann::json operation( {
 
                 { "return_type", pFunction->get_return_type_trait()->get_str() },
@@ -210,7 +213,7 @@ private:
                 { "has_namespaces", !namespaces.empty() },
                 { "namespaces", namespaces },
                 { "types", types },
-                { "params_string", pFunction->get_arguments_trait()->get_str() },
+                { "params_string", osArgs.str() },
                 { "params", nlohmann::json::array() } } );
             {
                 int iParamCounter = 1;

@@ -65,10 +65,18 @@ namespace Interface
         array< value< std::string > > canonical_types  -> InterfaceAnalysisStage::Clang;
     }
 
-    object EventTypeTrait -> InterfaceStage::Tree
+    object TypePath -> InterfaceAnalysisStage::Clang
     {
-        value< std::string > type_list_str;
-        array< value< std::string > > canonical_types  -> InterfaceAnalysisStage::Clang;
+        array< ref< Symbols::SymbolTypeID > > types;
+    }
+    object TypePathVariant -> InterfaceAnalysisStage::Clang
+    {
+        array< ref< TypePath > > sequence;
+    }
+    object EventTypeTrait : Parser::ArgumentList -> InterfaceStage::Tree
+    {
+        // each argument may be a variant of type paths
+        array< ref< TypePathVariant > > tuple  -> InterfaceAnalysisStage::Clang;
     }
 
     object SizeTrait : Parser::Size -> InterfaceStage::Tree
@@ -144,7 +152,6 @@ namespace Interface
     {
         array< ref< Parser::InteruptDef > > interupt_defs;
         late< ref< EventTypeTrait > > events_trait;
-        late< opt< ref< ArgumentListTrait > > > opt_arguments_trait;
         late< opt< ref< SuccessorTypeTrait > > > successor_trait;
     }
     object Function : InvocationContext -> InterfaceStage::Tree
