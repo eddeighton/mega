@@ -383,6 +383,217 @@ bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath,
     }
 }
 
+bool isVariant( ASTContext* pASTContext, QualType typePath )
+{
+    if( const IdentifierInfo* pBaseTypeID = typePath.getBaseTypeIdentifier() )
+    {
+        return pBaseTypeID == pASTContext->getEGVariantName();
+    }
+    return false;
+}
+
+bool getTypePathVariantSymbolIDs( ASTContext* pASTContext, QualType typePath,
+                                  std::vector< std::vector< mega::TypeID > >& result )
+{
+    if( isVariant( pASTContext, typePath ) )
+    {
+        if( const TemplateSpecializationType* pTemplateType = typePath->getAs< TemplateSpecializationType >() )
+        {
+            if( pTemplateType->getNumArgs() == 0U )
+                return false;
+
+            for( TemplateSpecializationType::iterator pIter = pTemplateType->begin(), pIterEnd = pTemplateType->end();
+                 pIter != pIterEnd;
+                 ++pIter )
+            {
+                if( isVariant( pASTContext, pIter->getAsType().getCanonicalType() ) )
+                {
+                    if( !getTypePathVariantSymbolIDs( pASTContext, pIter->getAsType().getCanonicalType(), result ) )
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    std::vector< mega::TypeID > typePathTypes;
+                    if( !getTypePathSymbolIDs( pASTContext, pIter->getAsType(), typePathTypes ) )
+                        return false;
+                    result.emplace_back( std::move( typePathTypes ) );
+                }
+            }
+            return true;
+        }
+        else if( auto pDependentTemplateType
+                 = dyn_cast< const DependentTemplateSpecializationType >( typePath.getTypePtr() ) )
+        {
+            return false;
+        }
+        else if( const RecordType* pRecordType = typePath->getAs< RecordType >() )
+        {
+            if( const CXXRecordDecl* pRecordDecl = dyn_cast< CXXRecordDecl >( pRecordType->getDecl() ) )
+            {
+                if( const auto* Spec = dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl ) )
+                {
+                    bool                        bSuccess = false;
+                    const TemplateArgumentList& Args     = Spec->getTemplateInstantiationArgs();
+                    for( unsigned i = 0; i < Args.size(); ++i )
+                    {
+                        const TemplateArgument& arg = Args[ i ];
+
+                        if( arg.getKind() == TemplateArgument::Pack )
+                        {
+                            for( TemplateArgument::pack_iterator j = arg.pack_begin(), jEnd = arg.pack_end(); j != jEnd;
+                                 ++j )
+                            {
+                                const TemplateArgument& packArg = *j;
+                                if( isVariant( pASTContext, packArg.getAsType().getCanonicalType() ) )
+                                {
+                                    if( !getTypePathVariantSymbolIDs(
+                                            pASTContext, packArg.getAsType().getCanonicalType(), result ) )
+                                    {
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    std::vector< mega::TypeID > typePath;
+                                    if( !getTypePathSymbolIDs(
+                                            pASTContext, packArg.getAsType().getCanonicalType(), typePath ) )
+                                    {
+                                        return false;
+                                    }
+                                    result.emplace_back( std::move( typePath ) );
+                                }
+                            }
+                        }
+                        else if( arg.getKind() == TemplateArgument::Type )
+                        {
+                            if( isVariant( pASTContext, arg.getAsType().getCanonicalType() ) )
+                            {
+                                if( !getTypePathVariantSymbolIDs(
+                                        pASTContext, arg.getAsType().getCanonicalType(), result ) )
+                                {
+                                    return false;
+                                }
+                            }
+                            else
+                            {
+                                std::vector< mega::TypeID > typePath;
+                                if( !getTypePathSymbolIDs( pASTContext, arg.getAsType().getCanonicalType(), typePath ) )
+                                {
+                                    return false;
+                                }
+                                result.emplace_back( std::move( typePath ) );
+                            }
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+    else
+    {
+        std::vector< mega::TypeID > typePathTypes;
+        if( !getTypePathSymbolIDs( pASTContext, typePath, typePathTypes ) )
+            return false;
+        result.emplace_back( std::move( typePathTypes ) );
+        return true;
+    }
+    return false;
+}
+
+bool getTypePathVariantTupleSymbolIDs( ASTContext* pASTContext, QualType typePath,
+                                       std::vector< std::vector< std::vector< mega::TypeID > > >& result )
+{
+    QualType              canonicalType = typePath.getCanonicalType();
+    const IdentifierInfo* pBaseTypeID   = canonicalType.getBaseTypeIdentifier();
+    if( !pBaseTypeID )
+        return false;
+
+    if( pBaseTypeID == pASTContext->getEGTypePathName() )
+    {
+        if( const TemplateSpecializationType* pTemplateType = canonicalType->getAs< TemplateSpecializationType >() )
+        {
+            for( TemplateSpecializationType::iterator pOuterTypePathIter    = pTemplateType->begin(),
+                                                      pOuterTypePathIterEnd = pTemplateType->end();
+                 pOuterTypePathIter != pOuterTypePathIterEnd;
+                 ++pOuterTypePathIter )
+            {
+                std::vector< std::vector< mega::TypeID > > variantTypePath;
+                if( !getTypePathVariantSymbolIDs(
+                        pASTContext, pOuterTypePathIter->getAsType().getCanonicalType(), variantTypePath ) )
+                {
+                    return false;
+                }
+                result.emplace_back( std::move( variantTypePath ) );
+            }
+            return true;
+        }
+        else if( auto pDependentTemplateType
+                 = dyn_cast< const DependentTemplateSpecializationType >( canonicalType.getTypePtr() ) )
+        {
+            return false;
+        }
+        else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+        {
+            const CXXRecordDecl* pRecordDecl = dyn_cast< CXXRecordDecl >( pRecordType->getDecl() );
+            if( !pRecordDecl )
+                return false;
+
+            const auto* Spec = dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl );
+            if( !Spec )
+                return false;
+
+            {
+                bool                        bSuccess = false;
+                const TemplateArgumentList& Args     = Spec->getTemplateInstantiationArgs();
+                for( unsigned i = 0; i < Args.size(); ++i )
+                {
+                    const TemplateArgument& arg = Args[ i ];
+
+                    if( arg.getKind() == TemplateArgument::Pack )
+                    {
+                        for( TemplateArgument::pack_iterator j = arg.pack_begin(), jEnd = arg.pack_end(); j != jEnd;
+                             ++j )
+                        {
+                            const TemplateArgument&                    packArg = *j;
+                            std::vector< std::vector< mega::TypeID > > variantTypePath;
+                            if( !getTypePathVariantSymbolIDs(
+                                    pASTContext, packArg.getAsType().getCanonicalType(), variantTypePath ) )
+                            {
+                                return false;
+                            }
+                            result.emplace_back( std::move( variantTypePath ) );
+                        }
+                    }
+                    else if( arg.getKind() == TemplateArgument::Type )
+                    {
+                        std::vector< std::vector< mega::TypeID > > variantTypePath;
+                        if( !getTypePathVariantSymbolIDs(
+                                pASTContext, arg.getAsType().getCanonicalType(), variantTypePath ) )
+                        {
+                            return false;
+                        }
+                        result.emplace_back( std::move( variantTypePath ) );
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::optional< ::mega::U64 > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext,
                                           const SourceLocation& loc, const std::string& strConstantName )
 {

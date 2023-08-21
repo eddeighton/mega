@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef CLANG_UTILS_19_04_2019
 #define CLANG_UTILS_19_04_2019
 
@@ -48,9 +46,14 @@ std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType t
 
 const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters );
 
-bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, mega::InvocationID::SymbolIDVector& contextTypes );
+bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType,
+                          mega::InvocationID::SymbolIDVector& contextTypes );
 
-bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, mega::InvocationID::SymbolIDVector& typePathTypes );
+bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath,
+                           mega::InvocationID::SymbolIDVector& typePathTypes );
+
+bool getTypePathVariantTupleSymbolIDs( ASTContext* pASTContext, QualType typePath,
+                                       std::vector< std::vector< std::vector< mega::TypeID > > >& result );
 
 std::optional< ::mega::U64 > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext,
                                           const SourceLocation& loc, const std::string& strConstantName );
@@ -59,7 +62,7 @@ QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDec
                          const std::vector< QualType >& typeParameters );
 
 QualType getVectorConstRefType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                         const QualType& valueType );
+                                const QualType& valueType );
 
 QualType getIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
                                const clang::QualType& interfaceType, const char* pszIteratorTypeName );
@@ -75,9 +78,9 @@ QualType getUIntType( ASTContext* pASTContext );
 
 QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext*& pDeclContext, const SourceLocation& loc,
                        const std::string& strTypeName );
-                       /*
+/*
 QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName, DeclContext*& pDeclContext,
-                  SourceLocation& loc, bool bLast );*/
+SourceLocation& loc, bool bLast );*/
 
 struct DeclLocType
 {

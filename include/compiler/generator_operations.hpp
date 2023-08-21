@@ -149,11 +149,10 @@ private:
             auto               pEvents = pInterupt->get_events_trait();
             const auto&        args    = pEvents->get_args();
             {
-                std::ostringstream osParameters;
                 for( int i = 0; i != args.size(); ++i )
                 {
                     if( i > 0 )
-                        osParameters << ", ";
+                        osArgs << ", ";
                     osArgs << "const mega::reference& _p" << i;
                 }
             }

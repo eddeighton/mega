@@ -228,11 +228,11 @@ private:
     }
 
     template < typename TContextType >
-    static nlohmann::json getInteruptTraits( const nlohmann::json& typenames, TContextType* pInterupt )
+    static nlohmann::json getEventsTrait( const nlohmann::json& typenames, TContextType* pInterupt )
     {
         nlohmann::json     traitNames = typenames;
         std::ostringstream os;
-        os << mega::EG_INTERUPT_TRAIT_TYPE;
+        os << mega::EG_EVENTS_TRAIT_TYPE;
         traitNames.push_back( os.str() );
 
         nlohmann::json trait_struct( { { "name", os.str() },
@@ -241,7 +241,7 @@ private:
                                        { "traits", nlohmann::json::array() } } );
         {
             std::ostringstream osTrait;
-            osTrait << "using Events = __eg_type_path< ";
+            osTrait << "using Type = __eg_type_path< ";
             bool bFirst = true;
             for( const auto& arg : pInterupt->get_events_trait()->get_args() )
             {
@@ -252,6 +252,28 @@ private:
                 osTrait << arg.getType();
             }
             osTrait << " >";
+            trait_struct[ "traits" ].push_back( osTrait.str() );
+        }
+
+        return trait_struct;
+    }
+
+    template < typename TContextType >
+    static nlohmann::json getTransitionTraits( const nlohmann::json& typenames, TContextType* pContext,
+                                               TransitionTypeTrait* transitionTrait )
+    {
+        nlohmann::json     traitNames = typenames;
+        std::ostringstream os;
+        os << mega::EG_TRANSITION_TRAIT_TYPE;
+        traitNames.push_back( os.str() );
+
+        nlohmann::json trait_struct( { { "name", os.str() },
+                                       { "typeid", toHex( pContext->get_interface_id() ) },
+                                       { "types", traitNames },
+                                       { "traits", nlohmann::json::array() } } );
+        {
+            std::ostringstream osTrait;
+            osTrait << "using Type = __eg_type_path< " << transitionTrait->get_str() << " >";
             trait_struct[ "traits" ].push_back( osTrait.str() );
         }
 
@@ -374,6 +396,15 @@ public:
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
+
+                    if( pAction->get_transition_trait().has_value() )
+                    {
+                        const nlohmann::json& trait
+                            = getTransitionTraits( typenames, pAction, pAction->get_transition_trait().value() );
+                        contextData[ "trait_structs" ].push_back( trait );
+                        structs.push_back( trait );
+                    }
+
                     templateEngine.renderContext( contextData, os );
                 }
             }
@@ -425,11 +456,19 @@ public:
                             osParameters << "const mega::reference& _p" << i;
                         }
                         contextData[ "operation_parameters" ] = osParameters.str();
+
+                        const nlohmann::json& trait = getEventsTrait( typenames, pInterupt );
+                        contextData[ "trait_structs" ].push_back( trait );
+                        structs.push_back( trait );
                     }
 
-                    const nlohmann::json& trait = getInteruptTraits( typenames, pInterupt );
-                    contextData[ "trait_structs" ].push_back( trait );
-                    structs.push_back( trait );
+                    if( pInterupt->get_transition_trait().has_value() )
+                    {
+                        const nlohmann::json& trait
+                            = getTransitionTraits( typenames, pInterupt, pInterupt->get_transition_trait().value() );
+                        contextData[ "trait_structs" ].push_back( trait );
+                        structs.push_back( trait );
+                    }
 
                     templateEngine.renderContext( contextData, os );
                 }

@@ -97,6 +97,11 @@ public:
 
     ScopedIdentifier* parse_scopedIdentifier( Database& database )
     {
+        if( !Tok.is( clang::tok::identifier ) )
+        {
+            MEGA_PARSER_ERROR( "Expected identifier" );
+        }
+
         const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
         const mega::U64   szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
 
@@ -117,6 +122,28 @@ public:
                 MEGA_PARSER_ERROR( "Expected identifier" );
             }
         }
+        return database.construct< ScopedIdentifier >(
+            ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
+    }
+
+    ScopedIdentifier* generate_unamedScopeIdentifier( Database& database )
+    {
+        const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
+        const mega::U64   szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
+
+        std::string strName;
+        {
+            std::ostringstream osName;
+            osName << "_anon_" << strFileName << '_' << szLineNumber;
+            strName = osName.str();
+            boost::replace_all( strName, "/", "_" );
+            boost::replace_all( strName, ".", "_" );
+            boost::replace_all( strName, " ", "_" );
+        }
+
+        std::vector< Identifier* > identifiers;
+        identifiers.push_back( database.construct< Identifier >( Identifier::Args{ strName } ) );
+
         return database.construct< ScopedIdentifier >(
             ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
     }
@@ -203,14 +230,30 @@ public:
         return database.construct< ReturnType >( ReturnType::Args{ str } );
     }
 
-    Successor* parse_successor( Database& database )
+    Transition* parse_transition( Database& database )
     {
         std::string str;
-        if( Tok.is( clang::tok::arrow ) )
-        {
-            parse_comment();
-            ConsumeAnyToken();
 
+        bool isSuccessor = false;
+        bool isPredecessor = false;
+        
+        parse_comment();
+
+        if( Tok.is( clang::tok::greater ) )
+        {
+            isSuccessor = true;
+            ConsumeAnyToken();
+        }
+        else if( Tok.is( clang::tok::less ) )
+        {
+            isPredecessor = true;
+            ConsumeAnyToken();
+        }
+
+        parse_comment();
+
+        if( isSuccessor || isPredecessor )
+        {
             clang::SourceLocation startLoc = Tok.getLocation();
             clang::SourceLocation endLoc   = Tok.getEndLoc();
             parse_comment();
@@ -222,7 +265,6 @@ public:
                 parse_comment();
                 ConsumeAnyToken();
             }
-
             {
                 if( !getSourceText( startLoc, endLoc, str ) )
                 {
@@ -230,7 +272,7 @@ public:
                 }
             }
         }
-        return database.construct< Successor >( Successor::Args{ str } );
+        return database.construct< Transition >( Transition::Args{ isSuccessor, isPredecessor, str } );
     }
 
     Inheritance* parse_inheritance( Database& database, bool bSkipColon = false )
@@ -358,12 +400,7 @@ public:
             //           << " to: " << endLoc.printToString( sm ) << " from offset: " << sm.getFileOffset( startLoc )
             //           << " to offset: " << sm.getFileOffset( endLoc ) << std::endl;
 
-            Initialiser::Args initArgs =
-            {
-                strInitialiser,
-                sm.getFileOffset( startLoc ),
-                sm.getFileOffset( endLoc )
-            };
+            Initialiser::Args initArgs = { strInitialiser, sm.getFileOffset( startLoc ), sm.getFileOffset( endLoc ) };
 
             args.initialiser = database.construct< Initialiser >( initArgs );
 
@@ -629,11 +666,20 @@ public:
 
     InteruptDef* parse_interupt( Database& database )
     {
-        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
+        ScopedIdentifier* pScopedIdentifier = nullptr;
+        if( Tok.is( clang::tok::identifier ) )
+        {
+            pScopedIdentifier = parse_scopedIdentifier( database );
+        }
+        else
+        {
+            pScopedIdentifier = generate_unamedScopeIdentifier( database );
+        }
+
         parse_comment();
         ArgumentList* pArgumentList = parse_argumentList( database );
         parse_comment();
-        Successor* pSuccessor = parse_successor( database );
+        Transition* pTransition = parse_transition( database );
         parse_comment();
 
         ContextDef::Args body = defaultBody( pScopedIdentifier );
@@ -655,7 +701,7 @@ public:
             }
         }
 
-        return database.construct< InteruptDef >( InteruptDef::Args{ body, pArgumentList, pSuccessor } );
+        return database.construct< InteruptDef >( InteruptDef::Args{ body, pArgumentList, pTransition } );
     }
 
     FunctionDef* parse_function( Database& database )
@@ -906,7 +952,7 @@ public:
         parse_comment();
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
-        Successor* pSuccessor = parse_successor( database );
+        Transition* pTransition = parse_transition( database );
         parse_comment();
 
         ContextDef::Args body = defaultBody( pScopedIdentifier );
@@ -928,7 +974,7 @@ public:
             }
         }
 
-        return database.construct< ActionDef >( ActionDef::Args{ body, pSize, pInheritance, pSuccessor } );
+        return database.construct< ActionDef >( ActionDef::Args{ body, pSize, pInheritance, pTransition } );
     }
 
     ContextDef::Args parse_context_body( Database& database, ScopedIdentifier* pScopedIdentifier )
@@ -1132,7 +1178,7 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 };
 
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;
-MEGA_PARSER_EXPORT EG_PARSER_IMPL g_parserSymbol;
+MEGA_PARSER_EXPORT EG_PARSER_IMPL             g_parserSymbol;
 
 /*
 std::unique_ptr< EG_PARSER_INTERFACE > getParser()

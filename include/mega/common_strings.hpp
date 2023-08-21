@@ -49,8 +49,9 @@ namespace mega
     static const char* EG_VARIANT_TYPE = "__eg_variant";
     static const char* EG_INVOKE_MEMBER_FUNCTION_NAME = "invoke";
     static const char* EG_RESULT_TRAIT_TYPE = "__eg_result_type";
-    static const char* EG_FUNCTION_TRAIT_TYPE = "__FTraits";
-    static const char* EG_INTERUPT_TRAIT_TYPE = "__ITraits";
+    static const char* EG_FUNCTION_TRAIT_TYPE = "__Function";
+    static const char* EG_EVENTS_TRAIT_TYPE = "__Events";
+    static const char* EG_TRANSITION_TRAIT_TYPE = "__Transition";
     static const char* EG_BASE_PREFIX_TRAIT_TYPE = "__Base";
     static const char* EG_SIZE_PREFIX_TRAIT_TYPE = "__Size";
     static const char* EG_TRAITS_SIZE = "Size";

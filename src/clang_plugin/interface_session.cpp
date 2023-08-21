@@ -422,6 +422,146 @@ public:
         return true;
     }
 
+    bool convert( const std::vector< mega::TypeID >& types, std::vector< Symbols::SymbolTypeID* >& result )
+    {
+        for( mega::TypeID symbolID : types )
+        {
+            auto iFind = m_symbolIDs.find( symbolID );
+            if( iFind != m_symbolIDs.end() )
+            {
+                Symbols::SymbolTypeID* pSymbol = iFind->second;
+                result.push_back( pSymbol );
+            }
+            else
+            {
+                // may be Interface reference type
+                auto iFind2 = m_interfaceTypeIDs.find( symbolID );
+                if( iFind2 != m_interfaceTypeIDs.end() )
+                {
+                    Symbols::InterfaceTypeID* pInterfaceTypeID = iFind2->second;
+                    auto                      iFind3 = m_symbolIDs.find( pInterfaceTypeID->get_symbol_ids().back() );
+                    if( iFind3 != m_symbolIDs.end() )
+                    {
+                        Symbols::SymbolTypeID* pSymbol = iFind3->second;
+                        result.push_back( pSymbol );
+                    }
+                    else
+                    {
+                        std::ostringstream os;
+                        os << "Invalid type: " << symbolID;
+                        pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                        return false;
+                    }
+                }
+                else
+                {
+                    // diag
+                    std::ostringstream os;
+                    os << "Invalid type: " << symbolID;
+                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    using TypePathVariantTuple = std::vector< std::vector< std::vector< mega::TypeID > > >;
+    bool convert( const TypePathVariantTuple& type, std::vector< Interface::TypePathVariant* >& result )
+    {
+        for( const auto& element : type )
+        {
+            std::vector< Interface::TypePath* > variantTypes;
+            for( const auto& path : element )
+            {
+                std::vector< Symbols::SymbolTypeID* > typePath;
+                if( !convert( path, typePath ) )
+                {
+                    return false;
+                }
+
+                Interface::TypePath* pTypePath
+                    = m_database.construct< Interface::TypePath >( Interface::TypePath::Args{ typePath } );
+                variantTypes.push_back( pTypePath );
+            }
+
+            Interface::TypePathVariant* pTypePathVariant = m_database.construct< Interface::TypePathVariant >(
+                Interface::TypePathVariant::Args{ variantTypes } );
+            result.push_back( pTypePathVariant );
+        }
+        return true;
+    }
+
+    template < typename TContextType >
+    bool transitionAnalysis( TContextType* pContext, Interface::TransitionTypeTrait* pTransitionTrait,
+                             SourceLocation loc, DeclContext* pDeclContext )
+    {
+        DeclLocType interuptTypeResult
+            = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, ::mega::EG_TRANSITION_TRAIT_TYPE );
+        if( !interuptTypeResult.pDeclContext )
+        {
+            return false;
+        }
+        else
+        {
+            // determine the type
+            QualType typeType
+                = getTypeTrait( pASTContext, pSema, interuptTypeResult.pDeclContext, interuptTypeResult.loc, "Type" );
+            QualType typeTypeCanonical = typeType.getCanonicalType();
+
+            std::vector< std::vector< std::vector< mega::TypeID > > > result;
+            if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
+            {
+                return false;
+            }
+
+            std::vector< Interface::TypePathVariant* > transitionType;
+            if( !convert( result, transitionType ) )
+            {
+                return false;
+            }
+            m_database.construct< Interface::TransitionTypeTrait >(
+                Interface::TransitionTypeTrait::Args{ pTransitionTrait, transitionType } );
+        }
+
+        return true;
+    }
+
+    template < typename TContextType >
+    bool eventAnalysis( TContextType* pContext, Interface::EventTypeTrait* pEventTrait, SourceLocation loc,
+                        DeclContext* pDeclContext )
+    {
+        DeclLocType eventTypeResult
+            = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, ::mega::EG_EVENTS_TRAIT_TYPE );
+        if( !eventTypeResult.pDeclContext )
+        {
+            return false;
+        }
+        else
+        {
+            // determine the type
+            QualType typeType
+                = getTypeTrait( pASTContext, pSema, eventTypeResult.pDeclContext, eventTypeResult.loc, "Type" );
+            QualType typeTypeCanonical = typeType.getCanonicalType();
+
+            std::vector< std::vector< std::vector< mega::TypeID > > > result;
+            if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
+            {
+                return false;
+            }
+
+            std::vector< Interface::TypePathVariant* > eventType;
+            if( !convert( result, eventType ) )
+            {
+                return false;
+            }
+            m_database.construct< Interface::EventTypeTrait >(
+                Interface::EventTypeTrait::Args{ pEventTrait, eventType } );
+        }
+
+        return true;
+    }
+
     bool interfaceAnalysis( IContext* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
         DeclLocType result = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pContext->get_identifier() );
@@ -476,6 +616,11 @@ public:
                     if( !sizeAnalysis( pAction, sizeOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
+                if( std::optional< Interface::TransitionTypeTrait* > transitionOpt = pAction->get_transition_trait() )
+                {
+                    if( !transitionAnalysis( pAction, transitionOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
+                }
                 bProcess = true;
             }
         }
@@ -509,7 +654,17 @@ public:
                     pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                     return false;
                 }
-                
+
+                if( std::optional< Interface::TransitionTypeTrait* > transitionOpt = pInterupt->get_transition_trait() )
+                {
+                    if( !transitionAnalysis( pInterupt, transitionOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
+                }
+
+                if( !eventAnalysis( pInterupt, pInterupt->get_events_trait(), result.loc, pCXXRecordDecl ) )
+                {
+                    return false;
+                }
 
                 bProcess = true;
             }

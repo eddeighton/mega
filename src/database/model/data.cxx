@@ -456,40 +456,56 @@ namespace AST
         }
     }
         
-    // struct Parser_Successor : public mega::io::Object
-    Parser_Successor::Parser_Successor( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Successor >( loader, this ) )    {
+    // struct Parser_Transition : public mega::io::Object
+    Parser_Transition::Parser_Transition( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Transition >( loader, this ) )    {
     }
-    Parser_Successor::Parser_Successor( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Successor >( loader, this ) )          , str( str )
+    Parser_Transition::Parser_Transition( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& is_successor, const bool& is_predecessor, const std::string& str)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Transition >( loader, this ) )          , is_successor( is_successor )
+          , is_predecessor( is_predecessor )
+          , str( str )
     {
     }
-    bool Parser_Successor::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Parser_Transition::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::AST::Parser_Successor >( loader, const_cast< Parser_Successor* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::AST::Parser_Transition >( loader, const_cast< Parser_Transition* >( this ) ) };
     }
-    void Parser_Successor::set_inheritance_pointer()
+    void Parser_Transition::set_inheritance_pointer()
     {
     }
-    void Parser_Successor::load( mega::io::Loader& loader )
+    void Parser_Transition::load( mega::io::Loader& loader )
     {
+        loader.load( is_successor );
+        loader.load( is_predecessor );
         loader.load( str );
     }
-    void Parser_Successor::store( mega::io::Storer& storer ) const
+    void Parser_Transition::store( mega::io::Storer& storer ) const
     {
+        storer.store( is_successor );
+        storer.store( is_predecessor );
         storer.store( str );
     }
-    void Parser_Successor::to_json( nlohmann::json& _part__ ) const
+    void Parser_Transition::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Parser_Successor" },
+                { "partname", "Parser_Transition" },
                 { "filetype" , "AST" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "is_successor", is_successor } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "is_predecessor", is_predecessor } } );
+            _part__[ "properties" ].push_back( property );
+        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "str", str } } );
@@ -1281,14 +1297,14 @@ namespace AST
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ActionDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
           , size( loader )
           , inheritance( loader )
-          , successor( loader )
+          , transition( loader )
     {
     }
-    Parser_ActionDef::Parser_ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_Size >& size, const data::Ptr< data::AST::Parser_Inheritance >& inheritance, const data::Ptr< data::AST::Parser_Successor >& successor)
+    Parser_ActionDef::Parser_ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_Size >& size, const data::Ptr< data::AST::Parser_Inheritance >& inheritance, const data::Ptr< data::AST::Parser_Transition >& transition)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ActionDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
           , size( size )
           , inheritance( inheritance )
-          , successor( successor )
+          , transition( transition )
     {
     }
     bool Parser_ActionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -1304,14 +1320,14 @@ namespace AST
         loader.load( p_AST_Parser_ContextDef );
         loader.load( size );
         loader.load( inheritance );
-        loader.load( successor );
+        loader.load( transition );
     }
     void Parser_ActionDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_ContextDef );
         storer.store( size );
         storer.store( inheritance );
-        storer.store( successor );
+        storer.store( transition );
     }
     void Parser_ActionDef::to_json( nlohmann::json& _part__ ) const
     {
@@ -1336,7 +1352,7 @@ namespace AST
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "successor", successor } } );
+                { "transition", transition } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -1401,13 +1417,13 @@ namespace AST
     Parser_InteruptDef::Parser_InteruptDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_InteruptDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
           , argumentList( loader )
-          , successor( loader )
+          , transition( loader )
     {
     }
-    Parser_InteruptDef::Parser_InteruptDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_ArgumentList >& argumentList, const data::Ptr< data::AST::Parser_Successor >& successor)
+    Parser_InteruptDef::Parser_InteruptDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_ArgumentList >& argumentList, const data::Ptr< data::AST::Parser_Transition >& transition)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_InteruptDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
           , argumentList( argumentList )
-          , successor( successor )
+          , transition( transition )
     {
     }
     bool Parser_InteruptDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -1422,13 +1438,13 @@ namespace AST
     {
         loader.load( p_AST_Parser_ContextDef );
         loader.load( argumentList );
-        loader.load( successor );
+        loader.load( transition );
     }
     void Parser_InteruptDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Parser_ContextDef );
         storer.store( argumentList );
-        storer.store( successor );
+        storer.store( transition );
     }
     void Parser_InteruptDef::to_json( nlohmann::json& _part__ ) const
     {
@@ -1448,7 +1464,7 @@ namespace AST
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "successor", successor } } );
+                { "transition", transition } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -1990,41 +2006,6 @@ namespace Tree
             });
     }
         
-    // struct Interface_SuccessorTypeTrait : public mega::io::Object
-    Interface_SuccessorTypeTrait::Interface_SuccessorTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_SuccessorTypeTrait >( loader, this ) )          , p_AST_Parser_Successor( loader )
-          , p_Clang_Interface_SuccessorTypeTrait( loader )
-    {
-    }
-    bool Interface_SuccessorTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Tree::Interface_SuccessorTypeTrait >( loader, const_cast< Interface_SuccessorTypeTrait* >( this ) ) };
-    }
-    void Interface_SuccessorTypeTrait::set_inheritance_pointer()
-    {
-        p_AST_Parser_Successor->m_inheritance = data::Ptr< data::Tree::Interface_SuccessorTypeTrait >( p_AST_Parser_Successor, this );
-    }
-    void Interface_SuccessorTypeTrait::load( mega::io::Loader& loader )
-    {
-        loader.load( p_AST_Parser_Successor );
-    }
-    void Interface_SuccessorTypeTrait::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_AST_Parser_Successor );
-    }
-    void Interface_SuccessorTypeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_SuccessorTypeTrait" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
     // struct Interface_ArgumentListTrait : public mega::io::Object
     Interface_ArgumentListTrait::Interface_ArgumentListTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_ArgumentListTrait >( loader, this ) )          , p_AST_Parser_ArgumentList( loader )
@@ -2052,6 +2033,41 @@ namespace Tree
         _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_ArgumentListTrait" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Interface_TransitionTypeTrait : public mega::io::Object
+    Interface_TransitionTypeTrait::Interface_TransitionTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_TransitionTypeTrait >( loader, this ) )          , p_AST_Parser_Transition( loader )
+          , p_Clang_Interface_TransitionTypeTrait( loader )
+    {
+    }
+    bool Interface_TransitionTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Tree::Interface_TransitionTypeTrait >( loader, const_cast< Interface_TransitionTypeTrait* >( this ) ) };
+    }
+    void Interface_TransitionTypeTrait::set_inheritance_pointer()
+    {
+        p_AST_Parser_Transition->m_inheritance = data::Ptr< data::Tree::Interface_TransitionTypeTrait >( p_AST_Parser_Transition, this );
+    }
+    void Interface_TransitionTypeTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_Parser_Transition );
+    }
+    void Interface_TransitionTypeTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_Parser_Transition );
+    }
+    void Interface_TransitionTypeTrait::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_TransitionTypeTrait" },
                 { "filetype" , "Tree" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -2478,7 +2494,7 @@ namespace Tree
         loader.load( dimension_traits );
         loader.load( inheritance_trait );
         loader.load( size_trait );
-        loader.load( successor_trait );
+        loader.load( transition_trait );
     }
     void Interface_Action::store( mega::io::Storer& storer ) const
     {
@@ -2490,8 +2506,8 @@ namespace Tree
         storer.store( inheritance_trait );
         VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Action.size_trait has NOT been set" );
         storer.store( size_trait );
-        VERIFY_RTE_MSG( successor_trait.has_value(), "Tree::Interface_Action.successor_trait has NOT been set" );
-        storer.store( successor_trait );
+        VERIFY_RTE_MSG( transition_trait.has_value(), "Tree::Interface_Action.transition_trait has NOT been set" );
+        storer.store( transition_trait );
     }
     void Interface_Action::to_json( nlohmann::json& _part__ ) const
     {
@@ -2526,7 +2542,7 @@ namespace Tree
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "successor_trait", successor_trait.value() } } );
+                { "transition_trait", transition_trait.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -2625,7 +2641,7 @@ namespace Tree
         loader.load( p_Tree_Interface_InvocationContext );
         loader.load( interupt_defs );
         loader.load( events_trait );
-        loader.load( successor_trait );
+        loader.load( transition_trait );
     }
     void Interface_Interupt::store( mega::io::Storer& storer ) const
     {
@@ -2633,8 +2649,8 @@ namespace Tree
         storer.store( interupt_defs );
         VERIFY_RTE_MSG( events_trait.has_value(), "Tree::Interface_Interupt.events_trait has NOT been set" );
         storer.store( events_trait );
-        VERIFY_RTE_MSG( successor_trait.has_value(), "Tree::Interface_Interupt.successor_trait has NOT been set" );
-        storer.store( successor_trait );
+        VERIFY_RTE_MSG( transition_trait.has_value(), "Tree::Interface_Interupt.transition_trait has NOT been set" );
+        storer.store( transition_trait );
     }
     void Interface_Interupt::to_json( nlohmann::json& _part__ ) const
     {
@@ -2659,7 +2675,7 @@ namespace Tree
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "successor_trait", successor_trait.value() } } );
+                { "transition_trait", transition_trait.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -3727,52 +3743,6 @@ namespace Clang
         }
     }
         
-    // struct Interface_SuccessorTypeTrait : public mega::io::Object
-    Interface_SuccessorTypeTrait::Interface_SuccessorTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Tree_Interface_SuccessorTypeTrait( loader )
-    {
-    }
-    Interface_SuccessorTypeTrait::Interface_SuccessorTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_SuccessorTypeTrait > p_Tree_Interface_SuccessorTypeTrait, const std::string& canonical_type)
-        :   mega::io::Object( objectInfo )          , p_Tree_Interface_SuccessorTypeTrait( p_Tree_Interface_SuccessorTypeTrait )
-          , canonical_type( canonical_type )
-    {
-    }
-    bool Interface_SuccessorTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Interface_SuccessorTypeTrait::set_inheritance_pointer()
-    {
-        p_Tree_Interface_SuccessorTypeTrait->p_Clang_Interface_SuccessorTypeTrait = data::Ptr< data::Clang::Interface_SuccessorTypeTrait >( p_Tree_Interface_SuccessorTypeTrait, this );
-    }
-    void Interface_SuccessorTypeTrait::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Tree_Interface_SuccessorTypeTrait );
-        loader.load( canonical_type );
-    }
-    void Interface_SuccessorTypeTrait::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Tree_Interface_SuccessorTypeTrait );
-        storer.store( canonical_type );
-    }
-    void Interface_SuccessorTypeTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_SuccessorTypeTrait" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "canonical_type", canonical_type } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
     // struct Interface_ArgumentListTrait : public mega::io::Object
     Interface_ArgumentListTrait::Interface_ArgumentListTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_ArgumentListTrait( loader )
@@ -3897,6 +3867,52 @@ namespace Clang
         {
             nlohmann::json property = nlohmann::json::object({
                 { "sequence", sequence } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Interface_TransitionTypeTrait : public mega::io::Object
+    Interface_TransitionTypeTrait::Interface_TransitionTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_TransitionTypeTrait( loader )
+    {
+    }
+    Interface_TransitionTypeTrait::Interface_TransitionTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_TransitionTypeTrait > p_Tree_Interface_TransitionTypeTrait, const std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& tuple)
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_TransitionTypeTrait( p_Tree_Interface_TransitionTypeTrait )
+          , tuple( tuple )
+    {
+    }
+    bool Interface_TransitionTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Interface_TransitionTypeTrait::set_inheritance_pointer()
+    {
+        p_Tree_Interface_TransitionTypeTrait->p_Clang_Interface_TransitionTypeTrait = data::Ptr< data::Clang::Interface_TransitionTypeTrait >( p_Tree_Interface_TransitionTypeTrait, this );
+    }
+    void Interface_TransitionTypeTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_TransitionTypeTrait );
+        loader.load( tuple );
+    }
+    void Interface_TransitionTypeTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_TransitionTypeTrait );
+        storer.store( tuple );
+    }
+    void Interface_TransitionTypeTrait::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_TransitionTypeTrait" },
+                { "filetype" , "Clang" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "tuple", tuple } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -9959,6 +9975,18 @@ std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& Interface_Object_push_b
         }
     }
 }
+std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& Interface_TransitionTypeTrait_push_back_tuple(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_TransitionTypeTrait::Object_Part_Type_ID:
+            return data::convert< data::Clang::Interface_TransitionTypeTrait >( m_data )->tuple;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::Clang::Interface_TypePath > >& Interface_TypePathVariant_push_back_sequence(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -10953,11 +10981,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Concrete_Conte
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         default:
         {
@@ -11039,9 +11067,9 @@ data::Ptr< data::Components::Components_Component >& get_Concrete_Context_compon
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         default:
         {
@@ -11123,9 +11151,9 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_Concrete_Context
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::Concrete::Concrete_Link::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         default:
         {
@@ -11151,9 +11179,9 @@ data::Ptr< data::Tree::Interface_IContext >& get_Concrete_Context_interface(data
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
-        case data::Concrete::Concrete_Link::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         default:
         {
@@ -11179,9 +11207,9 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& get_Concrete_Context_parent(
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
-        case data::Concrete::Concrete_Link::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         default:
         {
@@ -11975,20 +12003,20 @@ std::vector< data::Ptr< data::AST::Parser_ActionDef > >& get_Interface_Action_ac
         }
     }
 }
-std::optional< std::optional< data::Ptr< data::Tree::Interface_SuccessorTypeTrait > > >& get_Interface_Action_successor_trait(data::Variant& m_data)
+std::optional< std::optional< data::Ptr< data::Tree::Interface_TransitionTypeTrait > > >& get_Interface_Action_transition_trait(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->successor_trait;
+            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
         case data::Tree::Interface_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Interupt >( m_data )->successor_trait;
+            return data::convert< data::Tree::Interface_Interupt >( m_data )->transition_trait;
         case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->successor_trait;
+            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
         case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->successor_trait;
+            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
         case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->successor_trait;
+            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12729,12 +12757,12 @@ mega::U64& get_Interface_SizeTrait_size(data::Variant& m_data)
         }
     }
 }
-std::string& get_Interface_SuccessorTypeTrait_canonical_type(data::Variant& m_data)
+std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& get_Interface_TransitionTypeTrait_tuple(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::Tree::Interface_SuccessorTypeTrait::Object_Part_Type_ID:
-            return data::convert< data::Clang::Interface_SuccessorTypeTrait >( m_data )->canonical_type;
+        case data::Tree::Interface_TransitionTypeTrait::Object_Part_Type_ID:
+            return data::convert< data::Clang::Interface_TransitionTypeTrait >( m_data )->tuple;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13911,14 +13939,14 @@ data::Ptr< data::AST::Parser_Size >& get_Parser_AbstractDef_size(data::Variant& 
         }
     }
 }
-data::Ptr< data::AST::Parser_Successor >& get_Parser_ActionDef_successor(data::Variant& m_data)
+data::Ptr< data::AST::Parser_Transition >& get_Parser_ActionDef_transition(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ActionDef >( m_data )->successor;
+            return data::convert< data::AST::Parser_ActionDef >( m_data )->transition;
         case data::AST::Parser_InteruptDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_InteruptDef >( m_data )->successor;
+            return data::convert< data::AST::Parser_InteruptDef >( m_data )->transition;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14555,26 +14583,54 @@ boost::filesystem::path& get_Parser_SourceRoot_sourceFile(data::Variant& m_data)
         }
     }
 }
-std::string& get_Parser_Successor_str(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::AST::Parser_Successor::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_Successor >( m_data )->str;
-        case data::Tree::Interface_SuccessorTypeTrait::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_Successor >( m_data )->str;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 std::string& get_Parser_SystemInclude_str(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::AST::Parser_SystemInclude::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_SystemInclude >( m_data )->str;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& get_Parser_Transition_is_predecessor(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Transition::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Transition >( m_data )->is_predecessor;
+        case data::Tree::Interface_TransitionTypeTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Transition >( m_data )->is_predecessor;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& get_Parser_Transition_is_successor(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Transition::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Transition >( m_data )->is_successor;
+        case data::Tree::Interface_TransitionTypeTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Transition >( m_data )->is_successor;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& get_Parser_Transition_str(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Transition::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Transition >( m_data )->str;
+        case data::Tree::Interface_TransitionTypeTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Transition >( m_data )->str;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -16281,14 +16337,14 @@ std::vector< data::Ptr< data::AST::Parser_ActionDef > >& set_Interface_Action_ac
         }
     }
 }
-std::optional< std::optional< data::Ptr< data::Tree::Interface_SuccessorTypeTrait > > >& set_Interface_Action_successor_trait(data::Variant& m_data)
+std::optional< std::optional< data::Ptr< data::Tree::Interface_TransitionTypeTrait > > >& set_Interface_Action_transition_trait(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->successor_trait;
+            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
         case data::Tree::Interface_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Interupt >( m_data )->successor_trait;
+            return data::convert< data::Tree::Interface_Interupt >( m_data )->transition_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -16999,12 +17055,12 @@ mega::U64& set_Interface_SizeTrait_size(data::Variant& m_data)
         }
     }
 }
-std::string& set_Interface_SuccessorTypeTrait_canonical_type(data::Variant& m_data)
+std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& set_Interface_TransitionTypeTrait_tuple(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::Tree::Interface_SuccessorTypeTrait::Object_Part_Type_ID:
-            return data::convert< data::Clang::Interface_SuccessorTypeTrait >( m_data )->canonical_type;
+        case data::Tree::Interface_TransitionTypeTrait::Object_Part_Type_ID:
+            return data::convert< data::Clang::Interface_TransitionTypeTrait >( m_data )->tuple;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -18181,14 +18237,14 @@ data::Ptr< data::AST::Parser_Size >& set_Parser_AbstractDef_size(data::Variant& 
         }
     }
 }
-data::Ptr< data::AST::Parser_Successor >& set_Parser_ActionDef_successor(data::Variant& m_data)
+data::Ptr< data::AST::Parser_Transition >& set_Parser_ActionDef_transition(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ActionDef >( m_data )->successor;
+            return data::convert< data::AST::Parser_ActionDef >( m_data )->transition;
         case data::AST::Parser_InteruptDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_InteruptDef >( m_data )->successor;
+            return data::convert< data::AST::Parser_InteruptDef >( m_data )->transition;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -18801,24 +18857,48 @@ boost::filesystem::path& set_Parser_SourceRoot_sourceFile(data::Variant& m_data)
         }
     }
 }
-std::string& set_Parser_Successor_str(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::AST::Parser_Successor::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_Successor >( m_data )->str;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 std::string& set_Parser_SystemInclude_str(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::AST::Parser_SystemInclude::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_SystemInclude >( m_data )->str;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& set_Parser_Transition_is_predecessor(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Transition::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Transition >( m_data )->is_predecessor;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& set_Parser_Transition_is_successor(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Transition::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Transition >( m_data )->is_successor;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::string& set_Parser_Transition_str(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Transition::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Transition >( m_data )->str;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19272,7 +19352,7 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 3: return new AST::Parser_ScopedIdentifier( loader, objectInfo );
         case 4: return new AST::Parser_ArgumentList( loader, objectInfo );
         case 5: return new AST::Parser_ReturnType( loader, objectInfo );
-        case 6: return new AST::Parser_Successor( loader, objectInfo );
+        case 6: return new AST::Parser_Transition( loader, objectInfo );
         case 7: return new AST::Parser_Inheritance( loader, objectInfo );
         case 8: return new AST::Parser_Size( loader, objectInfo );
         case 9: return new AST::Parser_Initialiser( loader, objectInfo );
@@ -19304,8 +19384,8 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 38: return new Tree::Interface_InheritanceTrait( loader, objectInfo );
         case 40: return new Tree::Interface_LinkTrait( loader, objectInfo );
         case 41: return new Tree::Interface_ReturnTypeTrait( loader, objectInfo );
-        case 43: return new Tree::Interface_SuccessorTypeTrait( loader, objectInfo );
-        case 45: return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
+        case 43: return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
+        case 47: return new Tree::Interface_TransitionTypeTrait( loader, objectInfo );
         case 49: return new Tree::Interface_EventTypeTrait( loader, objectInfo );
         case 51: return new Tree::Interface_SizeTrait( loader, objectInfo );
         case 53: return new Tree::Interface_ContextGroup( loader, objectInfo );
@@ -19336,10 +19416,10 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 37: return new Clang::Interface_DimensionTrait( loader, objectInfo );
         case 39: return new Clang::Interface_InheritanceTrait( loader, objectInfo );
         case 42: return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
-        case 44: return new Clang::Interface_SuccessorTypeTrait( loader, objectInfo );
-        case 46: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
-        case 47: return new Clang::Interface_TypePath( loader, objectInfo );
-        case 48: return new Clang::Interface_TypePathVariant( loader, objectInfo );
+        case 44: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
+        case 45: return new Clang::Interface_TypePath( loader, objectInfo );
+        case 46: return new Clang::Interface_TypePathVariant( loader, objectInfo );
+        case 48: return new Clang::Interface_TransitionTypeTrait( loader, objectInfo );
         case 50: return new Clang::Interface_EventTypeTrait( loader, objectInfo );
         case 52: return new Clang::Interface_SizeTrait( loader, objectInfo );
         case 108: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );

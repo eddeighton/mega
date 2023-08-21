@@ -379,17 +379,17 @@ public:
     }
 
     template < typename TParserType >
-    void collectSuccessorTrait( InterfaceStage::Database& database, TParserType* pContextDef,
-                                std::optional< InterfaceStage::Interface::SuccessorTypeTrait* >& successor )
+    void collectTransitionTrait( InterfaceStage::Database& database, TParserType* pContextDef,
+                                 std::optional< InterfaceStage::Interface::TransitionTypeTrait* >& transition )
     {
         using namespace InterfaceStage;
-        Parser::Successor* pSuccessor = pContextDef->get_successor();
-        const std::string& str        = pSuccessor->get_str();
+        Parser::Transition* pTransition = pContextDef->get_transition();
+        const std::string&  str         = pTransition->get_str();
         if( !str.empty() )
         {
-            VERIFY_PARSER( !successor.has_value(), "Duplicate successor specified", pContextDef->get_id() );
-            successor = database.construct< Interface::SuccessorTypeTrait >(
-                Interface::SuccessorTypeTrait::Args{ pSuccessor } );
+            VERIFY_PARSER( !transition.has_value(), "Duplicate transition specified", pContextDef->get_id() );
+            transition = database.construct< Interface::TransitionTypeTrait >(
+                Interface::TransitionTypeTrait::Args{ pTransition } );
         }
     }
 
@@ -442,19 +442,19 @@ public:
         std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
         std::optional< Interface::InheritanceTrait* >             inheritance;
         std::optional< Interface::SizeTrait* >                    size;
-        std::optional< Interface::SuccessorTypeTrait* >           successor;
+        std::optional< Interface::TransitionTypeTrait* >          transition;
         for( Parser::ActionDef* pDef : pAction->get_action_defs() )
         {
             collectDimensionTraits( database, pAction, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
-            collectSuccessorTrait( database, pDef, successor );
+            collectTransitionTrait( database, pDef, transition );
         }
 
         pAction->set_dimension_traits( dimensions );
         pAction->set_inheritance_trait( inheritance );
         pAction->set_size_trait( size );
-        pAction->set_successor_trait( successor );
+        pAction->set_transition_trait( transition );
     }
     void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent )
     {
@@ -477,8 +477,8 @@ public:
     {
         using namespace InterfaceStage;
 
-        Interface::EventTypeTrait*                      pEventsTrait = nullptr;
-        std::optional< Interface::SuccessorTypeTrait* > successor;
+        Interface::EventTypeTrait*                       pEventsTrait = nullptr;
+        std::optional< Interface::TransitionTypeTrait* > transition;
 
         mega::Argument::Vector args;
         for( Parser::InteruptDef* pDef : pInterupt->get_interupt_defs() )
@@ -496,13 +496,13 @@ public:
                     VERIFY_PARSER( args == pArguments->get_args(), "Function arguments mismatch", pDef->get_id() );
                 }
             }
-            collectSuccessorTrait( database, pDef, successor );
+            collectTransitionTrait( database, pDef, transition );
         }
 
         VERIFY_PARSER( pEventsTrait, "Interupt missing events list", pInterupt->get_interupt_defs().front()->get_id() );
 
         pInterupt->set_events_trait( pEventsTrait );
-        pInterupt->set_successor_trait( successor );
+        pInterupt->set_transition_trait( transition );
     }
     void onFunction( InterfaceStage::Database& database, InterfaceStage::Interface::Function* pFunction )
     {

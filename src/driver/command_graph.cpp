@@ -204,6 +204,96 @@ void addInheritance( const std::optional< ::FinalStage::Interface::InheritanceTr
     }
 }
 
+std::string printTupleVarTypePath( const std::vector< ::FinalStage::Interface::TypePathVariant* >& typePathVariant )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Interface;
+
+    std::ostringstream osTuple;
+    osTuple << "[";
+    bool bFirstVariant = true;
+    for( const TypePathVariant* pVariant : typePathVariant )
+    {
+        if( bFirstVariant )
+            bFirstVariant = false;
+        else
+            osTuple << ",";
+        osTuple << "<";
+
+        bool bFirstPath = true;
+        for( const TypePath* pPath : pVariant->get_sequence() )
+        {
+            if( bFirstPath )
+                bFirstPath = false;
+            else
+                osTuple << ",";
+
+            bool bFirstSymbol = true;
+            for( const Symbols::SymbolTypeID* pSymbol : pPath->get_types() )
+            {
+                if( bFirstSymbol )
+                    bFirstSymbol = false;
+                else
+                    osTuple << ".";
+                osTuple << pSymbol->get_symbol();
+            }
+        }
+        osTuple << ">";
+    }
+    osTuple << "]";
+
+    return osTuple.str();
+}
+
+void addEvent( ::FinalStage::Interface::EventTypeTrait* pEvent, nlohmann::json& node )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Interface;
+
+    {
+        nlohmann::json property;
+        PROP( property, "Event", printTupleVarTypePath( pEvent->get_tuple() ) );
+        node[ "properties" ].push_back( property );
+    }
+}
+
+void addTransition( const std::optional< ::FinalStage::Interface::TransitionTypeTrait* >& transition,
+                    nlohmann::json&                                                       node )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Interface;
+
+    if( transition.has_value() )
+    {
+        TransitionTypeTrait* pTransition = transition.value();
+
+        if( pTransition->get_is_successor() )
+        {
+            nlohmann::json property;
+            PROP( property, "Transition", "Successor" );
+            node[ "properties" ].push_back( property );
+        }
+        else if( pTransition->get_is_predecessor() )
+        {
+            nlohmann::json property;
+            PROP( property, "Transition", "Predecessor" );
+            node[ "properties" ].push_back( property );
+        }
+        else
+        {
+            nlohmann::json property;
+            PROP( property, "Transition", "Completion" );
+            node[ "properties" ].push_back( property );
+        }
+
+        {
+            nlohmann::json property;
+            PROP( property, "Transition Type", printTupleVarTypePath( pTransition->get_tuple() ) );
+            node[ "properties" ].push_back( property );
+        }
+    }
+}
+
 void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
 {
     using namespace FinalStage;
@@ -232,6 +322,7 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
         node[ "label" ] = os.str();
         addInheritance( pAction->get_inheritance_trait(), node );
         addProperties( node, pAction->get_dimension_traits() );
+        addTransition( pAction->get_transition_trait(), node );
     }
     else if( auto pEvent = db_cast< Event >( pContext ) )
     {
@@ -240,12 +331,19 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
         addInheritance( pEvent->get_inheritance_trait(), node );
         addProperties( node, pEvent->get_dimension_traits() );
     }
+    else if( auto pInterupt = db_cast< Interupt >( pContext ) )
+    {
+        os << "Interupt: " << getIdentifier( pInterupt ) << " " << getNodeInfo( pInterupt );
+        node[ "label" ] = os.str();
+        addTransition( pInterupt->get_transition_trait(), node );
+        addEvent( pInterupt->get_events_trait(), node );
+    }
     else if( auto pFunction = db_cast< Function >( pContext ) )
     {
         os << "Function: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         {
-            nlohmann::json arguments;
+            nlohmann::json     arguments;
             std::ostringstream osArgs;
             osArgs << pFunction->get_arguments_trait()->get_args();
             PROP( arguments, "arguments", osArgs.str() );
@@ -362,6 +460,12 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
         os << "Event: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pEvent->get_dimensions() );
+    }
+    else if( Interupt* pInterupt = db_cast< Interupt >( pContext ) )
+    {
+        os << "Interupt: " << getIdentifier( pInterupt ) << " " << getNodeInfo( pInterupt );
+        node[ "label" ] = os.str();
+        // addProperties( node, pInterupt->get_interface_interupt()->get_events_trait() );
     }
     else if( Function* pFunction = db_cast< Function >( pContext ) )
     {
@@ -553,6 +657,9 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
     {
     }
     else if( Event* pEvent = db_cast< Event >( pContext ) )
+    {
+    }
+    else if( Interupt* pInterupt = db_cast< Interupt >( pContext ) )
     {
     }
     else if( Function* pFunction = db_cast< Function >( pContext ) )
@@ -964,7 +1071,7 @@ std::string getBlockID( const std::string& strAutomataName, FinalStage::Automata
 }
 */
 /*
-void automataRecurse( nlohmann::json& data, const std::string& strAutomataName, 
+void automataRecurse( nlohmann::json& data, const std::string& strAutomataName,
     std::unordered_set< std::string >& actions, FinalStage::Automata::Block* pBlock )
 {
     using namespace FinalStage;

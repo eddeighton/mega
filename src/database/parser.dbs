@@ -77,8 +77,10 @@ namespace Parser
         value< std::string > str;
     }
 
-    object Successor -> ParserStage::AST
+    object Transition -> ParserStage::AST
     {
+        value< bool > is_successor;
+        value< bool > is_predecessor;
         value< std::string > str;
     }
 
@@ -177,7 +179,7 @@ namespace Parser
     {
         ref< Size > size;
         ref< Inheritance > inheritance;
-        ref< Successor > successor;
+        ref< Transition > transition;
     }
 
     object EventDef : ContextDef -> ParserStage::AST
@@ -189,7 +191,7 @@ namespace Parser
     object InteruptDef : ContextDef -> ParserStage::AST
     {
         ref< ArgumentList > argumentList;
-        ref< Successor > successor;
+        ref< Transition > transition;
     }
 
     object FunctionDef : ContextDef -> ParserStage::AST
