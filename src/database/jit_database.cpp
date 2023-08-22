@@ -129,6 +129,7 @@ void JITDatabase::getConcreteToLinkInterface( ConcreteToInterface& objectTypes )
 FinalStage::HyperGraph::Relation* JITDatabase::getRelation( const RelationID& relationID ) const
 {
     auto iFind = m_relations.find( relationID );
+    using ::operator<<;
     VERIFY_RTE_MSG( iFind != m_relations.end(), "Failed to locate relation: " << relationID );
     return iFind->second;
 }
@@ -208,6 +209,7 @@ JITDatabase::getExistingInvocation( const mega::InvocationID& invocation ) const
 const FinalStage::Operations::Invocation* JITDatabase::getInvocation( const mega::InvocationID& invocation ) const
 {
     const FinalStage::Operations::Invocation* pInvocation = getExistingInvocation( invocation );
+    using ::operator<<;
     VERIFY_RTE_MSG( pInvocation, "Failed to locate invocation: " << invocation );
     return pInvocation;
 }
@@ -225,6 +227,7 @@ void JITDatabase::addDynamicInvocation( const InvocationID&                     
 
 mega::TypeID JITDatabase::getInterfaceTypeID( mega::TypeID concreteTypeID ) const
 {
+    using ::operator<<;
     VERIFY_RTE_MSG( concreteTypeID != mega::TypeID{}, "Null TypeID in getInterfaceTypeID" );
     auto iFind = m_concreteTypeIDs.find( concreteTypeID );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteTypeID );
@@ -254,6 +257,7 @@ mega::TypeID JITDatabase::getInterfaceTypeID( mega::TypeID concreteTypeID ) cons
 
 std::vector< TypeID > JITDatabase::getCompatibleConcreteTypes( TypeID interfaceTypeID ) const
 {
+    using ::operator<<;
     VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getCompatibleConcreteTypes" );
     std::vector< TypeID > result;
 
@@ -276,6 +280,7 @@ std::vector< TypeID > JITDatabase::getCompatibleConcreteTypes( TypeID interfaceT
 
 FinalStage::Concrete::Object* JITDatabase::getObject( mega::TypeID objectType ) const
 {
+    using ::operator<<;
     VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getObject" );
     auto iFind = m_concreteTypeIDs.find( objectType );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
@@ -292,6 +297,7 @@ FinalStage::Concrete::Object* JITDatabase::getObject( mega::TypeID objectType ) 
 
 FinalStage::Interface::Action* JITDatabase::getAction( mega::TypeID interfaceTypeID ) const
 {
+    using ::operator<<;
     VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getAction" );
     auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
     VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate interface type id: " << interfaceTypeID );
@@ -307,6 +313,7 @@ FinalStage::Interface::Action* JITDatabase::getAction( mega::TypeID interfaceTyp
 
 const FinalStage::Components::Component* JITDatabase::getComponent( mega::TypeID objectType ) const
 {
+    using ::operator<<;
     VERIFY_RTE_MSG( objectType != mega::TypeID{}, "Null TypeID in getComponent" );
     auto iFind = m_concreteTypeIDs.find( objectType );
     VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
@@ -321,6 +328,7 @@ const FinalStage::Components::Component* JITDatabase::getComponent( mega::TypeID
 
 const FinalStage::Components::Component* JITDatabase::getOperationComponent( mega::TypeID interfaceTypeID ) const
 {
+    using ::operator<<;
     VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getOperationComponent" );
     auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
     VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate concrete type id: " << interfaceTypeID );
@@ -369,6 +377,7 @@ mega::U64 JITDatabase::getTotalDomainSize( mega::TypeID concreteID ) const
 */
 mega::U64 JITDatabase::getLocalDomainSize( mega::TypeID concreteID ) const
 {
+    using ::operator<<;
     VERIFY_RTE_MSG( concreteID != mega::TypeID{}, "Null TypeID in getLocalDomainSize" );
     using namespace FinalStage;
 

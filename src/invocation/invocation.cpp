@@ -868,6 +868,7 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
 OperationsStage::Operations::Invocation* construct( Database& database, Symbols::SymbolTable* pSymbolTable,
                                                     const mega::InvocationID& id )
 {
+    using ::operator<<;
     // std::cout << "Found invocation: " << id << std::endl;
 
     SymbolMaps symbolMaps( *pSymbolTable );

@@ -20,6 +20,8 @@
 
 #include "invoke_fixture.hpp"
 
+#include "database/model/OperationsStage.hxx"
+
 static constexpr const char Get_Name[] = "Get";
 
 // clang-format off
@@ -49,6 +51,7 @@ TEST_P( GetFixtureType, GetParameterizedTest )
 {
     const GetData data = GetParam();
 
+    OperationsStage::Database database( m_pImpl->m_environment, m_pImpl->m_megaSrcPath );
     // m_pImpl->m_environment.
 }
 

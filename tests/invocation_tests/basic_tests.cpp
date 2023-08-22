@@ -35,6 +35,7 @@ static constexpr const char Basic_Code[] =
 R"TESTCODE(
 object Root
 {
+    dim int m_z;
     dim int m_x;
     dim int m_y;
 }

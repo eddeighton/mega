@@ -96,18 +96,48 @@ find_file(SCRIPT_CLANG_COMPILER NAMES ${CLANG_PROGRAM_NAME} PATHS ${LLVM_CONFIGU
 include( ${MEGA_ROOT_DIR}/../mega_flags.cmake )
 
 # add_custom_command( TARGET invocation_tests POST_BUILD COMMAND ctest --output-on-failure -C $<CONFIG> )
-add_custom_command( TARGET invocation_tests POST_BUILD COMMAND $<TARGET_FILE_NAME:invocation_tests> 
-	--clang_compiler ${SCRIPT_CLANG_COMPILER}
-	--parser $<TARGET_FILE:parser> 
-	--mega_compiler $<TARGET_FILE:compiler>
-	--mega_executor $<TARGET_FILE:executor>
-	--clang_plugin $<TARGET_FILE:clang_plugin>
-	--database $<TARGET_FILE:database>
 
-	--cpp_flags \"${CLANG_CXX_FLAGS_STR}\"
-	--cpp_defines \"${CLANG_CXX_DEFINES_STR}\"
-	--include_dirs \"${CMAKE_INSTALL_PREFIX}/../../boost/install/include\;${CMAKE_INSTALL_PREFIX}/../../common/install/include\;${MEGA_API_DIR}\"
+add_custom_target( run_invocation_tests 
 
-	--templates_dir ${MEGA_SRC_DIR}/compiler/templates
-	--stash_dir ${CMAKE_CURRENT_BINARY_DIR}/stash
+	COMMAND $<TARGET_FILE_NAME:invocation_tests> 
+		--clang_compiler ${SCRIPT_CLANG_COMPILER}
+		--parser $<TARGET_FILE:parser> 
+		--mega_compiler $<TARGET_FILE:compiler>
+		--mega_executor $<TARGET_FILE:executor>
+		--clang_plugin $<TARGET_FILE:clang_plugin>
+		--database $<TARGET_FILE:database>
+		--jit $<TARGET_FILE:jit>
+		--mega_mangle $<TARGET_FILE:mega_mangle>
+		--leaf $<TARGET_FILE:leaf>
+
+		--cpp_flags \"${CLANG_CXX_FLAGS_STR}\"
+		--cpp_defines \"${CLANG_CXX_DEFINES_STR}\"
+		--include_dirs \"${CMAKE_INSTALL_PREFIX}/../../boost/install/include\;${CMAKE_INSTALL_PREFIX}/../../common/install/include\;${MEGA_API_DIR}\"
+
+		--templates_dir ${MEGA_SRC_DIR}/compiler/templates
+		--stash_dir ${CMAKE_CURRENT_BINARY_DIR}/stash
+
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	)
+
+add_dependencies( run_invocation_tests invocation_tests )
+
+#add_custom_command( TARGET invocation_tests POST_BUILD 
+#	COMMAND $<TARGET_FILE_NAME:invocation_tests> 
+#		--clang_compiler ${SCRIPT_CLANG_COMPILER}
+#		--parser $<TARGET_FILE:parser> 
+#		--mega_compiler $<TARGET_FILE:compiler>
+#		--mega_executor $<TARGET_FILE:executor>
+#		--clang_plugin $<TARGET_FILE:clang_plugin>
+#		--database $<TARGET_FILE:database>
+#		--jit $<TARGET_FILE:jit>
+#		--mega_mangle $<TARGET_FILE:mega_mangle>
+#		--leaf $<TARGET_FILE:leaf>
+#
+#		--cpp_flags \"${CLANG_CXX_FLAGS_STR}\"
+#		--cpp_defines \"${CLANG_CXX_DEFINES_STR}\"
+#		--include_dirs \"${CMAKE_INSTALL_PREFIX}/../../boost/install/include\;${CMAKE_INSTALL_PREFIX}/../../common/install/include\;${MEGA_API_DIR}\"
+#
+#		--templates_dir ${MEGA_SRC_DIR}/compiler/templates
+#		--stash_dir ${CMAKE_CURRENT_BINARY_DIR}/stash
+#	)

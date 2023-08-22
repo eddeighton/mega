@@ -119,6 +119,8 @@ void MPOContext::destroyExecutor( MP mp )
 
 reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )
 {
+    using ::operator<<;
+
     reference allocated;
     if( parent.getMPO() == getThisMPO() )
     {
@@ -157,6 +159,8 @@ void MPOContext::networkToHeap( reference& ref )
 
 void MPOContext::readLock( reference& ref )
 {
+    using ::operator<<;
+
     SPDLOG_TRACE( "MPOContext::readLock: {}", ref );
 
     VERIFY_RTE_MSG( ref.getMPO() != getThisMPO(), "readLock used when matching MPO" );
@@ -178,6 +182,7 @@ void MPOContext::readLock( reference& ref )
 
 void MPOContext::writeLock( reference& ref )
 {
+    using ::operator<<;
     SPDLOG_TRACE( "MPOContext::writeLock: {}", ref );
 
     VERIFY_RTE_MSG( ref.getMPO() != getThisMPO(), "writeLock used when matching MPO" );
@@ -198,6 +203,7 @@ void MPOContext::writeLock( reference& ref )
 
 void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
 {
+    using ::operator<<;
     // initialise event log
     {
         boost::filesystem::path logFolder;
@@ -263,6 +269,8 @@ void MPOContext::yield()
 
 void MPOContext::applyTransaction( const network::Transaction& transaction )
 {
+    using ::operator<<;
+
     // NOTE: can context switch when call get_load_record
     static thread_local mega::runtime::program::RecordLoadBin recordLoadBin;
     static thread_local mega::runtime::program::RecordMake    recordMake;
@@ -322,6 +330,8 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
 
 void MPOContext::cycleComplete()
 {
+    using ::operator<<;
+
     m_pLog->cycle();
 
     network::TransactionProducer::MPOTransactions transactions;
