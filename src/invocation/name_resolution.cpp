@@ -30,56 +30,43 @@ using namespace OperationsStage;
 namespace
 {
 
-void expandReferences( OperationsStage::Database& database, std::vector< Operations::Name* >& names )
+void expandLinks( OperationsStage::Database& database, std::vector< Operations::Name* >& names )
 {
     using namespace OperationsStage::Operations;
 
+    // keep going until ALL leaf nodes that are links are expanded to linked to types
     bool bContinue = true;
-    while ( bContinue )
+    while( bContinue )
     {
         bContinue = false;
-
-        // names
-        while ( bContinue )
+        for( Name* pName : names )
         {
-            bContinue = false;
-            for ( Name* pName : names )
+            // find leaf nodes
+            if( pName->get_children().empty() )
             {
-                std::vector< Name* > children = pName->get_children();
-                if ( children.empty() )
+                ConcreteVariant* pConVar = pName->get_element()->get_concrete();
+
+                if( pConVar->get_context().has_value() )
                 {
-                    ConcreteVariant* pConVar = pName->get_element()->get_concrete();
-                    if ( pConVar->get_dimension().has_value() )
+                    if( auto pLink = db_cast< Concrete::Link >( pConVar->get_context().value() ) )
                     {
-                        // if the dimension is to a mega type then add child nodes
-                        bool bIsToMegaType = false;
+                        bContinue = true;
+                        pName->set_is_reference( true );
 
-                        Concrete::Dimensions::User* pConcreteDimension  = pConVar->get_dimension().value();
-                        Interface::DimensionTrait*  pInterfaceDimension = pConcreteDimension->get_interface_dimension();
+                        InterfaceVariantVectorVector interfaceVariantVectorVector
+                            = linkToInterfaceVariantVector( database, pLink );
 
-                        if ( bIsToMegaType )
+                        std::vector< Operations::ElementVector* > elementVector
+                            = toElementVector( database, interfaceVariantVectorVector );
+
+                        for( Operations::ElementVector* pElementVector : elementVector )
                         {
-                            bContinue = true;
-                            pName->set_is_reference( true );
-
-                            const std::vector< ::OperationsStage::Symbols::SymbolTypeID* > symbols
-                                = pInterfaceDimension->get_symbols();
-
-                            InterfaceVariantVectorVector interfaceVariantVectorVector
-                                = symbolVectorToInterfaceVariantVector( database, symbols );
-
-                            std::vector< Operations::ElementVector* > elementVector
-                                = toElementVector( database, interfaceVariantVectorVector );
-
-                            for ( Operations::ElementVector* pElementVector : elementVector )
+                            for( Element* pElement : pElementVector->get_elements() )
                             {
-                                for ( Element* pElement : pElementVector->get_elements() )
-                                {
-                                    Name* pChildName = database.construct< Name >(
-                                        Name::Args{ NameRoot::Args{ {} }, pElement, false, false } );
-                                    names.push_back( pChildName );
-                                    pName->push_back_children( pChildName );
-                                }
+                                Name* pChildName = database.construct< Name >(
+                                    Name::Args{ NameRoot::Args{ {} }, pElement, false, false } );
+                                names.push_back( pChildName );
+                                pName->push_back_children( pChildName );
                             }
                         }
                     }
@@ -96,109 +83,56 @@ void addType( OperationsStage::Database&        database,
     using namespace OperationsStage::Operations;
 
     std::vector< Operations::Name* > namesCopy = names;
-    for ( Name* pName : namesCopy )
+    for( Name* pName : namesCopy )
     {
-        std::vector< Name* > children = pName->get_children();
-        if ( children.empty() )
+        // find leaf nodes in the names tree
+        if( pName->get_children().empty() )
         {
             ConcreteVariant* pConVar = pName->get_element()->get_concrete();
-            if ( !pConVar->get_context().has_value() )
+            if( !pConVar->get_context().has_value() )
             {
                 THROW_RTE( "Cannot resolve non-context element in invocation" );
             }
             Concrete::Context* pContext = pConVar->get_context().value();
 
+            // initially attempt to find any direct members of the context that
+            // correspond to ANY of the concrete elements
             std::vector< Element* > memberElements;
-            for ( Element* pElement : pElementVector->get_elements() )
             {
-                bool bFoundType = false;
-
-                for ( Concrete::Context* pChildContext : pContext->get_children() )
+                for( Element* pElement : pElementVector->get_elements() )
                 {
-                    if ( pChildContext == pElement->get_concrete()->get_context() )
+                    if( auto opt = pElement->get_concrete()->get_context() )
                     {
-                        memberElements.push_back( pElement );
-                        break;
-                    }
-                }
-
-                // determine if pElement is member of pContext
-                {
-                    if ( auto pNamespace = db_cast< Concrete::Namespace >( pContext ) )
-                    {
-                        bFoundType = true;
-                        for ( Concrete::Dimensions::User* pDimension : pNamespace->get_dimensions() )
+                        for( Concrete::Context* pChildContext : pContext->get_children() )
                         {
-                            if ( pDimension == pElement->get_concrete()->get_dimension() )
+                            if( pChildContext == opt.value() )
                             {
                                 memberElements.push_back( pElement );
                                 break;
                             }
                         }
                     }
-                }
-                {
-                    if ( auto pAction = db_cast< Concrete::Action >( pContext ) )
+                    else if( auto opt = pElement->get_concrete()->get_dimension() )
                     {
-                        bFoundType = true;
-                        for ( Concrete::Dimensions::User* pDimension : pAction->get_dimensions() )
+                        if( auto pUserDimensionContext = db_cast< Concrete::UserDimensionContext >( pContext ) )
                         {
-                            if ( pDimension == pElement->get_concrete()->get_dimension() )
+                            for( Concrete::Dimensions::User* pDimension : pUserDimensionContext->get_dimensions() )
                             {
-                                memberElements.push_back( pElement );
-                                break;
+                                if( pDimension == opt.value() )
+                                {
+                                    memberElements.push_back( pElement );
+                                    break;
+                                }
                             }
                         }
                     }
                 }
-                {
-                    if ( auto pEvent = db_cast< Concrete::Event >( pContext ) )
-                    {
-                        bFoundType = true;
-                        for ( Concrete::Dimensions::User* pDimension : pEvent->get_dimensions() )
-                        {
-                            if ( pDimension == pElement->get_concrete()->get_dimension() )
-                            {
-                                memberElements.push_back( pElement );
-                                break;
-                            }
-                        }
-                    }
-                }
-                {
-                    if ( auto pFunction = db_cast< Concrete::Function >( pContext ) )
-                    {
-                        bFoundType = true;
-                    }
-                }
-                {
-                    if ( auto pObject = db_cast< Concrete::Object >( pContext ) )
-                    {
-                        bFoundType = true;
-                        for ( Concrete::Dimensions::User* pDimension : pObject->get_dimensions() )
-                        {
-                            if ( pDimension == pElement->get_concrete()->get_dimension() )
-                            {
-                                memberElements.push_back( pElement );
-                                break;
-                            }
-                        }
-                    }
-                }
-                {
-                    if ( auto pLink = db_cast< Concrete::Link >( pContext ) )
-                    {
-                        bFoundType = true;
-                    }
-                }
-
-                VERIFY_RTE( bFoundType );
             }
 
-            if ( !memberElements.empty() )
+            // if ANY match is found then prefer it over EVERYTHING else
+            if( !memberElements.empty() )
             {
-                // add member matches
-                for ( Element* pElement : memberElements )
+                for( Element* pElement : memberElements )
                 {
                     Name* pMemberName
                         = database.construct< Name >( Name::Args{ NameRoot::Args{ {} }, pElement, true, false } );
@@ -208,8 +142,8 @@ void addType( OperationsStage::Database&        database,
             }
             else
             {
-                // add all
-                for ( Element* pElement : pElementVector->get_elements() )
+                // otherwise simply add everything in the element vector
+                for( Element* pElement : pElementVector->get_elements() )
                 {
                     Name* pChildName
                         = database.construct< Name >( Name::Args{ NameRoot::Args{ {} }, pElement, false, false } );
@@ -227,16 +161,16 @@ void pruneBranches( OperationsStage::Operations::Name* pName )
 
     auto children = pName->get_children();
 
-    if ( !children.empty() )
+    if( !children.empty() )
     {
-        if ( pName->get_is_reference() )
+        if( pName->get_is_reference() )
         {
-            if ( !pName->get_is_member() )
+            if( !pName->get_is_member() )
             {
-                for ( Name* pChild : children )
+                for( Name* pChild : children )
                 {
                     pruneBranches( pChild );
-                    if ( pChild->get_is_member() )
+                    if( pChild->get_is_member() )
                     {
                         pName->set_is_member( true );
                     }
@@ -247,18 +181,18 @@ void pruneBranches( OperationsStage::Operations::Name* pName )
         {
             std::vector< Name* > best;
             bool                 bRemovedChild = false;
-            for ( Name* pChild : children )
+            for( Name* pChild : children )
             {
                 pruneBranches( pChild );
-                if ( pChild->get_is_member() )
+                if( pChild->get_is_member() )
                     best.push_back( pChild );
                 else
                     bRemovedChild = true;
             }
-            if ( !best.empty() )
+            if( !best.empty() )
             {
                 pName->set_is_member( true );
-                if ( bRemovedChild )
+                if( bRemovedChild )
                     pName->set_children( best );
             }
         }
@@ -270,8 +204,8 @@ void pruneBranches( OperationsStage::Operations::Name* pName )
 OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&               database,
                                                       OperationsStage::Operations::Invocation* pInvocation )
 {
-    bool bExpandFinalReferences = false;
-    switch ( pInvocation->get_operation() )
+    // bool bExpandFinalReferences = false;
+    switch( pInvocation->get_operation() )
     {
         case id_Imp_NoParams:
         case id_Imp_Params:
@@ -297,9 +231,9 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
     std::vector< Name* > names;
     NameRoot*            pNameRoot = database.construct< NameRoot >( NameRoot::Args{ {} } );
 
-    for ( ElementVector* pElementVector : pContext->get_vectors() )
+    for( ElementVector* pElementVector : pContext->get_vectors() )
     {
-        for ( Element* pElement : pElementVector->get_elements() )
+        for( Element* pElement : pElementVector->get_elements() )
         {
             Name* pName = database.construct< Name >( Name::Args{ NameRoot::Args{ {} }, pElement, false, false } );
             names.push_back( pName );
@@ -307,25 +241,25 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
         }
     }
 
-    for ( ElementVector* pElementVector : pTypePath->get_vectors() )
+    for( ElementVector* pElementVector : pTypePath->get_vectors() )
     {
-        expandReferences( database, names );
+        //expandLinks( database, names );
         addType( database, names, pElementVector );
 
-        for ( Name* pName : pNameRoot->get_children() )
+        for( Name* pName : pNameRoot->get_children() )
         {
             pruneBranches( pName );
         }
     }
 
-    if ( bExpandFinalReferences )
+    /*if( bExpandFinalReferences )
     {
-        expandReferences( database, names );
-        for ( Name* pName : pNameRoot->get_children() )
+        expandLinks( database, names );
+        for( Name* pName : pNameRoot->get_children() )
         {
             pruneBranches( pName );
         }
-    }
+    }*/
 
     return database.construct< NameResolution >( NameResolution::Args{ pNameRoot } );
 }

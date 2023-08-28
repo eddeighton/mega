@@ -88,30 +88,6 @@ namespace Concrete
         array< ref< Dimensions::Allocator > > allocation_dimensions -> MemoryStage::MemoryLayout;
     }
 
-    object Namespace : Context -> ConcreteStage::Concrete
-    {
-        ref< Interface::Namespace > interface_namespace;
-        array< ref< Dimensions::User > > dimensions;
-    }
-
-    object Action : Context -> ConcreteStage::Concrete
-    {
-        ref< Interface::Action > interface_action;
-        array< ref< Dimensions::User > > dimensions;
-
-        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
-        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
-    }
-
-    object Event : Context -> ConcreteStage::Concrete
-    {
-        ref< Interface::Event > interface_event;
-        array< ref< Dimensions::User > > dimensions;
-
-        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
-        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
-    }
-
     object Interupt : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Interupt > interface_interupt;
@@ -122,10 +98,36 @@ namespace Concrete
         ref< Interface::Function > interface_function;
     }
 
-    object Object : Context -> ConcreteStage::Concrete
+    object UserDimensionContext : Context  -> ConcreteStage::Concrete
+    {
+        array< ref< Dimensions::User > > dimensions;
+    }
+
+    object Namespace : UserDimensionContext -> ConcreteStage::Concrete
+    {
+        ref< Interface::Namespace > interface_namespace;
+    }
+
+    object Action : UserDimensionContext -> ConcreteStage::Concrete
+    {
+        ref< Interface::Action > interface_action;
+
+        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
+        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
+    }
+
+    object Event : UserDimensionContext -> ConcreteStage::Concrete
+    {
+        ref< Interface::Event > interface_event;
+
+        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
+        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
+    }
+
+    object Object : UserDimensionContext -> ConcreteStage::Concrete
     {
         ref< Interface::Object > interface_object;
-        array< ref< Dimensions::User > > dimensions;
+
         array< ref< MemoryLayout::Buffer > > buffers -> MemoryStage::MemoryLayout;
 
         array< ref< Link > > all_links -> HyperGraphAnalysisRollout::PerSourceModel;

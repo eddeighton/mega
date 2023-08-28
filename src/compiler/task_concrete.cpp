@@ -177,9 +177,9 @@ public:
                             ConcreteStage::Concrete::ContextGroup*                     parentConcreteContextGroup,
                             const IdentifierMap&                                       inheritedContexts,
                             std::vector< ConcreteStage::Concrete::Context* >&          childContexts,
-                            std::vector< ConcreteStage::Concrete::Dimensions::User* >& dimensions, 
-                            std::optional< ConcreteStage::Concrete::Object* >& concreteObjectOpt,
-                            ConcreteStage::Components::Component* pComponent )
+                            std::vector< ConcreteStage::Concrete::Dimensions::User* >& dimensions,
+                            std::optional< ConcreteStage::Concrete::Object* >&         concreteObjectOpt,
+                            ConcreteStage::Components::Component*                      pComponent )
     {
         using namespace ConcreteStage;
         using namespace ConcreteStage::Concrete;
@@ -203,11 +203,11 @@ public:
         }
     }
 
-    ConcreteStage::Concrete::Context* recurse( ConcreteStage::Database&               database,
-                                               ConcreteStage::Concrete::ContextGroup* pParentContextGroup,
-                                               ConcreteStage::Interface::IContext* pContext, 
+    ConcreteStage::Concrete::Context* recurse( ConcreteStage::Database&                           database,
+                                               ConcreteStage::Concrete::ContextGroup*             pParentContextGroup,
+                                               ConcreteStage::Interface::IContext*                pContext,
                                                std::optional< ConcreteStage::Concrete::Object* >& concreteObjectOpt,
-                                               ConcreteStage::Components::Component* pComponent )
+                                               ConcreteStage::Components::Component*              pComponent )
     {
         using namespace ConcreteStage;
         using namespace ConcreteStage::Concrete;
@@ -215,9 +215,9 @@ public:
         if( auto pNamespace = db_cast< Interface::Namespace >( pContext ) )
         {
             Namespace* pConcrete = database.construct< Namespace >( Namespace::Args{
-                Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pNamespace, {} },
-                pNamespace,
-                {} } );
+                UserDimensionContext::Args{
+                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pNamespace, {} }, {} },
+                pNamespace } );
             pParentContextGroup->push_back_children( pConcrete );
             pConcrete->set_concrete_object( concreteObjectOpt );
 
@@ -247,9 +247,9 @@ public:
             if( concreteObjectOpt.has_value() )
             {
                 Action* pConcrete = database.construct< Action >( Action::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pAction, {} },
-                    pAction,
-                    {} } );
+                    UserDimensionContext::Args{
+                        Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pAction, {} }, {} },
+                    pAction } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
 
@@ -278,10 +278,10 @@ public:
         {
             if( concreteObjectOpt.has_value() )
             {
-                Event* pConcrete = database.construct< Event >(
-                    Event::Args{ Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pEvent, {} },
-                                 pEvent,
-                                 {} } );
+                Event* pConcrete = database.construct< Event >( Event::Args{
+                    UserDimensionContext::Args{
+                        Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pEvent, {} }, {} },
+                    pEvent } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
 
@@ -370,10 +370,10 @@ public:
         }
         else if( auto pObject = db_cast< Interface::Object >( pContext ) )
         {
-            Object* pConcrete = database.construct< Object >(
-                Object::Args{ Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pObject, {} },
-                              pObject,
-                              {} } );
+            Object* pConcrete = database.construct< Object >( Object::Args{
+                UserDimensionContext::Args{
+                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pObject, {} }, {} },
+                pObject } );
             pParentContextGroup->push_back_children( pConcrete );
             concreteObjectOpt = pConcrete;
             pConcrete->set_concrete_object( concreteObjectOpt );
@@ -386,7 +386,8 @@ public:
 
             std::vector< ConcreteStage::Concrete::Context* >          childContexts;
             std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
+            constructElements(
+                database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
 
             pConcrete->set_dimensions( dimensions );
             pConcrete->set_children( childContexts );

@@ -4193,175 +4193,6 @@ namespace Concrete
         }
     }
         
-    // struct Concrete_Namespace : public mega::io::Object
-    Concrete_Namespace::Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Namespace >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
-          , interface_namespace( loader )
-    {
-    }
-    Concrete_Namespace::Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Namespace >& interface_namespace, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Namespace >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
-          , interface_namespace( interface_namespace )
-          , dimensions( dimensions )
-    {
-    }
-    bool Concrete_Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Namespace >( loader, const_cast< Concrete_Namespace* >( this ) ) };
-    }
-    void Concrete_Namespace::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Namespace >( p_Concrete_Concrete_Context, this );
-    }
-    void Concrete_Namespace::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_Context );
-        loader.load( interface_namespace );
-        loader.load( dimensions );
-    }
-    void Concrete_Namespace::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_Context );
-        storer.store( interface_namespace );
-        storer.store( dimensions );
-    }
-    void Concrete_Namespace::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Namespace" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_namespace", interface_namespace } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Concrete_Action : public mega::io::Object
-    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
-          , p_MemoryLayout_Concrete_Action( loader )
-          , interface_action( loader )
-    {
-    }
-    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Action >& interface_action, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
-          , p_MemoryLayout_Concrete_Action( loader )
-          , interface_action( interface_action )
-          , dimensions( dimensions )
-    {
-    }
-    bool Concrete_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Action >( loader, const_cast< Concrete_Action* >( this ) ) };
-    }
-    void Concrete_Action::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Action >( p_Concrete_Concrete_Context, this );
-    }
-    void Concrete_Action::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_Context );
-        loader.load( interface_action );
-        loader.load( dimensions );
-    }
-    void Concrete_Action::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_Context );
-        storer.store( interface_action );
-        storer.store( dimensions );
-    }
-    void Concrete_Action::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Action" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_action", interface_action } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Concrete_Event : public mega::io::Object
-    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
-          , p_MemoryLayout_Concrete_Event( loader )
-          , interface_event( loader )
-    {
-    }
-    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Event >& interface_event, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
-          , p_MemoryLayout_Concrete_Event( loader )
-          , interface_event( interface_event )
-          , dimensions( dimensions )
-    {
-    }
-    bool Concrete_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Event >( loader, const_cast< Concrete_Event* >( this ) ) };
-    }
-    void Concrete_Event::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Event >( p_Concrete_Concrete_Context, this );
-    }
-    void Concrete_Event::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_Context );
-        loader.load( interface_event );
-        loader.load( dimensions );
-    }
-    void Concrete_Event::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_Context );
-        storer.store( interface_event );
-        storer.store( dimensions );
-    }
-    void Concrete_Event::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Event" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "interface_event", interface_event } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
     // struct Concrete_Interupt : public mega::io::Object
     Concrete_Interupt::Concrete_Interupt( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Interupt >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
@@ -4456,20 +4287,210 @@ namespace Concrete
         }
     }
         
+    // struct Concrete_UserDimensionContext : public mega::io::Object
+    Concrete_UserDimensionContext::Concrete_UserDimensionContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_UserDimensionContext >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+    {
+    }
+    Concrete_UserDimensionContext::Concrete_UserDimensionContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_UserDimensionContext >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , dimensions( dimensions )
+    {
+    }
+    bool Concrete_UserDimensionContext::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_UserDimensionContext >( loader, const_cast< Concrete_UserDimensionContext* >( this ) ) };
+    }
+    void Concrete_UserDimensionContext::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_UserDimensionContext >( p_Concrete_Concrete_Context, this );
+    }
+    void Concrete_UserDimensionContext::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Context );
+        loader.load( dimensions );
+    }
+    void Concrete_UserDimensionContext::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Context );
+        storer.store( dimensions );
+    }
+    void Concrete_UserDimensionContext::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_UserDimensionContext" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimensions", dimensions } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Namespace : public mega::io::Object
+    Concrete_Namespace::Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Namespace >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , interface_namespace( loader )
+    {
+    }
+    Concrete_Namespace::Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Namespace >& interface_namespace)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Namespace >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , interface_namespace( interface_namespace )
+    {
+    }
+    bool Concrete_Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Namespace >( loader, const_cast< Concrete_Namespace* >( this ) ) };
+    }
+    void Concrete_Namespace::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_UserDimensionContext->m_inheritance = data::Ptr< data::Concrete::Concrete_Namespace >( p_Concrete_Concrete_UserDimensionContext, this );
+    }
+    void Concrete_Namespace::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_UserDimensionContext );
+        loader.load( interface_namespace );
+    }
+    void Concrete_Namespace::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_UserDimensionContext );
+        storer.store( interface_namespace );
+    }
+    void Concrete_Namespace::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Namespace" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interface_namespace", interface_namespace } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Action : public mega::io::Object
+    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , p_MemoryLayout_Concrete_Action( loader )
+          , interface_action( loader )
+    {
+    }
+    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Action >& interface_action)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , p_MemoryLayout_Concrete_Action( loader )
+          , interface_action( interface_action )
+    {
+    }
+    bool Concrete_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Action >( loader, const_cast< Concrete_Action* >( this ) ) };
+    }
+    void Concrete_Action::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_UserDimensionContext->m_inheritance = data::Ptr< data::Concrete::Concrete_Action >( p_Concrete_Concrete_UserDimensionContext, this );
+    }
+    void Concrete_Action::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_UserDimensionContext );
+        loader.load( interface_action );
+    }
+    void Concrete_Action::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_UserDimensionContext );
+        storer.store( interface_action );
+    }
+    void Concrete_Action::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Action" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interface_action", interface_action } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Event : public mega::io::Object
+    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , p_MemoryLayout_Concrete_Event( loader )
+          , interface_event( loader )
+    {
+    }
+    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Event >& interface_event)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , p_MemoryLayout_Concrete_Event( loader )
+          , interface_event( interface_event )
+    {
+    }
+    bool Concrete_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Event >( loader, const_cast< Concrete_Event* >( this ) ) };
+    }
+    void Concrete_Event::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_UserDimensionContext->m_inheritance = data::Ptr< data::Concrete::Concrete_Event >( p_Concrete_Concrete_UserDimensionContext, this );
+    }
+    void Concrete_Event::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_UserDimensionContext );
+        loader.load( interface_event );
+    }
+    void Concrete_Event::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_UserDimensionContext );
+        storer.store( interface_event );
+    }
+    void Concrete_Event::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Event" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interface_event", interface_event } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Concrete_Object : public mega::io::Object
     Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
           , p_MemoryLayout_Concrete_Object( loader )
           , p_PerSourceModel_Concrete_Object( loader )
           , interface_object( loader )
     {
     }
-    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
           , p_MemoryLayout_Concrete_Object( loader )
           , p_PerSourceModel_Concrete_Object( loader )
           , interface_object( interface_object )
-          , dimensions( dimensions )
     {
     }
     bool Concrete_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4478,19 +4499,17 @@ namespace Concrete
     }
     void Concrete_Object::set_inheritance_pointer()
     {
-        p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Object >( p_Concrete_Concrete_Context, this );
+        p_Concrete_Concrete_UserDimensionContext->m_inheritance = data::Ptr< data::Concrete::Concrete_Object >( p_Concrete_Concrete_UserDimensionContext, this );
     }
     void Concrete_Object::load( mega::io::Loader& loader )
     {
-        loader.load( p_Concrete_Concrete_Context );
+        loader.load( p_Concrete_Concrete_UserDimensionContext );
         loader.load( interface_object );
-        loader.load( dimensions );
     }
     void Concrete_Object::store( mega::io::Storer& storer ) const
     {
-        storer.store( p_Concrete_Concrete_Context );
+        storer.store( p_Concrete_Concrete_UserDimensionContext );
         storer.store( interface_object );
-        storer.store( dimensions );
     }
     void Concrete_Object::to_json( nlohmann::json& _part__ ) const
     {
@@ -4506,11 +4525,6 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_object", interface_object } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -9391,15 +9405,17 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& Concrete_ContextGr
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
@@ -9419,15 +9435,17 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& C
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
@@ -9445,38 +9463,22 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& Concrete_Context_pus
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& Concrete_Namespace_push_back_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Namespace >( m_data )->dimensions;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Action >( m_data )->dimensions;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Event >( m_data )->dimensions;
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Object >( m_data )->dimensions;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -9513,6 +9515,26 @@ std::vector< data::Ptr< data::Concrete::Concrete_Link > >& Concrete_Object_push_
     {
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Object >( m_data )->owning_links;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& Concrete_UserDimensionContext_push_back_dimensions(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10899,26 +10921,6 @@ mega::ComponentType& get_Components_Component_type(data::Variant& m_data)
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Concrete_Action_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Action >( m_data )->dimensions;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Event >( m_data )->dimensions;
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Object >( m_data )->dimensions;
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Namespace >( m_data )->dimensions;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Object >( m_data )->dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 data::Ptr< data::Tree::Interface_Action >& get_Concrete_Action_interface_action(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -10969,15 +10971,17 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Concrete_Conte
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
@@ -10999,15 +11003,17 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& g
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
@@ -11027,15 +11033,17 @@ data::Ptr< data::MemoryLayout::Allocators_Allocator >& get_Concrete_Context_allo
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
@@ -11055,15 +11063,17 @@ data::Ptr< data::Components::Components_Component >& get_Concrete_Context_compon
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
@@ -11083,15 +11093,17 @@ mega::TypeID& get_Concrete_Context_concrete_id(data::Variant& m_data)
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
@@ -11111,15 +11123,17 @@ std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& 
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
@@ -11139,15 +11153,17 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_Concrete_Context
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
@@ -11167,15 +11183,17 @@ data::Ptr< data::Tree::Interface_IContext >& get_Concrete_Context_interface(data
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
@@ -11195,15 +11213,17 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& get_Concrete_Context_parent(
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
@@ -11509,24 +11529,6 @@ data::Ptr< data::GlobalMemoryLayout::MemoryLayout_MemoryMap >& get_Concrete_Memo
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Concrete_Namespace_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Namespace >( m_data )->dimensions;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Action >( m_data )->dimensions;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Event >( m_data )->dimensions;
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Object >( m_data )->dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 data::Ptr< data::Tree::Interface_Namespace >& get_Concrete_Namespace_interface_namespace(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -11567,24 +11569,6 @@ std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >& get_Concret
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Concrete_Object_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Object >( m_data )->dimensions;
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Namespace >( m_data )->dimensions;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Action >( m_data )->dimensions;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Event >( m_data )->dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 data::Ptr< data::Tree::Interface_Object >& get_Concrete_Object_interface_object(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -11619,6 +11603,28 @@ data::Ptr< data::Tree::Interface_Root >& get_Concrete_Root_interface_root(data::
     {
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Root >( m_data )->interface_root;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Concrete_UserDimensionContext_dimensions(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -15363,15 +15369,17 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_Concrete_Conte
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
@@ -15391,15 +15399,17 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& s
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
@@ -15417,15 +15427,17 @@ data::Ptr< data::MemoryLayout::Allocators_Allocator >& set_Concrete_Context_allo
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
@@ -15443,15 +15455,17 @@ data::Ptr< data::Components::Components_Component >& set_Concrete_Context_compon
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
@@ -15469,15 +15483,17 @@ mega::TypeID& set_Concrete_Context_concrete_id(data::Variant& m_data)
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
@@ -15497,15 +15513,17 @@ std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& 
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
@@ -15523,15 +15541,17 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& set_Concrete_Context
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
@@ -15549,15 +15569,17 @@ data::Ptr< data::Tree::Interface_IContext >& set_Concrete_Context_interface(data
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
@@ -15575,15 +15597,17 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& set_Concrete_Context_parent(
     {
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
-        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
-        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
@@ -15887,24 +15911,6 @@ data::Ptr< data::GlobalMemoryLayout::MemoryLayout_MemoryMap >& set_Concrete_Memo
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_Concrete_Namespace_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Namespace >( m_data )->dimensions;
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Action >( m_data )->dimensions;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Event >( m_data )->dimensions;
-        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Object >( m_data )->dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 data::Ptr< data::Tree::Interface_Namespace >& set_Concrete_Namespace_interface_namespace(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -15971,6 +15977,26 @@ data::Ptr< data::Tree::Interface_Root >& set_Concrete_Root_interface_root(data::
     {
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Root >( m_data )->interface_root;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_Concrete_UserDimensionContext_dimensions(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19401,16 +19427,16 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 67: return new Tree::Interface_Object( loader, objectInfo );
         case 68: return new Tree::Interface_Link( loader, objectInfo );
         case 70: return new Tree::Interface_LinkInterface( loader, objectInfo );
-        case 173: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
-        case 174: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
-        case 175: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
-        case 147: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 148: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 149: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 150: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 151: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 152: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 154: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 174: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
+        case 175: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
+        case 176: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
+        case 148: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 149: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 150: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 151: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 152: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 153: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 155: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 35: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 56: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 37: return new Clang::Interface_DimensionTrait( loader, objectInfo );
@@ -19425,22 +19451,23 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 108: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
         case 118: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
         case 119: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 122: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 123: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 125: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 127: return new Concrete::Concrete_Interupt( loader, objectInfo );
-        case 128: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 129: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 133: return new Concrete::Concrete_Link( loader, objectInfo );
-        case 135: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 156: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 157: return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 122: return new Concrete::Concrete_Interupt( loader, objectInfo );
+        case 123: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 124: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
+        case 125: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 126: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 128: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 130: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 134: return new Concrete::Concrete_Link( loader, objectInfo );
+        case 136: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 157: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 158: return new Derivations::Derivation_Mapping( loader, objectInfo );
         case 36: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
         case 57: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
-        case 158: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 159: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 159: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 160: return new Model::HyperGraph_Graph( loader, objectInfo );
         case 69: return new PerSourceModel::Interface_Link( loader, objectInfo );
-        case 131: return new PerSourceModel::Concrete_Object( loader, objectInfo );
+        case 132: return new PerSourceModel::Concrete_Object( loader, objectInfo );
         case 110: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
         case 111: return new MemoryLayout::Concrete_Dimensions_LinkReference( loader, objectInfo );
         case 113: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
@@ -19448,26 +19475,26 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 115: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
         case 117: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
         case 121: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 124: return new MemoryLayout::Concrete_Action( loader, objectInfo );
-        case 126: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 130: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 134: return new MemoryLayout::Concrete_Link( loader, objectInfo );
-        case 160: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 161: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 162: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 163: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 164: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 165: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 166: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 167: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 168: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 169: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 170: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 171: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 172: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
-        case 132: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
-        case 153: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 155: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 127: return new MemoryLayout::Concrete_Action( loader, objectInfo );
+        case 129: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 131: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 135: return new MemoryLayout::Concrete_Link( loader, objectInfo );
+        case 161: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 162: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 163: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 164: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 165: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 166: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 167: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 168: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 169: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 170: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
+        case 171: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 172: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 173: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
+        case 133: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
+        case 154: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 156: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
         case 109: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
         case 112: return new PerSourceConcreteTable::Concrete_Dimensions_LinkReference( loader, objectInfo );
         case 116: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
@@ -19509,25 +19536,25 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 105: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
         case 106: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
         case 107: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 136: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 137: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 138: return new Operations::Operations_Element( loader, objectInfo );
-        case 139: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 140: return new Operations::Operations_Context( loader, objectInfo );
-        case 141: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 142: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 143: return new Operations::Operations_Name( loader, objectInfo );
-        case 144: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 145: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 146: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 137: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 138: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 139: return new Operations::Operations_Element( loader, objectInfo );
+        case 140: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 141: return new Operations::Operations_Context( loader, objectInfo );
+        case 142: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 143: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 144: return new Operations::Operations_Name( loader, objectInfo );
+        case 145: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 146: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 147: return new Operations::Operations_Invocations( loader, objectInfo );
         case 58: return new Locations::Interface_InvocationInstance( loader, objectInfo );
         case 60: return new Locations::Interface_InvocationContext( loader, objectInfo );
-        case 176: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
-        case 177: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
-        case 178: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
-        case 179: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
-        case 180: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
-        case 181: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
+        case 177: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
+        case 178: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
+        case 179: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
+        case 180: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
+        case 181: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
+        case 182: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

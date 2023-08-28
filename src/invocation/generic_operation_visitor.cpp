@@ -411,26 +411,6 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
         }
         else
         {
-            // derive directly to the parent of the concrete context
-            /*if( prev )
-            {
-                if( auto pPrevElement = prev->get_element() )
-                {
-                    if( auto pPrevConcrete = pPrevElement->get_concrete() )
-                    {
-                        if( auto pPrevConcreteContext = pPrevConcrete->get_context() )
-                        {
-                            if( pPrevConcreteContext.has_value() )
-                            {
-                                Concrete::Context* pPrevConcrete = pPrevConcreteContext.value();
-                                if( !commonRootDerivation(
-                                        pPrevConcrete, pCurrentConcrete->get_parent(), pInstruction, pInstance ) )
-                                    return;
-                            }
-                        }
-                    }
-                }
-            }*/
             // derive directly to the context for now NOT THE PARENT
             if( prev )
             {

@@ -440,7 +440,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                     const TskDesc objectInterfaceAnalysis
                         = encode( Task{ eTask_CPPInterfaceAnalysis, pComponent->get_name() } );
 
-                    dependencies.add( includes, symbolRolloutTasks );
+                    dependencies.add( includes, concreteTypeRolloutTasks );
                     dependencies.add( includePCH, TskDescVec{ includes } );
 
                     TskDescVec deps = derivationRolloutTasks;

@@ -161,6 +161,43 @@ symbolVectorToInterfaceVariantVector( Database& database, const std::vector< Sym
     return result;
 }
 
+InterfaceVariantVectorVector linkToInterfaceVariantVector( OperationsStage::Database&             database,
+                                                           const OperationsStage::Concrete::Link* pLink )
+{
+    InterfaceVariantVectorVector result;
+
+    auto pRelation = pLink->get_link()->get_relation();
+
+    if( pRelation->get_source_interface() == pLink->get_link_interface() )
+    {
+        for( auto pTarget : pRelation->get_targets() )
+        {
+            InterfaceVariantVector temp;
+            InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >(
+                InterfaceVariant::Args{ pTarget, std::optional< Interface::DimensionTrait* >() } );
+            temp.push_back( pInterfaceVariant );
+            result.push_back( temp );
+        }
+    }
+    else if( pRelation->get_target_interface() == pLink->get_link_interface() )
+    {
+        for( auto pSource : pRelation->get_sources() )
+        {
+            InterfaceVariantVector temp;
+            InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >(
+                InterfaceVariant::Args{ pSource, std::optional< Interface::DimensionTrait* >() } );
+            temp.push_back( pInterfaceVariant );
+            result.push_back( temp );
+        }
+    }
+    else
+    {
+        THROW_RTE( "Failed to find link interface" );
+    }
+
+    return result;
+}
+
 InterfaceVariantVectorVector
 symbolIDVectorToInterfaceVariantVector( Database& database, const SymbolMaps& symbolMaps,
                                         const std::vector< mega::TypeID >&  symbolIDs,
@@ -201,7 +238,7 @@ ElementVector* toElementVector( Database& database, const InterfaceVariantVector
                           << " id: " << pContext->get_interface_id() << std::endl;
             }
 
-            for( Concrete::Context* pConcrete : pContext->get_concrete() )
+            for( Concrete::Context* pConcrete : concreteInheritors )
             {
                 InterfaceVariant* pInterfaceVar
                     = database.construct< InterfaceVariant >( InterfaceVariant::Args{ pContext, std::nullopt } );
@@ -693,8 +730,11 @@ calculateLinkOperationTypes( std::vector< OperationsStage::Interface::IContext* 
     }
     return parameterContextTypes;
 }
+
 void analyseReturnTypes( Database& database, Invocation* pInvocation )
 {
+    pInvocation->set_explicit_operation( determineExplicitOperationType( pInvocation ) );
+
     std::vector< OperationsStage::Interface::IContext* >       derivedContexts;
     std::vector< OperationsStage::Interface::DimensionTrait* > derivedDimensions;
     bool                                                       bIsWriteOperation = false;
@@ -863,158 +903,6 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
     pInvocation->set_return_type_dimensions( dimensionReturnTypes );
     pInvocation->set_homogeneous( bIsHomogenous );
     pInvocation->set_singular( bSingular );
-}
-
-OperationsStage::Operations::Invocation* construct( Database& database, Symbols::SymbolTable* pSymbolTable,
-                                                    const mega::InvocationID& id )
-{
-    using ::operator<<;
-    // std::cout << "Found invocation: " << id << std::endl;
-
-    SymbolMaps symbolMaps( *pSymbolTable );
-
-    std::optional< mega::OperationID > operationIDOpt;
-
-    // 1. Convert from the SymbolIDs to Interface Contexts
-    InterfaceVariantVectorVector context
-        = symbolIDVectorToInterfaceVariantVector( database, symbolMaps, id.m_context, operationIDOpt );
-
-    InterfaceVariantVectorVector typePath
-        = symbolIDVectorToInterfaceVariantVector( database, symbolMaps, id.m_type_path, operationIDOpt );
-
-    if( operationIDOpt.has_value() )
-    {
-        VERIFY_RTE_MSG(
-            operationIDOpt.value() == id.m_operation,
-            "Type path operation type of: " << operationIDOpt.value() << " does not match invocation type of: " << id );
-    }
-
-    VERIFY_RTE_MSG( static_cast< int >( id.m_operation ) >= mega::TypeID::LOWEST_SYMBOL_ID
-                        && static_cast< int >( id.m_operation ) < mega::HIGHEST_OPERATION_TYPE,
-                    "Invalid operation type in invocation: " << id );
-
-    // 2. Convert from Interface Contexts to Interface/Concrete context pair element vectors
-    std::vector< ElementVector* > contextElements  = toElementVector( database, context );
-    std::vector< ElementVector* > typePathElements = toElementVector( database, typePath );
-
-    Context*  pContext  = database.construct< Context >( Context::Args{ contextElements } );
-    TypePath* pTypePath = database.construct< TypePath >( TypePath::Args{ typePathElements } );
-
-    // rebuild the type path string
-    std::ostringstream osTypePathStr;
-    {
-        osTypePathStr << mega::EG_TYPE_PATH << "< ";
-        bool bFirst = true;
-        for( mega::TypeID symbolID : id.m_type_path )
-        {
-            if( bFirst )
-                bFirst = false;
-            else
-                osTypePathStr << ", ";
-            if( symbolID.isSymbolID() )
-            {
-                if( isOperationType( symbolID ) )
-                {
-                    osTypePathStr << getOperationString( static_cast< OperationID >( symbolID.getSymbolID() ) );
-                }
-                else
-                {
-                    auto pSymbol = symbolMaps.findSymbolTypeID( symbolID );
-                    osTypePathStr << pSymbol->get_symbol();
-                }
-            }
-            else
-            {
-                auto pSymbol = symbolMaps.maybeFindInterfaceTypeID( symbolID );
-                VERIFY_RTE( pSymbol );
-                if( pSymbol->get_context().has_value() )
-                {
-                    printIContextFullType( pSymbol->get_context().value(), osTypePathStr );
-                }
-                else
-                {
-                    printIContextFullType( pSymbol->get_dimension().value()->get_parent(), osTypePathStr );
-                    osTypePathStr << "::" << pSymbol->get_dimension().value()->get_id()->get_str();
-                }
-            }
-        }
-        osTypePathStr << " >";
-    }
-
-    std::ostringstream osName;
-    std::ostringstream osContextStr;
-    {
-        if( context.size() > 1 )
-        {
-            osName << EG_VARIANT_TYPE << "< ";
-            osContextStr << EG_VARIANT_TYPE << "< ";
-        }
-        {
-            bool bFirst = true;
-            for( InterfaceVariantVector& ivv : context )
-            {
-                if( bFirst )
-                    bFirst = false;
-                else
-                {
-                    osName << ", ";
-                    osContextStr << ", ";
-                }
-                OperationsStage::Operations::InterfaceVariant* pFirst = ivv.front();
-                if( pFirst->get_context().has_value() )
-                {
-                    Interface::IContext* pContext = pFirst->get_context().value();
-                    osName << pContext->get_identifier();
-                    printIContextFullType( pContext, osContextStr );
-                }
-                else
-                {
-                    VERIFY_RTE( pFirst->get_dimension().has_value() );
-                    Interface::DimensionTrait* pDimension = pFirst->get_dimension().value();
-                    osName << pDimension->get_id()->get_str();
-                    printIContextFullType( pDimension->get_parent(), osContextStr );
-                    osContextStr << "::" << pDimension->get_id()->get_str();
-                }
-            }
-        }
-        if( context.size() > 1 )
-        {
-            osName << " >";
-            osContextStr << " >";
-        }
-        {
-            for( InterfaceVariantVector& ivv : typePath )
-            {
-                OperationsStage::Operations::InterfaceVariant* pFirst = ivv.front();
-                if( pFirst->get_context().has_value() )
-                {
-                    osName << "." << pFirst->get_context().value()->get_identifier();
-                }
-                else
-                {
-                    VERIFY_RTE( pFirst->get_dimension().has_value() );
-                    osName << "." << pFirst->get_dimension().value()->get_id()->get_str();
-                }
-            }
-        }
-        osName << "." << mega::getOperationString( id.m_operation );
-    }
-
-    Invocation* pInvocation = database.construct< Invocation >( Invocation::Args{
-        id, pContext, pTypePath, id.m_operation, osName.str(), osContextStr.str(), osTypePathStr.str(), {} } );
-
-    // 3. Compute name resolution
-    NameResolution* pNameResolution = resolve( database, pInvocation );
-    pInvocation->set_name_resolution( pNameResolution );
-
-    // 4. Build the instructions
-    build( database, pInvocation );
-
-    // 5. Analyse result
-    const ExplicitOperationID explicitOperationID = determineExplicitOperationType( pInvocation );
-    pInvocation->set_explicit_operation( explicitOperationID );
-
-    analyseReturnTypes( database, pInvocation );
 
     std::vector< Interface::IContext* >       parameterContexts = pInvocation->get_parameter_contexts();
     std::vector< Interface::IContext* >       contexts          = pInvocation->get_return_type_contexts();
@@ -1067,7 +955,7 @@ OperationsStage::Operations::Invocation* construct( Database& database, Symbols:
 
     std::ostringstream osReturnTypeStr, osRuntimeReturnType;
     {
-        switch( explicitOperationID )
+        switch( pInvocation->get_explicit_operation() )
         {
             case mega::id_exp_Read:
             {
@@ -1198,6 +1086,173 @@ OperationsStage::Operations::Invocation* construct( Database& database, Symbols:
 
     pInvocation->set_return_type_str( osReturnTypeStr.str() );
     pInvocation->set_runtime_return_type_str( osRuntimeReturnType.str() );
+}
+
+struct InvocationName
+{
+    std::string strName, strContext, strTypePath;
+};
+InvocationName toInvocationName( const mega::InvocationID& id, const InterfaceVariantVectorVector& context,
+                                 const InterfaceVariantVectorVector& typePath, const SymbolMaps& symbolMaps )
+{
+    // rebuild the type path string
+    std::ostringstream osTypePathStr;
+    {
+        osTypePathStr << mega::EG_TYPE_PATH << "< ";
+        bool bFirst = true;
+        for( mega::TypeID symbolID : id.m_type_path )
+        {
+            if( bFirst )
+                bFirst = false;
+            else
+                osTypePathStr << ", ";
+            if( symbolID.isSymbolID() )
+            {
+                if( isOperationType( symbolID ) )
+                {
+                    osTypePathStr << getOperationString( static_cast< OperationID >( symbolID.getSymbolID() ) );
+                }
+                else
+                {
+                    auto pSymbol = symbolMaps.findSymbolTypeID( symbolID );
+                    osTypePathStr << pSymbol->get_symbol();
+                }
+            }
+            else
+            {
+                auto pSymbol = symbolMaps.maybeFindInterfaceTypeID( symbolID );
+                VERIFY_RTE( pSymbol );
+                if( pSymbol->get_context().has_value() )
+                {
+                    printIContextFullType( pSymbol->get_context().value(), osTypePathStr );
+                }
+                else
+                {
+                    printIContextFullType( pSymbol->get_dimension().value()->get_parent(), osTypePathStr );
+                    osTypePathStr << "::" << pSymbol->get_dimension().value()->get_id()->get_str();
+                }
+            }
+        }
+        osTypePathStr << " >";
+    }
+
+    std::ostringstream osName;
+    std::ostringstream osContextStr;
+    {
+        if( context.size() > 1 )
+        {
+            osName << EG_VARIANT_TYPE << "< ";
+            osContextStr << EG_VARIANT_TYPE << "< ";
+        }
+        {
+            bool bFirst = true;
+            for( const InterfaceVariantVector& ivv : context )
+            {
+                if( bFirst )
+                    bFirst = false;
+                else
+                {
+                    osName << ", ";
+                    osContextStr << ", ";
+                }
+                OperationsStage::Operations::InterfaceVariant* pFirst = ivv.front();
+                if( pFirst->get_context().has_value() )
+                {
+                    Interface::IContext* pContext = pFirst->get_context().value();
+                    osName << pContext->get_identifier();
+                    printIContextFullType( pContext, osContextStr );
+                }
+                else
+                {
+                    VERIFY_RTE( pFirst->get_dimension().has_value() );
+                    Interface::DimensionTrait* pDimension = pFirst->get_dimension().value();
+                    osName << pDimension->get_id()->get_str();
+                    printIContextFullType( pDimension->get_parent(), osContextStr );
+                    osContextStr << "::" << pDimension->get_id()->get_str();
+                }
+            }
+        }
+        if( context.size() > 1 )
+        {
+            osName << " >";
+            osContextStr << " >";
+        }
+        {
+            for( const InterfaceVariantVector& ivv : typePath )
+            {
+                OperationsStage::Operations::InterfaceVariant* pFirst = ivv.front();
+                if( pFirst->get_context().has_value() )
+                {
+                    osName << "." << pFirst->get_context().value()->get_identifier();
+                }
+                else
+                {
+                    VERIFY_RTE( pFirst->get_dimension().has_value() );
+                    osName << "." << pFirst->get_dimension().value()->get_id()->get_str();
+                }
+            }
+        }
+        osName << "." << mega::getOperationString( id.m_operation );
+    }
+    return { osName.str(), osContextStr.str(), osTypePathStr.str() };
+}
+
+OperationsStage::Operations::Invocation* construct( Database& database, Symbols::SymbolTable* pSymbolTable,
+                                                    const mega::InvocationID& id )
+{
+    using ::operator<<;
+    // std::cout << "Found invocation: " << id << std::endl;
+
+    const SymbolMaps symbolMaps( *pSymbolTable );
+
+    std::optional< mega::OperationID > operationIDOpt;
+
+    // 1. Convert from the SymbolIDs to Interface Contexts
+    const InterfaceVariantVectorVector context
+        = symbolIDVectorToInterfaceVariantVector( database, symbolMaps, id.m_context, operationIDOpt );
+
+    const InterfaceVariantVectorVector typePath
+        = symbolIDVectorToInterfaceVariantVector( database, symbolMaps, id.m_type_path, operationIDOpt );
+
+    // check for any operation type found
+    {
+        if( operationIDOpt.has_value() )
+        {
+            VERIFY_RTE_MSG( operationIDOpt.value() == id.m_operation,
+                            "Type path operation type of: " << operationIDOpt.value()
+                                                            << " does not match invocation type of: " << id );
+        }
+        VERIFY_RTE_MSG( static_cast< int >( id.m_operation ) >= mega::TypeID::LOWEST_SYMBOL_ID
+                            && static_cast< int >( id.m_operation ) < mega::HIGHEST_OPERATION_TYPE,
+                        "Invalid operation type in invocation: " << id );
+    }
+
+    // 2. Convert from Interface Contexts to Interface/Concrete context pair element vectors
+    const std::vector< ElementVector* > contextElements  = toElementVector( database, context );
+    const std::vector< ElementVector* > typePathElements = toElementVector( database, typePath );
+
+    Context*  pContext  = database.construct< Context >( Context::Args{ contextElements } );
+    TypePath* pTypePath = database.construct< TypePath >( TypePath::Args{ typePathElements } );
+
+    const InvocationName invocationName = toInvocationName( id, context, typePath, symbolMaps );
+
+    Invocation* pInvocation = database.construct< Invocation >( Invocation::Args{ id,
+                                                                                  pContext,
+                                                                                  pTypePath,
+                                                                                  id.m_operation,
+                                                                                  invocationName.strName,
+                                                                                  invocationName.strContext,
+                                                                                  invocationName.strTypePath,
+                                                                                  {} } );
+
+    // 3. Compute name resolution
+    pInvocation->set_name_resolution( resolve( database, pInvocation ) );
+
+    // 4. Build the instructions
+    build( database, pInvocation );
+
+    // 5. Analyse result
+    analyseReturnTypes( database, pInvocation );
 
     return pInvocation;
 }
