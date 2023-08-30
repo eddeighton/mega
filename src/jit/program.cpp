@@ -34,15 +34,14 @@ Program::Program( JITDatabase& database, JITCompiler::Module::Ptr pModule )
     : m_pModule( pModule )
 {
     SPDLOG_TRACE( "Program::ctor" );
-    m_objectSaveBin = m_pModule->get< program::ObjectSaveBin::FunctionPtr >(
-        Symbol( "object_save_bin", Symbol::ID_VStar_VStar ) );
-    m_objectLoadBin = m_pModule->get< program::ObjectLoadBin::FunctionPtr >( 
-        Symbol( "object_load_bin", Symbol::ID_VStar_VStar ) );
-    m_recordLoadBin = m_pModule->get< program::RecordLoadBin::FunctionPtr >( 
-        Symbol( "record_load_bin", Symbol::Ref_VStar_U64 ) );
-    m_recordMake = m_pModule->get< program::RecordMake::FunctionPtr >( 
-        Symbol( "record_make", Symbol::Ref_Ref ) );
-    m_recordBreak = m_pModule->get< program::RecordBreak::FunctionPtr >( 
-        Symbol( "record_break", Symbol::Ref_Ref ) );
+    m_objectSaveBin
+        = m_pModule->get< program::ObjectSaveBin::FunctionPtr >( Symbol( "object_save_bin", Symbol::ID_VStar_VStar ) );
+    m_objectLoadBin
+        = m_pModule->get< program::ObjectLoadBin::FunctionPtr >( Symbol( "object_load_bin", Symbol::ID_VStar_VStar ) );
+    m_recordLoadBin
+        = m_pModule->get< program::RecordLoadBin::FunctionPtr >( Symbol( "record_load_bin", Symbol::Ref_VStar_U64 ) );
+    m_recordMake  = m_pModule->get< program::RecordMake::FunctionPtr >( Symbol( "record_make", Symbol::Ref_Ref ) );
+    m_recordBreak = m_pModule->get< program::RecordBreak::FunctionPtr >( Symbol( "record_break", Symbol::Ref_Ref ) );
+    m_traverse    = m_pModule->get< program::Traverse::FunctionPtr >( Symbol( "traverse", Symbol::VStar ) );
 }
 } // namespace mega::runtime

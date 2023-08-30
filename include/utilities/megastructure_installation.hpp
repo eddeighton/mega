@@ -53,8 +53,6 @@ public:
     boost::filesystem::path getRuntimeTemplateCall() const;
     boost::filesystem::path getRuntimeTemplateStart() const;
     boost::filesystem::path getRuntimeTemplateStop() const;
-    boost::filesystem::path getRuntimeTemplateSave() const;
-    boost::filesystem::path getRuntimeTemplateLoad() const;
     boost::filesystem::path getRuntimeTemplateGet() const;
     boost::filesystem::path getRuntimeTemplateRelation() const;
     boost::filesystem::path getRuntimeTemplateProgram() const;

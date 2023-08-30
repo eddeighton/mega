@@ -166,14 +166,6 @@ namespace Invocations
         {
         }
 
-        object Save : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
-        object Load : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
         object Move : BasicOperation -> OperationsStage::Operations
         {
         }

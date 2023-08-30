@@ -198,6 +198,11 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
             *ppFunction = ( void* )m_pProgram->getRecordBreak();
         }
         break;
+        case program::eTraverse:
+        {
+            *ppFunction = ( void* )m_pProgram->getTraverse();
+        }
+        break;
         default:
         case program::TOTAL_FUNCTION_TYPES:
         {
@@ -294,8 +299,6 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
         case mega::id_exp_Call:            functionType = mega::runtime::invocation::eCall; break; 
         case mega::id_exp_Start:           functionType = mega::runtime::invocation::eStart; break;     
         case mega::id_exp_Stop:            functionType = mega::runtime::invocation::eStop; break; 
-        case mega::id_exp_Save:            functionType = mega::runtime::invocation::eSave; break; 
-        case mega::id_exp_Load:            functionType = mega::runtime::invocation::eLoad; break; 
         case mega::id_exp_GetAction:       functionType = mega::runtime::invocation::eGet; break;         
         case mega::id_exp_GetDimension:    functionType = mega::runtime::invocation::eGet; break;  
         case mega::id_exp_Move:            functionType = mega::runtime::invocation::eMove; break;           
@@ -390,18 +393,6 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
             *ppFunction = ( void* )pModule->get< invocation::Get::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
-        case invocation::eSave:
-        {
-            *ppFunction
-                = ( void* )pModule->get< invocation::Save::FunctionPtr >( Symbol( invocationID, Symbol::Ref_VStar ) );
-        }
-        break;
-        case invocation::eLoad:
-        {
-            *ppFunction
-                = ( void* )pModule->get< invocation::Load::FunctionPtr >( Symbol( invocationID, Symbol::Ref_VStar ) );
-        }
-        break;
         case invocation::eStart:
         {
             *ppFunction
@@ -470,36 +461,17 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
             *ppFunction = ( void* )m_componentManager.getOperationFunctionPtr( typeID );
         }
         break;
-        case object::eObjectSaveXMLStructure:
-        {
-            auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction     = ( void* )pAllocator->getSaveXMLStructure();
-        }
-        break;
-        case object::eObjectLoadXMLStructure:
-        {
-            auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction     = ( void* )pAllocator->getLoadXMLStructure();
-        }
-        break;
-        case object::eObjectSaveXML:
-        {
-            auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction     = ( void* )pAllocator->getSaveXML();
-        }
-        break;
-        case object::eObjectLoadXML:
-        {
-            auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction     = ( void* )pAllocator->getLoadXML();
-        }
-        break;
         case object::eObjectUnparent:
         {
             auto pAllocator = getAllocator( compiler, typeID );
             *ppFunction     = ( void* )pAllocator->getUnparent();
         }
         break;
+        case object::eObjectTraverse:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction     = ( void* )pAllocator->getTraverse();
+        }
         default:
         case object::TOTAL_FUNCTION_TYPES:
         {

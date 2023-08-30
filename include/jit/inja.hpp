@@ -42,12 +42,10 @@ class Inja
     ::inja::Template    m_allocatorTemplate;
     ::inja::Template    m_callTemplate;
     ::inja::Template    m_getTemplate;
-    ::inja::Template    m_loadTemplate;
     ::inja::Template    m_programTemplate;
     ::inja::Template    m_readLinkTemplate;
     ::inja::Template    m_readTemplate;
     ::inja::Template    m_relationTemplate;
-    ::inja::Template    m_saveTemplate;
     ::inja::Template    m_startTemplate;
     ::inja::Template    m_stopTemplate;
     ::inja::Template    m_writeLinkTemplate;
@@ -64,12 +62,10 @@ public:
         m_allocatorTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().string() );
         m_callTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().string() );
         m_getTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateGet().string() );
-        m_loadTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateLoad().string() );
         m_programTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateProgram().string() );
         m_readLinkTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateReadLink().string() );
         m_readTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().string() );
         m_relationTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRelation().string() );
-        m_saveTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateSave().string() );
         m_startTemplate     = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().string() );
         m_stopTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().string() );
         m_writeLinkTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWriteLink().string() );
@@ -112,14 +108,6 @@ public:
     void render_stop( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_stopTemplate, data );
-    }
-    void render_save( const nlohmann::json& data, std::ostream& os )
-    {
-        m_injaEnvironment.render_to( os, m_saveTemplate, data );
-    }
-    void render_load( const nlohmann::json& data, std::ostream& os )
-    {
-        m_injaEnvironment.render_to( os, m_loadTemplate, data );
     }
     void render_get( const nlohmann::json& data, std::ostream& os )
     {

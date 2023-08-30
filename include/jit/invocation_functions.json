@@ -110,36 +110,6 @@
             "return" : "value"
         },
         {
-            "name" : "Save",
-            "arguments" : [
-                {
-                    "name" : "ref",
-                    "type" : "mega::reference"
-                },
-                {
-                    "name" : "pSerialiser",
-                    "type" : "void*"
-                }
-            ],
-            "return_type" : "void",
-            "return" : "void"
-        },
-        {
-            "name" : "Load",
-            "arguments" : [
-                {
-                    "name" : "ref",
-                    "type" : "mega::reference"
-                },
-                {
-                    "name" : "pSerialiser",
-                    "type" : "void*"
-                }
-            ],
-            "return_type" : "void",
-            "return" : "void"
-        },
-        {
             "name" : "Start",
             "arguments" : [
                 {

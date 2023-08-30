@@ -154,12 +154,6 @@ void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const JIT
             case mega::runtime::invocation::eGet:
                 m_pInja->render_get( data, osCPPCode );
                 break;
-            case mega::runtime::invocation::eSave:
-                m_pInja->render_save( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eLoad:
-                m_pInja->render_load( data, osCPPCode );
-                break;
             case mega::runtime::invocation::eStart:
                 m_pInja->render_start( data, osCPPCode );
                 break;

@@ -49,11 +49,8 @@ public:
     object::ObjectDtor::FunctionPtr             getDtor() const { return m_pDtor; }
     object::ObjectSaveBin::FunctionPtr          getSaveBin() const { return m_pSaveBin; }
     object::ObjectLoadBin::FunctionPtr          getLoadBin() const { return m_pLoadBin; }
-    object::ObjectSaveXMLStructure::FunctionPtr getSaveXMLStructure() const { return m_pSaveXMLStructure; }
-    object::ObjectLoadXMLStructure::FunctionPtr getLoadXMLStructure() const { return m_pLoadXMLStructure; }
-    object::ObjectSaveXML::FunctionPtr          getSaveXML() const { return m_pSaveXML; }
-    object::ObjectLoadXML::FunctionPtr          getLoadXML() const { return m_pLoadXML; }
     object::ObjectUnparent::FunctionPtr         getUnparent() const { return m_pUnparent; }
+    object::ObjectTraverse::FunctionPtr         getTraverse() const { return m_pTraverse; }
 
 private:
     JITCompiler::Module::Ptr                    m_pModule;
@@ -63,11 +60,8 @@ private:
     object::ObjectDtor::FunctionPtr             m_pDtor             = nullptr;
     object::ObjectSaveBin::FunctionPtr          m_pSaveBin          = nullptr;
     object::ObjectLoadBin::FunctionPtr          m_pLoadBin          = nullptr;
-    object::ObjectSaveXMLStructure::FunctionPtr m_pSaveXMLStructure = nullptr;
-    object::ObjectLoadXMLStructure::FunctionPtr m_pLoadXMLStructure = nullptr;
-    object::ObjectSaveXML::FunctionPtr          m_pSaveXML          = nullptr;
-    object::ObjectLoadXML::FunctionPtr          m_pLoadXML          = nullptr;
     object::ObjectUnparent::FunctionPtr         m_pUnparent         = nullptr;
+    object::ObjectTraverse::FunctionPtr         m_pTraverse         = nullptr;
 };
 
 } // namespace mega::runtime

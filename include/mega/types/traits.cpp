@@ -26,6 +26,8 @@
 #include "mega/record_archive.hpp"
 #include "mega/bin_archive.hpp"
 
+#include "mega/iterator.hpp"
+
 #include "traits.hpp"
 
 #include "mega/maths_types_io.hpp"
@@ -66,48 +68,42 @@ void structure_make( const mega::reference& source, const mega::reference& targe
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_make passed network address in source " );
     VERIFY_RTE_MSG( target.isHeapAddress(), "structure_make passed network address in target " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write(
-        source, target, relationID, mega::log::Structure::eMake ) );
+    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eMake ) );
 }
 void structure_make_source( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_make_source passed network address in source " );
     VERIFY_RTE_MSG( target.isHeapAddress(), "structure_make_source passed network address in target " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write(
-        source, target, relationID, mega::log::Structure::eMakeSource ) );
+    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eMakeSource ) );
 }
 void structure_make_target( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_make_target passed network address in source " );
     VERIFY_RTE_MSG( target.isHeapAddress(), "structure_make_target passed network address in target " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write(
-        source, target, relationID, mega::log::Structure::eMakeTarget ) );
+    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eMakeTarget ) );
 }
 void structure_break( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_break passed network address in source " );
     VERIFY_RTE_MSG( target.isHeapAddress(), "structure_break passed network address in target " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write(
-        source, target, relationID, mega::log::Structure::eBreak ) );
+    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eBreak ) );
 }
 void structure_break_source( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_break_source passed network address in source " );
     VERIFY_RTE_MSG( target.isHeapAddress(), "structure_break_source passed network address in target " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write(
-        source, target, relationID, mega::log::Structure::eBreakSource ) );
+    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eBreakSource ) );
 }
 void structure_break_target( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
 {
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_break_target passed network address in source " );
     VERIFY_RTE_MSG( target.isHeapAddress(), "structure_break_target passed network address in target " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write(
-        source, target, relationID, mega::log::Structure::eBreakTarget ) );
+    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eBreakTarget ) );
 }
 
 void structure_move( const mega::reference& source, const mega::reference& target, mega::U64 relationID )
@@ -115,8 +111,7 @@ void structure_move( const mega::reference& source, const mega::reference& targe
     VERIFY_RTE_MSG( source.isHeapAddress(), "structure_move passed network address in source" );
     // VERIFY_RTE_MSG( target.isHeapAddress(), "structure_move passed network address in target" );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Structure::Write(
-        source, target, relationID, mega::log::Structure::eMove ) );
+    log.record( mega::log::Structure::Write( source, target, relationID, mega::log::Structure::eMove ) );
 }
 
 void action_start( const mega::reference& source )
@@ -246,4 +241,86 @@ mega::U64 xml_load_tag_count( void* pSerialiser )
     return archive.tag_count();
 }
 
+// iterator routines
+mega::TypeID iterator_object_typeid( void* pIterator )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    return iterator.getTypeID();
+}
+
+void iterator_object_start( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.object_start( successor );
+}
+void iterator_object_end( void* pIterator )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.object_end();
+}
+void iterator_action_start( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.action_start( successor );
+}
+void iterator_action_end( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.action_end( successor );
+}
+void iterator_event_start( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.event_start( successor );
+}
+void iterator_event_end( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.event_end( successor );
+}
+void iterator_link_start( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.link_start( successor );
+}
+void iterator_link_end( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.link_end( successor );
+}
+void iterator_interupt_start( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.interupt_start( successor );
+}
+void iterator_interupt_end( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.interupt_end( successor );
+}
+void iterator_function_start( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.function_start( successor );
+}
+void iterator_function_end( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.function_end( successor );
+}
+void iterator_namespace_start( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.namespace_start( successor );
+}
+void iterator_namespace_end( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.namespace_end( successor );
+}
+void iterator_dimension( void* pIterator, mega::TypeID successor )
+{
+    auto& iterator = reify< mega::Iterator >( pIterator );
+    iterator.dimension( successor );
+}
 } // namespace mega::mangle

@@ -308,8 +308,6 @@ void build( Database& database, Invocation* pInvocation )
         case id_Imp_Params:
         case id_Start:
         case id_Stop:
-        case id_Save:
-        case id_Load:
         case id_Move:
         case id_Get:
         {
@@ -561,22 +559,6 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
             if( auto pOp = db_cast< Stop >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Stop );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Save >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Save );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Load >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Load );
                 bFound = true;
             }
         }
@@ -849,18 +831,6 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
             dimensionReturnTypes = derivedDimensions;
         }
         break;
-        case id_exp_Save:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Load:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
         case id_exp_Move:
         {
             contextReturnTypes   = derivedContexts;
@@ -1067,8 +1037,6 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
             }
             break;
             case mega::id_exp_Stop:
-            case mega::id_exp_Save:
-            case mega::id_exp_Load:
             case mega::id_exp_Move:
             case mega::id_exp_Range:
             case mega::id_exp_Raw:

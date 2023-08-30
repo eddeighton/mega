@@ -211,8 +211,6 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
         case id_Imp_Params:
         case id_Start:
         case id_Stop:
-        case id_Save:
-        case id_Load:
         case id_Move:
         case id_Get:
         case id_Range:

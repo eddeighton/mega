@@ -112,7 +112,10 @@ public:
     {
         return TypeID{ ContextID{ 0U, objectID, eType } };
     }
-
+    constexpr static inline TypeID make_end_state( TypeID typeID )
+    {
+        return TypeID{ ContextID{ typeID.getSubObjectID(), typeID.getObjectID(), eSymbol } };
+    }
 #ifndef MEGAJIT
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )

@@ -503,8 +503,6 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     return cast( m_module, result );
                 }
                 break;
-                case id_exp_Save:
-                case id_exp_Load:
                 case id_exp_Move:
                 case id_exp_Done:
                 case id_exp_Range:

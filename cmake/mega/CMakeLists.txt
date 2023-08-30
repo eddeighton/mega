@@ -105,9 +105,9 @@ set_target_properties( generate_python_mangle_allocators PROPERTIES FOLDER servi
 set_target_properties( generate_mega_mangle_meta PROPERTIES FOLDER service )
 
 set( MEGA_LIBRARY
-    ${MEGA_API_DIR}/mega/archive_traits.hpp
     ${MEGA_API_DIR}/mega/address_table.hpp
     ${MEGA_API_DIR}/mega/allocator.hpp
+    ${MEGA_API_DIR}/mega/archive_traits.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
     ${MEGA_API_DIR}/mega/bin_archive.hpp
     ${MEGA_API_DIR}/mega/boost_serialization_workaround.hpp
@@ -121,11 +121,12 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/include.hpp
     ${MEGA_API_DIR}/mega/invocation_id.hpp
     ${MEGA_API_DIR}/mega/invocation_io.hpp
+    ${MEGA_API_DIR}/mega/iterator.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
     ${MEGA_API_DIR}/mega/json_io.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
-    ${MEGA_API_DIR}/mega/maths_types.hpp
     ${MEGA_API_DIR}/mega/maths_types_io.hpp
+    ${MEGA_API_DIR}/mega/maths_types.hpp
     ${MEGA_API_DIR}/mega/memory.hpp
     ${MEGA_API_DIR}/mega/mpo.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp

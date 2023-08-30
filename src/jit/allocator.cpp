@@ -43,16 +43,10 @@ Allocator::Allocator( TypeID objectTypeID, JITDatabase& database, JITCompiler::M
         Symbol( "save_object_bin_", objectTypeID, Symbol::VStar_VStar ) );
     m_pLoadBin = pModule->get< object::ObjectLoadBin::FunctionPtr >( 
         Symbol( "load_object_bin_", objectTypeID, Symbol::VStar_VStar ) );
-    m_pSaveXMLStructure = pModule->get< object::ObjectSaveXMLStructure::FunctionPtr >(  
-        Symbol( "save_object_xml_structure_", objectTypeID, Symbol::Ref_VStar ) );
-    m_pLoadXMLStructure = pModule->get< object::ObjectLoadXMLStructure::FunctionPtr >(
-        Symbol( "load_object_xml_structure_", objectTypeID, Symbol::Ref_VStar ) );
-    m_pSaveXML = pModule->get< object::ObjectSaveXML::FunctionPtr >(
-        Symbol( "save_object_xml_", objectTypeID, Symbol::Ref_VStar ) );
-    m_pLoadXML = pModule->get< object::ObjectLoadXML::FunctionPtr >( 
-        Symbol( "load_object_xml_", objectTypeID, Symbol::Ref_VStar ) );
     m_pUnparent = pModule->get< object::ObjectUnparent::FunctionPtr >( 
         Symbol( "unparent_", objectTypeID, Symbol::Ref ) );
+    m_pTraverse = pModule->get< object::ObjectTraverse::FunctionPtr >( 
+        Symbol( "traverse_", objectTypeID, Symbol::VStar ) );
 }
 
 } // namespace mega::runtime

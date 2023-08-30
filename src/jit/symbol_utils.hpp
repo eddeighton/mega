@@ -38,6 +38,13 @@ static inline std::string printTypeID( const TypeID& typeID )
     return os.str();
 }
 
+static inline std::string printTypeIDNegative( const TypeID& typeID )
+{
+    std::ostringstream os;
+    os << "-0x" << std::hex << std::setfill( '0' ) << std::setw( 4 ) << typeID.getSymbolID();
+    return os.str();
+}
+
 static std::string megaMangle( const std::string& strCanonicalTypeName )
 {
     std::ostringstream os;

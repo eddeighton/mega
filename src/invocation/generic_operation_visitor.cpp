@@ -285,24 +285,6 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     pInstruction->push_back_children( pAllocate );
                 }
                 break;
-                case id_Save:
-                {
-                    using OperationsStage::Invocations::Operations::Save;
-                    Save* pSave = m_database.construct< Save >( Save::Args{
-                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
-                                              pCurrentInterface, pCurrentConcrete } } );
-                    pInstruction->push_back_children( pSave );
-                }
-                break;
-                case id_Load:
-                {
-                    using OperationsStage::Invocations::Operations::Load;
-                    Load* pLoad = m_database.construct< Load >( Load::Args{
-                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar } },
-                                              pCurrentInterface, pCurrentConcrete } } );
-                    pInstruction->push_back_children( pLoad );
-                }
-                break;
                 case id_Move:
                 {
                     using OperationsStage::Invocations::Operations::Move;
@@ -576,8 +558,6 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
             break;
             case id_Start:
             case id_Stop:
-            case id_Save:
-            case id_Load:
             case id_Move:
                 THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on dimension" );
             default:

@@ -32,6 +32,8 @@ namespace mega::mangle
     void load_record_{{event}}(void*,void*,mega::U64);
     void save_record_{{event}}(const reference&,const void*);
 {% endfor %}
+
+    mega::TypeID iterator_object_typeid( void* );
 }
 
 void object_save_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser )
@@ -182,6 +184,25 @@ void record_break( mega::reference source, mega::reference target )
         default:
         {
             throw mega::runtime::JITException{ "Unknown relationID" };
+        }
+        break;
+    }
+}
+
+void traverse( void* pIterator )
+{
+    switch( mega::mangle::iterator_object_typeid( pIterator ).getObjectID() )
+    {
+{% for type in object_types %}
+        case {{ type }}:
+        {
+            static thread_local mega::runtime::object::ObjectTraverse objectTraverse( "simulation", mega::TypeID{ {{ type }} } );
+            objectTraverse( pIterator );
+        }
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "Unknown concrete type id" };
         }
         break;
     }

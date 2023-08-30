@@ -43,6 +43,14 @@ std::string fullInterfaceTypeName( FinalStage::Interface::IContext* pIContext )
     return osFullTypeName.str();
 }
 
+std::string fullInterfaceTypeName( FinalStage::Interface::DimensionTrait* pDim )
+{
+    std::ostringstream osFullTypeName;
+    osFullTypeName << fullInterfaceTypeName( pDim->get_parent() ) << '_' << pDim->get_id()->get_str();
+    return osFullTypeName.str();
+}
+
+/*
 std::string makeIterName( const FinalStage::Concrete::Context* pContext )
 {
     using namespace FinalStage;
@@ -50,8 +58,8 @@ std::string makeIterName( const FinalStage::Concrete::Context* pContext )
     std::ostringstream os;
     os << "i_" << pContext->get_interface()->get_identifier() << "_" << pContext->get_concrete_id();
     return os.str();
-}
-
+}*/
+/*
 struct ParentSizes
 {
     std::vector< const FinalStage::Concrete::Context* > parents;
@@ -93,8 +101,9 @@ struct ParentSizes
         }
         return instance.str();
     }
-};
+};*/
 
+/*
 template < typename TDimensionType >
 std::string calculateElementOffset( const JITDatabase& database, TDimensionType* pUserDim, std::string& strInstance )
 {
@@ -115,8 +124,9 @@ std::string calculateElementOffset( const JITDatabase& database, TDimensionType*
     }
 
     return offset.str();
-}
+}*/
 
+/*
 void generateAllocatorDimensions( const JITDatabase& database, FinalStage::Concrete::Dimensions::User* pUserDim,
                                   nlohmann::json& data )
 {
@@ -269,11 +279,11 @@ std::optional< nlohmann::json > allocatorLink( const JITDatabase& database, Fina
 
         return element;
     }
-    /*else
-    {
-        // for now do not add non-owning links to xml format.
-        return {};
-    }*/
+    //else
+    //{
+    //    // for now do not add non-owning links to xml format.
+    //    return {};
+    //}
 }
 
 void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete::Context* pContext,
@@ -378,6 +388,187 @@ void recurseAllocatorElements( const JITDatabase& database, FinalStage::Concrete
         data[ "elements" ].push_back( element );
     }
 }
+*/
+
+std::string makeStartState( const mega::TypeID& typeID )
+{
+    return printTypeID( typeID );
+}
+
+std::string makeEndState( const mega::TypeID& typeID )
+{
+    return printTypeIDNegative( typeID );
+}
+
+std::string getContextTypeClass( const FinalStage::Concrete::Context* pContext )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Concrete;
+    if( db_cast< const Object >( pContext ) )
+        return "object";
+    else if( db_cast< const Action >( pContext ) )
+        return "action";
+    else if( db_cast< const Event >( pContext ) )
+        return "event";
+    else if( db_cast< const Link >( pContext ) )
+        return "link";
+    else if( db_cast< const Function >( pContext ) )
+        return "function";
+    else if( db_cast< const Namespace >( pContext ) )
+        return "namespace";
+    else if( db_cast< const Interupt >( pContext ) )
+        return "interupt";
+    else
+    {
+        THROW_RTE( "Unknown context type class" );
+    }
+}
+
+void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
+                             const FinalStage::Concrete::Context* pContext )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Concrete;
+
+    // collate elements
+    using ContextElementVariant       = std::variant< const Dimensions::User*, const Context* >;
+    using ContextElementVariantVector = std::vector< ContextElementVariant >;
+    ContextElementVariantVector elements;
+    {
+        {
+            auto children = pContext->get_children();
+            std::copy( children.begin(), children.end(), std::back_inserter( elements ) );
+        }
+
+        if( auto pUserDimensionContext = db_cast< const UserDimensionContext >( pContext ) )
+        {
+            auto dimensions = pUserDimensionContext->get_dimensions();
+            std::copy( dimensions.begin(), dimensions.end(), std::back_inserter( dimensions ) );
+        }
+    }
+
+    mega::TypeID typeIDSuccessor = pContext->get_concrete_id();
+    for( ContextElementVariantVector::iterator i = elements.begin(), iPrev, iEnd = elements.end(); i != iEnd; ++i )
+    {
+        {
+            if( auto ppDim = std::get_if< const Dimensions::User* >( &*i ) )
+            {
+                const Dimensions::User* pDim = *ppDim;
+                typeIDSuccessor              = pDim->get_concrete_id();
+            }
+            else if( auto ppContext = std::get_if< const Context* >( &*i ) )
+            {
+                const Context* pChildContext = *ppContext;
+                typeIDSuccessor              = pChildContext->get_concrete_id();
+            }
+            else
+            {
+                THROW_RTE( "Unknown type" );
+            }
+        }
+
+        if( i == elements.begin() )
+        {
+            nlohmann::json state( { { "value", makeStartState( pContext->get_concrete_id() ) },
+                                    { "start", true },
+                                    { "type", getContextTypeClass( pContext ) },
+                                    { "successor", makeStartState( typeIDSuccessor ) },
+                                    { "name", fullInterfaceTypeName( pContext->get_interface() ) }
+
+            } );
+            data[ "states" ].push_back( state );
+        }
+        else
+        {
+            if( auto ppDim = std::get_if< const Dimensions::User* >( &*iPrev ) )
+            {
+                const Dimensions::User* pDim = *ppDim;
+
+                nlohmann::json state( { { "value", makeStartState( pDim->get_concrete_id() ) },
+                                        { "start", true },
+                                        { "type", "dimension" },
+                                        { "successor", makeStartState( typeIDSuccessor ) },
+                                        { "name", fullInterfaceTypeName( pDim->get_interface_dimension() ) }
+
+                } );
+                data[ "states" ].push_back( state );
+            }
+            else if( auto ppContext = std::get_if< const Context* >( &*iPrev ) )
+            {
+                const Context* pChildContext = *ppContext;
+
+                // NOTE: this is the END state for the context
+                nlohmann::json state( { { "value", makeEndState( pChildContext->get_concrete_id() ) },
+                                        { "start", false },
+                                        { "type", getContextTypeClass( pChildContext ) },
+                                        { "successor", makeStartState( typeIDSuccessor ) },
+                                        { "name", fullInterfaceTypeName( pChildContext->get_interface() ) }
+
+                } );
+                data[ "states" ].push_back( state );
+
+                // recursively generate the START state for the context
+                recurseTraversalStates( database, data, pChildContext );
+            }
+            else
+            {
+                THROW_RTE( "Unknown type" );
+            }
+        }
+        iPrev = i;
+    }
+
+    // generate transition to context end state from final element OR context start state
+    if( elements.empty() )
+    {
+        // transition from start to end state for same type
+        nlohmann::json state( { { "value", makeStartState( pContext->get_concrete_id() ) },
+                                { "start", true },
+                                { "type", getContextTypeClass( pContext ) },
+                                { "successor", makeEndState( pContext->get_concrete_id() ) },
+                                { "name", fullInterfaceTypeName( pContext->get_interface() ) }
+
+        } );
+        data[ "states" ].push_back( state );
+    }
+    else
+    {
+        if( auto ppDim = std::get_if< const Dimensions::User* >( &elements.back() ) )
+        {
+            const Dimensions::User* pDim = *ppDim;
+
+            nlohmann::json state( { { "value", makeStartState( pDim->get_concrete_id() ) },
+                                    { "start", true },
+                                    { "type", "dimension" },
+                                    { "successor", makeEndState( pContext->get_concrete_id() ) },
+                                    { "name", fullInterfaceTypeName( pDim->get_interface_dimension() ) }
+
+            } );
+            data[ "states" ].push_back( state );
+        }
+        else if( auto ppContext = std::get_if< const Context* >( &elements.back() ) )
+        {
+            const Context* pChildContext = *ppContext;
+
+            // NOTE: this is the END state for the context
+            nlohmann::json state( { { "value", makeEndState( pChildContext->get_concrete_id() ) },
+                                    { "start", false },
+                                    { "type", getContextTypeClass( pChildContext ) },
+                                    { "successor", makeEndState( pContext->get_concrete_id() ) },
+                                    { "name", fullInterfaceTypeName( pChildContext->get_interface() ) }
+
+            } );
+            data[ "states" ].push_back( state );
+
+            // recursively generate the START state for the context
+            recurseTraversalStates( database, data, pChildContext );
+        }
+        else
+        {
+            THROW_RTE( "Unknown type" );
+        }
+    }
+}
 
 void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JITDatabase& database,
                                          mega::TypeID objectTypeID, std::ostream& os )
@@ -396,10 +587,22 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                            { "parts", nlohmann::json::array() },
                            { "relations", nlohmann::json::array() },
                            { "mangled_data_types", nlohmann::json::array() },
-                           { "elements", nlohmann::json::array() } } );
+                           { "state", nlohmann::json::array() }
 
-    recurseAllocatorElements( database, pObject, data );
+    } );
 
+    recurseTraversalStates( database, data, pObject );
+    // special case for Object END where will pop stack
+    {
+        nlohmann::json state( { { "value", makeEndState( pObject->get_concrete_id() ) },
+                                { "start", false },
+                                { "type", getContextTypeClass( pObject ) },
+                                { "successor", makeEndState( pObject->get_concrete_id() ) },
+                                { "name", fullInterfaceTypeName( pObject->get_interface() ) }
+
+        } );
+        data[ "states" ].push_back( state );
+    }
     // std::vector< FinalStage::HyperGraph::Relation* > owningRelations;
 
     std::set< std::string > mangledDataTypes;

@@ -39,19 +39,21 @@ public:
 
     Program( JITDatabase& database, JITCompiler::Module::Ptr pModule );
 
-    program::ObjectSaveBin::FunctionPtr   getObjectSaveBin() const { return m_objectSaveBin; }
-    program::ObjectLoadBin::FunctionPtr   getObjectLoadBin() const { return m_objectLoadBin; }
-    program::RecordLoadBin::FunctionPtr   getRecordLoadBin() const { return m_recordLoadBin; }
-    program::RecordMake::FunctionPtr      getRecordMake() const { return m_recordMake; }
-    program::RecordBreak::FunctionPtr     getRecordBreak() const { return m_recordBreak; }
+    program::ObjectSaveBin::FunctionPtr getObjectSaveBin() const { return m_objectSaveBin; }
+    program::ObjectLoadBin::FunctionPtr getObjectLoadBin() const { return m_objectLoadBin; }
+    program::RecordLoadBin::FunctionPtr getRecordLoadBin() const { return m_recordLoadBin; }
+    program::RecordMake::FunctionPtr    getRecordMake() const { return m_recordMake; }
+    program::RecordBreak::FunctionPtr   getRecordBreak() const { return m_recordBreak; }
+    program::Traverse::FunctionPtr      getTraverse() const { return m_traverse; }
 
 private:
-    JITCompiler::Module::Ptr              m_pModule;
-    program::ObjectSaveBin::FunctionPtr   m_objectSaveBin   = nullptr;
-    program::ObjectLoadBin::FunctionPtr   m_objectLoadBin   = nullptr;
-    program::RecordLoadBin::FunctionPtr   m_recordLoadBin   = nullptr;
-    program::RecordMake::FunctionPtr      m_recordMake      = nullptr;
-    program::RecordBreak::FunctionPtr     m_recordBreak     = nullptr;
+    JITCompiler::Module::Ptr            m_pModule;
+    program::ObjectSaveBin::FunctionPtr m_objectSaveBin = nullptr;
+    program::ObjectLoadBin::FunctionPtr m_objectLoadBin = nullptr;
+    program::RecordLoadBin::FunctionPtr m_recordLoadBin = nullptr;
+    program::RecordMake::FunctionPtr    m_recordMake    = nullptr;
+    program::RecordBreak::FunctionPtr   m_recordBreak   = nullptr;
+    program::Traverse::FunctionPtr      m_traverse      = nullptr;
 };
 
 } // namespace mega::runtime

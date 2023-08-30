@@ -511,97 +511,6 @@ R"TEMPLATE(
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// Save
-void gen( Args args, FinalStage::Invocations::Operations::Save* pSave )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    // clang-format off
-static const char* szTemplate =
-R"TEMPLATE(
-{{ indent }}{
-{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
-{{ indent }}    {
-{{ indent }}        mega::runtime::readLock( {{ instance }} );
-{{ indent }}    }
-{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
-{{ indent }}    {
-{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
-{{ indent }}    }
-{{ indent }}    static thread_local mega::runtime::object::ObjectSaveXMLStructure functionStructure( g_pszModuleName, {{ concrete_type_id }} );
-{{ indent }}    functionStructure( {{ instance }}, pArchive );
-{{ indent }}    static thread_local mega::runtime::object::ObjectSaveXML function( g_pszModuleName, {{ concrete_type_id }} );
-{{ indent }}    function( {{ instance }}, pArchive );
-{{ indent }}}
-)TEMPLATE";
-    // clang-format on
-
-    std::ostringstream os;
-    {
-        Concrete::Context*   pConcreteTarget = pSave->get_concrete_target();
-        Variables::Instance* pInstance       = pSave->get_instance();
-
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
-        nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
-                                       { "instance", args.get( pInstance ) } } );
-
-        os << args.inja.render( szTemplate, templateData );
-    }
-
-    args.data[ "assignments" ].push_back( os.str() );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// Load
-void gen( Args args, FinalStage::Invocations::Operations::Load* pLoad )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    // clang-format off
-static const char* szTemplate =
-R"TEMPLATE(
-{{ indent }}{
-{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
-{{ indent }}    {
-{{ indent }}        mega::runtime::readLock( {{ instance }} );
-{{ indent }}    }
-{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
-{{ indent }}    {
-{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
-{{ indent }}    }
-{{ indent }}    mega::mangle::xml_load_allocation( {{ instance }}, pArchive );
-{{ indent }}    static thread_local mega::runtime::object::ObjectLoadXMLStructure functionStructure( g_pszModuleName, {{ concrete_type_id }} );
-{{ indent }}    functionStructure( {{ instance }}, pArchive );
-{{ indent }}    static thread_local mega::runtime::object::ObjectLoadXML function( g_pszModuleName, {{ concrete_type_id }} );
-{{ indent }}    function( {{ instance }}, pArchive );
-{{ indent }}}
-)TEMPLATE";
-    // clang-format on
-
-    std::ostringstream os;
-    {
-        Concrete::Context*   pConcreteTarget = pLoad->get_concrete_target();
-        Variables::Instance* pInstance       = pLoad->get_instance();
-
-        std::ostringstream osIndent;
-        osIndent << args.indent;
-
-        nlohmann::json templateData( { { "indent", osIndent.str() },
-                                       { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
-                                       { "instance", args.get( pInstance ) } } );
-
-        os << args.inja.render( szTemplate, templateData );
-    }
-
-    args.data[ "assignments" ].push_back( os.str() );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // GetAction
 void gen( Args args, FinalStage::Invocations::Operations::GetAction* pGet )
 {
@@ -1061,14 +970,6 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         else if( auto pStop = db_cast< Stop >( pOperation ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pStop );
-        }
-        else if( auto pSave = db_cast< Save >( pOperation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pSave );
-        }
-        else if( auto pLoad = db_cast< Load >( pOperation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLoad );
         }
         else if( auto pMove = db_cast< Move >( pOperation ) )
         {

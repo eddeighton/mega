@@ -56,22 +56,6 @@ struct [[clang::eg_type( mega::id_Stop )]] Stop
     };
 };
 
-struct [[clang::eg_type( mega::id_Save )]] Save
-{
-    enum : mega::TypeID::ValueType
-    {
-        ID = mega::id_Save
-    };
-};
-
-struct [[clang::eg_type( mega::id_Load )]] Load
-{
-    enum : mega::TypeID::ValueType
-    {
-        ID = mega::id_Load
-    };
-};
-
 struct [[clang::eg_type( mega::id_Move )]] Move
 {
     enum : mega::TypeID::ValueType

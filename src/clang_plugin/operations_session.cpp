@@ -325,18 +325,6 @@ public:
                 return true;
             }
             break;
-            case mega::id_Save:
-            {
-                resultType = clang::getVoidType( pASTContext );
-                return true;
-            }
-            break;
-            case mega::id_Load:
-            {
-                resultType = clang::getVoidType( pASTContext );
-                return true;
-            }
-            break;
             case mega::id_Move:
             {
                 resultType = clang::getVoidType( pASTContext );

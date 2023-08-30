@@ -98,6 +98,17 @@
             ],
             "return_type" : "void",
             "return" : "void"
+        },
+        {
+            "name" : "Traverse",
+            "arguments" : [
+                {
+                    "name" : "iterator",
+                    "type" : "void*"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
         }
     ]
 }

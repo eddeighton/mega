@@ -63,71 +63,22 @@
             "return": "function"
         },
         {
-            "name": "ObjectSaveXMLStructure",
-            "arguments": [
-                {
-                    "name": "ref",
-                    "type": "mega::reference"
-                },
-                {
-                    "name": "Serialiser",
-                    "type": "void*"
-                }
-            ],
-            "return_type": "void",
-            "return": "void"
-        },
-        {
-            "name": "ObjectLoadXMLStructure",
-            "arguments": [
-                {
-                    "name": "ref",
-                    "type": "mega::reference"
-                },
-                {
-                    "name": "Serialiser",
-                    "type": "void*"
-                }
-            ],
-            "return_type": "void",
-            "return": "void"
-        },
-        {
-            "name": "ObjectLoadXML",
-            "arguments": [
-                {
-                    "name": "ref",
-                    "type": "mega::reference"
-                },
-                {
-                    "name": "Serialiser",
-                    "type": "void*"
-                }
-            ],
-            "return_type": "void",
-            "return": "void"
-        },
-        {
-            "name": "ObjectSaveXML",
-            "arguments": [
-                {
-                    "name": "ref",
-                    "type": "mega::reference"
-                },
-                {
-                    "name": "Serialiser",
-                    "type": "void*"
-                }
-            ],
-            "return_type": "void",
-            "return": "void"
-        },
-        {
             "name": "ObjectUnparent",
             "arguments": [
                 {
                     "name": "ref",
                     "type": "mega::reference"
+                }
+            ],
+            "return_type": "void",
+            "return": "void"
+        },
+        {
+            "name": "ObjectTraverse",
+            "arguments": [
+                {
+                    "name": "iterator",
+                    "type": "void*"
                 }
             ],
             "return_type": "void",

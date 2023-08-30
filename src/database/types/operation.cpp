@@ -32,8 +32,6 @@ static const OperationIDStringArray g_pszOperationStrings = {
     std::string( "__eg_ImpParams" ),
     std::string( "Start" ),
     std::string( "Stop" ),
-    std::string( "Save" ),
-    std::string( "Load" ),
     std::string( "Move" ),
     std::string( "Get" ),
     std::string( "Range" ),
@@ -65,23 +63,21 @@ const OperationIDStringArray& getOperationStrings()
 }
 
 // clang-format off
-static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings = 
-{ 
-    std::string( "Read" ),      
+static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings =
+{
+    std::string( "Read" ),
     std::string( "Write" ),
-    std::string( "ReadLink" ),      
+    std::string( "ReadLink" ),
     std::string( "WriteLink" ),
     std::string( "Allocate" ),
     std::string( "Call" ),
-    std::string( "Start" ),     
-    std::string( "Stop" ),         
-    std::string( "Save" ),
-    std::string( "Load" ),    
-    std::string( "Move" ),   
-    std::string( "GetAction" ), 
-    std::string( "GetDimension" ), 
-    std::string( "Range" ),     
-    std::string( "Raw" ) 
+    std::string( "Start" ),
+    std::string( "Stop" ),
+    std::string( "Move" ),
+    std::string( "GetAction" ),
+    std::string( "GetDimension" ),
+    std::string( "Range" ),
+    std::string( "Raw" )
 };
 // clang-format on
 static_assert( HIGHEST_EXPLICIT_OPERATION_TYPE == g_pszExplicitOperationStrings.size(),
