@@ -31,9 +31,9 @@ namespace mega::mangle
 mega::TypeID iterator_state( void* );
 void         iterator_object_start( void*, mega::TypeID );
 void         iterator_object_end( void* );
-void         iterator_action_start( void*, mega::TypeID );
+void         iterator_action_start( void*, mega::TypeID, mega::Instance );
 void         iterator_action_end( void*, mega::TypeID );
-void         iterator_event_start( void*, mega::TypeID );
+void         iterator_event_start( void*, mega::TypeID, mega::Instance );
 void         iterator_event_end( void*, mega::TypeID );
 void         iterator_link_start( void*, mega::TypeID );
 void         iterator_link_end( void*, mega::TypeID );
@@ -66,10 +66,31 @@ void traverse_0x10000( void* pIterator )
             mega::mangle::iterator_link_start( pIterator, mega::TypeID{ -2147418091 } );
             break;
         case -2147418089: // Parent_Toaster_Root END
-            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ 0x10019 } );
+            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ 0x1001e } );
             break;
         case 0x10017: // Parent_Toaster_Root START
             mega::mangle::iterator_link_start( pIterator, mega::TypeID{ -2147418089 } );
+            break;
+        case -2147418082: // TestAction_Root END
+            mega::mangle::iterator_action_end( pIterator, mega::TypeID{ 0x10019 } );
+            break;
+        case 0x1001e: // TestAction_Root START
+            mega::mangle::iterator_action_start( pIterator, mega::TypeID{ 0x1001f }, 4 );
+            break;
+        case -2147418081: // TestB_TestAction_Root END
+            mega::mangle::iterator_action_end( pIterator, mega::TypeID{ -2147418082 } );
+            break;
+        case 0x1001f: // TestB_TestAction_Root START
+            mega::mangle::iterator_action_start( pIterator, mega::TypeID{ 0x10020 }, 3 );
+            break;
+        case -2147418080: // TestC_TestB_TestAction_Root END
+            mega::mangle::iterator_action_end( pIterator, mega::TypeID{ -2147418081 } );
+            break;
+        case 0x10020: // TestC_TestB_TestAction_Root START
+            mega::mangle::iterator_action_start( pIterator, mega::TypeID{ 0x10021 }, 2 );
+            break;
+        case 0x10021: // TestC_TestB_TestAction_Root_m_inner_dimension START
+            mega::mangle::iterator_dimension( pIterator, mega::TypeID{ -2147418080 } );
             break;
         case -2147418087: // Math_Basic_Root END
             mega::mangle::iterator_function_end( pIterator, mega::TypeID{ 0x10018 } );
@@ -158,6 +179,63 @@ void traverse_0x10000( void* pIterator )
         case -2147418112: // Root END
             mega::mangle::iterator_object_end( pIterator );
             break;
+
+        case 0x40000: // ObjB START
+            mega::mangle::iterator_object_start( pIterator, mega::TypeID{ 0x40003 } );
+            break;
+        case -2147221501: // Child_ZeroToOne_OneToOne_ObjB END
+            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ 0x40002 } );
+            break;
+        case 0x40003: // Child_ZeroToOne_OneToOne_ObjB START
+            mega::mangle::iterator_link_start( pIterator, mega::TypeID{ -2147221501 } );
+            break;
+        case -2147221502: // Parent_ZeroToMany_OneToOne_Other_ObjB END
+            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ 0x40004 } );
+            break;
+        case 0x40002: // Parent_ZeroToMany_OneToOne_Other_ObjB START
+            mega::mangle::iterator_link_start( pIterator, mega::TypeID{ -2147221502 } );
+            break;
+        case -2147221500: // Child_ZeroToMany_OneToOne_Other_ObjB END
+            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ 0x40001 } );
+            break;
+        case 0x40004: // Child_ZeroToMany_OneToOne_Other_ObjB START
+            mega::mangle::iterator_link_start( pIterator, mega::TypeID{ -2147221500 } );
+            break;
+        case 0x40001: // ObjB_m_string START
+            mega::mangle::iterator_dimension( pIterator, mega::TypeID{ -2147221504 } );
+            break;
+        case -2147221504: // ObjB END
+            mega::mangle::iterator_object_end( pIterator );
+            break;
+
+        case 0x50000: // ObjA START
+            mega::mangle::iterator_object_start( pIterator, mega::TypeID{ 0x50003 } );
+            break;
+        case -2147155965: // Child_ZeroToMany_OneToOne_ObjA END
+            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ 0x50002 } );
+            break;
+        case 0x50003: // Child_ZeroToMany_OneToOne_ObjA START
+            mega::mangle::iterator_link_start( pIterator, mega::TypeID{ -2147155965 } );
+            break;
+        case -2147155966: // Parent_ZeroToMany_OneToMany_ObjA END
+            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ 0x50004 } );
+            break;
+        case 0x50002: // Parent_ZeroToMany_OneToMany_ObjA START
+            mega::mangle::iterator_link_start( pIterator, mega::TypeID{ -2147155966 } );
+            break;
+        case -2147155964: // Child_ZeroToMany_OneToMany_ObjA END
+            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ 0x50001 } );
+            break;
+        case 0x50004: // Child_ZeroToMany_OneToMany_ObjA START
+            mega::mangle::iterator_link_start( pIterator, mega::TypeID{ -2147155964 } );
+            break;
+        case 0x50001: // ObjA_m_string START
+            mega::mangle::iterator_dimension( pIterator, mega::TypeID{ -2147155968 } );
+            break;
+        case -2147155968: // ObjA END
+            mega::mangle::iterator_object_end( pIterator );
+            break;
+
         default:
             throw mega::runtime::JITException{ "Unknown concrete type id" };
             break;
@@ -183,14 +261,29 @@ struct TestLogicalInstantiation
 
     U64 linkSize( const LogicalReference& ref )
     {
-        //
-        return 0;
+        if( ref.typeInstance.type == TypeID{ 0x10015 } )
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
     }
 
     LogicalObject linkObject( const LogicalReference& link, U64 index )
     {
-        //
-        return {};
+        if( index == 0 )
+        {
+            if( link.typeInstance.type == TypeID{ 0x10015 } )
+            {
+                return LogicalObject{ 1, TypeID{ 0x40000 } };
+            }
+        }
+        else
+        {
+            return {};
+        }
     }
 };
 
@@ -275,10 +368,10 @@ TEST( Visitor, Basic )
         ++iterator;
     }
 
-    ASSERT_EQ( visitor.objects, 1 );
-    ASSERT_EQ( visitor.links, 3 );
+    ASSERT_EQ( visitor.objects, 2 );
+    ASSERT_EQ( visitor.links, 3 + 3 );
     ASSERT_EQ( visitor.functions, 5 );
     ASSERT_EQ( visitor.events, 0 );
-    ASSERT_EQ( visitor.actions, 0 );
-    ASSERT_EQ( visitor.dimensions, 18 );
+    ASSERT_EQ( visitor.actions, 40 );
+    ASSERT_EQ( visitor.dimensions, 42 + 1 );
 }

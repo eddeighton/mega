@@ -30,8 +30,14 @@ std::string fullInterfaceTypeName( FinalStage::Interface::IContext* pIContext )
 {
     std::ostringstream osFullTypeName;
     {
-        bool bFirst = true;
+        std::vector< FinalStage::Interface::IContext* > contexts;
         for( ; pIContext; pIContext = db_cast< FinalStage::Interface::IContext >( pIContext->get_parent() ) )
+        {
+            contexts.push_back( pIContext );
+        }
+        std::reverse( contexts.begin(), contexts.end() );
+        bool bFirst = true;
+        for( auto p : contexts )
         {
             if( bFirst )
                 bFirst = false;

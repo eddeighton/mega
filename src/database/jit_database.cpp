@@ -340,41 +340,7 @@ const FinalStage::Components::Component* JITDatabase::getOperationComponent( meg
     }
     THROW_RTE( "JITDatabase::getOperationComponent Unreachable" );
 }
-/*
-mega::U64 JITDatabase::getTotalDomainSize( mega::TypeID concreteID ) const
-{
-    using namespace FinalStage;
 
-    auto iFind = m_concreteIDs.find( concreteID );
-    VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << concreteID );
-    FinalStage::Concrete::Context* pContext = iFind->second;
-
-    if ( Concrete::Object* pObject = db_cast< Concrete::Object >( pContext ) )
-    {
-        return 1;
-    }
-    else if ( Concrete::Event* pEvent = db_cast< Concrete::Event >( pContext ) )
-    {
-        return pEvent->get_total_size();
-    }
-    else if ( Concrete::Action* pAction = db_cast< Concrete::Action >( pContext ) )
-    {
-        return pAction->get_total_size();
-    }
-    else if ( Concrete::Link* pLink = db_cast< Concrete::Link >( pContext ) )
-    {
-        return pLink->get_total_size();
-    }
-    else if ( Concrete::Buffer* pBuffer = db_cast< Concrete::Buffer >( pContext ) )
-    {
-        return pBuffer->get_total_size();
-    }
-    else
-    {
-        return 1;
-    }
-}
-*/
 mega::U64 JITDatabase::getLocalDomainSize( mega::TypeID concreteID ) const
 {
     using ::operator<<;
