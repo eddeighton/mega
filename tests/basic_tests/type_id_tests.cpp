@@ -57,8 +57,73 @@ TEST( TypeID, MaxSymbolIDValues )
     ASSERT_TRUE( def.isSymbolID() );
 }
 
+TEST( TypeID, Sanity )
+{
+    const I32 i1 = 0x10000;
+    const I32 i2 = -0x10000;
+    ASSERT_EQ( i1, -i2 );
+}
+
+TEST( TypeID, States )
+{
+    using namespace mega;
+
+    const TypeID startStateLiteral = TypeID{ 0x10000 };
+    const TypeID endStateLiteral   = TypeID{ -2147418112 };
+    const TypeID endStateLiteral2  = TypeID{ -0x7FFF0000 };
+
+    ASSERT_EQ( endStateLiteral, TypeID::make_end_state( startStateLiteral ) );
+    ASSERT_EQ( startStateLiteral, TypeID::make_start_state( endStateLiteral ) );
+    ASSERT_EQ( endStateLiteral, endStateLiteral2 );
+
+    ASSERT_EQ( startStateLiteral.getSubObjectID(), endStateLiteral.getSubObjectID() );
+    ASSERT_EQ( startStateLiteral.getObjectID(), endStateLiteral.getObjectID() );
+
+    {
+        const TypeID startState = TypeID::make_start_state( startStateLiteral );
+        ASSERT_EQ( startState.getSubObjectID(), startStateLiteral.getSubObjectID() );
+        ASSERT_EQ( startState.getObjectID(), startStateLiteral.getObjectID() );
+        ASSERT_TRUE( startState.isContextID() );
+        ASSERT_EQ( startState, startStateLiteral );
+    }
+    {
+        const TypeID startState = TypeID::make_start_state( endStateLiteral );
+        ASSERT_EQ( startState.getSubObjectID(), endStateLiteral.getSubObjectID() );
+        ASSERT_EQ( startState.getObjectID(), endStateLiteral.getObjectID() );
+        ASSERT_TRUE( startState.isContextID() );
+        ASSERT_EQ( startState, startStateLiteral );
+    }
+
+    {
+        const TypeID endState = TypeID::make_end_state( startStateLiteral );
+        ASSERT_EQ( endState.getSubObjectID(), startStateLiteral.getSubObjectID() );
+        ASSERT_EQ( endState.getObjectID(), startStateLiteral.getObjectID() );
+        ASSERT_TRUE( endState.isSymbolID() );
+        ASSERT_EQ( endState, endStateLiteral );
+    }
+
+    {
+        const TypeID endState = TypeID::make_end_state( endStateLiteral );
+        ASSERT_EQ( endState.getSubObjectID(), endStateLiteral.getSubObjectID() );
+        ASSERT_EQ( endState.getObjectID(), endStateLiteral.getObjectID() );
+        ASSERT_TRUE( endState.isSymbolID() );
+        ASSERT_EQ( endState, endStateLiteral );
+    }
+}
+
 TEST( TypeID, FlagIsSignedBit )
 {
+    using namespace mega;
+
+    const TypeID startStateLiteral = TypeID{ 0x10000 };
+    const TypeID endStateLiteral   = TypeID::make_end_state( startStateLiteral );
+    ASSERT_TRUE( startStateLiteral.isContextID() );
+    ASSERT_TRUE( endStateLiteral.isSymbolID() );
+    ASSERT_EQ( startStateLiteral.getObjectID(), 1 );
+    ASSERT_EQ( startStateLiteral.getSubObjectID(), 0 );
+    ASSERT_EQ( endStateLiteral.getObjectID(), 1 );
+    ASSERT_EQ( endStateLiteral.getSubObjectID(), 0 );
+
     ASSERT_EQ( mega::max_typeID_context.getObjectID(), mega::max_object_id );
     ASSERT_EQ( mega::max_typeID_context.getSubObjectID(), mega::max_sub_object_id );
 

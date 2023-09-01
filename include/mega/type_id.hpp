@@ -25,7 +25,9 @@
 
 #ifndef MEGAJIT
 #include <limits>
-namespace boost::serialization{};
+namespace boost::serialization
+{
+};
 #endif
 
 namespace mega
@@ -43,16 +45,21 @@ private:
         U32 subObject : 16, object : 15, flag : 1;
     };
 
-    union
-    {
-        ContextID contextID;
-        ValueType value;
-    };
-
     enum Flag
     {
         eType   = 0,
         eSymbol = 1 // must match sign bit - ALL symbolIDs are negative
+    };
+
+    static constexpr inline ContextID make_context_impl( SubValueType objectID, SubValueType subObjectID, Flag flag )
+    {
+        return ContextID{ subObjectID, objectID, flag };
+    }
+
+    union
+    {
+        ContextID contextID;
+        ValueType value;
     };
 
     constexpr TypeID( ContextID _contextID )
@@ -93,7 +100,7 @@ public:
     constexpr inline SubValueType getObjectID() const { return contextID.object; }
     constexpr inline SubValueType getSubObjectID() const { return contextID.subObject; }
 
-    constexpr inline operator ValueType() const { return value; }
+    constexpr inline      operator ValueType() const { return value; }
     constexpr inline bool is_valid() const { return value != 0U; }
 
     constexpr inline bool operator==( const TypeID& cmp ) const { return value == cmp.value; }
@@ -102,19 +109,23 @@ public:
 
     constexpr static inline TypeID make_context( SubValueType objectID, SubValueType subObjectID = 0 )
     {
-        return TypeID{ ContextID{ subObjectID, objectID, eType } };
+        return TypeID{ TypeID::make_context_impl( objectID, subObjectID, eType ) };
     }
     constexpr static inline TypeID make_object_from_typeID( TypeID typeID )
     {
-        return TypeID{ ContextID{ 0U, typeID.getObjectID(), eType } };
+        return TypeID{ TypeID::make_context_impl( typeID.getObjectID(), 0U, eType ) };
     }
     constexpr static inline TypeID make_object_from_objectID( SubValueType objectID )
     {
-        return TypeID{ ContextID{ 0U, objectID, eType } };
+        return TypeID{ TypeID::make_context_impl( objectID, 0U, eType ) };
+    }
+    constexpr static inline TypeID make_start_state( TypeID typeID )
+    {
+        return TypeID{ TypeID::make_context_impl( typeID.getObjectID(), typeID.getSubObjectID(), eType ) };
     }
     constexpr static inline TypeID make_end_state( TypeID typeID )
     {
-        return TypeID{ ContextID{ typeID.getSubObjectID(), typeID.getObjectID(), eSymbol } };
+        return TypeID{ TypeID::make_context_impl( typeID.getObjectID(), typeID.getSubObjectID(), eSymbol ) };
     }
 #ifndef MEGAJIT
     template < class Archive >
@@ -124,7 +135,6 @@ public:
         serialize( archive, *this, version );
     }
 #endif
-
 };
 
 #ifndef MEGAJIT

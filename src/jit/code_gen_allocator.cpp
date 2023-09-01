@@ -50,6 +50,48 @@ std::string fullInterfaceTypeName( FinalStage::Interface::DimensionTrait* pDim )
     return osFullTypeName.str();
 }
 
+mega::U64 concreteLocalDomainSize( const FinalStage::Concrete::Context* pContext )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Concrete;
+    if( auto pEvent = db_cast< const Event >( pContext ) )
+    {
+        return pEvent->get_local_size();
+    }
+    else if( auto pAction = db_cast< const Action >( pContext ) )
+    {
+        return pAction->get_local_size();
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+std::string getContextTypeClass( const FinalStage::Concrete::Context* pContext )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Concrete;
+    if( db_cast< const Object >( pContext ) )
+        return "object";
+    else if( db_cast< const Action >( pContext ) )
+        return "action";
+    else if( db_cast< const Event >( pContext ) )
+        return "event";
+    else if( db_cast< const Link >( pContext ) )
+        return "link";
+    else if( db_cast< const Function >( pContext ) )
+        return "function";
+    else if( db_cast< const Namespace >( pContext ) )
+        return "namespace";
+    else if( db_cast< const Interupt >( pContext ) )
+        return "interupt";
+    else
+    {
+        THROW_RTE( "Unknown context type class" );
+    }
+}
+
 /*
 std::string makeIterName( const FinalStage::Concrete::Context* pContext )
 {
@@ -397,31 +439,9 @@ std::string makeStartState( const mega::TypeID& typeID )
 
 std::string makeEndState( const mega::TypeID& typeID )
 {
-    return printTypeIDNegative( typeID );
-}
-
-std::string getContextTypeClass( const FinalStage::Concrete::Context* pContext )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Concrete;
-    if( db_cast< const Object >( pContext ) )
-        return "object";
-    else if( db_cast< const Action >( pContext ) )
-        return "action";
-    else if( db_cast< const Event >( pContext ) )
-        return "event";
-    else if( db_cast< const Link >( pContext ) )
-        return "link";
-    else if( db_cast< const Function >( pContext ) )
-        return "function";
-    else if( db_cast< const Namespace >( pContext ) )
-        return "namespace";
-    else if( db_cast< const Interupt >( pContext ) )
-        return "interupt";
-    else
-    {
-        THROW_RTE( "Unknown context type class" );
-    }
+    std::ostringstream os;
+    os << static_cast< mega::TypeID::ValueType >( TypeID::make_end_state( typeID ) );
+    return os.str();
 }
 
 void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
@@ -443,7 +463,7 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
         if( auto pUserDimensionContext = db_cast< const UserDimensionContext >( pContext ) )
         {
             auto dimensions = pUserDimensionContext->get_dimensions();
-            std::copy( dimensions.begin(), dimensions.end(), std::back_inserter( dimensions ) );
+            std::copy( dimensions.begin(), dimensions.end(), std::back_inserter( elements ) );
         }
     }
 
@@ -471,6 +491,7 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
         {
             nlohmann::json state( { { "value", makeStartState( pContext->get_concrete_id() ) },
                                     { "start", true },
+                                    { "local_domain_size", concreteLocalDomainSize( pContext ) },
                                     { "type", getContextTypeClass( pContext ) },
                                     { "successor", makeStartState( typeIDSuccessor ) },
                                     { "name", fullInterfaceTypeName( pContext->get_interface() ) }
@@ -486,6 +507,7 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
 
                 nlohmann::json state( { { "value", makeStartState( pDim->get_concrete_id() ) },
                                         { "start", true },
+                                        { "local_domain_size", 1 },
                                         { "type", "dimension" },
                                         { "successor", makeStartState( typeIDSuccessor ) },
                                         { "name", fullInterfaceTypeName( pDim->get_interface_dimension() ) }
@@ -500,6 +522,7 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
                 // NOTE: this is the END state for the context
                 nlohmann::json state( { { "value", makeEndState( pChildContext->get_concrete_id() ) },
                                         { "start", false },
+                                        { "local_domain_size", concreteLocalDomainSize( pChildContext ) },
                                         { "type", getContextTypeClass( pChildContext ) },
                                         { "successor", makeStartState( typeIDSuccessor ) },
                                         { "name", fullInterfaceTypeName( pChildContext->get_interface() ) }
@@ -524,6 +547,7 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
         // transition from start to end state for same type
         nlohmann::json state( { { "value", makeStartState( pContext->get_concrete_id() ) },
                                 { "start", true },
+                                { "local_domain_size", concreteLocalDomainSize( pContext ) },
                                 { "type", getContextTypeClass( pContext ) },
                                 { "successor", makeEndState( pContext->get_concrete_id() ) },
                                 { "name", fullInterfaceTypeName( pContext->get_interface() ) }
@@ -539,6 +563,7 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
 
             nlohmann::json state( { { "value", makeStartState( pDim->get_concrete_id() ) },
                                     { "start", true },
+                                    { "local_domain_size", 1 },
                                     { "type", "dimension" },
                                     { "successor", makeEndState( pContext->get_concrete_id() ) },
                                     { "name", fullInterfaceTypeName( pDim->get_interface_dimension() ) }
@@ -553,6 +578,7 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
             // NOTE: this is the END state for the context
             nlohmann::json state( { { "value", makeEndState( pChildContext->get_concrete_id() ) },
                                     { "start", false },
+                                    { "local_domain_size", concreteLocalDomainSize( pChildContext ) },
                                     { "type", getContextTypeClass( pChildContext ) },
                                     { "successor", makeEndState( pContext->get_concrete_id() ) },
                                     { "name", fullInterfaceTypeName( pChildContext->get_interface() ) }

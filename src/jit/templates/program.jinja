@@ -33,7 +33,7 @@ namespace mega::mangle
     void save_record_{{event}}(const reference&,const void*);
 {% endfor %}
 
-    mega::TypeID iterator_object_typeid( void* );
+    mega::TypeID iterator_state( void* );
 }
 
 void object_save_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser )
@@ -191,7 +191,7 @@ void record_break( mega::reference source, mega::reference target )
 
 void traverse( void* pIterator )
 {
-    switch( mega::mangle::iterator_object_typeid( pIterator ).getObjectID() )
+    switch( mega::mangle::iterator_state( pIterator ).getObjectID() )
     {
 {% for type in object_types %}
         case {{ type }}:

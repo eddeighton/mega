@@ -36,12 +36,12 @@ namespace mega::mangle
     void load_bin_{{type}}(void*,void*);
 {% endfor %}
 
-    mega::TypeID iterator_object_typeid( void* );
+    mega::TypeID iterator_state( void* );
     void iterator_object_start( void*, mega::TypeID );
     void iterator_object_end( void* );
-    void iterator_action_start( void*, mega::TypeID );
+    void iterator_action_start( void*, mega::TypeID, mega::Instance );
     void iterator_action_end( void*, mega::TypeID );
-    void iterator_event_start( void*, mega::TypeID );
+    void iterator_event_start( void*, mega::TypeID, mega::Instance );
     void iterator_event_end( void*, mega::TypeID );
     void iterator_link_start( void*, mega::TypeID );
     void iterator_link_end( void*, mega::TypeID );
@@ -162,7 +162,7 @@ void unparent_{{ objectTypeID }}( mega::reference ref )
 
 void traverse_{{ objectTypeID }}( void* pIterator )
 {
-    switch( mega::mangle::iterator_object_typeid( pIterator ) )
+    switch( mega::mangle::iterator_state( pIterator ) )
     {
 {%  for state in states %}
         case {{ state.value }}: // {{ state.name }} {% if state.start %}START{% else %}END{% endif %}
@@ -175,13 +175,13 @@ void traverse_{{ objectTypeID }}( void* pIterator )
 {% endif %}
 {% else if state.type == "action" %}
 {% if state.start %}
-            mega::mangle::iterator_action_start( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_action_start( pIterator, mega::TypeID{ {{ state.successor }} }, {{ state.local_domain_size }} );
 {% else %}
             mega::mangle::iterator_action_end( pIterator, mega::TypeID{ {{ state.successor }} } );
 {% endif %}
 {% else if state.type == "event" %}
 {% if state.start %}
-            mega::mangle::iterator_event_start( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_event_start( pIterator, mega::TypeID{ {{ state.successor }} }, {{ state.local_domain_size }} );
 {% else %}
             mega::mangle::iterator_event_end( pIterator, mega::TypeID{ {{ state.successor }} } );
 {% endif %}

@@ -242,10 +242,10 @@ mega::U64 xml_load_tag_count( void* pSerialiser )
 }
 
 // iterator routines
-mega::TypeID iterator_object_typeid( void* pIterator )
+mega::TypeID iterator_state( void* pIterator )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    return iterator.getTypeID();
+    return iterator.getState();
 }
 
 void iterator_object_start( void* pIterator, mega::TypeID successor )
@@ -258,20 +258,20 @@ void iterator_object_end( void* pIterator )
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.object_end();
 }
-void iterator_action_start( void* pIterator, mega::TypeID successor )
+void iterator_action_start( void* pIterator, mega::TypeID successor, mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.action_start( successor );
+    iterator.action_start( successor, localDomainSize );
 }
 void iterator_action_end( void* pIterator, mega::TypeID successor )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.action_end( successor );
 }
-void iterator_event_start( void* pIterator, mega::TypeID successor )
+void iterator_event_start( void* pIterator, mega::TypeID successor, mega::Instance localDomainSize )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.event_start( successor );
+    iterator.event_start( successor, localDomainSize );
 }
 void iterator_event_end( void* pIterator, mega::TypeID successor )
 {
