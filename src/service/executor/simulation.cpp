@@ -22,6 +22,8 @@
 #include "jit/jit_exception.hpp"
 #include "jit/program_functions.hxx"
 
+#include "service/mpo_visitor.hpp"
+
 #include "service/executor/executor.hpp"
 
 #include "service/network/logical_thread.hpp"
@@ -34,6 +36,8 @@
 #include "service/protocol/model/enrole.hxx"
 
 #include "mega/bin_archive.hpp"
+#include "mega/iterator.hpp"
+#include "mega/printer.hpp"
 
 #include <boost/filesystem/operations.hpp>
 #include <memory>
@@ -41,7 +45,8 @@
 namespace mega::service
 {
 
-Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logicalthreadID, ProcessClock& processClock )
+Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logicalthreadID,
+                        ProcessClock& processClock )
     : ExecutorRequestLogicalThread( executor, logicalthreadID )
     , MPOContext( getID() )
     , m_processClock( processClock )
@@ -49,7 +54,8 @@ Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logi
     m_bEnableQueueing = true;
 }
 
-network::Message Simulation::dispatchInBoundRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message Simulation::dispatchInBoundRequest( const network::Message&     msg,
+                                                     boost::asio::yield_context& yield_ctx )
 {
     return ExecutorRequestLogicalThread::dispatchInBoundRequest( msg, yield_ctx );
 }
@@ -333,10 +339,10 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     {
         SPDLOG_TRACE( "SIM::run started" );
         // send request to root to start - will get request back to run
-        network::sim::Request_Encoder request( [ rootRequest = ExecutorRequestLogicalThread::getMPRequest( yield_ctx ) ](
-                                                   const network::Message& msg ) mutable
-                                               { return rootRequest.MPRoot( msg, MP{} ); },
-                                               getID() );
+        network::sim::Request_Encoder request(
+            [ rootRequest = ExecutorRequestLogicalThread::getMPRequest( yield_ctx ) ](
+                const network::Message& msg ) mutable { return rootRequest.MPRoot( msg, MP{} ); },
+            getID() );
         request.SimStart();
         SPDLOG_TRACE( "SIM::run complete" );
 
@@ -512,7 +518,21 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         status.setMPO( m_mpo.value() );
         {
             std::ostringstream os;
-            os << "Simulation: " << getLog().getTimeStamp();
+            os << "Simulation: " << getLog().getTimeStamp() << " Ed was here!\n";
+
+            static thread_local mega::runtime::program::Traverse programTraverse;
+            {
+                MPORealInstantiation mpoRealInstantiation( getThisMPO() );
+                LogicalTreePrinter   printer( os );
+                LogicalTreeTraversal objectTraversal( mpoRealInstantiation, printer );
+                Iterator iterator(
+                    [ &progTraverse = programTraverse ]( void* pIter ) { progTraverse( pIter ); }, objectTraversal );
+                while( iterator )
+                {
+                    ++iterator;
+                }
+            }
+
             status.setDescription( os.str() );
         }
         status.setLogIterator( getLog().getIterator() );

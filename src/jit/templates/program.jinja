@@ -50,7 +50,7 @@ void object_save_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser 
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "Unknown type in object_save_bin" };
+            throw mega::runtime::JITException{ "program Unknown type in object_save_bin" };
         }
         break;
     }
@@ -70,7 +70,7 @@ void object_load_bin( mega::TypeID objectTypeID, void* pData, void* pSerialiser 
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "Unknown type in object_load_bin" };
+            throw mega::runtime::JITException{ "program Unknown type in object_load_bin" };
         }
         break;
     }
@@ -99,7 +99,7 @@ void record_load_bin( mega::reference ref, void* pData, mega::U64 size )
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "Unknown type in object_load_bin" };
+            throw mega::runtime::JITException{ "program Unknown type in object_load_bin" };
         }
         break;
     }
@@ -114,7 +114,7 @@ mega::TypeID concrete_to_interface( mega::TypeID concreteTypeID )
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "Unknown concrete type id" };
+            throw mega::runtime::JITException{ "program concrete_to_interface Unknown concrete type id" };
         }
         break;
     }
@@ -129,7 +129,7 @@ mega::TypeID concrete_to_link_interface( mega::TypeID concreteTypeID )
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "Unknown concrete type id" };
+            throw mega::runtime::JITException{ "program concrete_to_link_interface Unknown concrete type id" };
         }
         break;
     }
@@ -156,7 +156,7 @@ void record_make( mega::reference source, mega::reference target )
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "Unknown relationID" };
+            throw mega::runtime::JITException{ "program Unknown relationID" };
         }
         break;
     }
@@ -183,7 +183,7 @@ void record_break( mega::reference source, mega::reference target )
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "Unknown relationID" };
+            throw mega::runtime::JITException{ "program Unknown relationID" };
         }
         break;
     }
@@ -191,7 +191,9 @@ void record_break( mega::reference source, mega::reference target )
 
 void traverse( void* pIterator )
 {
-    switch( mega::mangle::iterator_state( pIterator ).getObjectID() )
+    switch( mega::TypeID::make_object_from_typeID(
+            mega::TypeID::make_start_state( 
+            mega::mangle::iterator_state( pIterator ) ) ) )
     {
 {% for type in object_types %}
         case {{ type }}:
@@ -199,10 +201,78 @@ void traverse( void* pIterator )
             static thread_local mega::runtime::object::ObjectTraverse objectTraverse( "simulation", mega::TypeID{ {{ type }} } );
             objectTraverse( pIterator );
         }
+        break;
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "Unknown concrete type id" };
+            throw mega::runtime::JITException{ "program traverse Unknown concrete type id" };
+        }
+        break;
+    }
+}
+
+mega::U64 link_size( mega::reference ref )
+{
+    switch( mega::TypeID::make_object_from_typeID( ref.getType() ) )
+    {
+{% for type in object_types %}
+        case {{ type }}:
+        {
+            static thread_local mega::runtime::object::LinkSize linkSizeFPtr( "simulation", mega::TypeID{ {{ type }} } );
+            return linkSizeFPtr( ref );
+        }
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "program link_size Unknown concrete type id" };
+        }
+        break;
+    }
+}
+
+mega::reference link_object( mega::reference ref, mega::U64 index )
+{
+    switch( mega::TypeID::make_object_from_typeID( ref.getType() ) )
+    {
+{% for type in object_types %}
+        case {{ type }}:
+        {
+            static thread_local mega::runtime::object::LinkObject linkObjectFPtr( "simulation", mega::TypeID{ {{ type }} } );
+            return linkObjectFPtr( ref, index );
+        }
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "program link_object Unknown concrete type id" };
+        }
+        break;
+    }
+}
+
+void* read( mega::reference ref )
+{
+    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::readLock( ref );
+    }
+    else if( ref.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( ref );
+    }
+
+    void* pBuffer = ref.getHeap();
+
+    switch( ref.getType() )
+    {
+{% for type in dimension_types %}
+        case {{ type.type_id }}:
+            return reinterpret_cast< char* >( pBuffer )
+                + {{ type.part_offset }} + ( {{ type.part_size }} * ref.getInstance() ) 
+                + {{ type.dimension_offset }};
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "program read Unknown concrete type id" };
         }
         break;
     }

@@ -56,7 +56,7 @@ TEST( Reference, InvalidByDefault )
 {
     mega::reference def{};
     ASSERT_EQ( def.isNetworkAddress(), true );
-    ASSERT_FALSE( def.is_valid() );
+    ASSERT_FALSE( def.valid() );
 }
 
 TEST( Reference, HeapAccess )

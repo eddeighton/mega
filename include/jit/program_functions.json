@@ -109,6 +109,43 @@
             ],
             "return_type" : "void",
             "return" : "void"
+        },
+        {
+            "name" : "LinkSize",
+            "arguments" : [
+                {
+                    "name" : "link",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "mega::U64",
+            "return" : "value"
+        },
+        {
+            "name" : "LinkObject",
+            "arguments" : [
+                {
+                    "name" : "link",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "index",
+                    "type" : "mega::U64"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
+            "name" : "Read",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void*",
+            "return" : "value"
         }
     ]
 }

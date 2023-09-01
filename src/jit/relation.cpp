@@ -41,6 +41,10 @@ Relation::Relation( const RelationID& relationID, JITDatabase& database, JITComp
         Symbol( "link_break_", relationID, Symbol::Ref_Ref ) );
     m_pReset = pModule->get< relation::LinkReset::FunctionPtr >( 
         Symbol( "link_reset_", relationID, Symbol::Ref ) );
+    m_pSize = pModule->get< relation::LinkSize::FunctionPtr >( 
+        Symbol( "link_size_", relationID, Symbol::Ref ) );
+    m_pObject = pModule->get< relation::LinkObject::FunctionPtr >( 
+        Symbol( "link_object_", relationID, Symbol::Ref_U64 ) );
 }
 
 } // namespace mega::runtime

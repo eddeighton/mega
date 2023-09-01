@@ -203,6 +203,21 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
             *ppFunction = ( void* )m_pProgram->getTraverse();
         }
         break;
+        case program::eLinkSize:
+        {
+            *ppFunction = ( void* )m_pProgram->getLinkSize();
+        }
+        break;
+        case program::eLinkObject:
+        {
+            *ppFunction = ( void* )m_pProgram->getLinkObject();
+        }
+        break;
+        case program::eRead:
+        {
+            *ppFunction = ( void* )m_pProgram->getRead();
+        }
+        break;
         default:
         case program::TOTAL_FUNCTION_TYPES:
         {
@@ -472,6 +487,25 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
             auto pAllocator = getAllocator( compiler, typeID );
             *ppFunction     = ( void* )pAllocator->getTraverse();
         }
+        break;
+        case object::eLinkSize:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction     = ( void* )pAllocator->getLinkSize();
+        }
+        break;
+        case object::eLinkObject:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction     = ( void* )pAllocator->getLinkObject();
+        }
+        break;
+        case object::eRead:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction     = ( void* )pAllocator->getRead();
+        }
+        break;
         default:
         case object::TOTAL_FUNCTION_TYPES:
         {
@@ -511,6 +545,18 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
         {
             auto pRelation = getRelation( compiler, relationID );
             *ppFunction    = ( void* )pRelation->getReset();
+        }
+        break;
+        case relation::eLinkSize:
+        {
+            auto pRelation = getRelation( compiler, relationID );
+            *ppFunction    = ( void* )pRelation->getSize();
+        }
+        break;
+        case relation::eLinkObject:
+        {
+            auto pRelation = getRelation( compiler, relationID );
+            *ppFunction    = ( void* )pRelation->getObject();
         }
         break;
         default:

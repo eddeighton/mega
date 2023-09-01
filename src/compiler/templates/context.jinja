@@ -15,7 +15,7 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }} : public mega::reference
     }
     inline operator const void*() const
     {
-        return is_valid() ? this : nullptr;
+        return valid() ? this : nullptr;
     }
 {% if has_operation %}
     {{ operation_return_type }} operator()( {{ operation_parameters }} ) const;

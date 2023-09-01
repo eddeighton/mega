@@ -64,7 +64,7 @@ struct Event : public mega::reference
 
     inline operator const void*() const
     {
-        return is_valid() ? this : nullptr;
+        return valid() ? this : nullptr;
     }
 };
 } // namespace mega

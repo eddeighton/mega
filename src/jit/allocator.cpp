@@ -47,6 +47,12 @@ Allocator::Allocator( TypeID objectTypeID, JITDatabase& database, JITCompiler::M
         Symbol( "unparent_", objectTypeID, Symbol::Ref ) );
     m_pTraverse = pModule->get< object::ObjectTraverse::FunctionPtr >( 
         Symbol( "traverse_", objectTypeID, Symbol::VStar ) );
+    m_pLinkSize = pModule->get< object::LinkSize::FunctionPtr >( 
+        Symbol( "link_size_", objectTypeID, Symbol::Ref ) );
+    m_pLinkObject = pModule->get< object::LinkObject::FunctionPtr >( 
+        Symbol( "link_object_", objectTypeID, Symbol::Ref_U64 ) );
+    m_pRead = pModule->get< object::Read::FunctionPtr >( 
+        Symbol( "read_", objectTypeID, Symbol::Ref ) );
 }
 
 } // namespace mega::runtime

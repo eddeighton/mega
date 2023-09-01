@@ -50,7 +50,8 @@ namespace mega::runtime
             Ref_Wo_RefCR,       // "N4mega9referenceE14WriteOperationRKS0_"
             Ref_Wo_CVStar,      // "N4mega9referenceE14WriteOperationRKS0_"
             ID_VStar_VStar,     // "N4mega6TypeIDEPvS1_"
-            Ref_VStar_U64       // "N4mega9referenceEPvm"
+            Ref_VStar_U64,      // "N4mega9referenceEPvm"
+            Ref_U64             // "N4mega9referenceEm"
         };
 
         Symbol( const char* prefix, Parameters params );

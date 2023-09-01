@@ -28,8 +28,10 @@
 #include "common/unreachable.hpp"
 
 #include <optional>
+#include <utility>
 #include <vector>
 #include <variant>
+#include <functional>
 
 namespace mega
 {
@@ -57,6 +59,19 @@ struct LogicalObject
 {
     U64    id;
     TypeID type;
+
+    struct Hash
+    {
+        inline U64 operator()( const LogicalObject& ref ) const noexcept
+        {
+            return ref.id + ref.type.getSymbolID();
+        }
+    };
+
+    inline bool operator==( const LogicalObject& cmp ) const
+    {
+        return ( id == cmp.id ) && ( type == cmp.type );
+    }
 };
 
 struct LogicalReference
@@ -64,12 +79,28 @@ struct LogicalReference
     U64          id;
     TypeInstance typeInstance;
 
+    struct Hash
+    {
+        inline U64 operator()( const LogicalReference& ref ) const noexcept
+        {
+            return ref.id + ref.typeInstance.instance + ref.typeInstance.type.getSymbolID();
+        }
+    };
+
+    inline bool operator==( const LogicalReference& cmp ) const
+    {
+        return ( id == cmp.id ) && ( typeInstance == cmp.typeInstance );
+    }
+
     static LogicalReference make( const LogicalObject& logicalObject, const TypeInstance& typeInstance )
     {
         return { logicalObject.id, typeInstance };
     }
 
-    static LogicalObject toLogicalObject( const LogicalReference& ref ) { return { ref.id, ref.typeInstance.type }; }
+    static LogicalObject toLogicalObject( const LogicalReference& ref )
+    {
+        return { ref.id, TypeID::make_object_from_typeID( ref.typeInstance.type ) };
+    }
 };
 /*
 struct LogicalInstantiation
@@ -305,7 +336,7 @@ private:
 
 class Iterator
 {
-    using TraversalFunction = void ( * )( void* pIterator );
+    using TraversalFunction = std::function< void( void* ) >;
 
     mega::TypeID      m_state; // can be negative for END state
     TraversalFunction m_pTraversalFunction;
@@ -329,7 +360,7 @@ class Iterator
         {
             if( i->isObject )
                 break;
-            result = total * i->iter;
+            result = result + total * i->iter;
             total  = total * i->total;
         }
         return result;
@@ -339,7 +370,7 @@ class Iterator
 public:
     inline Iterator( TraversalFunction pTraversal, TraversalVisitor& visitor )
         : m_state( visitor.start() )
-        , m_pTraversalFunction( pTraversal )
+        , m_pTraversalFunction( std::move( pTraversal ) )
         , m_visitor( visitor )
     {
     }

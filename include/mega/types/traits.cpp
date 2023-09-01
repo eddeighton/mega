@@ -132,7 +132,6 @@ bool ref_vector_empty( void* pData )
     const ReferenceVector& vec = reify< ReferenceVector >( pData );
     return vec.empty();
 }
-
 mega::reference ref_vector_back( void* pData )
 {
     const ReferenceVector& vec = reify< ReferenceVector >( pData );

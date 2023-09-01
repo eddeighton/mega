@@ -194,7 +194,7 @@ void Executor::logicalthreadCompleted( network::LogicalThreadBase::Ptr pLogicalT
     {
         // if the simulation failed to construct then the mpo will not be initialised yet so check
         const mega::reference root = pSim->getThisRoot();
-        if( root.is_valid() )
+        if( root.valid() )
         {
             WriteLock lock( m_mutex );
             m_simulations.erase( root.getMPO() );

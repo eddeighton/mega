@@ -58,6 +58,7 @@ namespace mega::runtime
                 case Symbol::Ref_Wo_CVStar  : return "@@YAXVreference@mega@@W4WriteOperation@@PEBX@Z";
                 case Symbol::ID_VStar_VStar : return "@@YAXVTypeID@mega@@PEAX1@Z";
                 case Symbol::Ref_VStar_U64  : return "@@YAXVreference@mega@@PEAX_K@Z";
+                case Symbol::Ref_U64        : THROW_TODO;
                 default:
                     THROW_RTE( "Unsupported params type" );
             }
@@ -86,6 +87,7 @@ namespace mega::runtime
                 case Symbol::Ref_Wo_CVStar  : return "N4mega9referenceE14WriteOperationRKS0_";
                 case Symbol::ID_VStar_VStar : return "N4mega6TypeIDEPvS1_";
                 case Symbol::Ref_VStar_U64  : return "N4mega9referenceEPvm";
+                case Symbol::Ref_U64        : return "N4mega9referenceEm";
                 default:
                     THROW_RTE( "Unsupported params type" );
             }

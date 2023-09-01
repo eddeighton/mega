@@ -145,7 +145,7 @@ public:
     constexpr inline TypeInstance getTypeInstance() const { return prc.m_type; }
     constexpr inline bool         isHeapAddress() const { return prc.m_flags == HEAP_ADDRESS; }
     constexpr inline bool         isNetworkAddress() const { return prc.m_flags == NETWORK_ADDRESS; }
-    constexpr inline bool         is_valid() const { return getTypeInstance().is_valid(); }
+    constexpr inline bool         valid() const { return getTypeInstance().valid(); }
 
     constexpr reference()
         : net{ 0U, 0U, 0U, 0U, NETWORK_ADDRESS, TypeInstance{} }
@@ -164,18 +164,6 @@ public:
     static constexpr inline reference make_root( MPO mpo )
     {
         return { TypeInstance::make_root(), mpo, ROOT_OBJECT_ID };
-    }
-
-    static constexpr inline reference make( const reference& other, TypeID typeID )
-    {
-        if( other.isHeapAddress() )
-        {
-            return { TypeInstance{ typeID, other.getInstance() }, other.getHeap() };
-        }
-        else
-        {
-            return { TypeInstance{ typeID, other.getInstance() }, other.getMPO(), other.getAllocationID() };
-        }
     }
 
     static constexpr inline reference make( const reference& other, TypeID::ValueType typeID )
@@ -324,7 +312,7 @@ inline reference reference::getNetworkAddress() const
 
 inline reference reference::getObjectAddress() const
 {
-    return reference::make( *this, TypeID::make_object_from_typeID( getType() ) );
+    return reference::make( *this, TypeInstance::make_object( getType() ) );
 }
 
 constexpr inline AllocationID reference::getAllocationID() const

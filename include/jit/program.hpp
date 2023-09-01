@@ -45,6 +45,9 @@ public:
     program::RecordMake::FunctionPtr    getRecordMake() const { return m_recordMake; }
     program::RecordBreak::FunctionPtr   getRecordBreak() const { return m_recordBreak; }
     program::Traverse::FunctionPtr      getTraverse() const { return m_traverse; }
+    program::LinkSize::FunctionPtr      getLinkSize() const { return m_pLinkSize; }
+    program::LinkObject::FunctionPtr    getLinkObject() const { return m_pLinkObject; }
+    program::Read::FunctionPtr          getRead() const { return m_pRead; }
 
 private:
     JITCompiler::Module::Ptr            m_pModule;
@@ -54,6 +57,9 @@ private:
     program::RecordMake::FunctionPtr    m_recordMake    = nullptr;
     program::RecordBreak::FunctionPtr   m_recordBreak   = nullptr;
     program::Traverse::FunctionPtr      m_traverse      = nullptr;
+    program::LinkSize::FunctionPtr      m_pLinkSize     = nullptr;
+    program::LinkObject::FunctionPtr    m_pLinkObject   = nullptr;
+    program::Read::FunctionPtr          m_pRead         = nullptr;
 };
 
 } // namespace mega::runtime

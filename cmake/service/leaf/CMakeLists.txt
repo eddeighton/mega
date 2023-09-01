@@ -38,6 +38,7 @@ set( MEGA_LEAF_API
     ${MEGA_API_DIR}/service/lock_tracker.hpp
     ${MEGA_API_DIR}/service/memory_manager.hpp
     ${MEGA_API_DIR}/service/mpo_context.hpp
+    ${MEGA_API_DIR}/service/mpo_visitor.hpp
     ${MEGA_API_DIR}/service/remote_memory_manager.hpp
 )
 

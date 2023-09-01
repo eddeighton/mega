@@ -60,7 +60,6 @@ print( "cwd: {}".format( os.getcwd() ) )
 r = mega.getMPO().getRoot()
 print( "Local root r is: {}".format( r ) )
 
-
 def getAllMPOs():
     for machine in megastructure.getRoot().getMachines():
         for process in machine.getProcesses():
@@ -71,73 +70,13 @@ def getAllMPOs():
 def getAllMPOsList():
     return [mpo for mpo in getAllMPOs()]
 
-
 def getFirstMPO():
     return getAllMPOsList()[0]
 
-
 def getFirstRoot():
     return getFirstMPO().getRoot()
-
 
 mega = megastructure
 
 REMOVE = mega.WriteOperation.REMOVE
 RESET = mega.WriteOperation.RESET
-
-def COPYME():
-    r = mpo.getRoot()
-    p = r.PlanetParent.Planet()
-    mega.cycle()
-
-def createPlanet(mpo):
-    r = mpo.getRoot()
-    p = r.PlanetParent.Planet()
-    mega.cycle()
-
-            
-def removePlanet(mpo):
-    r = mpo.getRoot()
-    p = r.PlanetParent()
-    r.PlanetParent(REMOVE, p)
-    mega.cycle()
-
-
-def createAndRemovePlanet(mpo):
-    r = mpo.getRoot()
-    p = r.PlanetParent.Planet()
-    print(p)
-    r.PlanetParent(REMOVE, p.PlanetChild.Get())
-    pAfterBreak = r.PlanetParent()
-    print(pAfterBreak)
-
-def getMPO():
-    return mega.getMPO( "0.0.0" )
-
-def createReactorState( mpo ):
-
-    r = mpo.getRoot()
-    b = r.BaseParent.Base()
-    c = b.AreaParent.Area()
-    r = c.SystemParent.Reactor()
-    s = r.SystemStateParent.ReactorState()
-
-    return s
-
-
-def moonTest( mpo ):
-
-    plugin = mega.getProcess( "0.1")
-    mpo = plugin.createMPO()
-    r = mpo.getRoot()
-    p = r.PlanetParent.Planet()
-    m = p.MoonParent.Moon()
-    mega.cycle()
-
-def moveM1( x, y, z ):
-    m1.m_translation( F3( x,y,z) )
-    cycle()
-
-def moveM2( x, y, z ):
-    m2.m_translation( F3( x,y,z) )
-    cycle()

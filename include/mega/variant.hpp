@@ -109,7 +109,7 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant : public mega::refere
     inline __eg_variant( const Event& from )
     {
         // when convert from event need to check runtime type against all __eg_variant types
-        if ( ( !from.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
+        if ( ( !from.valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
         {
             *this = mega::reference{};
         }
@@ -129,7 +129,7 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant : public mega::refere
     inline __eg_variant& operator=( const Event& from )
     {
         // when convert from event need to check runtime type against all __eg_variant types
-        if ( ( !from.is_valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
+        if ( ( !from.valid() ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
         {
             *this = mega::reference{};
         }
@@ -168,7 +168,7 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant : public mega::refere
 
     inline operator const void*() const
     {
-        return is_valid() ? this : nullptr;
+        return valid() ? this : nullptr;
     }
 
     template< typename TypePath, typename Operation, typename... Args >

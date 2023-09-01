@@ -132,6 +132,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/native_types.hpp
     ${MEGA_API_DIR}/mega/operation_id.hpp 
     ${MEGA_API_DIR}/mega/operations.hpp
+    ${MEGA_API_DIR}/mega/printer.hpp
     ${MEGA_API_DIR}/mega/record_archive.hpp
     ${MEGA_API_DIR}/mega/reference_io.hpp
     ${MEGA_API_DIR}/mega/reference_limits.hpp

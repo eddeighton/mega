@@ -215,7 +215,79 @@ void traverse_{{ objectTypeID }}( void* pIterator )
         break;
 {%  endfor %}
         default:
-            throw mega::runtime::JITException{ "Unknown concrete type id" };
+            throw mega::runtime::JITException{ "traverse_{{ objectTypeID }} Unknown concrete type id" };
         break;
     }
+}
+
+mega::U64 link_size_{{ objectTypeID }}( mega::reference ref )
+{
+    switch( ref.getType() )
+    {
+{% for part in parts %}
+{% for link in part.links %}
+        case {{ link.link_type_id }}:
+        {
+            static thread_local mega::runtime::relation::LinkSize function( 
+                g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );
+            return function( ref );
+        }
+        break;
+{% endfor %}
+{% endfor %}
+        default:
+            throw mega::runtime::JITException{ "link_size_{{ objectTypeID }} Unknown concrete type id" };
+        break;
+    }
+    return {};
+}
+
+mega::reference link_object_{{ objectTypeID }}( mega::reference ref, mega::U64 index )
+{
+    switch( ref.getType() )
+    {
+{% for part in parts %}
+{% for link in part.links %}
+        case {{ link.link_type_id }}:
+        {
+            static thread_local mega::runtime::relation::LinkObject function( 
+                g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );
+            return function( ref, index );
+        }
+        break;
+{% endfor %}
+{% endfor %}
+        default:
+            throw mega::runtime::JITException{ "link_object_{{ objectTypeID }} Unknown concrete type id" };
+        break;
+    }
+    return {};
+}
+
+void* read_{{ objectTypeID }}( mega::reference ref )
+{
+    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::readLock( ref );
+    }
+    else if( ref.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( ref );
+    }
+
+    void* pBuffer = ref.getHeap();
+
+    switch( ref.getType() )
+    {
+{% for part in parts %}
+{% for member in part.members %}
+        case {{ member.type_id }}: // {{ member.type }} {{ member.name }}
+            return reinterpret_cast< char* >( pBuffer ) + {{ part.offset }} + ( ref.getInstance() * {{ part.size }} ) + {{ member.offset }}; 
+{% endfor %}
+{% endfor %}
+        default:
+            throw mega::runtime::JITException{ "read_{{ objectTypeID }} Unknown concrete type id" };
+        break;
+    }
+    return {};
 }

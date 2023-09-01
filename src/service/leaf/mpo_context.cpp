@@ -254,7 +254,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
 
     // instantiate the root
     m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
-    VERIFY_RTE_MSG( m_root.is_valid(), "Root allocation failed" );
+    VERIFY_RTE_MSG( m_root.valid(), "Root allocation failed" );
     m_pLog->record( mega::log::Structure::Write( reference{}, m_root, 0, mega::log::Structure::eConstruct ) );
 }
 

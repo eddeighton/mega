@@ -256,7 +256,7 @@ PyObject* PythonReference::str() const
 PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 {
     SPDLOG_TRACE( "PythonReference::call" );
-    if( m_reference.is_valid() )
+    if( m_reference.valid() )
     {
         try
         {

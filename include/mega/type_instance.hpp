@@ -70,7 +70,7 @@ struct TypeInstance
                                             : false;
     }
 
-    constexpr inline bool is_valid() const { return type.is_valid(); }
+    constexpr inline bool valid() const { return type.valid(); }
 
 #ifndef MEGAJIT
     template < class Archive >

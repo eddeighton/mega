@@ -43,5 +43,8 @@ Program::Program( JITDatabase& database, JITCompiler::Module::Ptr pModule )
     m_recordMake  = m_pModule->get< program::RecordMake::FunctionPtr >( Symbol( "record_make", Symbol::Ref_Ref ) );
     m_recordBreak = m_pModule->get< program::RecordBreak::FunctionPtr >( Symbol( "record_break", Symbol::Ref_Ref ) );
     m_traverse    = m_pModule->get< program::Traverse::FunctionPtr >( Symbol( "traverse", Symbol::VStar ) );
+    m_pLinkSize   = pModule->get< program::LinkSize::FunctionPtr >( Symbol( "link_size", Symbol::Ref ) );
+    m_pLinkObject = pModule->get< program::LinkObject::FunctionPtr >( Symbol( "link_object", Symbol::Ref_U64 ) );
+    m_pRead       = pModule->get< program::Read::FunctionPtr >( Symbol( "read", Symbol::Ref ) );
 }
 } // namespace mega::runtime
