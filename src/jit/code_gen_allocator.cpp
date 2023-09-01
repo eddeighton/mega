@@ -98,6 +98,47 @@ std::string getContextTypeClass( const FinalStage::Concrete::Context* pContext )
     }
 }
 
+void getLinkOwnership( const FinalStage::Concrete::Link* pConcreteLink, bool& bSource, bool& bOwning, bool& bOwned )
+{
+    using namespace FinalStage;
+
+    const Interface::LinkInterface* pLinkInterface = pConcreteLink->get_link_interface();
+    const HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
+
+    bSource = false;
+    if( pRelation->get_source_interface() == pLinkInterface )
+    {
+        bSource = true;
+    }
+    else if( pRelation->get_target_interface() == pLinkInterface )
+    {
+        bSource = false;
+    }
+    else
+    {
+        THROW_RTE( "Invalid link" );
+    }
+
+    bOwning = false;
+    bOwned  = false;
+    {
+        if( bSource )
+        {
+            if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
+                bOwning = true;
+            if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
+                bOwned = true;
+        }
+        else
+        {
+            if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
+                bOwned = true;
+            if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
+                bOwning = true;
+        }
+    }
+}
+
 std::string makeStartState( const mega::TypeID& typeID )
 {
     return printTypeID( typeID );
@@ -115,6 +156,44 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
+
+    auto makeContextState = [ & ]( const Context* pContext, bool bStart, const std::string& strSuccessorState )
+    {
+        bool bOwning = false, bOwned = false;
+        if( auto pConcreteLink = db_cast< const Link >( pContext ) )
+        {
+            bool bSource = false;
+            getLinkOwnership( pConcreteLink, bSource, bOwning, bOwned );
+        }
+
+        nlohmann::json state( { { "value", bStart ? makeStartState( pContext->get_concrete_id() )
+                                                  : makeEndState( pContext->get_concrete_id() ) },
+                                { "start", bStart },
+                                { "owning", bOwning },
+                                { "owned", bOwned },
+                                { "local_domain_size", concreteLocalDomainSize( pContext ) },
+                                { "type", getContextTypeClass( pContext ) },
+                                { "successor", strSuccessorState },
+                                { "name", fullInterfaceTypeName( pContext->get_interface() ) }
+
+        } );
+        data[ "states" ].push_back( state );
+    };
+
+    auto makeDimensionState = [ & ]( const Dimensions::User* pDim, const std::string& strSuccessorState )
+    {
+        nlohmann::json state( { { "value", makeStartState( pDim->get_concrete_id() ) },
+                                { "start", true },
+                                { "owning", false },
+                                { "owned", false },
+                                { "local_domain_size", 1 },
+                                { "type", "dimension" },
+                                { "successor", strSuccessorState },
+                                { "name", fullInterfaceTypeName( pDim->get_interface_dimension() ) }
+
+        } );
+        data[ "states" ].push_back( state );
+    };
 
     // collate elements
     using ContextElementVariant       = std::variant< const Dimensions::User*, const Context* >;
@@ -155,48 +234,18 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
 
         if( i == elements.begin() )
         {
-            nlohmann::json state( { { "value", makeStartState( pContext->get_concrete_id() ) },
-                                    { "start", true },
-                                    { "local_domain_size", concreteLocalDomainSize( pContext ) },
-                                    { "type", getContextTypeClass( pContext ) },
-                                    { "successor", makeStartState( typeIDSuccessor ) },
-                                    { "name", fullInterfaceTypeName( pContext->get_interface() ) }
-
-            } );
-            data[ "states" ].push_back( state );
+            makeContextState( pContext, true, makeStartState( typeIDSuccessor ) );
         }
         else
         {
             if( auto ppDim = std::get_if< const Dimensions::User* >( &*iPrev ) )
             {
-                const Dimensions::User* pDim = *ppDim;
-
-                nlohmann::json state( { { "value", makeStartState( pDim->get_concrete_id() ) },
-                                        { "start", true },
-                                        { "local_domain_size", 1 },
-                                        { "type", "dimension" },
-                                        { "successor", makeStartState( typeIDSuccessor ) },
-                                        { "name", fullInterfaceTypeName( pDim->get_interface_dimension() ) }
-
-                } );
-                data[ "states" ].push_back( state );
+                makeDimensionState( *ppDim, makeStartState( typeIDSuccessor ) );
             }
             else if( auto ppContext = std::get_if< const Context* >( &*iPrev ) )
             {
                 const Context* pChildContext = *ppContext;
-
-                // NOTE: this is the END state for the context
-                nlohmann::json state( { { "value", makeEndState( pChildContext->get_concrete_id() ) },
-                                        { "start", false },
-                                        { "local_domain_size", concreteLocalDomainSize( pChildContext ) },
-                                        { "type", getContextTypeClass( pChildContext ) },
-                                        { "successor", makeStartState( typeIDSuccessor ) },
-                                        { "name", fullInterfaceTypeName( pChildContext->get_interface() ) }
-
-                } );
-                data[ "states" ].push_back( state );
-
-                // recursively generate the START state for the context
+                makeContextState( pChildContext, false, makeStartState( typeIDSuccessor ) );
                 recurseTraversalStates( database, data, pChildContext );
             }
             else
@@ -210,49 +259,18 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
     // generate transition to context end state from final element OR context start state
     if( elements.empty() )
     {
-        // transition from start to end state for same type
-        nlohmann::json state( { { "value", makeStartState( pContext->get_concrete_id() ) },
-                                { "start", true },
-                                { "local_domain_size", concreteLocalDomainSize( pContext ) },
-                                { "type", getContextTypeClass( pContext ) },
-                                { "successor", makeEndState( pContext->get_concrete_id() ) },
-                                { "name", fullInterfaceTypeName( pContext->get_interface() ) }
-
-        } );
-        data[ "states" ].push_back( state );
+        makeContextState( pContext, true, makeEndState( pContext->get_concrete_id() ) );
     }
     else
     {
         if( auto ppDim = std::get_if< const Dimensions::User* >( &elements.back() ) )
         {
-            const Dimensions::User* pDim = *ppDim;
-
-            nlohmann::json state( { { "value", makeStartState( pDim->get_concrete_id() ) },
-                                    { "start", true },
-                                    { "local_domain_size", 1 },
-                                    { "type", "dimension" },
-                                    { "successor", makeEndState( pContext->get_concrete_id() ) },
-                                    { "name", fullInterfaceTypeName( pDim->get_interface_dimension() ) }
-
-            } );
-            data[ "states" ].push_back( state );
+            makeDimensionState( *ppDim, makeEndState( pContext->get_concrete_id() ) );
         }
         else if( auto ppContext = std::get_if< const Context* >( &elements.back() ) )
         {
             const Context* pChildContext = *ppContext;
-
-            // NOTE: this is the END state for the context
-            nlohmann::json state( { { "value", makeEndState( pChildContext->get_concrete_id() ) },
-                                    { "start", false },
-                                    { "local_domain_size", concreteLocalDomainSize( pChildContext ) },
-                                    { "type", getContextTypeClass( pChildContext ) },
-                                    { "successor", makeEndState( pContext->get_concrete_id() ) },
-                                    { "name", fullInterfaceTypeName( pChildContext->get_interface() ) }
-
-            } );
-            data[ "states" ].push_back( state );
-
-            // recursively generate the START state for the context
+            makeContextState( pChildContext, false, makeEndState( pContext->get_concrete_id() ) );
             recurseTraversalStates( database, data, pChildContext );
         }
         else
@@ -342,38 +360,8 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                     Interface::LinkInterface* pLinkInterface = pConcreteLink->get_link_interface();
                     HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
 
-                    bool bSource = false;
-                    if( pRelation->get_source_interface() == pLinkInterface )
-                    {
-                        bSource = true;
-                    }
-                    else if( pRelation->get_target_interface() == pLinkInterface )
-                    {
-                        bSource = false;
-                    }
-                    else
-                    {
-                        THROW_RTE( "Invalid link" );
-                    }
-
-                    bool bOwning = false;
-                    bool bOwned  = false;
-                    {
-                        if( bSource )
-                        {
-                            if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
-                                bOwning = true;
-                            if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
-                                bOwned = true;
-                        }
-                        else
-                        {
-                            if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
-                                bOwned = true;
-                            if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
-                                bOwning = true;
-                        }
-                    }
+                    bool bSource = false, bOwning = false, bOwned = false;
+                    getLinkOwnership( pConcreteLink, bSource, bOwning, bOwned );
 
                     std::string    strMangle;
                     RelationID     relationID = pRelation->get_id();

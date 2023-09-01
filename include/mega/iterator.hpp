@@ -47,12 +47,15 @@ struct TraversalVisitor
     virtual void                          on_action_end( const TypeInstance& typeInstance )   = 0;
     virtual void                          on_event_start( const TypeInstance& typeInstance )  = 0;
     virtual void                          on_event_end( const TypeInstance& typeInstance )    = 0;
-    virtual void                          on_link_start( const TypeInstance& typeInstance )   = 0;
-    virtual std::optional< mega::TypeID > on_link_end( const TypeInstance& typeInstance )     = 0;
-    virtual void                          on_interupt( const TypeInstance& typeInstance )     = 0;
-    virtual void                          on_function( const TypeInstance& typeInstance )     = 0;
-    virtual void                          on_namespace( const TypeInstance& typeInstance )    = 0;
-    virtual void                          on_dimension( const TypeInstance& typeInstance )    = 0;
+
+    virtual void on_link_start( const TypeInstance& typeInstance, bool bOwning, bool bOwned ) = 0;
+    virtual std::optional< mega::TypeID > on_link_end( const TypeInstance& typeInstance, bool bOwning, bool bOwned )
+        = 0;
+
+    virtual void on_interupt( const TypeInstance& typeInstance )  = 0;
+    virtual void on_function( const TypeInstance& typeInstance )  = 0;
+    virtual void on_namespace( const TypeInstance& typeInstance ) = 0;
+    virtual void on_dimension( const TypeInstance& typeInstance ) = 0;
 };
 
 struct LogicalObject
@@ -62,16 +65,10 @@ struct LogicalObject
 
     struct Hash
     {
-        inline U64 operator()( const LogicalObject& ref ) const noexcept
-        {
-            return ref.id + ref.type.getSymbolID();
-        }
+        inline U64 operator()( const LogicalObject& ref ) const noexcept { return ref.id + ref.type.getSymbolID(); }
     };
 
-    inline bool operator==( const LogicalObject& cmp ) const
-    {
-        return ( id == cmp.id ) && ( type == cmp.type );
-    }
+    inline bool operator==( const LogicalObject& cmp ) const { return ( id == cmp.id ) && ( type == cmp.type ); }
 };
 
 struct LogicalReference
@@ -117,7 +114,7 @@ struct LogicalInstantiation
         return nullptr;
     }
 
-    U64 linkSize( const LogicalReference& ref )
+    U64 linkSize( const LogicalReference& ref, bool bOwning, bool bOwned )
     {
         //
         return 0;
@@ -156,11 +153,11 @@ struct LogicalTreeVisitor
     {
         //
     }
-    void on_link_start( const LogicalReference& ref )
+    void on_link_start( const LogicalReference& ref, bool bOwning, bool bOwned )
     {
         //
     }
-    void on_link_end( const LogicalReference& ref )
+    void on_link_end( const LogicalReference& ref, bool bOwning, bool bOwned )
     {
         //
     }
@@ -276,20 +273,20 @@ private:
         m_visitor.on_event_end( getLogicalReference( typeInstance ) );
     }
 
-    void on_link_start( const TypeInstance& typeInstance ) override
+    void on_link_start( const TypeInstance& typeInstance, bool bOwning, bool bOwned ) override
     {
         ASSERT( !m_stack.empty() );
 
         // push the link frame
         const auto&      objectFrame = std::get< ObjectFrame >( m_stack.back() );
         LogicalReference linkRef     = LogicalReference::make( objectFrame.object, typeInstance );
-        const U64        linkSize    = m_instantiation.linkSize( linkRef );
+        const U64        linkSize    = m_instantiation.linkSize( linkRef, bOwning, bOwned );
         LinkFrame        frame{ linkRef, 0, linkSize };
         m_stack.push_back( frame );
-        m_visitor.on_link_start( linkRef );
+        m_visitor.on_link_start( linkRef, bOwning, bOwned );
     }
 
-    std::optional< TypeID > on_link_end( const TypeInstance& typeInstance ) override
+    std::optional< TypeID > on_link_end( const TypeInstance& typeInstance, bool bOwning, bool bOwned ) override
     {
         ASSERT( !m_stack.empty() );
 
@@ -308,7 +305,7 @@ private:
         {
             // pop the link frame
             m_stack.pop_back();
-            m_visitor.on_link_end( frame.link );
+            m_visitor.on_link_end( frame.link, bOwning, bOwned );
             return {};
         }
     }
@@ -461,16 +458,16 @@ public:
         }
     }
 
-    inline void link_start( mega::TypeID successor )
+    inline void link_start( mega::TypeID successor, bool bOwning, bool bOwned )
     {
-        m_visitor.on_link_start( getTypeInstance( m_state ) );
+        m_visitor.on_link_start( getTypeInstance( m_state ), bOwning, bOwned );
         m_state = successor;
     }
 
-    inline void link_end( mega::TypeID successor )
+    inline void link_end( mega::TypeID successor, bool bOwning, bool bOwned )
     {
         std::optional< mega::TypeID > nextState
-            = m_visitor.on_link_end( getTypeInstance( TypeID::make_start_state( m_state ) ) );
+            = m_visitor.on_link_end( getTypeInstance( TypeID::make_start_state( m_state ) ), bOwning, bOwned );
         if( nextState.has_value() )
         {
             m_state = nextState.value();

@@ -43,8 +43,8 @@ namespace mega::mangle
     void iterator_action_end( void*, mega::TypeID );
     void iterator_event_start( void*, mega::TypeID, mega::Instance );
     void iterator_event_end( void*, mega::TypeID );
-    void iterator_link_start( void*, mega::TypeID );
-    void iterator_link_end( void*, mega::TypeID );
+    void iterator_link_start( void*, mega::TypeID, bool bOwning, bool bOwned );
+    void iterator_link_end( void*, mega::TypeID, bool bOwning, bool bOwned );
     void iterator_interupt_start( void*, mega::TypeID );
     void iterator_interupt_end( void*, mega::TypeID );
     void iterator_function_start( void*, mega::TypeID );
@@ -187,9 +187,9 @@ void traverse_{{ objectTypeID }}( void* pIterator )
 {% endif %}
 {% else if state.type == "link" %}
 {% if state.start %}
-            mega::mangle::iterator_link_start( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_link_start( pIterator, mega::TypeID{ {{ state.successor }} }, {{ state.owning }}, {{ state.owned }} );
 {% else %}
-            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ {{ state.successor }} } );
+            mega::mangle::iterator_link_end( pIterator, mega::TypeID{ {{ state.successor }} }, {{ state.owning }}, {{ state.owned }} );
 {% endif %}
 {% else if state.type == "dimension" %}
             mega::mangle::iterator_dimension( pIterator, mega::TypeID{ {{ state.successor }} } );

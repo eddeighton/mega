@@ -70,13 +70,13 @@ public:
     {
         pop();
     }
-    void on_link_start( const LogicalReference& ref )
+    void on_link_start( const LogicalReference& ref, bool bOwning, bool bOwned )
     {
         using ::operator<<;
         os << indent << "link: " << ref.id << " " << ref.typeInstance << std::endl;
         push();
     }
-    void on_link_end( const LogicalReference& ref )
+    void on_link_end( const LogicalReference& ref, bool bOwning, bool bOwned )
     {
         pop();
     }

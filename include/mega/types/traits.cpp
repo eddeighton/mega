@@ -277,15 +277,15 @@ void iterator_event_end( void* pIterator, mega::TypeID successor )
     auto& iterator = reify< mega::Iterator >( pIterator );
     iterator.event_end( successor );
 }
-void iterator_link_start( void* pIterator, mega::TypeID successor )
+void iterator_link_start( void* pIterator, mega::TypeID successor, bool bOwning, bool bOwned )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.link_start( successor );
+    iterator.link_start( successor, bOwning, bOwned );
 }
-void iterator_link_end( void* pIterator, mega::TypeID successor )
+void iterator_link_end( void* pIterator, mega::TypeID successor, bool bOwning, bool bOwned )
 {
     auto& iterator = reify< mega::Iterator >( pIterator );
-    iterator.link_end( successor );
+    iterator.link_end( successor, bOwning, bOwned );
 }
 void iterator_interupt_start( void* pIterator, mega::TypeID successor )
 {

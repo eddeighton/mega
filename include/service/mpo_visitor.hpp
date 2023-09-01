@@ -62,7 +62,7 @@ struct MPORealInstantiation
         }
         else
         {
-            const LogicalObject logicalObject{ m_realToLogical.size(), ref.getType() };
+            const LogicalObject logicalObject{ m_realToLogical.size(), objectRef.getType() };
 
             m_logicalToReal.insert( { logicalObject, objectRef } );
             m_realToLogical.insert( { objectRef, logicalObject } );
@@ -73,11 +73,7 @@ struct MPORealInstantiation
 
     mega::LogicalObject start()
     {
-        LogicalObject rootLogical{ 0, ROOT_TYPE_ID };
-        reference     rootRef = mega::reference::make_root( m_mpo );
-        m_logicalToReal.insert( { rootLogical, rootRef } );
-        m_realToLogical.insert( { rootRef, rootLogical } );
-        return rootLogical;
+        return toLogicalObject( mega::reference::make_root( m_mpo ) );
     }
 
     void* read( const LogicalReference& logicalRef )
@@ -86,16 +82,18 @@ struct MPORealInstantiation
         return read( fromLogical( logicalRef ) );
     }
 
-    U64 linkSize( const LogicalReference& logicalRef )
+    U64 linkSize( const LogicalReference& logicalRef, bool bOwning, bool bOwned )
     {
-        static thread_local mega::runtime::program::LinkSize linkSize;
-        return linkSize( fromLogical( logicalRef ) );
+        if( !bOwning ) return 0U;
+        
+        static thread_local mega::runtime::program::LinkSize linkSizeFPtr;
+        return linkSizeFPtr( fromLogical( logicalRef ) );
     }
 
     LogicalObject linkObject( const LogicalReference& logicalRef, U64 index )
     {
-        static thread_local mega::runtime::program::LinkObject linkObject;
-        return toLogicalObject( linkObject( fromLogical( logicalRef ), index ) );
+        static thread_local mega::runtime::program::LinkObject linkObjectFptr;
+        return toLogicalObject( linkObjectFptr( fromLogical( logicalRef ), index ) );
     }
 };
 
