@@ -80,7 +80,7 @@ void compile( const boost::filesystem::path& clangPath, const boost::filesystem:
         std::ostringstream osCmd;
 
         using namespace std::string_literals;
-        static const std::string hackFlagsForNow = " -std=c++20 -DMEGAJIT"s;
+        static const std::string hackFlagsForNow = " -std=c++20 -DMEGAJIT -fexceptions"s;
 
         osCmd << clangPath << hackFlagsForNow << " -S -emit-llvm ";
 

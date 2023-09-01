@@ -42,6 +42,8 @@ F2 = mega.F2
 F3 = mega.F3
 F4 = mega.F4
 Quat = mega.Quat
+REMOVE = mega.WriteOperation.REMOVE
+RESET = mega.WriteOperation.RESET
 
 _continue = True
 
@@ -57,15 +59,14 @@ asyncio.create_task(run_megastructure())
 print( "CFG_TUPLE: {}".format( CFG_TUPLE ) )
 print( "cwd: {}".format( os.getcwd() ) )
 
-r = mega.getMPO().getRoot()
-print( "Local root r is: {}".format( r ) )
+# r = mega.getMPO().getRoot()
+# print( "Local root r is: {}".format( r ) )
 
 def getAllMPOs():
     for machine in megastructure.getRoot().getMachines():
         for process in machine.getProcesses():
             for mpo in process.getMPOs():
                 yield mpo
-
 
 def getAllMPOsList():
     return [mpo for mpo in getAllMPOs()]
@@ -76,7 +77,4 @@ def getFirstMPO():
 def getFirstRoot():
     return getFirstMPO().getRoot()
 
-mega = megastructure
 
-REMOVE = mega.WriteOperation.REMOVE
-RESET = mega.WriteOperation.RESET

@@ -166,11 +166,6 @@ public:
         return { TypeInstance::make_root(), mpo, ROOT_OBJECT_ID };
     }
 
-    static constexpr inline reference make( const reference& other, TypeID::ValueType typeID )
-    {
-        return reference::make( other, TypeID{ typeID } );
-    }
-
     static constexpr inline reference make( const reference& other, TypeInstance typeInstance )
     {
         if( other.isHeapAddress() )

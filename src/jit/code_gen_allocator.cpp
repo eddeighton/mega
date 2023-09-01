@@ -485,7 +485,8 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
     std::ostringstream osCPPCode;
     m_pInja->render_allocator( data, osCPPCode );
-    compiler.compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
+    // compiler.compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
+    compiler.compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, std::nullopt );
 }
 
 } // namespace mega::runtime

@@ -93,8 +93,8 @@ void gen( Args args, FinalStage::Invocations::Instructions::ChildDerivation* pCh
     const mega::TypeID targetType  = pTo->get_concrete()->get_concrete_id();
     const mega::U64    szLocalSize = args.database.getLocalDomainSize( targetType );
 
-    os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom ) << ", "
-       << printTypeID( targetType ) << " );\n";
+    os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
+       << ", mega::TypeInstance{ " << printTypeID( targetType ) << ", " << s << ".getInstance() } );\n";
 
     args.data[ "assignments" ].push_back( os.str() );
 }
@@ -141,8 +141,9 @@ void gen( Args args, FinalStage::Invocations::Instructions::MonoReference* pMono
 
     std::ostringstream os;
     os << args.indent << "// MonoReference\n";
-    os << args.indent << args.get( pInstance ) << " = mega::reference::make( " << args.get( pReference ) << ", "
-       << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << " );";
+    os << args.indent << args.get( pInstance ) << " = mega::reference::make( " << args.get( pReference )
+       << ", mega::TypeInstance{ " << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << ", "
+       << args.get( pReference ) << ".getInstance() } );\n";
 
     args.data[ "assignments" ].push_back( os.str() );
 }
@@ -219,8 +220,9 @@ R"TEMPLATE(
                 }
                 VERIFY_RTE_MSG( pOwningLink, "Failed to locate owning link interface for allocation" );
                 std::ostringstream osLinkReference;
-                osLinkReference << "mega::reference::make( allocatedRef, "
-                                << printTypeID( pOwningLink->get_concrete_id() ) << " )";
+                osLinkReference << "mega::reference::make( allocatedRef, mega::TypeInstance{ "
+                                << printTypeID( pOwningLink->get_concrete_id() )
+                                << ", allocatedRef.getInstance() } )";
 
                 Interface::LinkTrait* pLinkTrait = pChildLinkInterface->get_link_trait();
                 if( pRelation->get_source_interface() == pChildLinkInterface )
@@ -304,7 +306,7 @@ R"TEMPLATE(
         Concrete::Context*   pConcreteTarget = pMove->get_concrete_target();
         Variables::Instance* pInstance       = pMove->get_instance();
 
-        bool bUnparentAll = false;
+        bool               bUnparentAll = false;
         std::ostringstream osRelationID;
         std::ostringstream osRelationIDAsInt;
 
@@ -431,7 +433,7 @@ R"TEMPLATE(
 {{ indent }}    {
 {{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
 {{ indent }}    }
-{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
+{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance }}.getInstance() } );
 {{ indent }}    mega::mangle::action_start( action );
 {{ indent }}    return action;
 {{ indent }}}
@@ -480,7 +482,7 @@ R"TEMPLATE(
 {{ indent }}    {
 {{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
 {{ indent }}    }
-{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
+{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance }}.getInstance() } );
 {{ indent }}    mega::mangle::action_stop( action );
 {{ indent }}    return action;
 {{ indent }}}
@@ -521,7 +523,7 @@ void gen( Args args, FinalStage::Invocations::Operations::GetAction* pGet )
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    return mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
+{{ indent }}    return mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance }}.getInstance() } );
 {{ indent }}}
 )TEMPLATE";
     // clang-format on
@@ -555,7 +557,7 @@ void gen( Args args, FinalStage::Invocations::Operations::GetDimension* pGetDime
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    return mega::reference::make( {{ instance }}, {{ concrete_type_id }} );
+{{ indent }}    return mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance }}.getInstance() } );
 {{ indent }}}
 )TEMPLATE";
     // clang-format on
@@ -905,8 +907,8 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
                 os << indent << "{\n";
                 ++indent;
                 os << indent << Args::get( variables, pInstance ) << " = mega::reference::make( "
-                   << Args::get( variables, pReference ) << ", "
-                   << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << " );\n";
+                   << Args::get( variables, pReference ) << ", mega::TypeInstance{"
+                   << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << ", " << Args::get( variables, pInstance ) << ".getInstance()} );\n";
                 data[ "assignments" ].push_back( os.str() );
             }
 
