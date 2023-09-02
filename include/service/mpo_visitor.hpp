@@ -22,7 +22,9 @@
 #define GUARD_2023_September_01_mpo_visitor
 
 #include "mega/iterator.hpp"
+#include "mega/logical_tree.hpp"
 #include "mega/reference.hpp"
+#include "mega/any.hpp"
 
 #include "jit/program_functions.hxx"
 
@@ -33,10 +35,14 @@ namespace mega
 
 struct MPORealInstantiation
 {
-    MPO m_mpo;
+    mega::reference m_root;
 
+    MPORealInstantiation( const mega::reference& root )
+        : m_root( root )
+    {
+    }
     MPORealInstantiation( const MPO& mpo )
-        : m_mpo( mpo )
+        : m_root( mega::reference::make_root( mpo ) )
     {
     }
 
@@ -71,21 +77,13 @@ struct MPORealInstantiation
         }
     }
 
-    mega::LogicalObject start()
-    {
-        return toLogicalObject( mega::reference::make_root( m_mpo ) );
-    }
-
-    void* read( const LogicalReference& logicalRef )
-    {
-        static thread_local mega::runtime::program::Read read;
-        return read( fromLogical( logicalRef ) );
-    }
+    mega::LogicalObject start() { return toLogicalObject( m_root ); }
 
     U64 linkSize( const LogicalReference& logicalRef, bool bOwning, bool bOwned )
     {
-        if( !bOwning ) return 0U;
-        
+        if( !bOwning )
+            return 0U;
+
         static thread_local mega::runtime::program::LinkSize linkSizeFPtr;
         return linkSizeFPtr( fromLogical( logicalRef ) );
     }
@@ -94,6 +92,12 @@ struct MPORealInstantiation
     {
         static thread_local mega::runtime::program::LinkObject linkObjectFptr;
         return toLogicalObject( linkObjectFptr( fromLogical( logicalRef ), index ) );
+    }
+
+    Any read( const LogicalReference& logicalRef )
+    {
+        static thread_local mega::runtime::program::ReadAny readAny;
+        return readAny( fromLogical( logicalRef ) );
     }
 };
 

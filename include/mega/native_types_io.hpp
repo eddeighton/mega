@@ -18,43 +18,27 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_January_11_program_functions
-#define GUARD_2023_January_11_program_functions
+#ifndef GUARD_2023_September_02_native_types_io
+#define GUARD_2023_September_02_native_types_io
 
-#include "api.hpp"
-#include "functions.hpp"
+#include "mega/native_types.hpp"
 
-#include "mega/reference.hpp"
-#include "mega/any.hpp"
+#include "common/string.hpp"
 
-namespace mega::runtime::program
-{
+#include <vector>
+#include <ostream>
 
-enum FunctionType
-{
-{% for function in functions %}
-    e{{ function.name }},
-{% endfor %}
-    TOTAL_FUNCTION_TYPES
-};
+// generate serialization routines for native types using xmacros
 
-{% for function in functions %}
-class JIT_EXPORT {{ function.name }}
-{
-public:
-{% if function.return == "function" %}
-    using FunctionPtr = mega::runtime::TypeErasedFunction;
-{% else %}
-    using FunctionPtr = {{ function.return_type }} ( * ) ({% for arg in function.arguments %}{{ arg.type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
-{% endif %}
-    {{ function.name }}();
-    {{ function.return_type }} operator() ({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
-private:
-    mutable bool        m_bResolving;
-    mutable FunctionPtr m_function;
-};
+#define NATIVE_TYPE( Type )                                                               \
+    inline std::ostream& operator<<( std::ostream& os, const std::vector< Type >& value ) \
+    {                                                                                     \
+        os << '(';                                                                        \
+        common::delimit( value.begin(), value.end(), ",", os );                           \
+        os << ')';                                                                        \
+        return os;                                                                        \
+    }
+#include "mega/native_types.hxx"
+#undef NATIVE_TYPE
 
-{% endfor %}
-}
-
-#endif //GUARD_2023_January_11_program_functions
+#endif // GUARD_2023_September_02_native_types_io

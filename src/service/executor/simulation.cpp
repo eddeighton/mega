@@ -37,6 +37,7 @@
 
 #include "mega/bin_archive.hpp"
 #include "mega/iterator.hpp"
+#include "mega/logical_tree.hpp"
 #include "mega/printer.hpp"
 
 #include <boost/filesystem/operations.hpp>
@@ -518,10 +519,10 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         status.setMPO( m_mpo.value() );
         {
             std::ostringstream os;
-            os << "Simulation: " << getLog().getTimeStamp() << " Ed was here!\n";
+            os << "Simulation Timestamp:" << getLog().getTimeStamp();
 
-            static thread_local mega::runtime::program::Traverse programTraverse;
-            {
+            /*{
+                static thread_local mega::runtime::program::Traverse programTraverse;
                 MPORealInstantiation mpoRealInstantiation( getThisMPO() );
                 LogicalTreePrinter   printer( os );
                 LogicalTreeTraversal objectTraversal( mpoRealInstantiation, printer );
@@ -531,7 +532,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
                 {
                     ++iterator;
                 }
-            }
+            }*/
 
             status.setDescription( os.str() );
         }

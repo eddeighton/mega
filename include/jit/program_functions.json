@@ -137,15 +137,30 @@
             "return" : "value"
         },
         {
-            "name" : "Read",
+            "name" : "ReadAny",
             "arguments" : [
                 {
                     "name" : "ref",
                     "type" : "mega::reference"
                 }
             ],
-            "return_type" : "void*",
+            "return_type" : "mega::Any",
             "return" : "value"
+        },
+        {
+            "name" : "WriteAny",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                },
+                {
+                    "name" : "value",
+                    "type" : "mega::Any"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
         }
     ]
 }

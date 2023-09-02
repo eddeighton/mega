@@ -18,43 +18,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_January_11_program_functions
-#define GUARD_2023_January_11_program_functions
+#ifndef GUARD_2023_September_02_logical_address_space
+#define GUARD_2023_September_02_logical_address_space
 
-#include "api.hpp"
-#include "functions.hpp"
-
-#include "mega/reference.hpp"
-#include "mega/any.hpp"
-
-namespace mega::runtime::program
+namespace mega
 {
-
-enum FunctionType
-{
-{% for function in functions %}
-    e{{ function.name }},
-{% endfor %}
-    TOTAL_FUNCTION_TYPES
-};
-
-{% for function in functions %}
-class JIT_EXPORT {{ function.name }}
+class LogicalAddressSpace
 {
 public:
-{% if function.return == "function" %}
-    using FunctionPtr = mega::runtime::TypeErasedFunction;
-{% else %}
-    using FunctionPtr = {{ function.return_type }} ( * ) ({% for arg in function.arguments %}{{ arg.type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
-{% endif %}
-    {{ function.name }}();
-    {{ function.return_type }} operator() ({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
-private:
-    mutable bool        m_bResolving;
-    mutable FunctionPtr m_function;
-};
 
-{% endfor %}
+};
 }
 
-#endif //GUARD_2023_January_11_program_functions
+#endif //GUARD_2023_September_02_logical_address_space

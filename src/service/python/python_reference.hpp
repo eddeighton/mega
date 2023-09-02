@@ -64,6 +64,7 @@ public:
     PyObject* get( void* pClosure );
     int       set( void* pClosure, PyObject* pValue );
     PyObject* str() const;
+    PyObject* dump() const;
     PyObject* call( PyObject* args, PyObject* kwargs );
 
     const mega::reference getReference() const { return m_reference; }

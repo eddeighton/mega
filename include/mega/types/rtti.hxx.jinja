@@ -18,43 +18,42 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_January_11_program_functions
-#define GUARD_2023_January_11_program_functions
+#ifndef GUARD_2023_September_02_rtti
+#define GUARD_2023_September_02_rtti
 
-#include "api.hpp"
-#include "functions.hpp"
-
+#include "mega/native_types.hpp"
 #include "mega/reference.hpp"
-#include "mega/any.hpp"
+#include "mega/maths_types.hpp"
+#include "mega/allocator.hpp"
 
-namespace mega::runtime::program
+#include <cstddef>
+#include <type_traits>
+#include <utility>
+
+#include <vector>
+
+#include <stdbool.h>
+
+namespace mega
 {
 
-enum FunctionType
+template< typename T >
+struct rtti;
+
+{% for type in types %}
+template<>
+struct rtti< {{ type.canon }} >
 {
-{% for function in functions %}
-    e{{ function.name }},
-{% endfor %}
-    TOTAL_FUNCTION_TYPES
+    using Type = {{ type.canon }};
+    // using Impl = {{ type.impl }}Dimension< {{ type.canon }} >;
+    static constexpr char Mangle[] = "{{ type.mangle }}";
+    static constexpr char Canon[] = "{{ type.canon }}";
+    static constexpr U64 ID = {{ loop.index + 1 }};
 };
 
-{% for function in functions %}
-class JIT_EXPORT {{ function.name }}
-{
-public:
-{% if function.return == "function" %}
-    using FunctionPtr = mega::runtime::TypeErasedFunction;
-{% else %}
-    using FunctionPtr = {{ function.return_type }} ( * ) ({% for arg in function.arguments %}{{ arg.type }}{% if not loop.is_last%}, {% endif %}{% endfor %});
-{% endif %}
-    {{ function.name }}();
-    {{ function.return_type }} operator() ({% for arg in function.arguments %}{{ arg.type }} {{ arg.name }}{% if not loop.is_last%}, {% endif %}{% endfor %}) const;
-private:
-    mutable bool        m_bResolving;
-    mutable FunctionPtr m_function;
-};
-
 {% endfor %}
+
 }
 
-#endif //GUARD_2023_January_11_program_functions
+#endif //GUARD_2023_September_02_rtti
+

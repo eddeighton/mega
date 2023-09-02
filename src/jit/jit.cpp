@@ -213,9 +213,14 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
             *ppFunction = ( void* )m_pProgram->getLinkObject();
         }
         break;
-        case program::eRead:
+        case program::eReadAny:
         {
-            *ppFunction = ( void* )m_pProgram->getRead();
+            *ppFunction = ( void* )m_pProgram->getReadAny();
+        }
+        break;
+        case program::eWriteAny:
+        {
+            *ppFunction = ( void* )m_pProgram->getWriteAny();
         }
         break;
         default:
@@ -421,7 +426,8 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         break;
         case invocation::eMove:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Move::FunctionPtr >( Symbol( invocationID, Symbol::Ref_Ref ) );
+            *ppFunction
+                = ( void* )pModule->get< invocation::Move::FunctionPtr >( Symbol( invocationID, Symbol::Ref_Ref ) );
         }
         break;
         default:
@@ -500,10 +506,16 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
             *ppFunction     = ( void* )pAllocator->getLinkObject();
         }
         break;
-        case object::eRead:
+        case object::eReadAny:
         {
             auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction     = ( void* )pAllocator->getRead();
+            *ppFunction     = ( void* )pAllocator->getReadAny();
+        }
+        break;
+        case object::eWriteAny:
+        {
+            auto pAllocator = getAllocator( compiler, typeID );
+            *ppFunction     = ( void* )pAllocator->getWriteAny();
         }
         break;
         default:

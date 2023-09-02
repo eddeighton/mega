@@ -53,6 +53,9 @@ async def run_megastructure():
         megastructure.run_one()
         await asyncio.sleep(0.1)
 
+def dump( ref ):
+    print( ref.dump() )
+
 
 asyncio.create_task(run_megastructure())
 

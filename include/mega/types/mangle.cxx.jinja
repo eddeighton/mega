@@ -69,6 +69,14 @@ namespace mega::mangle
     {
         {{ type.impl }}Dimension< {{ type.canon }} >::load_memory_record( pRecord, size, reify< {{ type.canon }} >( pData ) );
     }
+    Any read_any_{{ type.mangle }}( void* pData )
+    {
+        return {{ type.impl }}Dimension< {{ type.canon }} >::read_any( reify< {{ type.canon }} >( pData ) );
+    }
+    void write_any_{{ type.mangle }}( void* pData, mega::Any value )
+    {
+        {{ type.impl }}Dimension< {{ type.canon }} >::write_any( reify< {{ type.canon }} >( pData ), value );
+    }
 
 {% endfor %}
 }

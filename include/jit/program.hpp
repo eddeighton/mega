@@ -47,7 +47,8 @@ public:
     program::Traverse::FunctionPtr      getTraverse() const { return m_traverse; }
     program::LinkSize::FunctionPtr      getLinkSize() const { return m_pLinkSize; }
     program::LinkObject::FunctionPtr    getLinkObject() const { return m_pLinkObject; }
-    program::Read::FunctionPtr          getRead() const { return m_pRead; }
+    program::ReadAny::FunctionPtr       getReadAny() const { return m_pReadAny; }
+    program::WriteAny::FunctionPtr      getWriteAny() const { return m_pWriteAny; }
 
 private:
     JITCompiler::Module::Ptr            m_pModule;
@@ -59,7 +60,8 @@ private:
     program::Traverse::FunctionPtr      m_traverse      = nullptr;
     program::LinkSize::FunctionPtr      m_pLinkSize     = nullptr;
     program::LinkObject::FunctionPtr    m_pLinkObject   = nullptr;
-    program::Read::FunctionPtr          m_pRead         = nullptr;
+    program::ReadAny::FunctionPtr       m_pReadAny      = nullptr;
+    program::WriteAny::FunctionPtr      m_pWriteAny     = nullptr;
 };
 
 } // namespace mega::runtime

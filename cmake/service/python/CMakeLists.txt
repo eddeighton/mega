@@ -73,7 +73,7 @@ set( MEGA_PYTHON_MANGLE
 
     ${MEGA_API_DIR}/mega/types/python_mangle.hpp
     ${MEGA_API_DIR}/mega/types/python_mangle_types.cxx
-    ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
+    #${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
 )
 
 add_library( megastructure SHARED ${MEGA_PYTHON_SOURCE} ${MEGA_PYTHON_MANGLE} )

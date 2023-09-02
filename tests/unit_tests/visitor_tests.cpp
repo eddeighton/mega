@@ -19,6 +19,7 @@
 
 #include "mega/reference.hpp"
 #include "mega/iterator.hpp"
+#include "mega/logical_tree.hpp"
 
 #include "jit/jit_exception.hpp"
 

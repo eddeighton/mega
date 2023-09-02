@@ -54,6 +54,8 @@ class Bitmask32Allocator
 public:
     static const mega::U64 Size = _Size;
 
+    const std::bitset< Size >& data() const { return m_bitset; }
+
     inline Bitmask32Allocator()
     {
         static_assert( Size <= ( sizeof( mega::U32 ) * 8 ) );
@@ -109,6 +111,8 @@ class Bitmask64Allocator
 
 public:
     static const mega::U64 Size = _Size;
+
+    const std::bitset< Size >& data() const { return m_bitset; }
 
     inline Bitmask64Allocator()
     {
@@ -183,6 +187,8 @@ public:
     {
         reset();
     }
+
+    const FreeList& data() const { return m_free; }
 
     inline void reset()
     {

@@ -27,6 +27,8 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/array.hpp>
 
+#include <ostream>
+
 namespace boost::serialization
 {
 
@@ -67,5 +69,46 @@ inline void serialize( Archive& ar, ::F33& v, const unsigned int version )
 }
 
 } // namespace boost::serialization
+static constexpr char MATHS_DELIM = ',';
+static constexpr char MATHS_OPEN = '(';
+static constexpr char MATHS_CLOSE = ')';
+
+inline std::ostream& operator<<( std::ostream& os, const F2& v )
+{
+    return os << MATHS_OPEN << v.x() << MATHS_DELIM << v.y() << MATHS_CLOSE;
+}
+inline std::ostream& operator<<( std::ostream& os, const F3& v )
+{
+    return os << MATHS_OPEN << v.x() << MATHS_DELIM << v.y() << MATHS_DELIM << v.z() << MATHS_CLOSE;
+}
+inline std::ostream& operator<<( std::ostream& os, const F4& v )
+{
+    return os << MATHS_OPEN << v.x() << MATHS_DELIM << v.y() << MATHS_DELIM << v.z() << MATHS_DELIM << v.w() << MATHS_CLOSE;
+}
+inline std::ostream& operator<<( std::ostream& os, const Quat& v )
+{
+    return os << MATHS_OPEN << v.x() << MATHS_DELIM << v.y() << MATHS_DELIM << v.z() << MATHS_DELIM << v.w() << MATHS_CLOSE;
+}
+inline std::ostream& operator<<( std::ostream& os, const F33& v )
+{
+    bool bOuterFirst = true;
+    os << MATHS_OPEN;
+    for( const auto& row : v.data )
+    {   
+        if( bOuterFirst ) bOuterFirst = false;
+        else os << MATHS_DELIM;
+        os << MATHS_OPEN;
+        bool bFirst = true;
+        for( auto value : row )
+        {
+            if( bFirst ) bFirst = false;
+            else os << MATHS_DELIM;
+            os << value;
+        }
+        os << MATHS_CLOSE;
+    }
+    os << MATHS_CLOSE;
+    return os;
+}
 
 #endif // GUARD_2023_April_14_maths_types_io

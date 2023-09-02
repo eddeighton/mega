@@ -37,6 +37,30 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 include( ../run_inja.cmake )
 
+add_custom_target( generate_mangle_rtti
+    COMMAND inja
+        --data ${MEGA_API_DIR}/mega/types/types.json
+        --template ${MEGA_API_DIR}/mega/types/rtti.hxx.jinja
+        --output ${MEGA_API_DIR}/mega/types/rtti.hxx
+    DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/rtti.hxx.jinja inja
+    BYPRODUCTS ${MEGA_API_DIR}/mega/types/rtti.hxx
+    COMMENT "Generating rtti for Types" 
+    SOURCES ${MEGA_API_DIR}/mega/types/types.json
+)
+add_dependencies( generate_mangle_rtti inja )
+
+add_custom_target( generate_any_impl
+    COMMAND inja
+        --data ${MEGA_API_DIR}/mega/types/types.json
+        --template ${MEGA_API_DIR}/mega/types/any.cxx.jinja
+        --output ${MEGA_API_DIR}/mega/types/any.cxx
+    DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/any.cxx.jinja inja
+    BYPRODUCTS ${MEGA_API_DIR}/mega/types/any.cxx
+    COMMENT "Generating any impl for Types" 
+    SOURCES ${MEGA_API_DIR}/mega/types/types.json
+)
+add_dependencies( generate_any_impl inja )
+
 add_custom_target( generate_mangle_types
     COMMAND inja
         --data ${MEGA_API_DIR}/mega/types/types.json
@@ -49,17 +73,17 @@ add_custom_target( generate_mangle_types
 )
 add_dependencies( generate_mangle_types inja )
 
-add_custom_target( generate_mangle_allocators
-    COMMAND inja
-        --data ${MEGA_API_DIR}/mega/types/allocators.json
-        --template ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja
-        --output ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
-    DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja inja
-    BYPRODUCTS  ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
-    COMMENT "Generating Type Mangle for Allocators" 
-    SOURCES ${MEGA_API_DIR}/mega/types/allocators.json
-)
-add_dependencies( generate_mangle_allocators inja )
+# add_custom_target( generate_mangle_allocators
+#     COMMAND inja
+#         --data ${MEGA_API_DIR}/mega/types/allocators.json
+#         --template ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja
+#         --output ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
+#     DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/mangle.cxx.jinja inja
+#     BYPRODUCTS  ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
+#     COMMENT "Generating Type Mangle for Allocators" 
+#     SOURCES ${MEGA_API_DIR}/mega/types/allocators.json
+# )
+# add_dependencies( generate_mangle_allocators inja )
 
 add_custom_target( generate_python_mangle_types
     COMMAND inja
@@ -73,17 +97,17 @@ add_custom_target( generate_python_mangle_types
 )
 add_dependencies( generate_python_mangle_types inja )
 
-add_custom_target( generate_python_mangle_allocators
-    COMMAND inja
-        --data ${MEGA_API_DIR}/mega/types/allocators.json
-        --template ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja
-        --output ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
-    DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja inja
-    BYPRODUCTS  ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
-    COMMENT "Generating Python Type Mangle for Allocators" 
-    SOURCES ${MEGA_API_DIR}/mega/types/allocators.json
-)
-add_dependencies( generate_python_mangle_allocators inja )
+# add_custom_target( generate_python_mangle_allocators
+#     COMMAND inja
+#         --data ${MEGA_API_DIR}/mega/types/allocators.json
+#         --template ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja
+#         --output ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
+#     DEPENDS ${MEGA_API_DIR}/mega/types/types.json ${MEGA_API_DIR}/mega/types/python_mangle.cxx.jinja inja
+#     BYPRODUCTS  ${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
+#     COMMENT "Generating Python Type Mangle for Allocators" 
+#     SOURCES ${MEGA_API_DIR}/mega/types/allocators.json
+# )
+# add_dependencies( generate_python_mangle_allocators inja )
 
 
 add_custom_target( generate_mega_mangle_meta
@@ -98,15 +122,20 @@ add_custom_target( generate_mega_mangle_meta
 )
 add_dependencies( generate_mega_mangle_meta inja )
 
+set_target_properties( generate_any_impl PROPERTIES FOLDER service )
+set_target_properties( generate_mangle_rtti PROPERTIES FOLDER service )
 set_target_properties( generate_mangle_types PROPERTIES FOLDER service )
-set_target_properties( generate_mangle_allocators PROPERTIES FOLDER service )
 set_target_properties( generate_python_mangle_types PROPERTIES FOLDER service )
-set_target_properties( generate_python_mangle_allocators PROPERTIES FOLDER service )
+# set_target_properties( generate_mangle_allocators PROPERTIES FOLDER service )
+# set_target_properties( generate_python_mangle_allocators PROPERTIES FOLDER service )
 set_target_properties( generate_mega_mangle_meta PROPERTIES FOLDER service )
 
 set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/address_table.hpp
     ${MEGA_API_DIR}/mega/allocator.hpp
+    ${MEGA_API_DIR}/mega/allocator_io.hpp
+    ${MEGA_API_DIR}/mega/any.hpp
+    ${MEGA_API_DIR}/mega/any_io.hpp
     ${MEGA_API_DIR}/mega/archive_traits.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
     ${MEGA_API_DIR}/mega/bin_archive.hpp
@@ -124,11 +153,14 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/iterator.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
     ${MEGA_API_DIR}/mega/json_io.hpp
+    ${MEGA_API_DIR}/mega/logical_reference.hpp
+    ${MEGA_API_DIR}/mega/logical_tree.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
     ${MEGA_API_DIR}/mega/maths_types_io.hpp
     ${MEGA_API_DIR}/mega/maths_types.hpp
     ${MEGA_API_DIR}/mega/memory.hpp
     ${MEGA_API_DIR}/mega/mpo.hpp
+    ${MEGA_API_DIR}/mega/native_types_io.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp
     ${MEGA_API_DIR}/mega/operation_id.hpp 
     ${MEGA_API_DIR}/mega/operations.hpp
@@ -157,16 +189,21 @@ set( MEGA_LIBRARY
 
 add_library( mega_interface INTERFACE ${MEGA_LIBRARY} ${MEGA_TYPES} )
 set_target_properties( mega_interface PROPERTIES FOLDER service )
+add_dependencies( mega_interface generate_any_impl )
+add_dependencies( mega_interface generate_mangle_rtti )
 add_dependencies( mega_interface generate_mangle_types )
-add_dependencies( mega_interface generate_mangle_allocators )
 add_dependencies( mega_interface generate_python_mangle_types )
-add_dependencies( mega_interface generate_python_mangle_allocators )
+# add_dependencies( mega_interface generate_mangle_allocators )
+# add_dependencies( mega_interface generate_python_mangle_allocators )
 
 set( MEGA_TYPES
     ${MEGA_API_DIR}/mega/types/traits.hpp
     ${MEGA_API_DIR}/mega/types/traits.cpp
+    ${MEGA_API_DIR}/mega/types/any.cpp
+    ${MEGA_API_DIR}/mega/types/any.cxx
     ${MEGA_API_DIR}/mega/types/mangle_types.cxx
-    ${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
+    #${MEGA_API_DIR}/mega/types/mangle_allocators.cxx
+
     #${MEGA_API_DIR}/mega/types/python_mangle.hpp
     #${MEGA_API_DIR}/mega/types/python_mangle_types.cxx
     #${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx

@@ -21,6 +21,7 @@
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
 #include "mega/relation_id.hpp"
+#include "mega/any.hpp"
 #include "service/protocol/common/mpo_context_interface.hpp" 
 #include "jit/object_functions.hxx"
 #include "jit/relation_functions.hxx"
@@ -249,30 +250,39 @@ mega::reference link_object( mega::reference ref, mega::U64 index )
     }
 }
 
-void* read( mega::reference ref )
+mega::Any read_any( mega::reference ref )
 {
-    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    switch( mega::TypeID::make_object_from_typeID( ref.getType() ) )
     {
-        mega::runtime::readLock( ref );
-    }
-    else if( ref.isNetworkAddress() )
-    {
-        mega::runtime::networkToHeap( ref );
-    }
-
-    void* pBuffer = ref.getHeap();
-
-    switch( ref.getType() )
-    {
-{% for type in dimension_types %}
-        case {{ type.type_id }}:
-            return reinterpret_cast< char* >( pBuffer )
-                + {{ type.part_offset }} + ( {{ type.part_size }} * ref.getInstance() ) 
-                + {{ type.dimension_offset }};
+{% for type in object_types %}
+        case {{ type }}:
+        {
+            static thread_local mega::runtime::object::ReadAny readAnyFPtr( "simulation", mega::TypeID{ {{ type }} } );
+            return readAnyFPtr( ref );
+        }
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "program read Unknown concrete type id" };
+            throw mega::runtime::JITException{ "program read_any Unknown concrete type id" };
+        }
+        break;
+    }
+}
+
+void write_any( mega::reference ref, mega::Any value )
+{
+    switch( mega::TypeID::make_object_from_typeID( ref.getType() ) )
+    {
+{% for type in object_types %}
+        case {{ type }}:
+        {
+            static thread_local mega::runtime::object::WriteAny writeAnyFPtr( "simulation", mega::TypeID{ {{ type }} } );
+            return writeAnyFPtr( ref, value );
+        }
+{% endfor %}
+        default:
+        {
+            throw mega::runtime::JITException{ "program write_any Unknown concrete type id" };
         }
         break;
     }

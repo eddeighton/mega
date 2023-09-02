@@ -20,6 +20,7 @@
 
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
+#include "mega/any.hpp"
 #include "service/protocol/common/mpo_context_interface.hpp" 
 #include "jit/object_functions.hxx"
 #include "jit/relation_functions.hxx"
@@ -34,6 +35,8 @@ namespace mega::mangle
     void delete_{{type}}(void*);
     void save_bin_{{type}}(void*,void*);
     void load_bin_{{type}}(void*,void*);
+    Any read_any_{{type}}(void*);
+    void write_any_{{type}}(void*,Any);
 {% endfor %}
 
     mega::TypeID iterator_state( void* );
@@ -264,7 +267,7 @@ mega::reference link_object_{{ objectTypeID }}( mega::reference ref, mega::U64 i
     return {};
 }
 
-void* read_{{ objectTypeID }}( mega::reference ref )
+mega::Any read_any_{{ objectTypeID }}( mega::reference ref )
 {
     if( ref.getMPO() != mega::runtime::getThisMPO() )
     {
@@ -281,8 +284,7 @@ void* read_{{ objectTypeID }}( mega::reference ref )
     {
 {% for part in parts %}
 {% for member in part.members %}
-        case {{ member.type_id }}: // {{ member.type }} {{ member.name }}
-            return reinterpret_cast< char* >( pBuffer ) + {{ part.offset }} + ( ref.getInstance() * {{ part.size }} ) + {{ member.offset }}; 
+        case {{ member.type_id }}:return mega::mangle::read_any_{{member.mangle}}( reinterpret_cast< char* >( pBuffer ) + {{ part.offset }} + ( ref.getInstance() * {{ part.size }} ) + {{ member.offset }} );
 {% endfor %}
 {% endfor %}
         default:
@@ -290,4 +292,30 @@ void* read_{{ objectTypeID }}( mega::reference ref )
         break;
     }
     return {};
+}
+
+void write_any_{{ objectTypeID }}( mega::reference ref, mega::Any value )
+{
+    if( ref.getMPO() != mega::runtime::getThisMPO() )
+    {
+        mega::runtime::readLock( ref );
+    }
+    else if( ref.isNetworkAddress() )
+    {
+        mega::runtime::networkToHeap( ref );
+    }
+
+    void* pBuffer = ref.getHeap();
+
+    switch( ref.getType() )
+    {
+{% for part in parts %}
+{% for member in part.members %}
+        case {{ member.type_id }}:mega::mangle::write_any_{{member.mangle}}( reinterpret_cast< char* >( pBuffer ) + {{ part.offset }} + ( ref.getInstance() * {{ part.size }} ) + {{ member.offset }}, value );break;
+{% endfor %}
+{% endfor %}
+        default:
+            throw mega::runtime::JITException{ "read_{{ objectTypeID }} Unknown concrete type id" };
+        break;
+    }
 }

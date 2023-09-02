@@ -22,12 +22,17 @@
 #define GUARD_2023_January_12_impl
 
 #include "traits.hpp"
+#include "rtti.hxx"
 
 #include "mega/bin_archive.hpp"
 #include "mega/xml_archive.hpp"
 #include "mega/record_archive.hpp"
+#include "mega/any.hpp"
+#include "mega/logical_address_space.hpp"
 
 #include "mega/maths_types_io.hpp"
+#include "mega/native_types_io.hpp"
+#include "mega/allocator_io.hpp"
 
 #include "service/protocol/common/context.hpp"
 
@@ -90,6 +95,21 @@ struct SimpleDimension
         ASSERT( size == sizeof( value ) );
         copy( *reinterpret_cast< const T* >( pData ), value );
     }
+
+    static inline Any read_any( const T& from )
+    {
+        return { reinterpret_cast< const void* >( &from ), rtti< T >::ID };
+    }
+
+    static inline void write_any( const T& from, Any value )
+    {
+    }
+
+    static inline void print( std::ostream& os, const T& value )
+    {
+        using ::operator<<;
+        os << value;
+    }
 };
 
 template < typename T >
@@ -147,6 +167,21 @@ struct NonSimpleDimension
     {
         RecordLoadArchive recordLoadArchive( { reinterpret_cast< const char* >( pData ), size } );
         recordLoadArchive.load( value );
+    }
+
+    static inline Any read_any( const T& from )
+    {
+        return { reinterpret_cast< const void* >( &from ), rtti< T >::ID };
+    }
+
+    static inline void write_any( const T& from, Any value )
+    {
+    }
+
+    static inline void print( std::ostream& os, const T& value )
+    {
+        using ::operator<<;
+        os << value;
     }
 };
 } // namespace mega

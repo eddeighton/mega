@@ -24,6 +24,8 @@
 
 #include "type_id_io.hpp"
 
+#include "common/string.hpp"
+
 // the boost serialisation error handlers use iostream
 // boost/archive/basic_text_oprimitive.hpp:130
 #include <boost/archive/binary_iarchive.hpp>
@@ -93,6 +95,24 @@ inline std::ostream& operator<<( std::ostream& os, const mega::reference& ref )
         return os << std::dec << std::setw( 8 ) << std::setfill( '0' ) << ref.getAllocationID() << "." << ref.getMPO()
                   << "." << ref.getTypeInstance();
     }
+}
+
+inline std::ostream& operator<<( std::ostream& os, const std::vector< mega::reference >& refVector )
+{
+    for( auto p = refVector.begin(), pNext = refVector.begin(); p != refVector.end(); ++p )
+    {
+        ++pNext;
+        if( pNext == refVector.end() )
+        {
+            os << *p;
+        }
+        else
+        {
+            os << *p << " ";
+        }
+    }
+    // common::delimit(  refVector.begin(), refVector.end(), " ", os );
+    return os;
 }
 
 inline std::istream& operator>>( std::istream& is, mega::reference& ref )

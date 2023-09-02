@@ -25,11 +25,16 @@
 #include "jit/invocation_functions.hxx"
 #include "jit/jit_exception.hpp"
 
+#include "service/mpo_visitor.hpp"
+
 #include "mega/reference_io.hpp"
 #include "mega/invocation_id.hpp"
 #include "mega/types/traits.hpp"
 
 #include "mega/types/python_mangle.hpp"
+#include "mega/iterator.hpp"
+#include "mega/logical_tree.hpp"
+#include "mega/printer.hpp"
 
 #include "service/network/log.hpp"
 
@@ -123,10 +128,21 @@ PyObject* type_call( PyObject* callable, PyObject* args, PyObject* kwargs )
     }
 }
 
+PyObject* type_dump( PyObject* self )
+{
+    if( PythonReference* pRef = fromPyObject( self ) )
+    {
+        return pRef->dump();
+    }
+    else
+    {
+        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
+        return nullptr;
+    }
+}
+
 static PyMethodDef type_methods[] = {
-    //{"sample", (PyCFunction)type_sample, METH_VARARGS, "Sample the object and its subtree" },
-    //{"assign", (PyCFunction)type_assign, METH_VARARGS, "Assign the object to a sample" },
-    //{"update", (PyCFunction)type_update, METH_NOARGS, "Update objects associated gpu buffers" },
+    { "dump", (PyCFunction)type_dump, METH_VARARGS, "Dump object data" },
     { nullptr } /* Sentinel */
 };
 } // namespace
@@ -250,6 +266,28 @@ PyObject* PythonReference::str() const
     std::ostringstream os;
     using ::           operator<<;
     os << m_reference.getNetworkAddress();
+    return Py_BuildValue( "s", os.str().c_str() );
+}
+
+PyObject* PythonReference::dump() const
+{
+    std::ostringstream os;
+
+    m_module.invoke(
+        [ &m_reference = m_reference, &os ]()
+        {
+            static thread_local mega::runtime::program::Traverse programTraverse;
+            MPORealInstantiation mpoRealInstantiation( m_reference );
+            LogicalTreePrinter   printer( os );
+            LogicalTreeTraversal objectTraversal( mpoRealInstantiation, printer );
+            Iterator iterator(
+                [ &progTraverse = programTraverse ]( void* pIter ) { progTraverse( pIter ); }, objectTraversal );
+            while( iterator )
+            {
+                ++iterator;
+            }
+        } );
+
     return Py_BuildValue( "s", os.str().c_str() );
 }
 

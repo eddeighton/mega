@@ -37,7 +37,6 @@ namespace mega::mangle
     using PythonToCppTable = std::unordered_map< std::string, PythonToCppFunction >;
 
     extern void initialise_types( CppToPythonTable& cppToPython, PythonToCppTable& pythonToCpp );
-    extern void initialise_allocators( CppToPythonTable& cppToPython, PythonToCppTable& pythonToCpp );
 
     class PythonMangle
     {
@@ -45,7 +44,6 @@ namespace mega::mangle
         PythonMangle()
         {
             initialise_types( m_cppToPython, m_pythonToCpp );
-            initialise_allocators( m_cppToPython, m_pythonToCpp );
         }
 
         PyObject* cppToPython( const std::string& strMangle, void* pCppObject ) const

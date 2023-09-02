@@ -22,7 +22,10 @@
 #define GUARD_2023_September_01_printer
 
 #include "mega/iterator.hpp"
+#include "mega/logical_tree.hpp"
 #include "mega/reference_io.hpp"
+#include "mega/any.hpp"
+#include "mega/any_io.hpp"
 
 #include <ostream>
 
@@ -95,10 +98,10 @@ public:
         using ::operator<<;
         os << indent << "namespace: " << ref.id << " " << ref.typeInstance << std::endl;
     }
-    void on_dimension( const LogicalReference& ref, void* pData )
+    void on_dimension( const LogicalReference& ref, const mega::Any& value )
     {
         using ::operator<<;
-        os << indent << "dimension: " << ref.id << " " << ref.typeInstance << std::endl;
+        os << indent << "dimension: " << ref.id << " " << ref.typeInstance << " " << value << std::endl;
     }
 };
 }
