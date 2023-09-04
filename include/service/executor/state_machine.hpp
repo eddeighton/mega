@@ -63,18 +63,16 @@ private:
     network::ClockTick  m_clockTick;
 
 public:
-    State                     getState() const { return m_state; }
-    const network::ClockTick& getClockTick() const { return m_clockTick; }
-    bool                      isTerminating() const { return m_state == TERM; }
-    bool                      isTerminated() const
+    inline State                     getState() const { return m_state; }
+    inline const network::ClockTick& getClockTick() const { return m_clockTick; }
+    inline bool                      isTerminating() const { return m_state == TERM; }
+    inline bool                      isTerminated() const
     {
         return ( m_state == TERM ) && m_activeReads.empty() && ( !m_activeWrite.has_value() ) && m_acks.empty();
     }
-    const AckVector&    acks() const { return m_acks; }
-    const IDSet&        reads() const { return m_activeReads; }
-    std::optional< ID > writer() const { return m_activeWrite; }
-
-    void resetAcks() { m_acks.clear(); }
+    inline const AckVector&    acks() const { return m_acks; }
+    inline const IDSet&        reads() const { return m_activeReads; }
+    inline std::optional< ID > writer() const { return m_activeWrite; }
 
     using Read    = network::sim::MSG_SimLockRead_Request;
     using Write   = network::sim::MSG_SimLockWrite_Request;
@@ -83,8 +81,10 @@ public:
     using Block   = network::sim::MSG_SimDestroyBlocking_Request;
     using Clock   = network::sim::MSG_SimClock_Response;
 
-    static network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
-    static const mega::MPO&   getSimID( const Msg& msg )
+    static inline network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
+
+private:
+    static inline const mega::MPO& getSimID( const Msg& msg )
     {
         switch( getMsgID( msg ) )
         {
@@ -101,7 +101,7 @@ public:
                 THROW_RTE( "Unreachable" );
         }
     }
-    static const network::ClockTick& getClockTick( const Msg& msg )
+    static inline const network::ClockTick& getClockTick( const Msg& msg )
     {
         switch( getMsgID( msg ) )
         {
@@ -115,7 +115,7 @@ public:
         }
     }
 
-    bool onWait()
+    inline bool onWait()
     {
         using namespace mega::network;
 
@@ -159,7 +159,7 @@ public:
                         break;
                     case Write::ID:
                     {
-                        if( m_state == WAIT && m_state != TERM )
+                        if( m_state == WAIT )
                         {
                             const ID& id = getSimID( msg );
                             m_acks.push_back( msg );
@@ -204,14 +204,10 @@ public:
                 }
             }
         }
-        else
-        {
-            m_state = WAIT;
-        }
         return bClockTicked;
     }
 
-    bool onRead()
+    inline bool onRead()
     {
         using namespace mega::network;
 
@@ -333,7 +329,7 @@ public:
         return bClockTicked;
     }
 
-    bool onWrite()
+    inline bool onWrite()
     {
         using namespace mega::network;
 
@@ -463,7 +459,7 @@ public:
         return bClockTicked;
     }
 
-    bool onTerm()
+    inline bool onTerm()
     {
         using namespace mega::network;
 
@@ -527,8 +523,12 @@ public:
         return bClockTicked;
     }
 
+    // actual modifying interface
+public:
+    inline void resetAcks() { m_acks.clear(); }
+
     // returns true if clock ticked
-    bool onMsg( const MsgVector& msgs )
+    inline bool onMsg( const MsgVector& msgs )
     {
         using namespace mega::network;
 

@@ -120,7 +120,7 @@ network::Message MPOLogicalThread::dispatchInBoundRequestsUntilResponse( boost::
             else
             {
                 // queue the messages while waiting for RootSim run to complete
-                SPDLOG_TRACE( "SIM::dispatchInBoundRequestsUntilResponse queued: {}", msg.msg );
+                SPDLOG_TRACE( "MPOLogicalThread::dispatchInBoundRequestsUntilResponse queued: {}", msg.msg );
                 m_messageQueue.push_back( msg );
             }
         }
@@ -180,7 +180,9 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
             }
             else
             {
-                THROW_RTE( "Unexpected pending message when starting up MPOLogicalThread" );
+                SPDLOG_ERROR( "Unexpected pending message when starting up MPOLogicalThread: {}", msg.msg );
+                using ::operator<<;
+                THROW_RTE( "Unexpected pending message when starting up MPOLogicalThread: " << msg.msg );
             }
         }
 

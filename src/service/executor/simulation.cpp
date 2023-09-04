@@ -520,20 +520,6 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         {
             std::ostringstream os;
             os << "Simulation Timestamp:" << getLog().getTimeStamp();
-
-            /*{
-                static thread_local mega::runtime::program::Traverse programTraverse;
-                MPORealInstantiation mpoRealInstantiation( getThisMPO() );
-                LogicalTreePrinter   printer( os );
-                LogicalTreeTraversal objectTraversal( mpoRealInstantiation, printer );
-                Iterator iterator(
-                    [ &progTraverse = programTraverse ]( void* pIter ) { progTraverse( pIter ); }, objectTraversal );
-                while( iterator )
-                {
-                    ++iterator;
-                }
-            }*/
-
             status.setDescription( os.str() );
         }
         status.setLogIterator( getLog().getIterator() );
