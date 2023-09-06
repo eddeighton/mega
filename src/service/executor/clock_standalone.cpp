@@ -179,10 +179,6 @@ void ProcessClockStandalone::issueMove()
     {
         if( state.m_bWaitingForMoveResponse )
         {
-            SPDLOG_TRACE( "ProcessClockStandalone::issueMove clock ct:{} dt:{} cycle:{}",
-                        m_clockTick.m_ct,
-                        m_clockTick.m_dt,
-                        m_clockTick.m_cycle );
             using namespace network::sim;
             auto msg = MSG_SimMoveComplete_Response::make(
                 state.m_pSender->getID(), std::move( MSG_SimMoveComplete_Response{} ) );
