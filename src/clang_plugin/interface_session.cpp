@@ -116,7 +116,7 @@ public:
             std::vector< std::string > canonicalTypes;
             for( auto param : pApplicationOperator->parameters() )
             {
-                canonicalTypes.push_back( param->getType().getCanonicalType().getAsString() );
+                canonicalTypes.push_back( getCanonicalTypeStr( param->getType().getCanonicalType() ) );
             }
             m_database.construct< Interface::ArgumentListTrait >(
                 Interface::ArgumentListTrait::Args{ pContext->get_arguments_trait(), canonicalTypes } );
@@ -138,10 +138,8 @@ public:
             // determine the type
             QualType typeType
                 = getTypeTrait( pASTContext, pSema, returnTypeResult.pDeclContext, returnTypeResult.loc, "Type" );
-            QualType typeTypeCanonical = typeType.getCanonicalType();
-
             m_database.construct< Interface::ReturnTypeTrait >( Interface::ReturnTypeTrait::Args{
-                pContext->get_return_type_trait(), std::string{ typeTypeCanonical.getAsString() } } );
+                pContext->get_return_type_trait(), getCanonicalTypeStr( typeType.getCanonicalType() ) } );
         }
 
         return true;
@@ -162,10 +160,8 @@ public:
                 {
                     QualType typeType
                         = getTypeTrait( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Type" );
-                    QualType typeTypeCanonical = typeType.getCanonicalType();
-                    // std::vector< mega::TypeID > dimensionTypes;
 
-                    strCanonicalType = typeTypeCanonical.getAsString();
+                    strCanonicalType = getCanonicalTypeStr( typeType.getCanonicalType() );
 
                     auto iFind = m_mangleMap.find( strCanonicalType );
                     VERIFY_RTE_MSG( iFind != m_mangleMap.end(),
@@ -175,6 +171,7 @@ public:
                     pMangle = iFind->second;
 
                     // only attempt this is it has a base type identifier
+                    // std::vector< mega::TypeID > dimensionTypes;
                     /*if( typeTypeCanonical.getBaseTypeIdentifier() )
                     {
                         getContextSymbolIDs( pASTContext, typeTypeCanonical, dimensionTypes );
@@ -233,8 +230,7 @@ public:
                 {
                     QualType typeType = getTypeTrait(
                         pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Erased" );
-                    QualType typeTypeCanonical = typeType.getCanonicalType();
-                    strErasedType              = typeTypeCanonical.getAsString();
+                    strErasedType = getCanonicalTypeStr( typeType.getCanonicalType() );
                 }
                 if( strErasedType.empty() )
                 {
@@ -417,7 +413,7 @@ public:
 
             QualType typeTypeCanonical = typeType.getCanonicalType();
 
-            AbstractMutator::setCanonicalType( *pUsing, typeTypeCanonical.getAsString() );
+            AbstractMutator::setCanonicalType( *pUsing, getCanonicalTypeStr( typeTypeCanonical ) );
         }*/
         return true;
     }

@@ -61,7 +61,9 @@ public:
               network::Node::Type      nodeType );
 
     ~Executor() override;
+
     void shutdown();
+    void shutdown( boost::asio::yield_context& yield_ctx );
 
     U64 getNumThreads() const { return m_numThreads; }
 

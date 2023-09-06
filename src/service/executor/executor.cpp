@@ -90,13 +90,13 @@ Executor::~Executor()
     }
 }
 
-class ExecutorShutdown : public ExecutorRequestLogicalThread
+class ExecutorShutdownPromise : public ExecutorRequestLogicalThread
 {
     std::promise< void >&          m_promise;
     std::vector< Simulation::Ptr > m_simulations;
 
 public:
-    ExecutorShutdown( Executor& exe, std::promise< void >& promise, std::vector< Simulation::Ptr > simulations )
+    ExecutorShutdownPromise( Executor& exe, std::promise< void >& promise, std::vector< Simulation::Ptr > simulations )
         : ExecutorRequestLogicalThread( exe, exe.createLogicalThreadID() )
         , m_promise( promise )
         , m_simulations( simulations )
@@ -104,7 +104,7 @@ public:
     }
     void run( boost::asio::yield_context& yield_ctx )
     {
-        SPDLOG_TRACE( "ExecutorShutdown run" );
+        SPDLOG_TRACE( "ExecutorShutdownPromise run" );
         for( Simulation::Ptr pSim : m_simulations )
         {
             network::sim::Request_Sender rq( *this, pSim, yield_ctx );
@@ -124,8 +124,52 @@ void Executor::shutdown()
         SPDLOG_WARN( "Simulations still running when shutting executor down" );
         std::promise< void >            promise;
         std::future< void >             future = promise.get_future();
-        logicalthreadInitiated( std::make_shared< ExecutorShutdown >( *this, promise, simulations ) );
+        logicalthreadInitiated( std::make_shared< ExecutorShutdownPromise >( *this, promise, simulations ) );
         future.get();
+    }
+    m_receiverChannel.stop();
+    SPDLOG_TRACE( "Executor shutdown completed" );
+}
+
+class ExecutorShutdown : public ExecutorRequestLogicalThread
+{
+    std::vector< Simulation::Ptr > m_simulations;
+    network::ConcurrentChannel&    completionChannel;
+
+public:
+    ExecutorShutdown( Executor& exe, network::ConcurrentChannel& completionChannel,
+                      std::vector< Simulation::Ptr > simulations )
+        : ExecutorRequestLogicalThread( exe, exe.createLogicalThreadID() )
+        , completionChannel( completionChannel )
+        , m_simulations( simulations )
+    {
+    }
+    void run( boost::asio::yield_context& yield_ctx )
+    {
+        SPDLOG_TRACE( "ExecutorShutdown run" );
+        for( Simulation::Ptr pSim : m_simulations )
+        {
+            network::sim::Request_Sender rq( *this, pSim, yield_ctx );
+            rq.SimDestroyBlocking();
+        }
+
+        boost::system::error_code ec;
+        completionChannel.async_send( ec, network::make_disconnect_error_msg( this->getID(), "" ), yield_ctx );
+    }
+};
+
+void Executor::shutdown( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "Executor shutdown" );
+    std::vector< Simulation::Ptr > simulations;
+    getSimulations( simulations );
+    if( !simulations.empty() )
+    {
+        SPDLOG_WARN( "Simulations still running when shutting executor down" );
+        network::ConcurrentChannel completionChannel( m_io_context );
+        logicalthreadInitiated( std::make_shared< ExecutorShutdown >( *this, completionChannel, simulations ) );
+        boost::system::error_code ec;
+        completionChannel.async_receive( yield_ctx[ ec ] );
     }
 
     m_receiverChannel.stop();
@@ -158,7 +202,7 @@ std::shared_ptr< Simulation > Executor::getSimulation( const mega::MPO& mpo ) co
         return Simulation::Ptr{};
 }
 
-mega::MPO Executor::createSimulation( network::LogicalThread& callingLogicalThread,
+mega::MPO Executor::createSimulation( network::LogicalThread&     callingLogicalThread,
                                       boost::asio::yield_context& yield_ctx )
 {
     Simulation::Ptr pSimulation;

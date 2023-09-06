@@ -23,6 +23,9 @@
 
 #include "mega/common_strings.hpp"
 
+#include <boost/config.hpp> // for BOOST_SYMBOL_EXPORT
+#include <boost/algorithm/string.hpp>
+
 #pragma warning( push )
 #include "common/clang_warnings.hpp"
 
@@ -44,6 +47,13 @@
 
 namespace clang
 {
+
+std::string getCanonicalTypeStr( QualType type )
+{
+    std::string strCanonicalType = type.getCanonicalType().getAsString();
+    boost::replace_all( strCanonicalType, "_Bool", "bool" );
+    return strCanonicalType;
+}
 
 std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType type )
 {
@@ -403,8 +413,7 @@ bool getTypePathVariantSymbolIDs( ASTContext* pASTContext, QualType typePath,
                 return false;
 
             for( TemplateSpecializationType::iterator pIter = pTemplateType->begin(), pIterEnd = pTemplateType->end();
-                 pIter != pIterEnd;
-                 ++pIter )
+                 pIter != pIterEnd; ++pIter )
             {
                 if( isVariant( pASTContext, pIter->getAsType().getCanonicalType() ) )
                 {

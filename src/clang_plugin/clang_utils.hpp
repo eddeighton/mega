@@ -42,6 +42,8 @@
 
 namespace clang
 {
+std::string getCanonicalTypeStr( QualType type );
+
 std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType type );
 
 const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters );

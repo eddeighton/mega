@@ -33,19 +33,37 @@
 #include <chrono>
 #include <thread>
 
+#include <signal.h>
+#include <sys/wait.h>
+
+void handle_sigchld( int signum )
+{
+    wait( NULL ); // or some other wait variant that reads the child process' status information
+}
+
+
 // dummy implementation of MPOContext
 namespace mega
 {
 class MPOContext
 {
 };
-MPOContext* getMPOContext() { return nullptr; }
-void        resetMPOContext() {}
-void        setMPOContext( MPOContext* pMPOContext ) {}
+MPOContext* getMPOContext()
+{
+    return nullptr;
+}
+void resetMPOContext()
+{
+}
+void setMPOContext( MPOContext* pMPOContext )
+{
+}
 } // namespace mega
 
 int main( int argc, const char* argv[] )
 {
+    signal(SIGCHLD, handle_sigchld);
+
     std::string strIP = "localhost";
 
     using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
@@ -79,7 +97,7 @@ int main( int argc, const char* argv[] )
         po::store( parsedOptions, vm );
         po::notify( vm );
 
-        if ( bShowHelp )
+        if( bShowHelp )
         {
             std::cout << options << "\n";
             return 0;
@@ -93,23 +111,23 @@ int main( int argc, const char* argv[] )
     try
     {
         mega::network::configureLog( logFolder, "daemon", mega::network::fromStr( strConsoleLogLevel ),
-                                           mega::network::fromStr( strLogFileLevel ) );
+                                     mega::network::fromStr( strLogFileLevel ) );
 
         boost::asio::io_context ioContext( 1 );
 
         mega::service::Daemon daemon( ioContext, strIP, rootPortNumber, daemonPortNumber );
 
         std::vector< std::thread > threads;
-        for ( NumThreadsType i = 0; i < uiNumThreads; ++i )
+        for( NumThreadsType i = 0; i < uiNumThreads; ++i )
         {
             threads.emplace_back( std::move( std::thread( [ &ioContext ]() { ioContext.run(); } ) ) );
         }
-        for ( std::thread& thread : threads )
+        for( std::thread& thread : threads )
         {
             thread.join();
         }
     }
-    catch ( std::exception& ex )
+    catch( std::exception& ex )
     {
         std::cerr << "Exception: " << ex.what() << std::endl;
         return -1;

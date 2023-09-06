@@ -40,8 +40,7 @@ MP DaemonRequestLogicalThread::EnroleLeafWithDaemon( const std::string&         
     SPDLOG_TRACE( "Leaf enroled as {}", leafMP );
 
     m_daemon.m_server.labelConnection( leafMP, pConnection );
-    pConnection->setDisconnectCallback( [ leafMP, &daemon = m_daemon ]()
-                                        { daemon.onLeafDisconnect( leafMP ); } );
+    pConnection->setDisconnectCallback( [ leafMP, &daemon = m_daemon ]() { daemon.onLeafDisconnect( leafMP ); } );
 
     return leafMP;
 }
@@ -50,9 +49,15 @@ void DaemonRequestLogicalThread::EnroleDaemonSpawn( const std::string&          
                                                     const std::string&          strStartupUUID,
                                                     boost::asio::yield_context& yield_ctx )
 {
-    auto env                         = boost::this_process::environment();
-    env[ network::ENV_PROCESS_UUID ] = strStartupUUID;
-    boost::process::spawn( strProgram, env );
+    boost::asio::post(
+        [ strProgram, strStartupUUID ]()
+        {
+            auto env                         = boost::this_process::environment();
+            env[ network::ENV_PROCESS_UUID ] = strStartupUUID;
+            boost::process::child p( strProgram, env );
+            // NOTE: main has signal handler to prevent zombie
+            p.detach();
+        } );
 }
 
 } // namespace mega::service

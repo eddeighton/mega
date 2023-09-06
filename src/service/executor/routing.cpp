@@ -121,9 +121,9 @@ network::Message ExecutorRequestLogicalThread::MPDown( const network::Message& r
     return dispatchInBoundRequest( request, yield_ctx );
 }
 
-void ExecutorRequestLogicalThread::EnroleDestroy( boost::asio::yield_context& )
+void ExecutorRequestLogicalThread::EnroleDestroy( boost::asio::yield_context& yield_ctx )
 {
-    m_executor.shutdown();
+    m_executor.shutdown( yield_ctx );
 }
 
 } // namespace mega::service

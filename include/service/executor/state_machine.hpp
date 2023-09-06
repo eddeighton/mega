@@ -577,6 +577,7 @@ public:
     inline void onCycle()
     {
         m_state = MOVE;
+        //m_state = WAIT;
     }
 
     // returns true if clock ticked
