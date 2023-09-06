@@ -18,16 +18,30 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "request.hpp"
+#ifndef GUARD_2023_September_06_python_database
+#define GUARD_2023_September_06_python_database
 
-namespace mega::service::python
+#include "database/common/api.hpp"
+#include "database/common/environment_archive.hpp"
+
+#include "database/model/FinalStage.hxx"
+#include "database/model/manifest.hxx"
+
+#include <unordered_map>
+
+namespace mega::runtime
 {
 
-// network::project::Impl
-void PythonRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
+class EGDB_EXPORT PythonDatabase
 {
-    SPDLOG_TRACE( "PythonRequestLogicalThread::SetProject: {}", project.getProjectInstallPath().string() );
-    m_python.setProject( project );
+public:
+    PythonDatabase( const boost::filesystem::path& projectDatabasePath );
+
+private:
+    io::ArchiveEnvironment m_environment;
+    io::Manifest           m_manifest;
+    FinalStage::Database   m_database;
+};
 }
 
-} // namespace mega::service::python
+#endif //GUARD_2023_September_06_python_database

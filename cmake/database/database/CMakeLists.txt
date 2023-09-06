@@ -198,6 +198,7 @@ set( MEGA_TYPES_HEADERS
     
     ${MEGA_API_DIR}/database/jit_database.hpp
     ${MEGA_API_DIR}/database/mpo_database.hpp
+    ${MEGA_API_DIR}/database/python_database.hpp
 )
 
 set( MEGA_TYPES_SOURCES
@@ -213,6 +214,7 @@ set( MEGA_TYPES_SOURCES
     
     ${MEGA_SRC_DIR}/database/jit_database.cpp
     ${MEGA_SRC_DIR}/database/mpo_database.cpp
+    ${MEGA_SRC_DIR}/database/python_database.cpp
 )
 
 add_library( database SHARED

@@ -27,6 +27,7 @@
 #include "python_machine.hpp"
 #include "python_process.hpp"
 #include "python_mpo.hpp"
+#include "python_type_system.hpp"
 
 #include "mega/invocation_id.hpp"
 #include "mega/types/python_mangle.hpp"
@@ -180,6 +181,7 @@ private:
     FunctionTable                                    m_functionTable;
     WrapperTable                                     m_wrapperTable;
     mega::mangle::PythonMangle                       m_pythonMangle;
+    TypeSystem::Ptr                                  m_pTypeSystem;
 };
 } // namespace mega::service::python
 

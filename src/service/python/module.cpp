@@ -421,6 +421,19 @@ void PythonModule::shutdown()
 
 void PythonModule::run_one()
 {
+
+    if( const auto& project = m_python.getProject(); project.has_value() )
+    {
+        if( !m_pTypeSystem )
+        {
+            m_pTypeSystem = std::make_unique< TypeSystem >( project.value() );
+        }
+        else
+        {
+            THROW_TODO;
+        }
+    }
+
     while( m_ioContext.poll_one() )
         ;
 }

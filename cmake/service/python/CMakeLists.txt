@@ -67,6 +67,8 @@ set( MEGA_PYTHON_SOURCE
     ${MEGA_PYTHON_SRC_DIR}/python_mpo.cpp 
     ${MEGA_PYTHON_SRC_DIR}/python_reference.hpp 
     ${MEGA_PYTHON_SRC_DIR}/python_reference.cpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_type_system.hpp 
+    ${MEGA_PYTHON_SRC_DIR}/python_type.hpp 
     )
 
 set( MEGA_PYTHON_MANGLE

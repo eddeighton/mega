@@ -1,4 +1,3 @@
-
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -18,16 +17,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "request.hpp"
+#include "database/python_database.hpp"
 
-namespace mega::service::python
+namespace mega::runtime
 {
 
-// network::project::Impl
-void PythonRequestLogicalThread::SetProject( const Project& project, boost::asio::yield_context& yield_ctx )
+PythonDatabase::PythonDatabase( const boost::filesystem::path& projectDatabasePath )
+    : m_environment( projectDatabasePath )
+    , m_manifest( m_environment, m_environment.project_manifest() )
+    , m_database( m_environment, m_manifest.getManifestFilePath() )
 {
-    SPDLOG_TRACE( "PythonRequestLogicalThread::SetProject: {}", project.getProjectInstallPath().string() );
-    m_python.setProject( project );
 }
 
-} // namespace mega::service::python
+} // namespace mega::runtime
