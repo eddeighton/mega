@@ -37,13 +37,8 @@ class ProcessClockStandalone : public ProcessClock
 {
     struct State
     {
-        enum Type
-        {
-            eWaitingForClock,
-            eWaitingForRequest,
-            TOTAL_STATES
-        };
-        Type                       m_type;
+        bool                        m_bWaitingForMoveResponse  = false;
+        bool                        m_bWaitingForClockResponse = false;
         network::LogicalThreadBase* m_pSender;
     };
     using MPOMap = std::unordered_map< MPO, State, MPO::Hash >;
@@ -62,13 +57,16 @@ public:
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
     virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range ) override;
+    virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo ) override;
 
 private:
     void registerMPOImpl( network::SenderRef sender );
     void unregisterMPOImpl( network::SenderRef sender );
+    void requestMoveImpl( network::LogicalThreadBase* pSender, MPO mpo );
     void requestClockImpl( network::LogicalThreadBase* pSender, MPO mpo );
     void checkClock();
     void clock();
+    void issueMove();
     void issueClock();
 
 private:

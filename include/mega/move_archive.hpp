@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,31 +18,31 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef EG_CLOCK_12_06_2019
-#define EG_CLOCK_12_06_2019
+#ifndef GUARD_2023_September_05_move
+#define GUARD_2023_September_05_move
 
-#include "utilities/project.hpp"
-
-#include "service/protocol/common/sender_ref.hpp"
-
-#include "log/range.hpp"
-
-#include "mega/reference.hpp"
-
-#include <chrono>
-#include <memory>
-
-namespace mega::service
+namespace mega
 {
-class ProcessClock
+
+// class To encapsulate a move
+class SimMoveArchive
 {
 public:
-    virtual void setActiveProject( const Project& project, U64 dbHashCode )                     = 0;
-    virtual void registerMPO( network::SenderRef sender )                                       = 0;
-    virtual void unregisterMPO( network::SenderRef sender )                                     = 0;
-    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) = 0;
-    virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo )                    = 0;
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+    }
 };
-} // namespace mega::service
 
-#endif // EG_CLOCK_12_06_2019
+class ToolMoveArchive
+{
+public:
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+    }
+};
+
+} // namespace mega
+
+#endif // GUARD_2023_September_05_move

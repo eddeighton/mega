@@ -51,6 +51,8 @@ Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logi
     : ExecutorRequestLogicalThread( executor, logicalthreadID )
     , MPOContext( getID() )
     , m_processClock( processClock )
+    , m_simMoveManager()
+    , m_stateMachine( m_simMoveManager )
 {
     m_bEnableQueueing = true;
 }
@@ -109,7 +111,6 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
         m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
-        // m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, m_pMemoryManager->getAllocators() } );
 
         // create the scheduler on the stack!
         Scheduler scheduler( getLog() );
@@ -154,8 +155,22 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
                     cycleComplete();
 
-                    // m_pMemoryManager->doubleBuffer();
-                    // SPDLOG_TRACE( "SIM: Cycle {} {}", getID(), m_mpo.value() );
+                    // NOTE: may be simCreate request - ensure transition OUT of SIM state
+                    m_stateMachine.onCycle();
+
+                    SPDLOG_TRACE( "SIM: Cycle {} {}", getID(), m_mpo.value() );
+
+                    if( !m_simMoveManager.sendMoveRequests() )
+                    {
+                        // no move requests so immediately send moveComplete
+                        SPDLOG_TRACE( "SIM: move request {}", m_mpo.value() );
+                        m_processClock.requestMove( this, m_mpo.value() );
+                    }
+                }
+                break;
+                case StateMachine::MOVE:
+                {
+                    SPDLOG_TRACE( "SIM: MOVE {} {}", getID(), m_mpo.value() );
                 }
                 break;
                 case StateMachine::READ:
@@ -172,7 +187,6 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 {
                     SPDLOG_TRACE( "SIM: TERM {} {}", getID(), m_mpo.value() );
                     m_processClock.unregisterMPO( network::SenderRef{ m_mpo.value(), this, {} } );
-                    // network::SenderRef{ m_mpo.value(), this, m_pMemoryManager->getAllocators() } );
                 }
                 break;
                 case StateMachine::WAIT:
@@ -188,6 +202,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 ASSERT( m_queueStack == 0 );
                 unqueue();
                 const network::ReceivedMessage msg = receiveDeferred( yield_ctx );
+                SPDLOG_TRACE( "SIM: MSG {} {}", msg.msg, m_mpo.value() );
                 switch( StateMachine::getMsgID( msg ) )
                 {
                     case StateMachine::Read::ID:
@@ -196,12 +211,35 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     case StateMachine::Block::ID:
                     case StateMachine::Destroy::ID:
                     case StateMachine::Clock::ID:
+                    case StateMachine::MoveComplete::ID:
+                    case StateMachine::MoveRequest::ID:
+                    case StateMachine::MoveResponse::ID:
                     {
-                        if( m_stateMachine.onMsg( { msg } ) )
+                        switch( m_stateMachine.onMsg( { msg } ) )
                         {
-                            sendMoveRequests();
-                            m_processClock.requestClock( this, m_mpo.value(), getLog().getRange( lastCycle ) );
-                            lastCycle = getLog().getTimeStamp();
+                            case StateMachine::eNothing:
+                            {
+                                // do nothing
+                            }
+                            break;
+                            case StateMachine::eClockTick:
+                            {
+                                SPDLOG_TRACE( "SIM: clock request {}", m_mpo.value() );
+                                m_processClock.requestClock( this, m_mpo.value(), getLog().getRange( lastCycle ) );
+                                lastCycle = getLog().getTimeStamp();
+                            }
+                            break;
+                            case StateMachine::eMoveComplete:
+                            {
+                                SPDLOG_TRACE( "SIM: move request {}", m_mpo.value() );
+                                m_processClock.requestMove( this, m_mpo.value() );
+                            }
+                            break;
+                            default:
+                            {
+                                THROW_RTE( "Invalid state machine onMsg result" );
+                            }
+                            break;
                         }
                     }
                     break;
@@ -225,29 +263,6 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         SPDLOG_WARN( "SIM: LogicalThread: {} exception: {}", getID(), ex.what() );
         getThreadManager().logicalthreadCompleted( shared_from_this() );
     }
-}
-
-void Simulation::sendMoveRequests()
-{
-    QueueStackDepth queueMsgs( m_queueStack );
-
-    for( const auto& [ mpo, sourceTarget ] : m_movedObjects )
-    {
-        SPDLOG_TRACE( "SIM: Simulation::sendMoveRequests: this:{} mpo:{} {} -> {}", getThisMPO(), mpo,
-                      sourceTarget.first, sourceTarget.second );
-
-        if( mpo != getThisMPO() )
-        {
-            getMPOSimRequest( mpo ).SimMove(
-                sourceTarget.first.getNetworkAddress(), sourceTarget.second.getNetworkAddress() );
-        }
-        else
-        {
-            // TODO
-        }
-    }
-
-    m_movedObjects.clear();
 }
 
 void Simulation::unqueue()
@@ -303,6 +318,9 @@ bool Simulation::queue( const network::ReceivedMessage& msg )
             case StateMachine::Block::ID:
             case StateMachine::Destroy::ID:
             case StateMachine::Clock::ID:
+            case StateMachine::MoveComplete::ID:
+            case StateMachine::MoveRequest::ID:
+            case StateMachine::MoveResponse::ID:
             {
                 // if processing a request then postpone state machine messages
                 if( m_queueStack != 0 )
@@ -495,15 +513,6 @@ void Simulation::SimDestroyBlocking( boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimDestroyBlocking" );
     // do nothing
-}
-
-void Simulation::SimMove( const reference& source, const reference& targetParent, boost::asio::yield_context& )
-{
-    SPDLOG_TRACE( "SIM::SimMove mpo: {} source: {} target: {}", getThisMPO(), source, targetParent );
-    if( !m_stateMachine.isTerminating() )
-    {
-        QueueStackDepth queueMsgs( m_queueStack );
-    }
 }
 
 // network::status::Impl

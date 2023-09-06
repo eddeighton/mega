@@ -28,6 +28,7 @@
 #include "service/executor/scheduler.hpp"
 
 #include "service/executor/state_machine.hpp"
+#include "service/executor/sim_move_manager.hpp"
 #include "service/network/sender_factory.hpp"
 #include "service/protocol/common/logical_thread_id.hpp"
 
@@ -51,7 +52,7 @@ public:
     Simulation( Executor& executor, const network::LogicalThreadID& logicalthreadID, ProcessClock& processClock );
 
     virtual network::Message dispatchInBoundRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override;
+                                                     boost::asio::yield_context& yield_ctx ) override;
     virtual void             unqueue() override;
     virtual bool             queue( const network::ReceivedMessage& msg ) override;
     virtual void             run( boost::asio::yield_context& yield_ctx ) override;
@@ -77,8 +78,6 @@ public:
     virtual MPO  SimCreate( boost::asio::yield_context& ) override;
     virtual void SimDestroy( boost::asio::yield_context& ) override;
     virtual void SimDestroyBlocking( boost::asio::yield_context& ) override;
-    virtual void
-    SimMove( const reference& source, const reference& targetParent, boost::asio::yield_context& ) override;
 
     // network::project::Impl
     virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;
@@ -95,13 +94,11 @@ private:
     void runSimulation( boost::asio::yield_context& yield_ctx );
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
-    // bool m_bSendingMoveRequests = false;
-    void sendMoveRequests();
-
 private:
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     ProcessClock&                                        m_processClock;
     network::Sender::Ptr                                 m_pRequestChannelSender;
+    SimMoveManager                                       m_simMoveManager;
     StateMachine                                         m_stateMachine;
     StateMachine::MsgVector                              m_messageQueue;
     int                                                  m_queueStack = 0;

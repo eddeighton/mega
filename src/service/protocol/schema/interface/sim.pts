@@ -35,7 +35,7 @@ msg SimAllocate
     response( reference result );
 }
 
-msg SimSnapshot
+msg SimSnapshot // TODO
 {
     request( MPO mpo );
     response( Snapshot snapshot );
@@ -77,6 +77,18 @@ msg SimClock
     response( network::ClockTick clockTick );
 }
 
+msg SimMoveComplete
+{
+    request( MPO mpo );
+    response();
+}
+
+msg SimMove
+{
+    request( mega::SimMoveArchive moveArchive, mega::U64 moveID );
+    response( mega::U64 moveID );
+}
+
 msg SimCreate
 {
     request();
@@ -98,11 +110,5 @@ msg SimDestroy
 msg SimDestroyBlocking
 {
     request();
-    response();
-}
-
-msg SimMove
-{
-    request( reference object, reference targetParent );
     response();
 }

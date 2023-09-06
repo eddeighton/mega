@@ -65,10 +65,17 @@ void ProcessClockStandalone::requestClock( network::LogicalThreadBase* pSender, 
     boost::asio::post( m_strand, [ pThis, pSender, mpo ]() { pThis->requestClockImpl( pSender, mpo ); } );
 }
 
+void ProcessClockStandalone::requestMove( network::LogicalThreadBase* pSender, MPO mpo )
+{
+    ProcessClockStandalone* pThis = this;
+    boost::asio::post( m_strand, [ pThis, pSender, mpo ]() { pThis->requestMoveImpl( pSender, mpo ); } );
+}
+
 void ProcessClockStandalone::registerMPOImpl( network::SenderRef sender )
 {
     SPDLOG_TRACE( "ProcessClockStandalone::registerMPOImpl mpo:{}", sender.m_mpo );
-    VERIFY_RTE_MSG( m_mpos.insert( { sender.m_mpo, State{ State::eWaitingForClock, sender.m_pSender } } ).second,
+    // When register set waitingForClockResponse to TRUE so that initial clock response is generated
+    VERIFY_RTE_MSG( m_mpos.insert( { sender.m_mpo, State{ false, true, sender.m_pSender } } ).second,
                     "Duplicate MPO when registering: " << sender.m_mpo );
     checkClock();
 }
@@ -82,33 +89,56 @@ void ProcessClockStandalone::unregisterMPOImpl( network::SenderRef sender )
     checkClock();
 }
 
+void ProcessClockStandalone::requestMoveImpl( network::LogicalThreadBase* pSender, MPO mpo )
+{
+    {
+        auto iFind = m_mpos.find( mpo );
+        VERIFY_RTE_MSG( iFind != m_mpos.end(), "Failed to locate mpo when unregister: " << mpo );
+        VERIFY_RTE_MSG( !iFind->second.m_bWaitingForMoveResponse, "Request move when not waiting for move request" );
+        iFind->second.m_bWaitingForMoveResponse = true;
+    }
+    checkClock();
+}
+
 void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSender, MPO mpo )
 {
     {
         auto iFind = m_mpos.find( mpo );
         VERIFY_RTE_MSG( iFind != m_mpos.end(), "Failed to locate mpo when unregister: " << mpo );
-        iFind->second.m_type = State::eWaitingForClock;
+        VERIFY_RTE_MSG( !iFind->second.m_bWaitingForClockResponse, "Request move when not waiting for move request" );
+        iFind->second.m_bWaitingForClockResponse = true;
     }
     checkClock();
 }
 
 void ProcessClockStandalone::checkClock()
 {
-    if( m_bClockIssued ) return;
-
-    bool bAllWaiting = true;
+    bool bAllWaitingMoveResponse  = true;
+    bool bAllWaitingClockResponse = true;
     for( auto& [ _, state ] : m_mpos )
     {
-        if( state.m_type != State::eWaitingForClock )
+        if( !state.m_bWaitingForMoveResponse )
         {
-            bAllWaiting = false;
-            break;
+            bAllWaitingMoveResponse = false;
         }
+        if( !state.m_bWaitingForClockResponse )
+        {
+            bAllWaitingClockResponse = false;
+        }
+        if( !bAllWaitingMoveResponse && !bAllWaitingClockResponse )
+            break;
     }
 
-    if( bAllWaiting )
+    if( bAllWaitingMoveResponse )
     {
-        issueClock();
+        issueMove();
+    }
+    if( bAllWaitingClockResponse )
+    {
+        if( !m_bClockIssued )
+        {
+            issueClock();
+        }
     }
 }
 
@@ -121,17 +151,17 @@ void ProcessClockStandalone::clock()
 
     for( auto& [ _, state ] : m_mpos )
     {
-        if( state.m_type == State::eWaitingForClock )
+        if( state.m_bWaitingForClockResponse )
         {
             using namespace network::sim;
             auto msg = MSG_SimClock_Response::make(
                 state.m_pSender->getID(), std::move( MSG_SimClock_Response{ m_clockTick } ) );
             state.m_pSender->send( msg );
-            state.m_type = State::eWaitingForRequest;
+            state.m_bWaitingForClockResponse = false;
         }
     }
 
-    m_lastTick = timeNow;
+    m_lastTick     = timeNow;
     m_bClockIssued = false;
 
     if( m_clockTick.m_cycle % 60 == 0 )
@@ -140,6 +170,25 @@ void ProcessClockStandalone::clock()
                       m_clockTick.m_ct,
                       m_clockTick.m_dt,
                       m_clockTick.m_cycle );
+    }
+}
+
+void ProcessClockStandalone::issueMove()
+{
+    for( auto& [ _, state ] : m_mpos )
+    {
+        if( state.m_bWaitingForMoveResponse )
+        {
+            SPDLOG_TRACE( "ProcessClockStandalone::issueMove clock ct:{} dt:{} cycle:{}",
+                        m_clockTick.m_ct,
+                        m_clockTick.m_dt,
+                        m_clockTick.m_cycle );
+            using namespace network::sim;
+            auto msg = MSG_SimMoveComplete_Response::make(
+                state.m_pSender->getID(), std::move( MSG_SimMoveComplete_Response{} ) );
+            state.m_pSender->send( msg );
+            state.m_bWaitingForMoveResponse = false;
+        }
     }
 }
 

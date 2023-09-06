@@ -76,6 +76,10 @@ public:
     {
         // do nothing
     }
+    virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo )
+    {
+        // do nothing
+    }
 
     mega::U64   database_hashcode() { return 0; }
     const char* database() { return nullptr; }

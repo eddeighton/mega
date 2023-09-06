@@ -52,6 +52,7 @@ set( EXECUTOR_LIB_API
     ${EXECUTOR_API_DIR}/executor.hpp
     ${EXECUTOR_API_DIR}/request.hpp 
     ${EXECUTOR_API_DIR}/scheduler.hpp
+    ${EXECUTOR_API_DIR}/sim_move_manager.hpp 
     ${EXECUTOR_API_DIR}/simulation.hpp
     ${EXECUTOR_API_DIR}/state_machine.hpp 
     )

@@ -74,34 +74,39 @@ void Plugin::requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Ra
     send( MSG_SimClock_Request::make( m_logicalThreadID, MSG_SimClock_Request{ mpo, std::move( range ) } ) );
 }
 
+void Plugin::requestMove( network::LogicalThreadBase* pSender, MPO mpo )
+{
+    using namespace network::sim;
+    THROW_TODO;
+}
+
 void Plugin::send( const network::Message& msg )
 {
     // SPDLOG_TRACE( "Plugin::send" );
-    m_channel.async_send(
-        boost::system::error_code(), msg,
-        [ &msg ]( boost::system::error_code ec )
-        {
-            if( ec )
-            {
-                if( ec.value() == boost::asio::error::eof )
-                {
-                }
-                else if( ec.value() == boost::asio::error::operation_aborted )
-                {
-                }
-                else if( ec.value() == boost::asio::experimental::error::channel_closed )
-                {
-                }
-                else if( ec.value() == boost::asio::experimental::error::channel_cancelled )
-                {
-                }
-                else if( ec.failed() )
-                {
-                    SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
-                    THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
-                }
-            }
-        } );
+    m_channel.async_send( boost::system::error_code(), msg,
+                          [ &msg ]( boost::system::error_code ec )
+                          {
+                              if( ec )
+                              {
+                                  if( ec.value() == boost::asio::error::eof )
+                                  {
+                                  }
+                                  else if( ec.value() == boost::asio::error::operation_aborted )
+                                  {
+                                  }
+                                  else if( ec.value() == boost::asio::experimental::error::channel_closed )
+                                  {
+                                  }
+                                  else if( ec.value() == boost::asio::experimental::error::channel_cancelled )
+                                  {
+                                  }
+                                  else if( ec.failed() )
+                                  {
+                                      SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
+                                      THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
+                                  }
+                              }
+                          } );
 }
 
 void Plugin::runOne()

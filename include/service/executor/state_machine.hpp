@@ -20,13 +20,12 @@
 #ifndef STATE_MACHINE_16_SEPT_2022
 #define STATE_MACHINE_16_SEPT_2022
 
-#include "mega/operation_id.hpp"
+#include "service/executor/sim_move_manager.hpp"
 
-#include "service/network/sender_factory.hpp"
 #include "service/network/log.hpp"
-#include "service/network/logical_thread.hpp"
 
 #include "service/protocol/common/logical_thread_id.hpp"
+#include "service/protocol/common/received_message.hpp"
 #include "service/protocol/model/sim.hxx"
 
 #include <set>
@@ -45,6 +44,7 @@ public:
     enum State
     {
         SIM,
+        MOVE,
         READ,
         WRITE,
         TERM,
@@ -54,17 +54,28 @@ public:
     using MsgVector = std::vector< Msg >;
     using AckVector = MsgVector;
 
+    enum MsgResult
+    {
+        eNothing,
+        eClockTick,
+        eMoveComplete
+    };
+
 private:
+    SimMoveManager&     m_moveManager;
     AckVector           m_acks;
     State               m_state = SIM;
     MsgVector           m_msgQueue;
     IDSet               m_activeReads;
     std::optional< ID > m_activeWrite;
-    network::ClockTick  m_clockTick;
 
 public:
+    inline StateMachine( SimMoveManager& moveManager )
+        : m_moveManager( moveManager )
+    {
+    }
+
     inline State                     getState() const { return m_state; }
-    inline const network::ClockTick& getClockTick() const { return m_clockTick; }
     inline bool                      isTerminating() const { return m_state == TERM; }
     inline bool                      isTerminated() const
     {
@@ -74,12 +85,15 @@ public:
     inline const IDSet&        reads() const { return m_activeReads; }
     inline std::optional< ID > writer() const { return m_activeWrite; }
 
-    using Read    = network::sim::MSG_SimLockRead_Request;
-    using Write   = network::sim::MSG_SimLockWrite_Request;
-    using Release = network::sim::MSG_SimLockRelease_Request;
-    using Destroy = network::sim::MSG_SimDestroy_Request;
-    using Block   = network::sim::MSG_SimDestroyBlocking_Request;
-    using Clock   = network::sim::MSG_SimClock_Response;
+    using Read         = network::sim::MSG_SimLockRead_Request;
+    using Write        = network::sim::MSG_SimLockWrite_Request;
+    using Release      = network::sim::MSG_SimLockRelease_Request;
+    using Destroy      = network::sim::MSG_SimDestroy_Request;
+    using Block        = network::sim::MSG_SimDestroyBlocking_Request;
+    using Clock        = network::sim::MSG_SimClock_Response;
+    using MoveComplete = SimMoveManager::MoveComplete;
+    using MoveRequest  = SimMoveManager::MoveRequest;
+    using MoveResponse = SimMoveManager::MoveResponse;
 
     static inline network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
 
@@ -101,26 +115,65 @@ private:
                 THROW_RTE( "Unreachable" );
         }
     }
-    static inline const network::ClockTick& getClockTick( const Msg& msg )
+
+    inline MsgResult onMove()
     {
-        switch( getMsgID( msg ) )
+        MsgResult msgResult = eNothing;
+        m_state             = MOVE;
+
+        MsgVector moves;
         {
-            case Clock::ID:
+            MsgVector other;
+            for( const Msg& msg : m_msgQueue )
             {
-                return Clock::get( msg.msg ).clockTick;
+                switch( getMsgID( msg ) )
+                {
+                    case MoveRequest::ID:
+                    case MoveResponse::ID:
+                    case MoveComplete::ID:
+                        moves.push_back( msg );
+                        break;
+                    default:
+                        other.push_back( msg );
+                        break;
+                }
+            }
+            m_msgQueue = std::move( other );
+        }
+
+        // even if NO messages must call since may be NO moves
+        switch( m_moveManager.onMsg( moves ) )
+        {
+            case SimMoveManager::MsgResult::eNothing:
+            {
+                // Do nothing...
+            }
+            break;
+            case SimMoveManager::MsgResult::eMoveRequestsComplete:
+            {
+                msgResult = eMoveComplete;
+            }
+            break;
+            case SimMoveManager::MsgResult::eProcessMoveComplete:
+            {
+                return onWait();
             }
             break;
             default:
-                THROW_RTE( "Unreachable" );
+            {
+                THROW_RTE( "Unknown SimMoveManager msg result type" );
+            }
         }
+
+        return msgResult;
     }
 
-    inline bool onWait()
+    inline MsgResult onWait()
     {
         using namespace mega::network;
 
-        bool bClockTicked = false;
-        m_state           = WAIT;
+        MsgResult msgResult = eNothing;
+        m_state             = WAIT;
         MsgVector reads;
         MsgVector other;
         for( const Msg& msg : m_msgQueue )
@@ -182,9 +235,8 @@ private:
                     {
                         if( m_state == WAIT )
                         {
-                            m_clockTick  = getClockTick( msg );
-                            m_state      = SIM;
-                            bClockTicked = true;
+                            m_state     = SIM;
+                            msgResult   = eClockTick;
                         }
                         else if( m_state != SIM )
                         {
@@ -196,22 +248,20 @@ private:
                         }
                     }
                     break;
-                    case Block::ID:
-                    case Destroy::ID:
-                        THROW_RTE( "Unreachable" );
                     default:
+                        SPDLOG_ERROR( "SIM: onWait Invalid message: {}", msg.msg );
                         THROW_RTE( "Unreachable" );
                 }
             }
         }
-        return bClockTicked;
+        return msgResult;
     }
 
-    inline bool onRead()
+    inline MsgResult onRead()
     {
         using namespace mega::network;
 
-        bool bClockTicked = false;
+        MsgResult msgResult = eNothing;
 
         // first process ALL release locks and determine if remaining read locks active
         MsgVector other;
@@ -309,9 +359,8 @@ private:
                 case Clock::ID:
                     if( m_activeReads.empty() && m_state == READ )
                     {
-                        m_clockTick  = getClockTick( msg );
-                        m_state      = SIM;
-                        bClockTicked = true;
+                        m_state     = SIM;
+                        msgResult   = eClockTick;
                     }
                     else
                     {
@@ -326,14 +375,14 @@ private:
                     break;
             }
         }
-        return bClockTicked;
+        return msgResult;
     }
 
-    inline bool onWrite()
+    inline MsgResult onWrite()
     {
         using namespace mega::network;
 
-        bool bClockTicked = false;
+        MsgResult msgResult = eNothing;
 
         // filter duplicate writes
         MsgVector other;
@@ -439,9 +488,8 @@ private:
                 case Clock::ID:
                     if( !m_activeWrite.has_value() )
                     {
-                        m_clockTick  = getClockTick( msg );
-                        m_state      = SIM;
-                        bClockTicked = true;
+                        m_state     = SIM;
+                        msgResult   = eClockTick;
                     }
                     else
                     {
@@ -456,14 +504,14 @@ private:
                     break;
             }
         }
-        return bClockTicked;
+        return msgResult;
     }
 
-    inline bool onTerm()
+    inline MsgResult onTerm()
     {
         using namespace mega::network;
 
-        bool bClockTicked = false;
+        MsgResult msgResult = eNothing;
 
         // stay in the WRITE state until clock tick
         for( const Msg& msg : m_msgQueue )
@@ -504,8 +552,7 @@ private:
                 break;
                 case Clock::ID:
                 {
-                    m_clockTick  = getClockTick( msg );
-                    bClockTicked = true;
+                    msgResult   = eClockTick;
                 }
                 break;
                 case Block::ID:
@@ -520,15 +567,20 @@ private:
             }
         }
         m_msgQueue.clear();
-        return bClockTicked;
+        return msgResult;
     }
 
     // actual modifying interface
 public:
     inline void resetAcks() { m_acks.clear(); }
 
+    inline void onCycle()
+    {
+        m_state = MOVE;
+    }
+
     // returns true if clock ticked
-    inline bool onMsg( const MsgVector& msgs )
+    inline MsgResult onMsg( const MsgVector& msgs )
     {
         using namespace mega::network;
 
@@ -549,6 +601,10 @@ public:
         switch( m_state )
         {
             case SIM:
+                THROW_RTE( "Invalid state when receive message - in SIM state" );
+                break;
+            case MOVE:
+                return onMove();
             case WAIT:
                 return onWait();
             case READ:
