@@ -22,7 +22,7 @@
 #define GUARD_2023_September_01_mpo_visitor
 
 #include "mega/iterator.hpp"
-#include "mega/logical_tree.hpp"
+#include "mega/logical_reference.hpp"
 #include "mega/reference.hpp"
 #include "mega/any.hpp"
 
@@ -33,15 +33,15 @@
 namespace mega
 {
 
-struct MPORealInstantiation
+struct MPORealToLogicalVisitor
 {
     mega::reference m_root;
 
-    MPORealInstantiation( const mega::reference& root )
+    MPORealToLogicalVisitor( const mega::reference& root )
         : m_root( root )
     {
     }
-    MPORealInstantiation( const MPO& mpo )
+    MPORealToLogicalVisitor( const MPO& mpo )
         : m_root( mega::reference::make_root( mpo ) )
     {
     }
@@ -100,6 +100,55 @@ struct MPORealInstantiation
         return readAny( fromLogical( logicalRef ) );
     }
 };
+
+struct MPORealVisitor
+{
+    mega::reference m_root;
+
+    MPORealVisitor( const mega::reference& root )
+        : m_root( root )
+    {
+    }
+    MPORealVisitor( const MPO& mpo )
+        : m_root( mega::reference::make_root( mpo ) )
+    {
+    }
+
+    reference start() { return m_root; }
+
+    U64 linkSize( const reference& ref, bool bOwning, bool bOwned )
+    {
+        if( !bOwning )
+            return 0U;
+
+        static thread_local mega::runtime::program::LinkSize linkSizeFPtr;
+        return linkSizeFPtr( ref );
+    }
+
+    reference linkObject( const reference& ref, U64 index )
+    {
+        static thread_local mega::runtime::program::LinkObject linkObjectFptr;
+        return linkObjectFptr( ref, index );
+    }
+
+    Any read( const reference& ref )
+    {
+        static thread_local mega::runtime::program::ReadAny readAny;
+        return readAny( ref );
+    }
+};
+
+template < typename Traversal >
+inline void traverse( Traversal& traversal )
+{
+    static thread_local mega::runtime::program::Traverse programTraverse;
+
+    Iterator iterator( [ &progTraverse = programTraverse ]( void* pIter ) { progTraverse( pIter ); }, traversal );
+    while( iterator )
+    {
+        ++iterator;
+    }
+}
 
 } // namespace mega
 

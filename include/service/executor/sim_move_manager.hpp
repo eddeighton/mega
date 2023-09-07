@@ -21,7 +21,12 @@
 #ifndef GUARD_2023_September_05_sim_move_manager
 #define GUARD_2023_September_05_sim_move_manager
 
+#include "service/mpo_visitor.hpp"
 #include "service/protocol/common/received_message.hpp"
+#include "service/protocol/common/transaction.hpp"
+
+#include "mega/reference_tree.hpp"
+#include "mega/tree_visitor.hpp"
 
 #include <vector>
 #include <set>
@@ -30,8 +35,15 @@
 namespace mega::service
 {
 
+struct MoveVisitor : public TreeVisitor< reference >
+{
+
+};
+
 class SimMoveManager
 {
+    network::TransactionProducer::MovedObjects& m_movedObjects;
+
     using Msg       = network::ReceivedMessage;
     using MsgVector = std::vector< Msg >;
     using AckVector = MsgVector;
@@ -60,18 +72,28 @@ public:
     using MoveRequest  = network::sim::MSG_SimMove_Request;
     using MoveResponse = network::sim::MSG_SimMove_Response;
 
+    SimMoveManager( network::TransactionProducer::MovedObjects& movedObjects )
+        :   m_movedObjects( movedObjects )
+    {
+
+    }
+
     inline bool sendMoveRequests()
     {
         m_bSendingOwnMoveRequests = false;
-        return false;
-    }
 
-    enum MsgResult
-    {
-        eNothing,
-        eMoveRequestsComplete,
-        eProcessMoveComplete
-    };
+        for( const auto& [ from, to ] : m_movedObjects )
+        {
+            MPORealVisitor reader( from );
+            MoveVisitor writer;
+            ReferenceTreeTraversal< MPORealVisitor, MoveVisitor > traversal( reader, writer );
+            traverse( traversal );
+        }
+
+        m_movedObjects.clear();
+
+        return m_bSendingOwnMoveRequests;
+    }
 
     inline void onMoveRequest( const MoveRequest& msg )
     {
@@ -81,6 +103,13 @@ public:
     {
         //
     }
+
+    enum MsgResult
+    {
+        eNothing,
+        eMoveRequestsComplete,
+        eProcessMoveComplete
+    };
 
     inline MsgResult onMsg( const MsgVector& moveMsgs )
     {

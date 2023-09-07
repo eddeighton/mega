@@ -169,6 +169,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/reference_io.hpp
     ${MEGA_API_DIR}/mega/reference_limits.hpp
     ${MEGA_API_DIR}/mega/reference.hpp
+    ${MEGA_API_DIR}/mega/reference_tree.hpp
     ${MEGA_API_DIR}/mega/relation_id.hpp
     ${MEGA_API_DIR}/mega/relation_io.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
@@ -177,6 +178,8 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/snapshot.hpp
     ${MEGA_API_DIR}/mega/tag_parser.hpp
+    ${MEGA_API_DIR}/mega/tree_traversal.hpp
+    ${MEGA_API_DIR}/mega/tree_visitor.hpp
     ${MEGA_API_DIR}/mega/type_id_io.hpp
     ${MEGA_API_DIR}/mega/type_id_limits.hpp
     ${MEGA_API_DIR}/mega/type_id.hpp

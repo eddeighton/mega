@@ -32,18 +32,23 @@ struct LogicalObject
     U64    id;
     TypeID type;
 
+    inline TypeID getType() const { return type; }
+
     struct Hash
     {
         inline U64 operator()( const LogicalObject& ref ) const noexcept { return ref.id + ref.type.getSymbolID(); }
     };
 
     inline bool operator==( const LogicalObject& cmp ) const { return ( id == cmp.id ) && ( type == cmp.type ); }
+
 };
 
 struct LogicalReference
 {
     U64          id;
     TypeInstance typeInstance;
+
+    inline TypeInstance getTypeInstance() const { return typeInstance; }
 
     struct Hash
     {
@@ -69,6 +74,6 @@ struct LogicalReference
     }
 };
 
-}
+} // namespace mega
 
-#endif //GUARD_2023_September_02_logical_reference
+#endif // GUARD_2023_September_02_logical_reference

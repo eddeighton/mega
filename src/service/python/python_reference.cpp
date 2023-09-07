@@ -142,8 +142,7 @@ PyObject* type_dump( PyObject* self )
 }
 
 static PyMethodDef type_methods[] = {
-    { "dump", (PyCFunction)type_dump, METH_VARARGS, "Dump object data" },
-    { nullptr } /* Sentinel */
+    { "dump", ( PyCFunction )type_dump, METH_VARARGS, "Dump object data" }, { nullptr } /* Sentinel */
 };
 } // namespace
 
@@ -192,7 +191,7 @@ PythonReference::Registration::Registration( const SymbolTable& symbols )
         // successfully generated the dynamic type...
         // PyModule_AddObject( pPythonModule, "Host", (PyObject*)&m_type );
         g_pTypeObject_Hack = m_pTypeObject;
-        //SPDLOG_INFO( "Successfully registered Python Reference Type" );
+        // SPDLOG_INFO( "Successfully registered Python Reference Type" );
     }
 }
 
@@ -276,16 +275,10 @@ PyObject* PythonReference::dump() const
     m_module.invoke(
         [ &m_reference = m_reference, &os ]()
         {
-            static thread_local mega::runtime::program::Traverse programTraverse;
-            MPORealInstantiation mpoRealInstantiation( m_reference );
-            LogicalTreePrinter   printer( os );
-            LogicalTreeTraversal objectTraversal( mpoRealInstantiation, printer );
-            Iterator iterator(
-                [ &progTraverse = programTraverse ]( void* pIter ) { progTraverse( pIter ); }, objectTraversal );
-            while( iterator )
-            {
-                ++iterator;
-            }
+            MPORealToLogicalVisitor mpoRealInstantiation( m_reference );
+            LogicalTreePrinter      printer( os );
+            LogicalTreeTraversal    objectTraversal( mpoRealInstantiation, printer );
+            traverse( objectTraversal );
         } );
 
     return Py_BuildValue( "s", os.str().c_str() );

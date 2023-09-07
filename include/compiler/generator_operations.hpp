@@ -231,7 +231,7 @@ private:
                 { "types", types },
                 { "params_string", osArgs.str() },
                 { "params", nlohmann::json::array() },
-                { "requires_extern", false }
+                { "requires_extern", true }
 
             } );
             {

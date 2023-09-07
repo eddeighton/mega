@@ -18,25 +18,57 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_September_02_logical_tree
-#define GUARD_2023_September_02_logical_tree
+#ifndef GUARD_2023_September_07_tree_visitor
+#define GUARD_2023_September_07_tree_visitor
 
-#include "mega/logical_reference.hpp"
-#include "mega/tree_traversal.hpp"
+#include "mega/any.hpp"
 
 namespace mega
 {
 
-struct LogicalReferenceTraits
+template< typename ReferenceType >
+struct TreeVisitor
 {
-    using Reference = LogicalReference;
-    using Object    = LogicalObject;
+    using Reference = ReferenceType;
+
+    void on_object_start( const Reference& ref )
+    {
+    }
+    void on_object_end( const Reference& ref )
+    {
+    }
+    void on_action_start( const Reference& ref )
+    {
+    }
+    void on_action_end( const Reference& ref )
+    {
+    }
+    void on_event_start( const Reference& ref )
+    {
+    }
+    void on_event_end( const Reference& ref )
+    {
+    }
+    void on_link_start( const Reference& ref, bool bOwning, bool bOwned )
+    {
+    }
+    void on_link_end( const Reference& ref, bool bOwning, bool bOwned )
+    {
+    }
+    void on_interupt( const Reference& ref )
+    {
+    }
+    void on_function( const Reference& ref )
+    {
+    }
+    void on_namespace( const Reference& ref )
+    {
+    }
+    void on_dimension( const Reference& ref, const mega::Any& value )
+    {
+    }
 };
 
-template < typename Instantiation, typename Visitor >
-using LogicalTreeTraversal = TreeTraversal< LogicalReferenceTraits, Instantiation, Visitor >;
+}
 
-
-} // namespace mega
-
-#endif // GUARD_2023_September_02_logical_tree
+#endif //GUARD_2023_September_07_tree_visitor

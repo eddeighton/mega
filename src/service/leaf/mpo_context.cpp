@@ -300,8 +300,9 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
                     break;
                 case log::Structure::eMove:
                 {
-                    m_movedObjects.insert( { structure.m_data.m_Target.getMPO(),
-                                             { structure.m_data.m_Source, structure.m_data.m_Target } } );
+                    THROW_TODO;
+                    //m_movedObjects.insert( { structure.m_data.m_Target.getMPO(),
+                    //                         { structure.m_data.m_Source, structure.m_data.m_Target } } );
                 }
                 break;
                 default:

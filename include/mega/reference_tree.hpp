@@ -18,18 +18,24 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef GUARD_2023_September_02_logical_value_io
-#define GUARD_2023_September_02_logical_value_io
+#ifndef GUARD_2023_September_07_reference_tree
+#define GUARD_2023_September_07_reference_tree
 
-#include "mega/logical_value.hpp"
-
-#include <ostream>
+#include "mega/reference.hpp"
+#include "mega/tree_traversal.hpp"
 
 namespace mega
 {
 
-}
+struct ReferenceTraits
+{
+    using Reference = reference;
+    using Object    = reference;
+};
 
-std::ostream& operator<<( std::ostream& os, const mega::LogicalValue& value );
+template < typename Instantiation, typename Visitor >
+using ReferenceTreeTraversal = TreeTraversal< ReferenceTraits, Instantiation, Visitor >;
 
-#endif //GUARD_2023_September_02_logical_value_io
+} // namespace mega
+
+#endif // GUARD_2023_September_07_reference_tree

@@ -85,7 +85,8 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
             break;
             case log::Structure::eMove:
             {
-                transactions[ r.getSource().getMPO() ].push_back( r );
+                // transactions[ r.getSource().getMPO() ].push_back( r );
+
                 // prevent locally deleting the object
                 unparented.erase( r.getSource().getObjectAddress() );
                 movedObjects.insert( { r.getTarget().getMPO(), { r.getSource(), r.getTarget() } } );

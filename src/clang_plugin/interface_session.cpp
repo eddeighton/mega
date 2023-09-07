@@ -154,19 +154,32 @@ public:
             if( dimensionResult.pDeclContext )
             {
                 // determine the type
-                std::string                           strCanonicalType;
-                std::vector< Symbols::SymbolTypeID* > symbols;
-                MegaMangle::Mangle*                   pMangle = nullptr;
+                std::string strCanonicalType;
                 {
                     QualType typeType
                         = getTypeTrait( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Type" );
-
                     strCanonicalType = getCanonicalTypeStr( typeType.getCanonicalType() );
+                }
 
-                    auto iFind = m_mangleMap.find( strCanonicalType );
+                // determine the erased type
+                std::string strErasedType;
+                {
+                    QualType typeType = getTypeTrait(
+                        pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Erased" );
+                    strErasedType = getCanonicalTypeStr( typeType.getCanonicalType() );
+                }
+                if( strErasedType.empty() )
+                {
+                    THROW_RTE( "Failed to determine erased type" );
+                }
+
+                std::vector< Symbols::SymbolTypeID* > symbols;
+                MegaMangle::Mangle*                   pMangle = nullptr;
+                {
+                    auto iFind = m_mangleMap.find( strErasedType );
                     VERIFY_RTE_MSG( iFind != m_mangleMap.end(),
-                                    "Failed to locate mangle for canonical type: "
-                                        << strCanonicalType
+                                    "Failed to locate mangle for erassed type: "
+                                        << strErasedType
                                         << " for dimension: " << pDimensionTrait->get_interface_id() );
                     pMangle = iFind->second;
 
@@ -220,21 +233,10 @@ public:
                         }
                     }*/
                 }
+
                 if( strCanonicalType.empty() && symbols.empty() )
                 {
                     THROW_RTE( "Failed to determine dimension type" );
-                }
-
-                // determine the erased type
-                std::string strErasedType;
-                {
-                    QualType typeType = getTypeTrait(
-                        pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Erased" );
-                    strErasedType = getCanonicalTypeStr( typeType.getCanonicalType() );
-                }
-                if( strErasedType.empty() )
-                {
-                    THROW_RTE( "Failed to determine erased type" );
                 }
 
                 // determine the size

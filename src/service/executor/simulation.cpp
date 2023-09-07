@@ -51,7 +51,7 @@ Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logi
     : ExecutorRequestLogicalThread( executor, logicalthreadID )
     , MPOContext( getID() )
     , m_processClock( processClock )
-    , m_simMoveManager()
+    , m_simMoveManager( m_movedObjects )
     , m_stateMachine( m_simMoveManager )
 {
     m_bEnableQueueing = true;
