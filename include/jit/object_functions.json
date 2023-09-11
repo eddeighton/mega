@@ -21,6 +21,10 @@
                 {
                     "name": "Buffer",
                     "type": "void*"
+                },
+                {
+                    "name": "LinkReset",
+                    "type": "bool"
                 }
             ],
             "return_type": "void",

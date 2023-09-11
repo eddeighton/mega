@@ -20,6 +20,7 @@
 #include "request.hpp"
 
 #include "service/network/log.hpp"
+#include "service/remote_memory_manager.hpp"
 
 namespace mega::service
 {

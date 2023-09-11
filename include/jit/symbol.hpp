@@ -46,6 +46,7 @@ namespace mega::runtime
             Ref,                // "N4mega9referenceE"
             Ref_Ref,            // "N4mega9referenceES0_"
             Ref_VStar,          // "N4mega9referenceEPv"
+            Ref_VStar_Bool,     // "N4mega9referenceEPv"
             Ref_CVStar,         // "N4mega9referenceEPKv"
             Ref_Wo_RefCR,       // "N4mega9referenceE14WriteOperationRKS0_"
             Ref_Wo_CVStar,      // "N4mega9referenceE14WriteOperationRKS0_"

@@ -20,8 +20,6 @@
 #ifndef LEAF_16_JUNE_2022
 #define LEAF_16_JUNE_2022
 
-#include "service/remote_memory_manager.hpp"
-
 #include "service/network/client.hpp"
 #include "service/network/logical_thread_manager.hpp"
 #include "service/network/sender_factory.hpp"
@@ -38,6 +36,10 @@
 #include <vector>
 #include <thread>
 
+namespace mega::runtime
+{
+    class RemoteMemoryManager;
+}
 namespace mega::service
 {
 

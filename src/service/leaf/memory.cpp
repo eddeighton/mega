@@ -25,6 +25,7 @@
 
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"
+#include "service/remote_memory_manager.hpp"
 
 #include "mega/bin_archive.hpp"
 

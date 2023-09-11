@@ -205,8 +205,8 @@ public:
         // get the object header
         auto pHeader = reinterpret_cast< ObjectHeader* >( get( heapEntry.mapped() ) );
 
-        // invoke the destructor
-        pHeader->m_pAllocator->getDtor()( ref.getObjectAddress(), pHeader );
+        // invoke the destructor with bLinkReset == true
+        pHeader->m_pAllocator->getDtor()( ref.getObjectAddress(), pHeader, true );
 
         m_oldHeap.emplace_back( std::move( heapEntry.mapped() ) );
     }

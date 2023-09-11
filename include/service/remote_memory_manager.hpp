@@ -45,13 +45,13 @@ public:
     using GetAllocatorFPtr = std::function< Allocator::Ptr( TypeID, runtime::CodeGenerator::LLVMCompiler& ) >;
 
     template < typename TFunctor >
-    RemoteMemoryManager( MP mp, TFunctor&& getAllocatorFunction )
+    inline RemoteMemoryManager( MP mp, TFunctor&& getAllocatorFunction )
         : m_mp( mp )
         , m_getAllocatorFPtr( std::move( getAllocatorFunction ) )
     {
     }
 
-    network::MemoryStatus getStatus() const
+    inline network::MemoryStatus getStatus() const
     {
         network::MemoryStatus status;
         status.m_heap   = m_usedHeapMemory;
@@ -59,26 +59,51 @@ public:
         return status;
     }
 
-    void MPODestroyed( const MPO& mpo )
+    inline void MPODestroyed( const MPO& mpo )
     {
-        std::vector< reference > heapAddresses;
+        std::vector< HeapMap::iterator > mpoObjects;
+        std::vector< reference >         netAddresses;
         {
             for( auto i = m_heapMap.begin(), iEnd = m_heapMap.end(); i != iEnd; ++i )
             {
                 if( i->first.getMPO() == mpo )
                 {
-                    heapAddresses.push_back( i->first );
+                    mpoObjects.push_back( i );
+                    netAddresses.push_back( i->first.getHeaderAddress() );
                 }
             }
         }
-        for( const reference& ref : heapAddresses )
+
+        // call destructors first
+        for( auto i : mpoObjects )
         {
-            m_heapMap.erase( ref );
-            m_netMap.erase( ref.getHeaderAddress() );
+            // get the object header
+            auto pHeader = reinterpret_cast< ObjectHeader* >( i->second.get() );
+
+            // invoke the destructor avoiding LinkReset
+            pHeader->m_pAllocator->getDtor()( i->first.getObjectAddress(), pHeader, false );
+        }
+
+        // now actually delete
+        for( auto i : mpoObjects )
+        {
+            // get the object header
+            auto pHeader = reinterpret_cast< ObjectHeader* >( i->second.get() );
+
+            // delete the object header
+            pHeader->~ObjectHeader();
+
+            // remove the heap address entry
+            m_heapMap.erase( i );
+        }
+
+        for( const auto& net : netAddresses )
+        {
+            m_netMap.erase( net );
         }
     }
 
-    bool tryNetworkToHeap( reference& networkAddress ) const
+    inline bool tryNetworkToHeap( reference& networkAddress ) const
     {
         auto iFind = m_netMap.find( networkAddress.getObjectAddress() );
         if( iFind != m_netMap.end() )
@@ -89,7 +114,7 @@ public:
         return false;
     }
 
-    reference networkToHeap( const reference& networkAddress, runtime::CodeGenerator::LLVMCompiler& llvmCompiler )
+    inline reference networkToHeap( const reference& networkAddress, runtime::CodeGenerator::LLVMCompiler& llvmCompiler )
     {
         reference objectAddress = networkAddress.getObjectAddress();
         if( tryNetworkToHeap( objectAddress ) )
@@ -112,45 +137,14 @@ public:
         // invoke the constructor
         pAllocator->getCtor()( pHeapBuffer.get() );
 
-        const reference objectHeapAddress
-            = reference{ objectAddress.getTypeInstance(), pHeapBuffer.get() };
+        const reference objectHeapAddress = reference{ objectAddress.getTypeInstance(), pHeapBuffer.get() };
 
         m_heapMap.insert( { objectHeapAddress, std::move( pHeapBuffer ) } );
         m_netMap.insert( { objectAddress, objectHeapAddress } );
 
         return reference::make( objectHeapAddress, networkAddress.getTypeInstance() );
     }
-/*
-    void Delete( reference& ref )
-    {
-        auto iFind = m_heapMap.find( ref.getObjectAddress() );
 
-        using ::operator<<;
-        VERIFY_RTE_MSG( iFind != m_heapMap.end(), "Failed to locate reference heap buffer: " << ref );
-
-        // remove the network address entry
-        {
-            auto iFind2 = m_netMap.find( ref.getHeaderAddress() );
-            VERIFY_RTE_MSG( iFind2 != m_netMap.end(), "Failed to locate network address entry for reference: " << ref );
-            m_netMap.erase( iFind2 );
-        }
-
-        // get the object header
-        auto pHeader = reinterpret_cast< ObjectHeader* >( iFind->second.get() );
-
-        // invoke the destructor
-        pHeader->m_pAllocator->getDtor()( ref.getObjectAddress(), pHeader );
-
-        // delete the object header
-        pHeader->~ObjectHeader();
-
-        // remove the heap address entry
-        m_heapMap.erase( iFind );
-
-        // null out the reference
-        ref = reference{};
-    }
-*/
 private:
     U64              m_usedHeapMemory = 0U;
     MP               m_mp;

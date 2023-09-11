@@ -108,7 +108,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
     try
     {
         VERIFY_RTE( m_mpo.has_value() );
-        //SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
+        // SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
         m_processClock.registerMPO( network::SenderRef{ m_mpo.value(), this, {} } );
 
@@ -133,7 +133,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 {
                     if( m_stateMachine.getMsgID( msg ) == StateMachine::Block::ID )
                     {
-                        //SPDLOG_TRACE( "SIM: runSimulation Blocking Destroy msg" );
+                        SPDLOG_TRACE( "SIM: runSimulation Blocking Destroy msg" );
                         m_blockDestroyMsgOpt = msg;
                     }
                     else
@@ -158,29 +158,29 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     // NOTE: may be simCreate request - ensure transition OUT of SIM state
                     m_stateMachine.onCycle();
 
-                    //SPDLOG_TRACE( "SIM: Cycle {} {}", getID(), m_mpo.value() );
+                    // SPDLOG_TRACE( "SIM: Cycle {} {}", getID(), m_mpo.value() );
 
                     if( !m_simMoveManager.sendMoveRequests() )
                     {
                         // no move requests so immediately send moveComplete
-                        //SPDLOG_TRACE( "SIM: move request {}", m_mpo.value() );
+                        // SPDLOG_TRACE( "SIM: move request {}", m_mpo.value() );
                         m_processClock.requestMove( this, m_mpo.value() );
                     }
                 }
                 break;
                 case StateMachine::MOVE:
                 {
-                    //SPDLOG_TRACE( "SIM: MOVE {} {}", getID(), m_mpo.value() );
+                    // SPDLOG_TRACE( "SIM: MOVE {} {}", getID(), m_mpo.value() );
                 }
                 break;
                 case StateMachine::READ:
                 {
-                    //SPDLOG_TRACE( "SIM: READ {} {}", getID(), m_mpo.value() );
+                    // SPDLOG_TRACE( "SIM: READ {} {}", getID(), m_mpo.value() );
                 }
                 break;
                 case StateMachine::WRITE:
                 {
-                    //SPDLOG_TRACE( "SIM: WRITE {} {}", getID(), m_mpo.value() );
+                    // SPDLOG_TRACE( "SIM: WRITE {} {}", getID(), m_mpo.value() );
                 }
                 break;
                 case StateMachine::TERM:
@@ -191,7 +191,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 break;
                 case StateMachine::WAIT:
                 {
-                    //SPDLOG_TRACE( "SIM: WAIT {} {}", getID(), m_mpo.value() );
+                    // SPDLOG_TRACE( "SIM: WAIT {} {}", getID(), m_mpo.value() );
                 }
                 break;
             }
@@ -202,7 +202,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 ASSERT( m_queueStack == 0 );
                 unqueue();
                 const network::ReceivedMessage msg = receiveDeferred( yield_ctx );
-                //SPDLOG_TRACE( "SIM: MSG {} {}", msg.msg, m_mpo.value() );
+                // SPDLOG_TRACE( "SIM: MSG {} {}", msg.msg, m_mpo.value() );
                 switch( StateMachine::getMsgID( msg ) )
                 {
                     case StateMachine::Read::ID:
@@ -224,14 +224,14 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                             break;
                             case StateMachine::eClockTick:
                             {
-                                //SPDLOG_TRACE( "SIM: clock request {}", m_mpo.value() );
+                                // SPDLOG_TRACE( "SIM: clock request {}", m_mpo.value() );
                                 m_processClock.requestClock( this, m_mpo.value(), getLog().getRange( lastCycle ) );
                                 lastCycle = getLog().getTimeStamp();
                             }
                             break;
                             case StateMachine::eMoveComplete:
                             {
-                                //SPDLOG_TRACE( "SIM: move request {}", m_mpo.value() );
+                                // SPDLOG_TRACE( "SIM: move request {}", m_mpo.value() );
                                 m_processClock.requestMove( this, m_mpo.value() );
                             }
                             break;
@@ -274,14 +274,14 @@ void Simulation::unqueue()
         // can test if RootSimRun has run by checking the m_mpo is set
         if( m_mpo.has_value() )
         {
-            //SPDLOG_TRACE( "SIM::unqueue: {}", m_simCreateMsgOpt.value().msg );
+            // SPDLOG_TRACE( "SIM::unqueue: {}", m_simCreateMsgOpt.value().msg );
             m_unqueuedMessages.push_back( m_simCreateMsgOpt.value() );
             m_simCreateMsgOpt.reset();
         }
     }
     else if( !m_messageQueue.empty() )
     {
-        //SPDLOG_TRACE( "SIM::unqueue" );
+        // SPDLOG_TRACE( "SIM::unqueue" );
         VERIFY_RTE( m_unqueuedMessages.empty() );
         m_unqueuedMessages.swap( m_messageQueue );
         std::reverse( m_unqueuedMessages.begin(), m_unqueuedMessages.end() );
@@ -325,7 +325,7 @@ bool Simulation::queue( const network::ReceivedMessage& msg )
                 // if processing a request then postpone state machine messages
                 if( m_queueStack != 0 )
                 {
-                    //SPDLOG_TRACE( "SIM::queue {}", msg.msg );
+                    // SPDLOG_TRACE( "SIM::queue {}", msg.msg );
                     m_messageQueue.push_back( msg );
                     return true;
                 }
@@ -340,7 +340,7 @@ bool Simulation::queue( const network::ReceivedMessage& msg )
                 // queue SimCreate if RootSimRun has not run yet
                 if( !m_mpo.has_value() )
                 {
-                    //SPDLOG_TRACE( "SIM::queue: {}", msg.msg );
+                    // SPDLOG_TRACE( "SIM::queue: {}", msg.msg );
                     VERIFY_RTE( !m_simCreateMsgOpt.has_value() );
                     m_simCreateMsgOpt = msg;
                     return true;
@@ -380,6 +380,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
 
     if( m_blockDestroyMsgOpt.has_value() )
     {
+        SPDLOG_TRACE( "SIM::run acknowledging blocking destroy" );
         // acknowledge block destroy
         acknowledgeInboundRequest( m_blockDestroyMsgOpt.value(), yield_ctx );
     }
@@ -454,7 +455,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
     SPDLOG_TRACE( "SIM::SimLockRelease: {} {}", requestingMPO, targetMPO );
     if( !m_stateMachine.isTerminating() )
     {
-        // NOTE: how SimLockRelease is acknoledged when the simulation routine goes
+        // NOTE: how SimLockRelease is acknowledged when the simulation routine goes
         // through its simulation requests - INCLUDING the clock response
         // need to avoid the timer generating a clock response WHILE process other request
         // since this could interupt expected responses

@@ -53,6 +53,7 @@ namespace mega::runtime
                 case Symbol::Ref            : return "@@YAXVreference@mega@@@Z";
                 case Symbol::Ref_Ref        : return "@@YAXVreference@mega@@0@Z";
                 case Symbol::Ref_VStar      : return "@@YAXVreference@mega@@PEAX@Z";
+                case Symbol::Ref_VStar_Bool : THROW_TODO;
                 case Symbol::Ref_CVStar     : return "@@YAXVreference@mega@@PEBX@Z";
                 case Symbol::Ref_Wo_RefCR   : return "@@YAXVreference@mega@@W4WriteOperation@@AEBV12@@Z";
                 case Symbol::Ref_Wo_CVStar  : return "@@YAXVreference@mega@@W4WriteOperation@@PEBX@Z";
@@ -83,6 +84,7 @@ namespace mega::runtime
                 case Symbol::Ref            : return "N4mega9referenceE";
                 case Symbol::Ref_Ref        : return "N4mega9referenceES0_";
                 case Symbol::Ref_VStar      : return "N4mega9referenceEPv";
+                case Symbol::Ref_VStar_Bool : return "N4mega9referenceEPvb";
                 case Symbol::Ref_CVStar     : return "N4mega9referenceEPKv";
                 case Symbol::Ref_Wo_RefCR   : return "N4mega9referenceE14WriteOperationRKS0_";
                 case Symbol::Ref_Wo_CVStar  : return "N4mega9referenceE14WriteOperationRKS0_";

@@ -30,6 +30,8 @@
 
 #include "service/protocol/common/logical_thread_id.hpp"
 
+#include "service/remote_memory_manager.hpp"
+
 #include "common/requireSemicolon.hpp"
 
 #include <boost/system/detail/error_code.hpp>
