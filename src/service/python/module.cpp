@@ -67,7 +67,7 @@ public:
      * function signatures and declares a local variable
      * 'value' of type inty
      */
-    PYBIND11_TYPE_CASTER( mega::reference, const_name( "reference" ) );
+    PYBIND11_TYPE_CASTER( mega::reference, const_name( "megastructure.reference" ) );
 
     /**
      * Conversion part 1 (Python->C++): convert a PyObject into a inty

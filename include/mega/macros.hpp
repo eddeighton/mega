@@ -20,6 +20,7 @@
 #ifndef EG_MACROS_2_NOV_2022
 #define EG_MACROS_2_NOV_2022
 
+#include "service/protocol/common/context.hpp"
 #include "log/file_log.hpp"
 
 #include <sstream>
@@ -33,6 +34,6 @@
 #define LOG( __level, __msg )                                                               \
     EG_DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                     \
         std::ostringstream _os_msg; _os_msg << __FILE__ << ":" << __LINE__ << " " << __msg; \
-        mega::Context::get()->getLog().log( mega::log::LogMsg( mega::log::LogMsg::e##__level, _os_msg.str() ) ); )
+        mega::Context::get()->getLog().record( mega::log::Log::Write( mega::log::Log::e##__level, _os_msg.str() ) ); )
 
 #endif // EG_MACROS_2_NOV_2022
