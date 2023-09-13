@@ -121,92 +121,81 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         // create the scheduler on the stack!
         Scheduler scheduler( getLog() );
 
-        bool                    bRegistedAsTerminating = false;
-        TimeStamp               cycle                  = getLog().getTimeStamp();
-        TimeStamp               lastCycle              = cycle;
+        TimeStamp cycle     = getLog().getTimeStamp();
+        TimeStamp lastCycle = cycle;
 
         while( !m_stateMachine.isTerminated() )
         {
-            if( m_stateMachine.isTerminating() && !bRegistedAsTerminating )
+            ASSERT( m_queueStack == 0 );
+            unqueue();
+            const network::ReceivedMessage msg = receiveDeferred( yield_ctx );
+
+            const auto result = m_stateMachine.onMessage( msg );
+
+            // acknowledge simulation requests
             {
-                Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( shared_from_this() );
-                m_executor.simulationTerminating( pSim );
-                bRegistedAsTerminating = true;
+                for( const auto& msg : m_ackVector )
+                {
+                    if( SM::isBlock( msg ) )
+                    {
+                        SPDLOG_TRACE( "SIM: runSimulation Blocking Destroy msg" );
+                        m_blockDestroyMsgOpt = msg;
+                    }
+                    else
+                    {
+                        acknowledgeInboundRequest( msg, yield_ctx );
+                    }
+                }
+                m_ackVector.clear();
             }
 
-            // process a message
-            if( !m_stateMachine.isTerminated() )
+            switch( result )
             {
-                ASSERT( m_queueStack == 0 );
-                unqueue();
-                const network::ReceivedMessage msg = receiveDeferred( yield_ctx );
-
-                const auto result = m_stateMachine.onMessage( msg );
-
-                // acknowledge simulation requests
+                case SM::eSendClockRequest:
                 {
-                    for( const auto& msg : m_ackVector )
-                    {
-                        if( SM::isBlock( msg ) )
-                        {
-                            SPDLOG_TRACE( "SIM: runSimulation Blocking Destroy msg" );
-                            m_blockDestroyMsgOpt = msg;
-                        }
-                        else
-                        {
-                            acknowledgeInboundRequest( msg, yield_ctx );
-                        }
-                    }
-                    m_ackVector.clear();
+                    m_processClock.requestClock( this, m_mpo.value(), getLog().getRange( cycle ) );
+                    lastCycle = cycle;
+                    cycle     = getLog().getTimeStamp();
                 }
-
-                switch( result )
+                break;
+                case SM::eSendMoveComplete:
                 {
-                    case SM::eSendClockRequest:
+                    m_processClock.requestMove( this, m_mpo.value() );
+                }
+                break;
+                case SM::eRunCycle:
+                {
                     {
-                        m_processClock.requestClock( this, m_mpo.value(), getLog().getRange( cycle ) );
-                        lastCycle = cycle;
-                        cycle     = getLog().getTimeStamp();
+                        QueueStackDepth queueMsgs( m_queueStack );
+                        scheduler.cycle();
                     }
-                    break;
-                    case SM::eSendMoveComplete:
+
+                    cycleComplete();
+
+                    // NOTE: may be simCreate request - ensure transition OUT of SIM state
+                    if( m_stateMachine.onCycle() )
                     {
                         m_processClock.requestMove( this, m_mpo.value() );
                     }
-                    break;
-                    case SM::eRunCycle:
-                    {
-                        {
-                            QueueStackDepth queueMsgs( m_queueStack );
-                            scheduler.cycle();
-                        }
-
-                        cycleComplete();
-
-                        // NOTE: may be simCreate request - ensure transition OUT of SIM state
-                        if( m_stateMachine.onCycle() )
-                        {
-                            m_processClock.requestMove( this, m_mpo.value() );
-                        }
-                    }
-                    break;
-                    case SM::eUnregister:
-                    {
-                        m_processClock.unregisterMPO( network::SenderRef{ m_mpo.value(), this, {} } );
-                    }
-                    break;
-                    case SM::eRecognised:
-                    {
-                        // do nothing
-                    }
-                    break;
-                    case SM::eIgnored:
-                    {
-                        QueueStackDepth queueMsgs( m_queueStack );
-                        acknowledgeInboundRequest( msg, yield_ctx );
-                    }
-                    break;
                 }
+                break;
+                case SM::eUnregister:
+                {
+                    m_processClock.unregisterMPO( network::SenderRef{ m_mpo.value(), this, {} } );
+                    m_executor.simulationTerminating( std::dynamic_pointer_cast< Simulation >( shared_from_this() ) );
+                }
+                break;
+                case SM::eRecognised:
+                {
+                    // do nothing
+                }
+                break;
+                case SM::eIgnored:
+                {
+                    QueueStackDepth queueMsgs( m_queueStack );
+                    acknowledgeInboundRequest( msg, yield_ctx );
+                }
+                break;
             }
         }
     }
@@ -387,7 +376,7 @@ TimeStamp Simulation::SimLockRead( const MPO& requestingMPO, const MPO& targetMP
                                    boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimLockRead: {} {}", requestingMPO, targetMPO );
-    if( m_stateMachine.isTerminating() )
+    if( m_stateMachine.isTerminated() )
     {
         return 0U;
     }
@@ -398,7 +387,7 @@ TimeStamp Simulation::SimLockWrite( const MPO& requestingMPO, const MPO& targetM
                                     boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM::SimLockWrite: {} {}", requestingMPO, targetMPO );
-    if( m_stateMachine.isTerminating() )
+    if( m_stateMachine.isTerminated() )
     {
         return 0U;
     }
@@ -409,7 +398,7 @@ void Simulation::SimLockRelease( const MPO& requestingMPO, const MPO& targetMPO,
                                  const network::Transaction& transaction, boost::asio::yield_context& )
 {
     SPDLOG_TRACE( "SIM::SimLockRelease: {} {}", requestingMPO, targetMPO );
-    if( !m_stateMachine.isTerminating() )
+    if( !m_stateMachine.isTerminated() )
     {
         // NOTE: how SimLockRelease is acknowledged when the simulation routine goes
         // through its simulation requests - INCLUDING the clock response

@@ -208,6 +208,8 @@ class TransactionMachine : public TransactionMsgTraits
         }
     }
 
+    inline bool isLock() const { return !m_activeReads.empty() || m_activeWrite.has_value(); }
+
 public:
     inline const IDSet&        reads() const { return m_activeReads; }
     inline std::optional< ID > writer() const { return m_activeWrite; }
@@ -231,6 +233,8 @@ public:
     // return if should enter transaction processing
     inline bool onNext()
     {
+        ASSERT( !isLock() );
+
         processMessages();
 
         if( !m_activeReads.empty() || m_activeWrite.has_value() )
@@ -241,6 +245,17 @@ public:
         {
             return false;
         }
+    }
+
+    inline void onTerminate()
+    {
+        for( const Msg& msg : m_queue )
+        {
+            m_ackVector.push_back( msg );
+        }
+        m_activeReads.clear();
+        m_activeWrite.reset();
+        m_queue.clear();
     }
 
     // return if should enter transaction processing
@@ -259,7 +274,7 @@ public:
         }
     }
 
-    // return is transaction processing complete
+    // return if transaction processing complete
     inline bool onMessage( const Msg& msg )
     {
         ASSERT( isMsg( msg ) );
@@ -268,7 +283,7 @@ public:
 
         processMessages();
 
-        if( !m_activeReads.empty() || m_activeWrite.has_value() )
+        if( isLock() )
         {
             return false;
         }

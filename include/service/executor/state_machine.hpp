@@ -102,7 +102,6 @@ class StateMachine : public StateMachineMsgTraits
         TRANSACTION,
         SIM,
         MOVE,
-        TERMINATING,
         TERMINATED
     };
     State m_state = SLEEP;
@@ -117,7 +116,6 @@ public:
     }
 
     inline bool isTerminated() const { return m_state == TERMINATED; }
-    inline bool isTerminating() const { return m_state == TERMINATING; }
 
     inline void status( network::Status& status ) 
     {
@@ -136,17 +134,17 @@ public:
 
     inline MsgResult onNext()
     {
-        if( m_transactionMachine.onNext() )
+        if( m_destroy.has_value() )
+        {
+            // ensure all pending transactions are acked
+            m_transactionMachine.onTerminate();
+            m_state = TERMINATED;
+            m_acks.push_back( m_destroy.value() );
+            return eUnregister;
+        }
+        else if( m_transactionMachine.onNext() )
         {
             m_state = TRANSACTION;
-            return eRecognised;
-        }
-        else if( m_state == TERMINATING )
-        {
-            m_state = TERMINATED;
-            ASSERT( m_destroy.has_value() );
-            m_acks.push_back( m_destroy.value() );
-            m_destroy.reset();
             return eRecognised;
         }
         else if( m_clockResponse.has_value() )
@@ -195,22 +193,15 @@ public:
                     m_moveMachine.queue( msg );
                     return eRecognised;
                 }
-                else if( isBlock( msg ) )
-                {
-                    m_state = TERMINATING;
-                    m_destroy = msg;
-                    return eRecognised;
-                }
-                else if( isDestroy( msg ) )
-                {
-                    m_state = TERMINATING;
-                    m_destroy = msg;
-                    return eRecognised;
-                }
                 else if( isClock( msg ) )
                 {
                     m_state = SIM;
                     return eRunCycle;
+                }
+                else if( isBlock( msg ) || isDestroy( msg ) )
+                {
+                    m_destroy = msg;
+                    return eRecognised;
                 }
                 else
                 {
@@ -236,22 +227,15 @@ public:
                     m_moveMachine.queue( msg );
                     return eRecognised;
                 }
-                else if( isBlock( msg ) )
-                {
-                    m_state = TERMINATING;
-                    m_destroy = msg;
-                    return eRecognised;
-                }
-                else if( isDestroy( msg ) )
-                {
-                    m_state = TERMINATING;
-                    m_destroy = msg;
-                    return eRecognised;
-                }
                 else if( isClock( msg ) )
                 {
                     ASSERT( !m_clockResponse.has_value() );
                     m_clockResponse = msg;
+                    return eRecognised;
+                }
+                else if( isBlock( msg ) || isDestroy( msg ) )
+                {
+                    m_destroy = msg;
                     return eRecognised;
                 }
                 else
@@ -299,52 +283,9 @@ public:
                     m_clockResponse = msg;
                     return eRecognised;
                 }
-                else if( isBlock( msg ) )
+                else if( isBlock( msg ) || isDestroy( msg ) )
                 {
-                    m_state = TERMINATING;
                     m_destroy = msg;
-                    return eRecognised;
-                }
-                else if( isDestroy( msg ) )
-                {
-                    m_state = TERMINATING;
-                    m_destroy = msg;
-                    return eRecognised;
-                }
-                else
-                {
-                    UNREACHABLE;
-                }
-            }
-            break;
-            case TERMINATING:
-            {
-                if( isTransaction( msg ) )
-                {
-                    if( m_transactionMachine.onMessage( msg ) )
-                    {
-                        return onNext();
-                    }
-                    else
-                    {
-                        return eRecognised;
-                    }
-                }
-                else if( isMove( msg ) )
-                {
-                    m_moveMachine.queue( msg );
-                    return eRecognised;
-                }
-                else if( isBlock( msg ) )
-                {
-                    return eRecognised;
-                }
-                else if( isDestroy( msg ) )
-                {
-                    return eRecognised;
-                }
-                else if( isClock( msg ) )
-                {
                     return eRecognised;
                 }
                 else
