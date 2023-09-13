@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,32 +18,25 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef EG_CLOCK_12_06_2019
-#define EG_CLOCK_12_06_2019
+#ifndef GUARD_2023_September_12_message_traits
+#define GUARD_2023_September_12_message_traits
 
-#include "utilities/project.hpp"
+#include "service/protocol/common/received_message.hpp"
 
-#include "service/protocol/common/sender_ref.hpp"
-
-#include "log/range.hpp"
-
-#include "mega/reference.hpp"
-
-#include <chrono>
-#include <memory>
+#include <vector>
 
 namespace mega::service
 {
-class ProcessClock
+
+struct MsgTraits
 {
-public:
-    virtual void setActiveProject( const Project& project, U64 dbHashCode )                     = 0;
-    virtual void registerMPO( network::SenderRef sender )                                       = 0;
-    virtual void unregisterMPO( network::SenderRef sender )                                     = 0;
-    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) = 0;
-    virtual bool unrequestClock( network::LogicalThreadBase* pSender, MPO mpo )                 = 0;
-    virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo )                    = 0;
+    using Msg       = network::ReceivedMessage;
+    using MsgVector = std::vector< Msg >;
+    using AckVector = MsgVector;
+
+    static inline network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
 };
+
 } // namespace mega::service
 
-#endif // EG_CLOCK_12_06_2019
+#endif // GUARD_2023_September_12_message_traits

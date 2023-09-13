@@ -20,22 +20,22 @@
 #ifndef SIMULATION_22_JUNE_2022
 #define SIMULATION_22_JUNE_2022
 
-#include "clock.hpp"
-
-#include "service/executor/request.hpp"
-
+#include "service/executor/message_traits.hpp"
+#include "service/executor/clock.hpp"
+#include "service/executor/state_machine.hpp"
+#include "service/executor/sim_move_machine.hpp"
+#include "service/executor/transaction_machine.hpp"
 #include "service/executor/clock.hpp"
 #include "service/executor/scheduler.hpp"
-
-#include "service/executor/state_machine.hpp"
-#include "service/executor/sim_move_manager.hpp"
-#include "service/network/sender_factory.hpp"
-#include "service/protocol/common/logical_thread_id.hpp"
-
-#include "service/protocol/model/enrole.hxx"
-#include "service/protocol/model/stash.hxx"
+#include "service/executor/request.hpp"
 
 #include "service/mpo_context.hpp"
+
+#include "service/network/sender_factory.hpp"
+
+#include "service/protocol/common/logical_thread_id.hpp"
+#include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/stash.hxx"
 
 #include "mega/reference.hpp"
 
@@ -94,14 +94,24 @@ private:
     void runSimulation( boost::asio::yield_context& yield_ctx );
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
+    friend class TransactionMachine< Simulation >;
+    // Simulation concept for state machine
+    bool unrequestClock();
+
 private:
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
-    ProcessClock&                                        m_processClock;
-    network::Sender::Ptr                                 m_pRequestChannelSender;
-    SimMoveManager                                       m_simMoveManager;
-    StateMachine                                         m_stateMachine;
-    StateMachine::MsgVector                              m_messageQueue;
-    int                                                  m_queueStack = 0;
+
+    ProcessClock&        m_processClock;
+    network::Sender::Ptr m_pRequestChannelSender;
+    MsgTraits::AckVector m_ackVector;
+    MsgTraits::MsgVector m_messageQueue;
+
+    TransactionMachine< Simulation > m_transactionMachine;
+    SimMoveMachine< Simulation >     m_simMoveMachine;
+    using SM = StateMachine< Simulation >;
+    SM m_stateMachine;
+
+    int m_queueStack = 0;
     struct QueueStackDepth
     {
         int& stackDepth;
@@ -115,7 +125,7 @@ private:
     std::string                               m_strSimCreateError;
     std::optional< network::ReceivedMessage > m_simCreateMsgOpt;
     bool                                      m_bShuttingDown = false;
-    std::optional< StateMachine::Msg >        m_blockDestroyMsgOpt;
+    std::optional< MsgTraits::Msg >           m_blockDestroyMsgOpt;
 };
 
 } // namespace mega::service

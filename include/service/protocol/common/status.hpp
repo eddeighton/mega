@@ -37,6 +37,28 @@ namespace mega::network
 
 class Status
 {
+    inline MPO toMPO() const
+    {
+        MPO mpoIsh;
+        if( getMPO().has_value() )
+        {
+            mpoIsh = getMPO().value();
+        }
+        else if( getMP().has_value() )
+        {
+            mpoIsh = MPO{ getMP().value(), 0 };
+        }
+        else if( getMachineID().has_value() )
+        {
+            mpoIsh = MPO{ getMachineID().value(), 0, 0 };
+        }
+        else
+        {
+            mpoIsh = MPO{ 0, 0, 0 };
+        }
+        return mpoIsh;
+    }
+
 public:
     using StatusVector = std::vector< Status >;
 
@@ -47,13 +69,21 @@ public:
     {
     }
 
-    const std::optional< MachineID >&             getMachineID() const { return m_machineID; }
-    const std::optional< MP >&                    getMP() const { return m_mp; }
-    const std::optional< MPO >&                   getMPO() const { return m_mpo; }
+    inline void sort()
+    {
+        for( auto& child : m_childStatus )
+            child.sort();
+        std::sort( m_childStatus.begin(), m_childStatus.end(),
+                   []( const Status& left, const Status& right ) -> bool { return left.toMPO() < right.toMPO(); } );
+    }
+
+    const std::optional< MachineID >&              getMachineID() const { return m_machineID; }
+    const std::optional< MP >&                     getMP() const { return m_mp; }
+    const std::optional< MPO >&                    getMPO() const { return m_mpo; }
     const std::vector< network::LogicalThreadID >& getLogicalThreads() const { return m_logicalthreadIDs; }
-    const std::optional< log::IndexRecord >&      getLogIterator() const { return m_logIterator; }
-    const std::optional< std::string >&           getLogFolder() const { return m_strLogFolder; }
-    const std::optional< network::MemoryStatus >& getMemory() const { return m_memory; }
+    const std::optional< log::IndexRecord >&       getLogIterator() const { return m_logIterator; }
+    const std::optional< std::string >&            getLogFolder() const { return m_strLogFolder; }
+    const std::optional< network::MemoryStatus >&  getMemory() const { return m_memory; }
 
     const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getReads() const { return m_reads; }
     const std::optional< std::vector< std::pair< MPO, TimeStamp > > >& getWrites() const { return m_writes; }
@@ -102,13 +132,13 @@ public:
     }
 
 private:
-    std::optional< MachineID >             m_machineID;
-    std::optional< MP >                    m_mp;
-    std::optional< MPO >                   m_mpo;
+    std::optional< MachineID >              m_machineID;
+    std::optional< MP >                     m_mp;
+    std::optional< MPO >                    m_mpo;
     std::vector< network::LogicalThreadID > m_logicalthreadIDs;
-    std::optional< log::IndexRecord >      m_logIterator;
-    std::optional< std::string >           m_strLogFolder;
-    std::optional< network::MemoryStatus > m_memory;
+    std::optional< log::IndexRecord >       m_logIterator;
+    std::optional< std::string >            m_strLogFolder;
+    std::optional< network::MemoryStatus >  m_memory;
 
     std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_reads;
     std::optional< std::vector< std::pair< MPO, TimeStamp > > > m_writes;

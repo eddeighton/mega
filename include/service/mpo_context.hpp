@@ -66,7 +66,7 @@ protected:
     reference                                       m_root;
     std::unique_ptr< runtime::MPODatabase >         m_pDatabase;
     std::unique_ptr< runtime::MemoryManager >       m_pMemoryManager;
-    network::TransactionProducer::MovedObjects      m_movedObjects; // dependency to SimMoveManager
+    network::TransactionProducer::MovedObjects      m_movedObjects; // dependency to SimMoveMachine
 
 public:
     MPOContext( const network::LogicalThreadID& logicalthreadID )

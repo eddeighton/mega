@@ -37,8 +37,9 @@ class ProcessClockStandalone : public ProcessClock
 {
     struct State
     {
-        bool                        m_bWaitingForMoveResponse  = false;
-        bool                        m_bWaitingForClockResponse = false;
+        bool                        m_bNew;
+        bool                        m_bWaitingForMoveResponse;
+        bool                        m_bWaitingForClockResponse;
         network::LogicalThreadBase* m_pSender;
     };
     using MPOMap = std::unordered_map< MPO, State, MPO::Hash >;
@@ -57,6 +58,7 @@ public:
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
     virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range ) override;
+    virtual bool unrequestClock( network::LogicalThreadBase* pSender, MPO mpo ) override;
     virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo ) override;
 
 private:
@@ -64,6 +66,7 @@ private:
     void unregisterMPOImpl( network::SenderRef sender );
     void requestMoveImpl( network::LogicalThreadBase* pSender, MPO mpo );
     void requestClockImpl( network::LogicalThreadBase* pSender, MPO mpo );
+    bool unrequestClockImpl( network::LogicalThreadBase* pSender, MPO mpo );
     void checkClock();
     void clock();
     void issueMove();

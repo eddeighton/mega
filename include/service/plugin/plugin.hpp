@@ -62,6 +62,7 @@ public:
     virtual void registerMPO( network::SenderRef sender ) override;
     virtual void unregisterMPO( network::SenderRef sender ) override;
     virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) override;
+    virtual bool unrequestClock( network::LogicalThreadBase* pSender, MPO mpo ) override;
     virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo ) override;
 
     const network::LogicalThreadID& getLogicalThreadID() const { return m_logicalThreadID; }

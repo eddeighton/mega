@@ -60,23 +60,28 @@ public:
     FakePlugin& operator=( FakePlugin&& )      = delete;
 
     // ProcessClock
-    virtual void setActiveProject( const Project& project, U64 dbHashCode ) override
+    void setActiveProject( const Project& project, U64 dbHashCode ) override
     {
         // do nothing
     }
-    virtual void registerMPO( network::SenderRef sender )
+    void registerMPO( network::SenderRef sender ) override
     {
         // do nothing
     }
-    virtual void unregisterMPO( network::SenderRef sender )
+    void unregisterMPO( network::SenderRef sender ) override
     {
         // do nothing
     }
-    virtual void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range )
+    void requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range range ) override
     {
         // do nothing
     }
-    virtual void requestMove( network::LogicalThreadBase* pSender, MPO mpo )
+    bool unrequestClock( network::LogicalThreadBase* pSender, MPO mpo ) override
+    {
+        // do nothing
+        return false;
+    }
+    void requestMove( network::LogicalThreadBase* pSender, MPO mpo ) override
     {
         // do nothing
     }

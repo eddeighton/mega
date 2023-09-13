@@ -21,6 +21,8 @@
 #ifndef GUARD_2023_September_05_sim_move_manager
 #define GUARD_2023_September_05_sim_move_manager
 
+#include "service/executor/message_traits.hpp"
+
 #include "service/mpo_visitor.hpp"
 #include "service/protocol/common/received_message.hpp"
 #include "service/protocol/common/transaction.hpp"
@@ -37,16 +39,35 @@ namespace mega::service
 
 struct MoveVisitor : public TreeVisitor< reference >
 {
-
 };
 
-class SimMoveManager
+struct MoveMsgTraits : public MsgTraits
 {
-    network::TransactionProducer::MovedObjects& m_movedObjects;
+    using MoveComplete = network::sim::MSG_SimMoveComplete_Response;
+    using MoveRequest  = network::sim::MSG_SimMove_Request;
+    using MoveResponse = network::sim::MSG_SimMove_Response;
 
-    using Msg       = network::ReceivedMessage;
-    using MsgVector = std::vector< Msg >;
-    using AckVector = MsgVector;
+    static inline bool isMsg( const Msg& msg )
+    {
+        switch( getMsgID( msg ) )
+        {
+            case MoveComplete::ID:
+            case MoveRequest::ID:
+            case MoveResponse::ID:
+                return true;
+            default:
+                return false;
+        }
+    }
+};
+
+template < typename Simulation >
+class SimMoveMachine : public MoveMsgTraits
+{
+    MsgVector                                   m_queue;
+    Simulation&                                 m_sim;
+    AckVector&                                  m_ackVector;
+    network::TransactionProducer::MovedObjects& m_movedObjects;
 
     using MoveID = mega::U64;
 
@@ -55,44 +76,42 @@ class SimMoveManager
         U64 id;
         using Map = std::unordered_map< U64, OwnMoveRequest >;
     };
-    OwnMoveRequest::Map m_ownMoveRequest;
-    bool                m_bSendingOwnMoveRequests = false;
+    typename OwnMoveRequest::Map m_ownMoveRequest;
+    bool                         m_bSendingOwnMoveRequests = false;
 
     struct ForwardedMoveRequest
     {
         U64 id;
         using Map = std::unordered_map< U64, ForwardedMoveRequest >;
     };
-    ForwardedMoveRequest::Map m_forwardedMoveRequest;
+    typename ForwardedMoveRequest::Map m_forwardedMoveRequest;
 
     static inline network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
 
 public:
-    using MoveComplete = network::sim::MSG_SimMoveComplete_Response;
-    using MoveRequest  = network::sim::MSG_SimMove_Request;
-    using MoveResponse = network::sim::MSG_SimMove_Response;
-
-    SimMoveManager( network::TransactionProducer::MovedObjects& movedObjects )
-        :   m_movedObjects( movedObjects )
+    SimMoveMachine( Simulation& sim, AckVector& ackVector, network::TransactionProducer::MovedObjects& movedObjects )
+        : m_sim( sim )
+        , m_ackVector( ackVector )
+        , m_movedObjects( movedObjects )
     {
-
     }
 
+    // return true is should send MoveCompleteRequest
     inline bool sendMoveRequests()
     {
         m_bSendingOwnMoveRequests = false;
 
         for( const auto& [ from, to ] : m_movedObjects )
         {
-            MPORealVisitor reader( from );
-            MoveVisitor writer;
+            MPORealVisitor                                        reader( from );
+            MoveVisitor                                           writer;
             ReferenceTreeTraversal< MPORealVisitor, MoveVisitor > traversal( reader, writer );
             traverse( traversal );
         }
 
         m_movedObjects.clear();
 
-        return m_bSendingOwnMoveRequests;
+        return !m_bSendingOwnMoveRequests;
     }
 
     inline void onMoveRequest( const MoveRequest& msg )
@@ -111,36 +130,36 @@ public:
         eProcessMoveComplete
     };
 
-    inline MsgResult onMsg( const MsgVector& moveMsgs )
+    inline void queue( const Msg& msg ) { m_queue.push_back( msg ); }
+
+    inline MsgResult onMessage( const Msg& msg )
     {
         MsgResult result = eNothing;
-        for( const auto& msg : moveMsgs )
+
+        switch( getMsgID( msg ) )
         {
-            switch( getMsgID( msg ) )
+            case MoveComplete::ID:
             {
-                case MoveComplete::ID:
-                {
-                    VERIFY_RTE_MSG( !m_bSendingOwnMoveRequests,
-                                    "Unreachable state of move complete when not finished sending move requests" );
-                    result = eProcessMoveComplete;
-                }
-                break;
-                case MoveRequest::ID:
-                {
-                    onMoveRequest( MoveRequest::get( msg.msg ) );
-                }
-                break;
-                case MoveResponse::ID:
-                {
-                    onMoveResponse( MoveResponse::get( msg.msg ) );
-                }
-                break;
-                default:
-                {
-                    THROW_RTE( "Unknown move request message type" );
-                }
-                break;
+                VERIFY_RTE_MSG( !m_bSendingOwnMoveRequests,
+                                "Unreachable state of move complete when not finished sending move requests" );
+                result = eProcessMoveComplete;
             }
+            break;
+            case MoveRequest::ID:
+            {
+                onMoveRequest( MoveRequest::get( msg.msg ) );
+            }
+            break;
+            case MoveResponse::ID:
+            {
+                onMoveResponse( MoveResponse::get( msg.msg ) );
+            }
+            break;
+            default:
+            {
+                THROW_RTE( "Unknown move request message type" );
+            }
+            break;
         }
 
         if( m_bSendingOwnMoveRequests )

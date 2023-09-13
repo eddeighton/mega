@@ -114,10 +114,9 @@ void StatusPrinter::printNodeInfo( const network::Status& status, std::ostream& 
         {
             const network::MemoryStatus& memory = status.getMemory().value();
 
-            line( os, indent ) << "Heap Memory\n";
-            line( os, indent * 2 ) << "Bytes:  " << memory.m_heap << "\n";
-            line( os, indent * 2 ) << "Objects:" << memory.m_object << "\n";
-            line( os, indent ) << "Fixed Memory\n";
+            line( os, indent ) << "Heap Memory: " << memory.m_heap << "\n";
+            line( os, indent ) << "Objects:     " << memory.m_object << "\n";
+            /*line( os, indent ) << "Fixed Memory\n";
 
             for( const auto& alloc : memory.m_allocators )
             {
@@ -128,7 +127,7 @@ void StatusPrinter::printNodeInfo( const network::Status& status, std::ostream& 
                                            << alloc.status.allocations << " )\n";
                     line( os, indent * 2 ) << "Free: " << alloc.status.free << "\n";
                 }
-            }
+            }*/
         }
     }
 

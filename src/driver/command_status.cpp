@@ -44,7 +44,6 @@ void command( bool bHelp, const std::vector< std::string >& args )
     std::string                            strMPO, strMsg;
     int                                    msgSize = 0;
     mega::utilities::StatusPrinter::Config m_config;
-    m_config.m_bLocks = true; // default to always on
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Project Commands" );
@@ -58,7 +57,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
             ( "conv",    po::bool_switch( &m_config.m_bLogicalThreads ), "Response logicalthreads status" )
             ( "mem",     po::bool_switch( &m_config.m_bMemory        ), "Response memory status" )
-            ( "locks",   po::bool_switch( &m_config.m_bLocks         ), "Response locks status" )
+            ( "locks",   po::value< bool >( &m_config.m_bLocks )->default_value( true ), "Response locks status" )
             ( "logs",    po::bool_switch( &m_config.m_bLog           ), "Response log status" )
             ;
         // clang-format on
@@ -124,6 +123,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             mega::utilities::StatusPrinter statusPrinter( m_config );
             mega::network::Status          status = terminal.GetNetworkStatus();
+            status.sort();
             statusPrinter.print( status, std::cout );
         }
 

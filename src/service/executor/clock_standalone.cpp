@@ -28,6 +28,8 @@
 
 #include "mega/reference_io.hpp"
 
+#include <future>
+
 namespace mega::service
 {
 
@@ -49,20 +51,31 @@ void ProcessClockStandalone::setActiveProject( const Project& project, U64 unity
 
 void ProcessClockStandalone::registerMPO( network::SenderRef sender )
 {
-    ProcessClockStandalone* pThis = this;
-    boost::asio::post( m_strand, [ pThis, sender ]() { pThis->registerMPOImpl( sender ); } );
+    boost::asio::post( m_strand, [ this, sender ]() { registerMPOImpl( sender ); } );
 }
 
 void ProcessClockStandalone::unregisterMPO( network::SenderRef sender )
 {
     ProcessClockStandalone* pThis = this;
-    boost::asio::post( m_strand, [ pThis, sender ]() { pThis->unregisterMPOImpl( sender ); } );
+    boost::asio::post( m_strand, [ this, sender ]() { unregisterMPOImpl( sender ); } );
 }
 
 void ProcessClockStandalone::requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Range )
 {
-    ProcessClockStandalone* pThis = this;
-    boost::asio::post( m_strand, [ pThis, pSender, mpo ]() { pThis->requestClockImpl( pSender, mpo ); } );
+    boost::asio::post( m_strand, [ this, pSender, mpo ]() { requestClockImpl( pSender, mpo ); } );
+}
+
+bool ProcessClockStandalone::unrequestClock( network::LogicalThreadBase* pSender, MPO mpo )
+{
+    std::promise< bool > promise;
+    std::future< bool >  fut = promise.get_future();
+    boost::asio::post( m_strand,
+                       [ this, pSender, mpo, &promise ]()
+                       {
+                           const bool bResult = unrequestClockImpl( pSender, mpo );
+                           promise.set_value( bResult );
+                       } );
+    return fut.get();
 }
 
 void ProcessClockStandalone::requestMove( network::LogicalThreadBase* pSender, MPO mpo )
@@ -74,8 +87,7 @@ void ProcessClockStandalone::requestMove( network::LogicalThreadBase* pSender, M
 void ProcessClockStandalone::registerMPOImpl( network::SenderRef sender )
 {
     SPDLOG_TRACE( "ProcessClockStandalone::registerMPOImpl mpo:{}", sender.m_mpo );
-    // When register set waitingForClockResponse to TRUE so that initial clock response is generated
-    VERIFY_RTE_MSG( m_mpos.insert( { sender.m_mpo, State{ false, true, sender.m_pSender } } ).second,
+    VERIFY_RTE_MSG( m_mpos.insert( { sender.m_mpo, State{ true, false, true, sender.m_pSender } } ).second,
                     "Duplicate MPO when registering: " << sender.m_mpo );
     checkClock();
 }
@@ -111,22 +123,54 @@ void ProcessClockStandalone::requestClockImpl( network::LogicalThreadBase* pSend
     checkClock();
 }
 
+bool ProcessClockStandalone::unrequestClockImpl( network::LogicalThreadBase* pSender, MPO mpo )
+{
+    // allow to unrequest if there is any other thread waiting
+    bool bOtherThreadWaiting = false;
+    for( auto& [ mpo_, state ] : m_mpos )
+    {
+        if( mpo_ != mpo )
+        {
+            if( !state.m_bWaitingForClockResponse )
+            {
+                bOtherThreadWaiting = true;
+                break;
+            }
+        }
+    }
+
+    if( bOtherThreadWaiting )
+    {
+        auto iFind = m_mpos.find( mpo );
+        VERIFY_RTE_MSG( iFind != m_mpos.end(), "Failed to locate mpo when unrequest: " << mpo );
+        iFind->second.m_bWaitingForClockResponse = false;
+    }
+
+    return bOtherThreadWaiting;
+}
+
 void ProcessClockStandalone::checkClock()
 {
     bool bAllWaitingMoveResponse  = true;
     bool bAllWaitingClockResponse = true;
     for( auto& [ _, state ] : m_mpos )
     {
-        if( !state.m_bWaitingForMoveResponse )
+        // NOTE: if a simulation is NEW then prevent it from blocking any active request
+        // it will always be waiting for the clock so it can join the cycle when the clock ticks
+        // There cannot be any move request to the new simulation
+        if( !state.m_bNew )
         {
-            bAllWaitingMoveResponse = false;
+            if( !state.m_bWaitingForMoveResponse )
+            {
+                bAllWaitingMoveResponse = false;
+            }
+            if( !state.m_bWaitingForClockResponse )
+            {
+                bAllWaitingClockResponse = false;
+            }
+            if( !bAllWaitingMoveResponse && !bAllWaitingClockResponse )
+                break;
         }
-        if( !state.m_bWaitingForClockResponse )
-        {
-            bAllWaitingClockResponse = false;
-        }
-        if( !bAllWaitingMoveResponse && !bAllWaitingClockResponse )
-            break;
     }
 
     if( bAllWaitingMoveResponse )
@@ -158,6 +202,7 @@ void ProcessClockStandalone::clock()
                 state.m_pSender->getID(), std::move( MSG_SimClock_Response{ m_clockTick } ) );
             state.m_pSender->send( msg );
             state.m_bWaitingForClockResponse = false;
+            state.m_bNew                     = false;
         }
     }
 

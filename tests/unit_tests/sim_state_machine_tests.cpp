@@ -21,7 +21,8 @@
 //
 #include <gtest/gtest.h>
 
-#include "service/executor/sim_move_manager.hpp"
+#include "service/executor/sim_move_machine.hpp"
+#include "service/executor/transaction_machine.hpp"
 #include "service/executor/state_machine.hpp"
 
 #include "utilities/project.hpp"
@@ -31,10 +32,9 @@ static const mega::MPO id1( 1, 2, 3 );
 static const mega::MPO id2( 1, 2, 4 );
 static const mega::MPO id3( 1, 3, 3 );
 static const mega::MPO id4( 2, 3, 4 );
-
-using MM = mega::service::SimMoveManager;
+/*
+using MM = mega::service::SimMoveMachine;
 using SM = mega::service::StateMachine;
-
 SM::Msg makeMsg( const mega::MPO& id, const mega::network::Message& msg )
 {
     return mega::network::ReceivedMessage{ mega::network::Sender::Ptr{}, msg };
@@ -64,6 +64,7 @@ SM::Msg makeDestroy( const mega::MPO& id )
 {
     return makeMsg( id, SM::Destroy::make( {}, SM::Destroy{} ) );
 }
+*/
 /*
 TEST( SimStateMachine, BasicCycle )
 {

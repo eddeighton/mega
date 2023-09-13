@@ -51,8 +51,9 @@ Simulation::Simulation( Executor& executor, const network::LogicalThreadID& logi
     : ExecutorRequestLogicalThread( executor, logicalthreadID )
     , MPOContext( getID() )
     , m_processClock( processClock )
-    , m_simMoveManager( m_movedObjects )
-    , m_stateMachine( m_simMoveManager )
+    , m_transactionMachine( *this, m_ackVector )
+    , m_simMoveMachine( *this, m_ackVector, m_movedObjects )
+    , m_stateMachine( *this, m_transactionMachine, m_simMoveMachine, m_ackVector )
 {
     m_bEnableQueueing = true;
 }
@@ -103,6 +104,11 @@ network::jit::Request_Sender Simulation::getLeafJITRequest()
     return { *this, m_executor.getLeafSender(), *m_pYieldContext };
 }
 
+bool Simulation::unrequestClock()
+{
+    return m_processClock.unrequestClock( this, m_mpo.value() );
+}
+
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
@@ -116,8 +122,9 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         Scheduler scheduler( getLog() );
 
         bool                    bRegistedAsTerminating = false;
-        TimeStamp               lastCycle              = getLog().getTimeStamp();
-        StateMachine::MsgVector tempMessages;
+        TimeStamp               cycle                  = getLog().getTimeStamp();
+        TimeStamp               lastCycle              = cycle;
+
         while( !m_stateMachine.isTerminated() )
         {
             if( m_stateMachine.isTerminating() && !bRegistedAsTerminating )
@@ -127,123 +134,73 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 bRegistedAsTerminating = true;
             }
 
-            // acknowledge simulation requests
-            {
-                for( const auto& msg : m_stateMachine.acks() )
-                {
-                    if( m_stateMachine.getMsgID( msg ) == StateMachine::Block::ID )
-                    {
-                        SPDLOG_TRACE( "SIM: runSimulation Blocking Destroy msg" );
-                        m_blockDestroyMsgOpt = msg;
-                    }
-                    else
-                    {
-                        acknowledgeInboundRequest( msg, yield_ctx );
-                    }
-                }
-                m_stateMachine.resetAcks();
-            }
-
-            switch( m_stateMachine.getState() )
-            {
-                case StateMachine::SIM:
-                {
-                    {
-                        QueueStackDepth queueMsgs( m_queueStack );
-                        scheduler.cycle();
-                    }
-
-                    cycleComplete();
-
-                    // NOTE: may be simCreate request - ensure transition OUT of SIM state
-                    m_stateMachine.onCycle();
-
-                    // SPDLOG_TRACE( "SIM: Cycle {} {}", getID(), m_mpo.value() );
-
-                    if( !m_simMoveManager.sendMoveRequests() )
-                    {
-                        // no move requests so immediately send moveComplete
-                        // SPDLOG_TRACE( "SIM: move request {}", m_mpo.value() );
-                        m_processClock.requestMove( this, m_mpo.value() );
-                    }
-                }
-                break;
-                case StateMachine::MOVE:
-                {
-                    // SPDLOG_TRACE( "SIM: MOVE {} {}", getID(), m_mpo.value() );
-                }
-                break;
-                case StateMachine::READ:
-                {
-                    // SPDLOG_TRACE( "SIM: READ {} {}", getID(), m_mpo.value() );
-                }
-                break;
-                case StateMachine::WRITE:
-                {
-                    // SPDLOG_TRACE( "SIM: WRITE {} {}", getID(), m_mpo.value() );
-                }
-                break;
-                case StateMachine::TERM:
-                {
-                    //SPDLOG_TRACE( "SIM: TERM {} {}", getID(), m_mpo.value() );
-                    m_processClock.unregisterMPO( network::SenderRef{ m_mpo.value(), this, {} } );
-                }
-                break;
-                case StateMachine::WAIT:
-                {
-                    // SPDLOG_TRACE( "SIM: WAIT {} {}", getID(), m_mpo.value() );
-                }
-                break;
-            }
-
             // process a message
             if( !m_stateMachine.isTerminated() )
             {
                 ASSERT( m_queueStack == 0 );
                 unqueue();
                 const network::ReceivedMessage msg = receiveDeferred( yield_ctx );
-                // SPDLOG_TRACE( "SIM: MSG {} {}", msg.msg, m_mpo.value() );
-                switch( StateMachine::getMsgID( msg ) )
+
+                const auto result = m_stateMachine.onMessage( msg );
+
+                // acknowledge simulation requests
                 {
-                    case StateMachine::Read::ID:
-                    case StateMachine::Write::ID:
-                    case StateMachine::Release::ID:
-                    case StateMachine::Block::ID:
-                    case StateMachine::Destroy::ID:
-                    case StateMachine::Clock::ID:
-                    case StateMachine::MoveComplete::ID:
-                    case StateMachine::MoveRequest::ID:
-                    case StateMachine::MoveResponse::ID:
+                    for( const auto& msg : m_ackVector )
                     {
-                        switch( m_stateMachine.onMsg( { msg } ) )
+                        if( SM::isBlock( msg ) )
                         {
-                            case StateMachine::eNothing:
-                            {
-                                // do nothing
-                            }
-                            break;
-                            case StateMachine::eClockTick:
-                            {
-                                // SPDLOG_TRACE( "SIM: clock request {}", m_mpo.value() );
-                                m_processClock.requestClock( this, m_mpo.value(), getLog().getRange( lastCycle ) );
-                                lastCycle = getLog().getTimeStamp();
-                            }
-                            break;
-                            case StateMachine::eMoveComplete:
-                            {
-                                // SPDLOG_TRACE( "SIM: move request {}", m_mpo.value() );
-                                m_processClock.requestMove( this, m_mpo.value() );
-                            }
-                            break;
-                            default:
-                            {
-                                THROW_RTE( "Invalid state machine onMsg result" );
-                            }
-                            break;
+                            SPDLOG_TRACE( "SIM: runSimulation Blocking Destroy msg" );
+                            m_blockDestroyMsgOpt = msg;
+                        }
+                        else
+                        {
+                            acknowledgeInboundRequest( msg, yield_ctx );
+                        }
+                    }
+                    m_ackVector.clear();
+                }
+
+                switch( result )
+                {
+                    case SM::eSendClockRequest:
+                    {
+                        m_processClock.requestClock( this, m_mpo.value(), getLog().getRange( cycle ) );
+                        lastCycle = cycle;
+                        cycle     = getLog().getTimeStamp();
+                    }
+                    break;
+                    case SM::eSendMoveComplete:
+                    {
+                        m_processClock.requestMove( this, m_mpo.value() );
+                    }
+                    break;
+                    case SM::eRunCycle:
+                    {
+                        {
+                            QueueStackDepth queueMsgs( m_queueStack );
+                            scheduler.cycle();
+                        }
+
+                        cycleComplete();
+
+                        // NOTE: may be simCreate request - ensure transition OUT of SIM state
+                        if( m_stateMachine.onCycle() )
+                        {
+                            m_processClock.requestMove( this, m_mpo.value() );
                         }
                     }
                     break;
-                    default:
+                    case SM::eUnregister:
+                    {
+                        m_processClock.unregisterMPO( network::SenderRef{ m_mpo.value(), this, {} } );
+                    }
+                    break;
+                    case SM::eRecognised:
+                    {
+                        // do nothing
+                    }
+                    break;
+                    case SM::eIgnored:
                     {
                         QueueStackDepth queueMsgs( m_queueStack );
                         acknowledgeInboundRequest( msg, yield_ctx );
@@ -297,9 +254,9 @@ bool Simulation::queue( const network::ReceivedMessage& msg )
 {
     if( m_bShuttingDown )
     {
-        switch( StateMachine::getMsgID( msg ) )
+        switch( SM::getMsgID( msg ) )
         {
-            case StateMachine::Clock::ID:
+            case SM::Clock::ID:
             {
                 // ignor further state machine msgs
                 return true;
@@ -310,43 +267,42 @@ bool Simulation::queue( const network::ReceivedMessage& msg )
     }
     else
     {
-        switch( StateMachine::getMsgID( msg ) )
+        if( SM::isMsg( msg ) )
         {
-            case StateMachine::Read::ID:
-            case StateMachine::Write::ID:
-            case StateMachine::Release::ID:
-            case StateMachine::Block::ID:
-            case StateMachine::Destroy::ID:
-            case StateMachine::Clock::ID:
-            case StateMachine::MoveComplete::ID:
-            case StateMachine::MoveRequest::ID:
-            case StateMachine::MoveResponse::ID:
+            // if processing a request then postpone state machine messages
+            if( m_queueStack != 0 )
             {
-                // if processing a request then postpone state machine messages
-                if( m_queueStack != 0 )
-                {
-                    // SPDLOG_TRACE( "SIM::queue {}", msg.msg );
-                    m_messageQueue.push_back( msg );
-                    return true;
-                }
-                else
-                {
-                    return ExecutorRequestLogicalThread::queue( msg );
-                }
+                // SPDLOG_TRACE( "SIM::queue {}", msg.msg );
+                m_messageQueue.push_back( msg );
+                return true;
             }
-            break;
-            case network::sim::MSG_SimCreate_Request::ID:
+            else
             {
-                // queue SimCreate if RootSimRun has not run yet
-                if( !m_mpo.has_value() )
-                {
-                    // SPDLOG_TRACE( "SIM::queue: {}", msg.msg );
-                    VERIFY_RTE( !m_simCreateMsgOpt.has_value() );
-                    m_simCreateMsgOpt = msg;
-                    return true;
-                }
+                return ExecutorRequestLogicalThread::queue( msg );
             }
-            break;
+        }
+        else
+        {
+            switch( SM::getMsgID( msg ) )
+            {
+                case network::sim::MSG_SimCreate_Request::ID:
+                {
+                    // queue SimCreate if RootSimRun has not run yet
+                    if( !m_mpo.has_value() )
+                    {
+                        // SPDLOG_TRACE( "SIM::queue: {}", msg.msg );
+                        VERIFY_RTE( !m_simCreateMsgOpt.has_value() );
+                        m_simCreateMsgOpt = msg;
+                        return true;
+                    }
+                }
+                break;
+                default:
+                {
+                    // Do Nothing
+                }
+                break;
+            }
         }
         return ExecutorRequestLogicalThread::queue( msg );
     }
@@ -541,10 +497,7 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
             status.setReads( MPOTimeStampVec{ reads.begin(), reads.end() } );
         if( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
             status.setWrites( MPOTimeStampVec{ writes.begin(), writes.end() } );
-        if( const auto& readers = m_stateMachine.reads(); !readers.empty() )
-            status.setReaders( MPOVec{ readers.begin(), readers.end() } );
-        if( const auto& writer = m_stateMachine.writer(); writer.has_value() )
-            status.setWriter( writer.value() );
+        m_stateMachine.status( status );
 
         status.setMemory( m_pMemoryManager->getStatus() );
     }

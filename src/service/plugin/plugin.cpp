@@ -74,6 +74,13 @@ void Plugin::requestClock( network::LogicalThreadBase* pSender, MPO mpo, log::Ra
     send( MSG_SimClock_Request::make( m_logicalThreadID, MSG_SimClock_Request{ mpo, std::move( range ) } ) );
 }
 
+bool Plugin::unrequestClock( network::LogicalThreadBase* pSender, MPO mpo )
+{
+    THROW_TODO;
+    using namespace network::sim;
+    //send( MSG_SimClock_Request::make( m_logicalThreadID, MSG_SimClock_Request{ mpo, std::move( range ) } ) );
+}
+
 void Plugin::requestMove( network::LogicalThreadBase* pSender, MPO mpo )
 {
     using namespace network::sim;
