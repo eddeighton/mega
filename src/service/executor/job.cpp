@@ -25,6 +25,8 @@
 
 #include "service/network/log.hpp"
 
+#include <boost/algorithm/string.hpp>
+
 namespace mega::service
 {
 
@@ -102,6 +104,7 @@ EG_PARSER_INTERFACE* JobLogicalThread::getParser() { return m_executor.m_pParser
 void JobLogicalThread::onStarted( const std::string& strMsg )
 {
     getRootRequest< network::job::Request_Encoder >( *m_pYieldCtx ).JobProgress( strMsg );
+    m_lastMsg = strMsg;
 }
 
 void JobLogicalThread::onProgress( const std::string& strMsg )
@@ -112,11 +115,13 @@ void JobLogicalThread::onProgress( const std::string& strMsg )
 void JobLogicalThread::onFailed( const std::string& strMsg )
 {
     m_resultOpt = pipeline::PipelineResult( false, strMsg, {} );
+    m_lastMsg = strMsg;
 }
 
 void JobLogicalThread::onCompleted( const std::string& strMsg )
 {
     m_resultOpt = pipeline::PipelineResult( true, strMsg, {} );
+    m_lastMsg = strMsg;
 }
 
 // pipeline::Stash
@@ -143,4 +148,23 @@ void JobLogicalThread::run( boost::asio::yield_context& yield_ctx )
     getRootRequest< network::job::Request_Encoder >( yield_ctx ).JobReadyForWork( m_rootLogicalThreadID );
 }
 
+network::Status JobLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
+                                       boost::asio::yield_context&           yield_ctx )
+{
+    SPDLOG_TRACE( "JobLogicalThread::GetStatus" );
+    network::Status status{ childNodeStatus };
+    {
+        status.setLogicalThreadID( { getID() } );
+        {
+            if( m_lastMsg.has_value() )
+            {
+                std::string str = m_lastMsg.value();
+                boost::replace_all( str, "\r\n", "\n" );
+                boost::replace_all( str, "\n", " " );
+                status.setDescription( str );
+            }
+        }
+    }
+    return status;
+}
 } // namespace mega::service

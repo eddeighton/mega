@@ -57,15 +57,28 @@ void LogicalThreadManager::onDisconnect( network::Sender::Ptr pConnectionSender 
 
 std::vector< LogicalThreadID > LogicalThreadManager::reportLogicalThreads() const
 {
-    std::vector< LogicalThreadID > activities;
+    std::vector< LogicalThreadID > threads;
     {
         ReadLock lock( m_mutex );
-        for( const auto& [ id, pLogicalThread ] : m_logicalthreads )
+        for( const auto& [ id, _ ] : m_logicalthreads )
         {
-            activities.push_back( id );
+            threads.push_back( id );
         }
     }
-    return activities;
+    return threads;
+}
+
+std::vector< LogicalThreadBase::Ptr > LogicalThreadManager::getLogicalThreads() const
+{
+    std::vector< LogicalThreadBase::Ptr > threads;
+    {
+        ReadLock lock( m_mutex );
+        for( const auto& [ _, pLogicalThread ] : m_logicalthreads )
+        {
+            threads.push_back( pLogicalThread );
+        }
+    }
+    return threads;
 }
 
 LogicalThreadID LogicalThreadManager::createLogicalThreadID() const
@@ -172,7 +185,7 @@ void LogicalThreadManager::dispatch( const ReceivedMessage& msg )
     LogicalThreadBase::Ptr pLogicalThread = findExistingLogicalThread( msg.msg.getLogicalThreadID() );
     if( !pLogicalThread )
     {
-        pLogicalThread = joinLogicalThread( msg.msg );
+        pLogicalThread                   = joinLogicalThread( msg.msg );
         LogicalThread::Ptr pJoinedThread = std::dynamic_pointer_cast< LogicalThread >( pLogicalThread );
         ASSERT( pJoinedThread );
         logicalthreadJoined( pJoinedThread );

@@ -35,7 +35,7 @@ ExecutorRequestLogicalThread::~ExecutorRequestLogicalThread()
 }
 
 network::Message ExecutorRequestLogicalThread::dispatchInBoundRequest( const network::Message&     msg,
-                                                                boost::asio::yield_context& yield_ctx )
+                                                                       boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
     if( result = network::leaf_exe::Impl::dispatchInBoundRequest( msg, yield_ctx ); result )
@@ -72,24 +72,29 @@ network::Message ExecutorRequestLogicalThread::RootAllBroadcast( const network::
     {
         std::vector< Simulation::Ptr > simulations;
         m_executor.getSimulations( simulations );
-        for( Simulation::Ptr pSimulation : simulations )
+        for( Simulation::Ptr pThread : simulations )
+        //for( auto pThread : m_executor.getLogicalThreads() )
         {
-            switch( request.getID() )
+            if( pThread->getID() != getID() )
             {
-                case network::status::MSG_GetStatus_Request::ID:
+                switch( request.getID() )
                 {
-                    SPDLOG_TRACE( "ExecutorRequestLogicalThread::RootAllBroadcast to sim: {}", pSimulation->getID() );
-                    auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
-                    network::status::Request_Sender rq( *this, pSimulation, yield_ctx );
-                    const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
-                        request.getLogicalThreadID(),
-                        network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) } );
-                    responses.push_back( responseWrapper );
-                }
-                break;
-                default:
-                {
-                    THROW_RTE( "Unsupported RootAllBroadcast request type" );
+                    case network::status::MSG_GetStatus_Request::ID:
+                    {
+                        SPDLOG_TRACE(
+                            "ExecutorRequestLogicalThread::RootAllBroadcast to logical thread: {}", pThread->getID() );
+                        auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
+                        network::status::Request_Sender rq( *this, pThread, yield_ctx );
+                        const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
+                            request.getLogicalThreadID(),
+                            network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) } );
+                        responses.push_back( responseWrapper );
+                    }
+                    break;
+                    default:
+                    {
+                        THROW_RTE( "Unsupported RootAllBroadcast request type" );
+                    }
                 }
             }
         }

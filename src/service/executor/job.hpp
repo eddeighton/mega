@@ -43,6 +43,7 @@ class JobLogicalThread : public ExecutorRequestLogicalThread,
     boost::asio::yield_context*   m_pYieldCtx = nullptr;
 
     std::optional< pipeline::PipelineResult > m_resultOpt;
+    std::optional< std::string > m_lastMsg;
 
 public:
     using Ptr = std::shared_ptr< JobLogicalThread >;
@@ -71,6 +72,10 @@ public:
     virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) override;
     virtual void stash( const boost::filesystem::path& file, task::DeterminantHash code ) override;
     virtual bool restore( const boost::filesystem::path& file, task::DeterminantHash code ) override;
+
+    // network::status::Impl
+    virtual network::Status GetStatus( const std::vector< network::Status >& status,
+                                       boost::asio::yield_context&           yield_ctx ) override;
 
     void run( boost::asio::yield_context& yield_ctx ) override;
 };

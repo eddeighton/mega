@@ -51,8 +51,8 @@ class Executor : public network::LogicalThreadManager
     friend class Platform;
     friend class PlayerNetwork;
 
-public:
     using SimulationMap = std::unordered_map< mega::MPO, std::shared_ptr< Simulation >, mega::MPO::Hash >;
+public:
 
     Executor( boost::asio::io_context& io_context,
               U64                      numThreads,

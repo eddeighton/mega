@@ -44,12 +44,13 @@ public:
 
     void onDisconnect( network::Sender::Ptr pConnectionSender );
 
-    std::vector< LogicalThreadID > reportLogicalThreads() const;
-    LogicalThreadID                createLogicalThreadID() const;
-    void                           externalLogicalThreadInitiated( ExternalLogicalThread::Ptr pLogicalThread );
-    void                           logicalthreadInitiated( LogicalThread::Ptr pLogicalThread );
-    void                           logicalthreadJoined( LogicalThread::Ptr pLogicalThread );
-    virtual void                   logicalthreadCompleted( LogicalThreadBase::Ptr pLogicalThread );
+    std::vector< LogicalThreadID >        reportLogicalThreads() const;
+    std::vector< LogicalThreadBase::Ptr > getLogicalThreads() const;
+    LogicalThreadID                       createLogicalThreadID() const;
+    void                                  externalLogicalThreadInitiated( ExternalLogicalThread::Ptr pLogicalThread );
+    void                                  logicalthreadInitiated( LogicalThread::Ptr pLogicalThread );
+    void                                  logicalthreadJoined( LogicalThread::Ptr pLogicalThread );
+    virtual void                          logicalthreadCompleted( LogicalThreadBase::Ptr pLogicalThread );
 
     LogicalThreadBase::Ptr     findExistingLogicalThread( const network::LogicalThreadID& logicalthreadID ) const;
     ExternalLogicalThread::Ptr getExternalLogicalThread() const;

@@ -42,6 +42,221 @@
 namespace driver::trace
 {
 
+void simpleTrace( std::atomic< bool >& bContinue, bool bShowMsgs, bool bShowStart )
+{
+    while( bContinue )
+    {
+        std::string strLine;
+        if( std::getline( std::cin, strLine ) )
+        {
+            std::istringstream         is( strLine );
+            mega::compiler::TaskReport report;
+            bool                       bReadReport = false;
+
+            try
+            {
+                is >> report;
+                bReadReport = true;
+            }
+            catch( std::exception& )
+            {
+                // ignore bad lines
+            }
+            if( bReadReport )
+            {
+                const char* pDrawColour = nullptr;
+                std::string sepLine     = "";
+                switch( report.type )
+                {
+                    case mega::compiler::TaskReport::eMSG:
+                        if( bShowMsgs )
+                        {
+                            pDrawColour = common::COLOUR_BLUE_BEGIN;
+                            sepLine     = "\n";
+                        }
+                        break;
+                    case mega::compiler::TaskReport::eCMD:
+                        if( bShowMsgs )
+                        {
+                            pDrawColour = common::COLOUR_CYAN_BEGIN;
+                            sepLine     = "\n";
+                        }
+                        break;
+                    case mega::compiler::TaskReport::eOUT:
+                        if( bShowMsgs )
+                        {
+                            pDrawColour = common::COLOUR_CYAN_BEGIN;
+                        }
+                        break;
+                    case mega::compiler::TaskReport::eSTARTED:
+                        if( bShowStart )
+                        {
+                            pDrawColour = common::COLOUR_WHITE_BEGIN;
+                        }
+                        break;
+                    case mega::compiler::TaskReport::eFAILED:
+                        pDrawColour = common::COLOUR_RED_BEGIN;
+                        break;
+                    case mega::compiler::TaskReport::eERROR:
+                        pDrawColour = common::COLOUR_RED_BEGIN;
+                        break;
+                    case mega::compiler::TaskReport::eCACHED:
+                        pDrawColour = common::COLOUR_YELLOW_BEGIN;
+                        break;
+                    case mega::compiler::TaskReport::eSUCCESS:
+                        pDrawColour = common::COLOUR_GREEN_BEGIN;
+                        break;
+                    case mega::compiler::TaskReport::TOTAL_REPORT_TYPES:
+                        break;
+                }
+                if( pDrawColour )
+                {
+                    std::cout << pDrawColour <<
+
+                        std::setw( 9 ) << std::setfill( ' ' ) << report.type <<
+
+                        std::setw( 35 ) << std::setfill( ' ' ) << report.name.task <<
+
+                        std::setw( 30 ) << std::right << std::setfill( ' ' ) << report.name.source <<
+
+                        " -> " <<
+
+                        std::setw( 80 ) << std::left << std::setfill( ' ' ) << report.name.target <<
+
+                        sepLine << report.info <<
+
+                        common::COLOUR_END << std::endl;
+                }
+            }
+        }
+    }
+}
+
+void simpleReport( std::atomic< bool >& bContinue, bool bShowMsgs, bool bShowStart )
+{
+    mega::compiler::BuildStatus buildState;
+
+    auto printTask = [ bShowMsgs, bShowStart ]( const mega::compiler::TaskStatus& taskStatus, const char* pDrawColour )
+    {
+        if( bShowMsgs )
+        {
+            std::cout << pDrawColour <<
+
+                std::setw( 35 ) << std::setfill( ' ' ) << taskStatus.getName().task <<
+
+                std::setw( 30 ) << std::right << std::setfill( ' ' ) << taskStatus.getName().source <<
+
+                " -> " <<
+
+                std::setw( 80 ) << std::left << std::setfill( ' ' ) << taskStatus.getName().target <<
+
+                common::COLOUR_END << "\n";
+
+            if( bShowStart )
+            {
+                std::cout << taskStatus.getCmd() << "\n";
+            }
+
+            for( const auto& str : taskStatus.getOutput() )
+            {
+                if( !str.empty() )
+                {
+                    std::cout << str << "\n";
+                }
+            }
+            for( const auto& str : taskStatus.getError() )
+            {
+                if( !str.empty() )
+                {
+                    std::cout << common::COLOUR_RED_BEGIN << str << common::COLOUR_END << "\n";
+                }
+            }
+        }
+        else
+        {
+            std::cout << pDrawColour <<
+
+                std::setw( 35 ) << std::setfill( ' ' ) << taskStatus.getName().task <<
+
+                std::setw( 30 ) << std::right << std::setfill( ' ' ) << taskStatus.getName().source <<
+
+                " -> " <<
+
+                std::setw( 80 ) << std::left << std::setfill( ' ' ) << taskStatus.getName().target <<
+
+                common::COLOUR_END << "\n";
+        }
+    };
+
+    while( bContinue )
+    {
+        std::string strLine;
+        if( std::getline( std::cin, strLine ) )
+        {
+            std::istringstream         is( strLine );
+            mega::compiler::TaskReport report;
+            bool                       bReadReport = false;
+
+            try
+            {
+                is >> report;
+                bReadReport = true;
+            }
+            catch( std::exception& )
+            {
+                // ignore bad lines
+            }
+            if( bReadReport )
+            {
+                buildState.progress( report );
+
+                mega::compiler::BuildStatus::TaskStatusMap status = buildState.get();
+
+                // clear the screen
+                // std::cout << "\x1B[2J\x1B[H";
+                system( "clear" );
+
+                std::cout << "Active:\n\n";
+                for( const auto& [ taskName, taskStatus ] : status )
+                {
+                    if( taskStatus.getState() == mega::compiler::eTask_Started )
+                    {
+                        printTask( taskStatus, common::COLOUR_WHITE_BEGIN );
+                    }
+                }
+
+                std::cout << "\nFailed:\n\n";
+                for( const auto& [ taskName, taskStatus ] : status )
+                {
+                    if( taskStatus.getState() == mega::compiler::eTask_Failed )
+                    {
+                        printTask( taskStatus, common::COLOUR_RED_BEGIN );
+                    }
+                }
+                /*
+                                std::cout << "\nSuccess:\n\n";
+                                for( const auto& [ taskName, taskStatus ] : status )
+                                {
+                                    if( taskStatus.getState() == mega::compiler::eTask_Success )
+                                    {
+                                        printTask( taskStatus, common::COLOUR_GREEN_BEGIN );
+                                    }
+                                }
+
+                                std::cout << "\nCached:\n\n";
+                                for( const auto& [ taskName, taskStatus ] : status )
+                                {
+                                    if( taskStatus.getState() == mega::compiler::eTask_Cached )
+                                    {
+                                        printTask( taskStatus, common::COLOUR_YELLOW_BEGIN );
+                                    }
+                                }
+                */
+                std::cout << std::endl;
+            }
+        }
+    }
+}
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     namespace po    = boost::program_options;
@@ -74,106 +289,20 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        std::atomic< bool >         bContinue = true;
-        std::mutex                  mut;
-        //mega::compiler::BuildStatus buildState;
+        std::atomic< bool > bContinue = true;
 
-        std::thread inputThread(
-            [ &mut, &bContinue, &bShowUI, &bShowMsgs, &bShowStart ]()
-            {
-                while( bContinue )
-                {
-                    std::string strLine;
-                    if( std::getline( std::cin, strLine ) )
-                    {
-                        std::istringstream         is( strLine );
-                        mega::compiler::TaskReport report;
-                        bool                       bReadReport = false;
-
-                        try
-                        {
-                            is >> report;
-                            bReadReport = true;
-                        }
-                        catch( std::exception& )
-                        {
-                            // ignore bad lines
-                        }
-                        if( bReadReport )
-                        {
-                            std::lock_guard< std::mutex > lock( mut );
-                            if( !bShowUI )
-                            {
-                                const char* pDrawColour = nullptr;
-                                std::string sepLine = "";
-                                switch( report.type )
-                                {
-                                    case mega::compiler::TaskReport::eMSG:
-                                        if( bShowMsgs )
-                                        {
-                                            pDrawColour = common::COLOUR_BLUE_BEGIN;
-                                            sepLine = "\n";
-                                        }
-                                        break;
-                                    case mega::compiler::TaskReport::eCMD:
-                                        if( bShowMsgs )
-                                        {
-                                            pDrawColour = common::COLOUR_CYAN_BEGIN;
-                                            sepLine = "\n";
-                                        }
-                                        break;
-                                    case mega::compiler::TaskReport::eOUT:
-                                        if( bShowMsgs )
-                                        {
-                                            pDrawColour = common::COLOUR_CYAN_BEGIN;
-                                        }
-                                        break;
-                                    case mega::compiler::TaskReport::eSTARTED:
-                                        if( bShowStart )
-                                        {
-                                            pDrawColour = common::COLOUR_WHITE_BEGIN;
-                                        }
-                                        break;
-                                    case mega::compiler::TaskReport::eFAILED:
-                                        pDrawColour = common::COLOUR_RED_BEGIN;
-                                        break;
-                                    case mega::compiler::TaskReport::eERROR:
-                                        pDrawColour = common::COLOUR_RED_BEGIN;
-                                        break;
-                                    case mega::compiler::TaskReport::eCACHED:
-                                        pDrawColour = common::COLOUR_YELLOW_BEGIN;
-                                        break;
-                                    case mega::compiler::TaskReport::eSUCCESS:
-                                        pDrawColour = common::COLOUR_GREEN_BEGIN;
-                                        break;
-                                    case mega::compiler::TaskReport::TOTAL_REPORT_TYPES:
-                                        break;
-                                }
-                                if( pDrawColour )
-                                {
-                                    std::cout << pDrawColour <<
-
-                                        std::setw( 9 ) << std::setfill( ' ' ) << report.type <<
-
-                                        std::setw( 35 ) << std::setfill( ' ' ) << report.name.task <<
-
-                                        std::setw( 30 ) << std::right << std::setfill( ' ' ) << report.name.source <<
-
-                                        " -> " <<
-
-                                        std::setw( 80 ) << std::left << std::setfill( ' ' ) << report.name.target <<
-
-                                        sepLine << report.info <<
-
-                                        common::COLOUR_END << std::endl;
-                                }
-                            }
-                        }
-                    }
-                }
-            } );
-
-        inputThread.join();
+        if( bShowUI )
+        {
+            std::thread inputThread( [ &bContinue, bShowMsgs, bShowStart ]()
+                                     { simpleReport( bContinue, bShowMsgs, bShowStart ); } );
+            inputThread.join();
+        }
+        else
+        {
+            std::thread inputThread( [ &bContinue, bShowMsgs, bShowStart ]()
+                                     { simpleTrace( bContinue, bShowMsgs, bShowStart ); } );
+            inputThread.join();
+        }
     }
 }
 
