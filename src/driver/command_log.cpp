@@ -99,29 +99,32 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
                     const Read& logMsg = *i;
+                    std::ostringstream os;
+                    os << std::setw( 15 ) << std::setfill( ' ' ) << toString( logMsg.getType() ) << ": "
+                       << logMsg.getMessage();
                     switch( logMsg.getType() )
                     {
                         case eTrace:
                             SPDLOG_LOGGER_CALL(
-                                spdlog::default_logger_raw(), spdlog::level::trace, logMsg.getMessage() );
+                                spdlog::default_logger_raw(), spdlog::level::trace, os.str() );
                             break;
                         case eDebug:
                             SPDLOG_LOGGER_CALL(
-                                spdlog::default_logger_raw(), spdlog::level::debug, logMsg.getMessage() );
+                                spdlog::default_logger_raw(), spdlog::level::debug, os.str() );
                             break;
                         case eInfo:
                             SPDLOG_LOGGER_CALL(
-                                spdlog::default_logger_raw(), spdlog::level::info, logMsg.getMessage() );
+                                spdlog::default_logger_raw(), spdlog::level::info, os.str());
                             break;
                         case eWarn:
                             SPDLOG_LOGGER_CALL(
-                                spdlog::default_logger_raw(), spdlog::level::warn, logMsg.getMessage() );
+                                spdlog::default_logger_raw(), spdlog::level::warn, os.str() );
                             break;
                         case eError:
-                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, logMsg.getMessage() );
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, os.str() );
                             break;
                         case eFatal:
-                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, logMsg.getMessage() );
+                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, os.str() );
                             break;
                     }
                 }

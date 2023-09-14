@@ -173,7 +173,7 @@ PythonReference::Registration::Registration( const SymbolTable& symbols )
 
     slots.push_back( PyType_Slot{ 0 } );
 
-    static std::string strTypeName = "megastructure.reference";
+    static std::string strTypeName = "classmega00reference";
 
     PyType_Spec spec = {
         strTypeName.c_str(), sizeof( PythonReferenceData ), 0, Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, slots.data() };
@@ -331,7 +331,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 }
                 case id_exp_Write:
                 {
-                    VERIFY_RTE_MSG( pyArgs.size() > 0, "Write Link requires atleast one argument" );
+                    VERIFY_RTE_MSG( pyArgs.size() > 0, "Write requires atleast one argument" );
                     pybind11::object firstArg = pyArgs[ 0 ];
                     void*            pArg
                         = m_module.getPythonMangle().pythonToCpp( functionInfo.typeInfo.mangledType, firstArg.ptr() );

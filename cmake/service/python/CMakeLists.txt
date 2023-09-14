@@ -45,6 +45,10 @@ set( MEGA_PYTHON_SRC_DIR ${MEGA_SRC_DIR}/service/python )
 ####################################################################
 ####################################################################
 
+set( MEGA_PYTHON_API
+    ${MEGA_PYTHON_SRC_DIR}/python_cast.hpp
+    ${MEGA_PYTHON_SRC_DIR}/python_reference.hpp 
+)
 
 set( MEGA_PYTHON_SOURCE 
     ${MEGA_PYTHON_SRC_DIR}/python.hpp
@@ -65,7 +69,6 @@ set( MEGA_PYTHON_SOURCE
     ${MEGA_PYTHON_SRC_DIR}/python_process.cpp 
     ${MEGA_PYTHON_SRC_DIR}/python_mpo.hpp 
     ${MEGA_PYTHON_SRC_DIR}/python_mpo.cpp 
-    ${MEGA_PYTHON_SRC_DIR}/python_reference.hpp 
     ${MEGA_PYTHON_SRC_DIR}/python_reference.cpp 
     ${MEGA_PYTHON_SRC_DIR}/python_type_system.hpp 
     ${MEGA_PYTHON_SRC_DIR}/python_type.hpp 
@@ -78,7 +81,7 @@ set( MEGA_PYTHON_MANGLE
     #${MEGA_API_DIR}/mega/types/python_mangle_allocators.cxx
 )
 
-add_library( megastructure SHARED ${MEGA_PYTHON_SOURCE} ${MEGA_PYTHON_MANGLE} )
+add_library( megastructure SHARED ${MEGA_PYTHON_API} ${MEGA_PYTHON_SOURCE} ${MEGA_PYTHON_MANGLE} )
 
 ##############################################################
 # NOT DOING THIS: pybind11_add_module( megastructure SHARED ${MEGA_PYTHON_SOURCE} )
@@ -119,7 +122,7 @@ link_inja( megastructure )
 link_pybind11( megastructure )
 link_common( megastructure )
 
-install( FILES ${MEGA_PYTHON_API} DESTINATION include/service/megastructure )
+install( FILES ${MEGA_PYTHON_API} DESTINATION include/service/python )
 install( TARGETS megastructure EXPORT megastructure DESTINATION bin)
 install( EXPORT megastructure NAMESPACE MEGA:: FILE megastructure-config.cmake DESTINATION share )
 
