@@ -19,6 +19,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "python_reference.hpp"
+#include "python_type_system.hpp"
 
 #include "module.hpp"
 
@@ -44,222 +45,51 @@
 
 namespace mega::service::python
 {
-namespace
-{
 
-typedef struct
-{
-    PyObject_HEAD PythonReference* pReference;
-} PythonReferenceData;
-
-static PyTypeObject* g_pTypeObject_Hack = nullptr;
-
-static PythonReference* fromPyObject( PyObject* pPyObject )
-{
-    if( g_pTypeObject_Hack != nullptr )
-    {
-        if( pPyObject->ob_type == g_pTypeObject_Hack )
-        {
-            PythonReferenceData* pLogicalObject = ( PythonReferenceData* )pPyObject;
-            return pLogicalObject->pReference;
-        }
-    }
-    return nullptr;
-}
-
-static void type_dealloc( PyObject* pPyObject )
-{
-    if( PythonReference* pReference = fromPyObject( pPyObject ) )
-    {
-        delete pReference;
-        Py_TYPE( pPyObject )->tp_free( ( PyObject* )pPyObject );
-    }
-}
-
-static PyObject* type_get( PyObject* self, void* pClosure )
-{
-    if( PythonReference* pRef = fromPyObject( self ) )
-    {
-        return pRef->get( pClosure );
-    }
-    else
-    {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
-        return nullptr;
-    }
-}
-
-static int type_set( PyObject* self, PyObject* pValue, void* pClosure )
-{
-    if( PythonReference* pRef = fromPyObject( self ) )
-    {
-        return pRef->set( pClosure, pValue );
-    }
-    else
-    {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
-        return -1;
-    }
-}
-
-PyObject* type_str( PyObject* self )
-{
-    if( PythonReference* pRef = fromPyObject( self ) )
-    {
-        return pRef->str();
-    }
-    else
-    {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
-        return nullptr;
-    }
-}
-
-PyObject* type_call( PyObject* callable, PyObject* args, PyObject* kwargs )
-{
-    if( PythonReference* pRef = fromPyObject( callable ) )
-    {
-        return pRef->call( args, kwargs );
-    }
-    else
-    {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
-        return nullptr;
-    }
-}
-
-PyObject* type_dump( PyObject* self )
-{
-    if( PythonReference* pRef = fromPyObject( self ) )
-    {
-        return pRef->dump();
-    }
-    else
-    {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
-        return nullptr;
-    }
-}
-
-static PyMethodDef type_methods[] = {
-    { "dump", ( PyCFunction )type_dump, METH_VARARGS, "Dump object data" }, { nullptr } /* Sentinel */
-};
-} // namespace
-
-PythonReference::Registration::Registration( const SymbolTable& symbols )
-{
-    m_symbols = symbols;
-    for( const auto& [ id, _ ] : m_symbols )
-    {
-        char*       pszNonConst = const_cast< char* >( id.c_str() );
-        PyGetSetDef data = { pszNonConst, ( getter )type_get, ( setter )type_set, pszNonConst, ( void* )pszNonConst };
-        m_pythonAttributesData.push_back( data );
-    }
-    m_pythonAttributesData.push_back( PyGetSetDef{ nullptr } );
-
-    // generate heap allocated python type...
-    std::vector< PyType_Slot > slots;
-    {
-        slots.push_back( PyType_Slot{ Py_tp_str, reinterpret_cast< void* >( &type_str ) } );
-        slots.push_back( PyType_Slot{ Py_tp_repr, reinterpret_cast< void* >( &type_str ) } );
-        slots.push_back( PyType_Slot{ Py_tp_dealloc, reinterpret_cast< void* >( &type_dealloc ) } );
-        slots.push_back( PyType_Slot{ Py_tp_call, reinterpret_cast< void* >( &type_call ) } );
-        slots.push_back( PyType_Slot{ Py_tp_methods, reinterpret_cast< void* >( &type_methods ) } );
-        slots.push_back( PyType_Slot{ Py_tp_getset, m_pythonAttributesData.data() } );
-
-        // Py_tp_getattr
-        // Py_tp_getattro
-    }
-
-    slots.push_back( PyType_Slot{ 0 } );
-
-    static std::string strTypeName = "classmega00reference";
-
-    PyType_Spec spec = {
-        strTypeName.c_str(), sizeof( PythonReferenceData ), 0, Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, slots.data() };
-
-    m_pTypeObject = ( PyTypeObject* )PyType_FromSpec( &spec );
-
-    if( PyType_Ready( m_pTypeObject ) < 0 )
-    {
-        // set exception
-        THROW_RTE( "Failed to create python mega.reference type" );
-    }
-    else
-    {
-        Py_INCREF( m_pTypeObject );
-        // successfully generated the dynamic type...
-        // PyModule_AddObject( pPythonModule, "Host", (PyObject*)&m_type );
-        g_pTypeObject_Hack = m_pTypeObject;
-        // SPDLOG_INFO( "Successfully registered Python Reference Type" );
-    }
-}
-
-PythonReference::Registration::~Registration()
-{
-    if( m_pTypeObject )
-    {
-        g_pTypeObject_Hack = nullptr;
-        Py_DECREF( m_pTypeObject );
-    }
-}
-
-mega::TypeID PythonReference::Registration::getTypeID( const char* pszIdentity ) const
-{
-    auto iFind = m_symbols.find( pszIdentity );
-    if( iFind != m_symbols.end() )
-    {
-        return iFind->second;
-    }
-    else
-    {
-        return {};
-    }
-}
-
-PythonReference::PythonReference( PythonModule& module, const mega::reference& ref )
+PythonReference::PythonReference( PythonModule& module, Type& type, const mega::reference& ref )
     : m_module( module )
+    , m_type( type )
     , m_reference( ref )
+{
+}
+
+PythonReference::PythonReference( PythonModule&          module,
+                                  Type&                  type,
+                                  const mega::reference& ref,
+                                  const TypePath&        typePath )
+    : m_module( module )
+    , m_type( type )
+    , m_reference( ref )
+    , m_type_path( typePath )
 {
 }
 
 PyObject* PythonReference::get( void* pClosure )
 {
-    const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
-    SPDLOG_TRACE( "PythonReference::get: {}", pszAttributeIdentity );
-
-    const mega::TypeID typeID = m_module.getPythonRegistration().getTypeID( pszAttributeIdentity );
-
-    if( typeID == mega::TypeID{} )
-    {
-        SPDLOG_TRACE( "PythonReference::get invalid symbol: {}", pszAttributeIdentity );
-
-        std::ostringstream os;
-        os << "Invalid identity" << pszAttributeIdentity;
-        // ERR( os.str() );
-
-        Py_INCREF( Py_None );
-        return Py_None;
-    }
-    else
-    {
-        PyObject* pResult = cast( m_module, m_reference );
-        {
-            PythonReference* pNewRef = fromPyObject( pResult );
-            ASSERT( pNewRef );
-            pNewRef->m_type_path.reserve( m_type_path.size() + 1U );
-            pNewRef->m_type_path = m_type_path;
-            pNewRef->m_type_path.push_back( typeID );
-        }
-
-        return pResult;
-    }
+    return m_type.createReference( m_reference, m_type_path, reinterpret_cast< char* >( pClosure ) );
 }
+
+PyObject* PythonReference::cast( PythonModule& module, const mega::reference& ref )
+{
+    return module.getTypeSystem().cast( ref );
+}
+
+mega::reference PythonReference::cast( PyObject* pObject )
+{
+    return Type::cast( pObject );
+}
+
+std::optional< mega::reference > PythonReference::tryCast( PyObject* pObject )
+{
+    return Type::tryCast( pObject );
+}
+
 int PythonReference::set( void* pClosure, PyObject* pValue )
 {
     // const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
     return 0;
 }
+
 PyObject* PythonReference::str() const
 {
     std::ostringstream os;
@@ -570,40 +400,6 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 
         Py_INCREF( Py_None );
         return Py_None;
-    }
-}
-
-PyObject* PythonReference::cast( PythonModule& module, const mega::reference& ref )
-{
-    auto                 pTypeObject   = module.getPythonRegistration().getTypeObject();
-    PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, pTypeObject );
-    PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, pTypeObject );
-    pRootObject->pReference            = new PythonReference( module, ref );
-    Py_INCREF( pPythonObject );
-    return pPythonObject;
-}
-
-mega::reference PythonReference::cast( PyObject* pObject )
-{
-    if( PythonReference* pRef = fromPyObject( pObject ) )
-    {
-        return pRef->getReference();
-    }
-    else
-    {
-        return {};
-    }
-}
-
-std::optional< mega::reference > PythonReference::tryCast( PyObject* pObject )
-{
-    if( PythonReference* pRef = fromPyObject( pObject ) )
-    {
-        return pRef->getReference();
-    }
-    else
-    {
-        return std::optional< mega::reference >{};
     }
 }
 

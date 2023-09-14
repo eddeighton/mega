@@ -27,21 +27,29 @@
 #include "database/model/FinalStage.hxx"
 #include "database/model/manifest.hxx"
 
-#include <unordered_map>
+#include <map>
 
 namespace mega::runtime
 {
 
 class EGDB_EXPORT PythonDatabase
 {
+    using ConcreteTypeIDMap = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
+
 public:
     PythonDatabase( const boost::filesystem::path& projectDatabasePath );
 
-private:
-    io::ArchiveEnvironment m_environment;
-    io::Manifest           m_manifest;
-    FinalStage::Database   m_database;
-};
-}
+    using SymbolTable = std::unordered_map< std::string, TypeID >;
+    void getObjectSymbols( TypeID::SubValueType objectID, SymbolTable& symbols, SymbolTable& links );
+    void getLinkObjectTypes( TypeID linkTypeID, std::vector< TypeID::SubValueType >& objectTypes );
 
-#endif //GUARD_2023_September_06_python_database
+private:
+    io::ArchiveEnvironment            m_environment;
+    io::Manifest                      m_manifest;
+    FinalStage::Database              m_database;
+    FinalStage::Symbols::SymbolTable* m_pSymbolTable;
+    ConcreteTypeIDMap                 m_concreteTypeIDs;
+};
+} // namespace mega::runtime
+
+#endif // GUARD_2023_September_06_python_database

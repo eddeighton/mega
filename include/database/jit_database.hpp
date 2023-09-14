@@ -70,7 +70,6 @@ public:
     const FinalStage::Components::Component*     getOperationComponent( TypeID interfaceTypeID ) const;
     U64                                          getLocalDomainSize( TypeID concreteID ) const;
     std::vector< FinalStage::Concrete::Object* > getObjects() const;
-    std::unordered_map< std::string, TypeID >    getIdentities() const;
 
     std::vector< FinalStage::Concrete::Dimensions::User* >          getUserDimensions() const;
     std::vector< FinalStage::Concrete::Dimensions::LinkReference* > getLinkDimensions() const;

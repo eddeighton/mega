@@ -165,23 +165,22 @@ public:
         return { *m_mpoLogicalThread, *m_pExternalLogicalThread };
     }
 
-    const PythonReference::Registration& getPythonRegistration() const { return *m_pRegistration; }
-    const mega::mangle::PythonMangle&    getPythonMangle() const { return m_pythonMangle; }
+    const mega::mangle::PythonMangle& getPythonMangle() const { return m_pythonMangle; }
+    TypeSystem&                       getTypeSystem();
 
 private:
     using FunctionTable = std::map< mega::InvocationID, FunctionInfo >;
     using WrapperTable  = std::map< TypeID, WrapperInfo >;
 
-    LogConfig                                        m_logConfig;
-    boost::asio::io_context                          m_ioContext;
-    Python                                           m_python;
-    network::ExternalLogicalThread::Ptr              m_pExternalLogicalThread;
-    network::LogicalThread::Ptr                      m_mpoLogicalThread;
-    std::unique_ptr< PythonReference::Registration > m_pRegistration;
-    FunctionTable                                    m_functionTable;
-    WrapperTable                                     m_wrapperTable;
-    mega::mangle::PythonMangle                       m_pythonMangle;
-    TypeSystem::Ptr                                  m_pTypeSystem;
+    LogConfig                           m_logConfig;
+    boost::asio::io_context             m_ioContext;
+    Python                              m_python;
+    network::ExternalLogicalThread::Ptr m_pExternalLogicalThread;
+    network::LogicalThread::Ptr         m_mpoLogicalThread;
+    FunctionTable                       m_functionTable;
+    WrapperTable                        m_wrapperTable;
+    mega::mangle::PythonMangle          m_pythonMangle;
+    TypeSystem::Ptr                     m_pTypeSystem;
 };
 } // namespace mega::service::python
 

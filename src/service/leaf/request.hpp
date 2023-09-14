@@ -167,7 +167,6 @@ public:
     virtual void   ExecuteJIT( const runtime::JITFunctor& func, boost::asio::yield_context& yield_ctx ) override;
     virtual TypeID GetInterfaceTypeID( const mega::TypeID&         concreteTypeID,
                                        boost::asio::yield_context& yield_ctx ) override;
-    virtual std::unordered_map< std::string, TypeID > GetIdentities( boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual void SetProject( const Project& project, boost::asio::yield_context& yield_ctx ) override;

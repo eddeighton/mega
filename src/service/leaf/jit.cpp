@@ -48,11 +48,4 @@ TypeID LeafRequestLogicalThread::GetInterfaceTypeID( const mega::TypeID& concret
     return m_leaf.m_pJIT->getInterfaceTypeID( concreteTypeID );
 }
 
-std::unordered_map< std::string, mega::TypeID >
-LeafRequestLogicalThread::GetIdentities( boost::asio::yield_context& yield_ctx )
-{
-    VERIFY_RTE_MSG( m_leaf.m_pJIT, "JIT not initialised" );
-    return m_leaf.m_pJIT->getIdentities();
-}
-
 } // namespace mega::service

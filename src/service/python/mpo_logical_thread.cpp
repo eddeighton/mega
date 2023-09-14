@@ -166,19 +166,18 @@ void MPOLogicalThread::RootSimRun( const Project& project, const mega::MPO& mpo,
     setMPOContext( this );
     m_pYieldContext = &yield_ctx;
 
-    // note the runtime will query getThisMPO while creating the root
     SPDLOG_TRACE( "PYTHON RootSimRun: Acquired mpo context: {}", mpo );
     {
         createRoot( project, mpo );
 
         for( const auto& msg : m_messageQueue )
         {
-            if( msg.msg.getID() == network::python::MSG_PythonGetIdentities_Request::ID )
+            /*if( msg.msg.getID() == network::python::MSG_PythonGetIdentities_Request::ID )
             {
                 SPDLOG_TRACE( "PYTHON RootSimRun: run got network::python::MSG_PythonGetIdentities_Request::ID" );
                 acknowledgeInboundRequest( msg, yield_ctx );
             }
-            else
+            else*/
             {
                 SPDLOG_ERROR( "Unexpected pending message when starting up MPOLogicalThread: {}", msg.msg );
                 using ::operator<<;
@@ -201,12 +200,6 @@ TypeID MPOLogicalThread::PythonGetInterfaceTypeID( const TypeID& concreteTypeID,
 {
     SPDLOG_TRACE( "MPOLogicalThread::PythonGetInterfaceTypeID" );
     return getLeafJITRequest().GetInterfaceTypeID( concreteTypeID );
-}
-
-std::unordered_map< std::string, mega::TypeID > MPOLogicalThread::PythonGetIdentities( boost::asio::yield_context& )
-{
-    SPDLOG_TRACE( "MPOLogicalThread::PythonGetIdentities" );
-    return getLeafJITRequest().GetIdentities();
 }
 
 void MPOLogicalThread::PythonExecuteJIT( const mega::runtime::JITFunctor& func, boost::asio::yield_context& )

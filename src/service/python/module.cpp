@@ -158,8 +158,7 @@ PYBIND11_MODULE( megastructure, pythonModule )
 
             QVM_PYBIND11_OPERATORS( F4 ) QVM_PYBIND11_FUNCTIONS( F4 );
 
-    pybind11::class_< Quat >( pythonModule, "Quat" )
-        .def( pybind11::init<>() )
+    pybind11::class_< Quat >( pythonModule, "Quat" ).def( pybind11::init<>() )
         /*.def( pybind11::init< float, float, float, float >() )
         .def( pybind11::init( []( const F3& axis, float angle ) { return boost::qvm::rot_quat( axis, angle ); } ) )
         .def_property(
@@ -204,7 +203,8 @@ PYBIND11_MODULE( megastructure, pythonModule )
             "rotate_z", []( Quat& v, float angle ) { boost::qvm::rotate_z( v, angle ); },
             "Rotate in z axis" )
 
-            QVM_PYBIND11_OPERATORS( Quat ) QVM_PYBIND11_FUNCTIONS( Quat )*/;
+            QVM_PYBIND11_OPERATORS( Quat ) QVM_PYBIND11_FUNCTIONS( Quat )*/
+        ;
 
     pybind11::class_< F33 >( pythonModule, "F33", pybind11::buffer_protocol() )
         .def( pybind11::init<>() )
@@ -249,15 +249,8 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
         m_python.externalLogicalThreadInitiated( m_pExternalLogicalThread );
     }
     {
-        m_mpoLogicalThread = std::make_shared< MPOLogicalThread >(
-            m_python, m_python.createLogicalThreadID() );
+        m_mpoLogicalThread = std::make_shared< MPOLogicalThread >( m_python, m_python.createLogicalThreadID() );
         m_python.logicalthreadInitiated( m_mpoLogicalThread );
-    }
-
-    {
-        SPDLOG_TRACE( "PythonModule::ctor getting identities" );
-        PythonReference::Registration::SymbolTable symbols = pythonRequest().PythonGetIdentities();
-        m_pRegistration = std::make_unique< PythonReference::Registration >( symbols );
     }
 
     SPDLOG_TRACE( "PythonModule::ctor" );
@@ -312,7 +305,7 @@ const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID
     if( exceptionPtrOpt.has_value() )
     {
         std::ostringstream osError;
-        using ::operator<<;
+        using ::           operator<<;
         osError << "Exception compiling invocation: " << invocationID;
         SPDLOG_ERROR( "PythonModule::invoke rethrowing exception for invocation: {}", osError.str() );
         std::rethrow_exception( exceptionPtrOpt.value() );
@@ -358,7 +351,8 @@ void PythonModule::shutdown()
         m_python.logicalthreadCompleted( m_pExternalLogicalThread );
         m_pExternalLogicalThread.reset();
     }
-    if( std::shared_ptr< MPOLogicalThread > pMPOCon = std::dynamic_pointer_cast< MPOLogicalThread >( m_mpoLogicalThread ) )
+    if( std::shared_ptr< MPOLogicalThread > pMPOCon
+        = std::dynamic_pointer_cast< MPOLogicalThread >( m_mpoLogicalThread ) )
     {
         while( !pMPOCon->isRunComplete() )
         {
@@ -368,21 +362,25 @@ void PythonModule::shutdown()
     m_mpoLogicalThread.reset();
 }
 
+TypeSystem& PythonModule::getTypeSystem()
+{
+    VERIFY_RTE_MSG( m_pTypeSystem, "Megastructure type system not initialised" );
+    return *m_pTypeSystem;
+}
+
 void PythonModule::run_one()
 {
-
     if( const auto& project = m_python.getProject(); project.has_value() )
     {
         if( !m_pTypeSystem )
         {
-            m_pTypeSystem = std::make_unique< TypeSystem >( project.value() );
+            m_pTypeSystem = std::make_unique< TypeSystem >( *this, project.value() );
         }
         else
         {
-            THROW_TODO;
+            m_pTypeSystem->reload( project.value() );
         }
     }
-
     while( m_ioContext.poll_one() )
         ;
 }

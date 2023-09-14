@@ -21,25 +21,48 @@
 #ifndef GUARD_2023_September_02_python_type_system
 #define GUARD_2023_September_02_python_type_system
 
+#include "service/python/python_type.hpp"
+
 #include "database/python_database.hpp"
 
 #include "utilities/project.hpp"
 
+#include "mega/type_id.hpp"
+#include "mega/reference.hpp"
+
+#include <pybind11/pybind11.h>
+
+#include <unordered_map>
+
 namespace mega::service::python
 {
+class PythonModule;
 
 class TypeSystem
 {
-    runtime::PythonDatabase m_database;
+    using TypeMap        = std::unordered_map< TypeID::SubValueType, Type::Ptr >;
+    using LinkTypeMap    = std::unordered_map< TypeID, Type::Ptr, TypeID::Hash >;
+    using SymbolTablePtr = std::unique_ptr< Type::SymbolTable >;
+    using SymbolTableMap = std::unordered_map< TypeID::SubValueType, SymbolTablePtr >;
+    using DatabasePtr    = std::unique_ptr< runtime::PythonDatabase >;
 
 public:
     using Ptr = std::unique_ptr< TypeSystem >;
 
-    TypeSystem( const Project& project )
-        : m_database( project.getProjectDatabase() )
-    {
-        // attempt to construct python types... ?
-    }
+    TypeSystem( PythonModule& module, const Project& project );
+
+    void reload( const Project& project );
+
+    Type::Ptr getLinkType( TypeID typeID );
+
+    PyObject* cast( const mega::reference& ref );
+
+private:
+    PythonModule&  m_module;
+    DatabasePtr    m_pDatabase;
+    TypeMap        m_types;
+    LinkTypeMap    m_links;
+    SymbolTableMap m_symbolTables;
 };
 
 } // namespace mega::service::python

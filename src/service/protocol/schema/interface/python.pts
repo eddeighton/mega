@@ -24,12 +24,6 @@ msg PythonGetInterfaceTypeID
     response( mega::TypeID interfaceTypeID );
 }
 
-msg PythonGetIdentities
-{
-    request();
-    response(std::unordered_map< std::string, mega::TypeID > identities);
-}
-
 msg PythonExecuteJIT
 {
     request( mega::runtime::JITFunctor func );

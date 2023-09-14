@@ -400,23 +400,6 @@ std::vector< FinalStage::Concrete::Object* > JITDatabase::getObjects() const
     return getPerCompilationFileType< FinalStage::Concrete::Object >( m_manifest, m_database );
 }
 
-std::unordered_map< std::string, mega::TypeID > JITDatabase::getIdentities() const
-{
-    std::unordered_map< std::string, mega::TypeID > identities;
-    for( const auto& [ name, pSymbol ] : m_pSymbolTable->get_symbol_names() )
-    {
-        identities.insert( { name, pSymbol->get_id() } );
-    }
-
-    // add the operations
-    for( mega::TypeID::ValueType id = mega::id_Imp_NoParams; id != mega::HIGHEST_OPERATION_TYPE; ++id )
-    {
-        identities.insert( { mega::getOperationString( mega::OperationID{ id } ), mega::TypeID{ id } } );
-    }
-
-    return identities;
-}
-
 std::vector< FinalStage::Concrete::Dimensions::User* > JITDatabase::getUserDimensions() const
 {
     return getPerCompilationFileType< FinalStage::Concrete::Dimensions::User >( m_manifest, m_database );

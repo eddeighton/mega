@@ -34,9 +34,3 @@ msg GetInterfaceTypeID
     request( mega::TypeID concreteTypeID );
     response( mega::TypeID interfaceTypeID );
 }
-
-msg GetIdentities
-{
-    request();
-    response(std::unordered_map< std::string, mega::TypeID > identities);
-}

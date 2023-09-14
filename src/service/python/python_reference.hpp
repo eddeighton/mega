@@ -35,6 +35,7 @@ namespace mega::service::python
 {
 
 class PythonModule;
+class Type;
 
 class PythonReference
 {
@@ -42,24 +43,8 @@ public:
     using TypePath              = std::vector< mega::TypeID >;
     using PythonWrapperFunction = PyObject* ( * )( mega::runtime::CallResult&, const pybind11::args& );
 
-    class Registration
-    {
-    public:
-        using SymbolTable = std::unordered_map< std::string, mega::TypeID >;
-
-        Registration( const SymbolTable& symbols );
-        ~Registration();
-
-        PyTypeObject* getTypeObject() const { return m_pTypeObject; }
-        mega::TypeID  getTypeID( const char* pszIdentity ) const;
-
-    private:
-        SymbolTable                m_symbols;
-        std::vector< PyGetSetDef > m_pythonAttributesData;
-        PyTypeObject*              m_pTypeObject;
-    };
-
-    PythonReference( PythonModule& module, const mega::reference& ref );
+    PythonReference( PythonModule& module, Type& type, const mega::reference& ref );
+    PythonReference( PythonModule& module, Type& type, const mega::reference& ref, const TypePath& typePath );
 
     PyObject* get( void* pClosure );
     int       set( void* pClosure, PyObject* pValue );
@@ -69,12 +54,13 @@ public:
 
     const mega::reference getReference() const { return m_reference; }
 
-    static PyObject*       cast( PythonModule& module, const mega::reference& ref );
-    static mega::reference cast( PyObject* pObject );
+    static PyObject*                        cast( PythonModule& module, const mega::reference& ref );
+    static mega::reference                  cast( PyObject* pObject );
     static std::optional< mega::reference > tryCast( PyObject* pObject );
 
 private:
     PythonModule&   m_module;
+    Type&           m_type;
     mega::reference m_reference;
     TypePath        m_type_path;
 };

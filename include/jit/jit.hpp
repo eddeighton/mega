@@ -54,7 +54,6 @@ public:
     ~JIT();
 
     TypeID                                    getInterfaceTypeID( TypeID concreteTypeID ) const;
-    std::unordered_map< std::string, TypeID > getIdentities() const;
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& typeID );
 

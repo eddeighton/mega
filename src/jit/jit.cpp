@@ -91,11 +91,6 @@ mega::TypeID JIT::getInterfaceTypeID( TypeID concreteTypeID ) const
     return m_database.getInterfaceTypeID( concreteTypeID );
 }
 
-std::unordered_map< std::string, mega::TypeID > JIT::getIdentities() const
-{
-    return m_database.getIdentities();
-}
-
 JITCompiler::Module::Ptr JIT::compile( const std::string& strCode )
 {
     // auto startTime = std::chrono::steady_clock::now();
