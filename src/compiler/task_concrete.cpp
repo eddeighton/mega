@@ -45,6 +45,9 @@ public:
         using DimensionVector = std::vector< ConcreteStage::Interface::DimensionTrait* >;
         DimensionVector dimensions;
 
+        using LinkVector = std::vector< ConcreteStage::Interface::LinkTrait* >;
+        LinkVector links;
+
         void addContext( ConcreteStage::Interface::IContext* pContext )
         {
             const std::string& strIdentifier = pContext->get_identifier();
@@ -63,6 +66,15 @@ public:
                 identifiers.insert( strIdentifier );
             }
         }
+        void addLink( ConcreteStage::Interface::LinkTrait* pLink )
+        {
+            const std::string& strIdentifier = pLink->get_id()->get_str();
+            if( !identifiers.count( strIdentifier ) )
+            {
+                links.push_back( pLink );
+                identifiers.insert( strIdentifier );
+            }
+        }
     };
 
     template < typename TContextType >
@@ -74,6 +86,18 @@ public:
         for( Interface::DimensionTrait* pDimension : pInterfaceContext->get_dimension_traits() )
         {
             identifierMap.addDimension( pDimension );
+        }
+    }
+
+    template < typename TContextType >
+    void collectLinks( ConcreteStage::Database& database, TContextType* pInterfaceContext,
+                       IdentifierMap& identifierMap )
+    {
+        using namespace ConcreteStage;
+        VERIFY_RTE( pInterfaceContext );
+        for( Interface::LinkTrait* pLink : pInterfaceContext->get_link_traits() )
+        {
+            identifierMap.addLink( pLink );
         }
     }
 
@@ -106,6 +130,7 @@ public:
         else if( auto pAbstract = db_cast< Interface::Abstract >( pContext ) )
         {
             collectDimensions( database, pAbstract, identifierMap );
+            collectLinks( database, pAbstract, identifierMap );
             if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
             {
                 for( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
@@ -117,6 +142,7 @@ public:
         else if( auto pAction = db_cast< Interface::Action >( pContext ) )
         {
             collectDimensions( database, pAction, identifierMap );
+            collectLinks( database, pAction, identifierMap );
             if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pAction->get_inheritance_trait() )
             {
                 for( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
@@ -147,24 +173,13 @@ public:
         else if( auto pObject = db_cast< Interface::Object >( pContext ) )
         {
             collectDimensions( database, pObject, identifierMap );
+            collectLinks( database, pObject, identifierMap );
             if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
             {
                 for( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
                     recurseInheritance( database, pConcreteRoot, pInheritedContext, identifierMap );
                 }
-            }
-        }
-        else if( auto pLink = db_cast< Interface::Link >( pContext ) )
-        {
-            // do nothing
-            if( Interface::LinkInterface* pLinkInterface = db_cast< Interface::LinkInterface >( pLink ) )
-            {
-                // do nothing
-            }
-            else
-            {
-                // do nothing
             }
         }
         else
@@ -178,6 +193,7 @@ public:
                             const IdentifierMap&                                       inheritedContexts,
                             std::vector< ConcreteStage::Concrete::Context* >&          childContexts,
                             std::vector< ConcreteStage::Concrete::Dimensions::User* >& dimensions,
+                            std::vector< ConcreteStage::Concrete::Dimensions::Link* >& links,
                             std::optional< ConcreteStage::Concrete::Object* >&         concreteObjectOpt,
                             ConcreteStage::Components::Component*                      pComponent )
     {
@@ -195,11 +211,18 @@ public:
 
         for( Interface::DimensionTrait* pInterfaceDimension : inheritedContexts.dimensions )
         {
-            auto pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
-
-            Dimensions::User* pConcreteDimension = database.construct< Dimensions::User >(
+            auto              pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
+            Dimensions::User* pConcreteDimension     = database.construct< Dimensions::User >(
                 Dimensions::User::Args{ pParentConcreteContext, pInterfaceDimension } );
             dimensions.push_back( pConcreteDimension );
+        }
+
+        for( Interface::LinkTrait* pInterfaceLink : inheritedContexts.links )
+        {
+            auto              pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
+            Dimensions::Link* pConcreteLink          = database.construct< Dimensions::Link >(
+                Dimensions::Link::Args{ pParentConcreteContext, pInterfaceLink } );
+            links.push_back( pConcreteLink );
         }
     }
 
@@ -216,7 +239,9 @@ public:
         {
             Namespace* pConcrete = database.construct< Namespace >( Namespace::Args{
                 UserDimensionContext::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pNamespace, {} }, {} },
+                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pNamespace, {} },
+                    {},
+                    {} },
                 pNamespace } );
             pParentContextGroup->push_back_children( pConcrete );
             pConcrete->set_concrete_object( concreteObjectOpt );
@@ -229,8 +254,11 @@ public:
 
             std::vector< ConcreteStage::Concrete::Context* >          childContexts;
             std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-            constructElements(
-                database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
+            std::vector< ConcreteStage::Concrete::Dimensions::Link* > links;
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, links,
+                               concreteObjectOpt, pComponent );
+
+            VERIFY_RTE( links.empty() );
 
             pConcrete->set_dimensions( dimensions );
             pConcrete->set_children( childContexts );
@@ -248,7 +276,9 @@ public:
             {
                 Action* pConcrete = database.construct< Action >( Action::Args{
                     UserDimensionContext::Args{
-                        Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pAction, {} }, {} },
+                        Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pAction, {} },
+                        {},
+                        {} },
                     pAction } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
@@ -261,10 +291,12 @@ public:
 
                 std::vector< ConcreteStage::Concrete::Context* >          childContexts;
                 std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-                constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
+                std::vector< ConcreteStage::Concrete::Dimensions::Link* > links;
+                constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, links,
+                                   concreteObjectOpt, pComponent );
 
                 pConcrete->set_dimensions( dimensions );
+                pConcrete->set_links( links );
                 pConcrete->set_children( childContexts );
 
                 return pConcrete;
@@ -280,7 +312,9 @@ public:
             {
                 Event* pConcrete = database.construct< Event >( Event::Args{
                     UserDimensionContext::Args{
-                        Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pEvent, {} }, {} },
+                        Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pEvent, {} },
+                        {},
+                        {} },
                     pEvent } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
@@ -293,8 +327,11 @@ public:
 
                 std::vector< ConcreteStage::Concrete::Context* >          childContexts;
                 std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-                constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
+                std::vector< ConcreteStage::Concrete::Dimensions::Link* > links;
+                constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, links,
+                                   concreteObjectOpt, pComponent );
+
+                VERIFY_RTE( links.empty() );
 
                 pConcrete->set_dimensions( dimensions );
                 pConcrete->set_children( childContexts );
@@ -324,9 +361,11 @@ public:
 
                 std::vector< ConcreteStage::Concrete::Context* >          childContexts;
                 std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-                constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
+                std::vector< ConcreteStage::Concrete::Dimensions::Link* > links;
+                constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, links,
+                                   concreteObjectOpt, pComponent );
                 VERIFY_RTE( dimensions.empty() );
+                VERIFY_RTE( links.empty() );
 
                 pConcrete->set_children( childContexts );
 
@@ -355,9 +394,11 @@ public:
 
                 std::vector< ConcreteStage::Concrete::Context* >          childContexts;
                 std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-                constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
+                std::vector< ConcreteStage::Concrete::Dimensions::Link* > links;
+                constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, links,
+                                   concreteObjectOpt, pComponent );
                 VERIFY_RTE( dimensions.empty() );
+                VERIFY_RTE( links.empty() );
 
                 pConcrete->set_children( childContexts );
 
@@ -372,7 +413,7 @@ public:
         {
             Object* pConcrete = database.construct< Object >( Object::Args{
                 UserDimensionContext::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pObject, {} }, {} },
+                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pObject, {} }, {}, {} },
                 pObject } );
             pParentContextGroup->push_back_children( pConcrete );
             concreteObjectOpt = pConcrete;
@@ -386,57 +427,15 @@ public:
 
             std::vector< ConcreteStage::Concrete::Context* >          childContexts;
             std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-            constructElements(
-                database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
+            std::vector< ConcreteStage::Concrete::Dimensions::Link* > links;
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, links,
+                               concreteObjectOpt, pComponent );
 
             pConcrete->set_dimensions( dimensions );
+            pConcrete->set_links( links );
             pConcrete->set_children( childContexts );
 
             return pConcrete;
-        }
-        else if( auto pLink = db_cast< Interface::Link >( pContext ) )
-        {
-            if( db_cast< Interface::LinkInterface >( pLink ) )
-            {
-                // ignor link interfaces
-                return nullptr;
-            }
-            if( concreteObjectOpt.has_value() )
-            {
-                Interface::LinkInterface* pLinkInterface = nullptr;
-                {
-                    auto inheritedContexts = pLink->get_link_interface()->get_contexts();
-                    VERIFY_RTE( inheritedContexts.size() == 1 );
-                    pLinkInterface = db_cast< Interface::LinkInterface >( inheritedContexts.front() );
-                    VERIFY_RTE( pLinkInterface );
-                }
-
-                Link* pConcrete = database.construct< Link >(
-                    Link::Args{ Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pLink, {} },
-                                pLink, pLinkInterface } );
-                pParentContextGroup->push_back_children( pConcrete );
-                pConcrete->set_concrete_object( concreteObjectOpt );
-
-                IdentifierMap inheritedContexts;
-                {
-                    recurseInheritance( database, pConcrete, pLink, inheritedContexts );
-                    pConcrete->set_inheritance( inheritedContexts.inherited );
-                }
-
-                std::vector< ConcreteStage::Concrete::Context* >          childContexts;
-                std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-                constructElements(
-                    database, pConcrete, inheritedContexts, childContexts, dimensions, concreteObjectOpt, pComponent );
-                VERIFY_RTE( dimensions.empty() );
-
-                pConcrete->set_children( childContexts );
-
-                return pConcrete;
-            }
-            else
-            {
-                return nullptr;
-            }
         }
         else
         {

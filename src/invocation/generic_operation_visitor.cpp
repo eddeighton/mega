@@ -174,9 +174,9 @@ Concrete::ContextGroup* GenericOperationVisitor::findCommonRoot( Concrete::Conte
     return pCommonRoot;
 }
 
-bool GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFrom, Concrete::ContextGroup* pTo,
-                                                    Instructions::InstructionGroup*& pInstruction,
-                                                    Variables::Instance*&            pVariable ) const
+bool GenericOperationVisitor::inObjectDerivation( Concrete::ContextGroup* pFrom, Concrete::ContextGroup* pTo,
+                                                  Instructions::InstructionGroup*& pInstruction,
+                                                  Variables::Instance*&            pVariable ) const
 {
     if( pFrom && pFrom != pTo )
     {
@@ -243,6 +243,21 @@ bool GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
     return true;
 }
 
+bool GenericOperationVisitor::interObjectDerivation(
+    OperationsStage::Concrete::ContextGroup*                       pFromContextGroup,
+    OperationsStage::Concrete::ContextGroup*                       pTo,
+    OperationsStage::Invocations::Instructions::InstructionGroup*& pInstruction,
+    OperationsStage::Invocations::Variables::Instance*&            pVariable ) const
+{
+    using namespace OperationsStage;
+
+    auto pFrom = db_cast< Concrete::Context >( pFromContextGroup );
+
+    
+
+    return false;
+}
+
 void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name* prev,
                                               OperationsStage::Operations::Name& current,
                                               Instructions::InstructionGroup&    parentInstruction,
@@ -307,7 +322,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     THROW_INVOCATION_EXCEPTION( "Invalid invocation on object" );
             }
         }
-        else if( db_cast< Concrete::Link >( pCurrentConcrete ) )
+        /*else if( db_cast< Concrete::Link >( pCurrentConcrete ) )
         {
             using OperationsStage::Invocations::Instructions::Instruction;
             using OperationsStage::Invocations::Operations::BasicOperation;
@@ -317,9 +332,10 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
             {
                 case id_Imp_NoParams:
                 {
+                    THROW_TODO;
                     // derive directly to the concrete context
                     Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
-                    if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
+                    if( !inObjectDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
                         return;
 
                     using OperationsStage::Invocations::Operations::LinkOperation;
@@ -337,9 +353,10 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                 break;
                 case id_Imp_Params:
                 {
+                    THROW_TODO;
                     // derive directly to the concrete context
                     Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
-                    if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
+                    if( !inObjectDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
                         return;
 
                     using OperationsStage::Invocations::Operations::LinkOperation;
@@ -361,7 +378,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                     if( prev->get_element()->get_concrete()->get_context().has_value() )
                     {
                         Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
-                        if( !commonRootDerivation(
+                        if( !inObjectDerivation(
                                 pPrevConcrete, pCurrentConcrete->get_parent(), pInstruction, pInstance ) )
                             return;
                     }
@@ -377,7 +394,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                 {
                     // derive directly to the concrete context
                     Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
-                    if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
+                    if( !inObjectDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
                         return;
 
                     using OperationsStage::Invocations::Operations::Move;
@@ -390,7 +407,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                 default:
                     THROW_RTE( "Unreachable" );
             }
-        }
+        }*/
         else
         {
             // derive directly to the context for now NOT THE PARENT
@@ -405,7 +422,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                             if( pPrevConcreteContext.has_value() )
                             {
                                 Concrete::Context* pPrevConcrete = pPrevConcreteContext.value();
-                                if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
+                                if( !inObjectDerivation( pPrevConcrete, pCurrentConcrete, pInstruction, pInstance ) )
                                     return;
                             }
                         }
@@ -515,7 +532,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
         VERIFY( prev->get_element()->get_concrete()->get_context().has_value(), Exception, "" );
         Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
 
-        if( !commonRootDerivation( pPrevConcrete, pParent, pInstruction, pInstance ) )
+        if( !inObjectDerivation( pPrevConcrete, pParent, pInstruction, pInstance ) )
             return;
 
         using OperationsStage::Invocations::Instructions::Instruction;
@@ -632,7 +649,7 @@ void GenericOperationVisitor::buildGenerateName( OperationsStage::Operations::Na
         Concrete::Context*   pCurrentConcrete  = current.get_element()->get_concrete()->get_context().value();
         Interface::IContext* pCurrentInterface = current.get_element()->get_interface()->get_context().value();
 
-        if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete->get_parent(), pInstructionGroup, pVariable ) )
+        if( !inObjectDerivation( pPrevConcrete, pCurrentConcrete->get_parent(), pInstructionGroup, pVariable ) )
             return;
 
         buildDimensionReference( prev, current, *pInstructionGroup, *pVariable );
@@ -642,17 +659,62 @@ void GenericOperationVisitor::buildGenerateName( OperationsStage::Operations::Na
         Concrete::Context* pPrevConcrete    = prev->get_element()->get_concrete()->get_context().value();
         Concrete::Context* pCurrentConcrete = current.get_element()->get_concrete()->get_context().value();
 
-        if( !commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstructionGroup, pVariable ) )
-            return;
+        // determine whether in-object OR inter-object derivation step required
+        if( pPrevConcrete->get_concrete_id().getObjectID() == pCurrentConcrete->get_concrete_id().getObjectID() )
+        {
+            if( !inObjectDerivation( pPrevConcrete, pCurrentConcrete, pInstructionGroup, pVariable ) )
+                return;
 
+            if( names.size() > 1U )
+            {
+                pInstructionGroup = make_elim_ins( m_database, pInstructionGroup );
+            }
+
+            for( OperationsStage::Operations::Name* pChildName : names )
+            {
+                buildGenerateName( &current, *pChildName, *pInstructionGroup, *pVariable );
+            }
+        }
+        else
+        {
+            // attempt inter object link based derivation step
+            if( !interObjectDerivation( pPrevConcrete, pCurrentConcrete, pInstructionGroup, pVariable ) )
+                return;
+
+            if( names.size() > 1U )
+            {
+                pInstructionGroup = make_elim_ins( m_database, pInstructionGroup );
+            }
+
+            for( OperationsStage::Operations::Name* pChildName : names )
+            {
+                buildGenerateName( &current, *pChildName, *pInstructionGroup, *pVariable );
+            }
+        }
+    }
+}
+
+void GenericOperationVisitor::buildNameOrOperation( OperationsStage::Operations::Name* prev,
+                                                    OperationsStage::Operations::Name& current,
+                                                    Instructions::InstructionGroup&    parentInstruction,
+                                                    Variables::Instance&               instance )
+{
+    Instructions::InstructionGroup* pInstructionGroup = &parentInstruction;
+
+    auto names = current.get_children();
+    if( names.empty() )
+    {
+        buildOperation( prev, current, *pInstructionGroup, instance );
+    }
+    else
+    {
         if( names.size() > 1U )
         {
             pInstructionGroup = make_elim_ins( m_database, pInstructionGroup );
         }
-
         for( OperationsStage::Operations::Name* pChildName : names )
         {
-            buildGenerateName( &current, *pChildName, *pInstructionGroup, *pVariable );
+            buildGenerateName( &current, *pChildName, *pInstructionGroup, instance );
         }
     }
 }
@@ -668,7 +730,7 @@ void GenericOperationVisitor::buildPolyCase( OperationsStage::Operations::Name* 
     Concrete::Context* pContext = current.get_element()->get_concrete()->get_context().value();
     VERIFY( pContext, Exception, "" );
 
-    Variables::Instance* pInstance = make_variable< Variables::Instance >(
+    auto pInstance = make_variable< Variables::Instance >(
         m_database, m_pInvocation, Variables::Instance::Args{ Variables::Variable::Args{ &variable }, pContext } );
 
     {
@@ -676,23 +738,7 @@ void GenericOperationVisitor::buildPolyCase( OperationsStage::Operations::Name* 
             = make_ins_group< Instructions::PolyCase >( m_database, pInstructionGroup, &variable, pInstance );
     }
 
-    auto names = current.get_children();
-    if( names.empty() )
-    {
-        buildOperation( prev, current, *pInstructionGroup, *pInstance );
-    }
-    else
-    {
-        if( names.size() > 1U )
-        {
-            pInstructionGroup = make_elim_ins( m_database, pInstructionGroup );
-        }
-        ASSERT( !names.empty() );
-        for( OperationsStage::Operations::Name* pChildName : names )
-        {
-            buildGenerateName( &current, *pChildName, *pInstructionGroup, *pInstance );
-        }
-    }
+    buildNameOrOperation( prev, current, *pInstructionGroup, *pInstance );
 }
 
 void GenericOperationVisitor::buildMono( OperationsStage::Operations::Name* prev,
@@ -708,81 +754,65 @@ void GenericOperationVisitor::buildMono( OperationsStage::Operations::Name* prev
     Concrete::Context* pContext = current.get_element()->get_concrete()->get_context().value();
     VERIFY( pContext, Exception, "" );
 
-    Variables::Instance* pInstance = make_variable< Variables::Instance >(
+    auto pInstance = make_variable< Variables::Instance >(
         m_database, m_pInvocation, Variables::Instance::Args{ Variables::Variable::Args{ &variable }, pContext } );
 
     pInstructionGroup
         = make_ins_group< Instructions::MonoReference >( m_database, pInstructionGroup, pVariable, pInstance );
 
-    if( names.empty() )
-    {
-        buildOperation( prev, current, *pInstructionGroup, *pInstance );
-    }
-    else
-    {
-        if( names.size() > 1U )
-        {
-            pInstructionGroup = make_elim_ins( m_database, pInstructionGroup );
-        }
-        ASSERT( !names.empty() );
-        for( OperationsStage::Operations::Name* pChildName : names )
-        {
-            buildGenerateName( &current, *pChildName, *pInstructionGroup, *pInstance );
-        }
-    }
+    buildNameOrOperation( prev, current, *pInstructionGroup, *pInstance );
 }
 
 void GenericOperationVisitor::operator()()
 {
     OperationsStage::Operations::NameResolution* pNameResolution = m_pInvocation->get_name_resolution();
 
-    OperationsStage::Operations::NameRoot* pNameRoot = pNameResolution->get_root_name();
+    OperationsStage::Operations::NameRoot* pNameRoot        = pNameResolution->get_root_name();
+    const auto                             nameRootChildren = pNameRoot->get_children();
 
-    std::vector< Concrete::Context* > types;
-
-    for( OperationsStage::Operations::Name* pName : pNameRoot->get_children() )
+    Variables::Context* pInitialContext = nullptr;
     {
-        auto contextOpt = pName->get_element()->get_concrete()->get_context();
-        VERIFY( contextOpt.has_value(), Exception, "" );
-        types.push_back( contextOpt.value() );
+        std::vector< Concrete::Context* > types;
+
+        for( OperationsStage::Operations::Name* pName : nameRootChildren )
+        {
+            auto contextOpt = pName->get_element()->get_concrete()->get_context();
+            VERIFY( contextOpt.has_value(), Exception, "" );
+            types.push_back( contextOpt.value() );
+        }
+
+        // clang-format off
+        pInitialContext = make_variable< Variables::Context >(
+            m_database, m_pInvocation,
+            Variables::Context::Args
+            {
+                Variables::Reference::Args
+                { 
+                    Variables::Variable::Args
+                    { 
+                        std::optional< Variables::Variable* >() 
+                    }, 
+                    types 
+                } 
+            } );
+        // clang-format on
     }
 
-    // clang-format off
-    Variables::Context* pContext = make_variable< Variables::Context >(
-        m_database, m_pInvocation,
-        Variables::Context::Args
-        {
-            Variables::Reference::Args
-            { 
-                Variables::Variable::Args
-                { 
-                    std::optional< Variables::Variable* >() 
-                }, 
-                types 
-            } 
-        } );
-    // clang-format on
-
-    Instructions::Root* pRoot = make_ins_group< Instructions::Root >( m_database, nullptr, pContext );
-
+    auto pRoot = make_ins_group< Instructions::Root >( m_database, nullptr, pInitialContext );
     m_pInvocation->set_root_instruction( pRoot );
 
-    if( types.size() > 1 )
+    if( nameRootChildren.size() > 1 )
     {
-        Instructions::PolyReference* pPolyReference
-            = make_ins_group< Instructions::PolyReference >( m_database, pRoot, pContext );
-
-        for( OperationsStage::Operations::Name* pName : pNameRoot->get_children() )
+        auto pPolyReference = make_ins_group< Instructions::PolyReference >( m_database, pRoot, pInitialContext );
+        for( OperationsStage::Operations::Name* pName : nameRootChildren )
         {
-            buildPolyCase( nullptr, *pName, *pPolyReference, *pContext );
+            buildPolyCase( nullptr, *pName, *pPolyReference, *pInitialContext );
         }
     }
     else
     {
-        for( OperationsStage::Operations::Name* pName : pNameRoot->get_children() )
-        {
-            buildMono( nullptr, *pName, *pRoot, *pContext );
-        }
+        VERIFY( nameRootChildren.size() == 1, Exception, "Empty name resolution" );
+        buildMono( nullptr, *nameRootChildren.front(), *pRoot, *pInitialContext );
     }
 }
 

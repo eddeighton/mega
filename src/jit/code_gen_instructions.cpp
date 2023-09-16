@@ -150,6 +150,7 @@ void gen( Args args, FinalStage::Invocations::Instructions::MonoReference* pMono
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Allocate
+/*
 void gen( Args args, FinalStage::Invocations::Operations::Allocate* pAllocate )
 {
     using namespace FinalStage;
@@ -257,7 +258,7 @@ R"TEMPLATE(
     }
 
     args.data[ "assignments" ].push_back( os.str() );
-}
+}*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Move
@@ -311,7 +312,8 @@ R"TEMPLATE(
         std::ostringstream osRelationIDAsInt;
 
         Concrete::Context* pMoveContext = pInstance->get_concrete();
-        if( Concrete::Link* pMoveLinkContext = db_cast< Concrete::Link >( pMoveContext ) )
+        THROW_TODO;
+        /*if( Concrete::Link* pMoveLinkContext = db_cast< Concrete::Link >( pMoveContext ) )
         {
             auto pMovingObjectOpt = pMoveLinkContext->get_concrete_object();
             VERIFY_RTE_MSG( pMovingObjectOpt.has_value(), "Attempting to move link context that has no object" );
@@ -370,7 +372,7 @@ R"TEMPLATE(
 
         } );
 
-        os << args.inja.render( szTemplate, templateData );
+        os << args.inja.render( szTemplate, templateData );*/
     }
 
     args.data[ "assignments" ].push_back( os.str() );
@@ -730,7 +732,8 @@ R"TEMPLATE(
     // clang-format on
     std::ostringstream os;
     {
-        Concrete::Link*      pLink          = pReadLink->get_concrete_link();
+        THROW_TODO;
+        /*Concrete::Link*      pLink          = pReadLink->get_concrete_link();
         auto                 pLinkReference = pLink->get_link_reference();
         Variables::Instance* pInstance      = pReadLink->get_instance();
         MemoryLayout::Part*  pPart          = pLinkReference->get_part();
@@ -744,7 +747,7 @@ R"TEMPLATE(
                                        { "dimension_offset", pLinkReference->get_offset() },
                                        { "instance", args.get( pInstance ) } } );
 
-        os << args.inja.render( szTemplate, templateData );
+        os << args.inja.render( szTemplate, templateData );*/
     }
 
     args.data[ "assignments" ].push_back( os.str() );
@@ -793,9 +796,11 @@ R"TEMPLATE(
 
     std::ostringstream os;
     {
-        Concrete::Link*      pLink          = pWriteLink->get_concrete_link();
+        THROW_TODO;
+        /*Concrete::Link*      pLink          = pWriteLink->get_concrete_link();
         auto                 pLinkReference = pLink->get_link_reference();
         Variables::Instance* pInstance      = pWriteLink->get_instance();
+
         RelationID           relationID     = pLink->get_link_interface()->get_relation()->get_id();
 
         VERIFY_RTE_MSG( pInstance->get_concrete() == pLink, "Something is wrong!!" );
@@ -810,7 +815,7 @@ R"TEMPLATE(
 
         } );
 
-        os << args.inja.render( szTemplate, templateData );
+        os << args.inja.render( szTemplate, templateData );*/
     }
 
     args.data[ "assignments" ].push_back( os.str() );
@@ -957,11 +962,12 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
     {
         using namespace FinalStage::Invocations::Operations;
 
-        if( auto pAllocate = db_cast< Allocate >( pOperation ) )
+        THROW_TODO;
+        /*if( auto pAllocate = db_cast< Allocate >( pOperation ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pAllocate );
         }
-        else if( auto pCall = db_cast< Call >( pOperation ) )
+        else*/ if( auto pCall = db_cast< Call >( pOperation ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pCall );
         }

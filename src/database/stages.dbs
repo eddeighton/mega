@@ -65,8 +65,7 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Event > >;
     persource accessor array< ref< Interface::Function > >;
     persource accessor array< ref< Interface::Object > >;
-    persource accessor array< ref< Interface::LinkInterface > >;
-    persource accessor array< ref< Interface::Link > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor array< ref< Interface::Interupt > >;
 }
 
@@ -83,6 +82,7 @@ stage MetaStage
     persource accessor array< ref< Interface::Event > >;
     persource accessor array< ref< Interface::Interupt > >;
     persource accessor array< ref< Interface::DimensionTrait > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
 }
 
 stage DependencyAnalysis
@@ -118,6 +118,7 @@ stage SymbolAnalysis
 
     global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::DimensionTrait >;
+    persource accessor ref< Interface::LinkTrait >;
     persource accessor ref< Interface::IContext >;
 }
 
@@ -128,6 +129,7 @@ stage SymbolAnalysisView
 
     global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::DimensionTrait >;
+    persource accessor ref< Interface::LinkTrait >;
     persource accessor ref< Interface::IContext >;
 }
 
@@ -140,6 +142,7 @@ stage SymbolRollout
 
     global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::DimensionTrait >;
+    persource accessor ref< Interface::LinkTrait >;
     persource accessor ref< Interface::IContext >;
 }
 
@@ -171,6 +174,7 @@ stage ConcreteStage
     global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::Root >;
     persource accessor array< ref< Interface::DimensionTrait > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor array< ref< Parser::Dimension > >;
 }
 
@@ -183,6 +187,7 @@ stage DerivationAnalysis
 
     persource accessor array< ref< Concrete::Context > >;
     persource accessor array< ref< Concrete::Dimensions::User > >;
+    persource accessor array< ref< Concrete::Dimensions::Link > >;
 }
 
 stage DerivationAnalysisView
@@ -208,6 +213,7 @@ stage DerivationAnalysisRollout
 
     persource accessor array< ref< Interface::IContext > >;
     persource accessor array< ref< Interface::DimensionTrait > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
     global accessor ref< Derivation::Mapping >;
 }
 
@@ -218,8 +224,7 @@ stage HyperGraphAnalysis
 
     file Model;
 
-    persource accessor array< ref< Interface::Link > >;
-    persource accessor array< ref< Interface::LinkInterface > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor ref< Concrete::Root >;
 }
 
@@ -240,7 +245,7 @@ stage HyperGraphAnalysisRollout
 
     file PerSourceModel;
 
-    persource accessor array< ref< Interface::Link > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor array< ref< Concrete::Object > >;
     persource accessor ref< Concrete::Root >;
     global accessor ref< HyperGraph::Graph >;
@@ -287,7 +292,7 @@ stage ConcreteTypeAnalysis
 
     persource accessor ref< Concrete::Context >;
     persource accessor ref< Concrete::Dimensions::User >;
-    persource accessor ref< Concrete::Dimensions::LinkReference >;
+    persource accessor ref< Concrete::Dimensions::Link >;
     persource accessor ref< Concrete::Dimensions::Allocation >;
     global accessor ref< Symbols::SymbolTable >;
 
@@ -311,7 +316,7 @@ stage ConcreteTypeRollout
 
     persource accessor ref< Concrete::Context >;
     persource accessor ref< Concrete::Dimensions::User >;
-    persource accessor ref< Concrete::Dimensions::LinkReference >;
+    persource accessor ref< Concrete::Dimensions::Link >;
     persource accessor ref< Concrete::Dimensions::Allocation >;
     global accessor ref< Symbols::SymbolTable >;
 }
@@ -412,12 +417,11 @@ stage FinalStage
     persource accessor array< ref< Interface::InvocationContext > >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Operations::Invocations >;
-    persource accessor array< ref< Concrete::Link > >;
     persource accessor array< ref< Concrete::Object > >;
     persource accessor array< ref< Parser::SystemInclude > >;
     persource accessor array< ref< Parser::CPPInclude > >;
     persource accessor array< ref< Concrete::Dimensions::User > >;
-    persource accessor array< ref< Concrete::Dimensions::LinkReference > >;
+    persource accessor array< ref< Concrete::Dimensions::Link > >;
     persource accessor array< ref< Concrete::Dimensions::Allocation > >;
     
 }

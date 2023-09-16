@@ -48,7 +48,8 @@ void expandLinks( OperationsStage::Database& database, std::vector< Operations::
 
                 if( pConVar->get_context().has_value() )
                 {
-                    if( auto pLink = db_cast< Concrete::Link >( pConVar->get_context().value() ) )
+                    THROW_TODO;
+                   /*if( auto pLink = db_cast< Concrete::Link >( pConVar->get_context().value() ) )
                     {
                         bContinue = true;
                         pName->set_is_reference( true );
@@ -69,7 +70,7 @@ void expandLinks( OperationsStage::Database& database, std::vector< Operations::
                                 pName->push_back_children( pChildName );
                             }
                         }
-                    }
+                    }*/
                 }
             }
         }

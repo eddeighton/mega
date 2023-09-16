@@ -101,11 +101,11 @@ namespace Parser
         value< mega::U64 > source_loc_end;
     }
 
-    object LinkInterface -> ParserStage::AST
+    object Link -> ParserStage::AST
     {
-        value< mega::CardinalityRange >     cardinality;
-        value< mega::DerivationDirection >  derivation;
-        value< mega::Ownership >            ownership;
+        ref< Identifier >       id;
+        ref< ScopedIdentifier > type;
+        value< mega::CardinalityRange > cardinality;
     }
 
     object Dimension -> ParserStage::AST
@@ -159,6 +159,7 @@ namespace Parser
         ref< ScopedIdentifier > id;
         array< ref< ContextDef > > children;
         array< ref< Dimension > > dimensions;
+        array< ref< Link > > links;
         array< ref< Include > > includes;
         array< ref< Dependency > > dependencies;
         array< ref< Requirement > > requirements;
@@ -176,6 +177,20 @@ namespace Parser
     }
 
     object ActionDef : ContextDef -> ParserStage::AST
+    {
+        ref< Size > size;
+        ref< Inheritance > inheritance;
+        ref< Transition > transition;
+    }
+
+    object StateDef : ContextDef -> ParserStage::AST
+    {
+        ref< Size > size;
+        ref< Inheritance > inheritance;
+        ref< Transition > transition;
+    }
+
+    object ComponentDef : ContextDef -> ParserStage::AST
     {
         ref< Size > size;
         ref< Inheritance > inheritance;
@@ -204,16 +219,6 @@ namespace Parser
     {
         ref< Size > size;
         ref< Inheritance > inheritance;
-    }
-
-    object LinkDef : ContextDef -> ParserStage::AST
-    {
-        ref< Inheritance > target;
-    }
-
-    object LinkInterfaceDef : LinkDef -> ParserStage::AST
-    {
-        ref< LinkInterface > link_interface;
     }
 
     object SourceRoot  -> ParserStage::AST

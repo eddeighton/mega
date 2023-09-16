@@ -71,9 +71,9 @@ public:
     U64                                          getLocalDomainSize( TypeID concreteID ) const;
     std::vector< FinalStage::Concrete::Object* > getObjects() const;
 
-    std::vector< FinalStage::Concrete::Dimensions::User* >          getUserDimensions() const;
-    std::vector< FinalStage::Concrete::Dimensions::LinkReference* > getLinkDimensions() const;
-    std::vector< FinalStage::Concrete::Dimensions::Allocation* >    getAllocationDimensions() const;
+    std::vector< FinalStage::Concrete::Dimensions::User* >       getUserDimensions() const;
+    std::vector< FinalStage::Concrete::Dimensions::Link* >       getLinkDimensions() const;
+    std::vector< FinalStage::Concrete::Dimensions::Allocation* > getAllocationDimensions() const;
 
     using ConcreteToInterface = std::vector< std::pair< TypeID, TypeID > >;
     void getConcreteToInterface( ConcreteToInterface& concreteToInterface ) const;

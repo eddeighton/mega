@@ -184,6 +184,46 @@ private:
     }
 
     template < typename TContextType >
+    static std::vector< nlohmann::json > getLinkTraits( const nlohmann::json& typenames, TContextType* pContext,
+                                                        const std::vector< LinkTrait* >& linkTraits )
+    {
+        std::vector< nlohmann::json > traits;
+        for( LinkTrait* pLinkTrait : linkTraits )
+        {
+            nlohmann::json     traitNames = typenames;
+            std::ostringstream os;
+            os << pLinkTrait->get_id()->get_str();
+            traitNames.push_back( os.str() );
+
+            nlohmann::json trait_struct( { { "name", os.str() },
+                                           { "typeid", toHex( pLinkTrait->get_interface_id() ) },
+                                           { "types", traitNames },
+                                           { "traits", nlohmann::json::array() } } );
+
+            {
+                std::ostringstream osTrait;
+                {
+                    osTrait << "using Type = ";
+                    const auto pScopedID = pLinkTrait->get_type();
+                    bool       bFirst    = true;
+                    for( auto pID : pScopedID->get_ids() )
+                    {
+                        if( bFirst )
+                            bFirst = false;
+                        else
+                            osTrait << "::";
+                        osTrait << pID->get_str();
+                    }
+                }
+                trait_struct[ "traits" ].push_back( osTrait.str() );
+            }
+            traits.push_back( trait_struct );
+        }
+
+        return traits;
+    }
+
+    template < typename TContextType >
     static nlohmann::json getSizeTrait( const nlohmann::json& typenames, TContextType* pContext, SizeTrait* pSizeTrait )
     {
         nlohmann::json     traitNames = typenames;
@@ -349,11 +389,21 @@ public:
                             structs.push_back( trait );
                         }
                     }
-                    for( const nlohmann::json& trait :
-                         getDimensionTraits( typenames, pAbstract, pAbstract->get_dimension_traits() ) )
                     {
-                        contextData[ "trait_structs" ].push_back( trait );
-                        structs.push_back( trait );
+                        for( const nlohmann::json& trait :
+                             getDimensionTraits( typenames, pAbstract, pAbstract->get_dimension_traits() ) )
+                        {
+                            contextData[ "trait_structs" ].push_back( trait );
+                            structs.push_back( trait );
+                        }
+                    }
+                    {
+                        for( const nlohmann::json& trait :
+                             getLinkTraits( typenames, pAbstract, pAbstract->get_link_traits() ) )
+                        {
+                            contextData[ "trait_structs" ].push_back( trait );
+                            structs.push_back( trait );
+                        }
                     }
                     if( pAbstract->get_size_trait().has_value() )
                     {
@@ -383,11 +433,21 @@ public:
                             structs.push_back( trait );
                         }
                     }
-                    for( const nlohmann::json& trait :
-                         getDimensionTraits( typenames, pAction, pAction->get_dimension_traits() ) )
                     {
-                        contextData[ "trait_structs" ].push_back( trait );
-                        structs.push_back( trait );
+                        for( const nlohmann::json& trait :
+                             getDimensionTraits( typenames, pAction, pAction->get_dimension_traits() ) )
+                        {
+                            contextData[ "trait_structs" ].push_back( trait );
+                            structs.push_back( trait );
+                        }
+                    }
+                    {
+                        for( const nlohmann::json& trait :
+                             getLinkTraits( typenames, pAction, pAction->get_link_traits() ) )
+                        {
+                            contextData[ "trait_structs" ].push_back( trait );
+                            structs.push_back( trait );
+                        }
                     }
                     if( pAction->get_size_trait().has_value() )
                     {
@@ -421,11 +481,13 @@ public:
                             structs.push_back( trait );
                         }
                     }
-                    for( const nlohmann::json& trait :
-                         getDimensionTraits( typenames, pEvent, pEvent->get_dimension_traits() ) )
                     {
-                        contextData[ "trait_structs" ].push_back( trait );
-                        structs.push_back( trait );
+                        for( const nlohmann::json& trait :
+                             getDimensionTraits( typenames, pEvent, pEvent->get_dimension_traits() ) )
+                        {
+                            contextData[ "trait_structs" ].push_back( trait );
+                            structs.push_back( trait );
+                        }
                     }
                     if( pEvent->get_size_trait().has_value() )
                     {
@@ -509,11 +571,21 @@ public:
                             structs.push_back( trait );
                         }
                     }
-                    for( const nlohmann::json& trait :
-                         getDimensionTraits( typenames, pObject, pObject->get_dimension_traits() ) )
                     {
-                        contextData[ "trait_structs" ].push_back( trait );
-                        structs.push_back( trait );
+                        for( const nlohmann::json& trait :
+                             getDimensionTraits( typenames, pObject, pObject->get_dimension_traits() ) )
+                        {
+                            contextData[ "trait_structs" ].push_back( trait );
+                            structs.push_back( trait );
+                        }
+                    }
+                    {
+                        for( const nlohmann::json& trait :
+                             getLinkTraits( typenames, pObject, pObject->get_link_traits() ) )
+                        {
+                            contextData[ "trait_structs" ].push_back( trait );
+                            structs.push_back( trait );
+                        }
                     }
                     if( pObject->get_size_trait().has_value() )
                     {
@@ -522,21 +594,6 @@ public:
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
-                    templateEngine.renderContext( contextData, os );
-                }
-            }
-            {
-                if( Link* pLink = db_cast< Link >( pContext ) )
-                {
-                    VERIFY_RTE( !bFoundType );
-                    bFoundType = true;
-                    for( const nlohmann::json& trait :
-                         getInheritanceTraits( typenames, pLink, pLink->get_link_interface() ) )
-                    {
-                        contextData[ "trait_structs" ].push_back( trait );
-                        structs.push_back( trait );
-                    }
-
                     templateEngine.renderContext( contextData, os );
                 }
             }

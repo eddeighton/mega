@@ -362,16 +362,6 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
         addInheritance( pObject->get_inheritance_trait(), node );
         addProperties( node, pObject->get_dimension_traits() );
     }
-    else if( auto pLinkInterface = db_cast< LinkInterface >( pContext ) )
-    {
-        os << "LinkInterface: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
-        node[ "label" ] = os.str();
-    }
-    else if( auto pLink = db_cast< Link >( pContext ) )
-    {
-        os << "Link: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
-        node[ "label" ] = os.str();
-    }
     else
     {
         THROW_RTE( "Unknown context type" );
@@ -412,7 +402,7 @@ std::string getNodeInfo( FinalStage::Concrete::Dimensions::Allocation* pAllocati
     os << "(con:" << pAllocationDimension->get_concrete_id() << ")";
     return os.str();
 }
-std::string getNodeInfo( FinalStage::Concrete::Dimensions::LinkReference* pLinkDimension )
+std::string getNodeInfo( FinalStage::Concrete::Dimensions::Link* pLinkDimension )
 {
     std::ostringstream os;
     os << "(con:" << pLinkDimension->get_concrete_id() << ")";
@@ -490,11 +480,6 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
         node[ "label" ] = os.str();
         addProperties( node, pObject->get_dimensions() );
     }
-    else if( Link* pLink = db_cast< Link >( pContext ) )
-    {
-        os << "Link: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
-        node[ "label" ] = os.str();
-    }
     else
     {
         THROW_RTE( "Unknown context type" );
@@ -559,7 +544,7 @@ void generateInterfaceGraphVizConcrete( std::ostream&          os,
     }
     os << data;
 }
-
+/*
 void createGraphNode( std::set< FinalStage::Interface::Link* >& links, FinalStage::Interface::Link* pLink,
                       nlohmann::json& data, bool bInterface )
 {
@@ -641,7 +626,7 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
         }
     }
     os << data;
-}
+}*/
 
 void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
 {
@@ -673,7 +658,7 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
         node[ "label" ] = os.str();
         data[ "nodes" ].push_back( node );
     }
-    else if( Link* pLink = db_cast< Link >( pContext ) )
+    /*else if( Link* pLink = db_cast< Link >( pContext ) )
     {
         {
             nlohmann::json node;
@@ -729,7 +714,7 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
         {
             THROW_RTE( "Invalid relation" );
         }
-    }
+    }*/
     else
     {
         THROW_RTE( "Unknown context type" );
@@ -739,14 +724,15 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
     {
         recurseTree( data, pChildContext );
 
-        if( db_cast< Object >( pChildContext ) || db_cast< Link >( pChildContext ) )
+        THROW_TODO;
+        /*if( db_cast< Object >( pChildContext ) || db_cast< Link >( pChildContext ) )
         {
             nlohmann::json edge
                 = nlohmann::json::object( { { "from", getContextFullTypeName< Concrete::Context >( pContext ) },
                                             { "to", getContextFullTypeName< Concrete::Context >( pChildContext ) },
                                             { "colour", "000000" } } );
             data[ "edges" ].push_back( edge );
-        }
+        }*/
     }
 }
 
@@ -889,7 +875,8 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
             THROW_RTE( "Unknown allocator dimension type" );
         }
     }
-    for( auto p : pPart->get_link_dimensions() )
+    THROW_TODO;
+    /*for( auto p : pPart->get_link_dimensions() )
     {
         Concrete::Link* pLink = p->get_link();
 
@@ -914,7 +901,7 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
                   getNodeInfo( p ) << " offset " << p->get_offset() << " value " << osValue.str() );
             node[ "properties" ].push_back( property );
         }
-    }
+    }*/
     data[ "nodes" ].push_back( node );
     return osName.str();
 }
@@ -1010,6 +997,8 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
                 { { "from", osObjectName.str() }, { "to", osName.str() }, { "colour", "0000FF" } } ) );
         }
 
+    THROW_TODO;
+    /*
         for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
         {
             nlohmann::json dataNode;
@@ -1026,7 +1015,7 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
 
             data[ "edges" ].push_back( nlohmann::json::object(
                 { { "from", osObjectName.str() }, { "to", osName.str() }, { "colour", "00FF00" } } ) );
-        }
+        }*/
     }
 
     os << data;
@@ -1214,7 +1203,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
             }
             else if( strGraphType == "hyper" )
             {
-                generateHyperGraphViz( osOutput, *pEnvironment, manifest );
+                THROW_TODO;
+                //generateHyperGraphViz( osOutput, *pEnvironment, manifest );
             }
             else if( strGraphType == "tree" )
             {

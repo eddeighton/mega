@@ -97,7 +97,8 @@ void JITDatabase::getConcreteToInterface( ConcreteToInterface& objectTypes ) con
 
 void JITDatabase::getConcreteToLinkInterface( ConcreteToInterface& objectTypes ) const
 {
-    using namespace FinalStage;
+    THROW_TODO;
+    /*using namespace FinalStage;
     for( const auto& [ id, pConcreteTypeID ] : m_concreteTypeIDs )
     {
         if( pConcreteTypeID->get_context().has_value() )
@@ -123,12 +124,12 @@ void JITDatabase::getConcreteToLinkInterface( ConcreteToInterface& objectTypes )
         {
             THROW_RTE( "Unreachable" );
         }
-    }
+    }*/
 }
 
 FinalStage::HyperGraph::Relation* JITDatabase::getRelation( const RelationID& relationID ) const
 {
-    auto iFind = m_relations.find( relationID );
+    auto    iFind = m_relations.find( relationID );
     using ::operator<<;
     VERIFY_RTE_MSG( iFind != m_relations.end(), "Failed to locate relation: " << relationID );
     return iFind->second;
@@ -209,7 +210,7 @@ JITDatabase::getExistingInvocation( const mega::InvocationID& invocation ) const
 const FinalStage::Operations::Invocation* JITDatabase::getInvocation( const mega::InvocationID& invocation ) const
 {
     const FinalStage::Operations::Invocation* pInvocation = getExistingInvocation( invocation );
-    using ::operator<<;
+    using ::                                  operator<<;
     VERIFY_RTE_MSG( pInvocation, "Failed to locate invocation: " << invocation );
     return pInvocation;
 }
@@ -220,7 +221,7 @@ const FinalStage::Operations::Invocation* JITDatabase::tryGetInvocation( const I
 }
 
 void JITDatabase::addDynamicInvocation( const InvocationID&                       invocationID,
-                                             const FinalStage::Operations::Invocation* pInvocation )
+                                        const FinalStage::Operations::Invocation* pInvocation )
 {
     m_dynamicInvocations.insert( { invocationID, pInvocation } );
 }
@@ -301,8 +302,8 @@ FinalStage::Interface::Action* JITDatabase::getAction( mega::TypeID interfaceTyp
     VERIFY_RTE_MSG( interfaceTypeID != mega::TypeID{}, "Null TypeID in getAction" );
     auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
     VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate interface type id: " << interfaceTypeID );
-    auto pInterfaceTypeID = iFind->second;
-    FinalStage::Interface::Action* pAction = nullptr;
+    auto                           pInterfaceTypeID = iFind->second;
+    FinalStage::Interface::Action* pAction          = nullptr;
     if( pInterfaceTypeID->get_context().has_value() )
     {
         pAction = FinalStage::db_cast< FinalStage::Interface::Action >( pInterfaceTypeID->get_context().value() );
@@ -366,10 +367,6 @@ mega::U64 JITDatabase::getLocalDomainSize( mega::TypeID concreteID ) const
         {
             return pAction->get_local_size();
         }
-        else if( auto pLink = db_cast< Concrete::Link >( pContext ) )
-        {
-            return 1;
-        }
         else
         {
             return 1;
@@ -405,9 +402,9 @@ std::vector< FinalStage::Concrete::Dimensions::User* > JITDatabase::getUserDimen
     return getPerCompilationFileType< FinalStage::Concrete::Dimensions::User >( m_manifest, m_database );
 }
 
-std::vector< FinalStage::Concrete::Dimensions::LinkReference* > JITDatabase::getLinkDimensions() const
+std::vector< FinalStage::Concrete::Dimensions::Link* > JITDatabase::getLinkDimensions() const
 {
-    return getPerCompilationFileType< FinalStage::Concrete::Dimensions::LinkReference >( m_manifest, m_database );
+    return getPerCompilationFileType< FinalStage::Concrete::Dimensions::Link >( m_manifest, m_database );
 }
 
 std::vector< FinalStage::Concrete::Dimensions::Allocation* > JITDatabase::getAllocationDimensions() const

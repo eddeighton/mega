@@ -86,7 +86,7 @@ public:
         typename Context        = ConcreteTypeAnalysis::Concrete::Context,
         typename ContextGroup   = ConcreteTypeAnalysis::Concrete::ContextGroup,
         typename DimUser        = ConcreteTypeAnalysis::Concrete::Dimensions::User,
-        typename DimLink        = ConcreteTypeAnalysis::Concrete::Dimensions::LinkReference,
+        typename DimLink        = ConcreteTypeAnalysis::Concrete::Dimensions::Link,
         typename DimAlloc       = ConcreteTypeAnalysis::Concrete::Dimensions::Allocation,
         typename DimAllocator   = ConcreteTypeAnalysis::Concrete::Dimensions::Allocator
     >
@@ -107,6 +107,7 @@ public:
 
         TypeID getTypeID( const IContext* pIContext ) const { return pIContext->get_interface_id(); }
         TypeID getTypeID( const IDim* pIDim ) const { return pIDim->get_interface_id(); }
+        TypeID getTypeID( const ILink* pILink ) const { return pILink->get_interface_id(); }
 
         void recurse( ContextGroup* pContextGroup, TypeIDSequence& sequence ) const
         {
@@ -119,29 +120,21 @@ public:
 
         TypeIDSequence operator()( Context* pContext ) const
         {
-            // just get the path of interface ID to the root
             TypeIDSequence sequence{ getTypeID( pContext->get_interface() ) };
             recurse( pContext->get_parent(), sequence );
             return sequence;
         }
         TypeIDSequence operator()( DimUser* pDimUser ) const
         {
-            // just get the path of interface ID to the root
             TypeIDSequence sequence{ getTypeID( pDimUser->get_interface_dimension() ) };
             recurse( pDimUser->get_parent(), sequence );
             return sequence;
         }
-        TypeIDSequencePair operator()( DimLink* pDimLink ) const
+        TypeIDSequence operator()( DimLink* pDimLink ) const
         {
-            // combine the link reference parent path to root with
-            // the link context itself
-            TypeIDSequence linkInterfaceIDPath{ getTypeID( pDimLink->get_link()->get_interface() ) };
-            recurse( pDimLink->get_link(), linkInterfaceIDPath );
-
-            TypeIDSequence linkReferenceIDPath{ getTypeID( pDimLink->get_parent()->get_interface() ) };
-            recurse( pDimLink->get_parent(), linkReferenceIDPath );
-
-            return TypeIDSequencePair{ linkInterfaceIDPath, linkReferenceIDPath };
+            TypeIDSequence sequence{ getTypeID( pDimLink->get_interface_link() ) };
+            recurse( pDimLink->get_parent(), sequence );
+            return sequence;
         }
         TypeIDSequence operator()( DimAlloc* pDimAlloc ) const
         {
@@ -168,19 +161,18 @@ public:
         const std::map< mega::TypeIDSequence, ConcreteTypeAnalysisView::Symbols::ConcreteTypeID* >&
             oldConcreteTypeIDSequences,
         const std::map< mega::TypeIDSequence, ConcreteTypeAnalysisView::Symbols::ConcreteTypeID* >& oldAllocIDSequences,
-        const std::map< mega::TypeIDSequencePair, ConcreteTypeAnalysisView::Symbols::ConcreteTypeID* >&
-            oldLinkIDSequences )
+        const std::map< mega::TypeIDSequence, ConcreteTypeAnalysisView::Symbols::ConcreteTypeID* >& oldLinkIDSequences )
     {
         namespace New = ConcreteTypeAnalysis;
 
         using NewTypeIDSequenceMap = std::map< mega::TypeIDSequence, New::Symbols::ConcreteTypeID* >;
         using NewTypeIDMap         = std::map< mega::TypeID, New::Symbols::ConcreteTypeID* >;
 
-        NewTypeIDSequenceMap                                                new_concrete_type_id_sequences;
-        std::map< mega::TypeIDSequence, New::Symbols::ConcreteTypeID* >     new_concrete_type_id_seq_alloc;
-        std::map< mega::TypeIDSequencePair, New::Symbols::ConcreteTypeID* > new_concrete_type_id_set_link;
-        NewTypeIDMap                                                        new_concrete_type_ids;
-        std::set< TypeID >                                                  usedTypeIDs;
+        NewTypeIDSequenceMap                                            new_concrete_type_id_sequences;
+        std::map< mega::TypeIDSequence, New::Symbols::ConcreteTypeID* > new_concrete_type_id_seq_alloc;
+        std::map< mega::TypeIDSequence, New::Symbols::ConcreteTypeID* > new_concrete_type_id_set_link;
+        NewTypeIDMap                                                    new_concrete_type_ids;
+        std::set< TypeID >                                              usedTypeIDs;
 
         TypeIDSequenceGen< New::Symbols::ConcreteTypeID,
                            New::Interface::IContext,
@@ -189,7 +181,7 @@ public:
                            New::Concrete::Context,
                            New::Concrete::ContextGroup,
                            New::Concrete::Dimensions::User,
-                           New::Concrete::Dimensions::LinkReference,
+                           New::Concrete::Dimensions::Link,
                            New::Concrete::Dimensions::Allocation,
                            New::Concrete::Dimensions::Allocator >
             idgen( &New::db_cast< New::Concrete::Context, New::Concrete::ContextGroup >,
@@ -271,13 +263,13 @@ public:
                 }
                 VERIFY_RTE( new_concrete_type_id_sequences.insert( { idSeq, pNewConcreteSymbol } ).second );
             }
-            for( New::Concrete::Dimensions::LinkReference* pLinkDimension :
-                 newDatabase.many< New::Concrete::Dimensions::LinkReference >( newSourceFile ) )
+            for( New::Concrete::Dimensions::Link* pLinkDimension :
+                 newDatabase.many< New::Concrete::Dimensions::Link >( newSourceFile ) )
             {
-                const TypeIDSequencePair      idSeqPair          = idgen( pLinkDimension );
+                const TypeIDSequence          idSeq              = idgen( pLinkDimension );
                 New::Symbols::ConcreteTypeID* pNewConcreteSymbol = nullptr;
                 {
-                    auto iFind = oldLinkIDSequences.find( idSeqPair );
+                    auto iFind = oldLinkIDSequences.find( idSeq );
                     if( iFind != oldLinkIDSequences.end() )
                     {
                         auto         pOldConcreteTypeID = iFind->second;
@@ -295,7 +287,7 @@ public:
                                 TypeID{}, std::nullopt, std::nullopt, pLinkDimension, std::nullopt } );
                     }
                 }
-                VERIFY_RTE( new_concrete_type_id_set_link.insert( { idSeqPair, pNewConcreteSymbol } ).second );
+                VERIFY_RTE( new_concrete_type_id_set_link.insert( { idSeq, pNewConcreteSymbol } ).second );
             }
             for( New::Concrete::Dimensions::Allocation* pAllocationDimension :
                  newDatabase.many< New::Concrete::Dimensions::Allocation >( newSourceFile ) )
@@ -527,7 +519,7 @@ public:
                         = pOldSymbolTable->get_concrete_type_id_sequences();
                     const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* > oldAllocIDSequences
                         = pOldSymbolTable->get_concrete_type_id_seq_alloc();
-                    const std::map< mega::TypeIDSequencePair, Old::Symbols::ConcreteTypeID* > oldLinkIDSequences
+                    const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* > oldLinkIDSequences
                         = pOldSymbolTable->get_concrete_type_id_set_link();
 
                     calculateSymbolTable( newDatabase,
@@ -560,9 +552,9 @@ public:
             {
                 Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( manifestFilePath );
                 namespace Old                      = ConcreteTypeAnalysisView;
-                const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* >     oldConcreteTypeIDSequences;
-                const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* >     oldAllocIDSequences;
-                const std::map< mega::TypeIDSequencePair, Old::Symbols::ConcreteTypeID* > oldLinkIDSequences;
+                const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* > oldConcreteTypeIDSequences;
+                const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* > oldAllocIDSequences;
+                const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* > oldLinkIDSequences;
 
                 calculateSymbolTable(
                     database, pSymbolTable, oldConcreteTypeIDSequences, oldAllocIDSequences, oldLinkIDSequences );
@@ -620,7 +612,7 @@ public:
             = pSymbolTable->get_concrete_type_id_sequences();
         const std::map< mega::TypeIDSequence, Symbols::ConcreteTypeID* > oldAllocIDSequences
             = pSymbolTable->get_concrete_type_id_seq_alloc();
-        const std::map< mega::TypeIDSequencePair, Symbols::ConcreteTypeID* > oldLinkIDSequences
+        const std::map< mega::TypeIDSequence, Symbols::ConcreteTypeID* > oldLinkIDSequences
             = pSymbolTable->get_concrete_type_id_set_link();
 
         Task_ConcreteTypeAnalysis::TypeIDSequenceGen< Symbols::ConcreteTypeID,
@@ -630,7 +622,7 @@ public:
                                                       Concrete::Context,
                                                       Concrete::ContextGroup,
                                                       Concrete::Dimensions::User,
-                                                      Concrete::Dimensions::LinkReference,
+                                                      Concrete::Dimensions::Link,
                                                       Concrete::Dimensions::Allocation,
                                                       Concrete::Dimensions::Allocator >
             idgen( &db_cast< Concrete::Context, Concrete::ContextGroup >,
@@ -649,13 +641,13 @@ public:
             database.construct< Concrete::Dimensions::User >(
                 Concrete::Dimensions::User::Args{ pUserDimension, iFind->second->get_id() } );
         }
-        for( auto pLinkDimension : database.many< Concrete::Dimensions::LinkReference >( m_sourceFilePath ) )
+        for( auto pLinkDimension : database.many< Concrete::Dimensions::Link >( m_sourceFilePath ) )
         {
-            const TypeIDSequencePair idSeqPair = idgen( pLinkDimension );
-            auto                     iFind     = oldLinkIDSequences.find( idSeqPair );
+            const TypeIDSequence idSeq = idgen( pLinkDimension );
+            auto                 iFind = oldLinkIDSequences.find( idSeq );
             VERIFY_RTE( iFind != oldLinkIDSequences.end() );
-            database.construct< Concrete::Dimensions::LinkReference >(
-                Concrete::Dimensions::LinkReference::Args{ pLinkDimension, iFind->second->get_id() } );
+            database.construct< Concrete::Dimensions::Link >(
+                Concrete::Dimensions::Link::Args{ pLinkDimension, iFind->second->get_id() } );
         }
         for( auto pAllocationDimension : database.many< Concrete::Dimensions::Allocation >( m_sourceFilePath ) )
         {

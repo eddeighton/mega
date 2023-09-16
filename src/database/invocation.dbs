@@ -146,8 +146,8 @@ namespace Invocations
         }
         object LinkOperation : Operation -> OperationsStage::Operations
         {
-            ref< Interface::Link > interface_link;
-            ref< Concrete::Link > concrete_link;
+            ref< Interface::LinkTrait > interface_link;
+            ref< Concrete::Dimensions::Link > concrete_link;
         }
 
         object Allocate : BasicOperation -> OperationsStage::Operations

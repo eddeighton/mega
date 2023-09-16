@@ -39,6 +39,8 @@ class Task_Derivation : public BaseTask
         = std::multimap< DerivationAnalysis::Interface::IContext*, DerivationAnalysis::Concrete::Context* >;
     using DimensionMap = std::multimap< DerivationAnalysis::Interface::DimensionTrait*,
                                         DerivationAnalysis::Concrete::Dimensions::User* >;
+    using LinkMap
+        = std::multimap< DerivationAnalysis::Interface::LinkTrait*, DerivationAnalysis::Concrete::Dimensions::Link* >;
 
 public:
     Task_Derivation( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
@@ -55,11 +57,12 @@ public:
         {
         }
 
-        void addInheritance( ContextMap& contextInheritance, DerivationAnalysis::Interface::IContext* pIContext, DerivationAnalysis::Concrete::Context* pContext ) const
+        void addInheritance( ContextMap& contextInheritance, DerivationAnalysis::Interface::IContext* pIContext,
+                             DerivationAnalysis::Concrete::Context* pContext ) const
         {
             using namespace DerivationAnalysis;
             using namespace DerivationAnalysis::Derivation;
-            
+
             contextInheritance.insert( { pIContext, pContext } );
 
             if( auto pAbstract = db_cast< Interface::Abstract >( pIContext ) )
@@ -113,7 +116,7 @@ public:
 
             ContextMap contextInheritance;
             {
-                for ( Concrete::Context* pContext : database.many< Concrete::Context >( sourceFilePath ) )
+                for( Concrete::Context* pContext : database.many< Concrete::Context >( sourceFilePath ) )
                 {
                     Interface::IContext* pIContext = pContext->get_interface();
                     addInheritance( contextInheritance, pIContext, pContext );
@@ -122,15 +125,22 @@ public:
 
             DimensionMap dimensionInheritance;
             {
-                for ( Concrete::Dimensions::User* pDimension :
-                      database.many< Concrete::Dimensions::User >( sourceFilePath ) )
+                for( Concrete::Dimensions::User* pDimension :
+                     database.many< Concrete::Dimensions::User >( sourceFilePath ) )
                 {
                     dimensionInheritance.insert( { pDimension->get_interface_dimension(), pDimension } );
                 }
             }
+            LinkMap linkInheritance;
+            {
+                for( Concrete::Dimensions::Link* pLink : database.many< Concrete::Dimensions::Link >( sourceFilePath ) )
+                {
+                    linkInheritance.insert( { pLink->get_interface_link(), pLink } );
+                }
+            }
 
-            ObjectMapping* pObjectMapping = database.construct< ObjectMapping >(
-                ObjectMapping::Args{ sourceFilePath, interfaceHash.get(), contextInheritance, dimensionInheritance } );
+            ObjectMapping* pObjectMapping = database.construct< ObjectMapping >( ObjectMapping::Args{
+                sourceFilePath, interfaceHash.get(), contextInheritance, dimensionInheritance, linkInheritance } );
 
             return pObjectMapping;
         }
@@ -144,7 +154,7 @@ public:
 
             ContextMap contextInheritance;
             {
-                for ( auto& [ pFrom, pTo ] : pOldObjectMapping->get_inheritance_contexts() )
+                for( auto& [ pFrom, pTo ] : pOldObjectMapping->get_inheritance_contexts() )
                 {
                     contextInheritance.insert( { database.convert< Interface::IContext >( pFrom ),
                                                  database.convert< Concrete::Context >( pTo ) } );
@@ -152,16 +162,24 @@ public:
             }
             DimensionMap dimensionInheritance;
             {
-                for ( auto& [ pFrom, pTo ] : pOldObjectMapping->get_inheritance_dimensions() )
+                for( auto& [ pFrom, pTo ] : pOldObjectMapping->get_inheritance_dimensions() )
                 {
                     dimensionInheritance.insert( { database.convert< Interface::DimensionTrait >( pFrom ),
                                                    database.convert< Concrete::Dimensions::User >( pTo ) } );
                 }
             }
+            LinkMap linkInheritance;
+            {
+                for( auto& [ pFrom, pTo ] : pOldObjectMapping->get_inheritance_links() )
+                {
+                    linkInheritance.insert( { database.convert< Interface::LinkTrait >( pFrom ),
+                                              database.convert< Concrete::Dimensions::Link >( pTo ) } );
+                }
+            }
 
             ObjectMapping* pObjectMapping = database.construct< ObjectMapping >(
                 ObjectMapping::Args{ pOldObjectMapping->get_source_file(), pOldObjectMapping->get_hash_code(),
-                                     contextInheritance, dimensionInheritance } );
+                                     contextInheritance, dimensionInheritance, linkInheritance } );
 
             return pObjectMapping;
         }
@@ -171,7 +189,7 @@ public:
     PathSet getSortedSourceFiles() const
     {
         PathSet sourceFiles;
-        for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
             sourceFiles.insert( sourceFilePath );
         }
@@ -187,19 +205,25 @@ public:
 
         ContextMap   contextInheritance;
         DimensionMap dimensionInheritance;
+        LinkMap      linkInheritance;
 
-        for ( ObjectMapping* pObjectMapping : mappings )
+        for( ObjectMapping* pObjectMapping : mappings )
         {
-            for ( auto& [ pFrom, pTo ] : pObjectMapping->get_inheritance_contexts() )
+            for( auto& [ pFrom, pTo ] : pObjectMapping->get_inheritance_contexts() )
             {
                 contextInheritance.insert( { pFrom, pTo } );
             }
-            for ( auto& [ pFrom, pTo ] : pObjectMapping->get_inheritance_dimensions() )
+            for( auto& [ pFrom, pTo ] : pObjectMapping->get_inheritance_dimensions() )
             {
                 dimensionInheritance.insert( { pFrom, pTo } );
             }
+            for( auto& [ pFrom, pTo ] : pObjectMapping->get_inheritance_links() )
+            {
+                linkInheritance.insert( { pFrom, pTo } );
+            }
         }
-        database.construct< Mapping >( Mapping::Args{ mappings, contextInheritance, dimensionInheritance } );
+        database.construct< Mapping >(
+            Mapping::Args{ mappings, contextInheritance, dimensionInheritance, linkInheritance } );
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
@@ -210,12 +234,12 @@ public:
         start( taskProgress, "Task_Derivation", manifestFilePath.path(), dependencyCompilationFilePath.path() );
 
         task::DeterminantHash determinant( m_toolChain.toolChainHash );
-        for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+        for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
             determinant ^= m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
         }
 
-        if ( m_environment.restore( dependencyCompilationFilePath, determinant ) )
+        if( m_environment.restore( dependencyCompilationFilePath, determinant ) )
         {
             m_environment.setBuildHashCode( dependencyCompilationFilePath );
             cached( taskProgress );
@@ -240,7 +264,7 @@ public:
         } hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
         bool bReusedOldDatabase = false;
-        if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
+        if( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
         {
             try
             {
@@ -295,7 +319,7 @@ public:
                             {
                                 const Old::Derivation::ObjectMapping* pDependencies = *i;
                                 const task::DeterminantHash           interfaceHash = hashCodeGenerator( *j );
-                                if ( interfaceHash == pDependencies->get_hash_code() )
+                                if( interfaceHash == pDependencies->get_hash_code() )
                                 {
                                     // since the code is NOT modified - can re use the globs from previous
                                     newObjectMappings.push_back(
@@ -361,13 +385,13 @@ public:
                 succeeded( taskProgress );
                 bReusedOldDatabase = true;
             }
-            catch ( mega::io::DatabaseVersionException& )
+            catch( mega::io::DatabaseVersionException& )
             {
                 bReusedOldDatabase = false;
             }
         }
 
-        if ( !bReusedOldDatabase )
+        if( !bReusedOldDatabase )
         {
             using namespace DerivationAnalysis;
             using namespace DerivationAnalysis::Derivation;
@@ -377,7 +401,7 @@ public:
                 std::vector< ObjectMapping* > mappings;
                 const PathSet                 sourceFiles = getSortedSourceFiles();
                 {
-                    for ( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
+                    for( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
                     {
                         const task::DeterminantHash interfaceHash = hashCodeGenerator( sourceFilePath );
                         mappings.push_back(
@@ -411,6 +435,8 @@ class Task_DerivationRollout : public BaseTask
                                       DerivationAnalysisRollout::Concrete::Context* >;
     using DimensionMap = std::multimap< DerivationAnalysisRollout::Interface::DimensionTrait*,
                                         DerivationAnalysisRollout::Concrete::Dimensions::User* >;
+    using LinkMap      = std::multimap< DerivationAnalysisRollout::Interface::LinkTrait*,
+                                   DerivationAnalysisRollout::Concrete::Dimensions::Link* >;
 
 public:
     Task_DerivationRollout( const TaskArguments& taskArguments, const mega::io::megaFilePath& megaSourceFilePath )
@@ -429,7 +455,7 @@ public:
 
         const task::DeterminantHash determinant = { m_environment.getBuildHashCode( analysisCompilationFilePath ) };
 
-        if ( m_environment.restore( rolloutCompilationFilePath, determinant ) )
+        if( m_environment.restore( rolloutCompilationFilePath, determinant ) )
         {
             m_environment.setBuildHashCode( rolloutCompilationFilePath );
             cached( taskProgress );
@@ -443,42 +469,43 @@ public:
         const Derivation::Mapping* pMapping = database.one< Derivation::Mapping >( m_environment.project_manifest() );
         {
             const ContextMap contexts = pMapping->get_inheritance_contexts();
-            for ( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
+            for( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
             {
                 std::vector< Concrete::Context* > concreteInheritors;
-                for ( ContextMap::const_iterator i    = contexts.lower_bound( pContext ),
-                                                 iEnd = contexts.upper_bound( pContext );
-                      i != iEnd;
-                      ++i )
+                for( auto i = contexts.lower_bound( pContext ), iEnd = contexts.upper_bound( pContext ); i != iEnd;
+                     ++i )
                 {
                     concreteInheritors.push_back( i->second );
                 }
-                //VERIFY_RTE_MSG( !concreteInheritors.empty(),
-                //                "Could not find concrete inheritors for context: " << pContext->get_identifier() << " "
-                //                                                                   << pContext->get_interface_id() );
-                // reconstruct
                 database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, concreteInheritors } );
             }
         }
         {
             const DimensionMap dimensions = pMapping->get_inheritance_dimensions();
-            for ( Interface::DimensionTrait* pDimension :
-                  database.many< Interface::DimensionTrait >( m_sourceFilePath ) )
+            for( Interface::DimensionTrait* pDimension :
+                 database.many< Interface::DimensionTrait >( m_sourceFilePath ) )
             {
                 std::vector< Concrete::Dimensions::User* > dimensionInheritors;
-                for ( DimensionMap::const_iterator i    = dimensions.lower_bound( pDimension ),
-                                                   iEnd = dimensions.upper_bound( pDimension );
-                      i != iEnd;
-                      ++i )
+                for( auto i = dimensions.lower_bound( pDimension ), iEnd = dimensions.upper_bound( pDimension );
+                     i != iEnd;
+                     ++i )
                 {
                     dimensionInheritors.push_back( i->second );
                 }
-                //VERIFY_RTE_MSG( !dimensionInheritors.empty(),
-                //                "Could not find concrete inheritors for dimension: "
-                //                    << pDimension->get_id()->get_str() << " " << pDimension->get_interface_id() );
-                // reconstruct
                 database.construct< Interface::DimensionTrait >(
                     Interface::DimensionTrait::Args{ pDimension, dimensionInheritors } );
+            }
+        }
+        {
+            const LinkMap links = pMapping->get_inheritance_links();
+            for( Interface::LinkTrait* pLink : database.many< Interface::LinkTrait >( m_sourceFilePath ) )
+            {
+                std::vector< Concrete::Dimensions::Link* > linkInheritors;
+                for( auto i = links.lower_bound( pLink ), iEnd = links.upper_bound( pLink ); i != iEnd; ++i )
+                {
+                    linkInheritors.push_back( i->second );
+                }
+                database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLink, linkInheritors } );
             }
         }
 

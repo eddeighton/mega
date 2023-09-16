@@ -65,10 +65,11 @@ const std::string& getIdentifier( FinalStage::Concrete::Dimensions::User* pDim )
 {
     return pDim->get_interface_dimension()->get_id()->get_str();
 }
-const std::string& getIdentifier( FinalStage::Concrete::Dimensions::LinkReference* pLink )
+/*
+const std::string& getIdentifier( FinalStage::Concrete::Dimensions::Link* pLink )
 {
     return pLink->get_link()->get_link()->get_identifier();
-}
+}*/
 
 template < typename TContextType >
 std::string getContextFullTypeName( TContextType* pContext, std::string strDelim = "_" )
@@ -159,9 +160,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     }
                     else if( pConcreteTypeID->get_dim_link().has_value() )
                     {
-                        auto pLink = pConcreteTypeID->get_dim_link().value();
+                        THROW_TODO;
+                        /*auto pLink = pConcreteTypeID->get_dim_link().value();
                         std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent() )
-                                  << "::" << getIdentifier( pLink ) << "\n";
+                                  << "::" << getIdentifier( pLink ) << "\n";*/
                     }
                     else if( pConcreteTypeID->get_dim_allocation().has_value() )
                     {

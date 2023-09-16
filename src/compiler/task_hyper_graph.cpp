@@ -45,157 +45,212 @@ public:
     {
     }
 
-    HyperGraphAnalysis::Interface::IContext* getLinkTarget( HyperGraphAnalysis::Interface::Link* pLink ) const
-    {
-        const auto targets = pLink->get_link_interface()->get_contexts();
-        VERIFY_RTE( targets.size() == 1 );
-        return targets.front();
-    }
+    using GraphType = std::map< HyperGraphAnalysis::Interface::LinkTrait*, HyperGraphAnalysis::HyperGraph::Relation* >;
 
-    std::map< HyperGraphAnalysis::Interface::Link*, HyperGraphAnalysis::HyperGraph::Relation* >
-    calculateGraph( HyperGraphAnalysis::Database&                                       database,
-                    const std::vector< HyperGraphAnalysis::Interface::Link* >&          links,
-                    const std::vector< HyperGraphAnalysis::Interface::LinkInterface* >& linkInterfaces ) const
+    GraphType calculateGraph( HyperGraphAnalysis::Database&                                   database,
+                              const std::vector< HyperGraphAnalysis::Interface::LinkTrait* >& links ) const
     {
         using namespace HyperGraphAnalysis;
         using namespace HyperGraphAnalysis::HyperGraph;
 
-        struct RelTemp
-        {
-            using Ptr = std::shared_ptr< RelTemp >;
-            Interface::LinkInterface *      pLinkInterfaceSrc, *pLinkInterfaceTarget;
-            std::vector< Interface::Link* > sources, targets;
-        };
-        std::vector< RelTemp::Ptr >                         tempRelations;
-        std::map< Interface::LinkInterface*, RelTemp::Ptr > temp;
+        GraphType result;
 
-        // establish all relations with their pair of link interfaces
-        for( Interface::LinkInterface* pLinkInterface : linkInterfaces )
+        using LinkConcreteParents = std::multimap< Concrete::Context*, Concrete::Dimensions::Link* >;
+        LinkConcreteParents parents;
+
+        /*for( auto pLinkTrait : links )
         {
-            auto iFind = temp.find( pLinkInterface );
-            if( iFind == temp.end() )
+            for( auto pConcreteLink : pLinkTrait->get_concrete() )
             {
-                auto pLinkTarget          = getLinkTarget( pLinkInterface );
-                auto pLinkInterfaceTarget = db_cast< Interface::LinkInterface >( pLinkTarget );
-                VERIFY_RTE_MSG( pLinkInterfaceTarget, "Link interface not to corresponding link interface" );
-
-                RelTemp::Ptr pRelation( new RelTemp{ pLinkInterface, pLinkInterfaceTarget, {}, {} } );
-                tempRelations.push_back( pRelation );
-                temp.insert( { pLinkInterface, pRelation } );
-                temp.insert( { pLinkInterfaceTarget, pRelation } );
+                parents.insert( { pConcreteLink->get_parent(), pConcreteLink } );
             }
         }
 
-        // associate all links with corresponding relation as either a source or target
-        for( Interface::Link* pLink : links )
+        // Derivations should prioritise descending the tree
+        // if no suitable link is found they then can propagate UP towards the root
+        // Each scope must have all suitable links determined and only ONE must be eligible
+        // or the derivation is deemed ambiguous.
+
+        for( auto i = parents.begin(), iEnd = parents.end();; ++i )
         {
-            VERIFY_RTE( !db_cast< Interface::LinkInterface >( pLink ) );
+            Concrete::Context* pParent = i->first;
 
-            auto pLinkInterface = db_cast< Interface::LinkInterface >( getLinkTarget( pLink ) );
-            VERIFY_RTE_MSG( pLinkInterface, "Link does not inherit link interface correctly" );
+            std::set< std::set< Concrete::Context* > > targetContextSets;
 
-            auto iFind = temp.find( pLinkInterface );
-            VERIFY_RTE( iFind != temp.end() );
-            auto pRelation = iFind->second;
+            auto iNext = parents.upper_bound( pParent );
+            for( ; i != iNext; ++i )
+            {
+                Concrete::Dimensions::Link* pLink           = i->second;
+                auto                        pLinkTrait      = pLink->get_interface_link();
+                auto                        pTargetIContext = pLinkTrait->get_target();
 
-            if( pRelation->pLinkInterfaceSrc == pLinkInterface )
-            {
-                pRelation->sources.push_back( pLink );
+                auto                           concrete = pTargetIContext->get_concrete();
+                std::set< Concrete::Context* > concreteSet( concrete.begin(), concrete.end() );
+
+                VERIFY_RTE_MSG(
+                    targetContextSets.find( concreteSet ) == targetContextSets.end(),
+                    "Found overlapping link targets within context: " << pParent->get_interface()->get_interface_id() );
+
+                targetContextSets.insert( concreteSet );
             }
-            else if( pRelation->pLinkInterfaceTarget == pLinkInterface )
-            {
-                pRelation->targets.push_back( pLink );
-            }
-            else
-            {
-                THROW_RTE( "Error resolving link interface" );
-            }
+        }*/
+
+        return result;
+    }
+
+    /*
+        HyperGraphAnalysis::Interface::IContext* getLinkTarget( HyperGraphAnalysis::Interface::Link* pLink ) const
+        {
+            const auto targets = pLink->get_link_interface()->get_contexts();
+            VERIFY_RTE( targets.size() == 1 );
+            return targets.front();
         }
 
-        // construct the actual relations
-        std::map< Interface::Link*, Relation* > relations;
-        for( RelTemp::Ptr pTempRel : tempRelations )
+        std::map< HyperGraphAnalysis::Interface::Link*, HyperGraphAnalysis::HyperGraph::Relation* >
+        calculateGraph( HyperGraphAnalysis::Database&                                       database,
+                        const std::vector< HyperGraphAnalysis::Interface::Link* >&          links,
+                        const std::vector< HyperGraphAnalysis::Interface::LinkInterface* >& linkInterfaces ) const
         {
-            const RelationID relationID{
-                pTempRel->pLinkInterfaceSrc->get_interface_id(), pTempRel->pLinkInterfaceTarget->get_interface_id() };
+            using namespace HyperGraphAnalysis;
+            using namespace HyperGraphAnalysis::HyperGraph;
 
-            mega::Ownership relationOwnership = mega::Ownership::eOwnNothing;
+            struct RelTemp
             {
-                const mega::Ownership srcOwnership = pTempRel->pLinkInterfaceSrc->get_link_trait()->get_ownership();
-                const mega::Ownership targetOwnership
-                    = pTempRel->pLinkInterfaceTarget->get_link_trait()->get_ownership();
-                switch( srcOwnership.get() )
+                using Ptr = std::shared_ptr< RelTemp >;
+                Interface::LinkInterface *      pLinkInterfaceSrc, *pLinkInterfaceTarget;
+                std::vector< Interface::Link* > sources, targets;
+            };
+            std::vector< RelTemp::Ptr >                         tempRelations;
+            std::map< Interface::LinkInterface*, RelTemp::Ptr > temp;
+
+            // establish all relations with their pair of link interfaces
+            for( Interface::LinkInterface* pLinkInterface : linkInterfaces )
+            {
+                auto iFind = temp.find( pLinkInterface );
+                if( iFind == temp.end() )
                 {
-                    case mega::Ownership::eOwnNothing:
-                        switch( targetOwnership.get() )
-                        {
-                            case mega::Ownership::eOwnNothing:
-                            case mega::Ownership::eOwnSource:
-                            case mega::Ownership::eOwnTarget:
-                                relationOwnership = targetOwnership;
-                                break;
-                            case mega::Ownership::TOTAL_OWNERSHIP_MODES:
-                            default:
-                                THROW_RTE( "Unknown ownership type" );
-                                break;
-                        }
-                        break;
-                    case mega::Ownership::eOwnSource:
-                        switch( targetOwnership.get() )
-                        {
-                            case mega::Ownership::eOwnNothing:
-                            case mega::Ownership::eOwnSource:
-                                relationOwnership = srcOwnership;
-                                break;
-                            case mega::Ownership::eOwnTarget:
-                                THROW_RTE( "Ownership conflict in link" );
-                            case mega::Ownership::TOTAL_OWNERSHIP_MODES:
-                            default:
-                                THROW_RTE( "Unknown ownership type" );
-                                break;
-                        }
-                        break;
-                    case mega::Ownership::eOwnTarget:
-                        switch( targetOwnership.get() )
-                        {
-                            case mega::Ownership::eOwnNothing:
-                            case mega::Ownership::eOwnTarget:
-                                relationOwnership = srcOwnership;
-                                break;
-                            case mega::Ownership::eOwnSource:
-                                THROW_RTE( "Ownership conflict in link" );
-                            case mega::Ownership::TOTAL_OWNERSHIP_MODES:
-                            default:
-                                THROW_RTE( "Unknown ownership type" );
-                                break;
-                        }
-                        break;
-                    case mega::Ownership::TOTAL_OWNERSHIP_MODES:
-                    default:
-                        THROW_RTE( "Unknown ownership type" );
-                        break;
+                    auto pLinkTarget          = getLinkTarget( pLinkInterface );
+                    auto pLinkInterfaceTarget = db_cast< Interface::LinkInterface >( pLinkTarget );
+                    VERIFY_RTE_MSG( pLinkInterfaceTarget, "Link interface not to corresponding link interface" );
+
+                    RelTemp::Ptr pRelation( new RelTemp{ pLinkInterface, pLinkInterfaceTarget, {}, {} } );
+                    tempRelations.push_back( pRelation );
+                    temp.insert( { pLinkInterface, pRelation } );
+                    temp.insert( { pLinkInterfaceTarget, pRelation } );
                 }
             }
 
-            Relation* pRelation = database.construct< Relation >(
-                Relation::Args{ relationID, relationOwnership, pTempRel->sources, pTempRel->targets,
-                                pTempRel->pLinkInterfaceSrc, pTempRel->pLinkInterfaceTarget } );
+            // associate all links with corresponding relation as either a source or target
+            for( Interface::Link* pLink : links )
+            {
+                VERIFY_RTE( !db_cast< Interface::LinkInterface >( pLink ) );
 
-            relations.insert( { pTempRel->pLinkInterfaceSrc, pRelation } );
-            relations.insert( { pTempRel->pLinkInterfaceTarget, pRelation } );
-            for( auto pLink : pTempRel->sources )
-            {
-                relations.insert( { pLink, pRelation } );
+                auto pLinkInterface = db_cast< Interface::LinkInterface >( getLinkTarget( pLink ) );
+                VERIFY_RTE_MSG( pLinkInterface, "Link does not inherit link interface correctly" );
+
+                auto iFind = temp.find( pLinkInterface );
+                VERIFY_RTE( iFind != temp.end() );
+                auto pRelation = iFind->second;
+
+                if( pRelation->pLinkInterfaceSrc == pLinkInterface )
+                {
+                    pRelation->sources.push_back( pLink );
+                }
+                else if( pRelation->pLinkInterfaceTarget == pLinkInterface )
+                {
+                    pRelation->targets.push_back( pLink );
+                }
+                else
+                {
+                    THROW_RTE( "Error resolving link interface" );
+                }
             }
-            for( auto pLink : pTempRel->targets )
+
+            // construct the actual relations
+            std::map< Interface::Link*, Relation* > relations;
+            for( RelTemp::Ptr pTempRel : tempRelations )
             {
-                relations.insert( { pLink, pRelation } );
+                const RelationID relationID{
+                    pTempRel->pLinkInterfaceSrc->get_interface_id(), pTempRel->pLinkInterfaceTarget->get_interface_id()
+       };
+
+                mega::Ownership relationOwnership = mega::Ownership::eOwnNothing;
+                {
+                    const mega::Ownership srcOwnership = pTempRel->pLinkInterfaceSrc->get_link_trait()->get_ownership();
+                    const mega::Ownership targetOwnership
+                        = pTempRel->pLinkInterfaceTarget->get_link_trait()->get_ownership();
+                    switch( srcOwnership.get() )
+                    {
+                        case mega::Ownership::eOwnNothing:
+                            switch( targetOwnership.get() )
+                            {
+                                case mega::Ownership::eOwnNothing:
+                                case mega::Ownership::eOwnSource:
+                                case mega::Ownership::eOwnTarget:
+                                    relationOwnership = targetOwnership;
+                                    break;
+                                case mega::Ownership::TOTAL_OWNERSHIP_MODES:
+                                default:
+                                    THROW_RTE( "Unknown ownership type" );
+                                    break;
+                            }
+                            break;
+                        case mega::Ownership::eOwnSource:
+                            switch( targetOwnership.get() )
+                            {
+                                case mega::Ownership::eOwnNothing:
+                                case mega::Ownership::eOwnSource:
+                                    relationOwnership = srcOwnership;
+                                    break;
+                                case mega::Ownership::eOwnTarget:
+                                    THROW_RTE( "Ownership conflict in link" );
+                                case mega::Ownership::TOTAL_OWNERSHIP_MODES:
+                                default:
+                                    THROW_RTE( "Unknown ownership type" );
+                                    break;
+                            }
+                            break;
+                        case mega::Ownership::eOwnTarget:
+                            switch( targetOwnership.get() )
+                            {
+                                case mega::Ownership::eOwnNothing:
+                                case mega::Ownership::eOwnTarget:
+                                    relationOwnership = srcOwnership;
+                                    break;
+                                case mega::Ownership::eOwnSource:
+                                    THROW_RTE( "Ownership conflict in link" );
+                                case mega::Ownership::TOTAL_OWNERSHIP_MODES:
+                                default:
+                                    THROW_RTE( "Unknown ownership type" );
+                                    break;
+                            }
+                            break;
+                        case mega::Ownership::TOTAL_OWNERSHIP_MODES:
+                        default:
+                            THROW_RTE( "Unknown ownership type" );
+                            break;
+                    }
+                }
+
+                Relation* pRelation = database.construct< Relation >(
+                    Relation::Args{ relationID, relationOwnership, pTempRel->sources, pTempRel->targets,
+                                    pTempRel->pLinkInterfaceSrc, pTempRel->pLinkInterfaceTarget } );
+
+                relations.insert( { pTempRel->pLinkInterfaceSrc, pRelation } );
+                relations.insert( { pTempRel->pLinkInterfaceTarget, pRelation } );
+                for( auto pLink : pTempRel->sources )
+                {
+                    relations.insert( { pLink, pRelation } );
+                }
+                for( auto pLink : pTempRel->targets )
+                {
+                    relations.insert( { pLink, pRelation } );
+                }
             }
+
+            return relations;
         }
-
-        return relations;
-    }
-
+    */
     using PathSet = std::set< mega::io::megaFilePath >;
     PathSet getSortedSourceFiles() const
     {
@@ -249,24 +304,18 @@ public:
 
         Database database( m_environment, manifestFilePath );
         {
-            std::vector< Interface::Link* >          links;
-            std::vector< Interface::LinkInterface* > linkInterfaces;
-
-            for( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
+            // collect ALL links in program
+            std::vector< Interface::LinkTrait* > links;
             {
-                for( Interface::Link* pLink : database.many< Interface::Link >( sourceFilePath ) )
+                for( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
                 {
-                    if( auto pLinkInterface = db_cast< Interface::LinkInterface >( pLink ) )
-                    {
-                        linkInterfaces.push_back( pLinkInterface );
-                    }
-                    else
+                    for( Interface::LinkTrait* pLink : database.many< Interface::LinkTrait >( sourceFilePath ) )
                     {
                         links.push_back( pLink );
                     }
                 }
             }
-            database.construct< Graph >( Graph::Args{ calculateGraph( database, links, linkInterfaces ) } );
+            database.construct< HyperGraph::Graph >( HyperGraph::Graph::Args{ calculateGraph( database, links ) } );
         }
 
         const task::FileHash fileHashCode = database.save_Model_to_temp();
@@ -294,21 +343,21 @@ public:
         , m_sourceFilePath( megaSourceFilePath )
     {
     }
-
-    void collectLinks( HyperGraphAnalysisRollout::Concrete::Context*              pContext,
-                       std::vector< HyperGraphAnalysisRollout::Concrete::Link* >& links )
-    {
-        using namespace HyperGraphAnalysisRollout;
-        if( Concrete::Link* pLink = db_cast< Concrete::Link >( pContext ) )
+    /*
+        void collectLinks( HyperGraphAnalysisRollout::Concrete::Context*              pContext,
+                           std::vector< HyperGraphAnalysisRollout::Concrete::Link* >& links )
         {
-            links.push_back( pLink );
+            using namespace HyperGraphAnalysisRollout;
+            if( Concrete::Link* pLink = db_cast< Concrete::Link >( pContext ) )
+            {
+                links.push_back( pLink );
+            }
+            for( auto pChildContext : pContext->get_children() )
+            {
+                collectLinks( pChildContext, links );
+            }
         }
-        for( auto pChildContext : pContext->get_children() )
-        {
-            collectLinks( pChildContext, links );
-        }
-    }
-
+    */
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath hyperGraphAnalysisCompilationFile
@@ -334,7 +383,7 @@ public:
 
         Database database( m_environment, m_sourceFilePath );
 
-        {
+        /*{
             HyperGraph::Graph* pHyperGraph = database.one< HyperGraph::Graph >( m_environment.project_manifest() );
             auto               relations   = pHyperGraph->get_relations();
             for( Interface::Link* pLink : database.many< Interface::Link >( m_sourceFilePath ) )
@@ -396,7 +445,7 @@ public:
                 database.construct< Concrete::Object >(
                     Concrete::Object::Args{ pObject, allObjectLinks, owningLinks } );
             }
-        }
+        }*/
 
         const task::FileHash fileHashCode = database.save_PerSourceModel_to_temp();
         m_environment.setBuildHashCode( rolloutCompilationFile, fileHashCode );

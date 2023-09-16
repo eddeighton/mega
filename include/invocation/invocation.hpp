@@ -74,8 +74,8 @@ InterfaceVariantVectorVector
 symbolVectorToInterfaceVariantVector( OperationsStage::Database&                                    database,
                                       const std::vector< OperationsStage::Symbols::SymbolTypeID* >& symbols );
 
-InterfaceVariantVectorVector linkToInterfaceVariantVector( OperationsStage::Database&             database,
-                                                                   const OperationsStage::Concrete::Link* pLink );
+//InterfaceVariantVectorVector linkToInterfaceVariantVector( OperationsStage::Database&             database,
+//                                                                  const OperationsStage::Concrete::Dimensions::Link* pLink );
 
 std::vector< OperationsStage::Operations::ElementVector* >
 toElementVector( OperationsStage::Database&          database,

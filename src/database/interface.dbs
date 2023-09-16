@@ -40,14 +40,23 @@ namespace Interface
         array< ref< Symbols::SymbolTypeID > >   symbols         -> InterfaceAnalysisStage::Clang;
     }
 
+    object LinkTrait : Parser::Link -> InterfaceStage::Tree
+    {
+        ref< IContext > parent;
+
+        ref< IContext > target -> InterfaceAnalysisStage::Clang;
+
+        value< mega::TypeID > symbol_id -> SymbolRollout::PerSourceSymbols;
+        value< mega::TypeID > interface_id -> SymbolRollout::PerSourceSymbols;
+
+        array< ref< Concrete::Dimensions::Link > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
+
+        ref< HyperGraph::Relation > relation -> HyperGraphAnalysisRollout::PerSourceModel;
+    }
+
     object InheritanceTrait : Parser::Inheritance -> InterfaceStage::Tree
     {
         array< ref< IContext > > contexts -> InterfaceAnalysisStage::Clang;
-    }
-
-    object LinkTrait : Parser::LinkInterface -> InterfaceStage::Tree
-    {
-
     }
 
     object ReturnTypeTrait : Parser::ReturnType -> InterfaceStage::Tree
@@ -129,54 +138,47 @@ namespace Interface
     }
     object Abstract : IContext -> InterfaceStage::Tree
     {
-        array< ref< Parser::AbstractDef > > abstract_defs;
-        late< array< ref< DimensionTrait > > > dimension_traits;
-        late< opt< ref< InheritanceTrait > > > inheritance_trait;
-        late< opt< ref< SizeTrait > > > size_trait;
+        array< ref< Parser::AbstractDef > >     abstract_defs;
+        late< array< ref< DimensionTrait > > >  dimension_traits;
+        late< array< ref< LinkTrait > > >       link_traits;
+        late< opt< ref< InheritanceTrait > > >  inheritance_trait;
+        late< opt< ref< SizeTrait > > >         size_trait;
     }
     object Action : InvocationContext -> InterfaceStage::Tree
     {
         array< ref< Parser::ActionDef > > action_defs;
-        late< array< ref< DimensionTrait > > > dimension_traits;
-        late< opt< ref< InheritanceTrait > > > inheritance_trait;
-        late< opt< ref< SizeTrait > > > size_trait;
-        late< opt< ref< TransitionTypeTrait > > > transition_trait;
+        late< array< ref< DimensionTrait > > >      dimension_traits;
+        late< array< ref< LinkTrait > > >           link_traits;
+        late< opt< ref< InheritanceTrait > > >      inheritance_trait;
+        late< opt< ref< SizeTrait > > >             size_trait;
+        late< opt< ref< TransitionTypeTrait > > >   transition_trait;
     }
     object Event : IContext -> InterfaceStage::Tree
     {
-        array< ref< Parser::EventDef > > event_defs;
-        late< array< ref< DimensionTrait > > > dimension_traits;
-        late< opt< ref< InheritanceTrait > > > inheritance_trait;
-        late< opt< ref< SizeTrait > > > size_trait;
+        array< ref< Parser::EventDef > >            event_defs;
+        late< array< ref< DimensionTrait > > >      dimension_traits;
+        late< opt< ref< InheritanceTrait > > >      inheritance_trait;
+        late< opt< ref< SizeTrait > > >             size_trait;
     }
     object Interupt : InvocationContext -> InterfaceStage::Tree
     {
-        array< ref< Parser::InteruptDef > > interupt_defs;
-        late< ref< EventTypeTrait > > events_trait;
-        late< opt< ref< TransitionTypeTrait > > > transition_trait;
+        array< ref< Parser::InteruptDef > >         interupt_defs;
+        late< ref< EventTypeTrait > >               events_trait;
+        late< opt< ref< TransitionTypeTrait > > >   transition_trait;
     }
     object Function : InvocationContext -> InterfaceStage::Tree
     {
-        array< ref< Parser::FunctionDef > > function_defs;
-        late< ref< ReturnTypeTrait > > return_type_trait;
-        late< ref< ArgumentListTrait > > arguments_trait;
+        array< ref< Parser::FunctionDef > >     function_defs;
+        late< ref< ReturnTypeTrait > >          return_type_trait;
+        late< ref< ArgumentListTrait > >        arguments_trait;
     }
     object Object : IContext -> InterfaceStage::Tree
     {
-        array< ref< Parser::ObjectDef > > object_defs;
-        late< array< ref< DimensionTrait > > > dimension_traits;
-        late< opt< ref< InheritanceTrait > > > inheritance_trait;
-        late< opt< ref< SizeTrait > > > size_trait;
-    }
-    object Link : IContext -> InterfaceStage::Tree
-    {
-        array< ref< Parser::LinkDef > > link_defs;
-        late< ref< InheritanceTrait > > link_interface;
-        ref< HyperGraph::Relation >     relation -> HyperGraphAnalysisRollout::PerSourceModel;
-    }
-    object LinkInterface : Link -> InterfaceStage::Tree
-    {
-        late< ref< LinkTrait > > link_trait;
+        array< ref< Parser::ObjectDef > >           object_defs;
+        late< array< ref< DimensionTrait > > >      dimension_traits;
+        late< array< ref< LinkTrait > > >           link_traits;
+        late< opt< ref< InheritanceTrait > > >      inheritance_trait;
+        late< opt< ref< SizeTrait > > >             size_trait;
     }
 
 }

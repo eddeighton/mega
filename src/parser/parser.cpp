@@ -94,6 +94,24 @@ public:
         }
         return database.construct< Identifier >( Identifier::Args{ str } );
     }
+    
+    Identifier* generate_unamedIdentifier( Database& database )
+    {
+        const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
+        const mega::U64   szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
+
+        std::string strName;
+        {
+            std::ostringstream osName;
+            osName << "_anon_" << strFileName << '_' << szLineNumber;
+            strName = osName.str();
+            boost::replace_all( strName, "/", "_" );
+            boost::replace_all( strName, ".", "_" );
+            boost::replace_all( strName, " ", "_" );
+        }
+        
+        return database.construct< Identifier >( Identifier::Args{ strName } );
+    }
 
     ScopedIdentifier* parse_scopedIdentifier( Database& database )
     {
@@ -125,25 +143,14 @@ public:
         return database.construct< ScopedIdentifier >(
             ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
     }
-
+    
     ScopedIdentifier* generate_unamedScopeIdentifier( Database& database )
     {
         const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
         const mega::U64   szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
-
-        std::string strName;
-        {
-            std::ostringstream osName;
-            osName << "_anon_" << strFileName << '_' << szLineNumber;
-            strName = osName.str();
-            boost::replace_all( strName, "/", "_" );
-            boost::replace_all( strName, ".", "_" );
-            boost::replace_all( strName, " ", "_" );
-        }
-
+        
         std::vector< Identifier* > identifiers;
-        identifiers.push_back( database.construct< Identifier >( Identifier::Args{ strName } ) );
-
+        identifiers.push_back( generate_unamedIdentifier( database ) );
         return database.construct< ScopedIdentifier >(
             ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
     }
@@ -234,9 +241,9 @@ public:
     {
         std::string str;
 
-        bool isSuccessor = false;
+        bool isSuccessor   = false;
         bool isPredecessor = false;
-        
+
         parse_comment();
 
         if( Tok.is( clang::tok::greater ) )
@@ -415,6 +422,80 @@ public:
         return database.construct< Dimension >( args );
     }
 
+    void parse_cardinality( mega::Cardinality& linker )
+    {
+        /*if( Tok.is( clang::tok::exclaim ) )
+        {
+            linker.setIsNullAllowed( true );
+            ConsumeToken();
+        }*/
+
+        if( Tok.is( clang::tok::star ) )
+        {
+            linker.setMany();
+            ConsumeToken();
+        }
+        else
+        {
+            int iNumber;
+            {
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                ConsumeToken();
+                while( !isEofOrEom() && !Tok.is( clang::tok::r_square ) && !Tok.is( clang::tok::colon ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeToken();
+                }
+                std::string strInteger;
+                if( !getSourceText( startLoc, endLoc, strInteger ) )
+                    MEGA_PARSER_ERROR( "Error link size" );
+                std::istringstream is( strInteger );
+                is >> iNumber;
+            }
+            linker.setNumber( iNumber );
+        }
+    }
+
+    Link* parse_link( Database& database )
+    {
+        // link Type::Name [ 0:* ];
+        Identifier* pID = generate_unamedIdentifier( database );
+
+        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
+        parse_comment();
+
+        mega::CardinalityRange cardinality_range;
+        if( Tok.is( clang::tok::l_square ) )
+        {
+            BalancedDelimiterTracker T( *this, clang::tok::l_square );
+            T.consumeOpen();
+
+            mega::Cardinality minimum, maximum;
+            parse_cardinality( minimum );
+            if( Tok.is( clang::tok::colon ) )
+            {
+                ConsumeToken();
+                parse_cardinality( maximum );
+                parse_comment();
+                cardinality_range = mega::CardinalityRange{ minimum, maximum };
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Expected colon in link cardinality specifier" );
+            }
+            if( !Tok.is( clang::tok::r_square ) )
+            {
+                MEGA_PARSER_ERROR( "Expected right square bracket for link relation specifier" );
+            }
+            T.consumeClose();
+        }
+        parse_comment();
+        parse_semicolon();
+
+        return database.construct< Link >( Link::Args{ pID, pScopedIdentifier, cardinality_range } );
+    }
+
     boost::filesystem::path resolveFilePath( const std::string& strFile )
     {
         if( clang::Optional< clang::FileEntryRef > includeFile = PP.LookupFile( clang::SourceLocation(),
@@ -576,6 +657,7 @@ public:
         ContextDef::Args body( pScopedIdentifier,
                                std::vector< ContextDef* >{},
                                std::vector< Dimension* >{},
+                               std::vector< Link* >{},
                                std::vector< Include* >{},
                                std::vector< Dependency* >{},
                                std::vector< Requirement* >{},
@@ -766,184 +848,6 @@ public:
         return database.construct< ObjectDef >( ObjectDef::Args{ body, pSize, pInheritance } );
     }
 
-    void parse_cardinality( mega::Cardinality& linker )
-    {
-        if( Tok.is( clang::tok::exclaim ) )
-        {
-            linker.setIsNullAllowed( true );
-            ConsumeToken();
-        }
-
-        if( Tok.is( clang::tok::star ) )
-        {
-            linker.setMany();
-            ConsumeToken();
-        }
-        else
-        {
-            int iNumber;
-            {
-                clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc   = Tok.getEndLoc();
-                ConsumeToken();
-                while( !isEofOrEom() && !Tok.is( clang::tok::r_square ) && !Tok.is( clang::tok::colon ) )
-                {
-                    endLoc = Tok.getEndLoc();
-                    ConsumeToken();
-                }
-                std::string strInteger;
-                if( !getSourceText( startLoc, endLoc, strInteger ) )
-                    MEGA_PARSER_ERROR( "Error link size" );
-                std::istringstream is( strInteger );
-                is >> iNumber;
-            }
-            linker.setNumber( iNumber );
-        }
-    }
-
-    bool parse_link_spec( Database&                  database,
-                          mega::Ownership&           ownership,
-                          mega::DerivationDirection& derivation,
-                          mega::CardinalityRange&    cardinality_range
-
-    )
-    {
-        bool bIsLinkInterface = false;
-
-        if( Tok.is( clang::tok::l_square ) )
-        {
-            bIsLinkInterface = true;
-
-            BalancedDelimiterTracker T( *this, clang::tok::l_square );
-            T.consumeOpen();
-
-            mega::Cardinality minimum, maximum;
-            parse_cardinality( minimum );
-            if( Tok.is( clang::tok::colon ) )
-            {
-                ConsumeToken();
-                parse_cardinality( maximum );
-                parse_comment();
-                cardinality_range = mega::CardinalityRange{ minimum, maximum };
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected colon in link cardinality specifier" );
-            }
-            if( !Tok.is( clang::tok::r_square ) )
-            {
-                MEGA_PARSER_ERROR( "Expected right square bracket for link relation specifier" );
-            }
-            T.consumeClose();
-        }
-        parse_comment();
-
-        if( bIsLinkInterface )
-        {
-            if( Tok.is( clang::tok::lessless ) )
-            {
-                bIsLinkInterface = true;
-                ConsumeToken();
-                ownership  = { mega::Ownership::eOwnSource };
-                derivation = { mega::DerivationDirection::eDeriveSource };
-            }
-            else if( Tok.is( clang::tok::less ) )
-            {
-                bIsLinkInterface = true;
-                ConsumeToken();
-                derivation = { mega::DerivationDirection::eDeriveSource };
-            }
-            else if( Tok.is( clang::tok::minus ) )
-            {
-                bIsLinkInterface = true;
-                ConsumeToken();
-            }
-            else if( Tok.is( clang::tok::greatergreater ) )
-            {
-                bIsLinkInterface = true;
-                ConsumeToken();
-                ownership  = { mega::Ownership::eOwnTarget };
-                derivation = { mega::DerivationDirection::eDeriveTarget };
-            }
-            else if( Tok.is( clang::tok::greater ) )
-            {
-                bIsLinkInterface = true;
-                ConsumeToken();
-                derivation = { mega::DerivationDirection::eDeriveTarget };
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Invalid link interface definition" );
-            }
-            parse_comment();
-        }
-        else
-        {
-            if( !Tok.is( clang::tok::colon ) )
-            {
-                MEGA_PARSER_ERROR( "Invalid link definition" );
-            }
-            ConsumeToken();
-        }
-        parse_comment();
-        return bIsLinkInterface;
-    }
-
-    LinkDef* parse_link( Database& database )
-    {
-        // link A::Type::Name [ !0:1 ] <<->> Target::Type
-        // link A::Type::Name : Target::Type
-
-        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
-        parse_comment();
-
-        LinkInterface* pLinkInterface = nullptr;
-        {
-            mega::Ownership           ownership{ mega::Ownership::eOwnNothing };
-            mega::DerivationDirection derivation{ mega::DerivationDirection::eDeriveNone };
-            mega::CardinalityRange    cardinality_range;
-            if( parse_link_spec( database, ownership, derivation, cardinality_range ) )
-            {
-                pLinkInterface = database.construct< LinkInterface >(
-                    LinkInterface::Args{ cardinality_range, derivation, ownership } );
-            }
-        }
-
-        parse_comment();
-
-        Inheritance* pInheritance = parse_inheritance( database, true );
-        parse_comment();
-
-        ContextDef::Args body = defaultBody( pScopedIdentifier );
-        {
-            if( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_context_body( database, pScopedIdentifier );
-                T.consumeClose();
-            }
-            else if( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon in link" );
-            }
-        }
-
-        if( pLinkInterface )
-        {
-            return database.construct< LinkInterfaceDef >(
-                LinkInterfaceDef::Args{ LinkDef::Args{ body, pInheritance }, pLinkInterface } );
-        }
-        else
-        {
-            return database.construct< LinkDef >( LinkDef::Args{ body, pInheritance } );
-        }
-    }
-
     ActionDef* parse_action( Database& database )
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
@@ -976,6 +880,10 @@ public:
 
         return database.construct< ActionDef >( ActionDef::Args{ body, pSize, pInheritance, pTransition } );
     }
+
+    StateDef* parse_state( Database& database ) { THROW_TODO; }
+
+    ComponentDef* parse_component( Database& database ) { THROW_TODO; }
 
     ContextDef::Args parse_context_body( Database& database, ScopedIdentifier* pScopedIdentifier )
     {
@@ -1017,10 +925,15 @@ public:
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_action( database ) );
             }
-            else if( Tok.is( clang::tok::kw_link ) )
+            else if( Tok.is( clang::tok::kw_state ) )
             {
                 ConsumeToken();
-                bodyArgs.children.value().push_back( parse_link( database ) );
+                bodyArgs.children.value().push_back( parse_state( database ) );
+            }
+            else if( Tok.is( clang::tok::kw_component ) )
+            {
+                ConsumeToken();
+                bodyArgs.children.value().push_back( parse_component( database ) );
             }
             else if( Tok.is( clang::tok::kw_object ) )
             {
@@ -1039,6 +952,12 @@ public:
                 ConsumeToken();
                 Dimension* pDimension = parse_dimension( database, bIsConst );
                 bodyArgs.dimensions.value().push_back( pDimension );
+            }
+            else if( Tok.is( clang::tok::kw_link ) )
+            {
+                ConsumeToken();
+                Link* pLink = parse_link( database );
+                bodyArgs.links.value().push_back( pLink );
             }
             else if( Tok.is( clang::tok::kw_include ) )
             {
@@ -1090,7 +1009,9 @@ public:
                             clang::tok::kw_link,
                             clang::tok::kw_include,
                             clang::tok::kw_dependency,
-                            clang::tok::kw_requires
+                            clang::tok::kw_requires,
+                            clang::tok::kw_state,
+                            clang::tok::kw_component
                         )
                     ) &&
                     !(

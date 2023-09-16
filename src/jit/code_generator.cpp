@@ -182,7 +182,9 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
 {
     SPDLOG_TRACE( "RUNTIME: generate_relation" );
 
-    auto pRelation = database.getRelation( relationID );
+    THROW_TODO;
+
+    /*auto pRelation = database.getRelation( relationID );
 
     const bool bSourceSingular
         = !pRelation->get_source_interface()->get_link_trait()->get_cardinality().maximum().isMany();
@@ -258,7 +260,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
         SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_relation: {}", ex.what() );
         THROW_RTE( "inja::InjaError in CodeGenerator::generate_relation: " << ex.what() );
     }
-    compiler.compileToLLVMIR( osModuleName.str(), osCPPCode.str(), os, std::nullopt );
+    compiler.compileToLLVMIR( osModuleName.str(), osCPPCode.str(), os, std::nullopt );*/
 }
 
 void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDatabase& database, std::ostream& os )

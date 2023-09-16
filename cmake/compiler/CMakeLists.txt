@@ -81,18 +81,18 @@ link_common( compiler_config )
 #################################################################
 # dynamically loaded module that implements the compiler pipeline
 set( JINJA_TEMPLATES 
-    ${MEGA_SRC_DIR}/compiler/templates/context.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/operations_externs.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/impl.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/python_wrapper.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/initialiser.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/operations_externs.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/python_wrapper.jinja 
+    ${MEGA_SRC_DIR}/compiler/templates/context.jinja 
 	)
 
 set( COMPILER_TASKS
-    ${MEGA_SRC_DIR}/compiler/automata.hpp
     ${MEGA_SRC_DIR}/compiler/automata.cpp
+    ${MEGA_SRC_DIR}/compiler/automata.hpp
     ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
     ${MEGA_SRC_DIR}/compiler/task_automata.cpp
     ${MEGA_SRC_DIR}/compiler/task_complete.cpp
@@ -107,11 +107,11 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_includes.cpp
     ${MEGA_SRC_DIR}/compiler/task_initialiser.cpp
     ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp
-    ${MEGA_SRC_DIR}/compiler/task_interface.cpp
+    ${MEGA_SRC_DIR}/compiler/task_interface_tree.cpp
     ${MEGA_SRC_DIR}/compiler/task_manifest.cpp
     ${MEGA_SRC_DIR}/compiler/task_meta.cpp
-    ${MEGA_SRC_DIR}/compiler/task_operations.cpp
     ${MEGA_SRC_DIR}/compiler/task_operations_locs.cpp
+    ${MEGA_SRC_DIR}/compiler/task_operations.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp
     ${MEGA_SRC_DIR}/compiler/task_python.cpp
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp

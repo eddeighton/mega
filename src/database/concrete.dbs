@@ -34,19 +34,20 @@ namespace Concrete
         }
 
         // HyperGraphAnalysis
-        object LinkReference -> MemoryStage::MemoryLayout
+        object Link -> ConcreteStage::Concrete
         {
             ref< Concrete::Context > parent;
-            ref< Link > link;
-            late< ref< MemoryLayout::Part > > part;
-            late< value< mega::U64 > > offset;
+            ref< Interface::LinkTrait > interface_link;
 
             value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
+
+            value< mega::U64 > offset -> MemoryStage::MemoryLayout;
+            ref< MemoryLayout::Part > part -> MemoryStage::MemoryLayout;
         }
-        object LinkSingle : LinkReference -> MemoryStage::MemoryLayout
+        object LinkSingle : Link -> MemoryStage::MemoryLayout
         {
         }
-        object LinkMany : LinkReference -> MemoryStage::MemoryLayout
+        object LinkMany : Link -> MemoryStage::MemoryLayout
         {
         }
 
@@ -64,8 +65,6 @@ namespace Concrete
         {
             ref< Allocators::Allocator > allocator;
         }
-
-        // variant< User, LinkReference, Allocation > Dimension -> MemoryStage::MemoryLayout;
     }
 
     object ContextGroup -> ConcreteStage::Concrete
@@ -101,6 +100,7 @@ namespace Concrete
     object UserDimensionContext : Context  -> ConcreteStage::Concrete
     {
         array< ref< Dimensions::User > > dimensions;
+        array< ref< Dimensions::Link > > links;
     }
 
     object Namespace : UserDimensionContext -> ConcreteStage::Concrete
@@ -130,22 +130,13 @@ namespace Concrete
 
         array< ref< MemoryLayout::Buffer > > buffers -> MemoryStage::MemoryLayout;
 
-        array< ref< Link > > all_links -> HyperGraphAnalysisRollout::PerSourceModel;
-        array< ref< Link > > owning_links -> HyperGraphAnalysisRollout::PerSourceModel;
+        array< ref< Dimensions::Link > > all_links -> HyperGraphAnalysisRollout::PerSourceModel;
+        array< ref< Dimensions::Link > > owning_links -> HyperGraphAnalysisRollout::PerSourceModel;
     }
 
     object MemoryMappedObject : Object -> GlobalMemoryStageRollout::GlobalMemoryRollout
     {
         ref< MemoryLayout::MemoryMap > memory_map;
-    }
-
-    object Link : Context -> ConcreteStage::Concrete
-    {
-        ref< Interface::Link > link;
-        ref< Interface::LinkInterface > link_interface;
-
-        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
-        ref< Dimensions::LinkReference > link_reference -> MemoryStage::MemoryLayout;
     }
 
     object Root : ContextGroup -> ConcreteStage::Concrete

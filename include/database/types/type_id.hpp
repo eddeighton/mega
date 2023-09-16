@@ -33,11 +33,9 @@ namespace mega
 {
 
 using TypeIDSequence     = std::vector< TypeID >;
-using TypeIDSequencePair = std::pair< TypeIDSequence, TypeIDSequence >;
 
 } // namespace mega
 
 EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequence& typeIDSequence );
-EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequencePair& typeIDSequencePair );
 
 #endif // GUARD_2022_October_04_type_id

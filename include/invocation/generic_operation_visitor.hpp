@@ -35,10 +35,15 @@ private:
     OperationsStage::Concrete::ContextGroup* findCommonRoot( OperationsStage::Concrete::ContextGroup* pLeft,
                                                              OperationsStage::Concrete::ContextGroup* pRight ) const;
 
-    bool commonRootDerivation( OperationsStage::Concrete::ContextGroup*                       pFrom,
-                               OperationsStage::Concrete::ContextGroup*                       pTo,
-                               OperationsStage::Invocations::Instructions::InstructionGroup*& pInstruction,
-                               OperationsStage::Invocations::Variables::Instance*&            pVariable ) const;
+    bool inObjectDerivation( OperationsStage::Concrete::ContextGroup*                       pFrom,
+                             OperationsStage::Concrete::ContextGroup*                       pTo,
+                             OperationsStage::Invocations::Instructions::InstructionGroup*& pInstruction,
+                             OperationsStage::Invocations::Variables::Instance*&            pVariable ) const;
+
+    bool interObjectDerivation( OperationsStage::Concrete::ContextGroup*                       pFrom,
+                                OperationsStage::Concrete::ContextGroup*                       pTo,
+                                OperationsStage::Invocations::Instructions::InstructionGroup*& pInstruction,
+                                OperationsStage::Invocations::Variables::Instance*&            pVariable ) const;
 
     void buildOperation( OperationsStage::Operations::Name*                            prev,
                          OperationsStage::Operations::Name&                            current,
@@ -64,6 +69,11 @@ private:
                     OperationsStage::Operations::Name&                            current,
                     OperationsStage::Invocations::Instructions::InstructionGroup& parentInstruction,
                     OperationsStage::Invocations::Variables::Reference&           variable );
+
+    void buildNameOrOperation( OperationsStage::Operations::Name*                            prev,
+                               OperationsStage::Operations::Name&                            current,
+                               OperationsStage::Invocations::Instructions::InstructionGroup& parentInstruction,
+                               OperationsStage::Invocations::Variables::Instance&            instance );
 
 public:
     void operator()();

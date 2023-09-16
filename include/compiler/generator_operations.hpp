@@ -255,14 +255,6 @@ private:
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if( auto pLink = db_cast< Link >( pContext ) )
-        {
-            CleverUtility c( types, pLink->get_identifier() );
-            for( IContext* pNestedContext : pLink->get_children() )
-            {
-                recurse( pNestedContext, data, namespaces, types );
-            }
-        }
         else
         {
             THROW_RTE( "Unknown context type" );

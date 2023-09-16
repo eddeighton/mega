@@ -84,8 +84,6 @@ std::string getContextTypeClass( const FinalStage::Concrete::Context* pContext )
         return "action";
     else if( db_cast< const Event >( pContext ) )
         return "event";
-    else if( db_cast< const Link >( pContext ) )
-        return "link";
     else if( db_cast< const Function >( pContext ) )
         return "function";
     else if( db_cast< const Namespace >( pContext ) )
@@ -97,10 +95,12 @@ std::string getContextTypeClass( const FinalStage::Concrete::Context* pContext )
         THROW_RTE( "Unknown context type class" );
     }
 }
-
+/*
 void getLinkOwnership( const FinalStage::Concrete::Link* pConcreteLink, bool& bSource, bool& bOwning, bool& bOwned )
 {
     using namespace FinalStage;
+
+    THROW_TODO;
 
     const Interface::LinkInterface* pLinkInterface = pConcreteLink->get_link_interface();
     const HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
@@ -137,7 +137,7 @@ void getLinkOwnership( const FinalStage::Concrete::Link* pConcreteLink, bool& bS
                 bOwning = true;
         }
     }
-}
+}*/
 
 std::string makeStartState( const mega::TypeID& typeID )
 {
@@ -160,11 +160,12 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
     auto makeContextState = [ & ]( const Context* pContext, bool bStart, const std::string& strSuccessorState )
     {
         bool bOwning = false, bOwned = false;
-        if( auto pConcreteLink = db_cast< const Link >( pContext ) )
+        THROW_TODO;
+        /*if( auto pConcreteLink = db_cast< const Link >( pContext ) )
         {
             bool bSource = false;
             getLinkOwnership( pConcreteLink, bSource, bOwning, bOwned );
-        }
+        }*/
 
         nlohmann::json state( { { "value", bStart ? makeStartState( pContext->get_concrete_id() )
                                                   : makeEndState( pContext->get_concrete_id() ) },
@@ -354,7 +355,8 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                     mangledDataTypes.insert( strMangle );
                 }
 
-                for( auto pLinkDim : pPart->get_link_dimensions() )
+                THROW_TODO;
+                /*for( auto pLinkDim : pPart->get_link_dimensions() )
                 {
                     Concrete::Link*           pConcreteLink  = pLinkDim->get_link();
                     Interface::LinkInterface* pLinkInterface = pConcreteLink->get_link_interface();
@@ -433,7 +435,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                     link[ "mangle" ] = strMangle;
                     part[ "links" ].push_back( link );
                     mangledDataTypes.insert( strMangle );
-                }
+                }*/
                 for( auto pAllocDim : pPart->get_allocation_dimensions() )
                 {
                     if( auto pAllocator = db_cast< Concrete::Dimensions::Allocator >( pAllocDim ) )

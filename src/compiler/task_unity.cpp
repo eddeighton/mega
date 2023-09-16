@@ -72,10 +72,19 @@ void printIContextFullType( UnityStage::Interface::IContext* pContext, std::ostr
 void printDimensionTraitFullType( UnityStage::Interface::DimensionTrait* pDim, std::ostream& os )
 {
     using namespace UnityStage;
-    Interface::IContext* pParent = db_cast< Interface::IContext >( pDim->get_parent() );
+    auto pParent = db_cast< Interface::IContext >( pDim->get_parent() );
     VERIFY_RTE( pParent );
     printIContextFullType( pParent, os );
     os << "." << pDim->get_id()->get_str();
+}
+
+void printLinkTraitFullType( UnityStage::Interface::LinkTrait* pLink, std::ostream& os )
+{
+    using namespace UnityStage;
+    auto pParent = db_cast< Interface::IContext >( pLink->get_parent() );
+    VERIFY_RTE( pParent );
+    printIContextFullType( pParent, os );
+    os << "." << pLink->get_id()->get_str();
 }
 
 } // namespace
@@ -150,13 +159,6 @@ public:
                                     { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
                                 data[ "objects" ].push_back( typeInfo );
                             }
-                            else if( Interface::Link* pLink = db_cast< Interface::Link >( pContext ) )
-                            {
-                                printIContextFullType( pContext, osFullTypeName );
-                                nlohmann::json typeInfo{
-                                    { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
-                                data[ "links" ].push_back( typeInfo );
-                            }
                         }
                         else if( pInterfaceType->get_dimension().has_value() )
                         {
@@ -178,6 +180,13 @@ public:
                                 { "name", osFullTypeName.str() },
                                 { "blit", ( iFind != mangleMap.end() ) ? iFind->second->get_blit() : ""s } };
                             data[ "dimensions" ].push_back( typeInfo );
+                        }
+                        else if( pInterfaceType->get_link().has_value() )
+                        {
+                            Interface::LinkTrait* pLink = pInterfaceType->get_link().value();
+                            printLinkTraitFullType( pLink, osFullTypeName );
+                            nlohmann::json typeInfo{ { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
+                            data[ "links" ].push_back( typeInfo );
                         }
                         else
                         {
@@ -377,7 +386,8 @@ public:
                     dataBindings.push_back( pDataBinding );
                 }
             }
-            std::vector< UnityAnalysis::LinkBinding* > linkBindings;
+            THROW_TODO;
+            /*std::vector< UnityAnalysis::LinkBinding* > linkBindings;
             {
                 for( const auto& linkBinding : manual[ "linkBindings" ] )
                 {
@@ -394,7 +404,7 @@ public:
             UnityAnalysis::Manual* pManual = database.construct< UnityAnalysis::Manual >( UnityAnalysis::Manual::Args{
                 UnityAnalysis::ObjectBinding::Args{ manual[ "typeName" ], interfaceTypeID, dataBindings, linkBindings },
                 manual[ "manualName" ] } );
-            bindings.insert( { interfaceTypeID, pManual } );
+            bindings.insert( { interfaceTypeID, pManual } );*/
         }
 
         for( const auto& prefab : data[ "prefabs" ] )
@@ -410,7 +420,8 @@ public:
                     dataBindings.push_back( pDataBinding );
                 }
             }
-            std::vector< UnityAnalysis::LinkBinding* > linkBindings;
+            THROW_TODO;
+            /*std::vector< UnityAnalysis::LinkBinding* > linkBindings;
             {
                 for( const auto& linkBinding : prefab[ "linkBindings" ] )
                 {
@@ -427,15 +438,17 @@ public:
             UnityAnalysis::Prefab* pPrefab = database.construct< UnityAnalysis::Prefab >( UnityAnalysis::Prefab::Args{
                 UnityAnalysis::ObjectBinding::Args{ prefab[ "typeName" ], interfaceTypeID, dataBindings, linkBindings },
                 prefab[ "guid" ] } );
-            bindings.insert( { interfaceTypeID, pPrefab } );
+            bindings.insert( { interfaceTypeID, pPrefab } );*/
         }
 
         using ObjectVector = std::vector< Concrete::Object* >;
         using DimMap       = std::multimap< Concrete::Object*, Concrete::Dimensions::User* >;
-        using LinkMap      = std::multimap< Concrete::Object*, Concrete::Link* >;
 
         ObjectVector objectVector;
         DimMap       dimMap;
+
+        THROW_TODO;
+        /*using LinkMap      = std::multimap< Concrete::Object*, Concrete::Link* >;
         LinkMap      linkMap;
         {
             for( const auto& [ _, pConcreteType ] : pSymbolTable->get_concrete_type_ids() )
@@ -466,7 +479,7 @@ public:
                     }
                 }
             }
-        }
+        }*/
 
         // actually determine bindings...
         for( Concrete::Object* pObject : objectVector )
@@ -518,8 +531,8 @@ public:
                         dataBindings.insert( { pFoundDimension, pDataBinding } );
                     }
                 }
-
-                std::map< Concrete::Link*, UnityAnalysis::LinkBinding* > linkBindings;
+                THROW_TODO;
+                /*std::map< Concrete::Link*, UnityAnalysis::LinkBinding* > linkBindings;
                 {
                     for( UnityAnalysis::LinkBinding* pLinkBinding : pObjectBinding->get_linkBindings() )
                     {
@@ -560,7 +573,7 @@ public:
 
                 // have found highest priority binding!
                 database.construct< UnityAnalysis::Binding >(
-                    UnityAnalysis::Binding::Args{ pObjectBinding, pObject, dataBindings, linkBindings } );
+                    UnityAnalysis::Binding::Args{ pObjectBinding, pObject, dataBindings, linkBindings } );*/
             }
         }
 
@@ -688,14 +701,14 @@ public:
                                                   { "interfaceTypeName", pBinding->get_typeName() } } );
                     binding[ "data" ].push_back( dataBinding );
                 }
-
-                for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
+                THROW_TODO;
+                /*for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
                 {
                     nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
                                                   { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
                                                   { "interfaceTypeName", pBinding->get_typeName() } } );
                     binding[ "links" ].push_back( dataBinding );
-                }
+                }*/
 
                 data[ "prefabBindings" ].push_back( binding );
             }
@@ -716,13 +729,14 @@ public:
                     binding[ "data" ].push_back( dataBinding );
                 }
 
-                for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
+                THROW_TODO;
+                /*for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
                 {
                     nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
                                                   { "interfaceTypeID", pBinding->get_interfaceTypeID().getSymbolID() },
                                                   { "interfaceTypeName", pBinding->get_typeName() } } );
                     binding[ "links" ].push_back( dataBinding );
-                }
+                }*/
 
                 data[ "manualBindings" ].push_back( binding );
             }
@@ -732,7 +746,8 @@ public:
             }
         }
 
-        for( HyperGraph::Relation* pRelation :
+        THROW_TODO;
+        /*for( HyperGraph::Relation* pRelation :
              database.many< HyperGraph::Relation >( m_environment.project_manifest() ) )
         {
             bool bSourceIsRoot = false;
@@ -813,7 +828,7 @@ public:
                                        { "target_is_root", bTargetIsRoot },
                                        { "ownership", pRelation->get_ownership().str() } } );
             data[ "relations" ].push_back( relation );
-        }
+        }*/
 
         writeJSON( unityDatabaseFilePath, data );
         m_environment.setBuildHashCodePath( unityDatabaseFilePath );

@@ -144,6 +144,84 @@ public:
 
         return true;
     }
+
+    template < typename TContextType >
+    bool linkAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
+    {
+        for( Interface::LinkTrait* pLinkTrait : pContext->get_link_traits() )
+        {
+            Interface::IContext* pTargetContext = nullptr;
+            {
+                DeclLocType traitDecl
+                    = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pLinkTrait->get_id()->get_str() );
+                if( traitDecl.pDeclContext )
+                {
+                    DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
+                    QualType     typeType = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
+                    if( pTypeDeclContext )
+                    {
+                        QualType typeTypeCanonical = typeType.getCanonicalType();
+                        if( std::optional< mega::TypeID > inheritanceTypeIDOpt
+                            = getMegaTypeID( pASTContext, typeTypeCanonical ) )
+                        {
+                            auto iFind = m_interfaceTypeIDs.find( inheritanceTypeIDOpt.value() );
+                            if( iFind != m_interfaceTypeIDs.end() )
+                            {
+                                if( !iFind->second->get_context().has_value() )
+                                {
+                                    std::ostringstream os;
+                                    os << "Invalid link non-context type " << pContext->get_identifier() << "("
+                                       << pContext->get_interface_id() << ") of: " << typeTypeCanonical.getAsString();
+                                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error )
+                                        << os.str();
+                                    return false;
+                                }
+                                pTargetContext = iFind->second->get_context().value();
+                            }
+                            else
+                            {
+                                // error invalid inheritance type
+                                std::ostringstream os;
+                                os << "Invalid link type for " << pContext->get_identifier() << "("
+                                   << pContext->get_interface_id() << ") of: " << typeTypeCanonical.getAsString();
+                                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            std::ostringstream os;
+                            os << "Failed to resolve link Type for " << pContext->get_identifier() << "("
+                               << pContext->get_interface_id() << ")";
+                            pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        std::ostringstream os;
+                        os << "Failed to resolve link target type for " << pContext->get_identifier() << "("
+                           << pContext->get_interface_id() << ")";
+                        pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                        return false;
+                    }
+                }
+                else
+                {
+                    std::ostringstream os;
+                    os << "Failed to resolve link for " << pContext->get_identifier() << "("
+                       << pContext->get_interface_id() << ")";
+                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                    return false;
+                }
+            }
+
+            VERIFY_RTE( pTargetContext );
+            m_database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkTrait, pTargetContext } );
+        }
+        return true;
+    }
+
     template < typename TContextType >
     bool dimensionAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
@@ -179,8 +257,7 @@ public:
                     auto iFind = m_mangleMap.find( strErasedType );
                     VERIFY_RTE_MSG( iFind != m_mangleMap.end(),
                                     "Failed to locate mangle for erassed type: "
-                                        << strErasedType
-                                        << " for dimension: " << pDimensionTrait->get_interface_id() );
+                                        << strErasedType << " for dimension: " << pDimensionTrait->get_interface_id() );
                     pMangle = iFind->second;
 
                     // only attempt this is it has a base type identifier
@@ -699,14 +776,6 @@ public:
                     if( !sizeAnalysis( pObject, sizeOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
-                bProcess = true;
-            }
-        }
-        {
-            if( auto pLink = db_cast< Link >( pContext ) )
-            {
-                if( !inheritanceAnalysis( pLink, pLink->get_link_interface(), result.loc, result.pDeclContext ) )
-                    return false;
                 bProcess = true;
             }
         }

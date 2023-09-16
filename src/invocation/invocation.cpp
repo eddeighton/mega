@@ -160,10 +160,11 @@ symbolVectorToInterfaceVariantVector( Database& database, const std::vector< Sym
     }
     return result;
 }
-
+/*
 InterfaceVariantVectorVector linkToInterfaceVariantVector( OperationsStage::Database&             database,
                                                            const OperationsStage::Concrete::Link* pLink )
 {
+    THROW_TODO;
     InterfaceVariantVectorVector result;
 
     auto pRelation = pLink->get_link()->get_relation();
@@ -196,7 +197,7 @@ InterfaceVariantVectorVector linkToInterfaceVariantVector( OperationsStage::Data
     }
 
     return result;
-}
+}*/
 
 InterfaceVariantVectorVector
 symbolIDVectorToInterfaceVariantVector( Database& database, const SymbolMaps& symbolMaps,
@@ -636,6 +637,8 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
 std::vector< OperationsStage::Interface::IContext* >
 calculateLinkOperationTypes( std::vector< OperationsStage::Interface::IContext* >& derivedContexts, bool& bSingular )
 {
+    THROW_TODO;
+    /*
     VERIFY_RTE_MSG( !derivedContexts.empty(), "Link Operation has no contexts" );
 
     std::vector< OperationsStage::Interface::IContext* > parameterContextTypes;
@@ -710,7 +713,7 @@ calculateLinkOperationTypes( std::vector< OperationsStage::Interface::IContext* 
             THROW_RTE( "Invalid link interface" );
         }
     }
-    return parameterContextTypes;
+    return parameterContextTypes;*/
 }
 
 void analyseReturnTypes( Database& database, Invocation* pInvocation )

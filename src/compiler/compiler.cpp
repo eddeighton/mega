@@ -474,18 +474,18 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    TskDesc unityReflection = encode( Task{ eTask_UnityReflection, manifestFilePath } );
+    /*TskDesc unityReflection = encode( Task{ eTask_UnityReflection, manifestFilePath } );
     TskDesc unityAnalysis   = encode( Task{ eTask_UnityAnalysis, manifestFilePath } );
     TskDesc unity           = encode( Task{ eTask_Unity, manifestFilePath } );
     TskDesc unityDatabase   = encode( Task{ eTask_UnityDatabase, manifestFilePath } );
     dependencies.add( unityReflection, unityDependencyTasks );
     dependencies.add( unityAnalysis, TskDescVec{ unityReflection } );
     dependencies.add( unity, TskDescVec{ unityAnalysis } );
-    dependencies.add( unityDatabase, TskDescVec{ unity } );
+    dependencies.add( unityDatabase, TskDescVec{ unity } );*/
 
     {
         TskDescVec completionTasks = componentTasks;
-        completionTasks.push_back( unityDatabase );
+        //completionTasks.push_back( unityDatabase );
         TskDesc complete = encode( Task{ eTask_Complete, manifestFilePath } );
         dependencies.add( complete, completionTasks );
     }

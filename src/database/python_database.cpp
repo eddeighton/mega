@@ -40,11 +40,12 @@ void recurseTree( PythonDatabase::SymbolTable&   symbols,
         }
     }
 
-    if( Link* pLink = db_cast< Link >( pContext ) )
+    THROW_TODO;
+    /*if( Link* pLink = db_cast< Link >( pContext ) )
     {
         links.insert( { pContext->get_interface()->get_identifier(), pContext->get_concrete_id() } );
 
-        /*Interface::LinkInterface* pLinkInterface = pLink->get_link_interface();
+        Interface::LinkInterface* pLinkInterface = pLink->get_link_interface();
         HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
 
         const mega::Ownership ownership = pRelation->get_ownership();
@@ -79,9 +80,9 @@ void recurseTree( PythonDatabase::SymbolTable&   symbols,
         else
         {
             THROW_RTE( "Invalid relation" );
-        }*/
+        }
     }
-    else
+    else*/
     {
         symbols.insert( { pContext->get_interface()->get_identifier(), pContext->get_concrete_id() } );
     }
