@@ -113,10 +113,10 @@ public:
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if( auto pAction = db_cast< Action >( pContext ) )
+        else if( auto pState = db_cast< State >( pContext ) )
         {
-            CleverUtility c( types, pAction->get_identifier() );
-            for( IContext* pNestedContext : pAction->get_children() )
+            CleverUtility c( types, pState->get_identifier() );
+            for( IContext* pNestedContext : pState->get_children() )
             {
                 recurse( pNestedContext, data, namespaces, types );
             }

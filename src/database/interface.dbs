@@ -57,8 +57,16 @@ namespace Interface
         value< mega::TypeID > interface_id -> SymbolRollout::PerSourceSymbols;
 
         array< ref< Concrete::Dimensions::Link > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
+    }
 
-        ref< HyperGraph::Relation > relation -> HyperGraphAnalysisRollout::PerSourceModel;
+    object ObjectLinkTrait : LinkTrait -> HyperGraphAnalysisRollout::PerSourceModel
+    {
+        ref< HyperGraph::Relation > relation;
+    }
+
+    object ComponentLinkTrait : LinkTrait -> HyperGraphAnalysisRollout::PerSourceModel
+    {
+
     }
 
     object InheritanceTrait : Parser::Inheritance -> InterfaceStage::Tree

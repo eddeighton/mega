@@ -144,30 +144,38 @@ public:
 
         for( auto pInvocationContext : database.many< Interface::InvocationContext >( m_sourceFilePath ) )
         {
-            auto iFind = operationRanges.find( pInvocationContext->get_interface_id() );
-            VERIFY_RTE_MSG( iFind != operationRanges.end(),
-                            "Failed to locate operation body for: " << pInvocationContext->get_interface_id() );
-            const SourceLocation& operationLoc = iFind->second;
-
             std::vector< Interface::InvocationInstance* > invocationInstances;
+            SourceLocation                                operationLoc;
+
+            // TODO add multi-inheritance to db
+            // for now ignore State
+            if( db_cast< Interface::Action >( pInvocationContext )
+                || !db_cast< Interface::State >( pInvocationContext ) )
             {
-                for( const auto& [ invocationID, pInvocation ] : pInvocations->get_invocations() )
+                auto iFind = operationRanges.find( pInvocationContext->get_interface_id() );
+                VERIFY_RTE_MSG( iFind != operationRanges.end(),
+                                "Failed to locate operation body for: " << pInvocationContext->get_interface_id() );
+                operationLoc = iFind->second;
                 {
-                    std::vector< SourceLocation > instances;
-                    for( const auto& invocationLoc : pInvocation->get_file_offsets() )
+                    for( const auto& [ invocationID, pInvocation ] : pInvocations->get_invocations() )
                     {
-                        if( operationLoc.contains( invocationLoc ) )
+                        std::vector< SourceLocation > instances;
+                        for( const auto& invocationLoc : pInvocation->get_file_offsets() )
                         {
-                            instances.push_back( invocationLoc );
+                            if( operationLoc.contains( invocationLoc ) )
+                            {
+                                instances.push_back( invocationLoc );
+                            }
                         }
-                    }
-                    for( const auto& instanceLoc : instances )
-                    {
-                        invocationInstances.push_back( database.construct< Interface::InvocationInstance >(
-                            Interface::InvocationInstance::Args{ pInvocation, instanceLoc } ) );
+                        for( const auto& instanceLoc : instances )
+                        {
+                            invocationInstances.push_back( database.construct< Interface::InvocationInstance >(
+                                Interface::InvocationInstance::Args{ pInvocation, instanceLoc } ) );
+                        }
                     }
                 }
             }
+
             database.construct< Interface::InvocationContext >(
                 Interface::InvocationContext::Args{ pInvocationContext, invocationInstances, operationLoc } );
         }
@@ -181,7 +189,8 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_OperationsLocs( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_OperationsLocs( const TaskArguments&          taskArguments,
+                                          const mega::io::megaFilePath& sourceFilePath )
 {
     return std::make_unique< Task_OperationsLocs >( taskArguments, sourceFilePath );
 }

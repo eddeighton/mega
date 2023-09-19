@@ -48,12 +48,8 @@ static bool mega_stopped( const Context& context );
 {{ interface }}
 
 {% for struct in structs %}
-struct [[clang::eg_type( {{ struct.typeid }} )]] {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endif %}{% endfor %}
+struct {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endif %}{% endfor %}
 {
-    enum : mega::TypeID::ValueType
-    {
-        ID = {{ struct.typeid }}
-    };
 {% for trait in struct.traits %}
     {{ trait }};
 {% endfor %}

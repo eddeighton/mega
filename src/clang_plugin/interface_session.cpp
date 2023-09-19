@@ -170,12 +170,16 @@ public:
                     std::vector< std::vector< std::vector< mega::TypeID > > > result;
                     if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
                     {
+                        REPORT_ERROR( "Failed to resolve link type for " << pContext->get_identifier() << "("
+                                                                         << pContext->get_interface_id() << ")" );
                         return false;
                     }
 
                     std::vector< Interface::TypePathVariant* > linkType;
                     if( !convert( result, linkType ) )
                     {
+                        REPORT_ERROR( "Failed to convert link type for " << pContext->get_identifier() << "("
+                                                                         << pContext->get_interface_id() << ")" );
                         return false;
                     }
 
@@ -216,12 +220,16 @@ public:
                     std::vector< std::vector< std::vector< mega::TypeID > > > result;
                     if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
                     {
+                        REPORT_ERROR( "Failed to resolve requirement type for "
+                                      << pContext->get_identifier() << "(" << pContext->get_interface_id() << ")" );
                         return false;
                     }
 
                     std::vector< Interface::TypePathVariant* > linkType;
                     if( !convert( result, linkType ) )
                     {
+                        REPORT_ERROR( "Failed to convert requirement type for "
+                                      << pContext->get_identifier() << "(" << pContext->get_interface_id() << ")" );
                         return false;
                     }
 
@@ -230,15 +238,15 @@ public:
                 }
                 else
                 {
-                    REPORT_ERROR( "Failed to resolve link target type for " << pContext->get_identifier() << "("
-                                                                            << pContext->get_interface_id() << ")" );
+                    REPORT_ERROR( "Failed to resolve requirement target type for "
+                                  << pContext->get_identifier() << "(" << pContext->get_interface_id() << ")" );
                     return false;
                 }
             }
             else
             {
-                REPORT_ERROR( "Failed to resolve link for " << pContext->get_identifier() << "("
-                                                            << pContext->get_interface_id() );
+                REPORT_ERROR( "Failed to resolve requirement for " << pContext->get_identifier() << "("
+                                                                   << pContext->get_interface_id() );
                 return false;
             }
         }

@@ -100,40 +100,44 @@ private:
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if( Interface::Action* pAction = db_cast< Interface::Action >( pContext ) )
+        else if( Interface::State* pState = db_cast< Interface::State >( pContext ) )
         {
-            CleverUtility c( types, pAction->get_identifier() );
+            CleverUtility c( types, pState->get_identifier() );
 
-            std::ostringstream osBody;
-            for( auto pDef : pAction->get_state_defs() )
+            if( db_cast< Interface::Action >( pState ) )
             {
-                if( !pDef->get_body().empty() )
+                std::ostringstream osBody;
                 {
-                    osBody << pDef->get_body();
-                    break;
+                    for( auto pDef : pState->get_state_defs() )
+                    {
+                        if( !pDef->get_body().empty() )
+                        {
+                            osBody << pDef->get_body();
+                            break;
+                        }
+                    }
+                    osBody << "\nco_return mega::done();";
                 }
+
+                nlohmann::json operation( {
+
+                    { "return_type", "mega::ActionCoroutine" },
+                    { "body", osBody.str() },
+                    { "hash", common::Hash{ osBody.str() }.toHexString() },
+                    { "typeID", pState->get_interface_id().getSymbolID() },
+                    { "has_namespaces", !namespaces.empty() },
+                    { "namespaces", namespaces },
+                    { "types", types },
+                    { "params_string", "" },
+                    { "params", nlohmann::json::array() },
+                    { "requires_extern", true }
+
+                } );
+
+                data[ "operations" ].push_back( operation );
             }
 
-            osBody << "\nco_return mega::done();";
-
-            nlohmann::json operation( {
-
-                { "return_type", "mega::ActionCoroutine" },
-                { "body", osBody.str() },
-                { "hash", common::Hash{ osBody.str() }.toHexString() },
-                { "typeID", pAction->get_interface_id().getSymbolID() },
-                { "has_namespaces", !namespaces.empty() },
-                { "namespaces", namespaces },
-                { "types", types },
-                { "params_string", "" },
-                { "params", nlohmann::json::array() },
-                { "requires_extern", true }
-
-            } );
-
-            data[ "operations" ].push_back( operation );
-
-            for( IContext* pNestedContext : pAction->get_children() )
+            for( IContext* pNestedContext : pState->get_children() )
             {
                 recurse( pNestedContext, data, namespaces, types );
             }

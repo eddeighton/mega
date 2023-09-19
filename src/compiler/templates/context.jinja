@@ -30,7 +30,7 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }} : public mega::reference
             return invoke_impl< ResultType, {{ name }}, TypePath, Operation, Args... >( *this, args... );
     }
 {% for trait_struct in trait_structs %}
-    struct [[clang::eg_type( {{ trait_struct.typeid }} )]]{{ trait_struct.name }};
+    struct {{ trait_struct.name }};
 {% endfor %}
     {{ nested }}
 };

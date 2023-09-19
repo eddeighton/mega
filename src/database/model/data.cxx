@@ -1999,7 +1999,6 @@ namespace Tree
           , p_Clang_Interface_LinkTrait( loader )
           , p_PerSourceSymbols_Interface_LinkTrait( loader )
           , p_PerSourceDerivations_Interface_LinkTrait( loader )
-          , p_PerSourceModel_Interface_LinkTrait( loader )
           , parent( loader )
     {
     }
@@ -2008,7 +2007,6 @@ namespace Tree
           , p_Clang_Interface_LinkTrait( loader )
           , p_PerSourceSymbols_Interface_LinkTrait( loader )
           , p_PerSourceDerivations_Interface_LinkTrait( loader )
-          , p_PerSourceModel_Interface_LinkTrait( loader )
           , parent( parent )
     {
     }
@@ -5600,40 +5598,40 @@ namespace Model
 }
 namespace PerSourceModel
 {
-    // struct Interface_LinkTrait : public mega::io::Object
-    Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Tree_Interface_LinkTrait( loader )
+    // struct Interface_ObjectLinkTrait : public mega::io::Object
+    Interface_ObjectLinkTrait::Interface_ObjectLinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::PerSourceModel::Interface_ObjectLinkTrait >( loader, this ) )          , p_Tree_Interface_LinkTrait( loader )
           , relation( loader )
     {
     }
-    Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_LinkTrait > p_Tree_Interface_LinkTrait, const data::Ptr< data::Model::HyperGraph_Relation >& relation)
-        :   mega::io::Object( objectInfo )          , p_Tree_Interface_LinkTrait( p_Tree_Interface_LinkTrait )
+    Interface_ObjectLinkTrait::Interface_ObjectLinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Model::HyperGraph_Relation >& relation)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::PerSourceModel::Interface_ObjectLinkTrait >( loader, this ) )          , p_Tree_Interface_LinkTrait( loader )
           , relation( relation )
     {
     }
-    bool Interface_LinkTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Interface_ObjectLinkTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return false;
+        return m_inheritance == data::Variant{ data::Ptr< data::PerSourceModel::Interface_ObjectLinkTrait >( loader, const_cast< Interface_ObjectLinkTrait* >( this ) ) };
     }
-    void Interface_LinkTrait::set_inheritance_pointer()
+    void Interface_ObjectLinkTrait::set_inheritance_pointer()
     {
-        p_Tree_Interface_LinkTrait->p_PerSourceModel_Interface_LinkTrait = data::Ptr< data::PerSourceModel::Interface_LinkTrait >( p_Tree_Interface_LinkTrait, this );
+        p_Tree_Interface_LinkTrait->m_inheritance = data::Ptr< data::PerSourceModel::Interface_ObjectLinkTrait >( p_Tree_Interface_LinkTrait, this );
     }
-    void Interface_LinkTrait::load( mega::io::Loader& loader )
+    void Interface_ObjectLinkTrait::load( mega::io::Loader& loader )
     {
         loader.load( p_Tree_Interface_LinkTrait );
         loader.load( relation );
     }
-    void Interface_LinkTrait::store( mega::io::Storer& storer ) const
+    void Interface_ObjectLinkTrait::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Tree_Interface_LinkTrait );
         storer.store( relation );
     }
-    void Interface_LinkTrait::to_json( nlohmann::json& _part__ ) const
+    void Interface_ObjectLinkTrait::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Interface_LinkTrait" },
+                { "partname", "Interface_ObjectLinkTrait" },
                 { "filetype" , "PerSourceModel" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -5645,6 +5643,40 @@ namespace PerSourceModel
                 { "relation", relation } } );
             _part__[ "properties" ].push_back( property );
         }
+    }
+        
+    // struct Interface_ComponentLinkTrait : public mega::io::Object
+    Interface_ComponentLinkTrait::Interface_ComponentLinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::PerSourceModel::Interface_ComponentLinkTrait >( loader, this ) )          , p_Tree_Interface_LinkTrait( loader )
+    {
+    }
+    bool Interface_ComponentLinkTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::PerSourceModel::Interface_ComponentLinkTrait >( loader, const_cast< Interface_ComponentLinkTrait* >( this ) ) };
+    }
+    void Interface_ComponentLinkTrait::set_inheritance_pointer()
+    {
+        p_Tree_Interface_LinkTrait->m_inheritance = data::Ptr< data::PerSourceModel::Interface_ComponentLinkTrait >( p_Tree_Interface_LinkTrait, this );
+    }
+    void Interface_ComponentLinkTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_LinkTrait );
+    }
+    void Interface_ComponentLinkTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_LinkTrait );
+    }
+    void Interface_ComponentLinkTrait::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_ComponentLinkTrait" },
+                { "filetype" , "PerSourceModel" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
     }
         
     // struct Concrete_Object : public mega::io::Object
@@ -13411,6 +13443,10 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Interf
     {
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_LinkTrait >( m_data )->concrete;
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::PerSourceDerivations::Interface_LinkTrait >( m_data )->concrete;
+        case data::PerSourceModel::Interface_ComponentLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::PerSourceDerivations::Interface_LinkTrait >( m_data )->concrete;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13422,6 +13458,10 @@ mega::TypeID& get_Interface_LinkTrait_interface_id(data::Variant& m_data)
     switch( m_data.getType() )
     {
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_LinkTrait >( m_data )->interface_id;
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_LinkTrait >( m_data )->interface_id;
+        case data::PerSourceModel::Interface_ComponentLinkTrait::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_LinkTrait >( m_data )->interface_id;
         default:
         {
@@ -13435,18 +13475,10 @@ data::Ptr< data::Tree::Interface_IContext >& get_Interface_LinkTrait_parent(data
     {
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_LinkTrait >( m_data )->parent;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-data::Ptr< data::Model::HyperGraph_Relation >& get_Interface_LinkTrait_relation(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Interface_LinkTrait >( m_data )->relation;
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_LinkTrait >( m_data )->parent;
+        case data::PerSourceModel::Interface_ComponentLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_LinkTrait >( m_data )->parent;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13459,6 +13491,10 @@ mega::TypeID& get_Interface_LinkTrait_symbol_id(data::Variant& m_data)
     {
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_LinkTrait >( m_data )->symbol_id;
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_LinkTrait >( m_data )->symbol_id;
+        case data::PerSourceModel::Interface_ComponentLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_LinkTrait >( m_data )->symbol_id;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -13470,6 +13506,10 @@ std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& get_Interfac
     switch( m_data.getType() )
     {
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
+            return data::convert< data::Clang::Interface_LinkTrait >( m_data )->tuple;
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::Clang::Interface_LinkTrait >( m_data )->tuple;
+        case data::PerSourceModel::Interface_ComponentLinkTrait::Object_Part_Type_ID:
             return data::convert< data::Clang::Interface_LinkTrait >( m_data )->tuple;
         default:
         {
@@ -13525,6 +13565,18 @@ std::vector< data::Ptr< data::AST::Parser_ContextDef > >& get_Interface_Namespac
     {
         case data::Tree::Interface_Namespace::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Namespace >( m_data )->namespace_defs;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Model::HyperGraph_Relation >& get_Interface_ObjectLinkTrait_relation(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Interface_ObjectLinkTrait >( m_data )->relation;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -15319,6 +15371,10 @@ std::optional< mega::CardinalityRange >& get_Parser_Link_cardinality(data::Varia
             return data::convert< data::AST::Parser_Link >( m_data )->cardinality;
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Link >( m_data )->cardinality;
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->cardinality;
+        case data::PerSourceModel::Interface_ComponentLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->cardinality;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -15332,6 +15388,10 @@ data::Ptr< data::AST::Parser_Identifier >& get_Parser_Link_id(data::Variant& m_d
         case data::AST::Parser_Link::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Link >( m_data )->id;
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->id;
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->id;
+        case data::PerSourceModel::Interface_ComponentLinkTrait::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Link >( m_data )->id;
         default:
         {
@@ -15347,6 +15407,10 @@ bool& get_Parser_Link_owning(data::Variant& m_data)
             return data::convert< data::AST::Parser_Link >( m_data )->owning;
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Link >( m_data )->owning;
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->owning;
+        case data::PerSourceModel::Interface_ComponentLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->owning;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -15360,6 +15424,10 @@ data::Ptr< data::AST::Parser_TypeList >& get_Parser_Link_type(data::Variant& m_d
         case data::AST::Parser_Link::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Link >( m_data )->type;
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->type;
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->type;
+        case data::PerSourceModel::Interface_ComponentLinkTrait::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Link >( m_data )->type;
         default:
         {
@@ -18081,18 +18149,6 @@ data::Ptr< data::Tree::Interface_IContext >& set_Interface_LinkTrait_parent(data
         }
     }
 }
-data::Ptr< data::Model::HyperGraph_Relation >& set_Interface_LinkTrait_relation(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Interface_LinkTrait >( m_data )->relation;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 mega::TypeID& set_Interface_LinkTrait_symbol_id(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -18159,6 +18215,18 @@ std::vector< data::Ptr< data::AST::Parser_ContextDef > >& set_Interface_Namespac
     {
         case data::Tree::Interface_Namespace::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Namespace >( m_data )->namespace_defs;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Model::HyperGraph_Relation >& set_Interface_ObjectLinkTrait_relation(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::PerSourceModel::Interface_ObjectLinkTrait::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Interface_ObjectLinkTrait >( m_data )->relation;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -20730,160 +20798,161 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 23: return new Body::Parser_ContextDef( loader, objectInfo );
         case 38: return new Tree::Interface_DimensionTrait( loader, objectInfo );
         case 42: return new Tree::Interface_LinkTrait( loader, objectInfo );
-        case 47: return new Tree::Interface_InheritanceTrait( loader, objectInfo );
-        case 49: return new Tree::Interface_ReturnTypeTrait( loader, objectInfo );
-        case 51: return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
-        case 53: return new Tree::Interface_PartTrait( loader, objectInfo );
-        case 54: return new Tree::Interface_RequirementTrait( loader, objectInfo );
-        case 56: return new Tree::Interface_TransitionTypeTrait( loader, objectInfo );
-        case 58: return new Tree::Interface_EventTypeTrait( loader, objectInfo );
-        case 60: return new Tree::Interface_SizeTrait( loader, objectInfo );
-        case 62: return new Tree::Interface_ContextGroup( loader, objectInfo );
-        case 63: return new Tree::Interface_Root( loader, objectInfo );
-        case 64: return new Tree::Interface_IContext( loader, objectInfo );
-        case 68: return new Tree::Interface_InvocationContext( loader, objectInfo );
-        case 70: return new Tree::Interface_Namespace( loader, objectInfo );
-        case 71: return new Tree::Interface_Abstract( loader, objectInfo );
-        case 72: return new Tree::Interface_State( loader, objectInfo );
-        case 73: return new Tree::Interface_Action( loader, objectInfo );
-        case 74: return new Tree::Interface_Component( loader, objectInfo );
-        case 75: return new Tree::Interface_Event( loader, objectInfo );
-        case 76: return new Tree::Interface_Interupt( loader, objectInfo );
-        case 77: return new Tree::Interface_Function( loader, objectInfo );
-        case 78: return new Tree::Interface_Object( loader, objectInfo );
-        case 183: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
-        case 184: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
-        case 185: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
-        case 155: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 156: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 157: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 158: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 159: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 160: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 162: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 48: return new Tree::Interface_InheritanceTrait( loader, objectInfo );
+        case 50: return new Tree::Interface_ReturnTypeTrait( loader, objectInfo );
+        case 52: return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
+        case 54: return new Tree::Interface_PartTrait( loader, objectInfo );
+        case 55: return new Tree::Interface_RequirementTrait( loader, objectInfo );
+        case 57: return new Tree::Interface_TransitionTypeTrait( loader, objectInfo );
+        case 59: return new Tree::Interface_EventTypeTrait( loader, objectInfo );
+        case 61: return new Tree::Interface_SizeTrait( loader, objectInfo );
+        case 63: return new Tree::Interface_ContextGroup( loader, objectInfo );
+        case 64: return new Tree::Interface_Root( loader, objectInfo );
+        case 65: return new Tree::Interface_IContext( loader, objectInfo );
+        case 69: return new Tree::Interface_InvocationContext( loader, objectInfo );
+        case 71: return new Tree::Interface_Namespace( loader, objectInfo );
+        case 72: return new Tree::Interface_Abstract( loader, objectInfo );
+        case 73: return new Tree::Interface_State( loader, objectInfo );
+        case 74: return new Tree::Interface_Action( loader, objectInfo );
+        case 75: return new Tree::Interface_Component( loader, objectInfo );
+        case 76: return new Tree::Interface_Event( loader, objectInfo );
+        case 77: return new Tree::Interface_Interupt( loader, objectInfo );
+        case 78: return new Tree::Interface_Function( loader, objectInfo );
+        case 79: return new Tree::Interface_Object( loader, objectInfo );
+        case 184: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
+        case 185: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
+        case 186: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
+        case 156: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 157: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 158: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 159: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 160: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 161: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 163: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 39: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 44: return new PerSourceSymbols::Interface_LinkTrait( loader, objectInfo );
-        case 65: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
+        case 66: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 36: return new Clang::Interface_TypePath( loader, objectInfo );
         case 37: return new Clang::Interface_TypePathVariant( loader, objectInfo );
         case 41: return new Clang::Interface_DimensionTrait( loader, objectInfo );
         case 43: return new Clang::Interface_LinkTrait( loader, objectInfo );
-        case 48: return new Clang::Interface_InheritanceTrait( loader, objectInfo );
-        case 50: return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
-        case 52: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
-        case 55: return new Clang::Interface_RequirementTrait( loader, objectInfo );
-        case 57: return new Clang::Interface_TransitionTypeTrait( loader, objectInfo );
-        case 59: return new Clang::Interface_EventTypeTrait( loader, objectInfo );
-        case 61: return new Clang::Interface_SizeTrait( loader, objectInfo );
-        case 114: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
-        case 117: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
-        case 125: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 126: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 129: return new Concrete::Concrete_Interupt( loader, objectInfo );
-        case 130: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 131: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
-        case 132: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 133: return new Concrete::Concrete_State( loader, objectInfo );
-        case 135: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 136: return new Concrete::Concrete_Component( loader, objectInfo );
-        case 137: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 139: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 143: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 164: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
-        case 165: return new Derivations::Inheritance_Mapping( loader, objectInfo );
+        case 49: return new Clang::Interface_InheritanceTrait( loader, objectInfo );
+        case 51: return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
+        case 53: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
+        case 56: return new Clang::Interface_RequirementTrait( loader, objectInfo );
+        case 58: return new Clang::Interface_TransitionTypeTrait( loader, objectInfo );
+        case 60: return new Clang::Interface_EventTypeTrait( loader, objectInfo );
+        case 62: return new Clang::Interface_SizeTrait( loader, objectInfo );
+        case 115: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
+        case 118: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
+        case 126: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 127: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 130: return new Concrete::Concrete_Interupt( loader, objectInfo );
+        case 131: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 132: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
+        case 133: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 134: return new Concrete::Concrete_State( loader, objectInfo );
+        case 136: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 137: return new Concrete::Concrete_Component( loader, objectInfo );
+        case 138: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 140: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 144: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 165: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
+        case 166: return new Derivations::Inheritance_Mapping( loader, objectInfo );
         case 40: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
         case 45: return new PerSourceDerivations::Interface_LinkTrait( loader, objectInfo );
-        case 66: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
-        case 166: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 167: return new Model::HyperGraph_OwningRelation( loader, objectInfo );
-        case 168: return new Model::HyperGraph_BinaryRelation( loader, objectInfo );
-        case 169: return new Model::HyperGraph_Graph( loader, objectInfo );
-        case 46: return new PerSourceModel::Interface_LinkTrait( loader, objectInfo );
-        case 141: return new PerSourceModel::Concrete_Object( loader, objectInfo );
-        case 116: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
-        case 119: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
-        case 120: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
-        case 121: return new MemoryLayout::Concrete_Dimensions_LinkMany( loader, objectInfo );
-        case 122: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 124: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
-        case 128: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 134: return new MemoryLayout::Concrete_State( loader, objectInfo );
-        case 138: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 140: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 170: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 171: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 172: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 173: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 174: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 175: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 176: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 177: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 178: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 179: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 180: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 181: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 182: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
-        case 142: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
-        case 161: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 163: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
-        case 115: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
-        case 118: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
-        case 123: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 127: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
-        case 79: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
-        case 80: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
-        case 81: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
-        case 82: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
-        case 83: return new Operations::Invocations_Variables_Context( loader, objectInfo );
-        case 84: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
-        case 85: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
-        case 86: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
-        case 87: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
-        case 88: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
-        case 89: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
-        case 90: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
-        case 91: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
-        case 92: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
-        case 93: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
-        case 94: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
-        case 95: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
-        case 96: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
-        case 97: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
-        case 98: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
-        case 99: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
-        case 100: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
-        case 101: return new Operations::Invocations_Operations_LinkOperation( loader, objectInfo );
-        case 102: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
-        case 103: return new Operations::Invocations_Operations_Call( loader, objectInfo );
-        case 104: return new Operations::Invocations_Operations_Start( loader, objectInfo );
-        case 105: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
-        case 106: return new Operations::Invocations_Operations_Move( loader, objectInfo );
-        case 107: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
-        case 108: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
-        case 109: return new Operations::Invocations_Operations_Read( loader, objectInfo );
-        case 110: return new Operations::Invocations_Operations_Write( loader, objectInfo );
-        case 111: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
-        case 112: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
-        case 113: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 144: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 145: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 146: return new Operations::Operations_Element( loader, objectInfo );
-        case 147: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 148: return new Operations::Operations_Context( loader, objectInfo );
-        case 149: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 150: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 151: return new Operations::Operations_Name( loader, objectInfo );
-        case 152: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 153: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 154: return new Operations::Operations_Invocations( loader, objectInfo );
-        case 67: return new Locations::Interface_InvocationInstance( loader, objectInfo );
-        case 69: return new Locations::Interface_InvocationContext( loader, objectInfo );
-        case 186: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
-        case 187: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
-        case 188: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
-        case 189: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
-        case 190: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
-        case 191: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
+        case 67: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
+        case 167: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 168: return new Model::HyperGraph_OwningRelation( loader, objectInfo );
+        case 169: return new Model::HyperGraph_BinaryRelation( loader, objectInfo );
+        case 170: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 46: return new PerSourceModel::Interface_ObjectLinkTrait( loader, objectInfo );
+        case 47: return new PerSourceModel::Interface_ComponentLinkTrait( loader, objectInfo );
+        case 142: return new PerSourceModel::Concrete_Object( loader, objectInfo );
+        case 117: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 120: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
+        case 121: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
+        case 122: return new MemoryLayout::Concrete_Dimensions_LinkMany( loader, objectInfo );
+        case 123: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 125: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
+        case 129: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 135: return new MemoryLayout::Concrete_State( loader, objectInfo );
+        case 139: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 141: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 171: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 172: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 173: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 174: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 175: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 176: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 177: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 178: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 179: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 180: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
+        case 181: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 182: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 183: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
+        case 143: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
+        case 162: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 164: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 116: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
+        case 119: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
+        case 124: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 128: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 80: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
+        case 81: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
+        case 82: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
+        case 83: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
+        case 84: return new Operations::Invocations_Variables_Context( loader, objectInfo );
+        case 85: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
+        case 86: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
+        case 87: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
+        case 88: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
+        case 89: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
+        case 90: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
+        case 91: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
+        case 92: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
+        case 93: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
+        case 94: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
+        case 95: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
+        case 96: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
+        case 97: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
+        case 98: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
+        case 99: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
+        case 100: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
+        case 101: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
+        case 102: return new Operations::Invocations_Operations_LinkOperation( loader, objectInfo );
+        case 103: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
+        case 104: return new Operations::Invocations_Operations_Call( loader, objectInfo );
+        case 105: return new Operations::Invocations_Operations_Start( loader, objectInfo );
+        case 106: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
+        case 107: return new Operations::Invocations_Operations_Move( loader, objectInfo );
+        case 108: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
+        case 109: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
+        case 110: return new Operations::Invocations_Operations_Read( loader, objectInfo );
+        case 111: return new Operations::Invocations_Operations_Write( loader, objectInfo );
+        case 112: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
+        case 113: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
+        case 114: return new Operations::Invocations_Operations_Range( loader, objectInfo );
+        case 145: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 146: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 147: return new Operations::Operations_Element( loader, objectInfo );
+        case 148: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 149: return new Operations::Operations_Context( loader, objectInfo );
+        case 150: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 151: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 152: return new Operations::Operations_Name( loader, objectInfo );
+        case 153: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 154: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 155: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 68: return new Locations::Interface_InvocationInstance( loader, objectInfo );
+        case 70: return new Locations::Interface_InvocationContext( loader, objectInfo );
+        case 187: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
+        case 188: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
+        case 189: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
+        case 190: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
+        case 191: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
+        case 192: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }
