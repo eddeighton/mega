@@ -127,21 +127,32 @@ namespace HyperGraph
         value< mega::RelationID > id;
     }
 
-    object OwningRelation : Relation -> HyperGraphAnalysis::Model
+    object ObjectRelation : Relation -> HyperGraphAnalysis::Model
     {
-        array< ref< Interface::LinkTrait > > owners;
-        ref< Interface::Object >             owned;
     }
 
-    object BinaryRelation : Relation -> HyperGraphAnalysis::Model
+    object OwningObjectRelation : ObjectRelation -> HyperGraphAnalysis::Model
+    {
+        array< ref< Interface::ObjectLinkTrait > > owners;
+        ref< Interface::IContext >                 owned;
+    }
+
+    object NonOwningObjectRelation : ObjectRelation -> HyperGraphAnalysis::Model
+    {
+        ref< Interface::ObjectLinkTrait > source;
+        ref< Interface::ObjectLinkTrait > target;
+    }
+
+    /*
+    object ComponentRelation : Relation -> HyperGraphAnalysis::Model
     {
         ref< Interface::LinkTrait > source;
         ref< Interface::LinkTrait > target;
     }
-    
+    */
     object Graph -> HyperGraphAnalysis::Model
     {
-        map< ref< Interface::LinkTrait >, ref< Relation > > relations;
+        map< ref< Interface::ObjectLinkTrait >, ref< Relation > > relations;
     }
 }
 

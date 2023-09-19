@@ -51,22 +51,24 @@ namespace Interface
     {
         ref< IContext > parent;
 
-        array< ref< TypePathVariant > > tuple  -> InterfaceAnalysisStage::Clang;
-
         value< mega::TypeID > symbol_id -> SymbolRollout::PerSourceSymbols;
         value< mega::TypeID > interface_id -> SymbolRollout::PerSourceSymbols;
 
         array< ref< Concrete::Dimensions::Link > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
     }
 
-    object ObjectLinkTrait : LinkTrait -> HyperGraphAnalysisRollout::PerSourceModel
+    object TypedLinkTrait : LinkTrait -> InterfaceAnalysisStage::Clang
     {
-        ref< HyperGraph::Relation > relation;
+        array< ref< TypePathVariant > > tuple;
     }
 
-    object ComponentLinkTrait : LinkTrait -> HyperGraphAnalysisRollout::PerSourceModel
+    object ObjectLinkTrait : TypedLinkTrait -> InterfaceAnalysisStage::Clang
     {
+        ref< HyperGraph::Relation > relation -> HyperGraphAnalysisRollout::PerSourceModel;
+    }
 
+    object ComponentLinkTrait : TypedLinkTrait -> InterfaceAnalysisStage::Clang
+    {
     }
 
     object InheritanceTrait : Parser::Inheritance -> InterfaceStage::Tree

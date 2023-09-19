@@ -258,23 +258,6 @@ void Task_Allocators::createallocators(
     else if( auto pObject = db_cast< Object >( pContext ) )
     {
     }
-    /*else if ( auto pLink = db_cast< Link >( pContext ) )
-    {
-        Concrete::Dimensions::Link* pLinkRef = nullptr;
-        if ( pLink->get_link_interface()->get_link_trait()->get_cardinality().maximum().isMany() )
-        {
-            // range
-            pLinkRef = database.construct< Concrete::Dimensions::LinkMany >( Concrete::Dimensions::LinkMany::Args{
-                Concrete::Dimensions::Link::Args{ pParentContext, pLink } } );
-        }
-        else
-        {
-            // singular
-            pLinkRef = database.construct< Concrete::Dimensions::LinkSingle >( Concrete::Dimensions::LinkSingle::Args{
-                Concrete::Dimensions::Link::Args{ pParentContext, pLink } } );
-        }
-        pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize, pLinkRef } );
-    }*/
     else
     {
         THROW_RTE( "Unknown context type" );
@@ -582,6 +565,27 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
             THROW_RTE( "Unknown context type" );
         }
     }
+
+
+    /*else if ( auto pLink = db_cast< Link >( pContext ) )
+    {
+        Concrete::Dimensions::Link* pLinkRef = nullptr;
+        if ( pLink->get_link_interface()->get_link_trait()->get_cardinality().maximum().isMany() )
+        {
+            // range
+            pLinkRef = database.construct< Concrete::Dimensions::LinkMany >( Concrete::Dimensions::LinkMany::Args{
+                Concrete::Dimensions::Link::Args{ pParentContext, pLink } } );
+        }
+        else
+        {
+            // singular
+            pLinkRef = database.construct< Concrete::Dimensions::LinkSingle >( Concrete::Dimensions::LinkSingle::Args{
+                Concrete::Dimensions::Link::Args{ pParentContext, pLink } } );
+        }
+        pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize, pLinkRef } );
+    }*/
+
+    
 
     for( Concrete::Dimensions::Allocation* pAllocation : pContext->get_allocation_dimensions() )
     {

@@ -183,7 +183,17 @@ public:
                         return false;
                     }
 
-                    m_database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkTrait, linkType } );
+                    // determine if object link or component?
+                    if( pLinkTrait->get_cardinality().has_value() || pLinkTrait->get_owning() )
+                    {
+                        m_database.construct< Interface::ObjectLinkTrait >( Interface::ObjectLinkTrait::Args{
+                            Interface::TypedLinkTrait::Args{ pLinkTrait, linkType } } );
+                    }
+                    else
+                    {
+                        m_database.construct< Interface::ComponentLinkTrait >( Interface::ComponentLinkTrait::Args{
+                            Interface::TypedLinkTrait::Args{ pLinkTrait, linkType } } );
+                    }
                 }
                 else
                 {
