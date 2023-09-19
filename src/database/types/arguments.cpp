@@ -45,8 +45,7 @@ using Identifier = std::string;
 namespace
 {
 using UnderlyingIterType = std::string::const_iterator;
-// using IteratorType       = boost::spirit::line_pos_iterator< UnderlyingIterType >;
-using IteratorType = UnderlyingIterType;
+using IteratorType       = UnderlyingIterType;
 
 struct ParseResult
 {
@@ -71,11 +70,6 @@ struct error_handler
 
     void operator()( Iterator, Iterator, Iterator err_pos, boost::spirit::info const& what ) const
     {
-        // const int line = boost::spirit::get_line( err_pos );
-        // if ( line != -1 )
-        //     errorStream << '(' << line << ')';
-        // else
-        //     errorStream << "( unknown )";
         errorStream << " : Error! Expected " << what << std::endl;
     }
 };
@@ -150,13 +144,13 @@ ParseResult parse( const std::string& strInput, Identifier& code, std::ostream& 
 
 } // namespace
 
-struct Type
+struct _Type
 {
-    Identifier          id;
-    std::vector< Type > args;
+    Identifier           id;
+    std::vector< _Type > args;
 };
 
-std::ostream& operator<<( std::ostream& os, const Type& type )
+std::ostream& operator<<( std::ostream& os, const _Type& type )
 {
     os << type.id;
     if( !type.args.empty() )
@@ -178,9 +172,9 @@ std::ostream& operator<<( std::ostream& os, const Type& type )
 } // namespace mega
 
 // clang-format off
-BOOST_FUSION_ADAPT_STRUCT( mega::Type,
+BOOST_FUSION_ADAPT_STRUCT( mega::_Type,
     ( mega::Identifier, id )
-    ( std::vector< mega::Type >, args ) )
+    ( std::vector< mega::_Type >, args ) )
 // clang-format on
 
 namespace mega
@@ -189,7 +183,7 @@ namespace
 {
 
 template < typename Iterator >
-class TypeGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, Type() >
+class TypeGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, _Type() >
 {
 public:
     TypeGrammar()
@@ -206,26 +200,26 @@ public:
         m_main_rule = m_grammar_id[ at_c< 0 >( _val ) = qi::_1 ] >> -m_type_list_rule[ at_c< 1 >( _val ) = qi::_1 ];
     }
 
-    IdentifierGrammar< Iterator >                                                       m_grammar_id;
-    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, std::vector< Type >() > m_type_list_rule;
-    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Type() >                m_main_rule;
+    IdentifierGrammar< Iterator >                                                        m_grammar_id;
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, std::vector< _Type >() > m_type_list_rule;
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, _Type() >                m_main_rule;
 };
-
 } // namespace
 
-struct Arg
+struct _TypeName
 {
-    Type                        type;
+    _Type                       type;
     std::optional< Identifier > name;
 
-    using Vector = std::vector< Arg >;
+    using Vector = std::vector< _TypeName >;
 };
 } // namespace mega
 
 // clang-format off
-BOOST_FUSION_ADAPT_STRUCT( mega::Arg,
-    ( mega::Type, type )
+BOOST_FUSION_ADAPT_STRUCT( mega::_TypeName,
+    ( mega::_Type, type )
     ( std::optional< mega::Identifier >, name ) )
+
 // clang-format on
 
 namespace mega
@@ -234,11 +228,11 @@ namespace
 {
 
 template < typename Iterator >
-class ArgsGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, Arg::Vector() >
+class TypeNameListGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, _TypeName::Vector() >
 {
 public:
-    ArgsGrammar()
-        : ArgsGrammar::base_type( m_main_rule, "Arguments" )
+    TypeNameListGrammar()
+        : TypeNameListGrammar::base_type( m_main_rule, "TypeNameList" )
     {
         using namespace boost::spirit;
         using namespace boost::spirit::qi;
@@ -253,29 +247,45 @@ public:
     IdentifierGrammar< Iterator > m_grammar_id;
     TypeGrammar< Iterator >       m_grammar_type;
 
-    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Arg() >         m_arg_rule;
-    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Arg::Vector() > m_main_rule;
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, _TypeName() >         m_arg_rule;
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, _TypeName::Vector() > m_main_rule;
 };
-
 } // namespace
 
-void parse( const std::string& str, Argument::Vector& args )
+void parse( const std::string& str, TypeName::Vector& args )
 {
-    Arg::Vector ast;
+    _TypeName::Vector ast;
     {
         std::ostringstream osError;
-        const ParseResult  result = parse_impl< ArgsGrammar >( str, ast, osError );
+        const ParseResult  result = parse_impl< TypeNameListGrammar >( str, ast, osError );
         VERIFY_RTE_MSG( result.bSuccess && ( result.iterReached == str.end() ), "Failed to parse arguments: " << str );
     }
     for( const auto& a : ast )
     {
         std::ostringstream os;
         os << a.type;
-        args.push_back( Argument( os.str(), a.name ) );
+        args.push_back( TypeName( os.str(), a.name ) );
     }
 }
 
-EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::Argument::Vector& arguments )
+void parse( const std::string& str, Type::Vector& args )
+{
+    _TypeName::Vector ast;
+    {
+        std::ostringstream osError;
+        const ParseResult  result = parse_impl< TypeNameListGrammar >( str, ast, osError );
+        VERIFY_RTE_MSG( result.bSuccess && ( result.iterReached == str.end() ), "Failed to parse arguments: " << str );
+    }
+    for( const auto& a : ast )
+    {
+        VERIFY_RTE_MSG( !a.name.has_value(), "Type has a name" );
+        std::ostringstream os;
+        os << a.type;
+        args.push_back( Type( os.str() ) );
+    }
+}
+
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::TypeName::Vector& arguments )
 {
     bool bFirst = true;
     for( const auto& arg : arguments )
@@ -289,6 +299,20 @@ EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::Argument::Ve
         {
             os << " " << arg.getName().value();
         }
+    }
+    return os;
+}
+
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::Type::Vector& arguments )
+{
+    bool bFirst = true;
+    for( const auto& arg : arguments )
+    {
+        if( bFirst )
+            bFirst = false;
+        else
+            os << ", ";
+        os << arg.get();
     }
     return os;
 }

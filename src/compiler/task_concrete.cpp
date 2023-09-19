@@ -139,11 +139,11 @@ public:
                 }
             }
         }
-        else if( auto pAction = db_cast< Interface::Action >( pContext ) )
+        else if( auto pState = db_cast< Interface::State >( pContext ) )
         {
-            collectDimensions( database, pAction, identifierMap );
-            collectLinks( database, pAction, identifierMap );
-            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pAction->get_inheritance_trait() )
+            collectDimensions( database, pState, identifierMap );
+            collectLinks( database, pState, identifierMap );
+            if( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pState->get_inheritance_trait() )
             {
                 for( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
@@ -270,22 +270,86 @@ public:
             // do nothing
             return nullptr;
         }
-        else if( auto pAction = db_cast< Interface::Action >( pContext ) )
+        else if( auto pState = db_cast< Interface::State >( pContext ) )
         {
             if( concreteObjectOpt.has_value() )
             {
-                Action* pConcrete = database.construct< Action >( Action::Args{
-                    UserDimensionContext::Args{
-                        Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pAction, {} },
-                        {},
-                        {} },
-                    pAction } );
+                State* pConcrete = nullptr;
+
+                if( auto pAction = db_cast< Interface::Action >( pState ) )
+                {
+                    // clang-format off
+                    pConcrete = database.construct< Action >
+                    (
+                        Action::Args
+                        { 
+                            State::Args
+                            {
+                                UserDimensionContext::Args
+                                {
+                                    Context::Args
+                                    { 
+                                        ContextGroup::Args{ {} },
+                                        pComponent, 
+                                        pParentContextGroup, 
+                                        pAction, 
+                                        {} 
+                                    },
+                                    {},
+                                    {}
+                                },
+                                pState
+                            },
+                            pAction 
+                        } 
+                    );
+                    // clang-format on
+                }
+                else if( auto pInterfaceComponent = db_cast< Interface::Component >( pState ) )
+                {
+                    // clang-format off
+                    pConcrete = database.construct< Component >
+                    ( 
+                        Component::Args
+                        {
+                            State::Args
+                            {
+                                UserDimensionContext::Args
+                                {
+                                    Context::Args
+                                    {
+                                        ContextGroup::Args{ {} },
+                                        pComponent,
+                                        pParentContextGroup,
+                                        pInterfaceComponent,
+                                        {} 
+                                    },
+                                    {},
+                                    {} 
+                                },
+                                pState 
+                            },
+                            pInterfaceComponent 
+                        }
+                    );
+                    // clang-format on
+                }
+                else
+                {
+                    pConcrete = database.construct< State >( State::Args{
+                        UserDimensionContext::Args{
+                            Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pAction, {} },
+                            {},
+                            {} },
+                        pAction } );
+                }
+
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
 
                 IdentifierMap inheritedContexts;
                 {
-                    recurseInheritance( database, pConcrete, pAction, inheritedContexts );
+                    recurseInheritance( database, pConcrete, pState, inheritedContexts );
                     pConcrete->set_inheritance( inheritedContexts.inherited );
                 }
 

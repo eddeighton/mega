@@ -64,9 +64,9 @@ mega::U64 concreteLocalDomainSize( const FinalStage::Concrete::Context* pContext
     {
         return pEvent->get_local_size();
     }
-    else if( auto pAction = db_cast< const Action >( pContext ) )
+    else if( auto pState = db_cast< const State >( pContext ) )
     {
-        return pAction->get_local_size();
+        return pState->get_local_size();
     }
     else
     {
@@ -82,6 +82,10 @@ std::string getContextTypeClass( const FinalStage::Concrete::Context* pContext )
         return "object";
     else if( db_cast< const Action >( pContext ) )
         return "action";
+    else if( db_cast< const Component >( pContext ) )
+        return "component";
+    else if( db_cast< const State >( pContext ) )
+        return "state";
     else if( db_cast< const Event >( pContext ) )
         return "event";
     else if( db_cast< const Function >( pContext ) )

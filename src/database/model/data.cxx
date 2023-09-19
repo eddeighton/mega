@@ -374,11 +374,52 @@ namespace AST
         }
     }
         
+    // struct Parser_TypeList : public mega::io::Object
+    Parser_TypeList::Parser_TypeList( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_TypeList >( loader, this ) )    {
+    }
+    Parser_TypeList::Parser_TypeList( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< mega::Type >& args)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_TypeList >( loader, this ) )          , args( args )
+    {
+    }
+    bool Parser_TypeList::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AST::Parser_TypeList >( loader, const_cast< Parser_TypeList* >( this ) ) };
+    }
+    void Parser_TypeList::set_inheritance_pointer()
+    {
+    }
+    void Parser_TypeList::load( mega::io::Loader& loader )
+    {
+        loader.load( args );
+    }
+    void Parser_TypeList::store( mega::io::Storer& storer ) const
+    {
+        storer.store( args );
+    }
+    void Parser_TypeList::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Parser_TypeList" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "args", args } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Parser_ArgumentList : public mega::io::Object
     Parser_ArgumentList::Parser_ArgumentList( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ArgumentList >( loader, this ) )    {
     }
-    Parser_ArgumentList::Parser_ArgumentList( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< mega::Argument >& args)
+    Parser_ArgumentList::Parser_ArgumentList( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< mega::TypeName >& args)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ArgumentList >( loader, this ) )          , args( args )
     {
     }
@@ -658,9 +699,10 @@ namespace AST
           , type( loader )
     {
     }
-    Parser_Link::Parser_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_Identifier >& id, const data::Ptr< data::AST::Parser_ScopedIdentifier >& type, const mega::CardinalityRange& cardinality)
+    Parser_Link::Parser_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_Identifier >& id, const data::Ptr< data::AST::Parser_TypeList >& type, const bool& owning, const std::optional< mega::CardinalityRange >& cardinality)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Link >( loader, this ) )          , id( id )
           , type( type )
+          , owning( owning )
           , cardinality( cardinality )
     {
     }
@@ -675,12 +717,14 @@ namespace AST
     {
         loader.load( id );
         loader.load( type );
+        loader.load( owning );
         loader.load( cardinality );
     }
     void Parser_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( id );
         storer.store( type );
+        storer.store( owning );
         storer.store( cardinality );
     }
     void Parser_Link::to_json( nlohmann::json& _part__ ) const
@@ -702,6 +746,11 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "type", type } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "owning", owning } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -779,11 +828,13 @@ namespace AST
         
     // struct Parser_Requirement : public mega::io::Object
     Parser_Requirement::Parser_Requirement( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Requirement >( loader, this ) )          , argumentList( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Requirement >( loader, this ) )          , id( loader )
+          , argumentList( loader )
     {
     }
-    Parser_Requirement::Parser_Requirement( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_ArgumentList >& argumentList)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Requirement >( loader, this ) )          , argumentList( argumentList )
+    Parser_Requirement::Parser_Requirement( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_Identifier >& id, const data::Ptr< data::AST::Parser_TypeList >& argumentList)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Requirement >( loader, this ) )          , id( id )
+          , argumentList( argumentList )
     {
     }
     bool Parser_Requirement::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -795,10 +846,12 @@ namespace AST
     }
     void Parser_Requirement::load( mega::io::Loader& loader )
     {
+        loader.load( id );
         loader.load( argumentList );
     }
     void Parser_Requirement::store( mega::io::Storer& storer ) const
     {
+        storer.store( id );
         storer.store( argumentList );
     }
     void Parser_Requirement::to_json( nlohmann::json& _part__ ) const
@@ -814,7 +867,53 @@ namespace AST
             });
         {
             nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
                 { "argumentList", argumentList } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Parser_Part : public mega::io::Object
+    Parser_Part::Parser_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Part >( loader, this ) )    {
+    }
+    Parser_Part::Parser_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< std::string >& identifiers)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Part >( loader, this ) )          , identifiers( identifiers )
+    {
+    }
+    bool Parser_Part::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AST::Parser_Part >( loader, const_cast< Parser_Part* >( this ) ) };
+    }
+    void Parser_Part::set_inheritance_pointer()
+    {
+    }
+    void Parser_Part::load( mega::io::Loader& loader )
+    {
+        loader.load( identifiers );
+    }
+    void Parser_Part::store( mega::io::Storer& storer ) const
+    {
+        storer.store( identifiers );
+    }
+    void Parser_Part::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Parser_Part" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "identifiers", identifiers } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -1124,7 +1223,7 @@ namespace AST
           , id( loader )
     {
     }
-    Parser_ContextDef::Parser_ContextDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_ScopedIdentifier >& id, const std::vector< data::Ptr< data::AST::Parser_ContextDef > >& children, const std::vector< data::Ptr< data::AST::Parser_Dimension > >& dimensions, const std::vector< data::Ptr< data::AST::Parser_Link > >& links, const std::vector< data::Ptr< data::AST::Parser_Include > >& includes, const std::vector< data::Ptr< data::AST::Parser_Dependency > >& dependencies, const std::vector< data::Ptr< data::AST::Parser_Requirement > >& requirements)
+    Parser_ContextDef::Parser_ContextDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_ScopedIdentifier >& id, const std::vector< data::Ptr< data::AST::Parser_ContextDef > >& children, const std::vector< data::Ptr< data::AST::Parser_Dimension > >& dimensions, const std::vector< data::Ptr< data::AST::Parser_Link > >& links, const std::vector< data::Ptr< data::AST::Parser_Include > >& includes, const std::vector< data::Ptr< data::AST::Parser_Dependency > >& dependencies, const std::vector< data::Ptr< data::AST::Parser_Requirement > >& requirements, const std::vector< data::Ptr< data::AST::Parser_Part > >& parts)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ContextDef >( loader, this ) )          , p_Body_Parser_ContextDef( loader )
           , id( id )
           , children( children )
@@ -1133,6 +1232,7 @@ namespace AST
           , includes( includes )
           , dependencies( dependencies )
           , requirements( requirements )
+          , parts( parts )
     {
     }
     bool Parser_ContextDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -1152,6 +1252,7 @@ namespace AST
         loader.load( includes );
         loader.load( dependencies );
         loader.load( requirements );
+        loader.load( parts );
     }
     void Parser_ContextDef::store( mega::io::Storer& storer ) const
     {
@@ -1163,6 +1264,7 @@ namespace AST
         storer.store( includes );
         storer.store( dependencies );
         storer.store( requirements );
+        storer.store( parts );
     }
     void Parser_ContextDef::to_json( nlohmann::json& _part__ ) const
     {
@@ -1208,6 +1310,11 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "requirements", requirements } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parts", parts } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -1302,71 +1409,6 @@ namespace AST
         }
     }
         
-    // struct Parser_ActionDef : public mega::io::Object
-    Parser_ActionDef::Parser_ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ActionDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
-          , size( loader )
-          , inheritance( loader )
-          , transition( loader )
-    {
-    }
-    Parser_ActionDef::Parser_ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_Size >& size, const data::Ptr< data::AST::Parser_Inheritance >& inheritance, const data::Ptr< data::AST::Parser_Transition >& transition)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ActionDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
-          , size( size )
-          , inheritance( inheritance )
-          , transition( transition )
-    {
-    }
-    bool Parser_ActionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::AST::Parser_ActionDef >( loader, const_cast< Parser_ActionDef* >( this ) ) };
-    }
-    void Parser_ActionDef::set_inheritance_pointer()
-    {
-        p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_ActionDef >( p_AST_Parser_ContextDef, this );
-    }
-    void Parser_ActionDef::load( mega::io::Loader& loader )
-    {
-        loader.load( p_AST_Parser_ContextDef );
-        loader.load( size );
-        loader.load( inheritance );
-        loader.load( transition );
-    }
-    void Parser_ActionDef::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_AST_Parser_ContextDef );
-        storer.store( size );
-        storer.store( inheritance );
-        storer.store( transition );
-    }
-    void Parser_ActionDef::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Parser_ActionDef" },
-                { "filetype" , "AST" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "transition", transition } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
     // struct Parser_StateDef : public mega::io::Object
     Parser_StateDef::Parser_StateDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_StateDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
@@ -1432,19 +1474,43 @@ namespace AST
         }
     }
         
-    // struct Parser_ComponentDef : public mega::io::Object
-    Parser_ComponentDef::Parser_ComponentDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ComponentDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
-          , size( loader )
-          , inheritance( loader )
-          , transition( loader )
+    // struct Parser_ActionDef : public mega::io::Object
+    Parser_ActionDef::Parser_ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ActionDef >( loader, this ) )          , p_AST_Parser_StateDef( loader )
     {
     }
-    Parser_ComponentDef::Parser_ComponentDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_Size >& size, const data::Ptr< data::AST::Parser_Inheritance >& inheritance, const data::Ptr< data::AST::Parser_Transition >& transition)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ComponentDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
-          , size( size )
-          , inheritance( inheritance )
-          , transition( transition )
+    bool Parser_ActionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::AST::Parser_ActionDef >( loader, const_cast< Parser_ActionDef* >( this ) ) };
+    }
+    void Parser_ActionDef::set_inheritance_pointer()
+    {
+        p_AST_Parser_StateDef->m_inheritance = data::Ptr< data::AST::Parser_ActionDef >( p_AST_Parser_StateDef, this );
+    }
+    void Parser_ActionDef::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_Parser_StateDef );
+    }
+    void Parser_ActionDef::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_Parser_StateDef );
+    }
+    void Parser_ActionDef::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Parser_ActionDef" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Parser_ComponentDef : public mega::io::Object
+    Parser_ComponentDef::Parser_ComponentDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ComponentDef >( loader, this ) )          , p_AST_Parser_StateDef( loader )
     {
     }
     bool Parser_ComponentDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -1453,21 +1519,15 @@ namespace AST
     }
     void Parser_ComponentDef::set_inheritance_pointer()
     {
-        p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_ComponentDef >( p_AST_Parser_ContextDef, this );
+        p_AST_Parser_StateDef->m_inheritance = data::Ptr< data::AST::Parser_ComponentDef >( p_AST_Parser_StateDef, this );
     }
     void Parser_ComponentDef::load( mega::io::Loader& loader )
     {
-        loader.load( p_AST_Parser_ContextDef );
-        loader.load( size );
-        loader.load( inheritance );
-        loader.load( transition );
+        loader.load( p_AST_Parser_StateDef );
     }
     void Parser_ComponentDef::store( mega::io::Storer& storer ) const
     {
-        storer.store( p_AST_Parser_ContextDef );
-        storer.store( size );
-        storer.store( inheritance );
-        storer.store( transition );
+        storer.store( p_AST_Parser_StateDef );
     }
     void Parser_ComponentDef::to_json( nlohmann::json& _part__ ) const
     {
@@ -1480,21 +1540,6 @@ namespace AST
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "transition", transition } } );
-            _part__[ "properties" ].push_back( property );
-        }
     }
         
     // struct Parser_EventDef : public mega::io::Object
@@ -2108,6 +2153,102 @@ namespace Tree
             });
     }
         
+    // struct Interface_PartTrait : public mega::io::Object
+    Interface_PartTrait::Interface_PartTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_PartTrait >( loader, this ) )          , p_AST_Parser_Part( loader )
+          , parent( loader )
+    {
+    }
+    Interface_PartTrait::Interface_PartTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_IContext >& parent)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_PartTrait >( loader, this ) )          , p_AST_Parser_Part( loader )
+          , parent( parent )
+    {
+    }
+    bool Interface_PartTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Tree::Interface_PartTrait >( loader, const_cast< Interface_PartTrait* >( this ) ) };
+    }
+    void Interface_PartTrait::set_inheritance_pointer()
+    {
+        p_AST_Parser_Part->m_inheritance = data::Ptr< data::Tree::Interface_PartTrait >( p_AST_Parser_Part, this );
+    }
+    void Interface_PartTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_Parser_Part );
+        loader.load( parent );
+    }
+    void Interface_PartTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_Parser_Part );
+        storer.store( parent );
+    }
+    void Interface_PartTrait::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_PartTrait" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parent", parent } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Interface_RequirementTrait : public mega::io::Object
+    Interface_RequirementTrait::Interface_RequirementTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_RequirementTrait >( loader, this ) )          , p_AST_Parser_Requirement( loader )
+          , p_Clang_Interface_RequirementTrait( loader )
+          , parent( loader )
+    {
+    }
+    Interface_RequirementTrait::Interface_RequirementTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_IContext >& parent)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_RequirementTrait >( loader, this ) )          , p_AST_Parser_Requirement( loader )
+          , p_Clang_Interface_RequirementTrait( loader )
+          , parent( parent )
+    {
+    }
+    bool Interface_RequirementTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Tree::Interface_RequirementTrait >( loader, const_cast< Interface_RequirementTrait* >( this ) ) };
+    }
+    void Interface_RequirementTrait::set_inheritance_pointer()
+    {
+        p_AST_Parser_Requirement->m_inheritance = data::Ptr< data::Tree::Interface_RequirementTrait >( p_AST_Parser_Requirement, this );
+    }
+    void Interface_RequirementTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_Parser_Requirement );
+        loader.load( parent );
+    }
+    void Interface_RequirementTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_Parser_Requirement );
+        storer.store( parent );
+    }
+    void Interface_RequirementTrait::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_RequirementTrait" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parent", parent } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Interface_TransitionTypeTrait : public mega::io::Object
     Interface_TransitionTypeTrait::Interface_TransitionTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_TransitionTypeTrait >( loader, this ) )          , p_AST_Parser_Transition( loader )
@@ -2492,6 +2633,7 @@ namespace Tree
         loader.load( link_traits );
         loader.load( inheritance_trait );
         loader.load( size_trait );
+        loader.load( requirement_traits );
     }
     void Interface_Abstract::store( mega::io::Storer& storer ) const
     {
@@ -2505,6 +2647,8 @@ namespace Tree
         storer.store( inheritance_trait );
         VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Abstract.size_trait has NOT been set" );
         storer.store( size_trait );
+        VERIFY_RTE_MSG( requirement_traits.has_value(), "Tree::Interface_Abstract.requirement_traits has NOT been set" );
+        storer.store( requirement_traits );
     }
     void Interface_Abstract::to_json( nlohmann::json& _part__ ) const
     {
@@ -2542,56 +2686,67 @@ namespace Tree
                 { "size_trait", size_trait.value() } } );
             _part__[ "properties" ].push_back( property );
         }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "requirement_traits", requirement_traits.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
     }
         
-    // struct Interface_Action : public mega::io::Object
-    Interface_Action::Interface_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Action >( loader, this ) )          , p_Tree_Interface_InvocationContext( loader )
+    // struct Interface_State : public mega::io::Object
+    Interface_State::Interface_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_State >( loader, this ) )          , p_Tree_Interface_InvocationContext( loader )
     {
     }
-    Interface_Action::Interface_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_ActionDef > >& action_defs)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Action >( loader, this ) )          , p_Tree_Interface_InvocationContext( loader )
-          , action_defs( action_defs )
+    Interface_State::Interface_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_StateDef > >& state_defs)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_State >( loader, this ) )          , p_Tree_Interface_InvocationContext( loader )
+          , state_defs( state_defs )
     {
     }
-    bool Interface_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Interface_State::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Tree::Interface_Action >( loader, const_cast< Interface_Action* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Tree::Interface_State >( loader, const_cast< Interface_State* >( this ) ) };
     }
-    void Interface_Action::set_inheritance_pointer()
+    void Interface_State::set_inheritance_pointer()
     {
-        p_Tree_Interface_InvocationContext->m_inheritance = data::Ptr< data::Tree::Interface_Action >( p_Tree_Interface_InvocationContext, this );
+        p_Tree_Interface_InvocationContext->m_inheritance = data::Ptr< data::Tree::Interface_State >( p_Tree_Interface_InvocationContext, this );
     }
-    void Interface_Action::load( mega::io::Loader& loader )
+    void Interface_State::load( mega::io::Loader& loader )
     {
         loader.load( p_Tree_Interface_InvocationContext );
-        loader.load( action_defs );
+        loader.load( state_defs );
         loader.load( dimension_traits );
         loader.load( link_traits );
         loader.load( inheritance_trait );
         loader.load( size_trait );
         loader.load( transition_trait );
+        loader.load( part_traits );
+        loader.load( requirement_traits );
     }
-    void Interface_Action::store( mega::io::Storer& storer ) const
+    void Interface_State::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Tree_Interface_InvocationContext );
-        storer.store( action_defs );
-        VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Action.dimension_traits has NOT been set" );
+        storer.store( state_defs );
+        VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_State.dimension_traits has NOT been set" );
         storer.store( dimension_traits );
-        VERIFY_RTE_MSG( link_traits.has_value(), "Tree::Interface_Action.link_traits has NOT been set" );
+        VERIFY_RTE_MSG( link_traits.has_value(), "Tree::Interface_State.link_traits has NOT been set" );
         storer.store( link_traits );
-        VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Interface_Action.inheritance_trait has NOT been set" );
+        VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Interface_State.inheritance_trait has NOT been set" );
         storer.store( inheritance_trait );
-        VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Action.size_trait has NOT been set" );
+        VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_State.size_trait has NOT been set" );
         storer.store( size_trait );
-        VERIFY_RTE_MSG( transition_trait.has_value(), "Tree::Interface_Action.transition_trait has NOT been set" );
+        VERIFY_RTE_MSG( transition_trait.has_value(), "Tree::Interface_State.transition_trait has NOT been set" );
         storer.store( transition_trait );
+        VERIFY_RTE_MSG( part_traits.has_value(), "Tree::Interface_State.part_traits has NOT been set" );
+        storer.store( part_traits );
+        VERIFY_RTE_MSG( requirement_traits.has_value(), "Tree::Interface_State.requirement_traits has NOT been set" );
+        storer.store( requirement_traits );
     }
-    void Interface_Action::to_json( nlohmann::json& _part__ ) const
+    void Interface_State::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Interface_Action" },
+                { "partname", "Interface_State" },
                 { "filetype" , "Tree" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -2600,7 +2755,7 @@ namespace Tree
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "action_defs", action_defs } } );
+                { "state_defs", state_defs } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -2628,6 +2783,84 @@ namespace Tree
                 { "transition_trait", transition_trait.value() } } );
             _part__[ "properties" ].push_back( property );
         }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "part_traits", part_traits.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "requirement_traits", requirement_traits.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Interface_Action : public mega::io::Object
+    Interface_Action::Interface_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Action >( loader, this ) )          , p_Tree_Interface_State( loader )
+    {
+    }
+    bool Interface_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Tree::Interface_Action >( loader, const_cast< Interface_Action* >( this ) ) };
+    }
+    void Interface_Action::set_inheritance_pointer()
+    {
+        p_Tree_Interface_State->m_inheritance = data::Ptr< data::Tree::Interface_Action >( p_Tree_Interface_State, this );
+    }
+    void Interface_Action::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_State );
+    }
+    void Interface_Action::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_State );
+    }
+    void Interface_Action::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_Action" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Interface_Component : public mega::io::Object
+    Interface_Component::Interface_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Component >( loader, this ) )          , p_Tree_Interface_State( loader )
+    {
+    }
+    bool Interface_Component::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Tree::Interface_Component >( loader, const_cast< Interface_Component* >( this ) ) };
+    }
+    void Interface_Component::set_inheritance_pointer()
+    {
+        p_Tree_Interface_State->m_inheritance = data::Ptr< data::Tree::Interface_Component >( p_Tree_Interface_State, this );
+    }
+    void Interface_Component::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_State );
+    }
+    void Interface_Component::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_State );
+    }
+    void Interface_Component::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_Component" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
     }
         
     // struct Interface_Event : public mega::io::Object
@@ -3617,6 +3850,88 @@ namespace PerSourceSymbols
 }
 namespace Clang
 {
+    // struct Interface_TypePath : public mega::io::Object
+    Interface_TypePath::Interface_TypePath( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Interface_TypePath >( loader, this ) )    {
+    }
+    Interface_TypePath::Interface_TypePath( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::SymbolTable::Symbols_SymbolTypeID > >& types)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Interface_TypePath >( loader, this ) )          , types( types )
+    {
+    }
+    bool Interface_TypePath::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Clang::Interface_TypePath >( loader, const_cast< Interface_TypePath* >( this ) ) };
+    }
+    void Interface_TypePath::set_inheritance_pointer()
+    {
+    }
+    void Interface_TypePath::load( mega::io::Loader& loader )
+    {
+        loader.load( types );
+    }
+    void Interface_TypePath::store( mega::io::Storer& storer ) const
+    {
+        storer.store( types );
+    }
+    void Interface_TypePath::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_TypePath" },
+                { "filetype" , "Clang" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "types", types } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Interface_TypePathVariant : public mega::io::Object
+    Interface_TypePathVariant::Interface_TypePathVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Interface_TypePathVariant >( loader, this ) )    {
+    }
+    Interface_TypePathVariant::Interface_TypePathVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Clang::Interface_TypePath > >& sequence)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Interface_TypePathVariant >( loader, this ) )          , sequence( sequence )
+    {
+    }
+    bool Interface_TypePathVariant::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Clang::Interface_TypePathVariant >( loader, const_cast< Interface_TypePathVariant* >( this ) ) };
+    }
+    void Interface_TypePathVariant::set_inheritance_pointer()
+    {
+    }
+    void Interface_TypePathVariant::load( mega::io::Loader& loader )
+    {
+        loader.load( sequence );
+    }
+    void Interface_TypePathVariant::store( mega::io::Storer& storer ) const
+    {
+        storer.store( sequence );
+    }
+    void Interface_TypePathVariant::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_TypePathVariant" },
+                { "filetype" , "Clang" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "sequence", sequence } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Interface_DimensionTrait : public mega::io::Object
     Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( loader )
@@ -3715,12 +4030,11 @@ namespace Clang
     // struct Interface_LinkTrait : public mega::io::Object
     Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_LinkTrait( loader )
-          , target( loader )
     {
     }
-    Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_LinkTrait > p_Tree_Interface_LinkTrait, const data::Ptr< data::Tree::Interface_IContext >& target)
+    Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_LinkTrait > p_Tree_Interface_LinkTrait, const std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& tuple)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_LinkTrait( p_Tree_Interface_LinkTrait )
-          , target( target )
+          , tuple( tuple )
     {
     }
     bool Interface_LinkTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -3734,12 +4048,12 @@ namespace Clang
     void Interface_LinkTrait::load( mega::io::Loader& loader )
     {
         loader.load( p_Tree_Interface_LinkTrait );
-        loader.load( target );
+        loader.load( tuple );
     }
     void Interface_LinkTrait::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Tree_Interface_LinkTrait );
-        storer.store( target );
+        storer.store( tuple );
     }
     void Interface_LinkTrait::to_json( nlohmann::json& _part__ ) const
     {
@@ -3754,7 +4068,7 @@ namespace Clang
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "target", target } } );
+                { "tuple", tuple } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -3897,34 +4211,39 @@ namespace Clang
         }
     }
         
-    // struct Interface_TypePath : public mega::io::Object
-    Interface_TypePath::Interface_TypePath( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Interface_TypePath >( loader, this ) )    {
-    }
-    Interface_TypePath::Interface_TypePath( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::SymbolTable::Symbols_SymbolTypeID > >& types)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Interface_TypePath >( loader, this ) )          , types( types )
+    // struct Interface_RequirementTrait : public mega::io::Object
+    Interface_RequirementTrait::Interface_RequirementTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_RequirementTrait( loader )
     {
     }
-    bool Interface_TypePath::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Clang::Interface_TypePath >( loader, const_cast< Interface_TypePath* >( this ) ) };
-    }
-    void Interface_TypePath::set_inheritance_pointer()
+    Interface_RequirementTrait::Interface_RequirementTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_RequirementTrait > p_Tree_Interface_RequirementTrait, const std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& tuple)
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_RequirementTrait( p_Tree_Interface_RequirementTrait )
+          , tuple( tuple )
     {
     }
-    void Interface_TypePath::load( mega::io::Loader& loader )
+    bool Interface_RequirementTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        loader.load( types );
+        return false;
     }
-    void Interface_TypePath::store( mega::io::Storer& storer ) const
+    void Interface_RequirementTrait::set_inheritance_pointer()
     {
-        storer.store( types );
+        p_Tree_Interface_RequirementTrait->p_Clang_Interface_RequirementTrait = data::Ptr< data::Clang::Interface_RequirementTrait >( p_Tree_Interface_RequirementTrait, this );
     }
-    void Interface_TypePath::to_json( nlohmann::json& _part__ ) const
+    void Interface_RequirementTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_RequirementTrait );
+        loader.load( tuple );
+    }
+    void Interface_RequirementTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_RequirementTrait );
+        storer.store( tuple );
+    }
+    void Interface_RequirementTrait::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Interface_TypePath" },
+                { "partname", "Interface_RequirementTrait" },
                 { "filetype" , "Clang" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -3933,48 +4252,7 @@ namespace Clang
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "types", types } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Interface_TypePathVariant : public mega::io::Object
-    Interface_TypePathVariant::Interface_TypePathVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Interface_TypePathVariant >( loader, this ) )    {
-    }
-    Interface_TypePathVariant::Interface_TypePathVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Clang::Interface_TypePath > >& sequence)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Interface_TypePathVariant >( loader, this ) )          , sequence( sequence )
-    {
-    }
-    bool Interface_TypePathVariant::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Clang::Interface_TypePathVariant >( loader, const_cast< Interface_TypePathVariant* >( this ) ) };
-    }
-    void Interface_TypePathVariant::set_inheritance_pointer()
-    {
-    }
-    void Interface_TypePathVariant::load( mega::io::Loader& loader )
-    {
-        loader.load( sequence );
-    }
-    void Interface_TypePathVariant::store( mega::io::Storer& storer ) const
-    {
-        storer.store( sequence );
-    }
-    void Interface_TypePathVariant::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_TypePathVariant" },
-                { "filetype" , "Clang" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "sequence", sequence } } );
+                { "tuple", tuple } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -4551,16 +4829,63 @@ namespace Concrete
         }
     }
         
+    // struct Concrete_State : public mega::io::Object
+    Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_State >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , p_MemoryLayout_Concrete_State( loader )
+          , interface_state( loader )
+    {
+    }
+    Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_State >& interface_state)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_State >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
+          , p_MemoryLayout_Concrete_State( loader )
+          , interface_state( interface_state )
+    {
+    }
+    bool Concrete_State::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_State >( loader, const_cast< Concrete_State* >( this ) ) };
+    }
+    void Concrete_State::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_UserDimensionContext->m_inheritance = data::Ptr< data::Concrete::Concrete_State >( p_Concrete_Concrete_UserDimensionContext, this );
+    }
+    void Concrete_State::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_UserDimensionContext );
+        loader.load( interface_state );
+    }
+    void Concrete_State::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_UserDimensionContext );
+        storer.store( interface_state );
+    }
+    void Concrete_State::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_State" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interface_state", interface_state } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Concrete_Action : public mega::io::Object
     Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
-          , p_MemoryLayout_Concrete_Action( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_State( loader )
           , interface_action( loader )
     {
     }
     Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Action >& interface_action)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
-          , p_MemoryLayout_Concrete_Action( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_State( loader )
           , interface_action( interface_action )
     {
     }
@@ -4570,16 +4895,16 @@ namespace Concrete
     }
     void Concrete_Action::set_inheritance_pointer()
     {
-        p_Concrete_Concrete_UserDimensionContext->m_inheritance = data::Ptr< data::Concrete::Concrete_Action >( p_Concrete_Concrete_UserDimensionContext, this );
+        p_Concrete_Concrete_State->m_inheritance = data::Ptr< data::Concrete::Concrete_Action >( p_Concrete_Concrete_State, this );
     }
     void Concrete_Action::load( mega::io::Loader& loader )
     {
-        loader.load( p_Concrete_Concrete_UserDimensionContext );
+        loader.load( p_Concrete_Concrete_State );
         loader.load( interface_action );
     }
     void Concrete_Action::store( mega::io::Storer& storer ) const
     {
-        storer.store( p_Concrete_Concrete_UserDimensionContext );
+        storer.store( p_Concrete_Concrete_State );
         storer.store( interface_action );
     }
     void Concrete_Action::to_json( nlohmann::json& _part__ ) const
@@ -4596,6 +4921,53 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_action", interface_action } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Component : public mega::io::Object
+    Concrete_Component::Concrete_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Component >( loader, this ) )          , p_Concrete_Concrete_State( loader )
+          , interface_component( loader )
+    {
+    }
+    Concrete_Component::Concrete_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Component >& interface_component)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Component >( loader, this ) )          , p_Concrete_Concrete_State( loader )
+          , interface_component( interface_component )
+    {
+    }
+    bool Concrete_Component::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Component >( loader, const_cast< Concrete_Component* >( this ) ) };
+    }
+    void Concrete_Component::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_State->m_inheritance = data::Ptr< data::Concrete::Concrete_Component >( p_Concrete_Concrete_State, this );
+    }
+    void Concrete_Component::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_State );
+        loader.load( interface_component );
+    }
+    void Concrete_Component::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_State );
+        storer.store( interface_component );
+    }
+    void Concrete_Component::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Component" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interface_component", interface_component } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -4750,26 +5122,26 @@ namespace Concrete
 }
 namespace Derivations
 {
-    // struct Derivation_ObjectMapping : public mega::io::Object
-    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )    {
+    // struct Inheritance_ObjectMapping : public mega::io::Object
+    Inheritance_ObjectMapping::Inheritance_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Inheritance_ObjectMapping >( loader, this ) )    {
     }
-    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const mega::U64& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions, const std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& inheritance_links)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )          , source_file( source_file )
+    Inheritance_ObjectMapping::Inheritance_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const mega::U64& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions, const std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& inheritance_links)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Inheritance_ObjectMapping >( loader, this ) )          , source_file( source_file )
           , hash_code( hash_code )
           , inheritance_contexts( inheritance_contexts )
           , inheritance_dimensions( inheritance_dimensions )
           , inheritance_links( inheritance_links )
     {
     }
-    bool Derivation_ObjectMapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Inheritance_ObjectMapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, const_cast< Derivation_ObjectMapping* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Derivations::Inheritance_ObjectMapping >( loader, const_cast< Inheritance_ObjectMapping* >( this ) ) };
     }
-    void Derivation_ObjectMapping::set_inheritance_pointer()
+    void Inheritance_ObjectMapping::set_inheritance_pointer()
     {
     }
-    void Derivation_ObjectMapping::load( mega::io::Loader& loader )
+    void Inheritance_ObjectMapping::load( mega::io::Loader& loader )
     {
         loader.load( source_file );
         loader.load( hash_code );
@@ -4777,7 +5149,7 @@ namespace Derivations
         loader.load( inheritance_dimensions );
         loader.load( inheritance_links );
     }
-    void Derivation_ObjectMapping::store( mega::io::Storer& storer ) const
+    void Inheritance_ObjectMapping::store( mega::io::Storer& storer ) const
     {
         storer.store( source_file );
         storer.store( hash_code );
@@ -4785,11 +5157,11 @@ namespace Derivations
         storer.store( inheritance_dimensions );
         storer.store( inheritance_links );
     }
-    void Derivation_ObjectMapping::to_json( nlohmann::json& _part__ ) const
+    void Inheritance_ObjectMapping::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Derivation_ObjectMapping" },
+                { "partname", "Inheritance_ObjectMapping" },
                 { "filetype" , "Derivations" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -4823,43 +5195,43 @@ namespace Derivations
         }
     }
         
-    // struct Derivation_Mapping : public mega::io::Object
-    Derivation_Mapping::Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) )    {
+    // struct Inheritance_Mapping : public mega::io::Object
+    Inheritance_Mapping::Inheritance_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Inheritance_Mapping >( loader, this ) )    {
     }
-    Derivation_Mapping::Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& mappings, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions, const std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& inheritance_links)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) )          , mappings( mappings )
+    Inheritance_Mapping::Inheritance_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Inheritance_ObjectMapping > >& mappings, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions, const std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& inheritance_links)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Inheritance_Mapping >( loader, this ) )          , mappings( mappings )
           , inheritance_contexts( inheritance_contexts )
           , inheritance_dimensions( inheritance_dimensions )
           , inheritance_links( inheritance_links )
     {
     }
-    bool Derivation_Mapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Inheritance_Mapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Derivations::Derivation_Mapping >( loader, const_cast< Derivation_Mapping* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Derivations::Inheritance_Mapping >( loader, const_cast< Inheritance_Mapping* >( this ) ) };
     }
-    void Derivation_Mapping::set_inheritance_pointer()
+    void Inheritance_Mapping::set_inheritance_pointer()
     {
     }
-    void Derivation_Mapping::load( mega::io::Loader& loader )
+    void Inheritance_Mapping::load( mega::io::Loader& loader )
     {
         loader.load( mappings );
         loader.load( inheritance_contexts );
         loader.load( inheritance_dimensions );
         loader.load( inheritance_links );
     }
-    void Derivation_Mapping::store( mega::io::Storer& storer ) const
+    void Inheritance_Mapping::store( mega::io::Storer& storer ) const
     {
         storer.store( mappings );
         storer.store( inheritance_contexts );
         storer.store( inheritance_dimensions );
         storer.store( inheritance_links );
     }
-    void Derivation_Mapping::to_json( nlohmann::json& _part__ ) const
+    void Inheritance_Mapping::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Derivation_Mapping" },
+                { "partname", "Inheritance_Mapping" },
                 { "filetype" , "Derivations" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -5673,42 +6045,42 @@ namespace MemoryLayout
         }
     }
         
-    // struct Concrete_Action : public mega::io::Object
-    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Action( loader )
+    // struct Concrete_State : public mega::io::Object
+    Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_State( loader )
     {
     }
-    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Action > p_Concrete_Concrete_Action, const mega::U64& local_size, const mega::U64& total_size)
-        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Action( p_Concrete_Concrete_Action )
+    Concrete_State::Concrete_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_State > p_Concrete_Concrete_State, const mega::U64& local_size, const mega::U64& total_size)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_State( p_Concrete_Concrete_State )
           , local_size( local_size )
           , total_size( total_size )
     {
     }
-    bool Concrete_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Concrete_State::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
         return false;
     }
-    void Concrete_Action::set_inheritance_pointer()
+    void Concrete_State::set_inheritance_pointer()
     {
-        p_Concrete_Concrete_Action->p_MemoryLayout_Concrete_Action = data::Ptr< data::MemoryLayout::Concrete_Action >( p_Concrete_Concrete_Action, this );
+        p_Concrete_Concrete_State->p_MemoryLayout_Concrete_State = data::Ptr< data::MemoryLayout::Concrete_State >( p_Concrete_Concrete_State, this );
     }
-    void Concrete_Action::load( mega::io::Loader& loader )
+    void Concrete_State::load( mega::io::Loader& loader )
     {
-        loader.load( p_Concrete_Concrete_Action );
+        loader.load( p_Concrete_Concrete_State );
         loader.load( local_size );
         loader.load( total_size );
     }
-    void Concrete_Action::store( mega::io::Storer& storer ) const
+    void Concrete_State::store( mega::io::Storer& storer ) const
     {
-        storer.store( p_Concrete_Concrete_Action );
+        storer.store( p_Concrete_Concrete_State );
         storer.store( local_size );
         storer.store( total_size );
     }
-    void Concrete_Action::to_json( nlohmann::json& _part__ ) const
+    void Concrete_State::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Concrete_Action" },
+                { "partname", "Concrete_State" },
                 { "filetype" , "MemoryLayout" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -9519,7 +9891,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& Concrete_ContextGr
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
@@ -9547,7 +9923,11 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& C
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
@@ -9573,7 +9953,11 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& Concrete_Context_pus
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
@@ -9629,7 +10013,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& Concrete_U
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
@@ -9649,7 +10037,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& Concrete_U
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
@@ -9745,90 +10137,6 @@ std::vector< mega::io::megaFilePath >& Dependencies_TransitiveDependencies_push_
         }
     }
 }
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& Derivation_Mapping_insert_inheritance_contexts(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->inheritance_contexts;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& Derivation_Mapping_insert_inheritance_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->inheritance_dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& Derivation_Mapping_insert_inheritance_links(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->inheritance_links;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& Derivation_Mapping_push_back_mappings(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->mappings;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& Derivation_ObjectMapping_insert_inheritance_contexts(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->inheritance_contexts;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& Derivation_ObjectMapping_insert_inheritance_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->inheritance_dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& Derivation_ObjectMapping_insert_inheritance_links(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->inheritance_links;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 std::map< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Model::HyperGraph_Relation > >& HyperGraph_Graph_insert_relations(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -9853,6 +10161,90 @@ std::vector< data::Ptr< data::Tree::Interface_LinkTrait > >& HyperGraph_OwningRe
         }
     }
 }
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& Inheritance_Mapping_insert_inheritance_contexts(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->inheritance_contexts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& Inheritance_Mapping_insert_inheritance_dimensions(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->inheritance_dimensions;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& Inheritance_Mapping_insert_inheritance_links(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->inheritance_links;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Derivations::Inheritance_ObjectMapping > >& Inheritance_Mapping_push_back_mappings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->mappings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& Inheritance_ObjectMapping_insert_inheritance_contexts(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->inheritance_contexts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& Inheritance_ObjectMapping_insert_inheritance_dimensions(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->inheritance_dimensions;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& Inheritance_ObjectMapping_insert_inheritance_links(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->inheritance_links;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& Interface_Abstract_push_back_abstract_defs(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -9871,22 +10263,32 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_LinkTrait > > >& In
     {
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->link_traits;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->link_traits;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->link_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::vector< data::Ptr< data::AST::Parser_ActionDef > >& Interface_Action_push_back_action_defs(data::Variant& m_data)
+std::optional< std::vector< data::Ptr< data::Tree::Interface_RequirementTrait > > >& Interface_Abstract_push_back_requirement_traits(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
+        case data::Tree::Interface_Abstract::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Abstract >( m_data )->requirement_traits;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->action_defs;
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -9921,7 +10323,11 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& Interface_ContextGro
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
@@ -10009,7 +10415,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& Interface_IContext
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
@@ -10061,7 +10471,11 @@ std::vector< data::Ptr< data::Locations::Interface_InvocationInstance > >& Inter
     {
         case data::Tree::Interface_InvocationContext::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         case data::Tree::Interface_Interupt::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
@@ -10091,6 +10505,18 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& Interface_
         }
     }
 }
+std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& Interface_LinkTrait_push_back_tuple(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
+            return data::convert< data::Clang::Interface_LinkTrait >( m_data )->tuple;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& Interface_Namespace_push_back_dimension_traits(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -10099,12 +10525,16 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > 
             return data::convert< data::Tree::Interface_Namespace >( m_data )->dimension_traits;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->dimension_traits;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->dimension_traits;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Event >( m_data )->dimension_traits;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->dimension_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10129,6 +10559,50 @@ std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& Interface_Object_push_b
     {
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->object_defs;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& Interface_RequirementTrait_push_back_tuple(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_RequirementTrait::Object_Part_Type_ID:
+            return data::convert< data::Clang::Interface_RequirementTrait >( m_data )->tuple;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::vector< data::Ptr< data::Tree::Interface_PartTrait > > >& Interface_State_push_back_part_traits(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AST::Parser_StateDef > >& Interface_State_push_back_state_defs(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -10453,7 +10927,7 @@ std::vector< data::Ptr< data::Operations::Operations_ElementVector > >& Operatio
         }
     }
 }
-std::vector< mega::Argument >& Parser_ArgumentList_push_back_args(data::Variant& m_data)
+std::vector< mega::TypeName >& Parser_ArgumentList_push_back_args(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -10475,9 +10949,9 @@ std::vector< data::Ptr< data::AST::Parser_ContextDef > >& Parser_ContextDef_push
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
@@ -10505,9 +10979,9 @@ std::vector< data::Ptr< data::AST::Parser_Dependency > >& Parser_ContextDef_push
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
@@ -10535,9 +11009,9 @@ std::vector< data::Ptr< data::AST::Parser_Dimension > >& Parser_ContextDef_push_
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
@@ -10565,9 +11039,9 @@ std::vector< data::Ptr< data::AST::Parser_Include > >& Parser_ContextDef_push_ba
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
@@ -10595,9 +11069,9 @@ std::vector< data::Ptr< data::AST::Parser_Link > >& Parser_ContextDef_push_back_
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
@@ -10615,6 +11089,36 @@ std::vector< data::Ptr< data::AST::Parser_Link > >& Parser_ContextDef_push_back_
         }
     }
 }
+std::vector< data::Ptr< data::AST::Parser_Part > >& Parser_ContextDef_push_back_parts(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_ContextDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_NamespaceDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_EventDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_InteruptDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_FunctionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_ObjectDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::AST::Parser_Requirement > >& Parser_ContextDef_push_back_requirements(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -10625,9 +11129,9 @@ std::vector< data::Ptr< data::AST::Parser_Requirement > >& Parser_ContextDef_pus
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
@@ -10657,12 +11161,36 @@ std::vector< std::string >& Parser_Inheritance_push_back_strings(data::Variant& 
         }
     }
 }
+std::vector< std::string >& Parser_Part_push_back_identifiers(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Part::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Part >( m_data )->identifiers;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::AST::Parser_Identifier > >& Parser_ScopedIdentifier_push_back_ids(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::AST::Parser_ScopedIdentifier::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ScopedIdentifier >( m_data )->ids;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< mega::Type >& Parser_TypeList_push_back_args(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_TypeList::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_TypeList >( m_data )->args;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -11109,28 +11637,12 @@ data::Ptr< data::Tree::Interface_Action >& get_Concrete_Action_interface_action(
         }
     }
 }
-mega::U64& get_Concrete_Action_local_size(data::Variant& m_data)
+data::Ptr< data::Tree::Interface_Component >& get_Concrete_Component_interface_component(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->local_size;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->local_size;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& get_Concrete_Action_total_size(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->total_size;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->total_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Component >( m_data )->interface_component;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -11153,15 +11665,19 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Concrete_Conte
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         default:
         {
@@ -11183,7 +11699,11 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& g
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
@@ -11211,7 +11731,11 @@ data::Ptr< data::MemoryLayout::Allocators_Allocator >& get_Concrete_Context_allo
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
@@ -11239,7 +11763,11 @@ data::Ptr< data::Components::Components_Component >& get_Concrete_Context_compon
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
@@ -11267,7 +11795,11 @@ mega::TypeID& get_Concrete_Context_concrete_id(data::Variant& m_data)
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
@@ -11295,7 +11827,11 @@ std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& 
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
@@ -11323,7 +11859,11 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_Concrete_Context
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
@@ -11351,7 +11891,11 @@ data::Ptr< data::Tree::Interface_IContext >& get_Concrete_Context_interface(data
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
@@ -11379,7 +11923,11 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& get_Concrete_Context_parent(
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
@@ -11729,6 +12277,58 @@ data::Ptr< data::Tree::Interface_Root >& get_Concrete_Root_interface_root(data::
         }
     }
 }
+data::Ptr< data::Tree::Interface_State >& get_Concrete_State_interface_state(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_State >( m_data )->interface_state;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_State >( m_data )->interface_state;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_State >( m_data )->interface_state;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U64& get_Concrete_State_local_size(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->local_size;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U64& get_Concrete_State_total_size(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->total_size;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Concrete_UserDimensionContext_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -11737,7 +12337,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Concre
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
@@ -11759,7 +12363,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Concre
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
@@ -11905,114 +12513,6 @@ std::vector< mega::io::megaFilePath >& get_Dependencies_TransitiveDependencies_m
         }
     }
 }
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& get_Derivation_Mapping_inheritance_contexts(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->inheritance_contexts;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Derivation_Mapping_inheritance_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->inheritance_dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Derivation_Mapping_inheritance_links(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->inheritance_links;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& get_Derivation_Mapping_mappings(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->mappings;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& get_Derivation_ObjectMapping_hash_code(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->hash_code;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& get_Derivation_ObjectMapping_inheritance_contexts(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->inheritance_contexts;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Derivation_ObjectMapping_inheritance_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->inheritance_dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Derivation_ObjectMapping_inheritance_links(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->inheritance_links;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::io::megaFilePath& get_Derivation_ObjectMapping_source_file(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->source_file;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 data::Ptr< data::Tree::Interface_LinkTrait >& get_HyperGraph_BinaryRelation_source(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12089,6 +12589,114 @@ mega::RelationID& get_HyperGraph_Relation_id(data::Variant& m_data)
         }
     }
 }
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& get_Inheritance_Mapping_inheritance_contexts(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->inheritance_contexts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Inheritance_Mapping_inheritance_dimensions(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->inheritance_dimensions;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Inheritance_Mapping_inheritance_links(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->inheritance_links;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Derivations::Inheritance_ObjectMapping > >& get_Inheritance_Mapping_mappings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->mappings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U64& get_Inheritance_ObjectMapping_hash_code(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->hash_code;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& get_Inheritance_ObjectMapping_inheritance_contexts(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->inheritance_contexts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_Inheritance_ObjectMapping_inheritance_dimensions(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->inheritance_dimensions;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Inheritance_ObjectMapping_inheritance_links(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->inheritance_links;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::io::megaFilePath& get_Inheritance_ObjectMapping_source_file(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->source_file;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& get_Interface_Abstract_abstract_defs(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12107,18 +12715,22 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait 
     {
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->inheritance_trait;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->inheritance_trait;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Event >( m_data )->inheritance_trait;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->inheritance_trait;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
         case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->inheritance_trait;
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
         case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->inheritance_trait;
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
         case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->inheritance_trait;
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12131,16 +12743,44 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_LinkTrait > > >& ge
     {
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->link_traits;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->link_traits;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->link_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
         case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->link_traits;
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
         case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->link_traits;
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
         case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->link_traits;
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::vector< data::Ptr< data::Tree::Interface_RequirementTrait > > >& get_Interface_Abstract_requirement_traits(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_Abstract::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Abstract >( m_data )->requirement_traits;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
+        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
+        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
+        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12153,56 +12793,22 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& 
     {
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->size_trait;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->size_trait;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Event >( m_data )->size_trait;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->size_trait;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->size_trait;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->size_trait;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->size_trait;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::vector< data::Ptr< data::AST::Parser_ActionDef > >& get_Interface_Action_action_defs(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
         case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->action_defs;
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->action_defs;
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->action_defs;
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->action_defs;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::optional< std::optional< data::Ptr< data::Tree::Interface_TransitionTypeTrait > > >& get_Interface_Action_transition_trait(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
-        case data::Tree::Interface_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Interupt >( m_data )->transition_trait;
-        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
-        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
-        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12237,7 +12843,11 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_Interface_Contex
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
@@ -12463,7 +13073,11 @@ data::Ptr< data::Components::Components_Component >& get_Interface_IContext_comp
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->component;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->component;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
@@ -12497,7 +13111,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Interface_ICon
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
@@ -12531,7 +13149,11 @@ std::string& get_Interface_IContext_identifier(data::Variant& m_data)
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
@@ -12565,7 +13187,11 @@ mega::TypeID& get_Interface_IContext_interface_id(data::Variant& m_data)
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
@@ -12599,7 +13225,11 @@ data::Ptr< data::Tree::Interface_ContextGroup >& get_Interface_IContext_parent(d
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
@@ -12633,7 +13263,11 @@ mega::TypeID& get_Interface_IContext_symbol_id(data::Variant& m_data)
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
@@ -12697,7 +13331,11 @@ std::vector< data::Ptr< data::Locations::Interface_InvocationInstance > >& get_I
     {
         case data::Tree::Interface_InvocationContext::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         case data::Tree::Interface_Interupt::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
@@ -12721,7 +13359,11 @@ mega::SourceLocation& get_Interface_InvocationContext_source_location(data::Vari
     {
         case data::Tree::Interface_InvocationContext::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
         case data::Tree::Interface_Interupt::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
@@ -12823,12 +13465,12 @@ mega::TypeID& get_Interface_LinkTrait_symbol_id(data::Variant& m_data)
         }
     }
 }
-data::Ptr< data::Tree::Interface_IContext >& get_Interface_LinkTrait_target(data::Variant& m_data)
+std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& get_Interface_LinkTrait_tuple(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
-            return data::convert< data::Clang::Interface_LinkTrait >( m_data )->target;
+            return data::convert< data::Clang::Interface_LinkTrait >( m_data )->tuple;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12843,18 +13485,22 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > 
             return data::convert< data::Tree::Interface_Namespace >( m_data )->dimension_traits;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->dimension_traits;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->dimension_traits;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Event >( m_data )->dimension_traits;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->dimension_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->dimension_traits;
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->dimension_traits;
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->dimension_traits;
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12897,6 +13543,42 @@ std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& get_Interface_Object_ob
         }
     }
 }
+data::Ptr< data::Tree::Interface_IContext >& get_Interface_PartTrait_parent(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_PartTrait::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_PartTrait >( m_data )->parent;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Tree::Interface_IContext >& get_Interface_RequirementTrait_parent(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_RequirementTrait::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_RequirementTrait >( m_data )->parent;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& get_Interface_RequirementTrait_tuple(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_RequirementTrait::Object_Part_Type_ID:
+            return data::convert< data::Clang::Interface_RequirementTrait >( m_data )->tuple;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::string& get_Interface_ReturnTypeTrait_canonical_type(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12927,6 +13609,74 @@ mega::U64& get_Interface_SizeTrait_size(data::Variant& m_data)
     {
         case data::Tree::Interface_SizeTrait::Object_Part_Type_ID:
             return data::convert< data::Clang::Interface_SizeTrait >( m_data )->size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::vector< data::Ptr< data::Tree::Interface_PartTrait > > >& get_Interface_State_part_traits(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AST::Parser_StateDef > >& get_Interface_State_state_defs(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::optional< data::Ptr< data::Tree::Interface_TransitionTypeTrait > > >& get_Interface_State_transition_trait(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
+        case data::Tree::Interface_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Interupt >( m_data )->transition_trait;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
+        case data::MetaAnalysis::Meta_SequenceAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
+        case data::MetaAnalysis::Meta_StackAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
+        case data::MetaAnalysis::Meta_PlanAction::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14069,16 +14819,16 @@ data::Ptr< data::AST::Parser_Inheritance >& get_Parser_AbstractDef_inheritance(d
     {
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_AbstractDef >( m_data )->inheritance;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ActionDef >( m_data )->inheritance;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_StateDef >( m_data )->inheritance;
-        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ComponentDef >( m_data )->inheritance;
         case data::AST::Parser_EventDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_EventDef >( m_data )->inheritance;
         case data::AST::Parser_ObjectDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ObjectDef >( m_data )->inheritance;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->inheritance;
+        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->inheritance;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14091,41 +14841,23 @@ data::Ptr< data::AST::Parser_Size >& get_Parser_AbstractDef_size(data::Variant& 
     {
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_AbstractDef >( m_data )->size;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ActionDef >( m_data )->size;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_StateDef >( m_data )->size;
-        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ComponentDef >( m_data )->size;
         case data::AST::Parser_EventDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_EventDef >( m_data )->size;
         case data::AST::Parser_ObjectDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ObjectDef >( m_data )->size;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-data::Ptr< data::AST::Parser_Transition >& get_Parser_ActionDef_transition(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
         case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ActionDef >( m_data )->transition;
-        case data::AST::Parser_StateDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_StateDef >( m_data )->transition;
+            return data::convert< data::AST::Parser_StateDef >( m_data )->size;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ComponentDef >( m_data )->transition;
-        case data::AST::Parser_InteruptDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_InteruptDef >( m_data )->transition;
+            return data::convert< data::AST::Parser_StateDef >( m_data )->size;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::vector< mega::Argument >& get_Parser_ArgumentList_args(data::Variant& m_data)
+std::vector< mega::TypeName >& get_Parser_ArgumentList_args(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -14163,9 +14895,9 @@ std::string& get_Parser_ContextDef_body(data::Variant& m_data)
             return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
@@ -14193,9 +14925,9 @@ std::vector< data::Ptr< data::AST::Parser_ContextDef > >& get_Parser_ContextDef_
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
@@ -14223,9 +14955,9 @@ std::vector< data::Ptr< data::AST::Parser_Dependency > >& get_Parser_ContextDef_
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
@@ -14253,9 +14985,9 @@ std::vector< data::Ptr< data::AST::Parser_Dimension > >& get_Parser_ContextDef_d
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
@@ -14283,9 +15015,9 @@ data::Ptr< data::AST::Parser_ScopedIdentifier >& get_Parser_ContextDef_id(data::
             return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
@@ -14313,9 +15045,9 @@ std::vector< data::Ptr< data::AST::Parser_Include > >& get_Parser_ContextDef_inc
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
@@ -14343,9 +15075,9 @@ std::vector< data::Ptr< data::AST::Parser_Link > >& get_Parser_ContextDef_links(
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
@@ -14363,6 +15095,36 @@ std::vector< data::Ptr< data::AST::Parser_Link > >& get_Parser_ContextDef_links(
         }
     }
 }
+std::vector< data::Ptr< data::AST::Parser_Part > >& get_Parser_ContextDef_parts(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_ContextDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_NamespaceDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_EventDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_InteruptDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_FunctionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_ObjectDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::AST::Parser_Requirement > >& get_Parser_ContextDef_requirements(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -14373,9 +15135,9 @@ std::vector< data::Ptr< data::AST::Parser_Requirement > >& get_Parser_ContextDef
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
@@ -14549,7 +15311,7 @@ data::Ptr< data::AST::Parser_ArgumentList >& get_Parser_InteruptDef_argumentList
         }
     }
 }
-mega::CardinalityRange& get_Parser_Link_cardinality(data::Variant& m_data)
+std::optional< mega::CardinalityRange >& get_Parser_Link_cardinality(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -14577,7 +15339,21 @@ data::Ptr< data::AST::Parser_Identifier >& get_Parser_Link_id(data::Variant& m_d
         }
     }
 }
-data::Ptr< data::AST::Parser_ScopedIdentifier >& get_Parser_Link_type(data::Variant& m_data)
+bool& get_Parser_Link_owning(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Link::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->owning;
+        case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->owning;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AST::Parser_TypeList >& get_Parser_Link_type(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -14635,12 +15411,42 @@ std::optional< data::Ptr< data::AST::Parser_IncludeRoot > >& get_Parser_MegaIncl
         }
     }
 }
-data::Ptr< data::AST::Parser_ArgumentList >& get_Parser_Requirement_argumentList(data::Variant& m_data)
+std::vector< std::string >& get_Parser_Part_identifiers(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Part::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Part >( m_data )->identifiers;
+        case data::Tree::Interface_PartTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Part >( m_data )->identifiers;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AST::Parser_TypeList >& get_Parser_Requirement_argumentList(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::AST::Parser_Requirement::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Requirement >( m_data )->argumentList;
+        case data::Tree::Interface_RequirementTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Requirement >( m_data )->argumentList;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AST::Parser_Identifier >& get_Parser_Requirement_id(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Requirement::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Requirement >( m_data )->id;
+        case data::Tree::Interface_RequirementTrait::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Requirement >( m_data )->id;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14759,6 +15565,24 @@ boost::filesystem::path& get_Parser_SourceRoot_sourceFile(data::Variant& m_data)
         }
     }
 }
+data::Ptr< data::AST::Parser_Transition >& get_Parser_StateDef_transition(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->transition;
+        case data::AST::Parser_InteruptDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_InteruptDef >( m_data )->transition;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->transition;
+        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->transition;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::string& get_Parser_SystemInclude_str(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -14807,6 +15631,18 @@ std::string& get_Parser_Transition_str(data::Variant& m_data)
             return data::convert< data::AST::Parser_Transition >( m_data )->str;
         case data::Tree::Interface_TransitionTypeTrait::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Transition >( m_data )->str;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< mega::Type >& get_Parser_TypeList_args(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_TypeList::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_TypeList >( m_data )->args;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -15525,28 +16361,12 @@ data::Ptr< data::Tree::Interface_Action >& set_Concrete_Action_interface_action(
         }
     }
 }
-mega::U64& set_Concrete_Action_local_size(data::Variant& m_data)
+data::Ptr< data::Tree::Interface_Component >& set_Concrete_Component_interface_component(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->local_size;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->local_size;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& set_Concrete_Action_total_size(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Action >( m_data )->total_size;
-        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->total_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Component >( m_data )->interface_component;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -15569,7 +16389,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_Concrete_Conte
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
@@ -15597,7 +16421,11 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& s
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocation_dimensions;
@@ -15623,7 +16451,11 @@ data::Ptr< data::MemoryLayout::Allocators_Allocator >& set_Concrete_Context_allo
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Context >( m_data )->allocator;
@@ -15649,7 +16481,11 @@ data::Ptr< data::Components::Components_Component >& set_Concrete_Context_compon
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->component;
@@ -15675,7 +16511,11 @@ mega::TypeID& set_Concrete_Context_concrete_id(data::Variant& m_data)
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
@@ -15703,7 +16543,11 @@ std::optional< std::optional< data::Ptr< data::Concrete::Concrete_Object > > >& 
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->concrete_object;
@@ -15729,7 +16573,11 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& set_Concrete_Context
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->inheritance;
@@ -15755,7 +16603,11 @@ data::Ptr< data::Tree::Interface_IContext >& set_Concrete_Context_interface(data
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->interface;
@@ -15781,7 +16633,11 @@ data::Ptr< data::Concrete::Concrete_ContextGroup >& set_Concrete_Context_parent(
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Context >( m_data )->parent;
@@ -16113,6 +16969,58 @@ data::Ptr< data::Tree::Interface_Root >& set_Concrete_Root_interface_root(data::
         }
     }
 }
+data::Ptr< data::Tree::Interface_State >& set_Concrete_State_interface_state(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_State >( m_data )->interface_state;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_State >( m_data )->interface_state;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_State >( m_data )->interface_state;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U64& set_Concrete_State_local_size(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->local_size;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->local_size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U64& set_Concrete_State_total_size(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Event >( m_data )->total_size;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_State >( m_data )->total_size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_Concrete_UserDimensionContext_dimensions(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -16121,7 +17029,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_Concre
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->dimensions;
@@ -16141,7 +17053,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Concre
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
         case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
         case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
         case data::Concrete::Concrete_Event::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_UserDimensionContext >( m_data )->links;
@@ -16285,114 +17201,6 @@ std::vector< mega::io::megaFilePath >& set_Dependencies_TransitiveDependencies_m
         }
     }
 }
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& set_Derivation_Mapping_inheritance_contexts(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->inheritance_contexts;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_Derivation_Mapping_inheritance_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->inheritance_dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Derivation_Mapping_inheritance_links(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->inheritance_links;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& set_Derivation_Mapping_mappings(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_Mapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_Mapping >( m_data )->mappings;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::U64& set_Derivation_ObjectMapping_hash_code(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->hash_code;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& set_Derivation_ObjectMapping_inheritance_contexts(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->inheritance_contexts;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_Derivation_ObjectMapping_inheritance_dimensions(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->inheritance_dimensions;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Derivation_ObjectMapping_inheritance_links(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->inheritance_links;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-mega::io::megaFilePath& set_Derivation_ObjectMapping_source_file(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Derivations::Derivation_ObjectMapping::Object_Part_Type_ID:
-            return data::convert< data::Derivations::Derivation_ObjectMapping >( m_data )->source_file;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
 data::Ptr< data::Tree::Interface_LinkTrait >& set_HyperGraph_BinaryRelation_source(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -16469,6 +17277,114 @@ mega::RelationID& set_HyperGraph_Relation_id(data::Variant& m_data)
         }
     }
 }
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& set_Inheritance_Mapping_inheritance_contexts(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->inheritance_contexts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_Inheritance_Mapping_inheritance_dimensions(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->inheritance_dimensions;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Inheritance_Mapping_inheritance_links(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->inheritance_links;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Derivations::Inheritance_ObjectMapping > >& set_Inheritance_Mapping_mappings(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_Mapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_Mapping >( m_data )->mappings;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U64& set_Inheritance_ObjectMapping_hash_code(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->hash_code;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& set_Inheritance_ObjectMapping_inheritance_contexts(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->inheritance_contexts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_Inheritance_ObjectMapping_inheritance_dimensions(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->inheritance_dimensions;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Inheritance_ObjectMapping_inheritance_links(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->inheritance_links;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::io::megaFilePath& set_Inheritance_ObjectMapping_source_file(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Derivations::Inheritance_ObjectMapping::Object_Part_Type_ID:
+            return data::convert< data::Derivations::Inheritance_ObjectMapping >( m_data )->source_file;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& set_Interface_Abstract_abstract_defs(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -16487,12 +17403,16 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait 
     {
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->inheritance_trait;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->inheritance_trait;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Event >( m_data )->inheritance_trait;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->inheritance_trait;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->inheritance_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -16505,10 +17425,32 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_LinkTrait > > >& se
     {
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->link_traits;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->link_traits;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->link_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->link_traits;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::vector< data::Ptr< data::Tree::Interface_RequirementTrait > > >& set_Interface_Abstract_requirement_traits(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_Abstract::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Abstract >( m_data )->requirement_traits;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->requirement_traits;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -16521,38 +17463,16 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& 
     {
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->size_trait;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->size_trait;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Event >( m_data )->size_trait;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->size_trait;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::vector< data::Ptr< data::AST::Parser_ActionDef > >& set_Interface_Action_action_defs(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
         case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->action_defs;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-std::optional< std::optional< data::Ptr< data::Tree::Interface_TransitionTypeTrait > > >& set_Interface_Action_transition_trait(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->transition_trait;
-        case data::Tree::Interface_Interupt::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Interupt >( m_data )->transition_trait;
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->size_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -16587,7 +17507,11 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& set_Interface_Contex
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_ContextGroup >( m_data )->children;
@@ -16807,7 +17731,11 @@ data::Ptr< data::Components::Components_Component >& set_Interface_IContext_comp
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->component;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->component;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->component;
@@ -16835,7 +17763,11 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_Interface_ICon
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceDerivations::Interface_IContext >( m_data )->concrete;
@@ -16869,7 +17801,11 @@ std::string& set_Interface_IContext_identifier(data::Variant& m_data)
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->identifier;
@@ -16897,7 +17833,11 @@ mega::TypeID& set_Interface_IContext_interface_id(data::Variant& m_data)
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->interface_id;
@@ -16931,7 +17871,11 @@ data::Ptr< data::Tree::Interface_ContextGroup >& set_Interface_IContext_parent(d
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_IContext >( m_data )->parent;
@@ -16959,7 +17903,11 @@ mega::TypeID& set_Interface_IContext_symbol_id(data::Variant& m_data)
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::PerSourceSymbols::Interface_IContext >( m_data )->symbol_id;
@@ -17023,7 +17971,11 @@ std::vector< data::Ptr< data::Locations::Interface_InvocationInstance > >& set_I
     {
         case data::Tree::Interface_InvocationContext::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
         case data::Tree::Interface_Interupt::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->invocation_instances;
@@ -17047,7 +17999,11 @@ mega::SourceLocation& set_Interface_InvocationContext_source_location(data::Vari
     {
         case data::Tree::Interface_InvocationContext::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
         case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
         case data::Tree::Interface_Interupt::Object_Part_Type_ID:
             return data::convert< data::Locations::Interface_InvocationContext >( m_data )->source_location;
@@ -17149,12 +18105,12 @@ mega::TypeID& set_Interface_LinkTrait_symbol_id(data::Variant& m_data)
         }
     }
 }
-data::Ptr< data::Tree::Interface_IContext >& set_Interface_LinkTrait_target(data::Variant& m_data)
+std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& set_Interface_LinkTrait_tuple(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Tree::Interface_LinkTrait::Object_Part_Type_ID:
-            return data::convert< data::Clang::Interface_LinkTrait >( m_data )->target;
+            return data::convert< data::Clang::Interface_LinkTrait >( m_data )->tuple;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17169,12 +18125,16 @@ std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > 
             return data::convert< data::Tree::Interface_Namespace >( m_data )->dimension_traits;
         case data::Tree::Interface_Abstract::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Abstract >( m_data )->dimension_traits;
-        case data::Tree::Interface_Action::Object_Part_Type_ID:
-            return data::convert< data::Tree::Interface_Action >( m_data )->dimension_traits;
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         case data::Tree::Interface_Event::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Event >( m_data )->dimension_traits;
         case data::Tree::Interface_Object::Object_Part_Type_ID:
             return data::convert< data::Tree::Interface_Object >( m_data )->dimension_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->dimension_traits;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17217,6 +18177,42 @@ std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& set_Interface_Object_ob
         }
     }
 }
+data::Ptr< data::Tree::Interface_IContext >& set_Interface_PartTrait_parent(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_PartTrait::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_PartTrait >( m_data )->parent;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Tree::Interface_IContext >& set_Interface_RequirementTrait_parent(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_RequirementTrait::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_RequirementTrait >( m_data )->parent;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Clang::Interface_TypePathVariant > >& set_Interface_RequirementTrait_tuple(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_RequirementTrait::Object_Part_Type_ID:
+            return data::convert< data::Clang::Interface_RequirementTrait >( m_data )->tuple;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::string& set_Interface_ReturnTypeTrait_canonical_type(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -17247,6 +18243,56 @@ mega::U64& set_Interface_SizeTrait_size(data::Variant& m_data)
     {
         case data::Tree::Interface_SizeTrait::Object_Part_Type_ID:
             return data::convert< data::Clang::Interface_SizeTrait >( m_data )->size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::vector< data::Ptr< data::Tree::Interface_PartTrait > > >& set_Interface_State_part_traits(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->part_traits;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::AST::Parser_StateDef > >& set_Interface_State_state_defs(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->state_defs;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< std::optional< data::Ptr< data::Tree::Interface_TransitionTypeTrait > > >& set_Interface_State_transition_trait(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Tree::Interface_State::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
+        case data::Tree::Interface_Interupt::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_Interupt >( m_data )->transition_trait;
+        case data::Tree::Interface_Action::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
+        case data::Tree::Interface_Component::Object_Part_Type_ID:
+            return data::convert< data::Tree::Interface_State >( m_data )->transition_trait;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -18389,16 +19435,16 @@ data::Ptr< data::AST::Parser_Inheritance >& set_Parser_AbstractDef_inheritance(d
     {
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_AbstractDef >( m_data )->inheritance;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ActionDef >( m_data )->inheritance;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_StateDef >( m_data )->inheritance;
-        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ComponentDef >( m_data )->inheritance;
         case data::AST::Parser_EventDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_EventDef >( m_data )->inheritance;
         case data::AST::Parser_ObjectDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ObjectDef >( m_data )->inheritance;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->inheritance;
+        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->inheritance;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -18411,41 +19457,23 @@ data::Ptr< data::AST::Parser_Size >& set_Parser_AbstractDef_size(data::Variant& 
     {
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_AbstractDef >( m_data )->size;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ActionDef >( m_data )->size;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_StateDef >( m_data )->size;
-        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ComponentDef >( m_data )->size;
         case data::AST::Parser_EventDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_EventDef >( m_data )->size;
         case data::AST::Parser_ObjectDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ObjectDef >( m_data )->size;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-data::Ptr< data::AST::Parser_Transition >& set_Parser_ActionDef_transition(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
         case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ActionDef >( m_data )->transition;
-        case data::AST::Parser_StateDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_StateDef >( m_data )->transition;
+            return data::convert< data::AST::Parser_StateDef >( m_data )->size;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ComponentDef >( m_data )->transition;
-        case data::AST::Parser_InteruptDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_InteruptDef >( m_data )->transition;
+            return data::convert< data::AST::Parser_StateDef >( m_data )->size;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-std::vector< mega::Argument >& set_Parser_ArgumentList_args(data::Variant& m_data)
+std::vector< mega::TypeName >& set_Parser_ArgumentList_args(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -18479,9 +19507,9 @@ std::string& set_Parser_ContextDef_body(data::Variant& m_data)
             return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::Body::Parser_ContextDef >( m_data )->body;
@@ -18509,9 +19537,9 @@ std::vector< data::Ptr< data::AST::Parser_ContextDef > >& set_Parser_ContextDef_
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->children;
@@ -18539,9 +19567,9 @@ std::vector< data::Ptr< data::AST::Parser_Dependency > >& set_Parser_ContextDef_
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dependencies;
@@ -18569,9 +19597,9 @@ std::vector< data::Ptr< data::AST::Parser_Dimension > >& set_Parser_ContextDef_d
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->dimensions;
@@ -18599,9 +19627,9 @@ data::Ptr< data::AST::Parser_ScopedIdentifier >& set_Parser_ContextDef_id(data::
             return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->id;
@@ -18629,9 +19657,9 @@ std::vector< data::Ptr< data::AST::Parser_Include > >& set_Parser_ContextDef_inc
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->includes;
@@ -18659,9 +19687,9 @@ std::vector< data::Ptr< data::AST::Parser_Link > >& set_Parser_ContextDef_links(
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->links;
@@ -18679,6 +19707,36 @@ std::vector< data::Ptr< data::AST::Parser_Link > >& set_Parser_ContextDef_links(
         }
     }
 }
+std::vector< data::Ptr< data::AST::Parser_Part > >& set_Parser_ContextDef_parts(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_ContextDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_NamespaceDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_EventDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_InteruptDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_FunctionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        case data::AST::Parser_ObjectDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->parts;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::AST::Parser_Requirement > >& set_Parser_ContextDef_requirements(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -18689,9 +19747,9 @@ std::vector< data::Ptr< data::AST::Parser_Requirement > >& set_Parser_ContextDef
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
         case data::AST::Parser_AbstractDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
-        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
-            return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
         case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
         case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_ContextDef >( m_data )->requirements;
@@ -18855,7 +19913,7 @@ data::Ptr< data::AST::Parser_ArgumentList >& set_Parser_InteruptDef_argumentList
         }
     }
 }
-mega::CardinalityRange& set_Parser_Link_cardinality(data::Variant& m_data)
+std::optional< mega::CardinalityRange >& set_Parser_Link_cardinality(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -18879,7 +19937,19 @@ data::Ptr< data::AST::Parser_Identifier >& set_Parser_Link_id(data::Variant& m_d
         }
     }
 }
-data::Ptr< data::AST::Parser_ScopedIdentifier >& set_Parser_Link_type(data::Variant& m_data)
+bool& set_Parser_Link_owning(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Link::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Link >( m_data )->owning;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AST::Parser_TypeList >& set_Parser_Link_type(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -18935,12 +20005,36 @@ std::optional< data::Ptr< data::AST::Parser_IncludeRoot > >& set_Parser_MegaIncl
         }
     }
 }
-data::Ptr< data::AST::Parser_ArgumentList >& set_Parser_Requirement_argumentList(data::Variant& m_data)
+std::vector< std::string >& set_Parser_Part_identifiers(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Part::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Part >( m_data )->identifiers;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AST::Parser_TypeList >& set_Parser_Requirement_argumentList(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::AST::Parser_Requirement::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Requirement >( m_data )->argumentList;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::AST::Parser_Identifier >& set_Parser_Requirement_id(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_Requirement::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_Requirement >( m_data )->id;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19055,6 +20149,24 @@ boost::filesystem::path& set_Parser_SourceRoot_sourceFile(data::Variant& m_data)
         }
     }
 }
+data::Ptr< data::AST::Parser_Transition >& set_Parser_StateDef_transition(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_StateDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->transition;
+        case data::AST::Parser_InteruptDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_InteruptDef >( m_data )->transition;
+        case data::AST::Parser_ActionDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->transition;
+        case data::AST::Parser_ComponentDef::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_StateDef >( m_data )->transition;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::string& set_Parser_SystemInclude_str(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -19097,6 +20209,18 @@ std::string& set_Parser_Transition_str(data::Variant& m_data)
     {
         case data::AST::Parser_Transition::Object_Part_Type_ID:
             return data::convert< data::AST::Parser_Transition >( m_data )->str;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< mega::Type >& set_Parser_TypeList_args(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::AST::Parser_TypeList::Object_Part_Type_ID:
+            return data::convert< data::AST::Parser_TypeList >( m_data )->args;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19572,185 +20696,194 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 1: return new Components::MegaMangle_Mangle( loader, objectInfo );
         case 2: return new AST::Parser_Identifier( loader, objectInfo );
         case 3: return new AST::Parser_ScopedIdentifier( loader, objectInfo );
-        case 4: return new AST::Parser_ArgumentList( loader, objectInfo );
-        case 5: return new AST::Parser_ReturnType( loader, objectInfo );
-        case 6: return new AST::Parser_Transition( loader, objectInfo );
-        case 7: return new AST::Parser_Inheritance( loader, objectInfo );
-        case 8: return new AST::Parser_Size( loader, objectInfo );
-        case 9: return new AST::Parser_Initialiser( loader, objectInfo );
-        case 10: return new AST::Parser_Link( loader, objectInfo );
-        case 11: return new AST::Parser_Dimension( loader, objectInfo );
-        case 12: return new AST::Parser_Requirement( loader, objectInfo );
-        case 13: return new AST::Parser_Include( loader, objectInfo );
-        case 14: return new AST::Parser_SystemInclude( loader, objectInfo );
-        case 15: return new AST::Parser_MegaInclude( loader, objectInfo );
-        case 16: return new AST::Parser_MegaIncludeInline( loader, objectInfo );
-        case 17: return new AST::Parser_MegaIncludeNested( loader, objectInfo );
-        case 18: return new AST::Parser_CPPInclude( loader, objectInfo );
-        case 19: return new AST::Parser_Dependency( loader, objectInfo );
-        case 20: return new AST::Parser_ContextDef( loader, objectInfo );
-        case 22: return new AST::Parser_NamespaceDef( loader, objectInfo );
-        case 23: return new AST::Parser_AbstractDef( loader, objectInfo );
-        case 24: return new AST::Parser_ActionDef( loader, objectInfo );
-        case 25: return new AST::Parser_StateDef( loader, objectInfo );
-        case 26: return new AST::Parser_ComponentDef( loader, objectInfo );
-        case 27: return new AST::Parser_EventDef( loader, objectInfo );
-        case 28: return new AST::Parser_InteruptDef( loader, objectInfo );
-        case 29: return new AST::Parser_FunctionDef( loader, objectInfo );
-        case 30: return new AST::Parser_ObjectDef( loader, objectInfo );
-        case 31: return new AST::Parser_SourceRoot( loader, objectInfo );
-        case 32: return new AST::Parser_IncludeRoot( loader, objectInfo );
-        case 33: return new AST::Parser_ObjectSourceRoot( loader, objectInfo );
-        case 21: return new Body::Parser_ContextDef( loader, objectInfo );
-        case 34: return new Tree::Interface_DimensionTrait( loader, objectInfo );
-        case 38: return new Tree::Interface_LinkTrait( loader, objectInfo );
-        case 43: return new Tree::Interface_InheritanceTrait( loader, objectInfo );
-        case 45: return new Tree::Interface_ReturnTypeTrait( loader, objectInfo );
-        case 47: return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
-        case 51: return new Tree::Interface_TransitionTypeTrait( loader, objectInfo );
-        case 53: return new Tree::Interface_EventTypeTrait( loader, objectInfo );
-        case 55: return new Tree::Interface_SizeTrait( loader, objectInfo );
-        case 57: return new Tree::Interface_ContextGroup( loader, objectInfo );
-        case 58: return new Tree::Interface_Root( loader, objectInfo );
-        case 59: return new Tree::Interface_IContext( loader, objectInfo );
-        case 63: return new Tree::Interface_InvocationContext( loader, objectInfo );
-        case 65: return new Tree::Interface_Namespace( loader, objectInfo );
-        case 66: return new Tree::Interface_Abstract( loader, objectInfo );
-        case 67: return new Tree::Interface_Action( loader, objectInfo );
-        case 68: return new Tree::Interface_Event( loader, objectInfo );
-        case 69: return new Tree::Interface_Interupt( loader, objectInfo );
-        case 70: return new Tree::Interface_Function( loader, objectInfo );
-        case 71: return new Tree::Interface_Object( loader, objectInfo );
-        case 174: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
-        case 175: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
-        case 176: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
-        case 146: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 147: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 148: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 149: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 150: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 151: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 153: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
-        case 35: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
-        case 40: return new PerSourceSymbols::Interface_LinkTrait( loader, objectInfo );
-        case 60: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
-        case 37: return new Clang::Interface_DimensionTrait( loader, objectInfo );
-        case 39: return new Clang::Interface_LinkTrait( loader, objectInfo );
-        case 44: return new Clang::Interface_InheritanceTrait( loader, objectInfo );
-        case 46: return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
-        case 48: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
-        case 49: return new Clang::Interface_TypePath( loader, objectInfo );
-        case 50: return new Clang::Interface_TypePathVariant( loader, objectInfo );
-        case 52: return new Clang::Interface_TransitionTypeTrait( loader, objectInfo );
-        case 54: return new Clang::Interface_EventTypeTrait( loader, objectInfo );
-        case 56: return new Clang::Interface_SizeTrait( loader, objectInfo );
-        case 107: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
-        case 110: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
-        case 118: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 119: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 122: return new Concrete::Concrete_Interupt( loader, objectInfo );
-        case 123: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 124: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
-        case 125: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 126: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 128: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 130: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 134: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 155: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 156: return new Derivations::Derivation_Mapping( loader, objectInfo );
-        case 36: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
-        case 41: return new PerSourceDerivations::Interface_LinkTrait( loader, objectInfo );
-        case 61: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
-        case 157: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 158: return new Model::HyperGraph_OwningRelation( loader, objectInfo );
-        case 159: return new Model::HyperGraph_BinaryRelation( loader, objectInfo );
-        case 160: return new Model::HyperGraph_Graph( loader, objectInfo );
-        case 42: return new PerSourceModel::Interface_LinkTrait( loader, objectInfo );
-        case 132: return new PerSourceModel::Concrete_Object( loader, objectInfo );
-        case 109: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
-        case 112: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
-        case 113: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
-        case 114: return new MemoryLayout::Concrete_Dimensions_LinkMany( loader, objectInfo );
-        case 115: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 117: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
-        case 121: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 127: return new MemoryLayout::Concrete_Action( loader, objectInfo );
-        case 129: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 131: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 161: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 162: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 163: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 164: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 165: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 166: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 167: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 168: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 169: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 170: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 171: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 172: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 173: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
-        case 133: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
-        case 152: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 154: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
-        case 108: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
-        case 111: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
-        case 116: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 120: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
-        case 72: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
-        case 73: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
-        case 74: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
-        case 75: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
-        case 76: return new Operations::Invocations_Variables_Context( loader, objectInfo );
-        case 77: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
-        case 78: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
-        case 79: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
-        case 80: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
-        case 81: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
-        case 82: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
-        case 83: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
-        case 84: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
-        case 85: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
-        case 86: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
-        case 87: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
-        case 88: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
-        case 89: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
-        case 90: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
-        case 91: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
-        case 92: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
-        case 93: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
-        case 94: return new Operations::Invocations_Operations_LinkOperation( loader, objectInfo );
-        case 95: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
-        case 96: return new Operations::Invocations_Operations_Call( loader, objectInfo );
-        case 97: return new Operations::Invocations_Operations_Start( loader, objectInfo );
-        case 98: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
-        case 99: return new Operations::Invocations_Operations_Move( loader, objectInfo );
-        case 100: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
-        case 101: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
-        case 102: return new Operations::Invocations_Operations_Read( loader, objectInfo );
-        case 103: return new Operations::Invocations_Operations_Write( loader, objectInfo );
-        case 104: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
-        case 105: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
-        case 106: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 135: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 136: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 137: return new Operations::Operations_Element( loader, objectInfo );
-        case 138: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 139: return new Operations::Operations_Context( loader, objectInfo );
-        case 140: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 141: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 142: return new Operations::Operations_Name( loader, objectInfo );
-        case 143: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 144: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 145: return new Operations::Operations_Invocations( loader, objectInfo );
-        case 62: return new Locations::Interface_InvocationInstance( loader, objectInfo );
-        case 64: return new Locations::Interface_InvocationContext( loader, objectInfo );
-        case 177: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
-        case 178: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
-        case 179: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
-        case 180: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
-        case 181: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
-        case 182: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
+        case 4: return new AST::Parser_TypeList( loader, objectInfo );
+        case 5: return new AST::Parser_ArgumentList( loader, objectInfo );
+        case 6: return new AST::Parser_ReturnType( loader, objectInfo );
+        case 7: return new AST::Parser_Transition( loader, objectInfo );
+        case 8: return new AST::Parser_Inheritance( loader, objectInfo );
+        case 9: return new AST::Parser_Size( loader, objectInfo );
+        case 10: return new AST::Parser_Initialiser( loader, objectInfo );
+        case 11: return new AST::Parser_Link( loader, objectInfo );
+        case 12: return new AST::Parser_Dimension( loader, objectInfo );
+        case 13: return new AST::Parser_Requirement( loader, objectInfo );
+        case 14: return new AST::Parser_Part( loader, objectInfo );
+        case 15: return new AST::Parser_Include( loader, objectInfo );
+        case 16: return new AST::Parser_SystemInclude( loader, objectInfo );
+        case 17: return new AST::Parser_MegaInclude( loader, objectInfo );
+        case 18: return new AST::Parser_MegaIncludeInline( loader, objectInfo );
+        case 19: return new AST::Parser_MegaIncludeNested( loader, objectInfo );
+        case 20: return new AST::Parser_CPPInclude( loader, objectInfo );
+        case 21: return new AST::Parser_Dependency( loader, objectInfo );
+        case 22: return new AST::Parser_ContextDef( loader, objectInfo );
+        case 24: return new AST::Parser_NamespaceDef( loader, objectInfo );
+        case 25: return new AST::Parser_AbstractDef( loader, objectInfo );
+        case 26: return new AST::Parser_StateDef( loader, objectInfo );
+        case 27: return new AST::Parser_ActionDef( loader, objectInfo );
+        case 28: return new AST::Parser_ComponentDef( loader, objectInfo );
+        case 29: return new AST::Parser_EventDef( loader, objectInfo );
+        case 30: return new AST::Parser_InteruptDef( loader, objectInfo );
+        case 31: return new AST::Parser_FunctionDef( loader, objectInfo );
+        case 32: return new AST::Parser_ObjectDef( loader, objectInfo );
+        case 33: return new AST::Parser_SourceRoot( loader, objectInfo );
+        case 34: return new AST::Parser_IncludeRoot( loader, objectInfo );
+        case 35: return new AST::Parser_ObjectSourceRoot( loader, objectInfo );
+        case 23: return new Body::Parser_ContextDef( loader, objectInfo );
+        case 38: return new Tree::Interface_DimensionTrait( loader, objectInfo );
+        case 42: return new Tree::Interface_LinkTrait( loader, objectInfo );
+        case 47: return new Tree::Interface_InheritanceTrait( loader, objectInfo );
+        case 49: return new Tree::Interface_ReturnTypeTrait( loader, objectInfo );
+        case 51: return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
+        case 53: return new Tree::Interface_PartTrait( loader, objectInfo );
+        case 54: return new Tree::Interface_RequirementTrait( loader, objectInfo );
+        case 56: return new Tree::Interface_TransitionTypeTrait( loader, objectInfo );
+        case 58: return new Tree::Interface_EventTypeTrait( loader, objectInfo );
+        case 60: return new Tree::Interface_SizeTrait( loader, objectInfo );
+        case 62: return new Tree::Interface_ContextGroup( loader, objectInfo );
+        case 63: return new Tree::Interface_Root( loader, objectInfo );
+        case 64: return new Tree::Interface_IContext( loader, objectInfo );
+        case 68: return new Tree::Interface_InvocationContext( loader, objectInfo );
+        case 70: return new Tree::Interface_Namespace( loader, objectInfo );
+        case 71: return new Tree::Interface_Abstract( loader, objectInfo );
+        case 72: return new Tree::Interface_State( loader, objectInfo );
+        case 73: return new Tree::Interface_Action( loader, objectInfo );
+        case 74: return new Tree::Interface_Component( loader, objectInfo );
+        case 75: return new Tree::Interface_Event( loader, objectInfo );
+        case 76: return new Tree::Interface_Interupt( loader, objectInfo );
+        case 77: return new Tree::Interface_Function( loader, objectInfo );
+        case 78: return new Tree::Interface_Object( loader, objectInfo );
+        case 183: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
+        case 184: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
+        case 185: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
+        case 155: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 156: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 157: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 158: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 159: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 160: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 162: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 39: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
+        case 44: return new PerSourceSymbols::Interface_LinkTrait( loader, objectInfo );
+        case 65: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
+        case 36: return new Clang::Interface_TypePath( loader, objectInfo );
+        case 37: return new Clang::Interface_TypePathVariant( loader, objectInfo );
+        case 41: return new Clang::Interface_DimensionTrait( loader, objectInfo );
+        case 43: return new Clang::Interface_LinkTrait( loader, objectInfo );
+        case 48: return new Clang::Interface_InheritanceTrait( loader, objectInfo );
+        case 50: return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
+        case 52: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
+        case 55: return new Clang::Interface_RequirementTrait( loader, objectInfo );
+        case 57: return new Clang::Interface_TransitionTypeTrait( loader, objectInfo );
+        case 59: return new Clang::Interface_EventTypeTrait( loader, objectInfo );
+        case 61: return new Clang::Interface_SizeTrait( loader, objectInfo );
+        case 114: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
+        case 117: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
+        case 125: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 126: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 129: return new Concrete::Concrete_Interupt( loader, objectInfo );
+        case 130: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 131: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
+        case 132: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 133: return new Concrete::Concrete_State( loader, objectInfo );
+        case 135: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 136: return new Concrete::Concrete_Component( loader, objectInfo );
+        case 137: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 139: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 143: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 164: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
+        case 165: return new Derivations::Inheritance_Mapping( loader, objectInfo );
+        case 40: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
+        case 45: return new PerSourceDerivations::Interface_LinkTrait( loader, objectInfo );
+        case 66: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
+        case 166: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 167: return new Model::HyperGraph_OwningRelation( loader, objectInfo );
+        case 168: return new Model::HyperGraph_BinaryRelation( loader, objectInfo );
+        case 169: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 46: return new PerSourceModel::Interface_LinkTrait( loader, objectInfo );
+        case 141: return new PerSourceModel::Concrete_Object( loader, objectInfo );
+        case 116: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 119: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
+        case 120: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
+        case 121: return new MemoryLayout::Concrete_Dimensions_LinkMany( loader, objectInfo );
+        case 122: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 124: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
+        case 128: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 134: return new MemoryLayout::Concrete_State( loader, objectInfo );
+        case 138: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 140: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 170: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 171: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 172: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 173: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 174: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 175: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 176: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 177: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 178: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 179: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
+        case 180: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 181: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 182: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
+        case 142: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
+        case 161: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 163: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 115: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
+        case 118: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
+        case 123: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 127: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 79: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
+        case 80: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
+        case 81: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
+        case 82: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
+        case 83: return new Operations::Invocations_Variables_Context( loader, objectInfo );
+        case 84: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
+        case 85: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
+        case 86: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
+        case 87: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
+        case 88: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
+        case 89: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
+        case 90: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
+        case 91: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
+        case 92: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
+        case 93: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
+        case 94: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
+        case 95: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
+        case 96: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
+        case 97: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
+        case 98: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
+        case 99: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
+        case 100: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
+        case 101: return new Operations::Invocations_Operations_LinkOperation( loader, objectInfo );
+        case 102: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
+        case 103: return new Operations::Invocations_Operations_Call( loader, objectInfo );
+        case 104: return new Operations::Invocations_Operations_Start( loader, objectInfo );
+        case 105: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
+        case 106: return new Operations::Invocations_Operations_Move( loader, objectInfo );
+        case 107: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
+        case 108: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
+        case 109: return new Operations::Invocations_Operations_Read( loader, objectInfo );
+        case 110: return new Operations::Invocations_Operations_Write( loader, objectInfo );
+        case 111: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
+        case 112: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
+        case 113: return new Operations::Invocations_Operations_Range( loader, objectInfo );
+        case 144: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 145: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 146: return new Operations::Operations_Element( loader, objectInfo );
+        case 147: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 148: return new Operations::Operations_Context( loader, objectInfo );
+        case 149: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 150: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 151: return new Operations::Operations_Name( loader, objectInfo );
+        case 152: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 153: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 154: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 67: return new Locations::Interface_InvocationInstance( loader, objectInfo );
+        case 69: return new Locations::Interface_InvocationContext( loader, objectInfo );
+        case 186: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
+        case 187: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
+        case 188: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
+        case 189: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
+        case 190: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
+        case 191: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

@@ -31,18 +31,42 @@
 namespace mega
 {
 
-struct EGDB_EXPORT Argument
+struct EGDB_EXPORT Type
 {
-    using Vector = std::vector< Argument >;
+    using Vector = std::vector< Type >;
 
-    Argument() = default;
-    Argument( std::string type, std::optional< std::string > name )
+    Type() = default;
+    Type( std::string type )
+        : m_type( std::move( type ) )
+    {
+    }
+
+    bool operator==( const Type& ) const = default;
+
+    const std::string& get() const { return m_type; }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& m_type;
+    }
+
+    // private: - uses BOOST_FUSION_ADAPT_STRUCT in cpp
+    std::string m_type;
+};
+
+struct EGDB_EXPORT TypeName
+{
+    using Vector = std::vector< TypeName >;
+
+    TypeName() = default;
+    TypeName( std::string type, std::optional< std::string > name )
         : m_type( std::move( type ) )
         , m_name( std::move( name ) )
     {
     }
 
-    bool operator==( const Argument& ) const = default;
+    bool operator==( const TypeName& ) const = default;
 
     const std::string&                  getType() const { return m_type; }
     const std::optional< std::string >& getName() const { return m_name; }
@@ -56,20 +80,26 @@ struct EGDB_EXPORT Argument
         archive& m_name;
     }
 
-//private: - uses BOOST_FUSION_ADAPT_STRUCT in cpp
+    // private: - uses BOOST_FUSION_ADAPT_STRUCT in cpp
     std::string                  m_type;
     std::optional< std::string > m_name;
 };
 
 // EGDB_EXPORT
-EGDB_EXPORT void parse( const std::string& str, Argument::Vector& args );
-EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::Argument::Vector& arguments );
+EGDB_EXPORT void parse( const std::string& str, Type::Vector& args );
+EGDB_EXPORT void parse( const std::string& str, TypeName::Vector& args );
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::Type::Vector& arguments );
+EGDB_EXPORT std::ostream& operator<<( std::ostream& os, const mega::TypeName::Vector& arguments );
 
 } // namespace mega
 
 namespace mega
 {
-inline void to_json( nlohmann::json& j, const mega::Argument& argument )
+inline void to_json( nlohmann::json& j, const mega::Type& type )
+{
+    j = nlohmann::json{ { "type", type.get() } };
+}
+inline void to_json( nlohmann::json& j, const mega::TypeName& argument )
 {
     if( argument.getName().has_value() )
     {

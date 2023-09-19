@@ -17,10 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 namespace Interface
 {
+    object TypePath -> InterfaceAnalysisStage::Clang
+    {
+        array< ref< Symbols::SymbolTypeID > > types;
+    }
+    object TypePathVariant -> InterfaceAnalysisStage::Clang
+    {
+        array< ref< TypePath > > sequence;
+    }
+
     // context traits
     object DimensionTrait : Parser::Dimension -> InterfaceStage::Tree
     {
@@ -29,7 +36,7 @@ namespace Interface
         value< mega::TypeID > symbol_id -> SymbolRollout::PerSourceSymbols;
         value< mega::TypeID > interface_id -> SymbolRollout::PerSourceSymbols;
         
-        array< ref< Concrete::Dimensions::User > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
+        array< ref< Concrete::Dimensions::User > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
 
         value< std::string >                    canonical_type  -> InterfaceAnalysisStage::Clang;
         ref< MegaMangle::Mangle >               mangle          -> InterfaceAnalysisStage::Clang;
@@ -44,12 +51,12 @@ namespace Interface
     {
         ref< IContext > parent;
 
-        ref< IContext > target -> InterfaceAnalysisStage::Clang;
+        array< ref< TypePathVariant > > tuple  -> InterfaceAnalysisStage::Clang;
 
         value< mega::TypeID > symbol_id -> SymbolRollout::PerSourceSymbols;
         value< mega::TypeID > interface_id -> SymbolRollout::PerSourceSymbols;
 
-        array< ref< Concrete::Dimensions::Link > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
+        array< ref< Concrete::Dimensions::Link > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
 
         ref< HyperGraph::Relation > relation -> HyperGraphAnalysisRollout::PerSourceModel;
     }
@@ -69,13 +76,16 @@ namespace Interface
         array< value< std::string > > canonical_types  -> InterfaceAnalysisStage::Clang;
     }
 
-    object TypePath -> InterfaceAnalysisStage::Clang
+    object PartTrait : Parser::Part -> InterfaceStage::Tree
     {
-        array< ref< Symbols::SymbolTypeID > > types;
+        ref< IContext > parent;
+
     }
-    object TypePathVariant -> InterfaceAnalysisStage::Clang
+    
+    object RequirementTrait : Parser::Requirement -> InterfaceStage::Tree
     {
-        array< ref< TypePath > > sequence;
+        ref< IContext > parent;
+        array< ref< TypePathVariant > > tuple  -> InterfaceAnalysisStage::Clang;
     }
 
     object TransitionTypeTrait : Parser::Transition -> InterfaceStage::Tree
@@ -114,7 +124,7 @@ namespace Interface
         value< mega::TypeID > symbol_id     -> SymbolRollout::PerSourceSymbols;
         value< mega::TypeID > interface_id  -> SymbolRollout::PerSourceSymbols;
 
-        array< ref< Concrete::Context > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
+        array< ref< Concrete::Context > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
     }
 
     object InvocationInstance -> OperationsLocs::Locations
@@ -138,21 +148,34 @@ namespace Interface
     }
     object Abstract : IContext -> InterfaceStage::Tree
     {
-        array< ref< Parser::AbstractDef > >     abstract_defs;
-        late< array< ref< DimensionTrait > > >  dimension_traits;
-        late< array< ref< LinkTrait > > >       link_traits;
-        late< opt< ref< InheritanceTrait > > >  inheritance_trait;
-        late< opt< ref< SizeTrait > > >         size_trait;
+        array< ref< Parser::AbstractDef > >         abstract_defs;
+        late< array< ref< DimensionTrait > > >      dimension_traits;
+        late< array< ref< LinkTrait > > >           link_traits;
+        late< opt< ref< InheritanceTrait > > >      inheritance_trait;
+        late< opt< ref< SizeTrait > > >             size_trait;
+        late< array< ref< RequirementTrait > > >    requirement_traits;
     }
-    object Action : InvocationContext -> InterfaceStage::Tree
+
+    object State : InvocationContext -> InterfaceStage::Tree
     {
-        array< ref< Parser::ActionDef > > action_defs;
+        array< ref< Parser::StateDef > >            state_defs;
         late< array< ref< DimensionTrait > > >      dimension_traits;
         late< array< ref< LinkTrait > > >           link_traits;
         late< opt< ref< InheritanceTrait > > >      inheritance_trait;
         late< opt< ref< SizeTrait > > >             size_trait;
         late< opt< ref< TransitionTypeTrait > > >   transition_trait;
+        late< array< ref< PartTrait > > >           part_traits;
+        late< array< ref< RequirementTrait > > >    requirement_traits;
     }
+
+    object Action : State -> InterfaceStage::Tree
+    {
+    }
+
+    object Component : State -> InterfaceStage::Tree
+    {
+    }
+
     object Event : IContext -> InterfaceStage::Tree
     {
         array< ref< Parser::EventDef > >            event_defs;

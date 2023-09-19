@@ -19,11 +19,11 @@
 
 // NOTE to use do something like this:
 
-// namespace DerivationAnalysisView
+// namespace InheritanceAnalysisView
 // {
-// using namespace DerivationAnalysisView::Interface;
+// using namespace InheritanceAnalysisView::Interface;
 // #include "generator_operations.hpp"
-// } // namespace DerivationAnalysisView
+// } // namespace InheritanceAnalysisView
 
 #include "compiler/generator_utility.hpp"
 
@@ -105,7 +105,7 @@ private:
             CleverUtility c( types, pAction->get_identifier() );
 
             std::ostringstream osBody;
-            for( auto pDef : pAction->get_action_defs() )
+            for( auto pDef : pAction->get_state_defs() )
             {
                 if( !pDef->get_body().empty() )
                 {

@@ -21,7 +21,7 @@
 
 #include "mega/relation_id.hpp"
 
-#include "database/model/DerivationAnalysis.hxx"
+#include "database/model/InheritanceAnalysis.hxx"
 #include "database/model/HyperGraphAnalysis.hxx"
 #include "database/model/HyperGraphAnalysisView.hxx"
 #include "database/model/HyperGraphAnalysisRollout.hxx"

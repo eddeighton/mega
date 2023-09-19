@@ -446,6 +446,14 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
                                                   pCurrentInterface, pCurrentConcrete } } );
                         pInstruction->push_back_children( pStart );
                     }
+                    else if( db_cast< Concrete::Component >( pCurrentConcrete ) )
+                    {
+                        THROW_TODO;
+                    }
+                    else if( db_cast< Concrete::State >( pCurrentConcrete ) )
+                    {
+                        THROW_TODO;
+                    }
                     else if( db_cast< Concrete::Function >( pCurrentConcrete ) )
                     {
                         using OperationsStage::Invocations::Operations::Call;

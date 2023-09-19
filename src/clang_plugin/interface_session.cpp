@@ -24,6 +24,8 @@
 
 #include "mega/common_strings.hpp"
 
+#include "common/requireSemicolon.hpp"
+
 #pragma warning( push )
 #include "common/clang_warnings.hpp"
 
@@ -40,6 +42,11 @@
 #pragma warning( pop )
 
 #include <map>
+
+#define REPORT_ERROR( _msg )                                                                                     \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _os; _os << _msg;                                        \
+                                     pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) \
+                                     << _os.str(); )
 
 namespace clang
 {
@@ -150,74 +157,90 @@ public:
     {
         for( Interface::LinkTrait* pLinkTrait : pContext->get_link_traits() )
         {
-            Interface::IContext* pTargetContext = nullptr;
+            DeclLocType traitDecl
+                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pLinkTrait->get_id()->get_str() );
+            if( traitDecl.pDeclContext )
             {
-                DeclLocType traitDecl
-                    = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pLinkTrait->get_id()->get_str() );
-                if( traitDecl.pDeclContext )
+                DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
+                QualType     typeType = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
+                if( pTypeDeclContext )
                 {
-                    DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
-                    QualType     typeType = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
-                    if( pTypeDeclContext )
+                    QualType typeTypeCanonical = typeType.getCanonicalType();
+
+                    std::vector< std::vector< std::vector< mega::TypeID > > > result;
+                    if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
                     {
-                        QualType typeTypeCanonical = typeType.getCanonicalType();
-                        if( std::optional< mega::TypeID > inheritanceTypeIDOpt
-                            = getMegaTypeID( pASTContext, typeTypeCanonical ) )
-                        {
-                            auto iFind = m_interfaceTypeIDs.find( inheritanceTypeIDOpt.value() );
-                            if( iFind != m_interfaceTypeIDs.end() )
-                            {
-                                if( !iFind->second->get_context().has_value() )
-                                {
-                                    std::ostringstream os;
-                                    os << "Invalid link non-context type " << pContext->get_identifier() << "("
-                                       << pContext->get_interface_id() << ") of: " << typeTypeCanonical.getAsString();
-                                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error )
-                                        << os.str();
-                                    return false;
-                                }
-                                pTargetContext = iFind->second->get_context().value();
-                            }
-                            else
-                            {
-                                // error invalid inheritance type
-                                std::ostringstream os;
-                                os << "Invalid link type for " << pContext->get_identifier() << "("
-                                   << pContext->get_interface_id() << ") of: " << typeTypeCanonical.getAsString();
-                                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
-                                return false;
-                            }
-                        }
-                        else
-                        {
-                            std::ostringstream os;
-                            os << "Failed to resolve link Type for " << pContext->get_identifier() << "("
-                               << pContext->get_interface_id() << ")";
-                            pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        std::ostringstream os;
-                        os << "Failed to resolve link target type for " << pContext->get_identifier() << "("
-                           << pContext->get_interface_id() << ")";
-                        pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                         return false;
                     }
+
+                    std::vector< Interface::TypePathVariant* > linkType;
+                    if( !convert( result, linkType ) )
+                    {
+                        return false;
+                    }
+
+                    m_database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkTrait, linkType } );
                 }
                 else
                 {
-                    std::ostringstream os;
-                    os << "Failed to resolve link for " << pContext->get_identifier() << "("
-                       << pContext->get_interface_id() << ")";
-                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                    REPORT_ERROR( "Failed to resolve link target type for " << pContext->get_identifier() << "("
+                                                                            << pContext->get_interface_id() << ")" );
                     return false;
                 }
             }
+            else
+            {
+                REPORT_ERROR( "Failed to resolve link for " << pContext->get_identifier() << "("
+                                                            << pContext->get_interface_id() << ")" );
+                return false;
+            }
+        }
+        return true;
+    }
 
-            VERIFY_RTE( pTargetContext );
-            m_database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkTrait, pTargetContext } );
+    template < typename TContextType >
+    bool requirementAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
+    {
+        for( Interface::RequirementTrait* pRequirementTrait : pContext->get_requirement_traits() )
+        {
+            DeclLocType traitDecl
+                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pRequirementTrait->get_id()->get_str() );
+            if( traitDecl.pDeclContext )
+            {
+                DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
+                QualType     typeType = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
+                if( pTypeDeclContext )
+                {
+                    QualType typeTypeCanonical = typeType.getCanonicalType();
+
+                    std::vector< std::vector< std::vector< mega::TypeID > > > result;
+                    if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
+                    {
+                        return false;
+                    }
+
+                    std::vector< Interface::TypePathVariant* > linkType;
+                    if( !convert( result, linkType ) )
+                    {
+                        return false;
+                    }
+
+                    m_database.construct< Interface::RequirementTrait >(
+                        Interface::RequirementTrait::Args{ pRequirementTrait, linkType } );
+                }
+                else
+                {
+                    REPORT_ERROR( "Failed to resolve link target type for " << pContext->get_identifier() << "("
+                                                                            << pContext->get_interface_id() << ")" );
+                    return false;
+                }
+            }
+            else
+            {
+                REPORT_ERROR( "Failed to resolve link for " << pContext->get_identifier() << "("
+                                                            << pContext->get_interface_id() );
+                return false;
+            }
         }
         return true;
     }
@@ -248,6 +271,7 @@ public:
                 }
                 if( strErasedType.empty() )
                 {
+                    REPORT_ERROR( "Failed to determine erased type" );
                     THROW_RTE( "Failed to determine erased type" );
                 }
 
@@ -427,10 +451,9 @@ public:
                         {
                             if( !iFind->second->get_context().has_value() )
                             {
-                                std::ostringstream os;
-                                os << "Invalid inherited non-context type " << pContext->get_identifier() << "("
-                                   << pContext->get_interface_id() << ") of: " << typeTypeCanonical.getAsString();
-                                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                                REPORT_ERROR( "Invalid inherited non-context type "
+                                              << pContext->get_identifier() << "(" << pContext->get_interface_id()
+                                              << ") of: " << typeTypeCanonical.getAsString() );
                                 return false;
                             }
                             inheritedContexts.push_back( iFind->second->get_context().value() );
@@ -438,37 +461,33 @@ public:
                         else
                         {
                             // error invalid inheritance type
-                            std::ostringstream os;
-                            os << "Invalid inheritance type for " << pContext->get_identifier() << "("
-                               << pContext->get_interface_id() << ") of: " << typeTypeCanonical.getAsString();
-                            pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                            REPORT_ERROR( "Invalid inheritance type for "
+                                          << pContext->get_identifier() << "(" << pContext->get_interface_id()
+                                          << ") of: " << typeTypeCanonical.getAsString() );
                             return false;
                         }
                     }
                     else
                     {
-                        std::ostringstream os;
-                        os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
-                           << pContext->get_interface_id() << ") of: " << strBaseType;
-                        pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                        REPORT_ERROR( "Failed to resolve inheritance for " << pContext->get_identifier() << "("
+                                                                           << pContext->get_interface_id()
+                                                                           << ") of: " << strBaseType );
                         return false;
                     }
                 }
                 else
                 {
-                    std::ostringstream os;
-                    os << "Failed to resolve inheritance target type for " << pContext->get_identifier() << "("
-                       << pContext->get_interface_id() << ") of: " << strBaseType;
-                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                    REPORT_ERROR( "Failed to resolve inheritance target type for " << pContext->get_identifier() << "("
+                                                                                   << pContext->get_interface_id()
+                                                                                   << ") of: " << strBaseType );
                     return false;
                 }
             }
             else
             {
-                std::ostringstream os;
-                os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
-                   << pContext->get_interface_id() << ") of: " << strBaseType;
-                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                REPORT_ERROR( "Failed to resolve inheritance for " << pContext->get_identifier() << "("
+                                                                   << pContext->get_interface_id()
+                                                                   << ") of: " << strBaseType );
                 return false;
             }
         }
@@ -522,18 +541,13 @@ public:
                     }
                     else
                     {
-                        std::ostringstream os;
-                        os << "Invalid type: " << symbolID;
-                        pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                        REPORT_ERROR( "Invalid type: " << symbolID );
                         return false;
                     }
                 }
                 else
                 {
-                    // diag
-                    std::ostringstream os;
-                    os << "Invalid type: " << symbolID;
-                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                    REPORT_ERROR( "Invalid type: " << symbolID );
                     return false;
                 }
             }
@@ -642,9 +656,8 @@ public:
         DeclLocType result = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pContext->get_identifier() );
         if( nullptr == result.pDeclContext )
         {
-            std::ostringstream os;
-            os << "Unknown context type: " << pContext->get_identifier() << "(" << pContext->get_interface_id() << ")";
-            pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+            REPORT_ERROR( "Unknown context type: " << pContext->get_identifier() << "(" << pContext->get_interface_id()
+                                                   << ")" );
             return false;
         }
         bool bProcess = false;
@@ -662,6 +675,8 @@ public:
             if( auto pAbstract = db_cast< Abstract >( pContext ) )
             {
                 dimensionAnalysis( pAbstract, result.loc, result.pDeclContext );
+                linkAnalysis( pAbstract, result.loc, result.pDeclContext );
+                requirementAnalysis( pAbstract, result.loc, result.pDeclContext );
 
                 if( std::optional< InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
                 {
@@ -677,23 +692,25 @@ public:
             }
         }
         {
-            if( auto pAction = db_cast< Action >( pContext ) )
+            if( auto pState = db_cast< State >( pContext ) )
             {
-                dimensionAnalysis( pAction, result.loc, result.pDeclContext );
+                dimensionAnalysis( pState, result.loc, result.pDeclContext );
+                linkAnalysis( pState, result.loc, result.pDeclContext );
+                requirementAnalysis( pState, result.loc, result.pDeclContext );
 
-                if( std::optional< InheritanceTrait* > inheritanceOpt = pAction->get_inheritance_trait() )
+                if( std::optional< InheritanceTrait* > inheritanceOpt = pState->get_inheritance_trait() )
                 {
-                    if( !inheritanceAnalysis( pAction, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                    if( !inheritanceAnalysis( pState, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
-                if( std::optional< Interface::SizeTrait* > sizeOpt = pAction->get_size_trait() )
+                if( std::optional< Interface::SizeTrait* > sizeOpt = pState->get_size_trait() )
                 {
-                    if( !sizeAnalysis( pAction, sizeOpt.value(), result.loc, result.pDeclContext ) )
+                    if( !sizeAnalysis( pState, sizeOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
-                if( std::optional< Interface::TransitionTypeTrait* > transitionOpt = pAction->get_transition_trait() )
+                if( std::optional< Interface::TransitionTypeTrait* > transitionOpt = pState->get_transition_trait() )
                 {
-                    if( !transitionAnalysis( pAction, transitionOpt.value(), result.loc, result.pDeclContext ) )
+                    if( !transitionAnalysis( pState, transitionOpt.value(), result.loc, result.pDeclContext ) )
                         return false;
                 }
                 bProcess = true;
@@ -723,10 +740,8 @@ public:
                 auto pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
                 if( !pCXXRecordDecl )
                 {
-                    std::ostringstream os;
-                    os << "Invalid invocation context type: " << pContext->get_identifier() << "("
-                       << pContext->get_interface_id() << ")";
-                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                    REPORT_ERROR( "Invalid invocation context type: " << pContext->get_identifier() << "("
+                                                                      << pContext->get_interface_id() << ")" );
                     return false;
                 }
 
@@ -750,10 +765,8 @@ public:
                 auto pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
                 if( !pCXXRecordDecl )
                 {
-                    std::ostringstream os;
-                    os << "Invalid function context type: " << pContext->get_identifier() << "("
-                       << pContext->get_interface_id() << ")";
-                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                    REPORT_ERROR( "Invalid function context type: " << pContext->get_identifier() << "("
+                                                                    << pContext->get_interface_id() << ")" );
                     return false;
                 }
                 argumentAnalysis( pFunction, result.loc, pCXXRecordDecl );
@@ -765,6 +778,7 @@ public:
             if( auto pObject = db_cast< Object >( pContext ) )
             {
                 dimensionAnalysis( pObject, result.loc, result.pDeclContext );
+                linkAnalysis( pObject, result.loc, result.pDeclContext );
 
                 if( std::optional< InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
                 {

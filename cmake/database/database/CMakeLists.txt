@@ -56,9 +56,9 @@ set( MEGA_DATABASE_INTERFACE_NAMES
     ConcreteTypeRollout
     DependencyAnalysis
     DependencyAnalysisView
-    DerivationAnalysis
-    DerivationAnalysisRollout
-    DerivationAnalysisView
+    InheritanceAnalysis
+    InheritanceAnalysisRollout
+    InheritanceAnalysisView
     FinalStage
     GlobalMemoryStage
     GlobalMemoryStageRollout

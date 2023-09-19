@@ -203,17 +203,17 @@ private:
             {
                 std::ostringstream osTrait;
                 {
-                    osTrait << "using Type = ";
-                    const auto pScopedID = pLinkTrait->get_type();
-                    bool       bFirst    = true;
-                    for( auto pID : pScopedID->get_ids() )
+                    osTrait << "using Type = __eg_type_path< ";
+                    bool bFirst = true;
+                    for( const auto& arg : pLinkTrait->get_type()->get_args() )
                     {
                         if( bFirst )
                             bFirst = false;
                         else
-                            osTrait << "::";
-                        osTrait << pID->get_str();
+                            osTrait << ", ";
+                        osTrait << arg.get();
                     }
+                    osTrait << " >";
                 }
                 trait_struct[ "traits" ].push_back( osTrait.str() );
             }
@@ -416,18 +416,18 @@ public:
                 }
             }
             {
-                if( Action* pAction = db_cast< Action >( pContext ) )
+                if( State* pState = db_cast< State >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType                     = true;
-                    contextData[ "has_operation" ] = true;
+                    contextData[ "has_operation" ] = db_cast< Action >( pState ) ? true : false;
 
                     contextData[ "operation_return_type" ] = "mega::ActionCoroutine";
                     contextData[ "operation_parameters" ]  = "";
 
-                    if( auto opt = pAction->get_inheritance_trait() )
+                    if( auto opt = pState->get_inheritance_trait() )
                     {
-                        for( const nlohmann::json& trait : getInheritanceTraits( typenames, pAction, opt.value() ) )
+                        for( const nlohmann::json& trait : getInheritanceTraits( typenames, pState, opt.value() ) )
                         {
                             contextData[ "trait_structs" ].push_back( trait );
                             structs.push_back( trait );
@@ -435,7 +435,7 @@ public:
                     }
                     {
                         for( const nlohmann::json& trait :
-                             getDimensionTraits( typenames, pAction, pAction->get_dimension_traits() ) )
+                             getDimensionTraits( typenames, pState, pState->get_dimension_traits() ) )
                         {
                             contextData[ "trait_structs" ].push_back( trait );
                             structs.push_back( trait );
@@ -443,24 +443,24 @@ public:
                     }
                     {
                         for( const nlohmann::json& trait :
-                             getLinkTraits( typenames, pAction, pAction->get_link_traits() ) )
+                             getLinkTraits( typenames, pState, pState->get_link_traits() ) )
                         {
                             contextData[ "trait_structs" ].push_back( trait );
                             structs.push_back( trait );
                         }
                     }
-                    if( pAction->get_size_trait().has_value() )
+                    if( pState->get_size_trait().has_value() )
                     {
                         const nlohmann::json& trait
-                            = getSizeTrait( typenames, pAction, pAction->get_size_trait().value() );
+                            = getSizeTrait( typenames, pState, pState->get_size_trait().value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }
 
-                    if( pAction->get_transition_trait().has_value() )
+                    if( pState->get_transition_trait().has_value() )
                     {
                         const nlohmann::json& trait
-                            = getTransitionTraits( typenames, pAction, pAction->get_transition_trait().value() );
+                            = getTransitionTraits( typenames, pState, pState->get_transition_trait().value() );
                         contextData[ "trait_structs" ].push_back( trait );
                         structs.push_back( trait );
                     }

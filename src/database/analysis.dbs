@@ -100,9 +100,9 @@ namespace Symbols
     }
 }
 
-namespace Derivation
+namespace Inheritance
 {
-    object ObjectMapping -> DerivationAnalysis::Derivations
+    object ObjectMapping -> InheritanceAnalysis::Derivations
     {
         value< mega::io::megaFilePath > source_file;
         value< mega::U64 > hash_code;
@@ -111,7 +111,7 @@ namespace Derivation
         multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::Link > >      inheritance_links;
     }
 
-    object Mapping -> DerivationAnalysis::Derivations
+    object Mapping -> InheritanceAnalysis::Derivations
     {
         array< ref< ObjectMapping > > mappings;
         multimap< ref< Interface::IContext >, ref< Concrete::Context > >                inheritance_contexts;

@@ -19,7 +19,7 @@
 
 #include "base_task.hpp"
 
-#include "database/model/DerivationAnalysisView.hxx"
+#include "database/model/InheritanceAnalysisView.hxx"
 #include "database/model/OperationsStage.hxx"
 #include "database/model/FinalStage.hxx"
 
@@ -46,11 +46,11 @@
 #include <vector>
 #include <string>
 
-namespace DerivationAnalysisView
+namespace InheritanceAnalysisView
 {
-using namespace DerivationAnalysisView::Interface;
+using namespace InheritanceAnalysisView::Interface;
 #include "compiler/generator_interface.hpp"
-} // namespace DerivationAnalysisView
+} // namespace InheritanceAnalysisView
 
 namespace mega::compiler
 {
@@ -68,7 +68,7 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        using namespace DerivationAnalysisView;
+        using namespace InheritanceAnalysisView;
 
         Database database( m_environment, m_environment.project_manifest() );
 
@@ -104,7 +104,7 @@ public:
         }*/
 
         // using namespace OperationsStage;
-        using namespace DerivationAnalysisView::Interface;
+        using namespace InheritanceAnalysisView::Interface;
 
         ::inja::Environment injaEnvironment;
         {
@@ -229,7 +229,7 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        using namespace DerivationAnalysisView; // just need a stage that uses project_manifest
+        using namespace InheritanceAnalysisView; // just need a stage that uses project_manifest
 
         Database database( m_environment, m_environment.project_manifest() );
 

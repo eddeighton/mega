@@ -100,11 +100,11 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
     ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp
-    ${MEGA_SRC_DIR}/compiler/task_derivation.cpp
     ${MEGA_SRC_DIR}/compiler/task_global_memory.cpp
     ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
     ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
     ${MEGA_SRC_DIR}/compiler/task_includes.cpp
+    ${MEGA_SRC_DIR}/compiler/task_inheritance.cpp
     ${MEGA_SRC_DIR}/compiler/task_initialiser.cpp
     ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp
     ${MEGA_SRC_DIR}/compiler/task_interface_tree.cpp

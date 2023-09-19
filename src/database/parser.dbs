@@ -67,9 +67,14 @@ namespace Parser
         value< mega::U64 > line_number;
     }
 
+    object TypeList -> ParserStage::AST
+    {
+        array< value< mega::Type > > args;
+    }
+
     object ArgumentList -> ParserStage::AST
     {
-        array< value< mega::Argument > > args;
+        array< value< mega::TypeName > > args;
     }
 
     object ReturnType -> ParserStage::AST
@@ -103,9 +108,10 @@ namespace Parser
 
     object Link -> ParserStage::AST
     {
-        ref< Identifier >       id;
-        ref< ScopedIdentifier > type;
-        value< mega::CardinalityRange > cardinality;
+        ref< Identifier >                       id;
+        ref< TypeList >                         type;
+        value< bool >                           owning;
+        opt< value< mega::CardinalityRange > >  cardinality;
     }
 
     object Dimension -> ParserStage::AST
@@ -118,7 +124,13 @@ namespace Parser
 
     object Requirement -> ParserStage::AST
     {
-        ref< ArgumentList > argumentList;
+        ref< Identifier > id;
+        ref< TypeList > argumentList;
+    }
+
+    object Part -> ParserStage::AST
+    {
+        array< value< std::string > > identifiers;
     }
 
     object Include -> ParserStage::AST
@@ -163,6 +175,7 @@ namespace Parser
         array< ref< Include > > includes;
         array< ref< Dependency > > dependencies;
         array< ref< Requirement > > requirements;
+        array< ref< Part > > parts;
         value< std::string > body -> ParserStage::Body;
     }
 
@@ -176,13 +189,6 @@ namespace Parser
         ref< Inheritance > inheritance;
     }
 
-    object ActionDef : ContextDef -> ParserStage::AST
-    {
-        ref< Size > size;
-        ref< Inheritance > inheritance;
-        ref< Transition > transition;
-    }
-
     object StateDef : ContextDef -> ParserStage::AST
     {
         ref< Size > size;
@@ -190,11 +196,12 @@ namespace Parser
         ref< Transition > transition;
     }
 
-    object ComponentDef : ContextDef -> ParserStage::AST
+    object ActionDef : StateDef -> ParserStage::AST
     {
-        ref< Size > size;
-        ref< Inheritance > inheritance;
-        ref< Transition > transition;
+    }
+
+    object ComponentDef : StateDef -> ParserStage::AST
+    {
     }
 
     object EventDef : ContextDef -> ParserStage::AST

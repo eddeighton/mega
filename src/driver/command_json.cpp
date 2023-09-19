@@ -28,9 +28,9 @@
 #include "database/model/ConcreteStage.hxx"
 #include "database/model/DependencyAnalysis.hxx"
 #include "database/model/DependencyAnalysisView.hxx"
-#include "database/model/DerivationAnalysis.hxx"
-#include "database/model/DerivationAnalysisView.hxx"
-#include "database/model/DerivationAnalysisRollout.hxx"
+#include "database/model/InheritanceAnalysis.hxx"
+#include "database/model/InheritanceAnalysisView.hxx"
+#include "database/model/InheritanceAnalysisRollout.hxx"
 #include "database/model/FinalStage.hxx"    
 #include "database/model/HyperGraphAnalysis.hxx"
 #include "database/model/HyperGraphAnalysisView.hxx"
@@ -122,9 +122,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
         "ConcreteStage\n" << 
         "HyperGraphAnalysis\n" << 
         "HyperGraphAnalysisView\n" << 
-        "DerivationAnalysis\n" << 
-        "DerivationAnalysisView\n" << 
-        "DerivationAnalysisRollout\n" << 
+        "InheritanceAnalysis\n" << 
+        "InheritanceAnalysisView\n" << 
+        "InheritanceAnalysisRollout\n" << 
         "ConcreteTypeAnalysis\n" << 
         "ConcreteTypeAnalysisView\n" << 
         "ConcreteTypeRollout\n" << 
@@ -153,9 +153,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
         STAGE_DUMP( ConcreteStage )
         STAGE_DUMP( HyperGraphAnalysis )
         STAGE_DUMP( HyperGraphAnalysisView )
-        STAGE_DUMP( DerivationAnalysis )
-        STAGE_DUMP( DerivationAnalysisView )
-        STAGE_DUMP( DerivationAnalysisRollout )
+        STAGE_DUMP( InheritanceAnalysis )
+        STAGE_DUMP( InheritanceAnalysisView )
+        STAGE_DUMP( InheritanceAnalysisRollout )
         STAGE_DUMP( ConcreteTypeAnalysis )
         STAGE_DUMP( ConcreteTypeAnalysisView )
         STAGE_DUMP( ConcreteTypeRollout )

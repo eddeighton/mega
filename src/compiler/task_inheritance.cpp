@@ -19,9 +19,9 @@
 
 #include "base_task.hpp"
 
-#include "database/model/DerivationAnalysis.hxx"
-#include "database/model/DerivationAnalysisView.hxx"
-#include "database/model/DerivationAnalysisRollout.hxx"
+#include "database/model/InheritanceAnalysis.hxx"
+#include "database/model/InheritanceAnalysisView.hxx"
+#include "database/model/InheritanceAnalysisRollout.hxx"
 #include "database/model/manifest.hxx"
 
 #include "database/common/environment_archive.hpp"
@@ -31,19 +31,19 @@
 namespace mega::compiler
 {
 
-class Task_Derivation : public BaseTask
+class Task_Inheritance : public BaseTask
 {
     const mega::io::Manifest m_manifest;
 
     using ContextMap
-        = std::multimap< DerivationAnalysis::Interface::IContext*, DerivationAnalysis::Concrete::Context* >;
-    using DimensionMap = std::multimap< DerivationAnalysis::Interface::DimensionTrait*,
-                                        DerivationAnalysis::Concrete::Dimensions::User* >;
+        = std::multimap< InheritanceAnalysis::Interface::IContext*, InheritanceAnalysis::Concrete::Context* >;
+    using DimensionMap = std::multimap< InheritanceAnalysis::Interface::DimensionTrait*,
+                                        InheritanceAnalysis::Concrete::Dimensions::User* >;
     using LinkMap
-        = std::multimap< DerivationAnalysis::Interface::LinkTrait*, DerivationAnalysis::Concrete::Dimensions::Link* >;
+        = std::multimap< InheritanceAnalysis::Interface::LinkTrait*, InheritanceAnalysis::Concrete::Dimensions::Link* >;
 
 public:
-    Task_Derivation( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
+    Task_Inheritance( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
         : BaseTask( taskArguments )
         , m_manifest( m_environment, manifestFilePath )
     {
@@ -57,11 +57,11 @@ public:
         {
         }
 
-        void addInheritance( ContextMap& contextInheritance, DerivationAnalysis::Interface::IContext* pIContext,
-                             DerivationAnalysis::Concrete::Context* pContext ) const
+        void addInheritance( ContextMap& contextInheritance, InheritanceAnalysis::Interface::IContext* pIContext,
+                             InheritanceAnalysis::Concrete::Context* pContext ) const
         {
-            using namespace DerivationAnalysis;
-            using namespace DerivationAnalysis::Derivation;
+            using namespace InheritanceAnalysis;
+            using namespace InheritanceAnalysis::Inheritance;
 
             contextInheritance.insert( { pIContext, pContext } );
 
@@ -107,12 +107,12 @@ public:
             }
         }
 
-        DerivationAnalysis::Derivation::ObjectMapping* operator()( DerivationAnalysis::Database& database,
-                                                                   const mega::io::megaFilePath& sourceFilePath,
-                                                                   const task::DeterminantHash   interfaceHash ) const
+        InheritanceAnalysis::Inheritance::ObjectMapping* operator()( InheritanceAnalysis::Database& database,
+                                                                     const mega::io::megaFilePath&  sourceFilePath,
+                                                                     const task::DeterminantHash interfaceHash ) const
         {
-            using namespace DerivationAnalysis;
-            using namespace DerivationAnalysis::Derivation;
+            using namespace InheritanceAnalysis;
+            using namespace InheritanceAnalysis::Inheritance;
 
             ContextMap contextInheritance;
             {
@@ -145,12 +145,12 @@ public:
             return pObjectMapping;
         }
 
-        DerivationAnalysis::Derivation::ObjectMapping*
-        operator()( DerivationAnalysis::Database&                            database,
-                    const DerivationAnalysisView::Derivation::ObjectMapping* pOldObjectMapping ) const
+        InheritanceAnalysis::Inheritance::ObjectMapping*
+        operator()( InheritanceAnalysis::Database&                             database,
+                    const InheritanceAnalysisView::Inheritance::ObjectMapping* pOldObjectMapping ) const
         {
-            using namespace DerivationAnalysis;
-            using namespace DerivationAnalysis::Derivation;
+            using namespace InheritanceAnalysis;
+            using namespace InheritanceAnalysis::Inheritance;
 
             ContextMap contextInheritance;
             {
@@ -196,12 +196,12 @@ public:
         return sourceFiles;
     }
 
-    void collate( DerivationAnalysis::Database&                                        database,
-                  const std::vector< DerivationAnalysis::Derivation::ObjectMapping* >& mappings,
-                  const PathSet&                                                       sourceFiles )
+    void collate( InheritanceAnalysis::Database&                                         database,
+                  const std::vector< InheritanceAnalysis::Inheritance::ObjectMapping* >& mappings,
+                  const PathSet&                                                         sourceFiles )
     {
-        using namespace DerivationAnalysis;
-        using namespace DerivationAnalysis::Derivation;
+        using namespace InheritanceAnalysis;
+        using namespace InheritanceAnalysis::Inheritance;
 
         ContextMap   contextInheritance;
         DimensionMap dimensionInheritance;
@@ -230,8 +230,8 @@ public:
     {
         const mega::io::manifestFilePath    manifestFilePath = m_environment.project_manifest();
         const mega::io::CompilationFilePath dependencyCompilationFilePath
-            = m_environment.DerivationAnalysis_Derivations( manifestFilePath );
-        start( taskProgress, "Task_Derivation", manifestFilePath.path(), dependencyCompilationFilePath.path() );
+            = m_environment.InheritanceAnalysis_Derivations( manifestFilePath );
+        start( taskProgress, "Task_Inheritance", manifestFilePath.path(), dependencyCompilationFilePath.path() );
 
         task::DeterminantHash determinant( m_toolChain.toolChainHash );
         for( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
@@ -269,8 +269,8 @@ public:
             try
             {
                 // attempt to load previous dependency analysis
-                namespace Old = DerivationAnalysisView;
-                namespace New = DerivationAnalysis;
+                namespace Old = InheritanceAnalysisView;
+                namespace New = InheritanceAnalysis;
 
                 New::Database newDatabase( m_environment, manifestFilePath );
                 {
@@ -278,10 +278,10 @@ public:
                     io::ArchiveEnvironment archiveEnvironment( m_environment.DatabaseArchive() );
                     Old::Database          oldDatabase( archiveEnvironment, archiveEnvironment.project_manifest() );
 
-                    const Old::Derivation::Mapping* pOldAnalysis
-                        = oldDatabase.one< Old::Derivation::Mapping >( manifestFilePath );
+                    const Old::Inheritance::Mapping* pOldAnalysis
+                        = oldDatabase.one< Old::Inheritance::Mapping >( manifestFilePath );
                     VERIFY_RTE( pOldAnalysis );
-                    using OldObjectMappingVector             = std::vector< Old::Derivation::ObjectMapping* >;
+                    using OldObjectMappingVector             = std::vector< Old::Inheritance::ObjectMapping* >;
                     const OldObjectMappingVector mappings    = pOldAnalysis->get_mappings();
                     const PathSet                sourceFiles = getSortedSourceFiles();
 
@@ -294,17 +294,17 @@ public:
                         }
                         bool operator()( OldObjectMappingVector::const_iterator i, PathSet::const_iterator j ) const
                         {
-                            const Old::Derivation::ObjectMapping* pDependencies = *i;
+                            const Old::Inheritance::ObjectMapping* pDependencies = *i;
                             return pDependencies->get_source_file() < *j;
                         }
                         bool opposite( OldObjectMappingVector::const_iterator i, PathSet::const_iterator j ) const
                         {
-                            const Old::Derivation::ObjectMapping* pDependencies = *i;
+                            const Old::Inheritance::ObjectMapping* pDependencies = *i;
                             return *j < pDependencies->get_source_file();
                         }
                     } comparator( m_environment );
 
-                    using NewObjectMappingVector = std::vector< New::Derivation::ObjectMapping* >;
+                    using NewObjectMappingVector = std::vector< New::Inheritance::ObjectMapping* >;
                     NewObjectMappingVector newObjectMappings;
                     {
                         generics::matchGetUpdates(
@@ -317,8 +317,8 @@ public:
                               &taskProgress ](
                                 OldObjectMappingVector::const_iterator i, PathSet::const_iterator j ) -> bool
                             {
-                                const Old::Derivation::ObjectMapping* pDependencies = *i;
-                                const task::DeterminantHash           interfaceHash = hashCodeGenerator( *j );
+                                const Old::Inheritance::ObjectMapping* pDependencies = *i;
+                                const task::DeterminantHash            interfaceHash = hashCodeGenerator( *j );
                                 if( interfaceHash == pDependencies->get_hash_code() )
                                 {
                                     // since the code is NOT modified - can re use the globs from previous
@@ -366,9 +366,9 @@ public:
                               &sourceFiles ]( OldObjectMappingVector::const_iterator i )
                             {
                                 // since the code is modified - must re analyse ALL mappings from the ground
-                                const Old::Derivation::ObjectMapping* pDependencies = *i;
-                                const mega::io::megaFilePath          megaFilePath  = pDependencies->get_source_file();
-                                const task::DeterminantHash           interfaceHash = hashCodeGenerator( megaFilePath );
+                                const Old::Inheritance::ObjectMapping* pDependencies = *i;
+                                const mega::io::megaFilePath           megaFilePath  = pDependencies->get_source_file();
+                                const task::DeterminantHash interfaceHash = hashCodeGenerator( megaFilePath );
                                 newObjectMappings.push_back(
                                     CalculateObjectMappings( env )( newDatabase, megaFilePath, interfaceHash ) );
                             } );
@@ -393,8 +393,8 @@ public:
 
         if( !bReusedOldDatabase )
         {
-            using namespace DerivationAnalysis;
-            using namespace DerivationAnalysis::Derivation;
+            using namespace InheritanceAnalysis;
+            using namespace InheritanceAnalysis::Inheritance;
 
             Database database( m_environment, manifestFilePath );
             {
@@ -421,25 +421,25 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Derivation( const TaskArguments&              taskArguments,
-                                      const mega::io::manifestFilePath& manifestFilePath )
+BaseTask::Ptr create_Task_Inheritance( const TaskArguments&              taskArguments,
+                                       const mega::io::manifestFilePath& manifestFilePath )
 {
-    return std::make_unique< Task_Derivation >( taskArguments, manifestFilePath );
+    return std::make_unique< Task_Inheritance >( taskArguments, manifestFilePath );
 }
 
-class Task_DerivationRollout : public BaseTask
+class Task_InheritanceRollout : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
 
-    using ContextMap   = std::multimap< DerivationAnalysisRollout::Interface::IContext*,
-                                      DerivationAnalysisRollout::Concrete::Context* >;
-    using DimensionMap = std::multimap< DerivationAnalysisRollout::Interface::DimensionTrait*,
-                                        DerivationAnalysisRollout::Concrete::Dimensions::User* >;
-    using LinkMap      = std::multimap< DerivationAnalysisRollout::Interface::LinkTrait*,
-                                   DerivationAnalysisRollout::Concrete::Dimensions::Link* >;
+    using ContextMap   = std::multimap< InheritanceAnalysisRollout::Interface::IContext*,
+                                      InheritanceAnalysisRollout::Concrete::Context* >;
+    using DimensionMap = std::multimap< InheritanceAnalysisRollout::Interface::DimensionTrait*,
+                                        InheritanceAnalysisRollout::Concrete::Dimensions::User* >;
+    using LinkMap      = std::multimap< InheritanceAnalysisRollout::Interface::LinkTrait*,
+                                   InheritanceAnalysisRollout::Concrete::Dimensions::Link* >;
 
 public:
-    Task_DerivationRollout( const TaskArguments& taskArguments, const mega::io::megaFilePath& megaSourceFilePath )
+    Task_InheritanceRollout( const TaskArguments& taskArguments, const mega::io::megaFilePath& megaSourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( megaSourceFilePath )
     {
@@ -448,10 +448,10 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath analysisCompilationFilePath
-            = m_environment.DerivationAnalysis_Derivations( m_environment.project_manifest() );
+            = m_environment.InheritanceAnalysis_Derivations( m_environment.project_manifest() );
         const mega::io::CompilationFilePath rolloutCompilationFilePath
-            = m_environment.DerivationAnalysisRollout_PerSourceDerivations( m_sourceFilePath );
-        start( taskProgress, "Task_DerivationRollout", m_sourceFilePath.path(), rolloutCompilationFilePath.path() );
+            = m_environment.InheritanceAnalysisRollout_PerSourceDerivations( m_sourceFilePath );
+        start( taskProgress, "Task_InheritanceRollout", m_sourceFilePath.path(), rolloutCompilationFilePath.path() );
 
         const task::DeterminantHash determinant = { m_environment.getBuildHashCode( analysisCompilationFilePath ) };
 
@@ -462,11 +462,11 @@ public:
             return;
         }
 
-        using namespace DerivationAnalysisRollout;
+        using namespace InheritanceAnalysisRollout;
 
         Database database( m_environment, m_sourceFilePath );
 
-        const Derivation::Mapping* pMapping = database.one< Derivation::Mapping >( m_environment.project_manifest() );
+        const Inheritance::Mapping* pMapping = database.one< Inheritance::Mapping >( m_environment.project_manifest() );
         {
             const ContextMap contexts = pMapping->get_inheritance_contexts();
             for( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
@@ -487,8 +487,7 @@ public:
             {
                 std::vector< Concrete::Dimensions::User* > dimensionInheritors;
                 for( auto i = dimensions.lower_bound( pDimension ), iEnd = dimensions.upper_bound( pDimension );
-                     i != iEnd;
-                     ++i )
+                     i != iEnd; ++i )
                 {
                     dimensionInheritors.push_back( i->second );
                 }
@@ -517,10 +516,10 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_DerivationRollout( const TaskArguments&          taskArguments,
-                                             const mega::io::megaFilePath& megaSourceFilePath )
+BaseTask::Ptr create_Task_InheritanceRollout( const TaskArguments&          taskArguments,
+                                              const mega::io::megaFilePath& megaSourceFilePath )
 {
-    return std::make_unique< Task_DerivationRollout >( taskArguments, megaSourceFilePath );
+    return std::make_unique< Task_InheritanceRollout >( taskArguments, megaSourceFilePath );
 }
 
 } // namespace mega::compiler

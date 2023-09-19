@@ -220,6 +220,21 @@ public:
                     []( Abstract* pAbstract, Parser::AbstractDef* pAbstractDef )
                     { pAbstract->push_back_abstract_defs( pAbstractDef ); } );
             }
+            else if( auto pComponentDef = db_cast< Parser::ComponentDef >( pChildContext ) )
+            {
+                constructOrAggregate< Parser::ComponentDef, Component >(
+                    database, pComponent, pRoot, pComponentDef, currentName, namedContexts,
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::ComponentDef* pComponentDef ) -> Component*
+                    {
+                        return database.construct< Component >( Component::Args( State::Args(
+                            InvocationContext::Args( IContext::Args(
+                                ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ) ),
+                            { pComponentDef } ) ) );
+                    },
+                    []( Component* pComponent, Parser::ComponentDef* pComponentDef )
+                    { pComponent->push_back_state_defs( pComponentDef ); } );
+            }
             else if( auto pActionDef = db_cast< Parser::ActionDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::ActionDef, Action >(
@@ -227,13 +242,27 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Components::Component* pComponent, Parser::ActionDef* pActionDef ) -> Action*
                     {
-                        return database.construct< Action >( Action::Args(
+                        return database.construct< Action >( Action::Args( State::Args(
                             InvocationContext::Args( IContext::Args(
                                 ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ) ),
-                            { pActionDef } ) );
+                            { pActionDef } ) ) );
                     },
                     []( Action* pAction, Parser::ActionDef* pActionDef )
-                    { pAction->push_back_action_defs( pActionDef ); } );
+                    { pAction->push_back_state_defs( pActionDef ); } );
+            }
+            else if( auto pStateDef = db_cast< Parser::StateDef >( pChildContext ) )
+            {
+                constructOrAggregate< Parser::StateDef, State >(
+                    database, pComponent, pRoot, pStateDef, currentName, namedContexts,
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::StateDef* pStateDef ) -> State*
+                    {
+                        return database.construct< State >( State::Args(
+                            InvocationContext::Args( IContext::Args(
+                                ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ) ),
+                            { pStateDef } ) );
+                    },
+                    []( State* pState, Parser::StateDef* pStateDef ) { pState->push_back_state_defs( pStateDef ); } );
             }
             else if( auto pEventDef = db_cast< Parser::EventDef >( pChildContext ) )
             {
@@ -331,6 +360,18 @@ public:
         }
     }
 
+    void collectRequirements( InterfaceStage::Database& database, InterfaceStage::Interface::IContext* pContext,
+                              InterfaceStage::Parser::ContextDef*                          pDef,
+                              std::vector< InterfaceStage::Interface::RequirementTrait* >& requirements )
+    {
+        using namespace InterfaceStage;
+        for( auto pRequirement : pDef->get_requirements() )
+        {
+            requirements.push_back( database.construct< Interface::RequirementTrait >(
+                Interface::RequirementTrait::Args( pRequirement, pContext ) ) );
+        }
+    }
+
     template < typename TParserType >
     void collectInheritanceTrait( InterfaceStage::Database& database, TParserType* pContextDef,
                                   std::optional< InterfaceStage::Interface::InheritanceTrait* >& inheritance )
@@ -375,6 +416,19 @@ public:
         }
     }
 
+    template < typename TParserType >
+    void collectPartTraits( InterfaceStage::Database& database, InterfaceStage::Interface::IContext* pContext,
+                            TParserType* pContextDef, std::vector< InterfaceStage::Interface::PartTrait* >& parts )
+    {
+        using namespace InterfaceStage;
+        for( auto pPart : pContextDef->get_parts() )
+        {
+            auto pPartTrait
+                = database.construct< Interface::PartTrait >( Interface::PartTrait::Args{ pPart, pContext } );
+            parts.push_back( pPartTrait );
+        }
+    }
+
     void onNamespace( InterfaceStage::Database& database, InterfaceStage::Interface::Namespace* pNamespace )
     {
         using namespace InterfaceStage;
@@ -407,6 +461,7 @@ public:
         std::vector< InterfaceStage::Interface::LinkTrait* >      links;
         std::optional< Interface::InheritanceTrait* >             inheritance;
         std::optional< Interface::SizeTrait* >                    size;
+        std::vector< Interface::RequirementTrait* >               requirements;
 
         for( Parser::AbstractDef* pDef : pAbstract->get_abstract_defs() )
         {
@@ -414,14 +469,16 @@ public:
             collectLinkTraits( database, pAbstract, pDef, links );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
+            collectRequirements( database, pAbstract, pDef, requirements );
         }
 
         pAbstract->set_dimension_traits( dimensions );
         pAbstract->set_link_traits( links );
         pAbstract->set_inheritance_trait( inheritance );
         pAbstract->set_size_trait( size );
+        pAbstract->set_requirement_traits( requirements );
     }
-    void onAction( InterfaceStage::Database& database, InterfaceStage::Interface::Action* pAction )
+    void onState( InterfaceStage::Database& database, InterfaceStage::Interface::State* pState )
     {
         using namespace InterfaceStage;
 
@@ -430,20 +487,40 @@ public:
         std::optional< Interface::InheritanceTrait* >             inheritance;
         std::optional< Interface::SizeTrait* >                    size;
         std::optional< Interface::TransitionTypeTrait* >          transition;
-        for( Parser::ActionDef* pDef : pAction->get_action_defs() )
+        std::vector< InterfaceStage::Interface::PartTrait* >      parts;
+        std::vector< Interface::RequirementTrait* >               requirements;
+
+        for( Parser::StateDef* pDef : pState->get_state_defs() )
         {
-            collectDimensionTraits( database, pAction, pDef, dimensions );
-            collectLinkTraits( database, pAction, pDef, links );
+            collectDimensionTraits( database, pState, pDef, dimensions );
+            collectLinkTraits( database, pState, pDef, links );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
             collectTransitionTrait( database, pDef, transition );
+            collectPartTraits( database, pState, pDef, parts );
+            collectRequirements( database, pState, pDef, requirements );
+
+            // ensure only Action has body
+            if( db_cast< Interface::Component >( pState ) )
+            {
+                VERIFY_PARSER( pDef->get_body().empty(), "Component has body", pDef->get_id() );
+            }
+            else if( db_cast< Interface::Action >( pState ) )
+            {
+            }
+            else
+            {
+                VERIFY_PARSER( pDef->get_body().empty(), "State has body", pDef->get_id() );
+            }
         }
 
-        pAction->set_dimension_traits( dimensions );
-        pAction->set_link_traits( links );
-        pAction->set_inheritance_trait( inheritance );
-        pAction->set_size_trait( size );
-        pAction->set_transition_trait( transition );
+        pState->set_dimension_traits( dimensions );
+        pState->set_link_traits( links );
+        pState->set_inheritance_trait( inheritance );
+        pState->set_size_trait( size );
+        pState->set_transition_trait( transition );
+        pState->set_part_traits( parts );
+        pState->set_requirement_traits( requirements );
     }
     void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent )
     {
@@ -469,7 +546,7 @@ public:
         Interface::EventTypeTrait*                       pEventsTrait = nullptr;
         std::optional< Interface::TransitionTypeTrait* > transition;
 
-        mega::Argument::Vector args;
+        mega::TypeName::Vector args;
         for( Parser::InteruptDef* pDef : pInterupt->get_interupt_defs() )
         {
             Parser::ArgumentList* pArguments = pDef->get_argumentList();
@@ -500,7 +577,7 @@ public:
         Interface::ArgumentListTrait* pArgumentListTrait = nullptr;
         Interface::ReturnTypeTrait*   pReturnTypeTrait   = nullptr;
 
-        mega::Argument::Vector args;
+        mega::TypeName::Vector args;
         std::string            strReturnType;
         for( Parser::FunctionDef* pDef : pFunction->get_function_defs() )
         {
@@ -607,9 +684,9 @@ public:
         {
             onAbstract( database, pAbstract );
         }
-        for( Interface::Action* pAction : database.many< Interface::Action >( m_sourceFilePath ) )
+        for( Interface::State* pState : database.many< Interface::State >( m_sourceFilePath ) )
         {
-            onAction( database, pAction );
+            onState( database, pState );
         }
         for( Interface::Event* pEvent : database.many< Interface::Event >( m_sourceFilePath ) )
         {

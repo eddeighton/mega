@@ -61,7 +61,9 @@ stage InterfaceStage
 
     persource accessor array< ref< Interface::Namespace > >;
     persource accessor array< ref< Interface::Abstract > >;
+    persource accessor array< ref< Interface::State > >;
     persource accessor array< ref< Interface::Action > >;
+    persource accessor array< ref< Interface::Component > >;
     persource accessor array< ref< Interface::Event > >;
     persource accessor array< ref< Interface::Function > >;
     persource accessor array< ref< Interface::Object > >;
@@ -76,7 +78,9 @@ stage MetaStage
 
     file MetaAnalysis;
 
+    persource accessor array< ref< Interface::State > >;
     persource accessor array< ref< Interface::Action > >;
+    persource accessor array< ref< Interface::Component > >;
     persource accessor array< ref< Interface::Function > >;
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::Event > >;
@@ -178,7 +182,7 @@ stage ConcreteStage
     persource accessor array< ref< Parser::Dimension > >;
 }
 
-stage DerivationAnalysis
+stage InheritanceAnalysis
 {
     source .manifest;
     dependency ConcreteStage;
@@ -190,37 +194,37 @@ stage DerivationAnalysis
     persource accessor array< ref< Concrete::Dimensions::Link > >;
 }
 
-stage DerivationAnalysisView
+stage InheritanceAnalysisView
 {
     // used by Task_CPPInterfaceGeneration - just because earliest
 
     source .manifest;
-    dependency DerivationAnalysis;
+    dependency InheritanceAnalysis;
 
-    global accessor ref< Derivation::Mapping >;
+    global accessor ref< Inheritance::Mapping >;
     global accessor ref< Dependencies::Analysis >;
     global accessor array< ref< Components::Component > >;
     persource accessor ref< Interface::Root >;
     global accessor ref< Symbols::SymbolTable >;
 }
 
-stage DerivationAnalysisRollout
+stage InheritanceAnalysisRollout
 {
     source .mega;
-    dependency DerivationAnalysis;
+    dependency InheritanceAnalysis;
 
     file PerSourceDerivations;
 
     persource accessor array< ref< Interface::IContext > >;
     persource accessor array< ref< Interface::DimensionTrait > >;
     persource accessor array< ref< Interface::LinkTrait > >;
-    global accessor ref< Derivation::Mapping >;
+    global accessor ref< Inheritance::Mapping >;
 }
 
 stage HyperGraphAnalysis
 {
     source .manifest;
-    dependency DerivationAnalysisRollout;
+    dependency InheritanceAnalysisRollout;
 
     file Model;
 
@@ -341,7 +345,7 @@ stage OperationsStage
 
     global accessor array< ref< Components::Component > >;
     global accessor ref< Symbols::SymbolTable >;
-    global accessor ref< Derivation::Mapping >;
+    global accessor ref< Inheritance::Mapping >;
 
     persource accessor ref< Interface::Root >;
 }
@@ -413,7 +417,9 @@ stage FinalStage
     
     persource accessor ref< Interface::Root >;
     persource accessor ref< Interface::IContext >;
-    persource accessor ref< Interface::Action >;
+    persource accessor array< ref< Interface::State > >;
+    persource accessor array< ref< Interface::Action > >;
+    persource accessor array< ref< Interface::Component > >;
     persource accessor array< ref< Interface::InvocationContext > >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Operations::Invocations >;

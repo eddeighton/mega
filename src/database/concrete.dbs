@@ -108,12 +108,22 @@ namespace Concrete
         ref< Interface::Namespace > interface_namespace;
     }
 
-    object Action : UserDimensionContext -> ConcreteStage::Concrete
+    object State : UserDimensionContext -> ConcreteStage::Concrete
     {
-        ref< Interface::Action > interface_action;
+        ref< Interface::State > interface_state;
 
         value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
         value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
+    }
+
+    object Action : State -> ConcreteStage::Concrete
+    {
+        ref< Interface::Action > interface_action;
+    }
+
+    object Component : State -> ConcreteStage::Concrete
+    {
+        ref< Interface::Component > interface_component;
     }
 
     object Event : UserDimensionContext -> ConcreteStage::Concrete

@@ -24,7 +24,7 @@
 TEST( Arguments, Basic )
 {
     std::string            str;
-    mega::Argument::Vector result;
+    mega::TypeName::Vector result;
     mega::parse( str, result );
     ASSERT_TRUE( result.empty() );
 }
@@ -32,7 +32,7 @@ TEST( Arguments, Basic )
 TEST( Arguments, Single )
 {
     std::string            str = "A";
-    mega::Argument::Vector result;
+    mega::TypeName::Vector result;
     mega::parse( str, result );
     ASSERT_TRUE( result.size() == 1 );
     ASSERT_EQ( result[ 0 ].getType(), "A" );
@@ -42,7 +42,7 @@ TEST( Arguments, Single )
 TEST( Arguments, SingleWithName )
 {
     std::string            str = "A x";
-    mega::Argument::Vector result;
+    mega::TypeName::Vector result;
     mega::parse( str, result );
     ASSERT_TRUE( result.size() == 1 );
     ASSERT_EQ( result[ 0 ].getType(), "A" );
@@ -54,7 +54,7 @@ TEST( Arguments, SingleWithName )
 TEST( Arguments, List )
 {
     std::string            str = "A x, B, C y, D";
-    mega::Argument::Vector result;
+    mega::TypeName::Vector result;
     mega::parse( str, result );
     ASSERT_TRUE( result.size() == 4 );
     ASSERT_EQ( result[ 0 ].getType(), "A" );
@@ -75,7 +75,7 @@ TEST( Arguments, List )
 TEST( Arguments, SingleTemplate )
 {
     std::string            str = "A<foo<1,g>,123>";
-    mega::Argument::Vector result;
+    mega::TypeName::Vector result;
     mega::parse( str, result );
     ASSERT_TRUE( result.size() == 1 );
     ASSERT_EQ( result[ 0 ].getType(), "A< foo< 1, g >, 123 >" );
@@ -85,7 +85,7 @@ TEST( Arguments, SingleTemplate )
 TEST( Arguments, MultiTemplate )
 {
     std::string            str = "var< C1.Up, C1.Down, var< C, D > > ev1, var< C2.Up, C2.Down > ev2";
-    mega::Argument::Vector result;
+    mega::TypeName::Vector result;
     mega::parse( str, result );
     ASSERT_TRUE( result.size() == 2 );
     ASSERT_EQ( result[ 0 ].getType(), "var< C1.Up, C1.Down, var< C, D > >" );

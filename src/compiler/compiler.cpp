@@ -303,21 +303,21 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    const TskDesc derivation = encode( Task{ eTask_Derivation, manifestFilePath } );
-    dependencies.add( derivation, concreteTreeTasks );
+    const TskDesc inheritance = encode( Task{ eTask_Inheritance, manifestFilePath } );
+    dependencies.add( inheritance, concreteTreeTasks );
 
-    TskDescVec derivationRolloutTasks;
+    TskDescVec inheritanceRolloutTasks;
     {
         for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            const TskDesc derivationRollout = encode( Task{ eTask_DerivationRollout, sourceFilePath } );
-            dependencies.add( derivationRollout, TskDescVec{ derivation } );
-            derivationRolloutTasks.push_back( derivationRollout );
+            const TskDesc inheritanceRollout = encode( Task{ eTask_InheritanceRollout, sourceFilePath } );
+            dependencies.add( inheritanceRollout, TskDescVec{ inheritance } );
+            inheritanceRolloutTasks.push_back( inheritanceRollout );
         }
     }
 
     const TskDesc hyperGraph = encode( Task{ eTask_HyperGraph, manifestFilePath } );
-    dependencies.add( hyperGraph, derivationRolloutTasks );
+    dependencies.add( hyperGraph, inheritanceRolloutTasks );
 
     TskDescVec memoryTasks;
     {
@@ -443,7 +443,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                     dependencies.add( includes, concreteTypeRolloutTasks );
                     dependencies.add( includePCH, TskDescVec{ includes } );
 
-                    TskDescVec deps = derivationRolloutTasks;
+                    TskDescVec deps = inheritanceRolloutTasks;
                     deps.push_back( includePCH );
 
                     dependencies.add( objectInterfaceGeneration, deps );

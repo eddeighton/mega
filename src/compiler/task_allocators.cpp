@@ -235,12 +235,12 @@ void Task_Allocators::createallocators(
     if( auto pNamespace = db_cast< Namespace >( pContext ) )
     {
     }
-    else if( auto pAction = db_cast< Action >( pContext ) )
+    else if( auto pState = db_cast< State >( pContext ) )
     {
-        szDomainSize = getSizeTraitSize( pAction->get_interface_action() );
+        szDomainSize = getSizeTraitSize( pState->get_interface_state() );
         szTotalSize *= szDomainSize;
 
-        pAction = database.construct< Action >( Action::Args{ pAction, szDomainSize, szTotalSize } );
+        pState = database.construct< State >( State::Args{ pState, szDomainSize, szTotalSize } );
     }
     else if( auto pEvent = db_cast< Event >( pContext ) )
     {
@@ -376,9 +376,9 @@ struct PartDimensions
         {
             return pEvent->get_local_size();
         }
-        else if( auto pAction = db_cast< Concrete::Action >( pContext ) )
+        else if( auto pState = db_cast< Concrete::State >( pContext ) )
         {
-            return pAction->get_local_size();
+            return pState->get_local_size();
         }
         else
         {
@@ -538,10 +538,10 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
                 }
             }
         }
-        else if( Concrete::Action* pAction = db_cast< Concrete::Action >( pContext ) )
+        else if( Concrete::State* pState = db_cast< Concrete::State >( pContext ) )
         {
-            szTotalDomainSize = pAction->get_total_size();
-            for( Concrete::Dimensions::User* pDim : pAction->get_dimensions() )
+            szTotalDomainSize = pState->get_total_size();
+            for( Concrete::Dimensions::User* pDim : pState->get_dimensions() )
             {
                 if( pDim->get_interface_dimension()->get_simple() )
                 {
@@ -713,9 +713,9 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
             if( auto pNamespace = db_cast< Namespace >( pContext ) )
             {
             }
-            else if( auto pAction = db_cast< Action >( pContext ) )
+            else if( auto pState = db_cast< State >( pContext ) )
             {
-                createParts( database, pAction, pParts );
+                createParts( database, pState, pParts );
             }
             else if( auto pEvent = db_cast< Event >( pContext ) )
             {
