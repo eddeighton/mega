@@ -47,6 +47,7 @@ set( COMPILER_LIB_HEADERS
     ${MEGA_API_DIR}/compiler/generator_utility.hpp
     ${MEGA_API_DIR}/compiler/generator_interface.hpp
     ${MEGA_API_DIR}/compiler/generator_operations.hpp
+    ${MEGA_API_DIR}/compiler/printer.hpp
 )
 
 set( COMPILER_LIB_SOURCE

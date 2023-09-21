@@ -31,74 +31,13 @@
 #include "database/common/exception.hpp"
 #include "database/types/cardinality.hpp"
 
+namespace HyperGraphAnalysis
+{
+#include "compiler/printer.hpp"
+}
+
 namespace mega::compiler
 {
-namespace
-{
-
-std::string printIContextFullType( HyperGraphAnalysis::Interface::IContext* pContext )
-{
-    std::ostringstream os;
-    using namespace HyperGraphAnalysis;
-    using IContextVector = std::vector< Interface::IContext* >;
-    IContextVector path;
-    while( pContext )
-    {
-        path.push_back( pContext );
-        pContext = db_cast< Interface::IContext >( pContext->get_parent() );
-    }
-    std::reverse( path.begin(), path.end() );
-    for( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
-    {
-        ++iNext;
-        if( iNext == iEnd )
-        {
-            os << ( *i )->get_identifier();
-        }
-        else
-        {
-            os << ( *i )->get_identifier() << ".";
-        }
-    }
-    return os.str();
-}
-
-std::string printLinkTraitTypePath( const HyperGraphAnalysis::Interface::ObjectLinkTrait* pLinkTrait )
-{
-    using namespace HyperGraphAnalysis;
-    using namespace HyperGraphAnalysis::HyperGraph;
-
-    std::ostringstream os;
-
-    os << pLinkTrait->get_interface_id() << " ";
-
-    for( auto pTypePathVariant : pLinkTrait->get_tuple() )
-    {
-        os << "(";
-        bool bFirstTypePath = true;
-        for( auto pTypePath : pTypePathVariant->get_sequence() )
-        {
-            if( bFirstTypePath )
-                bFirstTypePath = false;
-            else
-                os << ",";
-
-            bool bFirstSymbol = true;
-            for( auto pSymbol : pTypePath->get_types() )
-            {
-                if( bFirstSymbol )
-                    bFirstSymbol = false;
-                else
-                    os << ".";
-                os << pSymbol->get_symbol();
-            }
-        }
-        os << ")";
-    }
-
-    return os.str();
-}
-} // namespace
 
 class Task_HyperGraph : public BaseTask
 {

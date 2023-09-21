@@ -33,6 +33,11 @@
 #include <common/stash.hpp>
 #include <common/file.hpp>
 
+namespace UnityStage
+{
+#include "compiler/printer.hpp"
+}
+
 namespace mega::compiler
 {
 namespace
@@ -43,50 +48,6 @@ bool writeJSON( const boost::filesystem::path& filePath, const nlohmann::json& d
     os << data;
     return boost::filesystem::updateFileIfChanged( filePath, os.str() );
 }
-
-void printIContextFullType( UnityStage::Interface::IContext* pContext, std::ostream& os )
-{
-    using namespace UnityStage;
-    using IContextVector = std::vector< Interface::IContext* >;
-    IContextVector path;
-    while( pContext )
-    {
-        path.push_back( pContext );
-        pContext = db_cast< Interface::IContext >( pContext->get_parent() );
-    }
-    std::reverse( path.begin(), path.end() );
-    for( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
-    {
-        ++iNext;
-        if( iNext == iEnd )
-        {
-            os << ( *i )->get_identifier();
-        }
-        else
-        {
-            os << ( *i )->get_identifier() << ".";
-        }
-    }
-}
-
-void printDimensionTraitFullType( UnityStage::Interface::DimensionTrait* pDim, std::ostream& os )
-{
-    using namespace UnityStage;
-    auto pParent = db_cast< Interface::IContext >( pDim->get_parent() );
-    VERIFY_RTE( pParent );
-    printIContextFullType( pParent, os );
-    os << "." << pDim->get_id()->get_str();
-}
-
-void printLinkTraitFullType( UnityStage::Interface::LinkTrait* pLink, std::ostream& os )
-{
-    using namespace UnityStage;
-    auto pParent = db_cast< Interface::IContext >( pLink->get_parent() );
-    VERIFY_RTE( pParent );
-    printIContextFullType( pParent, os );
-    os << "." << pLink->get_id()->get_str();
-}
-
 } // namespace
 
 class Task_UnityReflection : public BaseTask
@@ -154,7 +115,7 @@ public:
 
                             if( Interface::Object* pObject = db_cast< Interface::Object >( pContext ) )
                             {
-                                printIContextFullType( pContext, osFullTypeName );
+                                osFullTypeName << printIContextFullType( pContext );
                                 nlohmann::json typeInfo{
                                     { "symbol", id.getSymbolID() }, { "name", osFullTypeName.str() } };
                                 data[ "objects" ].push_back( typeInfo );
@@ -360,7 +321,7 @@ public:
                 for( Concrete::Link* pLink : pRootObject->get_all_links() )
                 {
                     std::ostringstream osTypeName;
-                    printIContextFullType( pLink->get_link(), osTypeName );
+                    osTypeName << printIContextFullType( pLink->get_link() );
                     UnityAnalysis::LinkBinding* pLinkBinding
                         = database.construct< UnityAnalysis::LinkBinding >( UnityAnalysis::LinkBinding::Args{
                             osTypeName.str(), pLink->get_link()->get_interface_id() } );

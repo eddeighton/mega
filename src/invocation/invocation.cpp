@@ -34,6 +34,11 @@
 
 #include <optional>
 
+namespace OperationsStage
+{
+#include "compiler/printer.hpp"
+}
+
 namespace mega::invocation
 {
 
@@ -468,53 +473,6 @@ void build( Database& database, Invocation* pInvocation )
     }
 }
 
-void printIContextFullType( OperationsStage::Interface::IContext* pContext, std::ostream& os )
-{
-    using IContextVector = std::vector< Interface::IContext* >;
-    IContextVector path;
-    while( pContext )
-    {
-        path.push_back( pContext );
-        pContext = db_cast< Interface::IContext >( pContext->get_parent() );
-    }
-    std::reverse( path.begin(), path.end() );
-    for( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
-    {
-        ++iNext;
-        if( iNext == iEnd )
-        {
-            os << ( *i )->get_identifier();
-        }
-        else
-        {
-            os << ( *i )->get_identifier() << "::";
-        }
-    }
-}
-
-void printContextType( std::vector< OperationsStage::Interface::IContext* >& contexts, std::ostream& os )
-{
-    VERIFY_RTE( !contexts.empty() );
-    if( contexts.size() == 1 )
-    {
-        printIContextFullType( contexts.front(), os );
-    }
-    else
-    {
-        os << EG_VARIANT_TYPE << "< ";
-        bool bFirst = true;
-        for( Interface::IContext* pContext : contexts )
-        {
-            if( bFirst )
-                bFirst = false;
-            else
-                os << ", ";
-            printIContextFullType( pContext, os );
-        }
-        os << " >";
-    }
-}
-
 void setOrCheck( std::optional< ExplicitOperationID >& resultOpt, ExplicitOperationID value )
 {
     if( !resultOpt.has_value() )
@@ -937,7 +895,7 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
 
                 std::ostringstream osDimensionTrait;
                 {
-                    printIContextFullType( dimensions.front()->get_parent(), osDimensionTrait );
+                    osDimensionTrait << printIContextFullType( dimensions.front()->get_parent() );
                     osDimensionTrait << "::" << dimensions.front()->get_id()->get_str();
                 }
                 osReturnTypeStr << osDimensionTrait.str() << "::Read";
@@ -953,7 +911,7 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
                 printContextType( contexts, osReturnTypeStr );
                 std::ostringstream osDimensionTrait;
                 {
-                    printIContextFullType( dimensions.front()->get_parent(), osDimensionTrait );
+                    osDimensionTrait << printIContextFullType( dimensions.front()->get_parent() );
                     osDimensionTrait << "::" << dimensions.front()->get_id()->get_str();
                 }
                 osRuntimeReturnType << osDimensionTrait.str() << "::Type";
@@ -1095,11 +1053,11 @@ InvocationName toInvocationName( const mega::InvocationID& id, const InterfaceVa
                 VERIFY_RTE( pSymbol );
                 if( pSymbol->get_context().has_value() )
                 {
-                    printIContextFullType( pSymbol->get_context().value(), osTypePathStr );
+                    osTypePathStr << printIContextFullType( pSymbol->get_context().value() );
                 }
                 else
                 {
-                    printIContextFullType( pSymbol->get_dimension().value()->get_parent(), osTypePathStr );
+                    osTypePathStr << printIContextFullType( pSymbol->get_dimension().value()->get_parent() );
                     osTypePathStr << "::" << pSymbol->get_dimension().value()->get_id()->get_str();
                 }
             }
@@ -1131,14 +1089,14 @@ InvocationName toInvocationName( const mega::InvocationID& id, const InterfaceVa
                 {
                     Interface::IContext* pContext = pFirst->get_context().value();
                     osName << pContext->get_identifier();
-                    printIContextFullType( pContext, osContextStr );
+                    osContextStr << printIContextFullType( pContext );
                 }
                 else
                 {
                     VERIFY_RTE( pFirst->get_dimension().has_value() );
                     Interface::DimensionTrait* pDimension = pFirst->get_dimension().value();
                     osName << pDimension->get_id()->get_str();
-                    printIContextFullType( pDimension->get_parent(), osContextStr );
+                    osContextStr << printIContextFullType( pDimension->get_parent() );
                     osContextStr << "::" << pDimension->get_id()->get_str();
                 }
             }
