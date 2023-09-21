@@ -34,6 +34,8 @@
 namespace HyperGraphAnalysis
 {
 #include "compiler/printer.hpp"
+#include "compiler/interface.hpp"
+#include "compiler/derivation.hpp"
 }
 
 namespace mega::compiler
@@ -51,64 +53,6 @@ public:
     }
 
     using GraphType = std::map< HyperGraphAnalysis::Interface::LinkTrait*, HyperGraphAnalysis::HyperGraph::Relation* >;
-
-    /*GraphType calculateGraph( HyperGraphAnalysis::Database&                                   database,
-                              const std::vector< HyperGraphAnalysis::Interface::LinkTrait* >& links ) const
-    {
-        using namespace HyperGraphAnalysis;
-        using namespace HyperGraphAnalysis::HyperGraph;
-
-        GraphType result;
-
-        using LinkConcreteParents = std::multimap< Concrete::Context*, Concrete::Dimensions::Link* >;
-        LinkConcreteParents parents;
-
-        for( auto pLinkTrait : links )
-        {
-            for( auto pConcreteLink : pLinkTrait->get_concrete() )
-            {
-                parents.insert( { pConcreteLink->get_parent(), pConcreteLink } );
-            }
-        }
-
-        // Derivations should prioritise descending the tree
-        // if no suitable link is found they then can propagate UP towards the root
-        // Each scope must have all suitable links determined and only ONE must be eligible
-        // or the derivation is deemed ambiguous.
-
-        for( auto i = parents.begin(), iEnd = parents.end();; ++i )
-        {
-            Concrete::Context* pParent = i->first;
-
-            std::set< std::set< Concrete::Context* > > targetContextSets;
-
-            auto iNext = parents.upper_bound( pParent );
-            for( ; i != iNext; ++i )
-            {
-                Concrete::Dimensions::Link* pLink           = i->second;
-                auto                        pLinkTrait      = pLink->get_interface_link();
-                auto                        pTargetIContext = pLinkTrait->get_target();
-
-                auto                           concrete = pTargetIContext->get_concrete();
-                std::set< Concrete::Context* > concreteSet( concrete.begin(), concrete.end() );
-
-                VERIFY_RTE_MSG(
-                    targetContextSets.find( concreteSet ) == targetContextSets.end(),
-                    "Found overlapping link targets within context: " << pParent->get_interface()->get_interface_id() );
-
-                targetContextSets.insert( concreteSet );
-            }
-        }
-
-        return result;
-    }*/
-
-    /*HyperGraphAnalysis::Interface::IContext* getLinkTarget( HyperGraphAnalysis::Interface::Link* pLink ) const
-    {
-        const auto targets = pLink->get_link_interface()->get_contexts();
-        VERIFY_RTE( targets.size() == 1 );
-        return targets.front();
-    }*/
 
     HyperGraphAnalysis::Interface::IContext*
     findObjectLinkTarget( HyperGraphAnalysis::Interface::ObjectLinkTrait* pLinkTrait )
@@ -176,8 +120,9 @@ public:
     };
     using ObjectLinkTargets = std::vector< ObjectLinkPair >;
 
-    std::map< HyperGraphAnalysis::Interface::ObjectLinkTrait*, HyperGraphAnalysis::HyperGraph::Relation* >
-    calculateGraph( HyperGraphAnalysis::Database& database, const ObjectLinkTargets& links ) const
+    using RelationsMap
+        = std::map< HyperGraphAnalysis::Interface::ObjectLinkTrait*, HyperGraphAnalysis::HyperGraph::Relation* >;
+    RelationsMap calculateRelations( HyperGraphAnalysis::Database& database, const ObjectLinkTargets& links ) const
     {
         using namespace HyperGraphAnalysis;
         using namespace HyperGraphAnalysis::HyperGraph;
@@ -329,6 +274,184 @@ public:
         return sourceFiles;
     }
 
+    void calculateEdges( HyperGraphAnalysis::Database& database, const RelationsMap& relations )
+    {
+        using namespace HyperGraphAnalysis;
+        using namespace HyperGraphAnalysis::HyperGraph;
+
+        std::vector< Concrete::Graph::Vertex* > vertices;
+        for( auto sourceFile : getSortedSourceFiles() )
+        {
+            for( Concrete::Graph::Vertex* pVertex : database.many< Concrete::Graph::Vertex >( sourceFile ) )
+            {
+                vertices.push_back( pVertex );
+            }
+        }
+
+        for( auto pVertex : vertices )
+        {
+            if( Concrete::Dimensions::User* pUserDim = db_cast< Concrete::Dimensions::User >( pVertex ) )
+            {
+                database.construct< Concrete::Graph::Edge >(
+                    Concrete::Graph::Edge::Args{ mega::EdgeType::eDim, pUserDim->get_parent_context(), pVertex } );
+            }
+            else if( Concrete::Dimensions::Link* pLinkDim = db_cast< Concrete::Dimensions::Link >( pVertex ) )
+            {
+                auto pLinkTrait = pLinkDim->get_interface_link();
+                if( Interface::ObjectLinkTrait* pObjectLinkTrait = db_cast< Interface::ObjectLinkTrait >( pLinkTrait ) )
+                {
+                    database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
+                        mega::EdgeType::eObjectLink, pLinkDim->get_parent_context(), pVertex } );
+                        
+                    auto iFind = relations.find( pObjectLinkTrait );
+                    VERIFY_RTE( iFind != relations.end() );
+                    Relation* pRelation = iFind->second;
+                    if( OwningObjectRelation* pOwningObjectRelation = db_cast< OwningObjectRelation >( pRelation ) )
+                    {
+                        auto           concreteTargets = pOwningObjectRelation->get_owned()->get_concrete();
+                        const EdgeType edgeType
+                            = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
+                        for( auto pConcreteTarget : concreteTargets )
+                        {
+                            database.construct< Concrete::Graph::Edge >(
+                                Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
+                            database.construct< Concrete::Graph::Edge >(
+                                Concrete::Graph::Edge::Args{ EdgeType::eObjectParent, pConcreteTarget, pVertex } );
+                        }
+                    }
+                    else if( NonOwningObjectRelation* pNonOwningObjectRelation
+                             = db_cast< NonOwningObjectRelation >( pRelation ) )
+                    {
+                        if( pNonOwningObjectRelation->get_source() == pObjectLinkTrait )
+                        {
+                            Interface::ObjectLinkTrait* pTargetObjectLink = pNonOwningObjectRelation->get_target();
+
+                            auto           concreteTargets = pTargetObjectLink->get_concrete();
+                            const EdgeType edgeType
+                                = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
+                            for( auto pConcreteTarget : concreteTargets )
+                            {
+                                database.construct< Concrete::Graph::Edge >(
+                                    Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
+                            }
+                        }
+                        else if( pNonOwningObjectRelation->get_target() == pObjectLinkTrait )
+                        {
+                            Interface::ObjectLinkTrait* pSourceObjectLink = pNonOwningObjectRelation->get_source();
+
+                            auto           concreteTargets = pSourceObjectLink->get_concrete();
+                            const EdgeType edgeType
+                                = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
+                            for( auto pConcreteTarget : concreteTargets )
+                            {
+                                database.construct< Concrete::Graph::Edge >(
+                                    Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
+                            }
+                        }
+                        else
+                        {
+                            THROW_RTE( "ObjectLinkTrait does not match non owning relation" );
+                        }
+                    }
+                    else
+                    {
+                        THROW_RTE( "Unknown object type" );
+                    }
+                }
+                else if( Interface::ComponentLinkTrait* pComponentLinkTrait
+                         = db_cast< Interface::ComponentLinkTrait >( pLinkTrait ) )
+                {
+                    database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
+                        mega::EdgeType::eComponentLink, pLinkDim->get_parent_context(), pVertex } );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown link trait type" );
+                }
+            }
+            else if( Concrete::ContextGroup* pContextGroup = db_cast< Concrete::ContextGroup >( pVertex ) )
+            {
+                if( Concrete::Context* pContext = db_cast< Concrete::Context >( pContextGroup ) )
+                {
+                    for( auto pChild : pContext->get_children() )
+                    {
+                        const EdgeType edgeType = ( getLocalDomainSize( pChild ) > 1 )
+                                                      ? mega::EdgeType::eChildSingular
+                                                      : mega::EdgeType::eChildNonSingular;
+
+                        database.construct< Concrete::Graph::Edge >(
+                            Concrete::Graph::Edge::Args{ edgeType, pContext, pChild } );
+                        database.construct< Concrete::Graph::Edge >(
+                            Concrete::Graph::Edge::Args{ EdgeType::eParent, pChild, pContext } );
+                    }
+                }
+                else
+                {
+                    // do nothing
+                }
+            }
+            else
+            {
+                THROW_RTE( "Unknown vertex type" );
+            }
+        }
+    }
+
+    void solveComponentLinks( HyperGraphAnalysis::Database& database, const RelationsMap& relations )
+    {
+        using namespace HyperGraphAnalysis;
+        using namespace HyperGraphAnalysis::HyperGraph;
+
+        std::vector< Interface::ComponentLinkTrait* > componentLinks;
+        for( auto sourceFile : getSortedSourceFiles() )
+        {
+            for( Interface::ComponentLinkTrait* pComponentLink :
+                 database.many< Interface::ComponentLinkTrait >( sourceFile ) )
+            {
+                componentLinks.push_back( pComponentLink );
+            }
+        }
+
+        for( auto pComponentLink : componentLinks )
+        {
+            // attempt to solve the component link type derivation
+
+            Derivation::VertexVariant context;
+            for( auto pConcrete : pComponentLink->get_concrete() )
+            {
+                context.push_back( pConcrete );
+            }
+
+            Derivation::VertexVariantVector path;
+            for( auto pTypePathVariant : pComponentLink->get_tuple() )
+            {
+                for( auto pTypePath : pTypePathVariant->get_sequence() )
+                {
+                    for( auto pType : pTypePath->get_types() )
+                    {
+                        for( auto pContext : pType->get_contexts() )
+                        {
+                            //pContext->get_concrete()
+
+                        }
+                        for( auto pDim : pType->get_dimensions() )
+                        {
+                            // pDim->get_concrete();
+                        }
+                        for( auto pLink : pType->get_links() )
+                        {
+                            // pLink->get_concrete();
+                        }
+                    }
+                }
+            }
+
+            const Derivation::Spec spec{ context, path };
+            const Derivation::Solution solution = Derivation::solve( spec );
+
+        }
+    }
+
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::manifestFilePath    manifestFilePath = m_environment.project_manifest();
@@ -383,8 +506,10 @@ public:
                     }
                 }
             }
-            database.construct< HyperGraph::Graph >(
-                HyperGraph::Graph::Args{ calculateGraph( database, linkTargets ) } );
+            auto relations = calculateRelations( database, linkTargets );
+            database.construct< HyperGraph::Graph >( HyperGraph::Graph::Args{ relations } );
+            calculateEdges( database, relations );
+            solveComponentLinks( database, relations );
         }
 
         const task::FileHash fileHashCode = database.save_Model_to_temp();
@@ -459,7 +584,13 @@ public:
             {
                 auto iFind = relations.find( pLink );
                 VERIFY_RTE( iFind != relations.end() );
-                database.construct< Interface::ObjectLinkTrait >( Interface::ObjectLinkTrait::Args{ pLink, iFind->second } );
+                database.construct< Interface::ObjectLinkTrait >(
+                    Interface::ObjectLinkTrait::Args{ pLink, iFind->second } );
+            }
+
+            for( Concrete::Graph::Vertex* pVertex : database.many< Concrete::Graph::Vertex >( m_sourceFilePath ) )
+            {
+                database.construct< Concrete::Graph::Vertex >( Concrete::Graph::Vertex::Args{ pVertex, {}, {} } );
             }
 
             /*for( Concrete::Object* pObject : database.many< Concrete::Object >( m_sourceFilePath ) )

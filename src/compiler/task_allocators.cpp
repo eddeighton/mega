@@ -34,6 +34,11 @@
 #include <vector>
 #include <string>
 
+namespace MemoryStage
+{
+#include "compiler/interface.hpp"
+}
+
 namespace
 {
 mega::U64 getBitmask32AllocatorSize( mega::U64 szLocalDomainSize )
@@ -122,20 +127,6 @@ mega::U64 getRingAllocatorAlignment( mega::U64 szLocalDomainSize )
 
 namespace mega::compiler
 {
-
-template < typename TContext >
-inline U64 getSizeTraitSize( const TContext* pInterfaceContext )
-{
-    using namespace MemoryStage;
-    U64                                    allocationSize = 1U;
-    std::optional< Interface::SizeTrait* > sizeTraitOpt   = pInterfaceContext->get_size_trait();
-    if( sizeTraitOpt.has_value() )
-    {
-        allocationSize = sizeTraitOpt.value()->get_size();
-        VERIFY_RTE_MSG( allocationSize > 0U, "Invalid size for: " << pInterfaceContext->get_identifier() );
-    }
-    return allocationSize;
-}
 
 class Task_Allocators : public BaseTask
 {

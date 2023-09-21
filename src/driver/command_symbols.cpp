@@ -65,11 +65,11 @@ const std::string& getIdentifier( FinalStage::Concrete::Dimensions::User* pDim )
 {
     return pDim->get_interface_dimension()->get_id()->get_str();
 }
-/*
+
 const std::string& getIdentifier( FinalStage::Concrete::Dimensions::Link* pLink )
 {
-    return pLink->get_link()->get_link()->get_identifier();
-}*/
+    return pLink->get_interface_link()->get_id()->get_str();
+}
 
 template < typename TContextType >
 std::string getContextFullTypeName( TContextType* pContext, std::string strDelim = "_" )
@@ -154,21 +154,20 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     else if( pConcreteTypeID->get_dim_user().has_value() )
                     {
                         auto pDimension = pConcreteTypeID->get_dim_user().value();
-                        std::cout << concreteTypeID << " " << getContextFullTypeName( pDimension->get_parent() )
+                        std::cout << concreteTypeID << " " << getContextFullTypeName( pDimension->get_parent_context() )
                                   << "::" << getIdentifier( pDimension )
                                   << " type:" << pDimension->get_interface_dimension()->get_canonical_type() << "\n";
                     }
                     else if( pConcreteTypeID->get_dim_link().has_value() )
                     {
-                        THROW_TODO;
-                        /*auto pLink = pConcreteTypeID->get_dim_link().value();
-                        std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent() )
-                                  << "::" << getIdentifier( pLink ) << "\n";*/
+                        auto pLink = pConcreteTypeID->get_dim_link().value();
+                        std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent_context() )
+                                  << "::" << getIdentifier( pLink ) << "\n";
                     }
                     else if( pConcreteTypeID->get_dim_allocation().has_value() )
                     {
                         auto pAllocation = pConcreteTypeID->get_dim_allocation().value();
-                        std::cout << concreteTypeID << " " << getContextFullTypeName( pAllocation->get_parent() )
+                        std::cout << concreteTypeID << " " << getContextFullTypeName( pAllocation->get_parent_context() )
                                   << "::_allocation_\n";
                     }
                     else

@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,7 +18,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/types/ownership.hpp"
+#include "database/types/hyper_graph.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -25,36 +26,47 @@
 
 namespace
 {
-static const std::array< std::string, mega::Ownership::TOTAL_OWNERSHIP_MODES > g_pszModes
-    = { "OwnNothing", "OwnSource", "OwnTarget" };
+static const std::array< std::string, mega::EdgeType::TOTAL_EDGE_TYPES > g_edgeTypes = {
+
+    "Parent", "ChildSingular", "ChildNonSingular", "Part", "ObjectParent", "ObjectLink", "ComponentLink", "Dim",
+    "Mono",   "Poly"
+
+};
 }
 
 namespace mega
 {
 
-const char* Ownership::str() const
+const char* EdgeType::str() const
 {
     switch( m_value )
     {
-        case eOwnNothing:
-        case eOwnSource:
-        case eOwnTarget:
-            return g_pszModes[ m_value ].c_str();
-        case TOTAL_OWNERSHIP_MODES:
+        case eParent:
+        case eChildSingular:
+        case eChildNonSingular:
+        case ePart:
+        case eDim:
+        case eObjectParent:
+        case eObjectLink:
+        case eComponentLink:
+        case eMono:
+        case ePoly:
+            return g_edgeTypes[ m_value ].c_str();
+        case TOTAL_EDGE_TYPES:
         default:
-            THROW_RTE( "Invalid Ownership type" );
+            THROW_RTE( "Invalid EdgeType type" );
     }
 }
 
-Ownership Ownership::fromStr( const char* psz )
+EdgeType EdgeType::fromStr( const char* psz )
 {
-    auto iFind = std::find( g_pszModes.begin(), g_pszModes.end(), psz );
-    VERIFY_RTE_MSG( iFind != g_pszModes.end(), "Unknown ownership mode: " << psz );
-    return { static_cast< Ownership::Value >( std::distance( g_pszModes.cbegin(), iFind ) ) };
+    auto iFind = std::find( g_edgeTypes.begin(), g_edgeTypes.end(), psz );
+    VERIFY_RTE_MSG( iFind != g_edgeTypes.end(), "Unknown ownership mode: " << psz );
+    return { static_cast< EdgeType::Value >( std::distance( g_edgeTypes.cbegin(), iFind ) ) };
 }
 } // namespace mega
 
-std::ostream& operator<<( std::ostream& os, mega::Ownership ownership )
+std::ostream& operator<<( std::ostream& os, mega::EdgeType edgeType )
 {
-    return os << ownership.str();
+    return os << edgeType.str();
 }

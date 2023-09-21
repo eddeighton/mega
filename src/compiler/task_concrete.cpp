@@ -213,7 +213,7 @@ public:
         {
             auto              pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
             Dimensions::User* pConcreteDimension     = database.construct< Dimensions::User >(
-                Dimensions::User::Args{ pParentConcreteContext, pInterfaceDimension } );
+                Dimensions::User::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceDimension } );
             dimensions.push_back( pConcreteDimension );
         }
 
@@ -221,7 +221,7 @@ public:
         {
             auto              pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
             Dimensions::Link* pConcreteLink          = database.construct< Dimensions::Link >(
-                Dimensions::Link::Args{ pParentConcreteContext, pInterfaceLink } );
+                Dimensions::Link::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceLink } );
             links.push_back( pConcreteLink );
         }
     }
@@ -238,10 +238,13 @@ public:
         if( auto pNamespace = db_cast< Interface::Namespace >( pContext ) )
         {
             Namespace* pConcrete = database.construct< Namespace >( Namespace::Args{
-                UserDimensionContext::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pNamespace, {} },
-                    {},
-                    {} },
+                UserDimensionContext::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
+                                                           pComponent,
+                                                           pParentContextGroup,
+                                                           pNamespace,
+                                                           {} },
+                                            {},
+                                            {} },
                 pNamespace } );
             pParentContextGroup->push_back_children( pConcrete );
             pConcrete->set_concrete_object( concreteObjectOpt );
@@ -289,7 +292,7 @@ public:
                                 {
                                     Context::Args
                                     { 
-                                        ContextGroup::Args{ {} },
+                                        ContextGroup::Args{ Graph::Vertex::Args{}, {} },
                                         pComponent, 
                                         pParentContextGroup, 
                                         pAction, 
@@ -318,7 +321,7 @@ public:
                                 {
                                     Context::Args
                                     {
-                                        ContextGroup::Args{ {} },
+                                        ContextGroup::Args{ Graph::Vertex::Args{}, {} },
                                         pComponent,
                                         pParentContextGroup,
                                         pInterfaceComponent,
@@ -337,10 +340,13 @@ public:
                 else
                 {
                     pConcrete = database.construct< State >( State::Args{
-                        UserDimensionContext::Args{
-                            Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pAction, {} },
-                            {},
-                            {} },
+                        UserDimensionContext::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
+                                                                   pComponent,
+                                                                   pParentContextGroup,
+                                                                   pAction,
+                                                                   {} },
+                                                    {},
+                                                    {} },
                         pAction } );
                 }
 
@@ -375,10 +381,13 @@ public:
             if( concreteObjectOpt.has_value() )
             {
                 Event* pConcrete = database.construct< Event >( Event::Args{
-                    UserDimensionContext::Args{
-                        Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pEvent, {} },
-                        {},
-                        {} },
+                    UserDimensionContext::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
+                                                               pComponent,
+                                                               pParentContextGroup,
+                                                               pEvent,
+                                                               {} },
+                                                {},
+                                                {} },
                     pEvent } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
@@ -411,9 +420,13 @@ public:
         {
             if( concreteObjectOpt.has_value() )
             {
-                Interupt* pConcrete = database.construct< Interupt >( Interupt::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pInterupt, {} },
-                    pInterupt } );
+                Interupt* pConcrete = database.construct< Interupt >(
+                    Interupt::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
+                                                   pComponent,
+                                                   pParentContextGroup,
+                                                   pInterupt,
+                                                   {} },
+                                    pInterupt } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
 
@@ -444,9 +457,13 @@ public:
         {
             if( concreteObjectOpt.has_value() )
             {
-                Function* pConcrete = database.construct< Function >( Function::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pFunction, {} },
-                    pFunction } );
+                Function* pConcrete = database.construct< Function >(
+                    Function::Args{ Context::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} },
+                                                   pComponent,
+                                                   pParentContextGroup,
+                                                   pFunction,
+                                                   {} },
+                                    pFunction } );
                 pParentContextGroup->push_back_children( pConcrete );
                 pConcrete->set_concrete_object( concreteObjectOpt );
 
@@ -477,7 +494,10 @@ public:
         {
             Object* pConcrete = database.construct< Object >( Object::Args{
                 UserDimensionContext::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pObject, {} }, {}, {} },
+                    Context::Args{
+                        ContextGroup::Args{ Graph::Vertex::Args{}, {} }, pComponent, pParentContextGroup, pObject, {} },
+                    {},
+                    {} },
                 pObject } );
             pParentContextGroup->push_back_children( pConcrete );
             concreteObjectOpt = pConcrete;
@@ -537,8 +557,8 @@ public:
         Components::Component* pComponent     = pInterfaceRoot->get_root()->get_component();
         VERIFY_RTE( pComponent );
 
-        Concrete::Root* pConcreteRoot
-            = database.construct< Root >( Root::Args{ ContextGroup::Args{ {} }, pInterfaceRoot } );
+        Concrete::Root* pConcreteRoot = database.construct< Root >(
+            Root::Args{ ContextGroup::Args{ Graph::Vertex::Args{}, {} }, pInterfaceRoot } );
         std::optional< Concrete::Object* > concreteObjectOpt;
 
         for( Interface::IContext* pChildContext : pInterfaceRoot->get_children() )

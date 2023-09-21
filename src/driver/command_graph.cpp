@@ -157,7 +157,7 @@ std::string getContextFullTypeName( TContextType* pContext, std::string strDelim
 template < typename TContextType, typename TDimensionType >
 std::string getDimensionFullTypeName( TDimensionType* pDim, std::string strDelim = "_" )
 {
-    TContextType* pParent = pDim->get_parent();
+    TContextType* pParent = pDim->get_parent_context();
     VERIFY_RTE( pParent );
     std::ostringstream os;
     os << getContextFullTypeName( pParent, strDelim ) << strDelim << getIdentifier( pDim );

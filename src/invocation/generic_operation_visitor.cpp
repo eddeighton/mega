@@ -534,7 +534,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
     {
         OperationsStage::Operations::InterfaceVariant* pInterfaceVar      = current.get_element()->get_interface();
         Concrete::Dimensions::User*                    pConcreteDimension = currentConcrete->get_dimension().value();
-        Concrete::Context*                             pParent            = pConcreteDimension->get_parent();
+        Concrete::Context*                             pParent            = pConcreteDimension->get_parent_context();
         Interface::DimensionTrait* pInterfaceDimension = pConcreteDimension->get_interface_dimension();
 
         VERIFY( prev->get_element()->get_concrete()->get_context().has_value(), Exception, "" );

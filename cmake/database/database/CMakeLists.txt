@@ -189,6 +189,7 @@ set( MEGA_TYPES_HEADERS
     ${MEGA_API_DIR}/database/types/clang_compilation.hpp
     ${MEGA_API_DIR}/database/types/component_type.hpp
     ${MEGA_API_DIR}/database/types/derivation.hpp
+    ${MEGA_API_DIR}/database/types/hyper_graph.hpp
     ${MEGA_API_DIR}/database/types/modes.hpp
     ${MEGA_API_DIR}/database/types/operation.hpp
     ${MEGA_API_DIR}/database/types/ownership.hpp
@@ -204,12 +205,13 @@ set( MEGA_TYPES_HEADERS
 set( MEGA_TYPES_SOURCES
     ${MEGA_SRC_DIR}/database/types/arguments.cpp
     ${MEGA_SRC_DIR}/database/types/cardinality.cpp
+    ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
+    ${MEGA_SRC_DIR}/database/types/component_type.cpp
+    ${MEGA_SRC_DIR}/database/types/derivation.cpp
+    ${MEGA_SRC_DIR}/database/types/hyper_graph.cpp
+    ${MEGA_SRC_DIR}/database/types/modes.cpp
     ${MEGA_SRC_DIR}/database/types/operation.cpp
     ${MEGA_SRC_DIR}/database/types/ownership.cpp
-    ${MEGA_SRC_DIR}/database/types/derivation.cpp
-    ${MEGA_SRC_DIR}/database/types/modes.cpp
-    ${MEGA_SRC_DIR}/database/types/component_type.cpp
-    ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
     ${MEGA_SRC_DIR}/database/types/type_id.cpp
     
     ${MEGA_SRC_DIR}/database/jit_database.cpp

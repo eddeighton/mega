@@ -229,6 +229,8 @@ stage HyperGraphAnalysis
     file Model;
 
     persource accessor array< ref< Interface::ObjectLinkTrait > >;
+    persource accessor array< ref< Interface::ComponentLinkTrait > >;
+    persource accessor array< ref< Concrete::Graph::Vertex > >;
     persource accessor ref< Concrete::Root >;
     global accessor ref< Symbols::SymbolTable >;
 }
@@ -253,6 +255,7 @@ stage HyperGraphAnalysisRollout
     persource accessor array< ref< Interface::ObjectLinkTrait > >;
     persource accessor array< ref< Concrete::Object > >;
     persource accessor ref< Concrete::Root >;
+    persource accessor ref< Concrete::Graph::Vertex >;
     global accessor ref< HyperGraph::Graph >;
 }
 

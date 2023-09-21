@@ -127,13 +127,13 @@ public:
         TypeIDSequence operator()( DimUser* pDimUser ) const
         {
             TypeIDSequence sequence{ getTypeID( pDimUser->get_interface_dimension() ) };
-            recurse( pDimUser->get_parent(), sequence );
+            recurse( pDimUser->get_parent_context(), sequence );
             return sequence;
         }
         TypeIDSequence operator()( DimLink* pDimLink ) const
         {
             TypeIDSequence sequence{ getTypeID( pDimLink->get_interface_link() ) };
-            recurse( pDimLink->get_parent(), sequence );
+            recurse( pDimLink->get_parent_context(), sequence );
             return sequence;
         }
         TypeIDSequence operator()( DimAlloc* pDimAlloc ) const
@@ -436,7 +436,7 @@ public:
                 }
                 else if( pSymbolTypeID->get_dim_user().has_value() )
                 {
-                    genSubObject( pSymbolTypeID, pSymbolTypeID->get_dim_user().value()->get_parent() );
+                    genSubObject( pSymbolTypeID, pSymbolTypeID->get_dim_user().value()->get_parent_context() );
                 }
                 else
                 {
@@ -448,14 +448,14 @@ public:
         {
             if( pSymbolTypeID->get_id() == 0 )
             {
-                genSubObject( pSymbolTypeID, pSymbolTypeID->get_dim_link().value()->get_parent() );
+                genSubObject( pSymbolTypeID, pSymbolTypeID->get_dim_link().value()->get_parent_context() );
             }
         }
         for( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_seq_alloc )
         {
             if( pSymbolTypeID->get_id() == 0 )
             {
-                genSubObject( pSymbolTypeID, pSymbolTypeID->get_dim_allocation().value()->get_parent() );
+                genSubObject( pSymbolTypeID, pSymbolTypeID->get_dim_allocation().value()->get_parent_context() );
             }
         }
 

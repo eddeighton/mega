@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,44 +18,40 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/types/ownership.hpp"
+#ifndef GUARD_2023_September_21_derivation
+#define GUARD_2023_September_21_derivation
 
-#include "common/assert_verify.hpp"
-
-#include <algorithm>
-
-namespace
+namespace Derivation
 {
-static const std::array< std::string, mega::Ownership::TOTAL_OWNERSHIP_MODES > g_pszModes
-    = { "OwnNothing", "OwnSource", "OwnTarget" };
+using Vertex              = Concrete::Graph::Vertex;
+using VertexVariant       = std::vector< Vertex* >;
+using VertexVariantVector = std::vector< VertexVariant >;
+
+struct Spec
+{
+    VertexVariant       context;
+    VertexVariantVector path;
+};
+
+struct Step
+{
+    Concrete::Graph::Vertex* pVertex = nullptr;
+    Concrete::Graph::Edge*   pEdge   = nullptr;
+    std::vector< Step >      steps;
+};
+
+struct Solution
+{
+    Spec                spec;
+    std::vector< Step > steps;
+};
+
+Solution solve( const Spec& derivation )
+{
+    Solution result{ derivation };
+
+    return result;
 }
+} // namespace Derivation
 
-namespace mega
-{
-
-const char* Ownership::str() const
-{
-    switch( m_value )
-    {
-        case eOwnNothing:
-        case eOwnSource:
-        case eOwnTarget:
-            return g_pszModes[ m_value ].c_str();
-        case TOTAL_OWNERSHIP_MODES:
-        default:
-            THROW_RTE( "Invalid Ownership type" );
-    }
-}
-
-Ownership Ownership::fromStr( const char* psz )
-{
-    auto iFind = std::find( g_pszModes.begin(), g_pszModes.end(), psz );
-    VERIFY_RTE_MSG( iFind != g_pszModes.end(), "Unknown ownership mode: " << psz );
-    return { static_cast< Ownership::Value >( std::distance( g_pszModes.cbegin(), iFind ) ) };
-}
-} // namespace mega
-
-std::ostream& operator<<( std::ostream& os, mega::Ownership ownership )
-{
-    return os << ownership.str();
-}
+#endif // GUARD_2023_September_21_derivation
