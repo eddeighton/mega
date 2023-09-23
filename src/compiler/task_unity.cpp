@@ -347,7 +347,7 @@ public:
                     dataBindings.push_back( pDataBinding );
                 }
             }
-            THROW_TODO;
+            //THROW_TODO;
             /*std::vector< UnityAnalysis::LinkBinding* > linkBindings;
             {
                 for( const auto& linkBinding : manual[ "linkBindings" ] )
@@ -381,7 +381,7 @@ public:
                     dataBindings.push_back( pDataBinding );
                 }
             }
-            THROW_TODO;
+           // THROW_TODO;
             /*std::vector< UnityAnalysis::LinkBinding* > linkBindings;
             {
                 for( const auto& linkBinding : prefab[ "linkBindings" ] )
@@ -408,7 +408,7 @@ public:
         ObjectVector objectVector;
         DimMap       dimMap;
 
-        THROW_TODO;
+        //THROW_TODO;
         /*using LinkMap      = std::multimap< Concrete::Object*, Concrete::Link* >;
         LinkMap      linkMap;
         {
@@ -492,7 +492,7 @@ public:
                         dataBindings.insert( { pFoundDimension, pDataBinding } );
                     }
                 }
-                THROW_TODO;
+                //THROW_TODO;
                 /*std::map< Concrete::Link*, UnityAnalysis::LinkBinding* > linkBindings;
                 {
                     for( UnityAnalysis::LinkBinding* pLinkBinding : pObjectBinding->get_linkBindings() )
@@ -662,7 +662,7 @@ public:
                                                   { "interfaceTypeName", pBinding->get_typeName() } } );
                     binding[ "data" ].push_back( dataBinding );
                 }
-                THROW_TODO;
+                //THROW_TODO;
                 /*for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
                 {
                     nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
@@ -690,7 +690,7 @@ public:
                     binding[ "data" ].push_back( dataBinding );
                 }
 
-                THROW_TODO;
+                //THROW_TODO;
                 /*for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
                 {
                     nlohmann::json dataBinding( { { "concreteTypeID", pLink->get_concrete_id().getSymbolID() },
@@ -707,7 +707,7 @@ public:
             }
         }
 
-        THROW_TODO;
+        //THROW_TODO;
         /*for( HyperGraph::Relation* pRelation :
              database.many< HyperGraph::Relation >( m_environment.project_manifest() ) )
         {

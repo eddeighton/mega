@@ -72,7 +72,6 @@ private:
     Value m_value;
 };
 
-
 } // namespace mega
 
 EGDB_EXPORT std::ostream& operator<<( std::ostream& os, mega::EdgeType edgeType );

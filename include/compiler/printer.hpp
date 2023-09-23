@@ -89,7 +89,7 @@ void printContextType( std::vector< Interface::IContext* >& contexts, std::ostre
     }
 }
 
-std::string printLinkTraitTypePath( const Interface::ObjectLinkTrait* pLinkTrait )
+std::string printLinkTraitTypePath( const Interface::TypedLinkTrait* pLinkTrait )
 {
     std::ostringstream os;
 

@@ -66,7 +66,7 @@ const std::string& getIdentifier( FinalStage::Concrete::Dimensions::User* pDim )
     return pDim->get_interface_dimension()->get_id()->get_str();
 }
 
-const std::string& getIdentifier( FinalStage::Concrete::Dimensions::Link* pLink )
+const std::string& getIdentifier( FinalStage::Concrete::Dimensions::UserLink* pLink )
 {
     return pLink->get_interface_link()->get_id()->get_str();
 }
@@ -161,14 +161,26 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     else if( pConcreteTypeID->get_dim_link().has_value() )
                     {
                         auto pLink = pConcreteTypeID->get_dim_link().value();
-                        std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent_context() )
-                                  << "::" << getIdentifier( pLink ) << "\n";
+                        if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
+                        {
+                            std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent_context() )
+                                      << "::" << getIdentifier( pUserLink ) << "\n";
+                        }
+                        else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
+                        {
+                            std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent_context() )
+                                      << "::_ownership_\n";
+                        }
+                        else
+                        {
+                            THROW_RTE( "Unknown link type" );
+                        }
                     }
                     else if( pConcreteTypeID->get_dim_allocation().has_value() )
                     {
                         auto pAllocation = pConcreteTypeID->get_dim_allocation().value();
-                        std::cout << concreteTypeID << " " << getContextFullTypeName( pAllocation->get_parent_context() )
-                                  << "::_allocation_\n";
+                        std::cout << concreteTypeID << " "
+                                  << getContextFullTypeName( pAllocation->get_parent_context() ) << "::_allocation_\n";
                     }
                     else
                     {

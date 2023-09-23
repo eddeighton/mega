@@ -108,7 +108,7 @@ namespace Inheritance
         value< mega::U64 > hash_code;
         multimap< ref< Interface::IContext >, ref< Concrete::Context > >                inheritance_contexts;
         multimap< ref< Interface::DimensionTrait >, ref< Concrete::Dimensions::User > > inheritance_dimensions;
-        multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::Link > >      inheritance_links;
+        multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::UserLink > >  inheritance_links;
     }
 
     object Mapping -> InheritanceAnalysis::Derivations
@@ -116,7 +116,7 @@ namespace Inheritance
         array< ref< ObjectMapping > > mappings;
         multimap< ref< Interface::IContext >, ref< Concrete::Context > >                inheritance_contexts;
         multimap< ref< Interface::DimensionTrait >, ref< Concrete::Dimensions::User > > inheritance_dimensions;
-        multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::Link > >      inheritance_links;
+        multimap< ref< Interface::LinkTrait >, ref< Concrete::Dimensions::UserLink > >  inheritance_links;
     }
 }
 

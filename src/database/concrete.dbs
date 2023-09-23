@@ -24,8 +24,10 @@ namespace Concrete
     {
         object Vertex -> ConcreteStage::Concrete
         {
-            array< ref< Edge > > out_edges -> HyperGraphAnalysisRollout::PerSourceModel;
-            array< ref< Edge > > in_edges -> HyperGraphAnalysisRollout::PerSourceModel;
+            array< ref< Edge > >        out_edges                   -> HyperGraphAnalysisRollout::PerSourceModel;
+            array< ref< Edge > >        in_edges                    -> HyperGraphAnalysisRollout::PerSourceModel;
+            array< ref< Derivation > >  object_link_derivations     -> HyperGraphAnalysisRollout::PerSourceModel;
+            array< ref< Derivation > >  component_link_derivations  -> HyperGraphAnalysisRollout::PerSourceModel;
         }
 
         object Edge -> HyperGraphAnalysis::Model
@@ -33,6 +35,13 @@ namespace Concrete
             value< mega::EdgeType > type;
             ref< Vertex >           source;
             ref< Vertex >           target;
+        }
+
+        object Derivation -> HyperGraphAnalysis::Model
+        {
+            ref< Vertex >           source;
+            ref< Vertex >           target;
+            array< ref< Edge > >    edges;
         }
     }
 
@@ -49,21 +58,24 @@ namespace Concrete
             ref< MemoryLayout::Part > part -> MemoryStage::MemoryLayout;
         }
 
-        // HyperGraphAnalysis
+        // HyperGraph
         object Link : Graph::Vertex -> ConcreteStage::Concrete
         {
             ref< Concrete::Context > parent_context;
-            ref< Interface::LinkTrait > interface_link;
 
             value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
 
-            value< mega::U64 > offset -> MemoryStage::MemoryLayout;
-            ref< MemoryLayout::Part > part -> MemoryStage::MemoryLayout;
+            value< mega::U64 >          offset      -> MemoryStage::MemoryLayout;
+            ref< MemoryLayout::Part >   part        -> MemoryStage::MemoryLayout;
+            value< bool >               singular    -> MemoryStage::MemoryLayout;
         }
-        object LinkSingle : Link -> MemoryStage::MemoryLayout
+
+        object UserLink : Link -> ConcreteStage::Concrete
         {
+            ref< Interface::TypedLinkTrait > interface_link;
         }
-        object LinkMany : Link -> MemoryStage::MemoryLayout
+
+        object OwnershipLink : Link -> ConcreteStage::Concrete
         {
         }
 
@@ -152,7 +164,8 @@ namespace Concrete
 
     object Object : UserDimensionContext -> ConcreteStage::Concrete
     {
-        ref< Interface::Object > interface_object;
+        ref< Interface::Object >                    interface_object;
+        late< ref< Dimensions::OwnershipLink > >    ownership_link;
 
         array< ref< MemoryLayout::Buffer > > buffers -> MemoryStage::MemoryLayout;
 

@@ -79,16 +79,18 @@ public:
     // clang-format off
     template
     <
-        typename ConcreteTypeID = ConcreteTypeAnalysis::Symbols::ConcreteTypeID,
-        typename IContext       = ConcreteTypeAnalysis::Interface::IContext,
-        typename IDim           = ConcreteTypeAnalysis::Interface::DimensionTrait,
-        typename ILink          = ConcreteTypeAnalysis::Interface::LinkTrait,
-        typename Context        = ConcreteTypeAnalysis::Concrete::Context,
-        typename ContextGroup   = ConcreteTypeAnalysis::Concrete::ContextGroup,
-        typename DimUser        = ConcreteTypeAnalysis::Concrete::Dimensions::User,
-        typename DimLink        = ConcreteTypeAnalysis::Concrete::Dimensions::Link,
-        typename DimAlloc       = ConcreteTypeAnalysis::Concrete::Dimensions::Allocation,
-        typename DimAllocator   = ConcreteTypeAnalysis::Concrete::Dimensions::Allocator
+        typename ConcreteTypeID     = ConcreteTypeAnalysis::Symbols::ConcreteTypeID,
+        typename IContext           = ConcreteTypeAnalysis::Interface::IContext,
+        typename IDim               = ConcreteTypeAnalysis::Interface::DimensionTrait,
+        typename ILink              = ConcreteTypeAnalysis::Interface::LinkTrait,
+        typename Context            = ConcreteTypeAnalysis::Concrete::Context,
+        typename ContextGroup       = ConcreteTypeAnalysis::Concrete::ContextGroup,
+        typename DimUser            = ConcreteTypeAnalysis::Concrete::Dimensions::User,
+        typename DimLink            = ConcreteTypeAnalysis::Concrete::Dimensions::Link,
+        typename DimUserLink        = ConcreteTypeAnalysis::Concrete::Dimensions::UserLink,
+        typename DimOwnershipLink   = ConcreteTypeAnalysis::Concrete::Dimensions::OwnershipLink,
+        typename DimAlloc           = ConcreteTypeAnalysis::Concrete::Dimensions::Allocation,
+        typename DimAllocator       = ConcreteTypeAnalysis::Concrete::Dimensions::Allocator
     >
     // clang-format on
     struct TypeIDSequenceGen
@@ -99,9 +101,19 @@ public:
         using DimCastFunctor = std::function< DimAllocator*( DimAlloc* ) >;
         DimCastFunctor dimCastFunctor;
 
-        TypeIDSequenceGen( CastFunctor castFunctor, DimCastFunctor dimCastFunctor )
+        using DimUserLinkCastFunctor = std::function< DimUserLink*( DimLink* ) >;
+        DimUserLinkCastFunctor dimUserLinkCastFunctor;
+
+        using DimOwnershipLinkCastFunctor = std::function< DimOwnershipLink*( DimLink* ) >;
+        DimOwnershipLinkCastFunctor dimOwnershipLinkCastFunctor;
+
+        TypeIDSequenceGen( CastFunctor castFunctor, DimCastFunctor dimCastFunctor,
+                           DimUserLinkCastFunctor      dimUserLinkCastFunctor,
+                           DimOwnershipLinkCastFunctor dimOwnershipLinkCastFunctor )
             : castFunctor( std::move( castFunctor ) )
             , dimCastFunctor( std::move( dimCastFunctor ) )
+            , dimUserLinkCastFunctor( std::move( dimUserLinkCastFunctor ) )
+            , dimOwnershipLinkCastFunctor( std::move( dimOwnershipLinkCastFunctor ) )
         {
         }
 
@@ -132,9 +144,23 @@ public:
         }
         TypeIDSequence operator()( DimLink* pDimLink ) const
         {
-            TypeIDSequence sequence{ getTypeID( pDimLink->get_interface_link() ) };
-            recurse( pDimLink->get_parent_context(), sequence );
-            return sequence;
+            if( auto pUserLink = dimUserLinkCastFunctor( pDimLink ) )
+            {
+                TypeIDSequence sequence{ getTypeID( pUserLink->get_interface_link() ) };
+                recurse( pUserLink->get_parent_context(), sequence );
+                return sequence;
+            }
+            else if( auto pOwnershipLink = dimOwnershipLinkCastFunctor( pDimLink ) )
+            {
+                // just specify the parent context twice
+                TypeIDSequence sequence{ getTypeID( pOwnershipLink->get_parent_context()->get_interface() ) };
+                recurse( pOwnershipLink->get_parent_context(), sequence );
+                return sequence;
+            }
+            else
+            {
+                THROW_RTE( "Unknown link type" );
+            }
         }
         TypeIDSequence operator()( DimAlloc* pDimAlloc ) const
         {
@@ -174,18 +200,15 @@ public:
         NewTypeIDMap                                                    new_concrete_type_ids;
         std::set< TypeID >                                              usedTypeIDs;
 
-        TypeIDSequenceGen< New::Symbols::ConcreteTypeID,
-                           New::Interface::IContext,
-                           New::Interface::DimensionTrait,
-                           New::Interface::LinkTrait,
-                           New::Concrete::Context,
-                           New::Concrete::ContextGroup,
-                           New::Concrete::Dimensions::User,
-                           New::Concrete::Dimensions::Link,
-                           New::Concrete::Dimensions::Allocation,
-                           New::Concrete::Dimensions::Allocator >
+        TypeIDSequenceGen< New::Symbols::ConcreteTypeID, New::Interface::IContext, New::Interface::DimensionTrait,
+                           New::Interface::LinkTrait, New::Concrete::Context, New::Concrete::ContextGroup,
+                           New::Concrete::Dimensions::User, New::Concrete::Dimensions::Link,
+                           New::Concrete::Dimensions::UserLink, New::Concrete::Dimensions::OwnershipLink,
+                           New::Concrete::Dimensions::Allocation, New::Concrete::Dimensions::Allocator >
             idgen( &New::db_cast< New::Concrete::Context, New::Concrete::ContextGroup >,
-                   &New::db_cast< New::Concrete::Dimensions::Allocator, New::Concrete::Dimensions::Allocation > );
+                   &New::db_cast< New::Concrete::Dimensions::Allocator, New::Concrete::Dimensions::Allocation >,
+                   &New::db_cast< New::Concrete::Dimensions::UserLink, New::Concrete::Dimensions::Link >,
+                   &New::db_cast< New::Concrete::Dimensions::OwnershipLink, New::Concrete::Dimensions::Link > );
 
         {
             auto pNewConcreteSymbol
@@ -615,18 +638,17 @@ public:
         const std::map< mega::TypeIDSequence, Symbols::ConcreteTypeID* > oldLinkIDSequences
             = pSymbolTable->get_concrete_type_id_set_link();
 
-        Task_ConcreteTypeAnalysis::TypeIDSequenceGen< Symbols::ConcreteTypeID,
-                                                      Interface::IContext,
-                                                      Interface::DimensionTrait,
-                                                      Interface::LinkTrait,
-                                                      Concrete::Context,
-                                                      Concrete::ContextGroup,
-                                                      Concrete::Dimensions::User,
-                                                      Concrete::Dimensions::Link,
-                                                      Concrete::Dimensions::Allocation,
-                                                      Concrete::Dimensions::Allocator >
+        Task_ConcreteTypeAnalysis::TypeIDSequenceGen<
+            Symbols::ConcreteTypeID, Interface::IContext, Interface::DimensionTrait, Interface::LinkTrait,
+            Concrete::Context, Concrete::ContextGroup, Concrete::Dimensions::User, Concrete::Dimensions::Link,
+            Concrete::Dimensions::UserLink, Concrete::Dimensions::OwnershipLink, Concrete::Dimensions::Allocation,
+            Concrete::Dimensions::Allocator >
             idgen( &db_cast< Concrete::Context, Concrete::ContextGroup >,
-                   &db_cast< Concrete::Dimensions::Allocator, Concrete::Dimensions::Allocation > );
+                   &db_cast< Concrete::Dimensions::Allocator, Concrete::Dimensions::Allocation >,
+                   &db_cast< Concrete::Dimensions::UserLink, Concrete::Dimensions::Link >,
+                   &db_cast< Concrete::Dimensions::OwnershipLink, Concrete::Dimensions::Link >
+
+            );
 
         for( auto pContext : database.many< Concrete::Context >( m_sourceFilePath ) )
         {

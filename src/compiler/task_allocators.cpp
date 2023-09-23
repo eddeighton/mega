@@ -363,96 +363,98 @@ struct PartDimensions
     mega::SizeAlignment calculatePartLayout( MemoryStage::Database& database, MemoryLayout::Part* pPart )
     {
         mega::SizeAlignment result;
-        for( auto p : user )
         {
-            const U64 szAlign = p->get_interface_dimension()->get_alignment();
-            const U64 szSize  = p->get_interface_dimension()->get_size();
-            result.alignment  = std::max( result.alignment, szAlign );
-            result.size       = padToAlignment( szAlign, result.size );
-            database.construct< Concrete::Dimensions::User >(
-                Concrete::Dimensions::User::Args{ p, result.size, pPart } );
-            result.size += szSize;
-        }
-        for( auto p : link )
-        {
-            p->set_part( pPart );
-
-            if( db_cast< Concrete::Dimensions::LinkSingle >( p ) )
+            for( auto p : user )
             {
-                const U64 szAlign = alignof( mega::reference );
-                const U64 szSize  = sizeof( mega::reference );
+                const U64 szAlign = p->get_interface_dimension()->get_alignment();
+                const U64 szSize  = p->get_interface_dimension()->get_size();
                 result.alignment  = std::max( result.alignment, szAlign );
                 result.size       = padToAlignment( szAlign, result.size );
-                p->set_offset( result.size );
+                database.construct< Concrete::Dimensions::User >(
+                    Concrete::Dimensions::User::Args{ p, result.size, pPart } );
                 result.size += szSize;
-            }
-            else if( db_cast< Concrete::Dimensions::LinkMany >( p ) )
-            {
-                const U64 szAlign = mega::DimensionTraits< mega::ReferenceVector >::Alignment;
-                const U64 szSize  = mega::DimensionTraits< mega::ReferenceVector >::Size;
-                result.alignment  = std::max( result.alignment, szAlign );
-                result.size       = padToAlignment( szAlign, result.size );
-                p->set_offset( result.size );
-                result.size += szSize;
-            }
-            else
-            {
-                THROW_RTE( "Unknown link reference type" );
             }
         }
-        for( Concrete::Dimensions::Allocation* p : alloc )
         {
-            p->set_part( pPart );
+            for( auto pLink : link )
+            {
+                pLink->set_part( pPart );
 
-            auto pAllocationDimension = db_cast< Concrete::Dimensions::Allocator >( p );
-            VERIFY_RTE( pAllocationDimension );
+                if( pLink->get_singular() )
+                {
+                    const U64 szAlign = alignof( mega::reference );
+                    const U64 szSize  = sizeof( mega::reference );
+                    result.alignment  = std::max( result.alignment, szAlign );
+                    result.size       = padToAlignment( szAlign, result.size );
+                    pLink->set_offset( result.size );
+                    result.size += szSize;
+                }
+                else
+                {
+                    const U64 szAlign = mega::DimensionTraits< mega::ReferenceVector >::Alignment;
+                    const U64 szSize  = mega::DimensionTraits< mega::ReferenceVector >::Size;
+                    result.alignment  = std::max( result.alignment, szAlign );
+                    result.size       = padToAlignment( szAlign, result.size );
+                    pLink->set_offset( result.size );
+                    result.size += szSize;
+                }
+            }
+        }
+        {
+            for( Concrete::Dimensions::Allocation* p : alloc )
+            {
+                p->set_part( pPart );
 
-            if( auto pAlloc = db_cast< Allocators::Nothing >( pAllocationDimension->get_allocator() ) )
-            {
-                THROW_RTE( "Unreachable" );
-            }
-            else if( auto pAlloc = db_cast< Allocators::Singleton >( pAllocationDimension->get_allocator() ) )
-            {
-                const U64 szAlign = alignof( bool );
-                const U64 szSize  = sizeof( bool );
-                result.alignment  = std::max( result.alignment, szAlign );
-                result.size       = padToAlignment( szAlign, result.size );
-                p->set_offset( result.size );
-                result.size += szSize;
-            }
-            else if( auto pAlloc = db_cast< Allocators::Range32 >( pAllocationDimension->get_allocator() ) )
-            {
-                const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
-                const U64 szSize            = getBitmask32AllocatorSize( szLocalDomainSize );
-                const U64 szAlign           = getBitmask32AllocatorAlignment( szLocalDomainSize );
-                result.alignment            = std::max( result.alignment, szAlign );
-                result.size                 = padToAlignment( szAlign, result.size );
-                p->set_offset( result.size );
-                result.size += szSize;
-            }
-            else if( auto pAlloc = db_cast< Allocators::Range64 >( pAllocationDimension->get_allocator() ) )
-            {
-                const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
-                const U64 szSize            = getBitmask64AllocatorSize( szLocalDomainSize );
-                const U64 szAlign           = getBitmask64AllocatorAlignment( szLocalDomainSize );
-                result.alignment            = std::max( result.alignment, szAlign );
-                result.size                 = padToAlignment( szAlign, result.size );
-                p->set_offset( result.size );
-                result.size += szSize;
-            }
-            else if( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocationDimension->get_allocator() ) )
-            {
-                const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
-                const U64 szSize            = getRingAllocatorSize( szLocalDomainSize );
-                const U64 szAlign           = getRingAllocatorAlignment( szLocalDomainSize );
-                result.alignment            = std::max( result.alignment, szAlign );
-                result.size                 = padToAlignment( szAlign, result.size );
-                p->set_offset( result.size );
-                result.size += szSize;
-            }
-            else
-            {
-                THROW_RTE( "Unknown allocator type" );
+                auto pAllocationDimension = db_cast< Concrete::Dimensions::Allocator >( p );
+                VERIFY_RTE( pAllocationDimension );
+
+                if( auto pAlloc = db_cast< Allocators::Nothing >( pAllocationDimension->get_allocator() ) )
+                {
+                    THROW_RTE( "Unreachable" );
+                }
+                else if( auto pAlloc = db_cast< Allocators::Singleton >( pAllocationDimension->get_allocator() ) )
+                {
+                    const U64 szAlign = alignof( bool );
+                    const U64 szSize  = sizeof( bool );
+                    result.alignment  = std::max( result.alignment, szAlign );
+                    result.size       = padToAlignment( szAlign, result.size );
+                    p->set_offset( result.size );
+                    result.size += szSize;
+                }
+                else if( auto pAlloc = db_cast< Allocators::Range32 >( pAllocationDimension->get_allocator() ) )
+                {
+                    const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
+                    const U64 szSize            = getBitmask32AllocatorSize( szLocalDomainSize );
+                    const U64 szAlign           = getBitmask32AllocatorAlignment( szLocalDomainSize );
+                    result.alignment            = std::max( result.alignment, szAlign );
+                    result.size                 = padToAlignment( szAlign, result.size );
+                    p->set_offset( result.size );
+                    result.size += szSize;
+                }
+                else if( auto pAlloc = db_cast< Allocators::Range64 >( pAllocationDimension->get_allocator() ) )
+                {
+                    const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
+                    const U64 szSize            = getBitmask64AllocatorSize( szLocalDomainSize );
+                    const U64 szAlign           = getBitmask64AllocatorAlignment( szLocalDomainSize );
+                    result.alignment            = std::max( result.alignment, szAlign );
+                    result.size                 = padToAlignment( szAlign, result.size );
+                    p->set_offset( result.size );
+                    result.size += szSize;
+                }
+                else if( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocationDimension->get_allocator() ) )
+                {
+                    const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
+                    const U64 szSize            = getRingAllocatorSize( szLocalDomainSize );
+                    const U64 szAlign           = getRingAllocatorAlignment( szLocalDomainSize );
+                    result.alignment            = std::max( result.alignment, szAlign );
+                    result.size                 = padToAlignment( szAlign, result.size );
+                    p->set_offset( result.size );
+                    result.size += szSize;
+                }
+                else
+                {
+                    THROW_RTE( "Unknown allocator type" );
+                }
             }
         }
 
@@ -556,27 +558,6 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
             THROW_RTE( "Unknown context type" );
         }
     }
-
-
-    /*else if ( auto pLink = db_cast< Link >( pContext ) )
-    {
-        Concrete::Dimensions::Link* pLinkRef = nullptr;
-        if ( pLink->get_link_interface()->get_link_trait()->get_cardinality().maximum().isMany() )
-        {
-            // range
-            pLinkRef = database.construct< Concrete::Dimensions::LinkMany >( Concrete::Dimensions::LinkMany::Args{
-                Concrete::Dimensions::Link::Args{ pParentContext, pLink } } );
-        }
-        else
-        {
-            // singular
-            pLinkRef = database.construct< Concrete::Dimensions::LinkSingle >( Concrete::Dimensions::LinkSingle::Args{
-                Concrete::Dimensions::Link::Args{ pParentContext, pLink } } );
-        }
-        pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize, pLinkRef } );
-    }*/
-
-    
 
     for( Concrete::Dimensions::Allocation* pAllocation : pContext->get_allocation_dimensions() )
     {

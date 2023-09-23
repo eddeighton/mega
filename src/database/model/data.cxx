@@ -4560,15 +4560,13 @@ namespace Concrete
           , p_PerSourceConcreteTable_Concrete_Dimensions_Link( loader )
           , p_MemoryLayout_Concrete_Dimensions_Link( loader )
           , parent_context( loader )
-          , interface_link( loader )
     {
     }
-    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context, const data::Ptr< data::Tree::Interface_LinkTrait >& interface_link)
+    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_Link >( loader, this ) )          , p_Concrete_Concrete_Graph_Vertex( loader )
           , p_PerSourceConcreteTable_Concrete_Dimensions_Link( loader )
           , p_MemoryLayout_Concrete_Dimensions_Link( loader )
           , parent_context( parent_context )
-          , interface_link( interface_link )
     {
     }
     bool Concrete_Dimensions_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4583,13 +4581,11 @@ namespace Concrete
     {
         loader.load( p_Concrete_Concrete_Graph_Vertex );
         loader.load( parent_context );
-        loader.load( interface_link );
     }
     void Concrete_Dimensions_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Graph_Vertex );
         storer.store( parent_context );
-        storer.store( interface_link );
     }
     void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
     {
@@ -4607,11 +4603,87 @@ namespace Concrete
                 { "parent_context", parent_context } } );
             _part__[ "properties" ].push_back( property );
         }
+    }
+        
+    // struct Concrete_Dimensions_UserLink : public mega::io::Object
+    Concrete_Dimensions_UserLink::Concrete_Dimensions_UserLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_UserLink >( loader, this ) )          , p_Concrete_Concrete_Dimensions_Link( loader )
+          , interface_link( loader )
+    {
+    }
+    Concrete_Dimensions_UserLink::Concrete_Dimensions_UserLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Clang::Interface_TypedLinkTrait >& interface_link)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_UserLink >( loader, this ) )          , p_Concrete_Concrete_Dimensions_Link( loader )
+          , interface_link( interface_link )
+    {
+    }
+    bool Concrete_Dimensions_UserLink::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Dimensions_UserLink >( loader, const_cast< Concrete_Dimensions_UserLink* >( this ) ) };
+    }
+    void Concrete_Dimensions_UserLink::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_Link->m_inheritance = data::Ptr< data::Concrete::Concrete_Dimensions_UserLink >( p_Concrete_Concrete_Dimensions_Link, this );
+    }
+    void Concrete_Dimensions_UserLink::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_Link );
+        loader.load( interface_link );
+    }
+    void Concrete_Dimensions_UserLink::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_Link );
+        storer.store( interface_link );
+    }
+    void Concrete_Dimensions_UserLink::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_UserLink" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_link", interface_link } } );
             _part__[ "properties" ].push_back( property );
         }
+    }
+        
+    // struct Concrete_Dimensions_OwnershipLink : public mega::io::Object
+    Concrete_Dimensions_OwnershipLink::Concrete_Dimensions_OwnershipLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_OwnershipLink >( loader, this ) )          , p_Concrete_Concrete_Dimensions_Link( loader )
+    {
+    }
+    bool Concrete_Dimensions_OwnershipLink::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Concrete::Concrete_Dimensions_OwnershipLink >( loader, const_cast< Concrete_Dimensions_OwnershipLink* >( this ) ) };
+    }
+    void Concrete_Dimensions_OwnershipLink::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_Link->m_inheritance = data::Ptr< data::Concrete::Concrete_Dimensions_OwnershipLink >( p_Concrete_Concrete_Dimensions_Link, this );
+    }
+    void Concrete_Dimensions_OwnershipLink::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_Link );
+    }
+    void Concrete_Dimensions_OwnershipLink::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_Link );
+    }
+    void Concrete_Dimensions_OwnershipLink::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_OwnershipLink" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
     }
         
     // struct Concrete_ContextGroup : public mega::io::Object
@@ -5137,6 +5209,7 @@ namespace Concrete
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_UserDimensionContext( loader )
           , p_MemoryLayout_Concrete_Object( loader )
           , interface_object( loader )
+          , ownership_link( loader )
     {
     }
     Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object)
@@ -5157,11 +5230,14 @@ namespace Concrete
     {
         loader.load( p_Concrete_Concrete_UserDimensionContext );
         loader.load( interface_object );
+        loader.load( ownership_link );
     }
     void Concrete_Object::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_UserDimensionContext );
         storer.store( interface_object );
+        VERIFY_RTE_MSG( ownership_link.has_value(), "Concrete::Concrete_Object.ownership_link has NOT been set" );
+        storer.store( ownership_link );
     }
     void Concrete_Object::to_json( nlohmann::json& _part__ ) const
     {
@@ -5177,6 +5253,11 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_object", interface_object } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "ownership_link", ownership_link.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -5235,7 +5316,7 @@ namespace Derivations
     Inheritance_ObjectMapping::Inheritance_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Inheritance_ObjectMapping >( loader, this ) )    {
     }
-    Inheritance_ObjectMapping::Inheritance_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const mega::U64& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions, const std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& inheritance_links)
+    Inheritance_ObjectMapping::Inheritance_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const mega::U64& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions, const std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& inheritance_links)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Inheritance_ObjectMapping >( loader, this ) )          , source_file( source_file )
           , hash_code( hash_code )
           , inheritance_contexts( inheritance_contexts )
@@ -5308,7 +5389,7 @@ namespace Derivations
     Inheritance_Mapping::Inheritance_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Inheritance_Mapping >( loader, this ) )    {
     }
-    Inheritance_Mapping::Inheritance_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Inheritance_ObjectMapping > >& mappings, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions, const std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& inheritance_links)
+    Inheritance_Mapping::Inheritance_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Inheritance_ObjectMapping > >& mappings, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions, const std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& inheritance_links)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Inheritance_Mapping >( loader, this ) )          , mappings( mappings )
           , inheritance_contexts( inheritance_contexts )
           , inheritance_dimensions( inheritance_dimensions )
@@ -5423,7 +5504,7 @@ namespace PerSourceDerivations
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_LinkTrait( loader )
     {
     }
-    Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_LinkTrait > p_Tree_Interface_LinkTrait, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& concrete)
+    Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_LinkTrait > p_Tree_Interface_LinkTrait, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& concrete)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_LinkTrait( p_Tree_Interface_LinkTrait )
           , concrete( concrete )
     {
@@ -5568,6 +5649,65 @@ namespace Model
         {
             nlohmann::json property = nlohmann::json::object({
                 { "target", target } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Graph_Derivation : public mega::io::Object
+    Concrete_Graph_Derivation::Concrete_Graph_Derivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::Concrete_Graph_Derivation >( loader, this ) )          , source( loader )
+          , target( loader )
+    {
+    }
+    Concrete_Graph_Derivation::Concrete_Graph_Derivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Graph_Vertex >& source, const data::Ptr< data::Concrete::Concrete_Graph_Vertex >& target, const std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& edges)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::Concrete_Graph_Derivation >( loader, this ) )          , source( source )
+          , target( target )
+          , edges( edges )
+    {
+    }
+    bool Concrete_Graph_Derivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Model::Concrete_Graph_Derivation >( loader, const_cast< Concrete_Graph_Derivation* >( this ) ) };
+    }
+    void Concrete_Graph_Derivation::set_inheritance_pointer()
+    {
+    }
+    void Concrete_Graph_Derivation::load( mega::io::Loader& loader )
+    {
+        loader.load( source );
+        loader.load( target );
+        loader.load( edges );
+    }
+    void Concrete_Graph_Derivation::store( mega::io::Storer& storer ) const
+    {
+        storer.store( source );
+        storer.store( target );
+        storer.store( edges );
+    }
+    void Concrete_Graph_Derivation::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Graph_Derivation" },
+                { "filetype" , "Model" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "source", source } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "target", target } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "edges", edges } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -5854,10 +5994,12 @@ namespace PerSourceModel
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Graph_Vertex( loader )
     {
     }
-    Concrete_Graph_Vertex::Concrete_Graph_Vertex( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Graph_Vertex > p_Concrete_Concrete_Graph_Vertex, const std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& out_edges, const std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& in_edges)
+    Concrete_Graph_Vertex::Concrete_Graph_Vertex( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Graph_Vertex > p_Concrete_Concrete_Graph_Vertex, const std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& out_edges, const std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& in_edges, const std::vector< data::Ptr< data::Model::Concrete_Graph_Derivation > >& object_link_derivations, const std::vector< data::Ptr< data::Model::Concrete_Graph_Derivation > >& component_link_derivations)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Graph_Vertex( p_Concrete_Concrete_Graph_Vertex )
           , out_edges( out_edges )
           , in_edges( in_edges )
+          , object_link_derivations( object_link_derivations )
+          , component_link_derivations( component_link_derivations )
     {
     }
     bool Concrete_Graph_Vertex::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -5873,12 +6015,16 @@ namespace PerSourceModel
         loader.load( p_Concrete_Concrete_Graph_Vertex );
         loader.load( out_edges );
         loader.load( in_edges );
+        loader.load( object_link_derivations );
+        loader.load( component_link_derivations );
     }
     void Concrete_Graph_Vertex::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Graph_Vertex );
         storer.store( out_edges );
         storer.store( in_edges );
+        storer.store( object_link_derivations );
+        storer.store( component_link_derivations );
     }
     void Concrete_Graph_Vertex::to_json( nlohmann::json& _part__ ) const
     {
@@ -5899,6 +6045,16 @@ namespace PerSourceModel
         {
             nlohmann::json property = nlohmann::json::object({
                 { "in_edges", in_edges } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "object_link_derivations", object_link_derivations } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "component_link_derivations", component_link_derivations } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -5967,10 +6123,11 @@ namespace MemoryLayout
           , part( loader )
     {
     }
-    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const mega::U64& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part)
+    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const mega::U64& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part, const bool& singular)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( p_Concrete_Concrete_Dimensions_Link )
           , offset( offset )
           , part( part )
+          , singular( singular )
     {
     }
     bool Concrete_Dimensions_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -5986,12 +6143,14 @@ namespace MemoryLayout
         loader.load( p_Concrete_Concrete_Dimensions_Link );
         loader.load( offset );
         loader.load( part );
+        loader.load( singular );
     }
     void Concrete_Dimensions_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Dimensions_Link );
         storer.store( offset );
         storer.store( part );
+        storer.store( singular );
     }
     void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
     {
@@ -6014,74 +6173,11 @@ namespace MemoryLayout
                 { "part", part } } );
             _part__[ "properties" ].push_back( property );
         }
-    }
-        
-    // struct Concrete_Dimensions_LinkSingle : public mega::io::Object
-    Concrete_Dimensions_LinkSingle::Concrete_Dimensions_LinkSingle( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle >( loader, this ) )          , p_Concrete_Concrete_Dimensions_Link( loader )
-    {
-    }
-    bool Concrete_Dimensions_LinkSingle::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle >( loader, const_cast< Concrete_Dimensions_LinkSingle* >( this ) ) };
-    }
-    void Concrete_Dimensions_LinkSingle::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_Dimensions_Link->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle >( p_Concrete_Concrete_Dimensions_Link, this );
-    }
-    void Concrete_Dimensions_LinkSingle::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_Dimensions_Link );
-    }
-    void Concrete_Dimensions_LinkSingle::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_Dimensions_Link );
-    }
-    void Concrete_Dimensions_LinkSingle::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_LinkSingle" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Concrete_Dimensions_LinkMany : public mega::io::Object
-    Concrete_Dimensions_LinkMany::Concrete_Dimensions_LinkMany( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany >( loader, this ) )          , p_Concrete_Concrete_Dimensions_Link( loader )
-    {
-    }
-    bool Concrete_Dimensions_LinkMany::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany >( loader, const_cast< Concrete_Dimensions_LinkMany* >( this ) ) };
-    }
-    void Concrete_Dimensions_LinkMany::set_inheritance_pointer()
-    {
-        p_Concrete_Concrete_Dimensions_Link->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany >( p_Concrete_Concrete_Dimensions_Link, this );
-    }
-    void Concrete_Dimensions_LinkMany::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Concrete_Concrete_Dimensions_Link );
-    }
-    void Concrete_Dimensions_LinkMany::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Concrete_Concrete_Dimensions_Link );
-    }
-    void Concrete_Dimensions_LinkMany::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_LinkMany" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "singular", singular } } );
+            _part__[ "properties" ].push_back( property );
+        }
     }
         
     // struct Concrete_Dimensions_Allocation : public mega::io::Object
@@ -10171,6 +10267,62 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& Concrete_Context_pus
         }
     }
 }
+std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& Concrete_Graph_Derivation_push_back_edges(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Model::Concrete_Graph_Derivation::Object_Part_Type_ID:
+            return data::convert< data::Model::Concrete_Graph_Derivation >( m_data )->edges;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Model::Concrete_Graph_Derivation > >& Concrete_Graph_Vertex_push_back_component_link_derivations(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Graph_Vertex::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& Concrete_Graph_Vertex_push_back_in_edges(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -10180,6 +10332,10 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& Concrete_Graph_Ver
         case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
@@ -10211,6 +10367,50 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& Concrete_Graph_Ver
         }
     }
 }
+std::vector< data::Ptr< data::Model::Concrete_Graph_Derivation > >& Concrete_Graph_Vertex_push_back_object_link_derivations(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Graph_Vertex::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& Concrete_Graph_Vertex_push_back_out_edges(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -10220,6 +10420,10 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& Concrete_Graph_Ver
         case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
@@ -10443,7 +10647,7 @@ std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< dat
         }
     }
 }
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& Inheritance_Mapping_insert_inheritance_links(data::Variant& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& Inheritance_Mapping_insert_inheritance_links(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -10491,7 +10695,7 @@ std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< dat
         }
     }
 }
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& Inheritance_ObjectMapping_insert_inheritance_links(data::Variant& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& Inheritance_ObjectMapping_insert_inheritance_links(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -10751,7 +10955,7 @@ std::vector< data::Ptr< data::Locations::Interface_InvocationInstance > >& Inter
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& Interface_LinkTrait_push_back_concrete(data::Variant& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& Interface_LinkTrait_push_back_concrete(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -11943,9 +12147,9 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Concrete_Conte
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         default:
         {
@@ -12245,16 +12449,28 @@ data::Ptr< data::MemoryLayout::Allocators_Allocator >& get_Concrete_Dimensions_A
         }
     }
 }
-data::Ptr< data::Tree::Interface_LinkTrait >& get_Concrete_Dimensions_Link_interface_link(data::Variant& m_data)
+bool& get_Concrete_Dimensions_Link_singular(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->interface_link;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->interface_link;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->interface_link;
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Clang::Interface_TypedLinkTrait >& get_Concrete_Dimensions_UserLink_interface_link(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_UserLink >( m_data )->interface_link;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12271,9 +12487,9 @@ mega::TypeID& get_Concrete_Dimensions_User_concrete_id(data::Variant& m_data)
             return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Link >( m_data )->concrete_id;
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Link >( m_data )->concrete_id;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Link >( m_data )->concrete_id;
         case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
@@ -12321,9 +12537,9 @@ mega::U64& get_Concrete_Dimensions_User_offset(data::Variant& m_data)
             return data::convert< data::MemoryLayout::Concrete_Dimensions_User >( m_data )->offset;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->offset;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->offset;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->offset;
         default:
         {
@@ -12339,9 +12555,9 @@ data::Ptr< data::Concrete::Concrete_Context >& get_Concrete_Dimensions_User_pare
             return data::convert< data::Concrete::Concrete_Dimensions_User >( m_data )->parent_context;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->parent_context;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->parent_context;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->parent_context;
         default:
         {
@@ -12357,9 +12573,9 @@ data::Ptr< data::MemoryLayout::MemoryLayout_Part >& get_Concrete_Dimensions_User
             return data::convert< data::MemoryLayout::Concrete_Dimensions_User >( m_data )->part;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->part;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->part;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->part;
         default:
         {
@@ -12385,6 +12601,42 @@ data::Ptr< data::Tree::Interface_Function >& get_Concrete_Function_interface_fun
     {
         case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Function >( m_data )->interface_function;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph_Derivation_edges(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Model::Concrete_Graph_Derivation::Object_Part_Type_ID:
+            return data::convert< data::Model::Concrete_Graph_Derivation >( m_data )->edges;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Graph_Vertex >& get_Concrete_Graph_Derivation_source(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Model::Concrete_Graph_Derivation::Object_Part_Type_ID:
+            return data::convert< data::Model::Concrete_Graph_Derivation >( m_data )->source;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Graph_Vertex >& get_Concrete_Graph_Derivation_target(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Model::Concrete_Graph_Derivation::Object_Part_Type_ID:
+            return data::convert< data::Model::Concrete_Graph_Derivation >( m_data )->target;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12427,6 +12679,52 @@ mega::EdgeType& get_Concrete_Graph_Edge_type(data::Variant& m_data)
         }
     }
 }
+std::vector< data::Ptr< data::Model::Concrete_Graph_Derivation > >& get_Concrete_Graph_Vertex_component_link_derivations(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Graph_Vertex::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph_Vertex_in_edges(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12436,6 +12734,10 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph
         case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
@@ -12459,14 +12761,56 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
-        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Model::Concrete_Graph_Derivation > >& get_Concrete_Graph_Vertex_object_link_derivations(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Graph_Vertex::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12483,9 +12827,9 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
@@ -12509,9 +12853,9 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
-        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         default:
         {
@@ -12577,6 +12921,20 @@ data::Ptr< data::Tree::Interface_Object >& get_Concrete_Object_interface_object(
             return data::convert< data::Concrete::Concrete_Object >( m_data )->interface_object;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Object >( m_data )->interface_object;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_OwnershipLink > >& get_Concrete_Object_ownership_link(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->ownership_link;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->ownership_link;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12933,7 +13291,7 @@ std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< dat
         }
     }
 }
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Inheritance_Mapping_inheritance_links(data::Variant& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& get_Inheritance_Mapping_inheritance_links(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -12993,7 +13351,7 @@ std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< dat
         }
     }
 }
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Inheritance_ObjectMapping_inheritance_links(data::Variant& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& get_Inheritance_ObjectMapping_inheritance_links(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -13725,7 +14083,7 @@ mega::SourceLocation& get_Interface_InvocationInstance_source_location(data::Var
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& get_Interface_LinkTrait_concrete(data::Variant& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& get_Interface_LinkTrait_concrete(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -17057,12 +17415,28 @@ data::Ptr< data::MemoryLayout::Allocators_Allocator >& set_Concrete_Dimensions_A
         }
     }
 }
-data::Ptr< data::Tree::Interface_LinkTrait >& set_Concrete_Dimensions_Link_interface_link(data::Variant& m_data)
+bool& set_Concrete_Dimensions_Link_singular(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->interface_link;
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Clang::Interface_TypedLinkTrait >& set_Concrete_Dimensions_UserLink_interface_link(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_UserLink >( m_data )->interface_link;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17079,9 +17453,9 @@ mega::TypeID& set_Concrete_Dimensions_User_concrete_id(data::Variant& m_data)
             return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Link >( m_data )->concrete_id;
         case data::Concrete::Concrete_Context::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Link >( m_data )->concrete_id;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Dimensions_Link >( m_data )->concrete_id;
         case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
             return data::convert< data::PerSourceConcreteTable::Concrete_Context >( m_data )->concrete_id;
@@ -17129,9 +17503,9 @@ mega::U64& set_Concrete_Dimensions_User_offset(data::Variant& m_data)
             return data::convert< data::MemoryLayout::Concrete_Dimensions_User >( m_data )->offset;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->offset;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->offset;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->offset;
         default:
         {
@@ -17147,6 +17521,10 @@ data::Ptr< data::Concrete::Concrete_Context >& set_Concrete_Dimensions_User_pare
             return data::convert< data::Concrete::Concrete_Dimensions_User >( m_data )->parent_context;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->parent_context;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->parent_context;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Dimensions_Link >( m_data )->parent_context;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17161,9 +17539,9 @@ data::Ptr< data::MemoryLayout::MemoryLayout_Part >& set_Concrete_Dimensions_User
             return data::convert< data::MemoryLayout::Concrete_Dimensions_User >( m_data )->part;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->part;
-        case data::MemoryLayout::Concrete_Dimensions_LinkSingle::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->part;
-        case data::MemoryLayout::Concrete_Dimensions_LinkMany::Object_Part_Type_ID:
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->part;
         default:
         {
@@ -17189,6 +17567,42 @@ data::Ptr< data::Tree::Interface_Function >& set_Concrete_Function_interface_fun
     {
         case data::Concrete::Concrete_Function::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Function >( m_data )->interface_function;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& set_Concrete_Graph_Derivation_edges(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Model::Concrete_Graph_Derivation::Object_Part_Type_ID:
+            return data::convert< data::Model::Concrete_Graph_Derivation >( m_data )->edges;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Graph_Vertex >& set_Concrete_Graph_Derivation_source(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Model::Concrete_Graph_Derivation::Object_Part_Type_ID:
+            return data::convert< data::Model::Concrete_Graph_Derivation >( m_data )->source;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Graph_Vertex >& set_Concrete_Graph_Derivation_target(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Model::Concrete_Graph_Derivation::Object_Part_Type_ID:
+            return data::convert< data::Model::Concrete_Graph_Derivation >( m_data )->target;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17231,6 +17645,50 @@ mega::EdgeType& set_Concrete_Graph_Edge_type(data::Variant& m_data)
         }
     }
 }
+std::vector< data::Ptr< data::Model::Concrete_Graph_Derivation > >& set_Concrete_Graph_Vertex_component_link_derivations(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Graph_Vertex::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->component_link_derivations;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& set_Concrete_Graph_Vertex_in_edges(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -17240,6 +17698,10 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& set_Concrete_Graph
         case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
@@ -17271,6 +17733,50 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& set_Concrete_Graph
         }
     }
 }
+std::vector< data::Ptr< data::Model::Concrete_Graph_Derivation > >& set_Concrete_Graph_Vertex_object_link_derivations(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Graph_Vertex::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Context::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Interupt::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Function::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_UserDimensionContext::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Namespace::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_State::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Action::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Component::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Event::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->object_link_derivations;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& set_Concrete_Graph_Vertex_out_edges(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -17280,6 +17786,10 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& set_Concrete_Graph
         case data::Concrete::Concrete_Dimensions_User::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_ContextGroup::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
@@ -17365,6 +17875,18 @@ data::Ptr< data::Tree::Interface_Object >& set_Concrete_Object_interface_object(
     {
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_Object >( m_data )->interface_object;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_OwnershipLink > >& set_Concrete_Object_ownership_link(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Object::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_Object >( m_data )->ownership_link;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -17717,7 +18239,7 @@ std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< dat
         }
     }
 }
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Inheritance_Mapping_inheritance_links(data::Variant& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& set_Inheritance_Mapping_inheritance_links(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -17777,7 +18299,7 @@ std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< dat
         }
     }
 }
-std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Inheritance_ObjectMapping_inheritance_links(data::Variant& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_LinkTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& set_Inheritance_ObjectMapping_inheritance_links(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -18461,7 +18983,7 @@ mega::SourceLocation& set_Interface_InvocationInstance_source_location(data::Var
         }
     }
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_Link > >& set_Interface_LinkTrait_concrete(data::Variant& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_UserLink > >& set_Interface_LinkTrait_concrete(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -21177,16 +21699,16 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 78: return new Tree::Interface_Interupt( loader, objectInfo );
         case 79: return new Tree::Interface_Function( loader, objectInfo );
         case 80: return new Tree::Interface_Object( loader, objectInfo );
-        case 188: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
-        case 189: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
-        case 190: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
-        case 159: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 160: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 161: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 162: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 163: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 164: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 166: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 189: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
+        case 190: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
+        case 191: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
+        case 160: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 161: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 162: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 163: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 164: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 165: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 167: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 39: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 43: return new PerSourceSymbols::Interface_LinkTrait( loader, objectInfo );
         case 67: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
@@ -21204,63 +21726,64 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 61: return new Clang::Interface_EventTypeTrait( loader, objectInfo );
         case 63: return new Clang::Interface_SizeTrait( loader, objectInfo );
         case 116: return new Concrete::Concrete_Graph_Vertex( loader, objectInfo );
-        case 119: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
-        case 122: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
-        case 130: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 131: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 134: return new Concrete::Concrete_Interupt( loader, objectInfo );
-        case 135: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 136: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
-        case 137: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 138: return new Concrete::Concrete_State( loader, objectInfo );
-        case 140: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 141: return new Concrete::Concrete_Component( loader, objectInfo );
-        case 142: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 144: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 147: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 168: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
-        case 169: return new Derivations::Inheritance_Mapping( loader, objectInfo );
+        case 120: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
+        case 123: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
+        case 126: return new Concrete::Concrete_Dimensions_UserLink( loader, objectInfo );
+        case 127: return new Concrete::Concrete_Dimensions_OwnershipLink( loader, objectInfo );
+        case 131: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 132: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 135: return new Concrete::Concrete_Interupt( loader, objectInfo );
+        case 136: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 137: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
+        case 138: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 139: return new Concrete::Concrete_State( loader, objectInfo );
+        case 141: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 142: return new Concrete::Concrete_Component( loader, objectInfo );
+        case 143: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 145: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 148: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 169: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
+        case 170: return new Derivations::Inheritance_Mapping( loader, objectInfo );
         case 40: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
         case 44: return new PerSourceDerivations::Interface_LinkTrait( loader, objectInfo );
         case 68: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
         case 118: return new Model::Concrete_Graph_Edge( loader, objectInfo );
-        case 170: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 171: return new Model::HyperGraph_ObjectRelation( loader, objectInfo );
-        case 172: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
-        case 173: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
-        case 174: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 119: return new Model::Concrete_Graph_Derivation( loader, objectInfo );
+        case 171: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 172: return new Model::HyperGraph_ObjectRelation( loader, objectInfo );
+        case 173: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
+        case 174: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
+        case 175: return new Model::HyperGraph_Graph( loader, objectInfo );
         case 47: return new PerSourceModel::Interface_ObjectLinkTrait( loader, objectInfo );
         case 117: return new PerSourceModel::Concrete_Graph_Vertex( loader, objectInfo );
-        case 121: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
-        case 124: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
-        case 125: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
-        case 126: return new MemoryLayout::Concrete_Dimensions_LinkMany( loader, objectInfo );
-        case 127: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 129: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
-        case 133: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 139: return new MemoryLayout::Concrete_State( loader, objectInfo );
-        case 143: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 145: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 175: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 176: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 177: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 178: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 179: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 180: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 181: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 182: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 183: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 184: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 185: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 186: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 187: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
-        case 146: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
-        case 165: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 167: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
-        case 120: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
-        case 123: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
-        case 128: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 132: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 122: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 125: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
+        case 128: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 130: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
+        case 134: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 140: return new MemoryLayout::Concrete_State( loader, objectInfo );
+        case 144: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 146: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 176: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 177: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 178: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 179: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 180: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 181: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 182: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 183: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 184: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 185: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
+        case 186: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 187: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 188: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
+        case 147: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
+        case 166: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 168: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 121: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
+        case 124: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
+        case 129: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 133: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
         case 81: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
         case 82: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
         case 83: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
@@ -21296,25 +21819,25 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 113: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
         case 114: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
         case 115: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 148: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 149: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 150: return new Operations::Operations_Element( loader, objectInfo );
-        case 151: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 152: return new Operations::Operations_Context( loader, objectInfo );
-        case 153: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 154: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 155: return new Operations::Operations_Name( loader, objectInfo );
-        case 156: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 157: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 158: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 149: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 150: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 151: return new Operations::Operations_Element( loader, objectInfo );
+        case 152: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 153: return new Operations::Operations_Context( loader, objectInfo );
+        case 154: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 155: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 156: return new Operations::Operations_Name( loader, objectInfo );
+        case 157: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 158: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 159: return new Operations::Operations_Invocations( loader, objectInfo );
         case 69: return new Locations::Interface_InvocationInstance( loader, objectInfo );
         case 71: return new Locations::Interface_InvocationContext( loader, objectInfo );
-        case 191: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
-        case 192: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
-        case 193: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
-        case 194: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
-        case 195: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
-        case 196: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
+        case 192: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
+        case 193: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
+        case 194: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
+        case 195: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
+        case 196: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
+        case 197: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

@@ -217,12 +217,27 @@ public:
             dimensions.push_back( pConcreteDimension );
         }
 
-        for( Interface::LinkTrait* pInterfaceLink : inheritedContexts.links )
         {
-            auto              pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
-            Dimensions::Link* pConcreteLink          = database.construct< Dimensions::Link >(
-                Dimensions::Link::Args{ Graph::Vertex::Args{}, pParentConcreteContext, pInterfaceLink } );
-            links.push_back( pConcreteLink );
+            for( Interface::LinkTrait* pInterfaceLink : inheritedContexts.links )
+            {
+                auto pTypedLinkTrait = db_cast< Interface::TypedLinkTrait >( pInterfaceLink );
+                VERIFY_RTE( pTypedLinkTrait );
+                auto pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
+                // clang-format off
+                Dimensions::UserLink* pConcreteLink = database.construct< Dimensions::UserLink >
+                (
+                    Dimensions::UserLink::Args
+                    { 
+                        Dimensions::Link::Args
+                        { 
+                            Graph::Vertex::Args{}, 
+                            pParentConcreteContext
+                        },
+                        pTypedLinkTrait 
+                    } );
+                // clang-format on
+                links.push_back( pConcreteLink );
+            }
         }
     }
 
@@ -515,9 +530,27 @@ public:
             constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, links,
                                concreteObjectOpt, pComponent );
 
+            // add compiler generated concrete elements
+            // clang-format off
+            Dimensions::OwnershipLink* pOwnershipLink = 
+                database.construct< Dimensions::OwnershipLink >
+            (
+                Dimensions::OwnershipLink::Args
+                { 
+                    Dimensions::Link::Args
+                    {
+                        Graph::Vertex::Args{}, 
+                        pConcrete
+                    }
+                } 
+            );
+            links.push_back( pOwnershipLink );
+            // clang-format on
+
             pConcrete->set_dimensions( dimensions );
-            pConcrete->set_links( links );
             pConcrete->set_children( childContexts );
+            pConcrete->set_links( links );
+            pConcrete->set_ownership_link( pOwnershipLink );
 
             return pConcrete;
         }

@@ -54,7 +54,7 @@ namespace Interface
         value< mega::TypeID > symbol_id -> SymbolRollout::PerSourceSymbols;
         value< mega::TypeID > interface_id -> SymbolRollout::PerSourceSymbols;
 
-        array< ref< Concrete::Dimensions::Link > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
+        array< ref< Concrete::Dimensions::UserLink > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
     }
 
     object TypedLinkTrait : LinkTrait -> InterfaceAnalysisStage::Clang

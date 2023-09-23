@@ -325,17 +325,13 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
         using namespace FinalStage::Concrete;
 
         std::string strMangled;
-        if( db_cast< Concrete::Dimensions::LinkMany >( pLinkDimension ) )
-        {
-            // const std::string   strMangled
-            //     = megaMangle( pLinkDimension->get_link()-> );
-        }
-        else if( db_cast< Concrete::Dimensions::LinkSingle >( pLinkDimension ) )
+        if( pLinkDimension->get_singular() )
         {
         }
         else
         {
-            THROW_RTE( "Unknown link reference type" );
+            // const std::string   strMangled
+            //     = megaMangle( pLinkDimension->get_link()-> );
         }
 
         /*

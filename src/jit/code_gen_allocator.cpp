@@ -386,19 +386,15 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
                     } );
 
-                    if( auto pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( pLinkDim ) )
-                    {
-                        strMangle          = megaMangle( mega::psz_mega_reference_vector );
-                        link[ "singular" ] = false;
-                    }
-                    else if( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
+                    if( pLinkDim->get_singular() )
                     {
                         strMangle          = megaMangle( mega::psz_mega_reference );
                         link[ "singular" ] = true;
                     }
                     else
                     {
-                        THROW_RTE( "Unknown link type" );
+                        strMangle          = megaMangle( mega::psz_mega_reference_vector );
+                        link[ "singular" ] = false;
                     }
 
                     if( bSource )

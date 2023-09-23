@@ -324,6 +324,22 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
         addProperties( node, pAction->get_dimension_traits() );
         addTransition( pAction->get_transition_trait(), node );
     }
+    else if( auto pComponent = db_cast< Component >( pContext ) )
+    {
+        os << "Component: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        node[ "label" ] = os.str();
+        addInheritance( pComponent->get_inheritance_trait(), node );
+        addProperties( node, pComponent->get_dimension_traits() );
+        addTransition( pComponent->get_transition_trait(), node );
+    }
+    else if( auto pState = db_cast< State >( pContext ) )
+    {
+        os << "State: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        node[ "label" ] = os.str();
+        addInheritance( pState->get_inheritance_trait(), node );
+        addProperties( node, pState->get_dimension_traits() );
+        addTransition( pState->get_transition_trait(), node );
+    }
     else if( auto pEvent = db_cast< Event >( pContext ) )
     {
         os << "Event: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
@@ -439,11 +455,23 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
         node[ "label" ] = os.str();
         addProperties( node, pNamespace->get_dimensions() );
     }
+    else if( Component* pComponent = db_cast< Component >( pContext ) )
+    {
+        os << "Component: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        node[ "label" ] = os.str();
+        addProperties( node, pComponent->get_dimensions() );
+    }
     else if( Action* pAction = db_cast< Action >( pContext ) )
     {
         os << "Action: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
         node[ "label" ] = os.str();
         addProperties( node, pAction->get_dimensions() );
+    }
+    else if( State* pState = db_cast< State >( pContext ) )
+    {
+        os << "State: " << getIdentifier( pContext ) << " " << getNodeInfo( pContext );
+        node[ "label" ] = os.str();
+        addProperties( node, pState->get_dimensions() );
     }
     else if( Event* pEvent = db_cast< Event >( pContext ) )
     {
@@ -544,13 +572,13 @@ void generateInterfaceGraphVizConcrete( std::ostream&          os,
     }
     os << data;
 }
-/*
-void createGraphNode( std::set< FinalStage::Interface::Link* >& links, FinalStage::Interface::Link* pLink,
+
+void createGraphNode( std::set< FinalStage::Interface::LinkTrait* >& links, FinalStage::Interface::LinkTrait* pLink,
                       nlohmann::json& data, bool bInterface )
 {
     using namespace FinalStage;
 
-    std::ostringstream os;
+    /*std::ostringstream os;
     if( bInterface )
         os << "Interface: " << getContextFullTypeName< Interface::IContext >( pLink );
     else
@@ -562,28 +590,28 @@ void createGraphNode( std::set< FinalStage::Interface::Link* >& links, FinalStag
         NODE( node, getContextFullTypeName< Interface::IContext >( pLink ), os.str() );
         data[ "nodes" ].push_back( node );
         links.insert( pLink );
-    }
+    }*/
 }
 
-void createEdge( FinalStage::Interface::Link*                                                         pFrom,
-                 FinalStage::Interface::Link*                                                         pTo,
-                 std::set< std::pair< FinalStage::Interface::Link*, FinalStage::Interface::Link* > >& edges,
-                 nlohmann::json&                                                                      data )
+void createEdge( FinalStage::Interface::LinkTrait*                                                              pFrom,
+                 FinalStage::Interface::LinkTrait*                                                              pTo,
+                 std::set< std::pair< FinalStage::Interface::LinkTrait*, FinalStage::Interface::LinkTrait* > >& edges,
+                 nlohmann::json&                                                                                data )
 {
     using namespace FinalStage;
 
-    using LinkPair = std::pair< Interface::Link*, Interface::Link* >;
+    using LinkPair = std::pair< Interface::LinkTrait*, Interface::LinkTrait* >;
     // LinkPair p{ pFrom < pTo ? pFrom : pTo, pFrom < pTo ? pTo : pFrom };
     LinkPair p{ pFrom, pTo };
-    if( !edges.count( p ) )
+    /*if( !edges.count( p ) )
     {
         nlohmann::json edge
-            = nlohmann::json::object( { { "from", getContextFullTypeName< Interface::IContext >( pFrom ) },
-                                        { "to", getContextFullTypeName< Interface::IContext >( pTo ) },
+            = nlohmann::json::object( { { "from", getDimensionFullTypeName< Interface::IContext >( pFrom ) },
+                                        { "to", getDimensionFullTypeName< Interface::IContext >( pTo ) },
                                         { "colour", "000000" } } );
         data[ "edges" ].push_back( edge );
         edges.insert( p );
-    }
+    }*/
 }
 
 void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment, mega::io::Manifest& manifest )
@@ -593,17 +621,17 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
     nlohmann::json data
         = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
 
-    std::set< Interface::Link* > links;
-    using LinkPair = std::pair< Interface::Link*, Interface::Link* >;
+    std::set< Interface::LinkTrait* > links;
+    using LinkPair = std::pair< Interface::LinkTrait*, Interface::LinkTrait* >;
     std::set< LinkPair > edges;
 
     for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
     {
         Database database( environment, sourceFilePath );
 
-        for( Concrete::Link* pLink : database.many< Concrete::Link >( sourceFilePath ) )
+        /*for( Concrete::Link* pLink : database.many< Concrete::Link >( sourceFilePath ) )
         {
-            Interface::Link*      pInterfaceLink = pLink->get_link();
+            Interface::LinkTrait*      pInterfaceLink = pLink->get_link();
             HyperGraph::Relation* pRelation      = pInterfaceLink->get_relation();
 
             Interface::LinkInterface* pSourceInterface = pRelation->get_source_interface();
@@ -613,20 +641,20 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
             createGraphNode( links, pTargetInterface, data, true );
             createEdge( pSourceInterface, pTargetInterface, edges, data );
 
-            for( Interface::Link* pSource : pRelation->get_sources() )
+            for( Interface::LinkTrait* pSource : pRelation->get_sources() )
             {
                 createGraphNode( links, pSource, data, false );
                 createEdge( pSourceInterface, pSource, edges, data );
             }
-            for( Interface::Link* pTarget : pRelation->get_targets() )
+            for( Interface::LinkTrait* pTarget : pRelation->get_targets() )
             {
                 createGraphNode( links, pTarget, data, false );
                 createEdge( pTargetInterface, pTarget, edges, data );
             }
-        }
+        }*/
     }
     os << data;
-}*/
+}
 
 void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
 {
@@ -638,7 +666,7 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
     if( Namespace* pNamespace = db_cast< Namespace >( pContext ) )
     {
     }
-    else if( Action* pAction = db_cast< Action >( pContext ) )
+    else if( State* pState = db_cast< State >( pContext ) )
     {
     }
     else if( Event* pEvent = db_cast< Event >( pContext ) )
@@ -724,7 +752,7 @@ void recurseTree( nlohmann::json& data, FinalStage::Concrete::Context* pContext 
     {
         recurseTree( data, pChildContext );
 
-        THROW_TODO;
+        // THROW_TODO;
         /*if( db_cast< Object >( pChildContext ) || db_cast< Link >( pChildContext ) )
         {
             nlohmann::json edge
@@ -875,24 +903,20 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
             THROW_RTE( "Unknown allocator dimension type" );
         }
     }
-    THROW_TODO;
+    // THROW_TODO;
     /*for( auto p : pPart->get_link_dimensions() )
     {
         Concrete::Link* pLink = p->get_link();
 
         std::ostringstream osValue;
         {
-            if( Concrete::Dimensions::LinkSingle* pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( p ) )
+            if( pLink->get_singular() )
             {
                 osValue << "Single";
             }
-            else if( Concrete::Dimensions::LinkMany* pLinkMany = db_cast< Concrete::Dimensions::LinkMany >( p ) )
-            {
-                osValue << "Many";
-            }
             else
             {
-                THROW_RTE( "Unknown link reference type" );
+                osValue << "Many";
             }
         }
         {
@@ -997,25 +1021,25 @@ void generateUnityGraphViz( std::ostream& os, mega::io::Environment& environment
                 { { "from", osObjectName.str() }, { "to", osName.str() }, { "colour", "0000FF" } } ) );
         }
 
-    THROW_TODO;
-    /*
-        for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
-        {
-            nlohmann::json dataNode;
-
-            std::ostringstream osName;
-            osName << "link_" << getContextFullTypeName( pLink );
-            NODE( dataNode, osName.str(), getContextFullTypeName( pLink, "::" ) << getNodeInfo( pLink ) );
+        // THROW_TODO;
+        /*
+            for( const auto& [ pLink, pBinding ] : pBinding->get_linkBindings() )
             {
-                nlohmann::json property;
-                PROP( property, "Type", pBinding->get_typeName() );
-                dataNode[ "properties" ].push_back( property );
-            }
-            data[ "nodes" ].push_back( dataNode );
+                nlohmann::json dataNode;
 
-            data[ "edges" ].push_back( nlohmann::json::object(
-                { { "from", osObjectName.str() }, { "to", osName.str() }, { "colour", "00FF00" } } ) );
-        }*/
+                std::ostringstream osName;
+                osName << "link_" << getContextFullTypeName( pLink );
+                NODE( dataNode, osName.str(), getContextFullTypeName( pLink, "::" ) << getNodeInfo( pLink ) );
+                {
+                    nlohmann::json property;
+                    PROP( property, "Type", pBinding->get_typeName() );
+                    dataNode[ "properties" ].push_back( property );
+                }
+                data[ "nodes" ].push_back( dataNode );
+
+                data[ "edges" ].push_back( nlohmann::json::object(
+                    { { "from", osObjectName.str() }, { "to", osName.str() }, { "colour", "00FF00" } } ) );
+            }*/
     }
 
     os << data;
@@ -1203,8 +1227,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             }
             else if( strGraphType == "hyper" )
             {
-                THROW_TODO;
-                //generateHyperGraphViz( osOutput, *pEnvironment, manifest );
+                generateHyperGraphViz( osOutput, *pEnvironment, manifest );
             }
             else if( strGraphType == "tree" )
             {
