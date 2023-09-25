@@ -47,6 +47,9 @@ set( MEGA_DATABASE_GENERATED_SOURCES
 
 
 set( MEGA_DATABASE_INTERFACE_NAMES
+    AliasAnalysis
+    AliasAnalysisRollout
+    AliasAnalysisView
     AutomataStage
     ComponentListing
     ComponentListingView
@@ -56,15 +59,15 @@ set( MEGA_DATABASE_INTERFACE_NAMES
     ConcreteTypeRollout
     DependencyAnalysis
     DependencyAnalysisView
-    InheritanceAnalysis
-    InheritanceAnalysisRollout
-    InheritanceAnalysisView
     FinalStage
     GlobalMemoryStage
     GlobalMemoryStageRollout
     HyperGraphAnalysis
     HyperGraphAnalysisRollout
     HyperGraphAnalysisView
+    InheritanceAnalysis
+    InheritanceAnalysisRollout
+    InheritanceAnalysisView
     InterfaceAnalysisStage
     InterfaceStage
     MemoryStage

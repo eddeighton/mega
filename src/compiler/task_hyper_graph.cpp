@@ -281,46 +281,7 @@ public:
         return sourceFiles;
     }
 
-    using ObjectLinkContextsMap = std::multimap< HyperGraphAnalysis::Concrete::Graph::Vertex*,
-                                                 std::pair< HyperGraphAnalysis::Concrete::Graph::Vertex*, bool > >;
-    using EdgeMap
-        = std::multimap< HyperGraphAnalysis::Concrete::Graph::Vertex*, HyperGraphAnalysis::Concrete::Graph::Edge* >;
-
-    void recurseObjectTree( HyperGraphAnalysis::Concrete::Graph::Vertex* pVertex, const EdgeMap& edges,
-                            std::vector< HyperGraphAnalysis::Concrete::Graph::Vertex* >& vertices )
-    {
-        vertices.push_back( pVertex );
-
-        for( auto i = edges.lower_bound( pVertex ), iEnd = edges.upper_bound( pVertex ); i != iEnd; ++i )
-        {
-            auto pEdge = i->second;
-            switch( pEdge->get_type().get() )
-            {
-                case EdgeType::eChildSingular:
-                case EdgeType::eChildNonSingular:
-                case EdgeType::eObjectLink:
-                case EdgeType::eDim:
-                case EdgeType::eComponentLink:
-                {
-                    recurseObjectTree( pEdge->get_target(), edges, vertices );
-                }
-                break;
-                case EdgeType::eMono:
-                case EdgeType::ePoly:
-                case EdgeType::eParent:
-                case EdgeType::ePart:
-                case EdgeType::eObjectParent:
-                    break;
-                case EdgeType::TOTAL_EDGE_TYPES:
-                default:
-                    THROW_RTE( "Unknown edge type" );
-                    break;
-            }
-        }
-    }
-
-    void calculateEdges( HyperGraphAnalysis::Database& database, const RelationsMap& relations, EdgeMap& edges,
-                         ObjectLinkContextsMap& linkContexts )
+    void calculateEdges( HyperGraphAnalysis::Database& database, const RelationsMap& relations )
     {
         using namespace HyperGraphAnalysis;
         using namespace HyperGraphAnalysis::HyperGraph;
@@ -344,14 +305,12 @@ public:
             if( auto* pUserDim = db_cast< Concrete::Dimensions::User >( pVertex ) )
             {
                 {
-                    auto pEdge = database.construct< Concrete::Graph::Edge >(
+                    database.construct< Concrete::Graph::Edge >(
                         Concrete::Graph::Edge::Args{ mega::EdgeType::eDim, pUserDim->get_parent_context(), pVertex } );
-                    edges.insert( { pUserDim->get_parent_context(), pEdge } );
                 }
                 {
-                    auto pEdge = database.construct< Concrete::Graph::Edge >(
+                    database.construct< Concrete::Graph::Edge >(
                         Concrete::Graph::Edge::Args{ EdgeType::eParent, pVertex, pUserDim->get_parent_context() } );
-                    edges.insert( { pVertex, pEdge } );
                 }
             }
             else if( auto* pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pVertex ) )
@@ -361,14 +320,12 @@ public:
 
                 // create edge from object to the ownership link
                 {
-                    auto pEdge = database.construct< Concrete::Graph::Edge >(
+                    database.construct< Concrete::Graph::Edge >(
                         Concrete::Graph::Edge::Args{ mega::EdgeType::eObjectLink, pObject, pVertex } );
-                    edges.insert( { pObject, pEdge } );
                 }
                 {
-                    auto pEdge = database.construct< Concrete::Graph::Edge >(
+                    database.construct< Concrete::Graph::Edge >(
                         Concrete::Graph::Edge::Args{ EdgeType::eParent, pVertex, pObject } );
-                    edges.insert( { pVertex, pEdge } );
                 }
 
                 // find ownership relations
@@ -406,9 +363,8 @@ public:
                     {
                         for( auto pOwningConcreteContext : pObjectLinkTrait->get_concrete() )
                         {
-                            auto pEdge = database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
+                            database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
                                 EdgeType::eObjectParent, pOwnershipLink, pOwningConcreteContext } );
-                            edges.insert( { pOwnershipLink, pEdge } );
                         }
                     }
                 }
@@ -419,14 +375,12 @@ public:
                 if( auto* pObjectLinkTrait = db_cast< Interface::ObjectLinkTrait >( pLinkTrait ) )
                 {
                     {
-                        auto pEdge = database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
+                        database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
                             mega::EdgeType::eObjectLink, pUserLink->get_parent_context(), pVertex } );
-                        edges.insert( { pUserLink->get_parent_context(), pEdge } );
                     }
                     {
-                        auto pEdge = database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
+                        database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
                             EdgeType::eParent, pVertex, pUserLink->get_parent_context() } );
-                        edges.insert( { pVertex, pEdge } );
                     }
 
                     auto iFind = relations.find( pObjectLinkTrait );
@@ -440,9 +394,8 @@ public:
                             = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
                         for( auto pConcreteTarget : concreteTargets )
                         {
-                            auto pEdge = database.construct< Concrete::Graph::Edge >(
+                            database.construct< Concrete::Graph::Edge >(
                                 Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
-                            edges.insert( { pVertex, pEdge } );
                         }
                     }
                     else if( auto* pNonOwningObjectRelation = db_cast< NonOwningObjectRelation >( pRelation ) )
@@ -456,9 +409,8 @@ public:
                                 = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
                             for( auto pConcreteTarget : concreteTargets )
                             {
-                                auto pEdge = database.construct< Concrete::Graph::Edge >(
+                                database.construct< Concrete::Graph::Edge >(
                                     Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
-                                edges.insert( { pVertex, pEdge } );
                             }
                         }
                         else if( pNonOwningObjectRelation->get_target() == pObjectLinkTrait )
@@ -470,9 +422,8 @@ public:
                                 = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
                             for( auto pConcreteTarget : concreteTargets )
                             {
-                                auto pEdge = database.construct< Concrete::Graph::Edge >(
+                                database.construct< Concrete::Graph::Edge >(
                                     Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
-                                edges.insert( { pVertex, pEdge } );
                             }
                         }
                         else
@@ -488,14 +439,12 @@ public:
                 else if( auto* pComponentLinkTrait = db_cast< Interface::ComponentLinkTrait >( pLinkTrait ) )
                 {
                     {
-                        auto pEdge = database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
+                        database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
                             mega::EdgeType::eComponentLink, pUserLink->get_parent_context(), pVertex } );
-                        edges.insert( { pUserLink->get_parent_context(), pEdge } );
                     }
                     {
-                        auto pEdge = database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
+                        database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
                             EdgeType::eParent, pVertex, pUserLink->get_parent_context() } );
-                        edges.insert( { pVertex, pEdge } );
                     }
                 }
                 else
@@ -513,14 +462,12 @@ public:
                                                       ? mega::EdgeType::eChildSingular
                                                       : mega::EdgeType::eChildNonSingular;
                         {
-                            auto pEdge = database.construct< Concrete::Graph::Edge >(
+                            database.construct< Concrete::Graph::Edge >(
                                 Concrete::Graph::Edge::Args{ edgeType, pContext, pChild } );
-                            edges.insert( { pContext, pEdge } );
                         }
                         {
-                            auto pEdge = database.construct< Concrete::Graph::Edge >(
+                            database.construct< Concrete::Graph::Edge >(
                                 Concrete::Graph::Edge::Args{ EdgeType::eParent, pChild, pContext } );
-                            edges.insert( { pChild, pEdge } );
                         }
                     }
                 }
@@ -532,312 +479,6 @@ public:
             else
             {
                 THROW_RTE( "Unknown vertex type" );
-            }
-        }
-
-        // solve object links
-        for( auto pObject : objects )
-        {
-            // collect ALL vertices WITHIN the object
-            std::vector< Concrete::Graph::Vertex* > vertices;
-            recurseObjectTree( pObject, edges, vertices );
-
-            // find ALL object link contexts within the object
-            std::vector< Concrete::Graph::Vertex* > links;
-            for( auto pVertex : vertices )
-            {
-                for( auto i = edges.lower_bound( pVertex ), iEnd = edges.upper_bound( pVertex ); i != iEnd; ++i )
-                {
-                    auto pEdge = i->second;
-                    if( pEdge->get_type().get() == EdgeType::eObjectLink )
-                    {
-                        links.push_back( pVertex );
-                        break;
-                    }
-                }
-            }
-
-            // construct the link context map which maps ALL vertices to
-            // their associated link vertices within their associated object
-            for( auto pVertex : vertices )
-            {
-                for( auto pLink : links )
-                {
-                    // object links are NOT deriving
-                    linkContexts.insert( { pVertex, { pLink, false } } );
-                }
-            }
-        }
-    }
-
-    void solveComponentLinks( HyperGraphAnalysis::Database& database, const RelationsMap& relations,
-                              const EdgeMap& edges, const ObjectLinkContextsMap& linkContexts )
-    {
-        using namespace HyperGraphAnalysis;
-        using namespace HyperGraphAnalysis::HyperGraph;
-
-        std::vector< Interface::ComponentLinkTrait* > componentLinks;
-        {
-            for( auto sourceFile : getSortedSourceFiles() )
-            {
-                for( Interface::ComponentLinkTrait* pComponentLink :
-                     database.many< Interface::ComponentLinkTrait >( sourceFile ) )
-                {
-                    componentLinks.push_back( pComponentLink );
-                }
-            }
-        }
-
-        for( auto pComponentLink : componentLinks )
-        {
-            // attempt to solve the component link type derivation
-
-            Derivation::VertexVariant context;
-            for( auto pConcrete : pComponentLink->get_concrete() )
-            {
-                context.push_back( pConcrete );
-            }
-
-            std::optional< Derivation::VertexVariantVector > pathOpt;
-            for( auto pTypePathVariant : pComponentLink->get_tuple() )
-            {
-                Derivation::VertexVariantVector path;
-                for( auto pTypePath : pTypePathVariant->get_sequence() )
-                {
-                    for( auto pType : pTypePath->get_types() )
-                    {
-                        Derivation::VertexVariant vertices;
-                        for( auto pContext : pType->get_contexts() )
-                        {
-                            for( auto pConcrete : pContext->get_concrete() )
-                            {
-                                vertices.push_back( pConcrete );
-                            }
-                        }
-                        for( auto pDim : pType->get_dimensions() )
-                        {
-                            for( auto pConcrete : pDim->get_concrete() )
-                            {
-                                vertices.push_back( pConcrete );
-                            }
-                        }
-                        for( auto pLink : pType->get_links() )
-                        {
-                            for( auto pConcrete : pLink->get_concrete() )
-                            {
-                                vertices.push_back( pConcrete );
-                            }
-                        }
-                        path.push_back( vertices );
-                    }
-                }
-                VERIFY_RTE_MSG( !pathOpt.has_value(), "Component link has multiple type paths" );
-                pathOpt = path;
-            }
-            VERIFY_RTE_MSG( pathOpt.has_value(), "Component link has no type path" );
-
-            struct ObjectLinkDerivation
-            {
-                const RelationsMap&          relations;
-                const EdgeMap&               edges;
-                const ObjectLinkContextsMap& linkContexts;
-
-                // the link context MAY contain MULTIPLE links.  Each individual link is either deriving or not.
-                // The Link context is considered to be deriving if ANY of its links are deriving
-                std::vector< Concrete::Graph::Vertex* > enumerateLinkContexts( Concrete::Graph::Vertex* pVertex,
-                                                                               bool bDerivingOnly ) const
-                {
-                    std::vector< Concrete::Graph::Vertex* > results;
-                    for( auto i = linkContexts.lower_bound( pVertex ), iEnd = linkContexts.upper_bound( pVertex );
-                         i != iEnd; ++i )
-                    {
-                        if( !bDerivingOnly || i->second.second )
-                        {
-                            results.push_back( i->second.first );
-                        }
-                    }
-                    return results;
-                }
-
-                // enumerate the dimension links within the parent vertex
-                using LinkDimension = std::pair< Concrete::Graph::Vertex*, Concrete::Graph::Edge* >;
-                std::vector< LinkDimension > enumerateLinks( Concrete::Graph::Vertex* pParentVertex ) const
-                {
-                    std::vector< LinkDimension > results;
-                    for( auto i = edges.lower_bound( pParentVertex ), iEnd = edges.upper_bound( pParentVertex );
-                         i != iEnd; ++i )
-                    {
-                        auto pEdge = i->second;
-                        if( pEdge->get_type().get() == EdgeType::eObjectLink )
-                        {
-                            results.emplace_back( pEdge->get_target(), pEdge );
-                        }
-                    }
-                    return results;
-                }
-
-                // enumerate actual polymorphic branches of a given link
-                std::vector< Concrete::Graph::Edge* > enumerateLink( Concrete::Graph::Vertex* pLink ) const
-                {
-                    std::vector< Concrete::Graph::Edge* > results;
-                    for( auto i = edges.lower_bound( pLink ), iEnd = edges.upper_bound( pLink ); i != iEnd; ++i )
-                    {
-                        auto pEdge = i->second;
-                        switch( pEdge->get_type().get() )
-                        {
-                            case EdgeType::eMono:
-                            case EdgeType::ePoly:
-                            case EdgeType::eObjectParent:
-                            {
-                                results.push_back( pEdge );
-                            }
-                            break;
-                            case EdgeType::eObjectLink:
-                            case EdgeType::eParent:
-                            case EdgeType::eChildSingular:
-                            case EdgeType::eChildNonSingular:
-                            case EdgeType::ePart:
-                            case EdgeType::eDim:
-                            case EdgeType::eComponentLink:
-                                break;
-                            case EdgeType::TOTAL_EDGE_TYPES:
-                            default:
-                                THROW_RTE( "Unknown edge type" );
-                                break;
-                        }
-                    }
-
-                    return results;
-                }
-
-                using EdgeVector = std::vector< Concrete::Graph::Edge* >;
-                Concrete::Graph::Vertex* pathToObjectRoot( Concrete::Graph::Vertex* pVertex, EdgeVector& path ) const
-                {
-                    while( !db_cast< Concrete::Object >( pVertex ) )
-                    {
-                        bool bFound = false;
-                        for( auto i = edges.lower_bound( pVertex ), iEnd = edges.upper_bound( pVertex ); i != iEnd;
-                             ++i )
-                        {
-                            auto pEdge = i->second;
-                            if( pEdge->get_type().get() == EdgeType::eParent )
-                            {
-                                path.push_back( pEdge );
-                                pVertex = pEdge->get_target();
-                                bFound  = true;
-                                break;
-                            }
-                        }
-                        if( !bFound )
-                        {
-                            THROW_RTE( "Failed to find path to object root from vertex" );
-                            return nullptr;
-                        }
-                    }
-                    return pVertex;
-                }
-
-                bool invertObjectRootPath( const EdgeVector& path, EdgeVector& descendingPath ) const
-                {
-                    for( auto pEdge : path )
-                    {
-                        bool bFound = false;
-                        for( auto i    = edges.lower_bound( pEdge->get_target() ),
-                                  iEnd = edges.upper_bound( pEdge->get_target() );
-                             i != iEnd;
-                             ++i )
-                        {
-                            auto pInverseEdge = i->second;
-                            if( pEdge->get_target() == pInverseEdge->get_source() )
-                            {
-                                switch( pInverseEdge->get_type().get() )
-                                {
-                                    case EdgeType::eChildSingular:
-                                    case EdgeType::eObjectLink:
-                                    case EdgeType::eDim:
-                                    {
-                                        descendingPath.push_back( pInverseEdge );
-                                        bFound = true;
-                                        break;
-                                    }
-                                    case EdgeType::eParent:
-                                    case EdgeType::eChildNonSingular:
-                                    case EdgeType::ePart:
-                                    case EdgeType::eObjectParent:
-                                    case EdgeType::eComponentLink:
-                                    case EdgeType::eMono:
-                                    case EdgeType::ePoly:
-                                    case EdgeType::TOTAL_EDGE_TYPES:
-                                        break;
-                                }
-                            }
-                        }
-                        if( !bFound )
-                        {
-                            return false;
-                        }
-                    }
-                    std::reverse( descendingPath.begin(), descendingPath.end() );
-                    return true;
-                }
-
-                bool commonRootDerivation( Concrete::Graph::Vertex* pSource, Concrete::Graph::Vertex* pTarget,
-                                           std::vector< Concrete::Graph::Edge* >& edges ) const
-                {
-                    EdgeVector sourcePath, targetPath;
-                    auto       pSourceObject = pathToObjectRoot( pSource, sourcePath );
-                    auto       pTargetObject = pathToObjectRoot( pTarget, targetPath );
-
-                    // if not the same object then fail
-                    if( pSourceObject != pTargetObject )
-                        return false;
-
-                    // while both paths contain edges then if the edge is the same there is a lower common root
-                    while( !sourcePath.empty() && !targetPath.empty() && ( sourcePath.back() == targetPath.back() ) )
-                    {
-                        sourcePath.pop_back();
-                        targetPath.pop_back();
-                    }
-
-                    std::copy( sourcePath.begin(), sourcePath.end(), std::back_inserter( edges ) );
-                    EdgeVector descendingPath;
-                    if( invertObjectRootPath( targetPath, descendingPath ) )
-                    {
-                        std::copy( targetPath.begin(), targetPath.end(), std::back_inserter( edges ) );
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-            } objectLinkDerivationPolicy{ relations, edges, linkContexts };
-
-            const Derivation::Spec spec{ context, pathOpt.value() };
-            auto [ result, pRoot ] = Derivation::solve( spec, objectLinkDerivationPolicy );
-            switch( result )
-            {
-                case HyperGraphAnalysis::Derivation::eSuccess:
-                {
-                    // translate the derivation result into the actual component link relation
-                    // TODO.
-                }
-                break;
-                case HyperGraphAnalysis::Derivation::eFailure:
-                {
-                    THROW_RTE( "Component Link Failed: Failed to derive component link type for: "
-                               << printIContextFullType( pComponentLink->get_parent() )
-                               << " of: " << printLinkTraitTypePath( pComponentLink ) );
-                }
-                break;
-                case HyperGraphAnalysis::Derivation::eAmbiguous:
-                {
-                    THROW_RTE( "Component Link Ambiguous: Failed to derive component link type for: "
-                               << printIContextFullType( pComponentLink->get_parent() )
-                               << " of: " << printLinkTraitTypePath( pComponentLink ) );
-                }
-                break;
             }
         }
     }
@@ -898,10 +539,7 @@ public:
             }
             auto relations = calculateRelations( database, linkTargets );
             database.construct< HyperGraph::Graph >( HyperGraph::Graph::Args{ relations } );
-            ObjectLinkContextsMap linkContexts;
-            EdgeMap               edges;
-            calculateEdges( database, relations, edges, linkContexts );
-            solveComponentLinks( database, relations, edges, linkContexts );
+            calculateEdges( database, relations );
         }
 
         const task::FileHash fileHashCode = database.save_Model_to_temp();
@@ -952,7 +590,7 @@ public:
             = m_environment.ConcreteStage_Concrete( m_sourceFilePath );
         const mega::io::CompilationFilePath rolloutCompilationFile
             = m_environment.HyperGraphAnalysisRollout_PerSourceModel( m_sourceFilePath );
-        start( taskProgress, "Task_ConcreteTypeRollout", m_sourceFilePath.path(), rolloutCompilationFile.path() );
+        start( taskProgress, "Task_HyperGraphRollout", m_sourceFilePath.path(), rolloutCompilationFile.path() );
 
         const task::DeterminantHash determinant
             = { m_environment.getBuildHashCode( concreteTreeCompilationFile ),
@@ -980,10 +618,25 @@ public:
                     Interface::ObjectLinkTrait::Args{ pLink, iFind->second } );
             }
 
+            auto edges = database.many< Concrete::Graph::Edge >( m_environment.project_manifest() );
+
             for( Concrete::Graph::Vertex* pVertex : database.many< Concrete::Graph::Vertex >( m_sourceFilePath ) )
             {
+                std::vector< Concrete::Graph::Edge* > inEdges, outEdges;
+                for( auto pEdge : edges )
+                {
+                    if( pEdge->get_source() == pVertex )
+                    {
+                        outEdges.push_back( pEdge );
+                    }
+                    else if( pEdge->get_target() == pVertex )
+                    {
+                        inEdges.push_back( pEdge );
+                    }
+                }
+
                 database.construct< Concrete::Graph::Vertex >(
-                    Concrete::Graph::Vertex::Args{ pVertex, {}, {}, {}, {} } );
+                    Concrete::Graph::Vertex::Args{ pVertex, outEdges, inEdges } );
             }
 
             /*for( Concrete::Object* pObject : database.many< Concrete::Object >( m_sourceFilePath ) )

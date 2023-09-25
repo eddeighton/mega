@@ -256,13 +256,52 @@ stage HyperGraphAnalysisRollout
     persource accessor array< ref< Concrete::Object > >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Concrete::Graph::Vertex >;
+    persource accessor ref< Concrete::Graph::Edge >;
+    global accessor ref< HyperGraph::Graph >;
+}
+
+stage AliasAnalysis
+{
+    source .manifest;
+    dependency HyperGraphAnalysisRollout;
+
+    file Model;
+
+    persource accessor array< ref< Interface::ObjectLinkTrait > >;
+    persource accessor array< ref< Interface::ComponentLinkTrait > >;
+    persource accessor array< ref< Concrete::Graph::Vertex > >;
+    persource accessor ref< Concrete::Root >;
+    global accessor ref< Symbols::SymbolTable >;
+}
+
+stage AliasAnalysisView
+{
+    source .manifest;
+    dependency AliasAnalysis;
+
+    persource accessor ref< Interface::Root >;
+    persource accessor ref< Concrete::Root >;
+    global accessor ref< HyperGraph::Graph >;
+}
+
+stage AliasAnalysisRollout
+{
+    source .mega;
+    dependency AliasAnalysis;
+
+    file PerSourceModel;
+
+    persource accessor array< ref< Interface::ObjectLinkTrait > >;
+    persource accessor array< ref< Concrete::Object > >;
+    persource accessor ref< Concrete::Root >;
+    persource accessor ref< Concrete::Graph::Vertex >;
     global accessor ref< HyperGraph::Graph >;
 }
 
 stage MemoryStage
 {
     source .mega;
-    dependency HyperGraphAnalysisRollout;
+    dependency AliasAnalysisRollout;
 
     file MemoryLayout;
 
@@ -433,5 +472,7 @@ stage FinalStage
     persource accessor array< ref< Concrete::Dimensions::User > >;
     persource accessor array< ref< Concrete::Dimensions::Link > >;
     persource accessor array< ref< Concrete::Dimensions::Allocation > >;
+    persource accessor array< ref< Concrete::Graph::Vertex > >;
+    persource accessor array< ref< Concrete::Graph::Edge > >;
     
 }

@@ -143,13 +143,6 @@ namespace HyperGraph
         ref< Interface::ObjectLinkTrait > target;
     }
 
-    /*
-    object ComponentRelation : Relation -> HyperGraphAnalysis::Model
-    {
-        ref< Interface::LinkTrait > source;
-        ref< Interface::LinkTrait > target;
-    }
-    */
     object Graph -> HyperGraphAnalysis::Model
     {
         map< ref< Interface::ObjectLinkTrait >, ref< Relation > > relations;

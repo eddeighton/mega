@@ -26,8 +26,6 @@ namespace Concrete
         {
             array< ref< Edge > >        out_edges                   -> HyperGraphAnalysisRollout::PerSourceModel;
             array< ref< Edge > >        in_edges                    -> HyperGraphAnalysisRollout::PerSourceModel;
-            array< ref< Derivation > >  object_link_derivations     -> HyperGraphAnalysisRollout::PerSourceModel;
-            array< ref< Derivation > >  component_link_derivations  -> HyperGraphAnalysisRollout::PerSourceModel;
         }
 
         object Edge -> HyperGraphAnalysis::Model
@@ -36,13 +34,7 @@ namespace Concrete
             ref< Vertex >           source;
             ref< Vertex >           target;
         }
-
-        object Derivation -> HyperGraphAnalysis::Model
-        {
-            ref< Vertex >           source;
-            ref< Vertex >           target;
-            array< ref< Edge > >    edges;
-        }
+        
     }
 
     namespace Dimensions

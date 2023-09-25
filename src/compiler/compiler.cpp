@@ -319,7 +319,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc hyperGraph = encode( Task{ eTask_HyperGraph, manifestFilePath } );
     dependencies.add( hyperGraph, inheritanceRolloutTasks );
 
-    TskDescVec memoryTasks;
+    TskDescVec hyperGraphRolloutTasks;
     {
         for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
@@ -328,6 +328,22 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
             dependencies.add( hyperGraphRollout, TskDescVec{ hyperGraph } );
             dependencies.add( allocators, TskDescVec{ hyperGraphRollout } );
+            hyperGraphRolloutTasks.push_back( hyperGraphRollout );
+        }
+    }
+
+    const TskDesc alias = encode( Task{ eTask_Alias, manifestFilePath } );
+    dependencies.add( alias, hyperGraphRolloutTasks );
+
+    TskDescVec memoryTasks;
+    {
+        for( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        {
+            const TskDesc aliasRollout = encode( Task{ eTask_AliasRollout, sourceFilePath } );
+            const TskDesc allocators   = encode( Task{ eTask_Allocators, sourceFilePath } );
+
+            dependencies.add( aliasRollout, TskDescVec{ alias } );
+            dependencies.add( allocators, TskDescVec{ aliasRollout } );
             memoryTasks.push_back( allocators );
         }
     }

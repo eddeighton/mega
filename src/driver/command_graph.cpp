@@ -118,6 +118,18 @@ const std::string& getIdentifier( FinalStage::Concrete::Dimensions::User* pDim )
 {
     return pDim->get_interface_dimension()->get_id()->get_str();
 }
+const std::string& getIdentifier( FinalStage::Concrete::Dimensions::Link* pDim )
+{
+    if( auto pUserLink = db_cast< FinalStage::Concrete::Dimensions::UserLink >( pDim ) )
+    {
+        return pUserLink->get_interface_link()->get_id()->get_str();
+    }
+    else
+    {
+        static const std::string strOwnership = "_ownership_";
+        return strOwnership;
+    }
+}
 
 template < typename TContextType >
 std::string getContextFullTypeName( TContextType* pContext, std::string strDelim = "_" )
@@ -162,6 +174,31 @@ std::string getDimensionFullTypeName( TDimensionType* pDim, std::string strDelim
     std::ostringstream os;
     os << getContextFullTypeName( pParent, strDelim ) << strDelim << getIdentifier( pDim );
     return os.str();
+}
+
+std::string getVertexFullTypeName( FinalStage::Concrete::Graph::Vertex* pVertex, std::string strDelim = "_" )
+{
+    using namespace FinalStage;
+    if( auto pContext = db_cast< Concrete::Context >( pVertex ) )
+    {
+        return getContextFullTypeName( pContext, strDelim );
+    }
+    else if( auto pDim = db_cast< Concrete::Dimensions::User >( pVertex ) )
+    {
+        return getDimensionFullTypeName< Concrete::Context >( pDim, strDelim );
+    }
+    else if( auto pLink = db_cast< Concrete::Dimensions::Link >( pVertex ) )
+    {
+        return getDimensionFullTypeName< Concrete::Context >( pLink, strDelim );
+    }
+    else if( auto pContextGroup = db_cast< Concrete::ContextGroup >( pVertex ) )
+    {
+        return "_context_";
+    }
+    else
+    {
+        THROW_RTE( "Unknown vertex type" );
+    }
 }
 
 std::string getNodeInfo( FinalStage::Interface::IContext* pContext )
@@ -629,29 +666,59 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
     {
         Database database( environment, sourceFilePath );
 
-        /*for( Concrete::Link* pLink : database.many< Concrete::Link >( sourceFilePath ) )
+        for( Concrete::Graph::Vertex* pVertex : database.many< Concrete::Graph::Vertex >( sourceFilePath ) )
         {
-            Interface::LinkTrait*      pInterfaceLink = pLink->get_link();
-            HyperGraph::Relation* pRelation      = pInterfaceLink->get_relation();
-
-            Interface::LinkInterface* pSourceInterface = pRelation->get_source_interface();
-            Interface::LinkInterface* pTargetInterface = pRelation->get_target_interface();
-
-            createGraphNode( links, pSourceInterface, data, true );
-            createGraphNode( links, pTargetInterface, data, true );
-            createEdge( pSourceInterface, pTargetInterface, edges, data );
-
-            for( Interface::LinkTrait* pSource : pRelation->get_sources() )
+            if( db_cast< Concrete::Dimensions::User >( pVertex ) )
             {
-                createGraphNode( links, pSource, data, false );
-                createEdge( pSourceInterface, pSource, edges, data );
+                continue;
             }
-            for( Interface::LinkTrait* pTarget : pRelation->get_targets() )
+
+            auto           strVertexName = getVertexFullTypeName( pVertex );
+            nlohmann::json node;
+            NODE( node, strVertexName, strVertexName );
+            data[ "nodes" ].push_back( node );
+
+            for( auto pEdge : pVertex->get_out_edges() )
             {
-                createGraphNode( links, pTarget, data, false );
-                createEdge( pTargetInterface, pTarget, edges, data );
+                std::string strColour = "000000";
+                switch( pEdge->get_type().get() )
+                {
+                    case mega::EdgeType::eObjectParent:
+                    case mega::EdgeType::eMono:
+                    case mega::EdgeType::ePoly:
+                        strColour = "FF0000";
+                        break;
+                    case mega::EdgeType::eDim:
+                        strColour = "";
+                        break;
+                    case mega::EdgeType::eParent:
+                        strColour = "0000FF";
+                        break;
+                    case mega::EdgeType::eChildSingular:
+                    case mega::EdgeType::ePart:
+                        strColour = "000000";
+                        break;
+                    case mega::EdgeType::eChildNonSingular:
+                        strColour = "00FF00";
+                        break;
+                    case mega::EdgeType::eObjectLink:
+                    case mega::EdgeType::eComponentLink:
+                        strColour = "909000";
+                        break;
+                    case mega::EdgeType::TOTAL_EDGE_TYPES:
+                        break;
+                }
+
+                if( !strColour.empty() )
+                {
+                    nlohmann::json edge
+                        = nlohmann::json::object( { { "from", getVertexFullTypeName( pEdge->get_source() ) },
+                                                    { "to", getVertexFullTypeName( pEdge->get_target() ) },
+                                                    { "colour", strColour } } );
+                    data[ "edges" ].push_back( edge );
+                }
             }
-        }*/
+        }
     }
     os << data;
 }
