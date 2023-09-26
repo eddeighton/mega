@@ -80,7 +80,7 @@ TEST_P( BasicFixtureType, BasicParameterizedTest )
     mega::OperationID        operationTypeID = mega::id_Imp_NoParams;
     const mega::InvocationID id{ contextSymbolIDs, typePathSymbolIDs, operationTypeID };
 
-    Operations::Invocation* pInvocation = mega::invocation::construct( database, pSymbolTable, id );
+    Operations::Invocation* pInvocation = mega::invocation::compile( database, pSymbolTable, id );
     ASSERT_TRUE( pInvocation );
 }
 

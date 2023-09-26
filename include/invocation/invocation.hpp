@@ -67,23 +67,9 @@ inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
     return result;
 }
 
-using InterfaceVariantVector       = std::vector< OperationsStage::Operations::InterfaceVariant* >;
-using InterfaceVariantVectorVector = std::vector< InterfaceVariantVector >;
-
-InterfaceVariantVectorVector
-symbolVectorToInterfaceVariantVector( OperationsStage::Database&                                    database,
-                                      const std::vector< OperationsStage::Symbols::SymbolTypeID* >& symbols );
-
-//InterfaceVariantVectorVector linkToInterfaceVariantVector( OperationsStage::Database&             database,
-//                                                                  const OperationsStage::Concrete::Dimensions::Link* pLink );
-
-std::vector< OperationsStage::Operations::ElementVector* >
-toElementVector( OperationsStage::Database&          database,
-                 const InterfaceVariantVectorVector& interfaceVariantVectorVector );
-
-OperationsStage::Operations::Invocation* construct( OperationsStage::Database&             database,
-                                                    OperationsStage::Symbols::SymbolTable* pSymbolTable,
-                                                    const mega::InvocationID&              id );
+OperationsStage::Operations::Invocation* compile( OperationsStage::Database&             database,
+                                                  OperationsStage::Symbols::SymbolTable* pSymbolTable,
+                                                  const mega::InvocationID&              id );
 
 } // namespace mega::invocation
 

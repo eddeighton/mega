@@ -101,6 +101,9 @@ private:
     InterfaceTypeIDMap m_interfaceIDMap;
 };
 
+using InterfaceVariantVector       = std::vector< OperationsStage::Operations::InterfaceVariant* >;
+using InterfaceVariantVectorVector = std::vector< InterfaceVariantVector >;
+
 InterfaceVariantVector symbolToInterfaceVariantVector( Database& database, Symbols::SymbolTypeID* pSymbol )
 {
     InterfaceVariantVector result;
@@ -1126,8 +1129,8 @@ InvocationName toInvocationName( const mega::InvocationID& id, const InterfaceVa
     return { osName.str(), osContextStr.str(), osTypePathStr.str() };
 }
 
-OperationsStage::Operations::Invocation* construct( Database& database, Symbols::SymbolTable* pSymbolTable,
-                                                    const mega::InvocationID& id )
+OperationsStage::Operations::Invocation* compile( Database& database, Symbols::SymbolTable* pSymbolTable,
+                                                  const mega::InvocationID& id )
 {
     using ::operator<<;
     // std::cout << "Found invocation: " << id << std::endl;

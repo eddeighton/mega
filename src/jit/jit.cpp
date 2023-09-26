@@ -237,7 +237,7 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
     {
         // compile the invocation using the OperationsStage
         const OperationsStage::Operations::Invocation* pInvocation
-            = mega::invocation::construct( m_pythonDatabase, m_pPythonSymbolTable, invocationID );
+            = mega::invocation::compile( m_pythonDatabase, m_pPythonSymbolTable, invocationID );
         // now convert to the FinalStage database
         pInvocationFinal = m_pythonDatabaseFinal.convert< FinalStage::Operations::Invocation >( pInvocation );
         // and store in the database wrapper so will be found as dynamic invocation

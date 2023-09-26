@@ -498,7 +498,7 @@ public:
                     }
                     else
                     {
-                        pInvocation = mega::invocation::construct( m_database, m_pSymbolTable, invocationID.value() );
+                        pInvocation = mega::invocation::compile( m_database, m_pSymbolTable, invocationID.value() );
                         m_invocationsMap.insert( std::make_pair( invocationID.value(), pInvocation ) );
                     }
                 }
