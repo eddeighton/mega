@@ -216,18 +216,51 @@ PrimaryObjectPart::Ptr Object::getPrimaryObjectPart( std::shared_ptr< Stage > pS
         return m_primaryObjectParts.front();
     }
 
-    std::vector< PrimaryObjectPart::Ptr > pParts;
+    //
+
+    // gather the primary object parts with their associated stages
+    // IFF they are a dependency of the passed stage
+    std::map< PrimaryObjectPart::Ptr, std::shared_ptr< Stage > > partStages;
     for( const auto& p : m_primaryObjectParts )
     {
-        // if( pStage->isDependency( p->m_file.lock()->m_stage.lock() ) )
-        if( pStage == p->m_file.lock()->m_stage.lock() )
+        auto pPrimaryObjectPartFileStage = p->m_file.lock()->m_stage.lock();
+        if( pStage->isDependency( pPrimaryObjectPartFileStage ) )
         {
-            pParts.push_back( p );
+            partStages.insert( { p, pPrimaryObjectPartFileStage } );
         }
     }
-    VERIFY_RTE_MSG( !pParts.empty(), "Failed to locate primary object part" );
-    VERIFY_RTE_MSG( pParts.size() == 1U, "Duplicate primary object parts found" );
-    return pParts.front();
+
+    // determine if one of the primary object part stages has all others as a dependency
+    std::vector< PrimaryObjectPart::Ptr > parts;
+    for( auto [ pPart, pStage ] : partStages )
+    {
+        bool bHasOthersAsDependency = true;
+        for( auto [ pPartOther, pStageOther ] : partStages )
+        {
+            if( pPart != pPartOther )
+            {
+                if( pStage == pStageOther )
+                {
+                    THROW_RTE( "Unreachable - multiple primary object parts for object in same stage" );
+                }
+                else if( !pStage->isDependency( pStageOther ) )
+                {
+                    bHasOthersAsDependency = false;
+                    break;
+                }
+            }
+        }
+        if( bHasOthersAsDependency )
+        {
+            parts.push_back( pPart );
+        }
+    }
+
+    VERIFY_RTE_MSG( !parts.empty(), "Failed to locate primary object part for object: "
+                                        << delimitTypeName( "::" ) << " in stage: " << pStage->m_strName );
+    VERIFY_RTE_MSG( parts.size() == 1U, "Duplicate primary object parts found for object: "
+                                            << delimitTypeName( "::" ) << " in stage: " << pStage->m_strName );
+    return parts.front();
 }
 
 std::vector< PrimaryObjectPart::Ptr > Interface::getPrimaryObjectParts() const
@@ -238,7 +271,6 @@ std::vector< PrimaryObjectPart::Ptr > Interface::getPrimaryObjectParts() const
 PrimaryObjectPart::Ptr Interface::getPrimaryObjectPart( std::shared_ptr< Stage > pStage ) const
 {
     return m_object.lock()->getPrimaryObjectPart( pStage );
-    THROW_RTE( "Failed to locate primary object part for stage" );
 }
 
 bool Interface::ownsPrimaryObjectPart( std::shared_ptr< Stage > pStage ) const

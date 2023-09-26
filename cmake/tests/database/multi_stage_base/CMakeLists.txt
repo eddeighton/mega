@@ -47,6 +47,7 @@ set( MULTI_STAGE_BASE_DATABASE_GENERATED_HEADERS
 
     ${MULTI_STAGE_BASE_DIR}/database/model/FirstStage.hxx
     ${MULTI_STAGE_BASE_DIR}/database/model/SecondStage.hxx
+    ${MULTI_STAGE_BASE_DIR}/database/model/ThirdStage.hxx
 	)
 
 set( MULTI_STAGE_BASE_DATABASE_GENERATED_SOURCES
@@ -58,6 +59,7 @@ set( MULTI_STAGE_BASE_DATABASE_GENERATED_SOURCES
 
     ${MULTI_STAGE_BASE_DIR}/database/model/FirstStage.cxx
     ${MULTI_STAGE_BASE_DIR}/database/model/SecondStage.cxx
+    ${MULTI_STAGE_BASE_DIR}/database/model/ThirdStage.cxx
 )
 
 set( DATABASE_SCHEMAS 
@@ -72,8 +74,8 @@ set( COMPILER_BYPRODUCTS
     ${MULTI_STAGE_BASE_DIR}/database/data/data.json 
     ${MULTI_STAGE_BASE_DIR}/database/data/stages.json
     ${MULTI_STAGE_BASE_DIR}/database/data/FirstStage.json
-
     ${MULTI_STAGE_BASE_DIR}/database/data/SecondStage.json
+    ${MULTI_STAGE_BASE_DIR}/database/data/ThirdStage.json
     )
 
 set( TEMPLATES 

@@ -478,6 +478,7 @@ public:
             dependencies.push_back( pThis );
     }
 
+    // determine if pStage IS a dependency of this
     bool isDependency( Stage::Ptr pStage ) const
     {
         if( shared_from_this() == pStage )

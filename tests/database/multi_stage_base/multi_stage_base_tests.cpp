@@ -23,6 +23,7 @@
 
 #include "database/model/FirstStage.hxx"
 #include "database/model/SecondStage.hxx"
+#include "database/model/ThirdStage.hxx"
 
 #include "database/model/manifest.hxx"
 #include "database/model/environment.hxx"
@@ -96,7 +97,7 @@ TEST_F( MultiStageBaseDBTest, CreateObjectInTwoStages )
 
         auto existing = database.many< TestObject >( m_pEnvironment->project_manifest() );
         ASSERT_EQ( existing.size(), 1 );
-        for ( auto p : existing )
+        for( auto p : existing )
         {
             ASSERT_EQ( p->get_anInt(), 1 );
         }
@@ -112,5 +113,15 @@ TEST_F( MultiStageBaseDBTest, CreateObjectInTwoStages )
         database.save_SecondFile_to_temp();
         m_pEnvironment->temp_to_real( m_pEnvironment->SecondStage_SecondFile( m_pEnvironment->project_manifest() ) );
     }
+    {
+        using namespace ThirdStage;
+        using namespace ThirdStage::MultiStageBaseTest;
 
+        Database database( *m_pEnvironment, m_pEnvironment->project_manifest() );
+
+        auto existing = database.many< TestObject >( m_pEnvironment->project_manifest() );
+        ASSERT_EQ( existing.size(), 2 );
+        ASSERT_EQ( existing[ 0 ]->get_anInt(), 1 );
+        ASSERT_EQ( existing[ 1 ]->get_anInt(), 2 );
+    }
 }

@@ -34,7 +34,18 @@ stage SecondStage
 
     file SecondFile;
     
-    global accessor ref< MultiStageBaseTest::TestObject >;
+    global accessor array< ref< MultiStageBaseTest::TestObject > >;
+}
+
+stage ThirdStage
+{
+    dependency SecondStage;
+
+    source .manifest;
+
+    file ThirdFile;
+
+    global accessor array< ref< MultiStageBaseTest::TestObject > >;
 }
 
 ///////////////////////////////////////////
@@ -45,13 +56,17 @@ namespace MultiStageBaseTest
     {
         value< int > anInt;
     }
-/*
-    object DerivedFirst : TestObject -> FirstStage::FirstFile
+    
+    /*
+    // In order to support deriving from a mutli stage constructable object
+    // the database would need to support the underlying primary object part being a variant 
+    // of non-singular possible types i.e. FirstStage::TestObject OR SecondStage::TestObject data parts.
+    object DerivedFirst : TestObject -> ThirdStage::ThirdFile
     {
     }
 
-    object DerivedSecond : TestObject -> SecondStage::SecondFile
+    object DerivedSecond : TestObject -> ThirdStage::ThirdFile
     {
-    }
-*/
+    }*/
+    
 }
