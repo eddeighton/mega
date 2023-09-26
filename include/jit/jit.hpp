@@ -28,6 +28,8 @@
 #include "program.hpp"
 #include "relation.hpp"
 
+#include "invocation/invocation.hpp"
+
 #include "database/jit_database.hpp"
 #include "database/model/OperationsStage.hxx"
 
@@ -53,7 +55,7 @@ public:
     JIT( const MegastructureInstallation& megastructureInstallation, const Project& project, JIT& oldJIT );
     ~JIT();
 
-    TypeID                                    getInterfaceTypeID( TypeID concreteTypeID ) const;
+    TypeID getInterfaceTypeID( TypeID concreteTypeID ) const;
 
     Allocator::Ptr getAllocator( const CodeGenerator::LLVMCompiler& compiler, const TypeID& typeID );
 
@@ -87,6 +89,7 @@ private:
     OperationsStage::Database              m_pythonDatabase;
     FinalStage::Database                   m_pythonDatabaseFinal;
     OperationsStage::Symbols::SymbolTable* m_pPythonSymbolTable;
+    mega::invocation::SymbolTables         m_symbolTables;
     CodeGenerator                          m_codeGenerator;
     ComponentManager                       m_componentManager;
 

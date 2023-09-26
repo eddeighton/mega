@@ -23,7 +23,6 @@
 #include "database/model/OperationsStage.hxx"
 
 #include "invocation/invocation.hpp"
-#include "invocation/name_resolution.hpp"
 
 #include "mega/invocation_io.hpp"
 #include "mega/common_strings.hpp"
@@ -68,6 +67,7 @@ TEST_P( BasicFixtureType, BasicParameterizedTest )
     Symbols::SymbolTable* pSymbolTable
         = database.one< Symbols::SymbolTable >( m_pImpl->m_environment.project_manifest() );
     ASSERT_TRUE( pSymbolTable );
+    mega::invocation::SymbolTables symbolTables( pSymbolTable );
 
     auto symbolNames = pSymbolTable->get_symbol_names();
 
@@ -80,7 +80,7 @@ TEST_P( BasicFixtureType, BasicParameterizedTest )
     mega::OperationID        operationTypeID = mega::id_Imp_NoParams;
     const mega::InvocationID id{ contextSymbolIDs, typePathSymbolIDs, operationTypeID };
 
-    Operations::Invocation* pInvocation = mega::invocation::compile( database, pSymbolTable, id );
+    Operations::Invocation* pInvocation = mega::invocation::compileInvocation( database, symbolTables, id );
     ASSERT_TRUE( pInvocation );
 }
 

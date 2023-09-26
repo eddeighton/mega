@@ -19,12 +19,10 @@
 
 #include "invocation/invocation.hpp"
 
-#include "invocation/name_resolution.hpp"
-#include "invocation/generic_operation_visitor.hpp"
-#include "invocation/elimination.hpp"
-
 #include "database/model/OperationsStage.hxx"
 #include "database/types/operation.hpp"
+
+#include "compiler/derivation.hpp"
 
 #include "mega/operation_id.hpp"
 #include "mega/common_strings.hpp"
@@ -33,1158 +31,572 @@
 #include "mega/types/traits.hpp"
 
 #include <optional>
+#include <unordered_set>
 
 namespace OperationsStage
 {
 #include "compiler/printer.hpp"
+namespace Derivation
+{
+#include "compiler/disambiguate.hpp"
 }
+} // namespace OperationsStage
 
 namespace mega::invocation
 {
+SymbolTables::SymbolTables( OperationsStage::Symbols::SymbolTable* pSymbolTable )
+    : symbolIDMap( pSymbolTable->get_symbol_type_ids() )
+    , interfaceIDMap( pSymbolTable->get_interface_type_ids() )
+{
+}
 
 using namespace OperationsStage;
-using namespace OperationsStage::Operations;
 
-struct SymbolMaps
+struct InvocationPolicy
 {
-    using SymbolTypeIDMap    = std::map< mega::TypeID, OperationsStage::Symbols::SymbolTypeID* >;
-    using InterfaceTypeIDMap = std::map< mega::TypeID, OperationsStage::Symbols::InterfaceTypeID* >;
+    using GraphVertex             = OperationsStage::Concrete::Graph::Vertex;
+    using GraphEdge               = OperationsStage::Concrete::Graph::Edge;
+    using GraphVertexVector       = std::vector< GraphVertex* >;
+    using GraphVertexSet          = std::unordered_set< GraphVertex* >;
+    using GraphVertexVectorVector = std::vector< GraphVertexVector >;
+    using GraphEdgeVector         = std::vector< GraphEdge* >;
 
-    SymbolMaps( Symbols::SymbolTable& symbolTable )
-        : m_symbolIDMap( symbolTable.get_symbol_type_ids() )
-        , m_interfaceIDMap( symbolTable.get_interface_type_ids() )
+    struct Spec
     {
+        GraphVertexVector       context;
+        GraphVertexVectorVector path;
+    };
+
+    using StepPtr     = OperationsStage::Derivation::Step*;
+    using EdgePtr     = OperationsStage::Derivation::Edge*;
+    using OrPtr       = OperationsStage::Derivation::Or*;
+    using OrPtrVector = std::vector< OrPtr >;
+    using AndPtr      = OperationsStage::Derivation::And*;
+    using RootPtr     = OperationsStage::Derivation::Root*;
+
+    EdgePtr makeEdge( StepPtr pNext, const GraphEdgeVector& edges ) const
+    {
+        // initially no edges are eliminated
+        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, edges } );
+    }
+    OrPtr makeOr( GraphVertex* pVertex ) const
+    {
+        return m_database.construct< Derivation::Or >( Derivation::Or::Args{ Derivation::Step::Args{ pVertex, {} } } );
+    }
+    AndPtr makeAnd( GraphVertex* pVertex ) const
+    {
+        return m_database.construct< Derivation::And >(
+            Derivation::And::Args{ Derivation::Step::Args{ pVertex, {} } } );
+    }
+    RootPtr makeRoot( const GraphVertexVector& context ) const
+    {
+        return m_database.construct< Derivation::Root >( Derivation::Root::Args{ context, {} } );
+    }
+    EdgePtr makeRootEdge( OrPtr pNext ) const
+    {
+        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, {} } );
     }
 
-    OperationsStage::Symbols::SymbolTypeID* findSymbolTypeID( mega::TypeID typeID ) const
+    // the link context MAY contain MULTIPLE links.  Each individual link is either deriving or not.
+    // The Link context is considered to be deriving if ANY of its links are deriving
+    GraphVertexVector enumerateLinkContexts( GraphVertex* pVertex, bool bDerivingOnly ) const
     {
-        auto iFind = m_symbolIDMap.find( typeID );
-        VERIFY_RTE( iFind != m_symbolIDMap.end() );
-        return iFind->second;
-    }
-
-    OperationsStage::Symbols::SymbolTypeID* maybeFindSymbolTypeID( mega::TypeID typeID ) const
-    {
-        auto iFind = m_symbolIDMap.find( typeID );
-        if( iFind != m_symbolIDMap.end() )
+        auto pContext = db_cast< Concrete::Context >( pVertex );
+        VERIFY_RTE( pContext );
+        auto optionalObject = pContext->get_concrete_object();
+        VERIFY_RTE( optionalObject.has_value() );
+        GraphVertexVector result;
+        for( auto pLinkContext : optionalObject.value()->get_link_contexts() )
         {
-            return iFind->second;
+            result.push_back( pLinkContext );
+        }
+        return result;
+    }
+
+    // enumerate actual polymorphic branches of a given link
+    GraphEdgeVector enumerateLink( GraphVertex* pLink ) const
+    {
+        GraphEdgeVector result;
+        for( auto pEdge : pLink->get_out_edges() )
+        {
+            switch( pEdge->get_type().get() )
+            {
+                case EdgeType::eMono:
+                {
+                    result.push_back( pEdge );
+                }
+                break;
+                case EdgeType::ePoly:
+                {
+                    result.push_back( pEdge );
+                }
+                break;
+                case EdgeType::ePolyParent:
+                {
+                    result.push_back( pEdge );
+                }
+                break;
+
+                case EdgeType::eParent:
+                case EdgeType::eChildSingular:
+                case EdgeType::eChildNonSingular:
+                case EdgeType::ePart:
+                case EdgeType::eDim:
+                case EdgeType::eObjectLink:
+                case EdgeType::TOTAL_EDGE_TYPES:
+                    break;
+            }
+        }
+        return result;
+    }
+    // enumerate the dimension links within the parent vertex
+    GraphEdgeVector enumerateLinks( GraphVertex* pParentVertex ) const
+    {
+        GraphEdgeVector result;
+
+        for( auto pEdge : pParentVertex->get_out_edges() )
+        {
+            switch( pEdge->get_type().get() )
+            {
+                case EdgeType::eObjectLink:
+                {
+                    result.push_back( pEdge );
+                }
+                break;
+                case EdgeType::ePolyParent:
+                case EdgeType::eMono:
+                case EdgeType::ePoly:
+                case EdgeType::eParent:
+                case EdgeType::eChildSingular:
+                case EdgeType::eChildNonSingular:
+                case EdgeType::ePart:
+                case EdgeType::eDim:
+                case EdgeType::TOTAL_EDGE_TYPES:
+                    break;
+            }
+        }
+
+        return result;
+    }
+
+    GraphVertex* pathToObjectRoot( GraphVertex* pVertex, GraphEdgeVector& path ) const
+    {
+        while( !db_cast< Concrete::Object >( pVertex ) )
+        {
+            bool bFound = false;
+            for( auto pEdge : pVertex->get_out_edges() )
+            {
+                if( pEdge->get_type().get() == EdgeType::eParent )
+                {
+                    path.push_back( pEdge );
+                    pVertex = pEdge->get_target();
+                    bFound  = true;
+                    break;
+                }
+            }
+            if( !bFound )
+            {
+                THROW_RTE( "Failed to find path to object root from vertex" );
+                return nullptr;
+            }
+        }
+        return pVertex;
+    }
+
+    bool invertObjectRootPath( const GraphEdgeVector& path, GraphEdgeVector& descendingPath ) const
+    {
+        for( auto pEdge : path )
+        {
+            bool bFound = false;
+            for( auto pInverseEdge : pEdge->get_target()->get_out_edges() )
+            {
+                if( pEdge->get_target() == pInverseEdge->get_source() )
+                {
+                    switch( pInverseEdge->get_type().get() )
+                    {
+                        case EdgeType::eChildSingular:
+                        case EdgeType::eObjectLink:
+                        case EdgeType::eDim:
+                        {
+                            descendingPath.push_back( pInverseEdge );
+                            bFound = true;
+                            break;
+                        }
+                        case EdgeType::eParent:
+                        case EdgeType::eChildNonSingular:
+                        case EdgeType::ePart:
+                        case EdgeType::eMono:
+                        case EdgeType::ePoly:
+                        case EdgeType::ePolyParent:
+                        case EdgeType::TOTAL_EDGE_TYPES:
+                            break;
+                    }
+                }
+            }
+            if( !bFound )
+            {
+                return false;
+            }
+        }
+        std::reverse( descendingPath.begin(), descendingPath.end() );
+        return true;
+    }
+
+    bool commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const
+    {
+        GraphEdgeVector sourcePath, targetPath;
+        auto            pSourceObject = pathToObjectRoot( pSource, sourcePath );
+        auto            pTargetObject = pathToObjectRoot( pTarget, targetPath );
+
+        // if not the same object then fail
+        if( pSourceObject != pTargetObject )
+            return false;
+
+        // while both paths contain edges then if the edge is the same there is a lower common root
+        while( !sourcePath.empty() && !targetPath.empty() && ( sourcePath.back() == targetPath.back() ) )
+        {
+            sourcePath.pop_back();
+            targetPath.pop_back();
+        }
+
+        std::copy( sourcePath.begin(), sourcePath.end(), std::back_inserter( edges ) );
+        GraphEdgeVector descendingPath;
+        if( invertObjectRootPath( targetPath, descendingPath ) )
+        {
+            std::copy( targetPath.begin(), targetPath.end(), std::back_inserter( edges ) );
+            return true;
         }
         else
         {
-            return {};
+            return false;
         }
     }
 
-    OperationsStage::Symbols::InterfaceTypeID* findInterfaceTypeID( mega::TypeID typeID ) const
+    InvocationPolicy( Database& database )
+        : m_database( database )
     {
-        auto iFind = m_interfaceIDMap.find( typeID );
-        VERIFY_RTE_MSG( iFind != m_interfaceIDMap.end(), "Failed to find interface type id: " << typeID );
-        return iFind->second;
-    }
-
-    OperationsStage::Symbols::InterfaceTypeID* maybeFindInterfaceTypeID( mega::TypeID typeID ) const
-    {
-        auto iFind = m_interfaceIDMap.find( typeID );
-        if( iFind != m_interfaceIDMap.end() )
-        {
-            return iFind->second;
-        }
-        else
-        {
-            return {};
-        }
     }
 
 private:
-    SymbolTypeIDMap    m_symbolIDMap;
-    InterfaceTypeIDMap m_interfaceIDMap;
+    Database& m_database;
 };
 
-using InterfaceVariantVector       = std::vector< OperationsStage::Operations::InterfaceVariant* >;
-using InterfaceVariantVectorVector = std::vector< InterfaceVariantVector >;
-
-InterfaceVariantVector symbolToInterfaceVariantVector( Database& database, Symbols::SymbolTypeID* pSymbol )
+std::optional< mega::OperationID > fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationID& id,
+                                                     std::vector< Concrete::Context* > types,
+                                                     InvocationPolicy::Spec&           spec )
 {
-    InterfaceVariantVector result;
-    for( Interface::IContext* pContext : pSymbol->get_contexts() )
-    {
-        InterfaceVariant* pInterfaceVariant = database.construct< InterfaceVariant >(
-            InterfaceVariant::Args{ pContext, std::optional< Interface::DimensionTrait* >() } );
-        result.push_back( pInterfaceVariant );
-    }
+    std::optional< mega::OperationID > operationIDOpt;
 
-    for( Interface::DimensionTrait* pDimension : pSymbol->get_dimensions() )
-    {
-        InterfaceVariant* pInterfaceVariant = database.construct< InterfaceVariant >(
-            InterfaceVariant::Args{ std::optional< Interface::IContext* >(), pDimension } );
-        result.push_back( pInterfaceVariant );
-    }
-    return result;
-}
-
-InterfaceVariantVector symbolIDToInterfaceVariant( Database& database, const SymbolMaps& symbolMaps,
-                                                   mega::TypeID typeID )
-{
-    if( typeID.isSymbolID() )
-    {
-        return symbolToInterfaceVariantVector( database, symbolMaps.findSymbolTypeID( typeID ) );
-    }
-    else
-    {
-        auto pInterfaceTypeID = symbolMaps.findInterfaceTypeID( typeID );
-        if( pInterfaceTypeID->get_context().has_value() )
-        {
-            InterfaceVariantVector result;
-            InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >( InterfaceVariant::Args{
-                pInterfaceTypeID->get_context().value(), std::optional< Interface::DimensionTrait* >() } );
-            result.push_back( pInterfaceVariant );
-            return result;
-        }
-        else if( pInterfaceTypeID->get_dimension().has_value() )
-        {
-            InterfaceVariantVector result;
-            InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >( InterfaceVariant::Args{
-                std::optional< Interface::IContext* >(), pInterfaceTypeID->get_dimension().value() } );
-            result.push_back( pInterfaceVariant );
-            return result;
-        }
-        else
-        {
-            THROW_RTE( "Interface Type ID with no context" );
-        }
-    }
-    THROW_RTE( "Failed to resolve symbol id" );
-}
-
-InterfaceVariantVectorVector
-symbolVectorToInterfaceVariantVector( Database& database, const std::vector< Symbols::SymbolTypeID* >& symbols )
-{
-    InterfaceVariantVectorVector result;
-    for( Symbols::SymbolTypeID* pSymbol : symbols )
-    {
-        InterfaceVariantVector interfaceVariantVector = symbolToInterfaceVariantVector( database, pSymbol );
-        result.push_back( interfaceVariantVector );
-    }
-    return result;
-}
-/*
-InterfaceVariantVectorVector linkToInterfaceVariantVector( OperationsStage::Database&             database,
-                                                           const OperationsStage::Concrete::Link* pLink )
-{
-    THROW_TODO;
-    InterfaceVariantVectorVector result;
-
-    auto pRelation = pLink->get_link()->get_relation();
-
-    if( pRelation->get_source_interface() == pLink->get_link_interface() )
-    {
-        for( auto pTarget : pRelation->get_targets() )
-        {
-            InterfaceVariantVector temp;
-            InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >(
-                InterfaceVariant::Args{ pTarget, std::optional< Interface::DimensionTrait* >() } );
-            temp.push_back( pInterfaceVariant );
-            result.push_back( temp );
-        }
-    }
-    else if( pRelation->get_target_interface() == pLink->get_link_interface() )
-    {
-        for( auto pSource : pRelation->get_sources() )
-        {
-            InterfaceVariantVector temp;
-            InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >(
-                InterfaceVariant::Args{ pSource, std::optional< Interface::DimensionTrait* >() } );
-            temp.push_back( pInterfaceVariant );
-            result.push_back( temp );
-        }
-    }
-    else
-    {
-        THROW_RTE( "Failed to find link interface" );
-    }
-
-    return result;
-}*/
-
-InterfaceVariantVectorVector
-symbolIDVectorToInterfaceVariantVector( Database& database, const SymbolMaps& symbolMaps,
-                                        const std::vector< mega::TypeID >&  symbolIDs,
-                                        std::optional< mega::OperationID >& operationIDOpt )
-{
-    InterfaceVariantVectorVector result;
-
-    for( mega::TypeID symbolID : symbolIDs )
+    for( auto& symbolID : id.m_context )
     {
         if( isOperationType( symbolID ) )
         {
+            VERIFY_RTE_MSG( !operationIDOpt.has_value(), "Operation ID defined twice" );
             operationIDOpt = static_cast< mega::OperationID >( symbolID.getSymbolID() );
-            continue;
         }
-        InterfaceVariantVector interfaceVariantVector = symbolIDToInterfaceVariant( database, symbolMaps, symbolID );
-        VERIFY_RTE( !interfaceVariantVector.empty() );
-        result.push_back( interfaceVariantVector );
-    }
-
-    return result;
-}
-
-ElementVector* toElementVector( Database& database, const InterfaceVariantVector& interfaceVariantVector )
-{
-    std::vector< Element* > elements;
-
-    for( InterfaceVariant* pInterfaceVariant : interfaceVariantVector )
-    {
-        if( pInterfaceVariant->get_context().has_value() )
+        else if( symbolID.isSymbolID() )
         {
-            Interface::IContext* pContext = pInterfaceVariant->get_context().value();
-
-            // std::cout << "TEST MSG from toElementVector for: " << pContext->get_identifier() << std::endl;
-            const auto concreteInheritors = pContext->get_concrete();
-            if( concreteInheritors.empty() )
+            auto iFind = symbolTables.symbolIDMap.find( symbolID );
+            VERIFY_RTE( iFind != symbolTables.symbolIDMap.end() );
+            auto pSymbol = iFind->second;
+            for( auto pContext : pSymbol->get_contexts() )
             {
-                std::cout << "ERROR: no concrete inheritors for: " << pContext->get_identifier()
-                          << " id: " << pContext->get_interface_id() << std::endl;
-            }
-
-            for( Concrete::Context* pConcrete : concreteInheritors )
-            {
-                InterfaceVariant* pInterfaceVar
-                    = database.construct< InterfaceVariant >( InterfaceVariant::Args{ pContext, std::nullopt } );
-                ConcreteVariant* pConcreteVar
-                    = database.construct< ConcreteVariant >( ConcreteVariant::Args{ pConcrete, std::nullopt } );
-                Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
-                elements.push_back( pElement );
-            }
-        }
-        else if( pInterfaceVariant->get_dimension().has_value() )
-        {
-            Interface::DimensionTrait* pDimension = pInterfaceVariant->get_dimension().value();
-            for( Concrete::Dimensions::User* pConcreteDimension : pDimension->get_concrete() )
-            {
-                InterfaceVariant* pInterfaceVar
-                    = database.construct< InterfaceVariant >( InterfaceVariant::Args{ std::nullopt, pDimension } );
-                ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
-                    ConcreteVariant::Args{ std::nullopt, pConcreteDimension } );
-                Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
-                elements.push_back( pElement );
+                for( auto pConcrete : pContext->get_concrete() )
+                {
+                    types.push_back( pConcrete );
+                    spec.context.push_back( pConcrete );
+                }
             }
         }
         else
         {
-            THROW_RTE( "Missing context in interface variant" );
-        }
-    }
-
-    VERIFY_RTE( !elements.empty() );
-
-    return database.construct< ElementVector >( ElementVector::Args{ elements } );
-}
-
-std::vector< ElementVector* > toElementVector( Database&                           database,
-                                               const InterfaceVariantVectorVector& interfaceVariantVectorVector )
-{
-    std::vector< ElementVector* > result;
-    for( const InterfaceVariantVector& interfaceVariantVector : interfaceVariantVectorVector )
-    {
-        result.push_back( toElementVector( database, interfaceVariantVector ) );
-    }
-    return result;
-}
-
-void findDuplicate( OperationsStage::Invocations::Instructions::Instruction* pInstruction, const char* pszMsg )
-{
-    using namespace OperationsStage::Invocations;
-    using namespace OperationsStage::Invocations::Instructions;
-    using namespace OperationsStage::Invocations::Operations;
-
-    if( InstructionGroup* pInstructionGroup = db_cast< InstructionGroup >( pInstruction ) )
-    {
-        auto children = pInstructionGroup->get_children();
-        VERIFY_RTE_MSG( children.size() < 2U, "Found duplicate: " << pszMsg );
-        for( Instruction* pChildInstruction : children )
-        {
-            findDuplicate( pChildInstruction, pszMsg );
-        }
-    }
-}
-
-void build( Database& database, Invocation* pInvocation )
-{
-    switch( pInvocation->get_operation() )
-    {
-        case id_Imp_NoParams:
-        case id_Imp_Params:
-        case id_Start:
-        case id_Stop:
-        case id_Move:
-        case id_Get:
-        {
-            GenericOperationVisitor visitor{ database, pInvocation };
-            visitor();
-        }
-        break;
-        case id_Raw:
-        case id_Range:
-        {
-            // EnumerationOperationVisitor builder( *this, resolution );
-            // builder( m_pRoot, pContextVariable );
-        }
-        break;
-        case HIGHEST_OPERATION_TYPE:
-            break;
-    }
-
-    const auto firstStageResult = firstStageElimination( pInvocation->get_root_instruction() );
-
-    switch( firstStageResult )
-    {
-        case eSuccess:
-            break;
-        case eFailure:
-            THROW_INVOCATION_EXCEPTION( "No possible derivation" );
-        case eAmbiguous:
-        {
-            using OperationsStage::Invocations::Instructions::Instruction;
-            using OperationsStage::Invocations::Operations::BasicOperation;
-            using OperationsStage::Invocations::Operations::DimensionOperation;
-            using OperationsStage::Invocations::Operations::Operation;
-
-            // get the operations
-            const std::vector< Operation* > operations = getOperations( pInvocation->get_root_instruction() );
-
-            std::vector< Concrete::Context* >          contexts;
-            std::vector< Concrete::Dimensions::User* > dimensions;
-            for( Operation* pOperation : operations )
+            auto iFind = symbolTables.interfaceIDMap.find( symbolID );
+            VERIFY_RTE( iFind != symbolTables.interfaceIDMap.end() );
+            auto pSymbol = iFind->second;
+            VERIFY_RTE( pSymbol->get_context().has_value() );
+            if( auto pInterfaceContext = pSymbol->get_context().value() )
             {
-                if( BasicOperation* pBasicOp = db_cast< BasicOperation >( pOperation ) )
+                for( auto pConcrete : pInterfaceContext->get_concrete() )
                 {
-                    contexts.push_back( pBasicOp->get_concrete_target() );
+                    types.push_back( pConcrete );
+                    spec.context.push_back( pConcrete );
                 }
-                else if( DimensionOperation* pDimensionOp = db_cast< DimensionOperation >( pOperation ) )
-                {
-                    dimensions.push_back( pDimensionOp->get_concrete_dimension() );
-                }
-                else
-                {
-                    THROW_RTE( "Unknown operation type" );
-                }
-            }
-
-            // if starter then accept explicit concrete action type over deriving
-            if( dimensions.empty() )
-            // if( ( m_explicitOperation == id_exp_Call ) || ( m_explicitOperation == id_exp_Start ) )
-            {
-                // determine if there are target elements that are concrete
-                // and have a corresponding concrete type
-                std::vector< Element* > nonPolyTargets;
-                {
-                    TypePath* pTypePath = pInvocation->get_type_path();
-                    auto      elements  = pTypePath->get_vectors();
-                    VERIFY_RTE( !elements.empty() );
-                    auto last = elements.back();
-                    for( Element* pElement : last->get_elements() )
-                    {
-                        auto pInterface = pElement->get_interface()->get_context().value();
-                        auto pConcrete  = pElement->get_concrete()->get_context().value();
-
-                        auto t = pInterface->get_concrete();
-                        if( std::find( t.begin(), t.end(), pConcrete ) != t.end() )
-                        {
-                            nonPolyTargets.push_back( pElement );
-                        }
-                    }
-                }
-
-                // if so use them and eliminate the others
-                if( !nonPolyTargets.empty() )
-                {
-                    std::vector< Operation* > candidateOperations;
-                    for( Operation* pOperation : operations )
-                    {
-                        using OperationsStage::Invocations::Operations::Allocate;
-                        using OperationsStage::Invocations::Operations::Call;
-                        using OperationsStage::Invocations::Operations::Start;
-
-                        if( auto pAllocate = db_cast< Allocate >( pOperation ) )
-                        {
-                            for( Element* pElement : nonPolyTargets )
-                            {
-                                if( pElement->get_concrete()->get_context().value() == pAllocate->get_concrete_target()
-                                    && pElement->get_interface()->get_context().value() == pAllocate->get_interface() )
-                                {
-                                    candidateOperations.push_back( pAllocate );
-                                }
-                            }
-                        }
-                        else if( auto pCall = db_cast< Call >( pOperation ) )
-                        {
-                            for( Element* pElement : nonPolyTargets )
-                            {
-                                if( pElement->get_concrete()->get_context().value() == pCall->get_concrete_target()
-                                    && pElement->get_interface()->get_context().value() == pCall->get_interface() )
-                                {
-                                    candidateOperations.push_back( pCall );
-                                }
-                            }
-                        }
-                        else if( auto pStart = db_cast< Start >( pOperation ) )
-                        {
-                            for( Element* pElement : nonPolyTargets )
-                            {
-                                if( pElement->get_concrete()->get_context().value() == pStart->get_concrete_target()
-                                    && pElement->get_interface()->get_context().value() == pStart->get_interface() )
-                                {
-                                    candidateOperations.push_back( pStart );
-                                }
-                            }
-                        }
-                        else
-                        {
-                            THROW_RTE( "Unexpected operation type" );
-                        }
-                    }
-
-                    if( !candidateOperations.empty() )
-                    {
-                        switch( secondStageElimination( candidateOperations, pInvocation->get_root_instruction() ) )
-                        {
-                            case eSuccess:
-                                break;
-                            case eFailure:
-                                THROW_INVOCATION_EXCEPTION( "No possible derivation" );
-                            case eAmbiguous:
-                                THROW_INVOCATION_EXCEPTION( "Ambiguous derivation" );
-                        }
-                    }
-                    else
-                    {
-                        THROW_INVOCATION_EXCEPTION( "Ambiguous derivation for" );
-                    }
-                }
-                else
-                {
-                    THROW_INVOCATION_EXCEPTION( "Ambiguous derivation for" );
-                }
-            }
-            else
-            {
-                THROW_INVOCATION_EXCEPTION( "Ambiguous derivation for" );
-            }
-        }
-        break;
-    }
-}
-
-void setOrCheck( std::optional< ExplicitOperationID >& resultOpt, ExplicitOperationID value )
-{
-    if( !resultOpt.has_value() )
-        resultOpt = value;
-    else
-        VERIFY_RTE_MSG( resultOpt.value() == value, "Conflicting explicit operation type found" );
-}
-
-ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
-{
-    std::optional< ExplicitOperationID > resultOpt;
-
-    using namespace OperationsStage::Invocations::Operations;
-    for( auto pOperation : getOperations( pInvocation->get_root_instruction() ) )
-    {
-        bool bFound = false;
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Allocate >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Allocate );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Call >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Call );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Start >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Start );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Stop >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Stop );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Move >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Move );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< GetAction >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_GetAction );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< GetDimension >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_GetDimension );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Read >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Read );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Write >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Write );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< ReadLink >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Read_Link );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< WriteLink >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Write_Link );
-                bFound = true;
-            }
-        }
-        if( !bFound )
-        {
-            if( auto pOp = db_cast< Range >( pOperation ) )
-            {
-                setOrCheck( resultOpt, id_exp_Range );
-                bFound = true;
             }
         }
     }
 
-    VERIFY_RTE_MSG( resultOpt.has_value(),
-                    "Failed to determine explicit operation type for invocation: " << pInvocation->get_name() );
-    return resultOpt.value();
-}
-
-std::vector< OperationsStage::Interface::IContext* >
-calculateLinkOperationTypes( std::vector< OperationsStage::Interface::IContext* >& derivedContexts, bool& bSingular )
-{
-    THROW_TODO;
-    /*
-    VERIFY_RTE_MSG( !derivedContexts.empty(), "Link Operation has no contexts" );
-
-    std::vector< OperationsStage::Interface::IContext* > parameterContextTypes;
+    for( auto& symbolID : id.m_type_path )
     {
-        std::set< Interface::LinkInterface* > linkInterfaces;
+        std::vector< Concrete::Graph::Vertex* > pathElement;
+        if( isOperationType( symbolID ) )
         {
-            for( Interface::IContext* pContext : derivedContexts )
+            VERIFY_RTE_MSG( !operationIDOpt.has_value(), "Operation ID defined twice" );
+            operationIDOpt = static_cast< mega::OperationID >( symbolID.getSymbolID() );
+        }
+        else if( symbolID.isSymbolID() )
+        {
+            auto iFind = symbolTables.symbolIDMap.find( symbolID );
+            VERIFY_RTE( iFind != symbolTables.symbolIDMap.end() );
+            auto pSymbol = iFind->second;
+            for( auto pContext : pSymbol->get_contexts() )
             {
-                if( auto pLink = db_cast< Interface::Link >( pContext ) )
+                for( auto pConcrete : pContext->get_concrete() )
                 {
-                    VERIFY_RTE_MSG( !db_cast< Interface::LinkInterface >( pLink ), "Invalid use of link interface" );
-
-                    HyperGraph::Relation* pRelation = pLink->get_relation();
-                    bool                  bIsSource = false;
-                    bool                  bIsTarget = false;
-                    for( auto pSource : pRelation->get_sources() )
-                    {
-                        if( pSource == pLink )
-                        {
-                            bIsSource = true;
-                            break;
-                        }
-                    }
-                    if( !bIsSource )
-                    {
-                        for( auto pSource : pRelation->get_targets() )
-                        {
-                            if( pSource == pLink )
-                            {
-                                bIsTarget = true;
-                                break;
-                            }
-                        }
-                    }
-                    VERIFY_RTE( bIsSource || bIsTarget );
-
-                    if( bIsSource )
-                    {
-                        linkInterfaces.insert( pRelation->get_source_interface() );
-                    }
-                    else
-                    {
-                        linkInterfaces.insert( pRelation->get_target_interface() );
-                    }
-                }
-                else
-                {
-                    THROW_RTE( "Invalid Link operation" );
+                    pathElement.push_back( pConcrete );
                 }
             }
-        }
-        VERIFY_RTE_MSG( linkInterfaces.size() == 1, "Non homogeneous link interface types" );
-
-        Interface::LinkInterface* pLinkInterface = *linkInterfaces.begin();
-        HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
-
-        // determine the return types
-        if( pLinkInterface == pRelation->get_source_interface() )
-        {
-            bSingular = !pRelation->get_source_interface()->get_link_trait()->get_cardinality().maximum().isMany();
-            for( auto p : pRelation->get_targets() )
-                parameterContextTypes.push_back( p );
-        }
-        else if( pLinkInterface == pRelation->get_target_interface() )
-        {
-            bSingular = !pRelation->get_target_interface()->get_link_trait()->get_cardinality().maximum().isMany();
-            for( auto p : pRelation->get_sources() )
-                parameterContextTypes.push_back( p );
+            for( auto pDimension : pSymbol->get_dimensions() )
+            {
+                for( auto pConcrete : pDimension->get_concrete() )
+                {
+                    pathElement.push_back( pConcrete );
+                }
+            }
+            for( auto pLink : pSymbol->get_links() )
+            {
+                for( auto pConcrete : pLink->get_concrete() )
+                {
+                    pathElement.push_back( pConcrete );
+                }
+            }
         }
         else
         {
-            THROW_RTE( "Invalid link interface" );
-        }
-    }
-    return parameterContextTypes;*/
-}
+            auto iFind = symbolTables.interfaceIDMap.find( symbolID );
+            VERIFY_RTE( iFind != symbolTables.interfaceIDMap.end() );
+            auto pSymbol = iFind->second;
 
-void analyseReturnTypes( Database& database, Invocation* pInvocation )
-{
-    pInvocation->set_explicit_operation( determineExplicitOperationType( pInvocation ) );
-
-    std::vector< OperationsStage::Interface::IContext* >       derivedContexts;
-    std::vector< OperationsStage::Interface::DimensionTrait* > derivedDimensions;
-    bool                                                       bIsWriteOperation = false;
-    {
-        using OperationsStage::Invocations::Operations::Operation;
-        using OperationsStage::Invocations::Operations::Write;
-        for( Operation* pOperation : getOperations( pInvocation->get_root_instruction() ) )
-        {
-            if( db_cast< Write >( pOperation ) )
-                bIsWriteOperation = true;
-            for( auto pReturnType : pOperation->get_derived_contexts() )
+            if( pSymbol->get_context().has_value(); auto pContext = pSymbol->get_context().value() )
             {
-                if( pReturnType->get_context().has_value() )
-                    derivedContexts.push_back( pReturnType->get_context().value() );
-                else if( pReturnType->get_dimension().has_value() )
-                    derivedDimensions.push_back( pReturnType->get_dimension().value() );
-            }
-        }
-    }
-
-    derivedContexts   = uniquify_without_reorder( derivedContexts );
-    derivedDimensions = uniquify_without_reorder( derivedDimensions );
-
-    bool bIsHomogenous = true;
-    {
-        if( derivedContexts.size() && derivedDimensions.size() )
-        {
-            if( !bIsWriteOperation )
-            {
-                THROW_INVOCATION_EXCEPTION( "Mixed dimension and action invocation return types" );
-            }
-        }
-        /*if( derivedContexts.size() )
-        {
-            bIsHomogenous = derivedContexts.size() == 1U;
-        }*/
-        if( derivedDimensions.size() )
-        {
-            std::optional< std::string > typeOpt;
-            for( OperationsStage::Interface::DimensionTrait* pDim : derivedDimensions )
-            {
-                if( typeOpt.has_value() )
+                for( auto pConcrete : pContext->get_concrete() )
                 {
-                    if( typeOpt.value() != pDim->get_canonical_type() )
-                    {
-                        bIsHomogenous = false;
-                        break;
-                    }
-                }
-                else
-                {
-                    typeOpt = pDim->get_canonical_type();
+                    pathElement.push_back( pConcrete );
                 }
             }
-        }
-    }
-
-    bool                                                       bSingular = true;
-    std::vector< OperationsStage::Interface::IContext* >       contextReturnTypes;
-    std::vector< OperationsStage::Interface::DimensionTrait* > dimensionReturnTypes;
-    std::vector< OperationsStage::Interface::IContext* >       parameterContextTypes;
-
-    switch( pInvocation->get_explicit_operation() )
-    {
-        case id_exp_Read:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Write:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Read_Link:
-        {
-            parameterContextTypes = calculateLinkOperationTypes( derivedContexts, bSingular );
-            contextReturnTypes    = parameterContextTypes;
-            dimensionReturnTypes  = derivedDimensions;
-        }
-        break;
-        case id_exp_Write_Link:
-        {
-            parameterContextTypes = calculateLinkOperationTypes( derivedContexts, bSingular );
-            contextReturnTypes    = derivedContexts;
-            dimensionReturnTypes  = derivedDimensions;
-        }
-        break;
-        case id_exp_Allocate:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Call:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Start:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Stop:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Move:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_GetAction:
-        case id_exp_GetDimension:
-        {
-            contextReturnTypes = derivedContexts;
-            // dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Done:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Range:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case id_exp_Raw:
-        {
-            contextReturnTypes   = derivedContexts;
-            dimensionReturnTypes = derivedDimensions;
-        }
-        break;
-        case HIGHEST_EXPLICIT_OPERATION_TYPE:
-        default:
-            THROW_RTE( "Invalid explicit operation type" );
-            break;
-    }
-
-    pInvocation->set_parameter_contexts( parameterContextTypes );
-    pInvocation->set_return_type_contexts( contextReturnTypes );
-    pInvocation->set_return_type_dimensions( dimensionReturnTypes );
-    pInvocation->set_homogeneous( bIsHomogenous );
-    pInvocation->set_singular( bSingular );
-
-    std::vector< Interface::IContext* >       parameterContexts = pInvocation->get_parameter_contexts();
-    std::vector< Interface::IContext* >       contexts          = pInvocation->get_return_type_contexts();
-    std::vector< Interface::DimensionTrait* > dimensions        = pInvocation->get_return_type_dimensions();
-
-    std::optional< std::string >                strFunctionReturnTypeOpt;
-    std::optional< std::vector< std::string > > functionParameterTypesOpt;
-    {
-        bool bNonFunction = false;
-        for( Interface::IContext* pReturnContext : contexts )
-        {
-            if( auto pFunctionCall = db_cast< Interface::Function >( pReturnContext ) )
+            else if( pSymbol->get_dimension().has_value(); auto pDimension = pSymbol->get_dimension().value() )
             {
-                if( strFunctionReturnTypeOpt.has_value() )
+                for( auto pConcrete : pDimension->get_concrete() )
                 {
-                    if( strFunctionReturnTypeOpt.value()
-                        != pFunctionCall->get_return_type_trait()->get_canonical_type() )
-                    {
-                        THROW_RTE( "Incompatible function return types" );
-                    }
+                    pathElement.push_back( pConcrete );
                 }
-                else
+            }
+            else if( pSymbol->get_link().has_value(); auto pLink = pSymbol->get_link().value() )
+            {
+                for( auto pConcrete : pLink->get_concrete() )
                 {
-                    strFunctionReturnTypeOpt = pFunctionCall->get_return_type_trait()->get_canonical_type();
-                }
-                if( functionParameterTypesOpt.has_value() )
-                {
-                    if( functionParameterTypesOpt.value()
-                        != pFunctionCall->get_arguments_trait()->get_canonical_types() )
-                    {
-                        THROW_RTE( "Incompatible function parameter types" );
-                    }
-                }
-                else
-                {
-                    functionParameterTypesOpt = pFunctionCall->get_arguments_trait()->get_canonical_types();
+                    pathElement.push_back( pConcrete );
                 }
             }
             else
             {
-                bNonFunction = true;
+                THROW_RTE( "Unknown symbolID" );
             }
         }
-        VERIFY_RTE_MSG( !strFunctionReturnTypeOpt.has_value() || !bNonFunction,
-                        "Invalid mix of function and non-function operations" );
+        if( !pathElement.empty() )
+        {
+            spec.path.emplace_back( std::move( pathElement ) );
+        }
     }
 
-    pInvocation->set_is_function_call( strFunctionReturnTypeOpt.has_value() );
-    pInvocation->set_runtime_parameter_type_str( "" );
+    return operationIDOpt;
+}
 
-    std::ostringstream osReturnTypeStr, osRuntimeReturnType;
-    {
-        switch( pInvocation->get_explicit_operation() )
+// std::vector< Invocations::Variables::Variable* >;
+
+using namespace OperationsStage::Invocations;
+
+template < typename TVariable, typename... ConstructorArgs >
+TVariable* make_variable( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation,
+                          ConstructorArgs&&... ctorArgs )
+{
+    TVariable* pVariable = database.construct< TVariable >( typename TVariable::Args{ ctorArgs... } );
+    pInvocation->push_back_variables( pVariable );
+    return pVariable;
+}
+
+template < typename TInstruction, typename... ConstructorArgs >
+TInstruction* make_instruction( OperationsStage::Database& database, Instructions::InstructionGroup* pParentInstruction,
+                                ConstructorArgs&&... ctorArgs )
+{
+    // clang-format off
+    TInstruction* pNewInstruction = database.construct< TInstruction >
+    (
+        typename TInstruction::Args
         {
-            case mega::id_exp_Read:
+            OperationsStage::Invocations::Instructions::InstructionGroup::Args
             {
-                VERIFY_RTE_MSG( !dimensions.empty(), "Read has no dimensions" );
-                VERIFY_RTE_MSG( pInvocation->get_homogeneous(), "Read operation Non-homogenous dimensions" );
+                OperationsStage::Invocations::Instructions::Instruction::Args{},
+                {}
+            },
+            ctorArgs...
+        }
+    );
+    // clang-format on
+    if( pParentInstruction )
+    {
+        pParentInstruction->push_back_children( pNewInstruction );
+    }
 
-                std::ostringstream osDimensionTrait;
-                {
-                    osDimensionTrait << printIContextFullType( dimensions.front()->get_parent() );
-                    osDimensionTrait << "::" << dimensions.front()->get_id()->get_str();
-                }
-                osReturnTypeStr << osDimensionTrait.str() << "::Read";
-                osRuntimeReturnType << osDimensionTrait.str() << "::Type";
+    return pNewInstruction;
+}
+
+void build( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation,
+            Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable,
+            InvocationPolicy::EdgePtr pEdge )
+{
+    for( auto pGraphEdge : pEdge->get_edges() )
+    {
+        switch( pGraphEdge->get_type().get() )
+        {
+            case EdgeType::eParent:
+            {
             }
             break;
-            case mega::id_exp_Write:
+            case EdgeType::eChildSingular:
             {
-                VERIFY_RTE_MSG( !contexts.empty(), "Write has no result context" );
-                VERIFY_RTE_MSG( !dimensions.empty(), "Write has no dimensions" );
-                VERIFY_RTE_MSG( pInvocation->get_homogeneous(), "Write operation on non-homogenous dimensions" );
-
-                printContextType( contexts, osReturnTypeStr );
-                std::ostringstream osDimensionTrait;
-                {
-                    osDimensionTrait << printIContextFullType( dimensions.front()->get_parent() );
-                    osDimensionTrait << "::" << dimensions.front()->get_id()->get_str();
-                }
-                osRuntimeReturnType << osDimensionTrait.str() << "::Type";
             }
             break;
-            case mega::id_exp_Read_Link:
+            case EdgeType::eChildNonSingular:
             {
-                std::ostringstream osInterfaceReturnType;
-                printContextType( parameterContexts, osInterfaceReturnType );
-
-                if( pInvocation->get_singular() )
-                {
-                    osReturnTypeStr << osInterfaceReturnType.str();
-                    osRuntimeReturnType << osInterfaceReturnType.str();
-                }
-                else
-                {
-                    osReturnTypeStr << "const __mega_vector< " << osInterfaceReturnType.str() << " >&";
-                    osRuntimeReturnType << "__mega_vector< " << osInterfaceReturnType.str() << " >";
-                }
             }
             break;
-            case mega::id_exp_Write_Link:
+            case EdgeType::ePart:
             {
-                VERIFY_RTE_MSG( !contexts.empty(), "WriteLink has no result context" );
-
-                {
-                    std::ostringstream osParameterTypeStrTemp;
-                    printContextType( parameterContexts, osParameterTypeStrTemp );
-
-                    std::ostringstream osParameterTypeStr;
-                    if( pInvocation->get_singular() )
-                    {
-                        osParameterTypeStr << osParameterTypeStrTemp.str();
-                    }
-                    else
-                    {
-                        osParameterTypeStr << "__mega_vector< " << osParameterTypeStrTemp.str() << " >";
-                    }
-                    pInvocation->set_runtime_parameter_type_str( osParameterTypeStr.str() );
-                }
-
-                printContextType( contexts, osReturnTypeStr );
-                osRuntimeReturnType << mega::psz_mega_reference;
             }
             break;
-            case mega::id_exp_Allocate:
+            case EdgeType::eDim:
             {
-                printContextType( contexts, osReturnTypeStr );
-                osRuntimeReturnType << mega::psz_mega_reference;
             }
             break;
-            case mega::id_exp_Call:
+            case EdgeType::eObjectLink:
             {
-                if( !strFunctionReturnTypeOpt.has_value() )
-                {
-                    osReturnTypeStr << "void";
-                }
-                else
-                {
-                    osReturnTypeStr << strFunctionReturnTypeOpt.value();
-                }
-                // define function pointer type
-                osRuntimeReturnType << osReturnTypeStr.str() << "(*)( " << mega::psz_mega_reference << "* ";
-                if( functionParameterTypesOpt.has_value() )
-                {
-                    for( const std::string& strType : functionParameterTypesOpt.value() )
-                        osRuntimeReturnType << "," << strType;
-                }
-                osRuntimeReturnType << ")";
             }
             break;
-            case mega::id_exp_Start:
+            case EdgeType::eMono:
             {
-                printContextType( contexts, osReturnTypeStr );
-                osRuntimeReturnType << mega::psz_mega_reference;
-                break;
-            }
-            case mega::id_exp_GetAction:
-            case mega::id_exp_GetDimension:
-            {
-                printContextType( contexts, osReturnTypeStr );
-                osRuntimeReturnType << mega::psz_mega_reference;
             }
             break;
-            case mega::id_exp_Stop:
-            case mega::id_exp_Move:
-            case mega::id_exp_Range:
-            case mega::id_exp_Raw:
+            case EdgeType::ePoly:
             {
-                osReturnTypeStr << "void";
-                osRuntimeReturnType << "void";
-                break;
             }
-
-            case mega::HIGHEST_EXPLICIT_OPERATION_TYPE:
+            break;
+            case EdgeType::ePolyParent:
+            {
+            }
+            break;
             default:
-                THROW_RTE( "Unsupported operation type" );
+            case EdgeType::TOTAL_EDGE_TYPES:
+            {
+                THROW_RTE( "Unknown hypergraph edge type" );
+            }
+            break;
         }
     }
 
-    pInvocation->set_return_type_str( osReturnTypeStr.str() );
-    pInvocation->set_runtime_return_type_str( osRuntimeReturnType.str() );
+    auto pNextStep = pEdge->get_next();
+    if( auto pAND = db_cast< Derivation::And >( pNextStep ) )
+    {
+        // create polymorphic branch
+        auto pRef = db_cast< Variables::Reference >( pVariable );
+        VERIFY_RTE( pRef );
+
+        auto pPolyReference = make_instruction< Instructions::PolyReference >( database, pInstruction, pRef );
+
+        bool bFound = false;
+        for( auto pEdge : pAND->get_edges() )
+        {
+            if( !pEdge->get_eliminated() )
+            {
+                auto pTargetContext = db_cast< Concrete::Context >( pEdge->get_next()->get_vertex() );
+                VERIFY_RTE( pTargetContext );
+
+                auto pInstance = make_variable< Variables::Instance >(
+                    database, pInvocation, Variables::Variable::Args{ pRef }, pTargetContext );
+
+                auto pPolyCaseInstruction
+                    = make_instruction< Instructions::PolyCase >( database, pPolyReference, pRef, pInstance );
+
+                build( database, pInvocation, pPolyCaseInstruction, pInstance, pEdge );
+                bFound = true;
+            }
+        }
+        VERIFY_RTE_MSG( bFound, "Failed to find non-eliminated edge in OR step" );
+    }
+    else if( auto pOR = db_cast< Derivation::Or >( pNextStep ) )
+    {
+        auto edges = pOR->get_edges();
+
+        bool bFound = false;
+        for( auto pEdge : edges )
+        {
+            if( !pEdge->get_eliminated() )
+            {
+                VERIFY_RTE_MSG( !bFound, "Multiple non-eliminated edges in OR step" );
+                build( database, pInvocation, pInstruction, pVariable, pEdge );
+                bFound = true;
+            }
+        }
+        VERIFY_RTE_MSG( bFound, "Failed to find non-eliminated edge in OR step" );
+    }
+    else
+    {
+        THROW_RTE( "Unknown derivation step type" );
+    }
 }
 
-struct InvocationName
+void build( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation,
+            InvocationPolicy::RootPtr pStep, std::vector< Concrete::Context* > types )
 {
-    std::string strName, strContext, strTypePath;
-};
-InvocationName toInvocationName( const mega::InvocationID& id, const InterfaceVariantVectorVector& context,
-                                 const InterfaceVariantVectorVector& typePath, const SymbolMaps& symbolMaps )
-{
-    // rebuild the type path string
-    std::ostringstream osTypePathStr;
-    {
-        osTypePathStr << mega::EG_TYPE_PATH << "< ";
-        bool bFirst = true;
-        for( mega::TypeID symbolID : id.m_type_path )
-        {
-            if( bFirst )
-                bFirst = false;
-            else
-                osTypePathStr << ", ";
-            if( symbolID.isSymbolID() )
-            {
-                if( isOperationType( symbolID ) )
-                {
-                    osTypePathStr << getOperationString( static_cast< OperationID >( symbolID.getSymbolID() ) );
-                }
-                else
-                {
-                    auto pSymbol = symbolMaps.findSymbolTypeID( symbolID );
-                    osTypePathStr << pSymbol->get_symbol();
-                }
-            }
-            else
-            {
-                auto pSymbol = symbolMaps.maybeFindInterfaceTypeID( symbolID );
-                VERIFY_RTE( pSymbol );
-                if( pSymbol->get_context().has_value() )
-                {
-                    osTypePathStr << printIContextFullType( pSymbol->get_context().value() );
-                }
-                else
-                {
-                    osTypePathStr << printIContextFullType( pSymbol->get_dimension().value()->get_parent() );
-                    osTypePathStr << "::" << pSymbol->get_dimension().value()->get_id()->get_str();
-                }
-            }
-        }
-        osTypePathStr << " >";
-    }
+    // clang-format off
+    auto pInitialContext = make_variable< Variables::Context >(
+        database, pInvocation,
+            Variables::Reference::Args
+            { 
+                Variables::Variable::Args
+                { 
+                    std::optional< Variables::Variable* >() 
+                }, 
+                types 
+            } 
+         );
+    // clang-format on
 
-    std::ostringstream osName;
-    std::ostringstream osContextStr;
+    auto pRootInstruction = make_instruction< Instructions::Root >( database, nullptr, pInitialContext );
+    pInvocation->set_root_instruction( pRootInstruction );
+
+    // pStep->get_context()
+    for( auto pEdge : pStep->get_edges() )
     {
-        if( context.size() > 1 )
-        {
-            osName << EG_VARIANT_TYPE << "< ";
-            osContextStr << EG_VARIANT_TYPE << "< ";
-        }
-        {
-            bool bFirst = true;
-            for( const InterfaceVariantVector& ivv : context )
-            {
-                if( bFirst )
-                    bFirst = false;
-                else
-                {
-                    osName << ", ";
-                    osContextStr << ", ";
-                }
-                OperationsStage::Operations::InterfaceVariant* pFirst = ivv.front();
-                if( pFirst->get_context().has_value() )
-                {
-                    Interface::IContext* pContext = pFirst->get_context().value();
-                    osName << pContext->get_identifier();
-                    osContextStr << printIContextFullType( pContext );
-                }
-                else
-                {
-                    VERIFY_RTE( pFirst->get_dimension().has_value() );
-                    Interface::DimensionTrait* pDimension = pFirst->get_dimension().value();
-                    osName << pDimension->get_id()->get_str();
-                    osContextStr << printIContextFullType( pDimension->get_parent() );
-                    osContextStr << "::" << pDimension->get_id()->get_str();
-                }
-            }
-        }
-        if( context.size() > 1 )
-        {
-            osName << " >";
-            osContextStr << " >";
-        }
-        {
-            for( const InterfaceVariantVector& ivv : typePath )
-            {
-                OperationsStage::Operations::InterfaceVariant* pFirst = ivv.front();
-                if( pFirst->get_context().has_value() )
-                {
-                    osName << "." << pFirst->get_context().value()->get_identifier();
-                }
-                else
-                {
-                    VERIFY_RTE( pFirst->get_dimension().has_value() );
-                    osName << "." << pFirst->get_dimension().value()->get_id()->get_str();
-                }
-            }
-        }
-        osName << "." << mega::getOperationString( id.m_operation );
+        build( database, pInvocation, pRootInstruction, pInitialContext, pEdge );
     }
-    return { osName.str(), osContextStr.str(), osTypePathStr.str() };
 }
 
-OperationsStage::Operations::Invocation* compile( Database& database, Symbols::SymbolTable* pSymbolTable,
-                                                  const mega::InvocationID& id )
+OperationsStage::Operations::Invocation*
+compileInvocation( OperationsStage::Database& database, const SymbolTables& symbolTables, const mega::InvocationID& id )
 {
-    using ::operator<<;
-    // std::cout << "Found invocation: " << id << std::endl;
+    // determine the derivation of the invocationID
+    std::vector< Concrete::Context* > types;
+    InvocationPolicy::Spec            derivationSpec;
+    fromInvocationID( symbolTables, id, types, derivationSpec );
 
-    const SymbolMaps symbolMaps( *pSymbolTable );
+    // solve the context free derivation
+    InvocationPolicy              policy( database );
+    InvocationPolicy::OrPtrVector finalFrontier;
+    InvocationPolicy::RootPtr     pRoot = DerivationSolver::solveContextFree( derivationSpec, policy, finalFrontier );
 
-    std::optional< mega::OperationID > operationIDOpt;
+    Derivation::Disambiguation result = Derivation::disambiguate( pRoot, finalFrontier );
 
-    // 1. Convert from the SymbolIDs to Interface Contexts
-    const InterfaceVariantVectorVector context
-        = symbolIDVectorToInterfaceVariantVector( database, symbolMaps, id.m_context, operationIDOpt );
-
-    const InterfaceVariantVectorVector typePath
-        = symbolIDVectorToInterfaceVariantVector( database, symbolMaps, id.m_type_path, operationIDOpt );
-
-    // check for any operation type found
-    {
-        if( operationIDOpt.has_value() )
+    // clang-format off
+    auto pInvocation = database.construct< OperationsStage::Operations::Invocation >(
+        OperationsStage::Operations::Invocation::Args
         {
-            VERIFY_RTE_MSG( operationIDOpt.value() == id.m_operation,
-                            "Type path operation type of: " << operationIDOpt.value()
-                                                            << " does not match invocation type of: " << id );
-        }
-        VERIFY_RTE_MSG( static_cast< int >( id.m_operation ) >= mega::TypeID::LOWEST_SYMBOL_ID
-                            && static_cast< int >( id.m_operation ) < mega::HIGHEST_OPERATION_TYPE,
-                        "Invalid operation type in invocation: " << id );
-    }
+            id,
+            pRoot,
+            {}
+        });
+    // clang-format on
 
-    // 2. Convert from Interface Contexts to Interface/Concrete context pair element vectors
-    const std::vector< ElementVector* > contextElements  = toElementVector( database, context );
-    const std::vector< ElementVector* > typePathElements = toElementVector( database, typePath );
-
-    Context*  pContext  = database.construct< Context >( Context::Args{ contextElements } );
-    TypePath* pTypePath = database.construct< TypePath >( TypePath::Args{ typePathElements } );
-
-    const InvocationName invocationName = toInvocationName( id, context, typePath, symbolMaps );
-
-    Invocation* pInvocation = database.construct< Invocation >( Invocation::Args{ id,
-                                                                                  pContext,
-                                                                                  pTypePath,
-                                                                                  id.m_operation,
-                                                                                  invocationName.strName,
-                                                                                  invocationName.strContext,
-                                                                                  invocationName.strTypePath,
-                                                                                  {} } );
-
-    // 3. Compute name resolution
-    pInvocation->set_name_resolution( resolve( database, pInvocation ) );
-
-    // 4. Build the instructions
-    build( database, pInvocation );
-
-    // 5. Analyse result
-    analyseReturnTypes( database, pInvocation );
+    build( database, pInvocation, pRoot, types );
 
     return pInvocation;
 }

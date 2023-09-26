@@ -54,6 +54,7 @@ JIT::JIT( const mega::MegastructureInstallation& megastructureInstallation, cons
           m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
     , m_pPythonSymbolTable( m_pythonDatabase.one< OperationsStage::Symbols::SymbolTable >(
           m_database.getEnvironment().project_manifest() ) )
+    , m_symbolTables( m_pPythonSymbolTable )
 {
     VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
 }
@@ -72,6 +73,7 @@ JIT::JIT( const MegastructureInstallation& megastructureInstallation, const Proj
           m_database.getEnvironment(), m_database.getEnvironment().project_manifest(), m_pythonFileStore )
     , m_pPythonSymbolTable( m_pythonDatabase.one< OperationsStage::Symbols::SymbolTable >(
           m_database.getEnvironment().project_manifest() ) )
+    , m_symbolTables( m_pPythonSymbolTable )
 {
     VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
 }
@@ -237,14 +239,15 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
     {
         // compile the invocation using the OperationsStage
         const OperationsStage::Operations::Invocation* pInvocation
-            = mega::invocation::compile( m_pythonDatabase, m_pPythonSymbolTable, invocationID );
+            = mega::invocation::compileInvocation( m_pythonDatabase, m_symbolTables, invocationID );
         // now convert to the FinalStage database
         pInvocationFinal = m_pythonDatabaseFinal.convert< FinalStage::Operations::Invocation >( pInvocation );
         // and store in the database wrapper so will be found as dynamic invocation
         m_database.addDynamicInvocation( invocationID, pInvocationFinal );
     }
 
-    JITBase::InvocationTypeInfo result{ pInvocationFinal->get_explicit_operation() };
+    THROW_TODO;
+    /*JITBase::InvocationTypeInfo result{ pInvocationFinal->get_explicit_operation() };
 
     mega::runtime::invocation::FunctionType functionType = mega::runtime::invocation::TOTAL_FUNCTION_TYPES;
     switch( pInvocationFinal->get_explicit_operation() )
@@ -329,7 +332,7 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
 
     getInvocationFunction( pLLVMCompiler, pszUnitName, invocationID, functionType, ppFunction );
 
-    return result;
+    return result;*/
 }
 
 void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::InvocationID& invocationID,

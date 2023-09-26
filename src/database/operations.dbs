@@ -18,88 +18,100 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
+namespace Alias
+{
+    object Edge -> AliasAnalysis::Model
+    {
+        ref< Step >                             next;
+        value< bool >                           eliminated;
+        array< ref< Concrete::Graph::Edge > >   edges;
+    }
+
+    object Step -> AliasAnalysis::Model
+    {
+        ref< Concrete::Graph::Vertex >  vertex;
+        array< ref< Edge > >            edges;
+    }
+
+    object And : Step -> AliasAnalysis::Model
+    {
+    }
+
+    object Or : Step -> AliasAnalysis::Model
+    {
+    }
+
+    object AliasDerivation -> AliasAnalysis::Model
+    {
+        ref< Concrete::Graph::Vertex >  context;
+        array< ref< Edge > >            edges;
+    }
+}
+
+namespace Derivation
+{
+    object Edge -> OperationsStage::Operations
+    {
+        ref< Step >                             next;
+        value< bool >                           eliminated;
+        array< ref< Concrete::Graph::Edge > >   edges;
+    }
+
+    object Step -> OperationsStage::Operations
+    {
+        ref< Concrete::Graph::Vertex >  vertex;
+        array< ref< Edge > >            edges;
+    }
+
+    object And : Step -> OperationsStage::Operations
+    {
+    }
+
+    object Or : Step -> OperationsStage::Operations
+    {
+    }
+
+    object Root -> OperationsStage::Operations
+    {
+        array< ref< Concrete::Graph::Vertex > > context;
+        array< ref< Edge > > edges;
+    }
+}
+
 namespace Operations
 {
-    
-    object InterfaceVariant -> OperationsStage::Operations
-    {
-        opt< ref< Interface::IContext > > context;
-        opt< ref< Interface::DimensionTrait > > dimension;
-    }
-
-    object ConcreteVariant -> OperationsStage::Operations
-    {
-        opt< ref< Concrete::Context > > context;
-        opt< ref< Concrete::Dimensions::User > > dimension;
-    }
-
-    object Element -> OperationsStage::Operations
-    {
-        ref< InterfaceVariant > interface;
-        ref< ConcreteVariant > concrete;
-    }
-
-    object ElementVector -> OperationsStage::Operations
-    {
-        array< ref< Element > > elements;
-    }
-
-    object Context -> OperationsStage::Operations
-    {
-        array< ref< ElementVector > > vectors;
-    }
-
-    object TypePath -> OperationsStage::Operations
-    {
-        array< ref< ElementVector > > vectors;
-    }
-
-    object NameRoot -> OperationsStage::Operations
-    {
-        array< ref< Name > > children;
-    }
-
-    object Name : NameRoot -> OperationsStage::Operations
-    {
-        ref< Element > element;
-        value< bool > is_member;
-        value< bool > is_reference;
-    }
-
-    object NameResolution -> OperationsStage::Operations
-    {
-        ref< NameRoot > root_name;
-    }
-
     object Invocation -> OperationsStage::Operations
     {
         value< mega::InvocationID > id;
-        ref< Context > context;
-        ref< TypePath > type_path;
-        value< mega::OperationID > operation;
-        value< std::string > name;
-        value< std::string > context_str;
-        value< std::string > type_path_str;
-
-        late< value< mega::ExplicitOperationID > > explicit_operation;
-        late< value< std::string > > return_type_str;
-        late< value< std::string > > runtime_return_type_str;
-        late< value< std::string > > runtime_parameter_type_str;
-
-        late< ref< NameResolution > > name_resolution;
-
-        late< ref< Invocations::Instructions::Root > > root_instruction;
-
-        array< ref< Invocations::Variables::Variable > > variables;
-
-        late< array< ref< Interface::IContext > > > parameter_contexts;
-        late< array< ref< Interface::IContext > > > return_type_contexts;
-        late< array< ref< Interface::DimensionTrait > > > return_type_dimensions;
-        late< value< bool > > homogeneous;
-        late< value< bool > > singular;
-        late< value< bool > > is_function_call;
         
-        late< array< value< mega::SourceLocation > > > file_offsets;
+        ref< Derivation::Root > derivation;
+
+        late< ref< Invocations::Instructions::Root > >      root_instruction;
+        array< ref< Invocations::Variables::Variable > >    variables;
+
+        // ref< Context >              context;
+        // ref< TypePath >             type_path;
+        // value< mega::OperationID >  operation;
+// 
+        // value< std::string >            name;
+        // value< std::string >            context_str;
+        // value< std::string >            type_path_str;
+// 
+        // late< value< mega::ExplicitOperationID > > explicit_operation;
+// 
+        // late< value< std::string > >                        return_type_str;
+        // late< value< std::string > >                        runtime_return_type_str;
+        // late< value< std::string > >                        runtime_parameter_type_str;
+// 
+// 
+        // late< array< ref< Interface::IContext > > >         parameter_contexts;
+        // late< array< ref< Interface::IContext > > >         return_type_contexts;
+        // late< array< ref< Interface::DimensionTrait > > >   return_type_dimensions;
+        // late< value< bool > >                               homogeneous;
+        // late< value< bool > >                               singular;
+        // late< value< bool > >                               is_function_call;
+        // 
+        // late< array< value< mega::SourceLocation > > > file_offsets;
     }
 
     object Invocations -> OperationsStage::Operations

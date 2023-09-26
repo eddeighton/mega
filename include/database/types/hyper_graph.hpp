@@ -40,11 +40,10 @@ public:
         eChildNonSingular,
         ePart,
         eDim,
-        eObjectParent,
         eObjectLink,
-        eComponentLink,
         eMono,
         ePoly,
+        ePolyParent,
         TOTAL_EDGE_TYPES
     };
 

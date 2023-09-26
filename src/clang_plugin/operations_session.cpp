@@ -23,7 +23,6 @@
 #include "database/model/OperationsStage.hxx"
 
 #include "invocation/invocation.hpp"
-#include "invocation/name_resolution.hpp"
 
 #include "mega/invocation_io.hpp"
 #include "mega/common_strings.hpp"
@@ -61,6 +60,7 @@ class OperationsSession : public AnalysisSession
 {
     OperationsStage::Database              m_database;
     OperationsStage::Symbols::SymbolTable* m_pSymbolTable;
+    mega::invocation::SymbolTables         m_symbolTables;
 
     using InvocationsMap = std::map< mega::InvocationID, ::OperationsStage::Operations::Invocation* >;
     InvocationsMap m_invocationsMap;
@@ -78,6 +78,7 @@ public:
         : AnalysisSession( pASTContext, pSema, strSrcDir, strBuildDir, strSourceFile )
         , m_database( m_environment, m_sourceFile )
         , m_pSymbolTable( m_database.one< OperationsStage::Symbols::SymbolTable >( m_environment.project_manifest() ) )
+        , m_symbolTables( m_pSymbolTable )
     {
         using namespace OperationsStage;
         using namespace OperationsStage::Interface;
@@ -264,146 +265,148 @@ public:
     {
         using namespace OperationsStage;
 
-        std::vector< Interface::IContext* >       returnTypesContext   = pInvocation->get_return_type_contexts();
-        std::vector< Interface::DimensionTrait* > returnTypesDimension = pInvocation->get_return_type_dimensions();
-        bool                                      bIsSingular          = pInvocation->get_singular();
-        if( pInvocation->get_explicit_operation() == mega::id_exp_Write_Link )
-        {
-            bIsSingular = true;
-        }
+        THROW_TODO;
 
-        // establish the return type
-        clang::DeclContext*   pDeclContext = pASTContext->getTranslationUnitDecl();
-        clang::SourceLocation loc;
+        /* std::vector< Interface::IContext* >       returnTypesContext   = pInvocation->get_return_type_contexts();
+         std::vector< Interface::DimensionTrait* > returnTypesDimension = pInvocation->get_return_type_dimensions();
+         bool                                      bIsSingular          = pInvocation->get_singular();
+         if( pInvocation->get_explicit_operation() == mega::id_exp_Write_Link )
+         {
+             bIsSingular = true;
+         }
 
-        switch( pInvocation->get_operation() )
-        {
-            case mega::id_Imp_NoParams:
-            case mega::id_Imp_Params:
-            {
-                if( !returnTypesContext.empty() )
-                {
-                    CLANG_PLUGIN_LOG( "buildContextReturnType: " << pInvocation->get_name() );
-                    if( std::optional< clang::QualType > resultOpt = buildContextReturnType(
-                            returnTypesContext, bIsSingular, pInvocation->get_is_function_call(), pDeclContext, loc ) )
-                    {
-                        resultType = resultOpt.value();
-                        return true;
-                    }
-                }
-                else if( pInvocation->get_operation() == mega::id_Imp_NoParams )
-                {
-                    CLANG_PLUGIN_LOG( "buildDimensionReturnType: " << pInvocation->get_name() );
-                    return buildDimensionReturnType( returnTypesDimension, "Read", resultType );
-                }
-                else if( pInvocation->get_operation() == mega::id_Imp_Params )
-                {
-                    // resultType = clang::getVoidType( pASTContext );
+         // establish the return type
+         clang::DeclContext*   pDeclContext = pASTContext->getTranslationUnitDecl();
+         clang::SourceLocation loc;
 
-                    if( std::optional< clang::QualType > resultOpt = buildContextReturnType(
-                            returnTypesContext, bIsSingular, pInvocation->get_is_function_call(), pDeclContext, loc ) )
-                    {
-                        resultType = resultOpt.value();
-                        return true;
-                    }
-                }
-            }
-            break;
-            case mega::id_Start:
-            {
-                if( std::optional< clang::QualType > resultOpt = buildContextReturnType(
-                        returnTypesContext, bIsSingular, pInvocation->get_is_function_call(), pDeclContext, loc ) )
-                {
-                    resultType = resultOpt.value();
-                    return true;
-                }
-            }
-            break;
-            case mega::id_Stop:
-            {
-                resultType = clang::getVoidType( pASTContext );
-                return true;
-            }
-            break;
-            case mega::id_Move:
-            {
-                resultType = clang::getVoidType( pASTContext );
-                return true;
-            }
-            break;
-            case mega::id_Get:
-            {
-                if( !returnTypesDimension.empty() )
-                {
-                    return buildDimensionReturnType( returnTypesDimension, "Get", resultType );
-                }
-                else
-                {
-                    if( std::optional< clang::QualType > resultOpt = buildContextReturnType(
-                            returnTypesContext, bIsSingular, pInvocation->get_is_function_call(), pDeclContext, loc ) )
-                    {
-                        resultType = resultOpt.value();
-                        return true;
-                    }
-                }
-            }
-            break;
-            case mega::id_Range:
-                /*if ( !returnTypes.empty() )
-                {
-                    if ( pSolution->getRoot()->getMaxRanges() == 1 )
-                    {
-                        if ( std::optional< clang::QualType > resultOpt
-                             = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
-                pDeclContext, loc ) )
-                        {
-                            resultType = clang::getIteratorRangeType(
-                                pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
-                                mega::EG_REFERENCE_ITERATOR_TYPE );
-                        }
-                    }
-                    else
-                    {
-                        if ( std::optional< clang::QualType > resultOpt
-                             = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
-                pDeclContext, loc ) )
-                        {
-                            resultType = clang::getMultiIteratorRangeType(
-                                pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
-                                pSolution->getRoot()->getMaxRanges(), mega::EG_REFERENCE_ITERATOR_TYPE );
-                        }
-                    }
-                }*/
-                break;
-            case mega::id_Raw:
-                /*if ( !returnTypes.empty() )
-                {
-                    if ( pSolution->getRoot()->getMaxRanges() == 1 )
-                    {
-                        if ( std::optional< clang::QualType > resultOpt
-                             = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
-                pDeclContext, loc ) )
-                        {
-                            resultType = clang::getIteratorRangeType(
-                                pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
-                                mega::EG_REFERENCE_RAW_ITERATOR_TYPE );
-                        }
-                    }
-                    else
-                    {
-                        if ( std::optional< clang::QualType > resultOpt
-                             = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
-                pDeclContext, loc ) )
-                        {
-                            resultType = clang::getMultiIteratorRangeType(
-                                pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
-                                pSolution->getRoot()->getMaxRanges(), mega::EG_REFERENCE_RAW_ITERATOR_TYPE );
-                        }
-                    }
-                }*/
-                break;
-        }
-        return false;
+         switch( pInvocation->get_operation() )
+         {
+             case mega::id_Imp_NoParams:
+             case mega::id_Imp_Params:
+             {
+                 if( !returnTypesContext.empty() )
+                 {
+                     CLANG_PLUGIN_LOG( "buildContextReturnType: " << pInvocation->get_name() );
+                     if( std::optional< clang::QualType > resultOpt = buildContextReturnType(
+                             returnTypesContext, bIsSingular, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                     {
+                         resultType = resultOpt.value();
+                         return true;
+                     }
+                 }
+                 else if( pInvocation->get_operation() == mega::id_Imp_NoParams )
+                 {
+                     CLANG_PLUGIN_LOG( "buildDimensionReturnType: " << pInvocation->get_name() );
+                     return buildDimensionReturnType( returnTypesDimension, "Read", resultType );
+                 }
+                 else if( pInvocation->get_operation() == mega::id_Imp_Params )
+                 {
+                     // resultType = clang::getVoidType( pASTContext );
+
+                     if( std::optional< clang::QualType > resultOpt = buildContextReturnType(
+                             returnTypesContext, bIsSingular, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                     {
+                         resultType = resultOpt.value();
+                         return true;
+                     }
+                 }
+             }
+             break;
+             case mega::id_Start:
+             {
+                 if( std::optional< clang::QualType > resultOpt = buildContextReturnType(
+                         returnTypesContext, bIsSingular, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                 {
+                     resultType = resultOpt.value();
+                     return true;
+                 }
+             }
+             break;
+             case mega::id_Stop:
+             {
+                 resultType = clang::getVoidType( pASTContext );
+                 return true;
+             }
+             break;
+             case mega::id_Move:
+             {
+                 resultType = clang::getVoidType( pASTContext );
+                 return true;
+             }
+             break;
+             case mega::id_Get:
+             {
+                 if( !returnTypesDimension.empty() )
+                 {
+                     return buildDimensionReturnType( returnTypesDimension, "Get", resultType );
+                 }
+                 else
+                 {
+                     if( std::optional< clang::QualType > resultOpt = buildContextReturnType(
+                             returnTypesContext, bIsSingular, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                     {
+                         resultType = resultOpt.value();
+                         return true;
+                     }
+                 }
+             }
+             break;
+             case mega::id_Range:
+                 if ( !returnTypes.empty() )
+                 {
+                     if ( pSolution->getRoot()->getMaxRanges() == 1 )
+                     {
+                         if ( std::optional< clang::QualType > resultOpt
+                              = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
+                 pDeclContext, loc ) )
+                         {
+                             resultType = clang::getIteratorRangeType(
+                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
+                                 mega::EG_REFERENCE_ITERATOR_TYPE );
+                         }
+                     }
+                     else
+                     {
+                         if ( std::optional< clang::QualType > resultOpt
+                              = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
+                 pDeclContext, loc ) )
+                         {
+                             resultType = clang::getMultiIteratorRangeType(
+                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
+                                 pSolution->getRoot()->getMaxRanges(), mega::EG_REFERENCE_ITERATOR_TYPE );
+                         }
+                     }
+                 }
+                 break;
+             case mega::id_Raw:
+                 if ( !returnTypes.empty() )
+                 {
+                     if ( pSolution->getRoot()->getMaxRanges() == 1 )
+                     {
+                         if ( std::optional< clang::QualType > resultOpt
+                              = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
+                 pDeclContext, loc ) )
+                         {
+                             resultType = clang::getIteratorRangeType(
+                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
+                                 mega::EG_REFERENCE_RAW_ITERATOR_TYPE );
+                         }
+                     }
+                     else
+                     {
+                         if ( std::optional< clang::QualType > resultOpt
+                              = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
+                 pDeclContext, loc ) )
+                         {
+                             resultType = clang::getMultiIteratorRangeType(
+                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
+                                 pSolution->getRoot()->getMaxRanges(), mega::EG_REFERENCE_RAW_ITERATOR_TYPE );
+                         }
+                     }
+                 }
+                 break;
+         }
+         return false;*/
     }
 
     std::optional< mega::InvocationID > getInvocationID( const clang::SourceLocation& loc, clang::QualType context,
@@ -498,7 +501,8 @@ public:
                     }
                     else
                     {
-                        pInvocation = mega::invocation::compile( m_database, m_pSymbolTable, invocationID.value() );
+                        pInvocation
+                            = mega::invocation::compileInvocation( m_database, m_symbolTables, invocationID.value() );
                         m_invocationsMap.insert( std::make_pair( invocationID.value(), pInvocation ) );
                     }
                 }
@@ -515,13 +519,13 @@ public:
                 }
             }
         }
-        catch( mega::invocation::NameResolutionException& nameResolutionException )
+        /*catch( mega::invocation::NameResolutionException& nameResolutionException )
         {
             CLANG_PLUGIN_LOG( "NameResolutionException: " << nameResolutionException.what() );
             pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
                 << nameResolutionException.what();
             m_bError = true;
-        }
+        }*/
         catch( mega::invocation::Exception& invocationException )
         {
             CLANG_PLUGIN_LOG( "invocation::Exception: " << invocationException.what() );
@@ -543,6 +547,8 @@ public:
     void recordInvocationLocs( const clang::SourceLocation& beginLoc, const clang::SourceLocation& endLoc,
                                const clang::UnaryTransformType* pUnaryTransformType )
     {
+        THROW_TODO;
+        /*
         if( pUnaryTransformType->getUTTKind() == clang::UnaryTransformType::EGResultType )
         {
             if( const clang::TemplateSpecializationType* pTemplateType
@@ -579,7 +585,7 @@ public:
                     }
                 }
             }
-        }
+        }*/
     }
 
     virtual void runFinalAnalysis()

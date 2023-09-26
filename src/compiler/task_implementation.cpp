@@ -107,7 +107,8 @@ public:
             std::vector< Interface::IContext* > contexts;
             {
                 std::set< Interface::IContext* > uniqueContexts;
-                for( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                THROW_TODO;
+                /*for( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
                     for( auto pElementVector : pInvocation->get_context()->get_vectors() )
                     {
@@ -124,7 +125,7 @@ public:
                             }
                         }
                     }
-                }
+                }*/
             }
 
             {
@@ -144,6 +145,8 @@ public:
                     implData[ "interfaces" ].push_back( os.str() );
                 }
 
+                THROW_TODO;
+                /*
                 for( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
                     std::ostringstream osContextIDs;
@@ -171,7 +174,6 @@ public:
                             osTypePathIDs << "mega::TypeID{ " << typeID.getSymbolID() << " }";
                         }
                     }
-
                     nlohmann::json invocation(
                         { { "return_type", pInvocation->get_return_type_str() },
                           { "runtime_return_type", pInvocation->get_runtime_return_type_str() },
@@ -188,7 +190,7 @@ public:
                           { "impl", "" } } );
 
                     implData[ "invocations" ].push_back( invocation );
-                }
+                }*/
             }
 
             std::ostringstream os;

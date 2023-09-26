@@ -32,16 +32,10 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( INVOCATION_HEADERS
     ${MEGA_API_DIR}/invocation/invocation.hpp
-    ${MEGA_API_DIR}/invocation/name_resolution.hpp
-    ${MEGA_API_DIR}/invocation/generic_operation_visitor.hpp
-    ${MEGA_API_DIR}/invocation/elimination.hpp
 )
 
 set( INVOCATION_SOURCE
     ${MEGA_SRC_DIR}/invocation/invocation.cpp
-    ${MEGA_SRC_DIR}/invocation/name_resolution.cpp
-    ${MEGA_SRC_DIR}/invocation/generic_operation_visitor.cpp
-    ${MEGA_SRC_DIR}/invocation/elimination.cpp
 )
 
 add_library( invocation

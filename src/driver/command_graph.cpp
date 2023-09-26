@@ -683,9 +683,9 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
                 std::string strColour = "000000";
                 switch( pEdge->get_type().get() )
                 {
-                    case mega::EdgeType::eObjectParent:
                     case mega::EdgeType::eMono:
                     case mega::EdgeType::ePoly:
+                    case mega::EdgeType::ePolyParent:
                         strColour = "FF0000";
                         break;
                     case mega::EdgeType::eDim:
@@ -702,7 +702,6 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
                         strColour = "00FF00";
                         break;
                     case mega::EdgeType::eObjectLink:
-                    case mega::EdgeType::eComponentLink:
                         strColour = "909000";
                         break;
                     case mega::EdgeType::TOTAL_EDGE_TYPES:

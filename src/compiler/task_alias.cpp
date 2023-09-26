@@ -96,16 +96,15 @@ public:
                 case EdgeType::eChildNonSingular:
                 case EdgeType::eObjectLink:
                 case EdgeType::eDim:
-                case EdgeType::eComponentLink:
                 {
                     recurseObjectTree( pEdge->get_target(), edges, vertices );
                 }
                 break;
                 case EdgeType::eMono:
                 case EdgeType::ePoly:
+                case EdgeType::ePolyParent:
                 case EdgeType::eParent:
                 case EdgeType::ePart:
-                case EdgeType::eObjectParent:
                     break;
                 case EdgeType::TOTAL_EDGE_TYPES:
                 default:
@@ -191,13 +190,13 @@ public:
         {
             // attempt to solve the component link type derivation
 
-            Derivation::VertexVariant context;
+            /*DerivationSolver::GraphVertexVector context;
             for( auto pConcrete : pComponentLink->get_concrete() )
             {
                 context.push_back( pConcrete );
             }
 
-            std::optional< Derivation::VertexVariantVector > pathOpt;
+            std::optional< Derivation::GraphVertexVectorVector > pathOpt;
             for( auto pTypePathVariant : pComponentLink->get_tuple() )
             {
                 Derivation::VertexVariantVector path;
@@ -259,17 +258,16 @@ public:
                 }
 
                 // enumerate the dimension links within the parent vertex
-                using LinkDimension = std::pair< Concrete::Graph::Vertex*, Concrete::Graph::Edge* >;
-                std::vector< LinkDimension > enumerateLinks( Concrete::Graph::Vertex* pParentVertex ) const
+                std::vector< Concrete::Graph::Edge* > enumerateLinks( Concrete::Graph::Vertex* pParentVertex ) const
                 {
-                    std::vector< LinkDimension > results;
+                    std::vector< Concrete::Graph::Edge* > results;
                     for( auto i = edges.lower_bound( pParentVertex ), iEnd = edges.upper_bound( pParentVertex );
                          i != iEnd; ++i )
                     {
                         auto pEdge = i->second;
                         if( pEdge->get_type().get() == EdgeType::eObjectLink )
                         {
-                            results.emplace_back( pEdge->get_target(), pEdge );
+                            results.push_back( pEdge );
                         }
                     }
                     return results;
@@ -286,7 +284,7 @@ public:
                         {
                             case EdgeType::eMono:
                             case EdgeType::ePoly:
-                            case EdgeType::eObjectParent:
+                            case EdgeType::ePolyParent:
                             {
                                 results.push_back( pEdge );
                             }
@@ -297,7 +295,6 @@ public:
                             case EdgeType::eChildNonSingular:
                             case EdgeType::ePart:
                             case EdgeType::eDim:
-                            case EdgeType::eComponentLink:
                                 break;
                             case EdgeType::TOTAL_EDGE_TYPES:
                             default:
@@ -362,10 +359,9 @@ public:
                                     case EdgeType::eParent:
                                     case EdgeType::eChildNonSingular:
                                     case EdgeType::ePart:
-                                    case EdgeType::eObjectParent:
-                                    case EdgeType::eComponentLink:
                                     case EdgeType::eMono:
                                     case EdgeType::ePoly:
+                                    case EdgeType::ePolyParent:
                                     case EdgeType::TOTAL_EDGE_TYPES:
                                         break;
                                 }
@@ -437,7 +433,7 @@ public:
                                << " of: " << printLinkTraitTypePath( pComponentLink ) );
                 }
                 break;
-            }
+            }*/
         }
     }
 

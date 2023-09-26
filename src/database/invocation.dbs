@@ -130,7 +130,7 @@ namespace Invocations
         object Operation : Instructions::Instruction -> OperationsStage::Operations
         {
             ref< Variables::Instance >                   instance;
-            array< ref< Operations::InterfaceVariant > > derived_contexts;
+            // array< ref< Operations::InterfaceVariant > > derived_contexts;
             // array< ref< Operations::InterfaceVariant > > parameter_types;
         }
 

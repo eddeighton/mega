@@ -34,7 +34,6 @@ namespace Concrete
             ref< Vertex >           source;
             ref< Vertex >           target;
         }
-        
     }
 
     namespace Dimensions
@@ -161,8 +160,7 @@ namespace Concrete
 
         array< ref< MemoryLayout::Buffer > > buffers -> MemoryStage::MemoryLayout;
 
-        //array< ref< Dimensions::Link > > all_links -> HyperGraphAnalysisRollout::PerSourceModel;
-        //array< ref< Dimensions::Link > > owning_links -> HyperGraphAnalysisRollout::PerSourceModel;
+        array< ref< UserDimensionContext > > link_contexts -> HyperGraphAnalysisRollout::PerSourceModel;
     }
 
     object MemoryMappedObject : Object -> GlobalMemoryStageRollout::GlobalMemoryRollout

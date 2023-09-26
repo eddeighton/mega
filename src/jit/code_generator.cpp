@@ -101,13 +101,14 @@ nlohmann::json CodeGenerator::generate( const JITDatabase& database, const mega:
 
         Indent indent;
 
-        const VariableMap variables = generateVariables(
+        THROW_TODO;
+        /*const VariableMap variables = generateVariables(
             pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), data, indent );
 
         for( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
             generateInstructions( database, pInstruction, variables, functions, data, indent );
-        }
+        }*/
     }
     catch( inja::InjaError& ex )
     {

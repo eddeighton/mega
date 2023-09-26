@@ -364,7 +364,7 @@ public:
                         for( auto pOwningConcreteContext : pObjectLinkTrait->get_concrete() )
                         {
                             database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
-                                EdgeType::eObjectParent, pOwnershipLink, pOwningConcreteContext } );
+                                EdgeType::ePolyParent, pOwnershipLink, pOwningConcreteContext } );
                         }
                     }
                 }
@@ -438,14 +438,6 @@ public:
                 }
                 else if( auto* pComponentLinkTrait = db_cast< Interface::ComponentLinkTrait >( pLinkTrait ) )
                 {
-                    {
-                        database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
-                            mega::EdgeType::eComponentLink, pUserLink->get_parent_context(), pVertex } );
-                    }
-                    {
-                        database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
-                            EdgeType::eParent, pVertex, pUserLink->get_parent_context() } );
-                    }
                 }
                 else
                 {
@@ -567,21 +559,25 @@ public:
         , m_sourceFilePath( megaSourceFilePath )
     {
     }
-    /*
-        void collectLinks( HyperGraphAnalysisRollout::Concrete::Context*              pContext,
-                           std::vector< HyperGraphAnalysisRollout::Concrete::Link* >& links )
+
+    void collectLinkContexts( HyperGraphAnalysisRollout::Concrete::Context*                              pContext,
+                              std::vector< HyperGraphAnalysisRollout::Concrete::UserDimensionContext* >& linkContexts )
+    {
+        using namespace HyperGraphAnalysisRollout;
+
+        if( auto pDimensionContext = db_cast< Concrete::UserDimensionContext >( pContext ) )
         {
-            using namespace HyperGraphAnalysisRollout;
-            if( Concrete::Link* pLink = db_cast< Concrete::Link >( pContext ) )
+            if( !pDimensionContext->get_links().empty() )
             {
-                links.push_back( pLink );
-            }
-            for( auto pChildContext : pContext->get_children() )
-            {
-                collectLinks( pChildContext, links );
+                linkContexts.push_back( pDimensionContext );
             }
         }
-    */
+        for( auto pChildContext : pContext->get_children() )
+        {
+            collectLinkContexts( pChildContext, linkContexts );
+        }
+    }
+
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath hyperGraphAnalysisCompilationFile
@@ -639,15 +635,16 @@ public:
                     Concrete::Graph::Vertex::Args{ pVertex, outEdges, inEdges } );
             }
 
-            /*for( Concrete::Object* pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
+            for( Concrete::Object* pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
             {
-                //std::vector< Concrete::Link* > allObjectLinks;
-                //collectLinks( pObject, allObjectLinks );
+                // std::vector< Concrete::Link* > allObjectLinks;
+                std::vector< HyperGraphAnalysisRollout::Concrete::UserDimensionContext* > linkContexts;
+                collectLinkContexts( pObject, linkContexts );
 
                 // determine the owning links for object
-                std::vector< Concrete::Link* > owningLinks;
+                std::vector< Concrete::Dimensions::Link* > links;
                 {
-                    for( Concrete::Link* pLink : allObjectLinks )
+                    /*for( Concrete::Link* pLink : allObjectLinks )
                     {
                         // NOTE: pLink->get_link_interface()->get_relation(); will not work since being set above in
                         // this stage
@@ -674,10 +671,10 @@ public:
                         {
                             THROW_RTE( "Relation error" );
                         }
-                    }
+                    }*/
                 }
 
-                if( pObject->get_interface()->get_identifier() == ROOT_TYPE_NAME )
+                /*if( pObject->get_interface()->get_identifier() == ROOT_TYPE_NAME )
                 {
                     VERIFY_RTE_MSG( owningLinks.empty(), "Hypergraph error Root has owning links" );
                 }
@@ -686,11 +683,10 @@ public:
                     VERIFY_RTE_MSG( !owningLinks.empty(),
                                     "Hypergraph error non-Root object: " << pObject->get_interface()->get_identifier()
                                                                          << " has NO owning links" );
-                }
+                }*/
 
-                database.construct< Concrete::Object >(
-                    Concrete::Object::Args{ pObject, allObjectLinks, owningLinks } );
-            }*/
+                database.construct< Concrete::Object >( Concrete::Object::Args{ pObject, linkContexts } );
+            }
         }
 
         const task::FileHash fileHashCode = database.save_PerSourceModel_to_temp();

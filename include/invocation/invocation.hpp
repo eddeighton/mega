@@ -44,32 +44,19 @@ public:
 #define THROW_INVOCATION_EXCEPTION( msg ) \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _os; _os << msg; throw Exception( _os.str() ); )
 
-template < class T >
-inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
+struct SymbolTables
 {
-    /*
-    not this...
-    std::sort( ids.begin(), ids.end() );
-    auto last = std::unique( ids.begin(), ids.end() );
-    ids.erase( last, ids.end() );
-    */
+    SymbolTables( OperationsStage::Symbols::SymbolTable* pSymbolTable );
 
-    std::vector< T > result;
-    std::set< T >    uniq;
-    for( const T& value : ids )
-    {
-        if( uniq.count( value ) == 0 )
-        {
-            result.push_back( value );
-            uniq.insert( value );
-        }
-    }
-    return result;
-}
+    using SymbolTypeIDMap    = std::map< mega::TypeID, OperationsStage::Symbols::SymbolTypeID* >;
+    using InterfaceTypeIDMap = std::map< mega::TypeID, OperationsStage::Symbols::InterfaceTypeID* >;
+    SymbolTypeIDMap    symbolIDMap;
+    InterfaceTypeIDMap interfaceIDMap;
+};
 
-OperationsStage::Operations::Invocation* compile( OperationsStage::Database&             database,
-                                                  OperationsStage::Symbols::SymbolTable* pSymbolTable,
-                                                  const mega::InvocationID&              id );
+OperationsStage::Operations::Invocation* compileInvocation( OperationsStage::Database& database,
+                                                            const SymbolTables&        symbolTables,
+                                                            const mega::InvocationID&  id );
 
 } // namespace mega::invocation
 

@@ -465,7 +465,8 @@ public:
             Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );
 
             std::vector< Interface::IContext* > contexts;
-            {
+            THROW_TODO;
+            /*{
                 std::set< Interface::IContext* > uniqueContexts;
                 for( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
@@ -545,7 +546,7 @@ public:
 
                     implData[ "invocations" ].push_back( invocation );
                 }
-            }
+            }*/
 
             std::ostringstream os;
             templateEngine.renderImpl( implData, os );
