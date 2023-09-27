@@ -41,7 +41,7 @@ namespace Derivation
 {
 #include "compiler/derivation_printer.hpp"
 #include "compiler/disambiguate.hpp"
-}
+} // namespace Derivation
 } // namespace OperationsStage
 
 namespace mega::invocation
@@ -54,6 +54,8 @@ SymbolTables::SymbolTables( OperationsStage::Symbols::SymbolTable* pSymbolTable 
 
 using namespace OperationsStage;
 
+namespace
+{
 struct InvocationPolicy
 {
     using GraphVertex             = OperationsStage::Concrete::Graph::Vertex;
@@ -300,7 +302,7 @@ private:
 };
 
 void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationID& id,
-                       std::vector< Concrete::Context* > types, InvocationPolicy::Spec& spec )
+                       std::vector< Concrete::Graph::Vertex* > types, InvocationPolicy::Spec& spec )
 {
     std::optional< mega::OperationID > operationIDOpt;
 
@@ -436,7 +438,7 @@ class InvocationBuilder
     }
 
     OperationsStage::Invocations::Variables::Memory*
-    make_memory_variable( Variables::Variable* pParentVariable, const std::vector< Concrete::Context* >& types )
+    make_memory_variable( Variables::Variable* pParentVariable, const std::vector< Concrete::Graph::Vertex* >& types )
     {
         using namespace OperationsStage;
         auto pMemory = m_database.construct< Variables::Memory >(
@@ -446,7 +448,7 @@ class InvocationBuilder
     }
 
     OperationsStage::Invocations::Variables::Parameter*
-    make_parameter_variable( const std::vector< Concrete::Context* >& types )
+    make_parameter_variable( const std::vector< Concrete::Graph::Vertex* >& types )
     {
         using namespace OperationsStage;
         auto pParameter = m_database.construct< Variables::Parameter >( Variables::Parameter::Args{
@@ -489,7 +491,8 @@ private:
 
 public:
     InvocationBuilder( OperationsStage::Database& database, const mega::InvocationID& id,
-                       InvocationPolicy::RootPtr pDerivationTreeRoot, const std::vector< Concrete::Context* >& types )
+                       InvocationPolicy::RootPtr                      pDerivationTreeRoot,
+                       const std::vector< Concrete::Graph::Vertex* >& types )
         : m_database( database )
         , m_pDerivationTreeRoot( pDerivationTreeRoot )
         , m_pInvocation( database.construct< OperationsStage::Operations::Invocation >(
@@ -691,12 +694,167 @@ public:
     OperationsStage::Operations::Invocation* getInvocation() const { return m_pInvocation; }
 };
 
+void buildOperation( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation )
+{
+    switch( pInvocation->get_id().m_operation )
+    {
+        case mega::id_Imp_NoParams:
+        {
+            for( auto pOperation : pInvocation->get_operations() )
+            {
+                auto pVariable = pOperation->get_variable();
+                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
+                {
+                    auto pContext = pStackVar->get_concrete();
+                }
+                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
+                {
+                    auto types = pRefVar->get_types();
+                }
+                else
+                {
+                    THROW_RTE( "Unknown variable type" );
+                }
+            }
+        }
+        break;
+        case mega::id_Imp_Params:
+        {
+            for( auto pOperation : pInvocation->get_operations() )
+            {
+                auto pVariable = pOperation->get_variable();
+                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
+                {
+                    auto pContext = pStackVar->get_concrete();
+                }
+                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
+                {
+                    auto types = pRefVar->get_types();
+                }
+                else
+                {
+                    THROW_RTE( "Unknown variable type" );
+                }
+            }
+        }
+        break;
+        case mega::id_Start:
+        {
+            for( auto pOperation : pInvocation->get_operations() )
+            {
+                auto pVariable = pOperation->get_variable();
+                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
+                {
+                    auto pContext = pStackVar->get_concrete();
+                }
+                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
+                {
+                    auto types = pRefVar->get_types();
+                }
+                else
+                {
+                    THROW_RTE( "Unknown variable type" );
+                }
+            }
+        }
+        break;
+        case mega::id_Stop:
+        {
+            for( auto pOperation : pInvocation->get_operations() )
+            {
+                auto pVariable = pOperation->get_variable();
+                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
+                {
+                    auto pContext = pStackVar->get_concrete();
+                }
+                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
+                {
+                    auto types = pRefVar->get_types();
+                }
+                else
+                {
+                    THROW_RTE( "Unknown variable type" );
+                }
+            }
+        }
+        break;
+        case mega::id_Move:
+        {
+            for( auto pOperation : pInvocation->get_operations() )
+            {
+                auto pVariable = pOperation->get_variable();
+                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
+                {
+                    auto pContext = pStackVar->get_concrete();
+                }
+                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
+                {
+                    auto types = pRefVar->get_types();
+                }
+                else
+                {
+                    THROW_RTE( "Unknown variable type" );
+                }
+            }
+        }
+        break;
+        case mega::id_Get:
+        {
+            for( auto pOperation : pInvocation->get_operations() )
+            {
+                auto pVariable = pOperation->get_variable();
+                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
+                {
+                    auto pContext = pStackVar->get_concrete();
+                }
+                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
+                {
+                    auto types = pRefVar->get_types();
+                }
+                else
+                {
+                    THROW_RTE( "Unknown variable type" );
+                }
+            }
+        }
+        break;
+        case mega::id_Range:
+        {
+            for( auto pOperation : pInvocation->get_operations() )
+            {
+                auto pVariable = pOperation->get_variable();
+                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
+                {
+                    auto pContext = pStackVar->get_concrete();
+                }
+                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
+                {
+                    auto types = pRefVar->get_types();
+                }
+                else
+                {
+                    THROW_RTE( "Unknown variable type" );
+                }
+            }
+        }
+        break;
+        default:
+        case mega::HIGHEST_OPERATION_TYPE:
+        {
+            THROW_RTE( "Unknown implicit operation type" );
+        }
+        break;
+    }
+}
+
+} // namespace
+
 OperationsStage::Operations::Invocation*
 compileInvocation( OperationsStage::Database& database, const SymbolTables& symbolTables, const mega::InvocationID& id )
 {
     // determine the derivation of the invocationID
-    std::vector< Concrete::Context* > types;
-    InvocationPolicy::Spec            derivationSpec;
+    std::vector< Concrete::Graph::Vertex* > types;
+    InvocationPolicy::Spec                  derivationSpec;
     fromInvocationID( symbolTables, id, types, derivationSpec );
 
     // solve the context free derivation
@@ -708,19 +866,13 @@ compileInvocation( OperationsStage::Database& database, const SymbolTables& symb
     if( result != Derivation::eSuccess )
     {
         std::ostringstream os;
-        using ::operator<<;
+        using ::           operator<<;
         if( result == Derivation::eAmbiguous )
-        {
             os << "Derivation disambiguation was ambiguous for: " << id << "\n";
-        }
         else if( result == Derivation::eFailure )
-        {
             os << "Derivation disambiguation failed for: " << id << "\n";
-        }
         else
-        {
             THROW_RTE( "Unknown derivation failure type" );
-        }
         printDerivationStep( pRoot, os );
         THROW_RTE( os.str() );
     }
@@ -728,7 +880,11 @@ compileInvocation( OperationsStage::Database& database, const SymbolTables& symb
     InvocationBuilder builder( database, id, pRoot, types );
     builder.build();
 
-    return builder.getInvocation();
+    auto pBaseInvocation = builder.getInvocation();
+
+    buildOperation( database, pBaseInvocation );
+
+    return pBaseInvocation;
 }
 
 } // namespace mega::invocation

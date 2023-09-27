@@ -378,33 +378,6 @@ public:
                      }
                  }
                  break;
-             case mega::id_Raw:
-                 if ( !returnTypes.empty() )
-                 {
-                     if ( pSolution->getRoot()->getMaxRanges() == 1 )
-                     {
-                         if ( std::optional< clang::QualType > resultOpt
-                              = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
-                 pDeclContext, loc ) )
-                         {
-                             resultType = clang::getIteratorRangeType(
-                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
-                                 mega::EG_REFERENCE_RAW_ITERATOR_TYPE );
-                         }
-                     }
-                     else
-                     {
-                         if ( std::optional< clang::QualType > resultOpt
-                              = buildContextReturnType( returnTypes, bIsSingular, pInvocation->get_is_function_call(),
-                 pDeclContext, loc ) )
-                         {
-                             resultType = clang::getMultiIteratorRangeType(
-                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
-                                 pSolution->getRoot()->getMaxRanges(), mega::EG_REFERENCE_RAW_ITERATOR_TYPE );
-                         }
-                     }
-                 }
-                 break;
          }
          return false;*/
     }

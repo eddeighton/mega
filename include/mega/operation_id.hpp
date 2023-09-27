@@ -35,7 +35,6 @@ enum OperationID : TypeID::ValueType
     id_Move,
     id_Get,
     id_Range,
-    id_Raw,
     HIGHEST_OPERATION_TYPE
 };
 
@@ -65,8 +64,6 @@ inline constexpr bool isOperationArgs( OperationID operationType )
             return false;
         case id_Range:
             return false;
-        case id_Raw:
-            return false;
         case HIGHEST_OPERATION_TYPE:
             return false;
         default:
@@ -84,7 +81,6 @@ inline constexpr bool isOperationEnumeration( OperationID id )
     switch( id )
     {
         case id_Range:
-        case id_Raw:
             return true;
         default:
             return false;
@@ -110,9 +106,7 @@ enum ExplicitOperationID : TypeID::ValueType
     id_exp_Move,
     id_exp_GetAction,
     id_exp_GetDimension,
-    id_exp_Done,
     id_exp_Range,
-    id_exp_Raw,
     HIGHEST_EXPLICIT_OPERATION_TYPE
 };
 

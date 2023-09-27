@@ -34,8 +34,7 @@ static const OperationIDStringArray g_pszOperationStrings = {
     std::string( "Stop" ),
     std::string( "Move" ),
     std::string( "Get" ),
-    std::string( "Range" ),
-    std::string( "Raw" ),
+    std::string( "Range" )
 };
 static_assert( HIGHEST_OPERATION_TYPE - TypeID::LOWEST_SYMBOL_ID == g_pszOperationStrings.size(),
                "Incorrect operation strings" );
@@ -76,8 +75,7 @@ static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings =
     std::string( "Move" ),
     std::string( "GetAction" ),
     std::string( "GetDimension" ),
-    std::string( "Range" ),
-    std::string( "Raw" )
+    std::string( "Range" )
 };
 // clang-format on
 static_assert( HIGHEST_EXPLICIT_OPERATION_TYPE == g_pszExplicitOperationStrings.size(),

@@ -80,12 +80,4 @@ struct [[clang::eg_type( mega::id_Range )]] Range
     };
 };
 
-struct [[clang::eg_type( mega::id_Raw )]] Raw
-{
-    enum : mega::TypeID::ValueType
-    {
-        ID = mega::id_Raw
-    };
-};
-
 #endif // EG_OPERATION_TYPES

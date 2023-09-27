@@ -29,12 +29,12 @@ namespace Invocations
 
         object Stack : Variable -> OperationsStage::Operations
         {
-            ref< Concrete::Context > concrete;
+            ref< Concrete::Graph::Vertex > concrete;
         }
 
         object Reference : Variable -> OperationsStage::Operations
         {
-            array< ref< Concrete::Context > > types;
+            array< ref< Concrete::Graph::Vertex > > types;
         }
 
         object Memory : Reference -> OperationsStage::Operations
@@ -75,7 +75,7 @@ namespace Invocations
             ref< Variables::Variable > from;
             ref< Variables::Stack > to;
         }
-
+/*
         object EnumDerivation : InstructionGroup -> OperationsStage::Operations
         {
             ref< Variables::Variable > from;
@@ -93,7 +93,7 @@ namespace Invocations
             ref< Variables::Memory > dimension_reference;
             ref< Concrete::Dimensions::User > concrete;
         }
-
+*/
         object PolyBranch : InstructionGroup -> OperationsStage::Operations
         {
             ref< Variables::Reference > from_reference;
@@ -112,7 +112,7 @@ namespace Invocations
         {
             ref< Variables::Variable > variable;
         }
-
+/*
         object BasicOperation : Operation -> OperationsStage::Operations
         {
             ref< Interface::IContext > interface;
@@ -128,7 +128,7 @@ namespace Invocations
             ref< Interface::LinkTrait > interface_link;
             ref< Concrete::Dimensions::Link > concrete_link;
         }
-
+*/
 
     }
 

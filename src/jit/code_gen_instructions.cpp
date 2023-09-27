@@ -22,6 +22,14 @@
 
 #include "symbol_utils.hpp"
 
+#include "mega/common_strings.hpp"
+
+namespace FinalStage
+{
+#include "compiler/interface_printer.hpp"
+#include "compiler/concrete_printer.hpp"
+}
+
 namespace mega::runtime
 {
 
@@ -62,11 +70,12 @@ void gen( Args args, FinalStage::Invocations::Instructions::ParentDerivation* pP
     std::ostringstream os;
     os << args.indent << "// ParentDerivation\n";
 
-    const Variables::Variable* pFrom = pParentDerivation->get_from();
-    const Variables::Stack*    pTo   = pParentDerivation->get_to();
+    const Variables::Variable* pFrom      = pParentDerivation->get_from();
+    const Variables::Stack*    pTo        = pParentDerivation->get_to();
+    const Concrete::Context*   pToContext = db_cast< Concrete::Context >( pTo->get_concrete() );
 
     const std::string  s           = args.get( pFrom );
-    const mega::TypeID targetType  = pTo->get_concrete()->get_concrete_id();
+    const mega::TypeID targetType  = pToContext->get_concrete_id();
     const mega::U64    szLocalSize = args.database.getLocalDomainSize( targetType );
 
     os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
@@ -86,11 +95,12 @@ void gen( Args args, FinalStage::Invocations::Instructions::ChildDerivation* pCh
     std::ostringstream os;
     os << args.indent << "// ChildDerivation\n";
 
-    const Variables::Variable* pFrom = pChildDerivation->get_from();
-    const Variables::Stack*    pTo   = pChildDerivation->get_to();
+    const Variables::Variable* pFrom      = pChildDerivation->get_from();
+    const Variables::Stack*    pTo        = pChildDerivation->get_to();
+    const Concrete::Context*   pToContext = db_cast< Concrete::Context >( pTo->get_concrete() );
 
     const std::string  s           = args.get( pFrom );
-    const mega::TypeID targetType  = pTo->get_concrete()->get_concrete_id();
+    const mega::TypeID targetType  = pToContext->get_concrete_id();
     const mega::U64    szLocalSize = args.database.getLocalDomainSize( targetType );
 
     os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
@@ -101,6 +111,7 @@ void gen( Args args, FinalStage::Invocations::Instructions::ChildDerivation* pCh
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // EnumDerivation
+/*
 void gen( Args args, FinalStage::Invocations::Instructions::EnumDerivation* pEnumDerivation )
 {
     using namespace FinalStage;
@@ -128,7 +139,7 @@ void gen( Args args, FinalStage::Invocations::Instructions::DimensionReferenceRe
 
     THROW_TODO;
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operations
 /*
@@ -267,16 +278,19 @@ R"TEMPLATE(
 {{ indent }}}
 {{ indent }}
 {% if unparent_all %}
-{{ indent }} static thread_local mega::runtime::object::ObjectUnparent unparent( g_pszModuleName, {{ concrete_type_id }} );
+{{ indent }} static thread_local mega::runtime::object::ObjectUnparent unparent( g_pszModuleName, {{ concrete_type_id }}
+);
 {{ indent }} unparent( {{ instance }}.getObjectAddress() );
 {% else %}
-{{ indent }} static thread_local mega::runtime::relation::LinkReset unparent( g_pszModuleName, mega::RelationID{ {{ relation_id }} } );
+{{ indent }} static thread_local mega::runtime::relation::LinkReset unparent( g_pszModuleName, mega::RelationID{ {{
+relation_id }} } );
 {{ indent }} unparent( {{ instance }} );
 {% endif %}
 {{ indent }}
 {{ indent }} if( {{ instance }}.getMPO() == target.getMPO() )
 {{ indent }} {
-{{ indent }}    static thread_local mega::runtime::relation::LinkMake reparent( g_pszModuleName, mega::RelationID{ {{ relation_id }} } );
+{{ indent }}    static thread_local mega::runtime::relation::LinkMake reparent( g_pszModuleName, mega::RelationID{ {{
+relation_id }} } );
 {{ indent }}    reparent( {{ instance }}, target );
 {{ indent }} }
 {{ indent }} else
@@ -374,7 +388,8 @@ void gen( Args args, FinalStage::Invocations::Operations::Call* pCall )
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ interface_type_id }} );
+{{ indent }}    static thread_local mega::runtime::object::CallGetter function( g_pszModuleName, {{ interface_type_id }}
+);
 {{ indent }}    return mega::runtime::CallResult{ function(), {{ instance }}, mega::TypeID( {{ interface_type_id }} ) };
 {{ indent }}}
 )TEMPLATE";
@@ -420,7 +435,8 @@ R"TEMPLATE(
 {{ indent }}    {
 {{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
 {{ indent }}    }
-{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance }}.getInstance() } );
+{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id
+}}, {{ instance }}.getInstance() } );
 {{ indent }}    mega::mangle::action_start( action );
 {{ indent }}    return action;
 {{ indent }}}
@@ -465,7 +481,8 @@ R"TEMPLATE(
 {{ indent }}    {
 {{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
 {{ indent }}    }
-{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance }}.getInstance() } );
+{{ indent }}    mega::reference action = mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id
+}}, {{ instance }}.getInstance() } );
 {{ indent }}    mega::mangle::action_stop( action );
 {{ indent }}    return action;
 {{ indent }}}
@@ -502,7 +519,8 @@ void gen( Args args, FinalStage::Invocations::Operations::GetAction* pGet )
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    return mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance }}.getInstance() } );
+{{ indent }}    return mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance
+}}.getInstance() } );
 {{ indent }}}
 )TEMPLATE";
     // clang-format on
@@ -536,7 +554,8 @@ void gen( Args args, FinalStage::Invocations::Operations::GetDimension* pGetDime
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    return mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance }}.getInstance() } );
+{{ indent }}    return mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{ instance
+}}.getInstance() } );
 {{ indent }}}
 )TEMPLATE";
     // clang-format on
@@ -582,7 +601,7 @@ R"TEMPLATE(
 {{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
 {{ indent }}    }
 {{ indent }}    return reinterpret_cast< char* >( {{ instance }}.getHeap() )
-{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
+{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() )
 {{ indent }}        + {{ dimension_offset }};
 {{ indent }}}
 )TEMPLATE";
@@ -628,19 +647,19 @@ R"TEMPLATE(
 {{ indent }}    {
 {{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
 {{ indent }}    }
-{{ indent }}    void* pTarget = 
+{{ indent }}    void* pTarget =
 {{ indent }}        reinterpret_cast< char* >( {{ instance }}.getHeap() )
-{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
+{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() )
 {{ indent }}        + {{ dimension_offset }};
 {{ indent }}
 {{ indent }}    mega::mangle::copy_{{ mangled_type_name }}( pData, pTarget );
 {{ indent }}    mega::mangle::save_record_{{ mangled_type_name }}
 {{ indent }}    (
 {{ indent }}        mega::reference
-{{ indent }}        ( 
+{{ indent }}        (
 {{ indent }}            mega::TypeInstance
-{{ indent }}            ( 
-{{ indent }}                {{ concrete_type_id }}, 
+{{ indent }}            (
+{{ indent }}                {{ concrete_type_id }},
 {{ indent }}                {{ instance }}.getInstance()
 {{ indent }}            ),
 {{ indent }}            {{ instance }}.getHeap()
@@ -702,7 +721,7 @@ R"TEMPLATE(
 {{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
 {{ indent }}    }
 {{ indent }}    return reinterpret_cast< char* >( {{ instance }}.getHeap() )
-{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() ) 
+{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() )
 {{ indent }}        + {{ dimension_offset }};
 {{ indent }}}
 )TEMPLATE";
@@ -745,19 +764,22 @@ R"TEMPLATE(
 {{ indent }}    {
 {{ indent }}        case WriteOperation::DEFAULT:
 {{ indent }}        {
-{{ indent }}            static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
+{{ indent }}            static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName,
+mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 {{ indent }}            function( {{ instance }}, target );
 {{ indent }}        }
 {{ indent }}        break;
 {{ indent }}        case WriteOperation::REMOVE:
 {{ indent }}        {
-{{ indent }}            static thread_local mega::runtime::relation::LinkBreak function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
+{{ indent }}            static thread_local mega::runtime::relation::LinkBreak function( g_pszModuleName,
+mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 {{ indent }}            function( {{ instance }}, target );
 {{ indent }}        }
 {{ indent }}        break;
 {{ indent }}        case WriteOperation::RESET:
 {{ indent }}        {
-{{ indent }}            static thread_local mega::runtime::relation::LinkReset function( g_pszModuleName, mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
+{{ indent }}            static thread_local mega::runtime::relation::LinkReset function( g_pszModuleName,
+mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
 {{ indent }}            function( {{ instance }} );
 {{ indent }}        }
 {{ indent }}        break;
@@ -827,7 +849,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pChildDerivation );
         }
-        else if( auto pEnumDerivation = db_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
+        /*else if( auto pEnumDerivation = db_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pEnumDerivation );
         }
@@ -838,7 +860,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         else if( auto pDimensionReferenceRead = db_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pDimensionReferenceRead );
-        }
+        }*/
         else if( auto pPolyReference = db_cast< Instructions::PolyBranch >( pInstructionGroup ) )
         {
             bTailRecursion = false;
@@ -876,7 +898,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
                 std::ostringstream os;
                 os << indent << "// PolyCase\n";
 
-                //const Variables::Reference* pReference = pPolyCase->get_reference();
+                // const Variables::Reference* pReference = pPolyCase->get_reference();
                 Concrete::Context* pType = pPolyCase->get_type();
 
                 os << indent << "case " << printTypeID( pType->get_concrete_id() ) << " :\n";
@@ -1001,8 +1023,9 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
         {
             std::ostringstream osName;
             {
-                osName << "var_" << pInstanceVar->get_concrete()->get_interface()->get_identifier() << "_"
-                       << iVariableCounter++;
+                osName << "var_";
+                printConcreteFullType( pInstanceVar->get_concrete(), osName );
+                osName << "_" << iVariableCounter++;
             }
             variables.insert( { pVariable, osName.str() } );
 
@@ -1014,12 +1037,11 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
         }
         else if( auto pDimensionVar = db_cast< Variables::Memory >( pVariable ) )
         {
-            // auto               types    = pDimensionVar->get_types();
-            // Concrete::Context* pContext = types.front();
-
             std::ostringstream osName;
             {
-                osName << "var_" << iVariableCounter++;
+                osName << "var_";
+                printConcreteFullType( pDimensionVar->get_types().front(), osName );
+                osName << "_" << iVariableCounter++;
             }
             variables.insert( { pVariable, osName.str() } );
 
@@ -1031,27 +1053,7 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
         }
         else if( auto pContextVar = db_cast< Variables::Parameter >( pVariable ) )
         {
-            // auto               types    = pContextVar->get_types();
-            // Concrete::Context* pContext = types.front();
-
-            std::ostringstream osName;
-            {
-                osName << "var_" << iVariableCounter++;
-            }
-            variables.insert( { pVariable, osName.str() } );
-            std::ostringstream osVar;
-            {
-                osVar << indent << "mega::reference " << osName.str() << ";";
-            }
-            data[ "variables" ].push_back( osVar.str() );
-
-            if( pRootContext == pContextVar )
-            {
-                // generate initial assignment
-                std::ostringstream os;
-                os << indent << osName.str() << " = context;";
-                data[ "assignments" ].push_back( os.str() );
-            }
+            variables.insert( { pContextVar, "context" } );
         }
         else
         {

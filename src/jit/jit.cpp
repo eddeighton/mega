@@ -319,10 +319,8 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
         case mega::id_exp_Stop:            functionType = mega::runtime::invocation::eStop; break; 
         case mega::id_exp_GetAction:       functionType = mega::runtime::invocation::eGet; break;         
         case mega::id_exp_GetDimension:    functionType = mega::runtime::invocation::eGet; break;  
-        case mega::id_exp_Move:            functionType = mega::runtime::invocation::eMove; break;           
-        case mega::id_exp_Done:            
-        case mega::id_exp_Range:           
-        case mega::id_exp_Raw:    
+        case mega::id_exp_Move:            functionType = mega::runtime::invocation::eMove; break;     
+        case mega::id_exp_Range:    
         default:         
         case mega::HIGHEST_EXPLICIT_OPERATION_TYPE:
             THROW_RTE( "Unknown explicit operation type" );

@@ -365,9 +365,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 }
                 break;
                 case id_exp_Move:
-                case id_exp_Done:
                 case id_exp_Range:
-                case id_exp_Raw:
                 case HIGHEST_EXPLICIT_OPERATION_TYPE:
                     THROW_RTE( "Unsupported operation type: " << functionInfo.typeInfo.operationType );
                     break;

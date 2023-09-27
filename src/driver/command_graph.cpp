@@ -129,7 +129,8 @@ const std::string& getIdentifier( FinalStage::Concrete::Dimensions::Link* pDim )
     }
     else
     {
-        return mega::EG_OWNERSHIP;
+        static const std::string str = ::mega::EG_OWNERSHIP;
+        return str;
     }
 }
 
