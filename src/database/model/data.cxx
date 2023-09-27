@@ -8232,11 +8232,13 @@ namespace Operations
     Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, this ) )          , p_Operations_Invocations_Instructions_Instruction( loader )
           , variable( loader )
+          , context( loader )
     {
     }
-    Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Variable >& variable)
+    Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Variable >& variable, const data::Ptr< data::Concrete::Concrete_Graph_Vertex >& context)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, this ) )          , p_Operations_Invocations_Instructions_Instruction( loader )
           , variable( variable )
+          , context( context )
     {
     }
     bool Invocations_Operations_Operation::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -8251,11 +8253,13 @@ namespace Operations
     {
         loader.load( p_Operations_Invocations_Instructions_Instruction );
         loader.load( variable );
+        loader.load( context );
     }
     void Invocations_Operations_Operation::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Instructions_Instruction );
         storer.store( variable );
+        storer.store( context );
     }
     void Invocations_Operations_Operation::to_json( nlohmann::json& _part__ ) const
     {
@@ -8271,6 +8275,11 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "variable", variable } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "context", context } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -13863,6 +13872,18 @@ data::Ptr< data::Operations::Invocations_Variables_Parameter >& get_Invocations_
         }
     }
 }
+data::Ptr< data::Concrete::Concrete_Graph_Vertex >& get_Invocations_Operations_Operation_context(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Invocations_Operations_Operation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->context;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 data::Ptr< data::Operations::Invocations_Variables_Variable >& get_Invocations_Operations_Operation_variable(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -18301,6 +18322,18 @@ data::Ptr< data::Operations::Invocations_Variables_Parameter >& set_Invocations_
     {
         case data::Operations::Invocations_Instructions_Root::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_Root >( m_data )->parameter;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Graph_Vertex >& set_Invocations_Operations_Operation_context(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Invocations_Operations_Operation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->context;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );

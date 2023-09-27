@@ -537,10 +537,10 @@ public:
     }
 
 private:
-    void buildOperation( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable )
+    void buildOperation( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable, Concrete::Graph::Vertex* pVertex )
     {
         Invocations::Operations::Operation* pOperation = m_database.construct< Invocations::Operations::Operation >(
-            Invocations::Operations::Operation::Args{ Instructions::Instruction::Args{}, pVariable } );
+            Invocations::Operations::Operation::Args{ Instructions::Instruction::Args{}, pVariable, pVertex } );
         pInstruction->push_back_children( pOperation );
         m_pInvocation->push_back_operations( pOperation );
     }
@@ -590,7 +590,7 @@ private:
         if( edges.empty() )
         {
             // add the operation
-            buildOperation( pInstruction, pVariable );
+            buildOperation( pInstruction, pVariable, pOr->get_vertex() );
         }
         else
         {
@@ -696,146 +696,74 @@ public:
 
 void buildOperation( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation )
 {
+
+    std::vector< Concrete::Graph::Vertex* > operationContexts;
+    for( auto pOperation : pInvocation->get_operations() )
+    {
+        operationContexts.push_back( pOperation->get_context() );
+    }
+
+    // clang-format off
+    std::vector< Concrete::Object*              > objects;
+    std::vector< Concrete::Component*           > components;
+    std::vector< Concrete::Action*              > actions;
+    std::vector< Concrete::State*               > states;
+    std::vector< Concrete::Function*            > functions;
+    std::vector< Concrete::Namespace*           > namespaces;
+    std::vector< Concrete::Event*               > events;
+    std::vector< Concrete::Interupt*            > interupts;
+    std::vector< Concrete::Dimensions::User*    > userDimensions;
+    std::vector< Concrete::Dimensions::Link*    > linkDimensions;
+
+    for( auto pVert : operationContexts )
+    {
+        if( auto p = db_cast< Concrete::Object            >( pVert ) ) objects.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::Component         >( pVert ) ) components.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::Action            >( pVert ) ) actions.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::State             >( pVert ) ) states.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::Function          >( pVert ) ) functions.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::Namespace         >( pVert ) ) namespaces.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::Event             >( pVert ) ) events.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::Interupt          >( pVert ) ) interupts.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::Dimensions::User  >( pVert ) ) userDimensions.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::Dimensions::Link  >( pVert ) ) linkDimensions.push_back( p ); continue;
+    }
+    // clang-format on
+
+    std::set< std::string > dimensionTypes;
+    for( auto pDim : userDimensions )
+    {
+        dimensionTypes.insert( pDim->get_interface_dimension()->get_canonical_type() );
+    }
+    
     switch( pInvocation->get_id().m_operation )
     {
         case mega::id_Imp_NoParams:
         {
-            for( auto pOperation : pInvocation->get_operations() )
-            {
-                auto pVariable = pOperation->get_variable();
-                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
-                {
-                    auto pContext = pStackVar->get_concrete();
-                }
-                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
-                {
-                    auto types = pRefVar->get_types();
-                }
-                else
-                {
-                    THROW_RTE( "Unknown variable type" );
-                }
-            }
         }
         break;
         case mega::id_Imp_Params:
         {
-            for( auto pOperation : pInvocation->get_operations() )
-            {
-                auto pVariable = pOperation->get_variable();
-                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
-                {
-                    auto pContext = pStackVar->get_concrete();
-                }
-                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
-                {
-                    auto types = pRefVar->get_types();
-                }
-                else
-                {
-                    THROW_RTE( "Unknown variable type" );
-                }
-            }
         }
         break;
         case mega::id_Start:
         {
-            for( auto pOperation : pInvocation->get_operations() )
-            {
-                auto pVariable = pOperation->get_variable();
-                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
-                {
-                    auto pContext = pStackVar->get_concrete();
-                }
-                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
-                {
-                    auto types = pRefVar->get_types();
-                }
-                else
-                {
-                    THROW_RTE( "Unknown variable type" );
-                }
-            }
         }
         break;
         case mega::id_Stop:
         {
-            for( auto pOperation : pInvocation->get_operations() )
-            {
-                auto pVariable = pOperation->get_variable();
-                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
-                {
-                    auto pContext = pStackVar->get_concrete();
-                }
-                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
-                {
-                    auto types = pRefVar->get_types();
-                }
-                else
-                {
-                    THROW_RTE( "Unknown variable type" );
-                }
-            }
         }
         break;
         case mega::id_Move:
         {
-            for( auto pOperation : pInvocation->get_operations() )
-            {
-                auto pVariable = pOperation->get_variable();
-                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
-                {
-                    auto pContext = pStackVar->get_concrete();
-                }
-                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
-                {
-                    auto types = pRefVar->get_types();
-                }
-                else
-                {
-                    THROW_RTE( "Unknown variable type" );
-                }
-            }
         }
         break;
         case mega::id_Get:
         {
-            for( auto pOperation : pInvocation->get_operations() )
-            {
-                auto pVariable = pOperation->get_variable();
-                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
-                {
-                    auto pContext = pStackVar->get_concrete();
-                }
-                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
-                {
-                    auto types = pRefVar->get_types();
-                }
-                else
-                {
-                    THROW_RTE( "Unknown variable type" );
-                }
-            }
         }
         break;
         case mega::id_Range:
         {
-            for( auto pOperation : pInvocation->get_operations() )
-            {
-                auto pVariable = pOperation->get_variable();
-                if( auto pStackVar = db_cast< Variables::Stack >( pVariable ) )
-                {
-                    auto pContext = pStackVar->get_concrete();
-                }
-                else if( auto pRefVar = db_cast< Variables::Reference >( pVariable ) )
-                {
-                    auto types = pRefVar->get_types();
-                }
-                else
-                {
-                    THROW_RTE( "Unknown variable type" );
-                }
-            }
         }
         break;
         default:

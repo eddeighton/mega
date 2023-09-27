@@ -110,7 +110,8 @@ namespace Invocations
     {
         object Operation : Instructions::Instruction -> OperationsStage::Operations
         {
-            ref< Variables::Variable > variable;
+            ref< Variables::Variable >      variable;
+            ref< Concrete::Graph::Vertex >  context;
         }
 /*
         object BasicOperation : Operation -> OperationsStage::Operations
