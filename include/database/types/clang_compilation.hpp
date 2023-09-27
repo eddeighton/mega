@@ -70,7 +70,14 @@ public:
     {
         Compilation compilation;
 
+        // use ccache on linux to speed up include pch
+#ifdef __gnu_linux__
+        std::ostringstream useCCache;
+        useCCache << "ccache " << toolChain.clangCompilerPath;
+        compilation.compiler = useCCache.str();
+#else
         compilation.compiler = toolChain.clangCompilerPath;
+#endif
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();

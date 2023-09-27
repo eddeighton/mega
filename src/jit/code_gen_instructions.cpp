@@ -62,11 +62,11 @@ void gen( Args args, FinalStage::Invocations::Instructions::ParentDerivation* pP
     std::ostringstream os;
     os << args.indent << "// ParentDerivation\n";
 
-    const Variables::Instance* pFrom = pParentDerivation->get_from();
-    const Variables::Instance* pTo   = pParentDerivation->get_to();
+    const Variables::Variable* pFrom = pParentDerivation->get_from();
+    const Variables::Stack*    pTo   = pParentDerivation->get_to();
 
     const std::string  s           = args.get( pFrom );
-    const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
+    const mega::TypeID targetType  = pTo->get_concrete()->get_concrete_id();
     const mega::U64    szLocalSize = args.database.getLocalDomainSize( targetType );
 
     os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
@@ -86,8 +86,8 @@ void gen( Args args, FinalStage::Invocations::Instructions::ChildDerivation* pCh
     std::ostringstream os;
     os << args.indent << "// ChildDerivation\n";
 
-    const Variables::Instance* pFrom = pChildDerivation->get_from();
-    const Variables::Instance* pTo   = pChildDerivation->get_to();
+    const Variables::Variable* pFrom = pChildDerivation->get_from();
+    const Variables::Stack*    pTo   = pChildDerivation->get_to();
 
     const std::string  s           = args.get( pFrom );
     const mega::TypeID targetType  = pTo->get_concrete()->get_concrete_id();
@@ -130,25 +130,6 @@ void gen( Args args, FinalStage::Invocations::Instructions::DimensionReferenceRe
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// MonoReference
-void gen( Args args, FinalStage::Invocations::Instructions::MonoReference* pMonoReference )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    const Variables::Instance*  pInstance  = pMonoReference->get_instance();
-    const Variables::Reference* pReference = pMonoReference->get_reference();
-
-    std::ostringstream os;
-    os << args.indent << "// MonoReference\n";
-    os << args.indent << args.get( pInstance ) << " = mega::reference::make( " << args.get( pReference )
-       << ", mega::TypeInstance{ " << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << ", "
-       << args.get( pReference ) << ".getInstance() } );\n";
-
-    args.data[ "assignments" ].push_back( os.str() );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Allocate
 /*
 void gen( Args args, FinalStage::Invocations::Operations::Allocate* pAllocate )
@@ -160,9 +141,11 @@ void gen( Args args, FinalStage::Invocations::Operations::Allocate* pAllocate )
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    mega::reference allocatedRef = mega::runtime::allocate( {{ instance }}, mega::TypeID{ {{ concrete_type_id }} } );
+{{ indent }}    mega::reference allocatedRef = mega::runtime::allocate( {{ instance }}, mega::TypeID{ {{
+concrete_type_id }} } );
 {% if has_owning_link %}
-{{ indent }}    static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{ owning_relation_id }} } );
+{{ indent }}    static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName, mega::RelationID{ {{
+owning_relation_id }} } );
 {{ indent }}    function( {{ link_source }}, {{ link_target }} );
 {% endif %}
 {{ indent }}    return allocatedRef;
@@ -172,7 +155,7 @@ R"TEMPLATE(
 
     std::ostringstream os;
     {
-        Variables::Instance* pInstance       = pAllocate->get_instance();
+        Variables::Variable* pVariable       = pAllocate->get_variable();
         Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
         std::ostringstream   osIndent;
         osIndent << args.indent;
@@ -302,18 +285,18 @@ R"TEMPLATE(
 )TEMPLATE";
     // clang-format on
 
+    THROW_TODO;
     std::ostringstream os;
     {
-        Concrete::Context*   pConcreteTarget = pMove->get_concrete_target();
-        Variables::Instance* pInstance       = pMove->get_instance();
+        /*Concrete::Context*   pConcreteTarget = pMove->get_concrete_target();
+        Variables::Variable* pVariable       = pMove->get_variable();
 
         bool               bUnparentAll = false;
         std::ostringstream osRelationID;
         std::ostringstream osRelationIDAsInt;
 
         Concrete::Context* pMoveContext = pInstance->get_concrete();
-        THROW_TODO;
-        /*if( Concrete::Link* pMoveLinkContext = db_cast< Concrete::Link >( pMoveContext ) )
+        if( Concrete::Link* pMoveLinkContext = db_cast< Concrete::Link >( pMoveContext ) )
         {
             auto pMovingObjectOpt = pMoveLinkContext->get_concrete_object();
             VERIFY_RTE_MSG( pMovingObjectOpt.has_value(), "Attempting to move link context that has no object" );
@@ -398,7 +381,7 @@ R"TEMPLATE(
     std::ostringstream os;
     {
         Concrete::Context*   pConcreteTarget = pCall->get_concrete_target();
-        Variables::Instance* pInstance       = pCall->get_instance();
+        Variables::Variable* pVariable       = pCall->get_variable();
         std::ostringstream   osIndent;
         osIndent << args.indent;
 
@@ -406,7 +389,7 @@ R"TEMPLATE(
             { { "indent", osIndent.str() },
               //{ "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
               { "interface_type_id", printTypeID( pConcreteTarget->get_interface()->get_interface_id() ) },
-              { "instance", args.get( pInstance ) } } );
+              { "instance", args.get( pVariable ) } } );
 
         os << args.inja.render( szTemplate, templateData );
 
@@ -445,17 +428,13 @@ R"TEMPLATE(
     std::ostringstream os;
     {
         Concrete::Context*   pConcreteTarget = pStart->get_concrete_target();
-        Variables::Instance* pInstance       = pStart->get_instance();
+        Variables::Variable* pVariable       = pStart->get_variable();
         std::ostringstream   osIndent;
         osIndent << args.indent;
 
-        VERIFY_RTE_MSG( ( pConcreteTarget->get_parent() == pInstance->get_concrete() )
-                            || ( pConcreteTarget == pInstance->get_concrete() ),
-                        "Start operation target is not child or equal to instance variable type" );
-
         nlohmann::json templateData( { { "indent", osIndent.str() },
                                        { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
-                                       { "instance", args.get( pInstance ) } } );
+                                       { "instance", args.get( pVariable ) } } );
 
         os << args.inja.render( szTemplate, templateData );
 
@@ -494,17 +473,13 @@ R"TEMPLATE(
     std::ostringstream os;
     {
         Concrete::Context*   pConcreteTarget = pStop->get_concrete_target();
-        Variables::Instance* pInstance       = pStop->get_instance();
+        Variables::Variable* pVariable       = pStop->get_variable();
         std::ostringstream   osIndent;
         osIndent << args.indent;
 
-        VERIFY_RTE_MSG( ( pConcreteTarget->get_parent() == pInstance->get_concrete() )
-                            || ( pConcreteTarget == pInstance->get_concrete() ),
-                        "Start operation target is not child or equal to instance variable type" );
-
         nlohmann::json templateData( { { "indent", osIndent.str() },
                                        { "concrete_type_id", printTypeID( pConcreteTarget->get_concrete_id() ) },
-                                       { "instance", args.get( pInstance ) } } );
+                                       { "instance", args.get( pVariable ) } } );
 
         os << args.inja.render( szTemplate, templateData );
 
@@ -532,14 +507,14 @@ R"TEMPLATE(
 
     std::ostringstream os;
     {
-        Variables::Instance* pInstance = pGet->get_instance();
+        Variables::Variable* pVariable = pGet->get_variable();
 
         std::ostringstream osIndent;
         osIndent << args.indent;
 
         nlohmann::json templateData(
             { { "indent", osIndent.str() },
-              { "instance", args.get( pInstance ) },
+              { "instance", args.get( pVariable ) },
               { "concrete_type_id", printTypeID( pGet->get_concrete_target()->get_concrete_id() ) } } );
 
         os << args.inja.render( szTemplate, templateData );
@@ -566,14 +541,14 @@ R"TEMPLATE(
 
     std::ostringstream os;
     {
-        Variables::Instance* pInstance = pGetDimension->get_instance();
+        Variables::Variable* pVariable = pGetDimension->get_variable();
 
         std::ostringstream osIndent;
         osIndent << args.indent;
 
         nlohmann::json templateData(
             { { "indent", osIndent.str() },
-              { "instance", args.get( pInstance ) },
+              { "instance", args.get( pVariable ) },
               { "concrete_type_id", printTypeID( pGetDimension->get_concrete_dimension()->get_concrete_id() ) } }
 
         );
@@ -613,7 +588,7 @@ R"TEMPLATE(
     std::ostringstream os;
     {
         Concrete::Dimensions::User* pDimension = pRead->get_concrete_dimension();
-        Variables::Instance*        pInstance  = pRead->get_instance();
+        Variables::Variable*        pVariable  = pRead->get_variable();
         MemoryLayout::Part*         pPart      = pDimension->get_part();
 
         std::ostringstream osIndent;
@@ -623,7 +598,7 @@ R"TEMPLATE(
                                        { "part_offset", pPart->get_offset() },
                                        { "part_size", pPart->get_size() },
                                        { "dimension_offset", pDimension->get_offset() },
-                                       { "instance", args.get( pInstance ) } } );
+                                       { "instance", args.get( pVariable ) } } );
 
         os << args.inja.render( szTemplate, templateData );
     }
@@ -677,7 +652,7 @@ R"TEMPLATE(
     std::ostringstream os;
     {
         Concrete::Dimensions::User* pDimension = pWrite->get_concrete_dimension();
-        Variables::Instance*        pInstance  = pWrite->get_instance();
+        Variables::Variable*        pVariable  = pWrite->get_variable();
         MemoryLayout::Part*         pPart      = pDimension->get_part();
         const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
         const std::string           strMangled = megaMangle( pDimension->get_interface_dimension()->get_erased_type() );
@@ -691,7 +666,7 @@ R"TEMPLATE(
                                        { "part_size", pPart->get_size() },
                                        { "dimension_offset", pDimension->get_offset() },
                                        { "mangled_type_name", strMangled },
-                                       { "instance", args.get( pInstance ) }
+                                       { "instance", args.get( pVariable ) }
 
         } );
 
@@ -735,7 +710,7 @@ R"TEMPLATE(
         THROW_TODO;
         /*Concrete::Link*      pLink          = pReadLink->get_concrete_link();
         auto                 pLinkReference = pLink->get_link_reference();
-        Variables::Instance* pInstance      = pReadLink->get_instance();
+        Variables::Variable* pVariable       = pReadLink->get_variable();
         MemoryLayout::Part*  pPart          = pLinkReference->get_part();
 
         std::ostringstream osIndent;
@@ -745,7 +720,7 @@ R"TEMPLATE(
                                        { "part_offset", pPart->get_offset() },
                                        { "part_size", pPart->get_size() },
                                        { "dimension_offset", pLinkReference->get_offset() },
-                                       { "instance", args.get( pInstance ) } } );
+                                       { "instance", args.get( pVariable ) } } );
 
         os << args.inja.render( szTemplate, templateData );*/
     }
@@ -799,11 +774,9 @@ R"TEMPLATE(
         THROW_TODO;
         /*Concrete::Link*      pLink          = pWriteLink->get_concrete_link();
         auto                 pLinkReference = pLink->get_link_reference();
-        Variables::Instance* pInstance      = pWriteLink->get_instance();
+        Variables::Variable* pVariable       = pWriteLink->get_variable();
 
         RelationID           relationID     = pLink->get_link_interface()->get_relation()->get_id();
-
-        VERIFY_RTE_MSG( pInstance->get_concrete() == pLink, "Something is wrong!!" );
 
         std::ostringstream osIndent;
         osIndent << args.indent;
@@ -811,7 +784,7 @@ R"TEMPLATE(
         nlohmann::json templateData( { { "indent", osIndent.str() },
                                        { "relation_id_lower", printTypeID( relationID.getLower() ) },
                                        { "relation_id_upper", printTypeID( relationID.getUpper() ) },
-                                       { "instance", args.get( pInstance ) }
+                                       { "instance", args.get( pVariable ) }
 
         } );
 
@@ -864,17 +837,13 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pDimensionReferenceRead );
         }
-        else if( auto pMonoReference = db_cast< Instructions::MonoReference >( pInstructionGroup ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pMonoReference );
-        }
-        else if( auto pPolyReference = db_cast< Instructions::PolyReference >( pInstructionGroup ) )
+        else if( auto pPolyReference = db_cast< Instructions::PolyBranch >( pInstructionGroup ) )
         {
             bTailRecursion = false;
 
             {
                 std::ostringstream os;
-                os << indent << "// PolyReference\n";
+                os << indent << "// PolyBranch\n";
                 const Variables::Reference* pReference = pPolyReference->get_from_reference();
 
                 os << indent << "switch( " << Args::get( variables, pReference ) << ".getType() )\n";
@@ -905,15 +874,16 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
                 std::ostringstream os;
                 os << indent << "// PolyCase\n";
 
-                const Variables::Reference* pReference = pPolyCase->get_reference();
-                const Variables::Instance*  pInstance  = pPolyCase->get_to();
+                //const Variables::Reference* pReference = pPolyCase->get_reference();
+                Concrete::Context* pType = pPolyCase->get_type();
 
-                os << indent << "case " << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << " :\n";
+                os << indent << "case " << printTypeID( pType->get_concrete_id() ) << " :\n";
                 os << indent << "{\n";
                 ++indent;
-                os << indent << Args::get( variables, pInstance ) << " = mega::reference::make( "
-                   << Args::get( variables, pReference ) << ", mega::TypeInstance{"
-                   << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << ", " << Args::get( variables, pInstance ) << ".getInstance()} );\n";
+                // os << indent << Args::get( variables, pInstance ) << " = mega::reference::make( "
+                //    << Args::get( variables, pReference ) << ", mega::TypeInstance{"
+                //    << printTypeID( pInstance->get_concrete()->get_concrete_id() ) << ", "
+                //    << Args::get( variables, pInstance ) << ".getInstance()} );\n";
                 data[ "assignments" ].push_back( os.str() );
             }
 
@@ -930,18 +900,6 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
                 os << indent << "}";
                 data[ "assignments" ].push_back( os.str() );
             }
-        }
-        else if( db_cast< Instructions::Elimination >( pInstructionGroup ) )
-        {
-            // do nothing
-        }
-        else if( db_cast< Instructions::Failure >( pInstructionGroup ) )
-        {
-            THROW_RTE( "Invalid Failure instruction" );
-        }
-        else if( db_cast< Instructions::Prune >( pInstructionGroup ) )
-        {
-            THROW_RTE( "Invalid Prune instruction" );
         }
         else
         {
@@ -967,7 +925,8 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pAllocate );
         }
-        else*/ if( auto pCall = db_cast< Call >( pOperation ) )
+        else*/
+        if( auto pCall = db_cast< Call >( pOperation ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pCall );
         }
@@ -1024,7 +983,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
 
 CodeGenerator::VariableMap CodeGenerator::generateVariables(
     const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
-    ::FinalStage::Invocations::Variables::Context*                        pRootContext,
+    ::FinalStage::Invocations::Variables::Parameter*                      pRootContext,
     nlohmann::json&                                                       data,
     Indent&                                                               indent ) const
 {
@@ -1036,7 +995,7 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
     int iVariableCounter = 0;
     for( auto pVariable : invocationVariables )
     {
-        if( auto pInstanceVar = db_cast< Variables::Instance >( pVariable ) )
+        if( auto pInstanceVar = db_cast< Variables::Stack >( pVariable ) )
         {
             std::ostringstream osName;
             {
@@ -1051,10 +1010,10 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
             }
             data[ "variables" ].push_back( osVar.str() );
         }
-        else if( auto pDimensionVar = db_cast< Variables::Dimension >( pVariable ) )
+        else if( auto pDimensionVar = db_cast< Variables::Memory >( pVariable ) )
         {
-            auto               types    = pDimensionVar->get_types();
-            Concrete::Context* pContext = types.front();
+            // auto               types    = pDimensionVar->get_types();
+            // Concrete::Context* pContext = types.front();
 
             std::ostringstream osName;
             {
@@ -1068,10 +1027,10 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
             }
             data[ "variables" ].push_back( osVar.str() );
         }
-        else if( auto pContextVar = db_cast< Variables::Context >( pVariable ) )
+        else if( auto pContextVar = db_cast< Variables::Parameter >( pVariable ) )
         {
-            auto               types    = pContextVar->get_types();
-            Concrete::Context* pContext = types.front();
+            // auto               types    = pContextVar->get_types();
+            // Concrete::Context* pContext = types.front();
 
             std::ostringstream osName;
             {

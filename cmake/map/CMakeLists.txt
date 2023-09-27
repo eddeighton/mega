@@ -24,7 +24,15 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get flat buffers
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/flatbuffers/flatbuffers_include.cmake )
 
-find_file( FLATBUFFERS_COMPILER NAMES flatc PATHS ${BUILD_PATH}/${CFG_TUPLE}/flatbuffers/install/bin REQUIRED NO_DEFAULT_PATH )
+
+IF( ${WIN32} )
+set( FLATBUFFERS_COMPILER_NAME "flatc.exe" )
+ELSE( ${WIN32} )
+set( FLATBUFFERS_COMPILER_NAME "flatc" )
+ENDIF( ${WIN32} )
+
+
+find_file( FLATBUFFERS_COMPILER NAMES ${FLATBUFFERS_COMPILER_NAME} PATHS ${BUILD_PATH}/${CFG_TUPLE}/flatbuffers/install/bin REQUIRED NO_DEFAULT_PATH )
 
 set( MAP_SCHEMA ${MEGA_SRC_DIR}/map/format.fbs )
 

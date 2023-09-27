@@ -27,7 +27,7 @@ namespace Invocations
             opt< ref< Variable > > parent;
         }
 
-        object Instance : Variable -> OperationsStage::Operations
+        object Stack : Variable -> OperationsStage::Operations
         {
             ref< Concrete::Context > concrete;
         }
@@ -37,12 +37,12 @@ namespace Invocations
             array< ref< Concrete::Context > > types;
         }
 
-        object Dimension : Reference -> OperationsStage::Operations
+        object Memory : Reference -> OperationsStage::Operations
         {
 
         }
 
-        object Context : Reference -> OperationsStage::Operations
+        object Parameter : Reference -> OperationsStage::Operations
         {
 
         }
@@ -61,46 +61,40 @@ namespace Invocations
 
         object Root : InstructionGroup -> OperationsStage::Operations
         {
-            ref< Variables::Context > context;
+            ref< Variables::Parameter > parameter;
         }
 
         object ParentDerivation : InstructionGroup -> OperationsStage::Operations
         {
-            ref< Variables::Instance > from;
-            ref< Variables::Instance > to;
+            ref< Variables::Variable > from;
+            ref< Variables::Stack > to;
         }
 
         object ChildDerivation : InstructionGroup -> OperationsStage::Operations
         {
-            ref< Variables::Instance > from;
-            ref< Variables::Instance > to;
+            ref< Variables::Variable > from;
+            ref< Variables::Stack > to;
         }
 
         object EnumDerivation : InstructionGroup -> OperationsStage::Operations
         {
-            ref< Variables::Instance > from;
-            ref< Variables::Instance > to;
+            ref< Variables::Variable > from;
+            ref< Variables::Stack > to;
         }
 
         object Enumeration : InstructionGroup -> OperationsStage::Operations
         {
-            ref< Variables::Instance > instance;
+            ref< Variables::Variable > instance;
         }
 
         object DimensionReferenceRead : InstructionGroup -> OperationsStage::Operations
         {
-            ref< Variables::Instance > instance;
-            ref< Variables::Dimension > dimension_reference;
+            ref< Variables::Variable > instance;
+            ref< Variables::Memory > dimension_reference;
             ref< Concrete::Dimensions::User > concrete;
         }
 
-        object MonoReference : InstructionGroup -> OperationsStage::Operations
-        {
-            ref< Variables::Reference > reference;
-            ref< Variables::Instance > instance;
-        }
-
-        object PolyReference : InstructionGroup -> OperationsStage::Operations
+        object PolyBranch : InstructionGroup -> OperationsStage::Operations
         {
             ref< Variables::Reference > from_reference;
         }
@@ -108,30 +102,15 @@ namespace Invocations
         object PolyCase : InstructionGroup -> OperationsStage::Operations
         {
             ref< Variables::Reference > reference;
-            ref< Variables::Instance > to;
+            ref< Concrete::Context >    type;
         }
-
-        object Failure : InstructionGroup -> OperationsStage::Operations
-        {
-        }
-
-        object Elimination : InstructionGroup -> OperationsStage::Operations
-        {
-        }
-
-        object Prune : InstructionGroup -> OperationsStage::Operations
-        {
-        }
-
     }
 
     namespace Operations
     {
         object Operation : Instructions::Instruction -> OperationsStage::Operations
         {
-            ref< Variables::Instance >                   instance;
-            // array< ref< Operations::InterfaceVariant > > derived_contexts;
-            // array< ref< Operations::InterfaceVariant > > parameter_types;
+            ref< Variables::Variable > variable;
         }
 
         object BasicOperation : Operation -> OperationsStage::Operations

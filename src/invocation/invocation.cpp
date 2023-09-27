@@ -140,7 +140,6 @@ struct InvocationPolicy
                 case EdgeType::eParent:
                 case EdgeType::eChildSingular:
                 case EdgeType::eChildNonSingular:
-                case EdgeType::ePart:
                 case EdgeType::eDim:
                 case EdgeType::eObjectLink:
                 case EdgeType::TOTAL_EDGE_TYPES:
@@ -169,7 +168,6 @@ struct InvocationPolicy
                 case EdgeType::eParent:
                 case EdgeType::eChildSingular:
                 case EdgeType::eChildNonSingular:
-                case EdgeType::ePart:
                 case EdgeType::eDim:
                 case EdgeType::TOTAL_EDGE_TYPES:
                     break;
@@ -224,7 +222,6 @@ struct InvocationPolicy
                         }
                         case EdgeType::eParent:
                         case EdgeType::eChildNonSingular:
-                        case EdgeType::ePart:
                         case EdgeType::eMono:
                         case EdgeType::ePoly:
                         case EdgeType::ePolyParent:
@@ -405,171 +402,254 @@ std::optional< mega::OperationID > fromInvocationID( const SymbolTables& symbolT
 
 using namespace OperationsStage::Invocations;
 
-template < typename TVariable, typename... ConstructorArgs >
-TVariable* make_variable( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation,
-                          ConstructorArgs&&... ctorArgs )
+class InvocationBuilder
 {
-    TVariable* pVariable = database.construct< TVariable >( typename TVariable::Args{ ctorArgs... } );
-    pInvocation->push_back_variables( pVariable );
-    return pVariable;
-}
-
-template < typename TInstruction, typename... ConstructorArgs >
-TInstruction* make_instruction( OperationsStage::Database& database, Instructions::InstructionGroup* pParentInstruction,
-                                ConstructorArgs&&... ctorArgs )
-{
-    // clang-format off
-    TInstruction* pNewInstruction = database.construct< TInstruction >
-    (
-        typename TInstruction::Args
-        {
-            OperationsStage::Invocations::Instructions::InstructionGroup::Args
-            {
-                OperationsStage::Invocations::Instructions::Instruction::Args{},
-                {}
-            },
-            ctorArgs...
-        }
-    );
-    // clang-format on
-    if( pParentInstruction )
+    Variables::Stack* make_stack_variable( Variables::Variable*                pParentVariable,
+                                           OperationsStage::Concrete::Context* pTargetContext )
     {
-        pParentInstruction->push_back_children( pNewInstruction );
+        using namespace OperationsStage;
+        auto pStack = m_database.construct< Variables::Stack >(
+            Variables::Stack::Args{ Variables::Variable::Args{ pParentVariable }, pTargetContext } );
+        m_pInvocation->push_back_variables( pStack );
+        return pStack;
     }
 
-    return pNewInstruction;
-}
-
-void build( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation,
-            Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable,
-            InvocationPolicy::EdgePtr pEdge )
-{
-    for( auto pGraphEdge : pEdge->get_edges() )
+    OperationsStage::Invocations::Variables::Memory*
+    make_memory_variable( Variables::Variable* pParentVariable, const std::vector< Concrete::Context* >& types )
     {
-        switch( pGraphEdge->get_type().get() )
+        using namespace OperationsStage;
+        auto pMemory = m_database.construct< Variables::Memory >(
+            Variables::Reference::Args{ Variables::Variable::Args{ pParentVariable }, types } );
+        m_pInvocation->push_back_variables( pMemory );
+        return pMemory;
+    }
+
+    OperationsStage::Invocations::Variables::Parameter*
+    make_parameter_variable( const std::vector< Concrete::Context* >& types )
+    {
+        using namespace OperationsStage;
+        auto pParameter = m_database.construct< Variables::Parameter >( Variables::Parameter::Args{
+            Variables::Reference::Args{ Variables::Variable::Args{ std::nullopt }, types } } );
+        m_pInvocation->push_back_variables( pParameter );
+        return pParameter;
+    }
+
+    template < typename TInstruction, typename... ConstructorArgs >
+    TInstruction* make_instruction( Instructions::InstructionGroup* pParentInstruction, ConstructorArgs&&... ctorArgs )
+    {
+        // clang-format off
+        TInstruction* pNewInstruction = m_database.construct< TInstruction >
+        (
+            typename TInstruction::Args
+            {
+                OperationsStage::Invocations::Instructions::InstructionGroup::Args
+                {
+                    OperationsStage::Invocations::Instructions::Instruction::Args{},
+                    {}
+                },
+                ctorArgs...
+            }
+        );
+        // clang-format on
+        if( pParentInstruction )
         {
-            case EdgeType::eParent:
+            pParentInstruction->push_back_children( pNewInstruction );
+        }
+
+        return pNewInstruction;
+    }
+
+public:
+    InvocationBuilder( OperationsStage::Database& database, const mega::InvocationID& id,
+                       InvocationPolicy::RootPtr pDerivationTreeRoot, const std::vector< Concrete::Context* >& types )
+        : m_database( database )
+        , m_pDerivationTreeRoot( pDerivationTreeRoot )
+        , m_pInvocation( database.construct< OperationsStage::Operations::Invocation >(
+              OperationsStage::Operations::Invocation::Args{ id, pDerivationTreeRoot, {} } ) )
+        , m_pParameterVariable( make_parameter_variable( types ) )
+        , m_pRootInstruction( make_instruction< Instructions::Root >( nullptr, m_pParameterVariable ) )
+    {
+        m_pInvocation->set_root_instruction( m_pRootInstruction );
+    }
+
+    void build()
+    {
+        auto rootOutEdges       = m_pDerivationTreeRoot->get_edges();
+        U64  activeOutEdgeCount = 0U;
+        for( auto pEdge : rootOutEdges )
+        {
+            if( !pEdge->get_eliminated() )
             {
+                ++activeOutEdgeCount;
             }
-            break;
-            case EdgeType::eChildSingular:
+        }
+
+        if( activeOutEdgeCount == 1 )
+        {
+            for( auto pEdge : rootOutEdges )
             {
+                if( !pEdge->get_eliminated() )
+                {
+                    build( m_pRootInstruction, m_pParameterVariable, pEdge );
+                    break;
+                }
             }
-            break;
-            case EdgeType::eChildNonSingular:
-            {
-            }
-            break;
-            case EdgeType::ePart:
-            {
-            }
-            break;
-            case EdgeType::eDim:
-            {
-            }
-            break;
-            case EdgeType::eObjectLink:
-            {
-            }
-            break;
-            case EdgeType::eMono:
-            {
-            }
-            break;
-            case EdgeType::ePoly:
-            {
-            }
-            break;
-            case EdgeType::ePolyParent:
-            {
-            }
-            break;
-            default:
-            case EdgeType::TOTAL_EDGE_TYPES:
-            {
-                THROW_RTE( "Unknown hypergraph edge type" );
-            }
-            break;
+        }
+        else if( activeOutEdgeCount > 1 )
+        {
+            buildAnd( m_pRootInstruction, m_pParameterVariable, m_pDerivationTreeRoot->get_edges() );
+        }
+        else
+        {
+            THROW_RTE( "Derivation tree root has no active out edges" );
         }
     }
 
-    auto pNextStep = pEdge->get_next();
-    if( auto pAND = db_cast< Derivation::And >( pNextStep ) )
+private:
+    void buildAnd( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable,
+                   const std::vector< Derivation::Edge* >& edges )
     {
         // create polymorphic branch
         auto pRef = db_cast< Variables::Reference >( pVariable );
         VERIFY_RTE( pRef );
 
-        auto pPolyReference = make_instruction< Instructions::PolyReference >( database, pInstruction, pRef );
-
-        bool bFound = false;
-        for( auto pEdge : pAND->get_edges() )
-        {
-            if( !pEdge->get_eliminated() )
-            {
-                auto pTargetContext = db_cast< Concrete::Context >( pEdge->get_next()->get_vertex() );
-                VERIFY_RTE( pTargetContext );
-
-                auto pInstance = make_variable< Variables::Instance >(
-                    database, pInvocation, Variables::Variable::Args{ pRef }, pTargetContext );
-
-                auto pPolyCaseInstruction
-                    = make_instruction< Instructions::PolyCase >( database, pPolyReference, pRef, pInstance );
-
-                build( database, pInvocation, pPolyCaseInstruction, pInstance, pEdge );
-                bFound = true;
-            }
-        }
-        VERIFY_RTE_MSG( bFound, "Failed to find non-eliminated edge in OR step" );
-    }
-    else if( auto pOR = db_cast< Derivation::Or >( pNextStep ) )
-    {
-        auto edges = pOR->get_edges();
+        auto pPolyReference = make_instruction< Instructions::PolyBranch >( pInstruction, pRef );
 
         bool bFound = false;
         for( auto pEdge : edges )
         {
             if( !pEdge->get_eliminated() )
             {
-                VERIFY_RTE_MSG( !bFound, "Multiple non-eliminated edges in OR step" );
-                build( database, pInvocation, pInstruction, pVariable, pEdge );
+                auto pNext          = pEdge->get_next();
+                auto pTargetContext = db_cast< Concrete::Context >( pNext->get_vertex() );
+                VERIFY_RTE( pTargetContext );
+
+                auto pPolyCaseInstruction
+                    = make_instruction< Instructions::PolyCase >( pPolyReference, pRef, pTargetContext );
+
+                // get the hypergraph object link edge
+                auto hyperGraphEdges = pEdge->get_edges();
+                VERIFY_RTE( hyperGraphEdges.size() == 1 );
+                auto pHyperGraphObjectLinkEdge = hyperGraphEdges.front();
+                VERIFY_RTE( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::eObjectLink );
+                VERIFY_RTE( pHyperGraphObjectLinkEdge->get_target() == pTargetContext );
+
+                auto pOR = db_cast< Derivation::Or >( pNext );
+                VERIFY_RTE( pOR );
+                buildOr( pPolyCaseInstruction, pRef, pOR );
                 bFound = true;
             }
         }
         VERIFY_RTE_MSG( bFound, "Failed to find non-eliminated edge in OR step" );
     }
-    else
+
+    void buildOr( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable, Derivation::Or* pOr )
     {
-        THROW_RTE( "Unknown derivation step type" );
+        bool bFound = false;
+        for( auto pEdge : pOr->get_edges() )
+        {
+            if( !pEdge->get_eliminated() )
+            {
+                VERIFY_RTE_MSG( !bFound, "Multiple non-eliminated edges in OR step" );
+                build( pInstruction, pVariable, pEdge );
+                bFound = true;
+            }
+        }
+        VERIFY_RTE_MSG( bFound, "Failed to find non-eliminated edge in OR step" );
     }
-}
 
-void build( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation,
-            InvocationPolicy::RootPtr pStep, std::vector< Concrete::Context* > types )
-{
-    // clang-format off
-    auto pInitialContext = make_variable< Variables::Context >(
-        database, pInvocation,
-            Variables::Reference::Args
-            { 
-                Variables::Variable::Args
-                { 
-                    std::optional< Variables::Variable* >() 
-                }, 
-                types 
-            } 
-         );
-    // clang-format on
-
-    auto pRootInstruction = make_instruction< Instructions::Root >( database, nullptr, pInitialContext );
-    pInvocation->set_root_instruction( pRootInstruction );
-
-    // pStep->get_context()
-    for( auto pEdge : pStep->get_edges() )
+    void build( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable,
+                InvocationPolicy::EdgePtr pEdge )
     {
-        build( database, pInvocation, pRootInstruction, pInitialContext, pEdge );
+        // NOTE pInstruction AND pVariable are OUT parameters taken by reference
+        buildHyperGraphEdges( pInstruction, pVariable, pEdge );
+
+        auto pNextStep = pEdge->get_next();
+        if( auto pAnd = db_cast< Derivation::And >( pNextStep ) )
+        {
+            buildAnd( pInstruction, pVariable, pAnd->get_edges() );
+        }
+        else if( auto pOr = db_cast< Derivation::Or >( pNextStep ) )
+        {
+            buildOr( pInstruction, pVariable, pOr );
+        }
+        else
+        {
+            THROW_RTE( "Unknown derivation step type" );
+        }
     }
-}
+
+    void buildHyperGraphEdges( Instructions::InstructionGroup*& pInstruction, Variables::Variable*& pVariable,
+                               InvocationPolicy::EdgePtr pEdge )
+    {
+        for( auto pGraphEdge : pEdge->get_edges() )
+        {
+            switch( pGraphEdge->get_type().get() )
+            {
+                case EdgeType::eParent:
+                {
+                    auto pContext = db_cast< Concrete::Context >( pGraphEdge->get_target() );
+                    VERIFY_RTE( pContext );
+                    Variables::Stack* pTo = make_stack_variable( pVariable, pContext );
+                    pInstruction = make_instruction< Instructions::ParentDerivation >( pInstruction, pVariable, pTo );
+                    pVariable    = pTo;
+                }
+                break;
+                case EdgeType::eChildSingular:
+                {
+                    auto pContext = db_cast< Concrete::Context >( pGraphEdge->get_target() );
+                    VERIFY_RTE( pContext );
+                    Variables::Stack* pTo = make_stack_variable( pVariable, pContext );
+                    pInstruction = make_instruction< Instructions::ChildDerivation >( pInstruction, pVariable, pTo );
+                    pVariable    = pTo;
+                }
+                break;
+                case EdgeType::eChildNonSingular:
+                {
+                    THROW_TODO;
+                }
+                break;
+                case EdgeType::eDim:
+                {
+                    THROW_TODO;
+                }
+                break;
+                case EdgeType::eObjectLink:
+                {
+                }
+                break;
+                case EdgeType::eMono:
+                {
+                }
+                break;
+                case EdgeType::ePoly:
+                {
+                }
+                break;
+                case EdgeType::ePolyParent:
+                {
+                }
+                break;
+                default:
+                case EdgeType::TOTAL_EDGE_TYPES:
+                {
+                    THROW_RTE( "Unknown hypergraph edge type" );
+                }
+                break;
+            }
+        }
+    }
+
+public:
+    OperationsStage::Operations::Invocation* getInvocation() const { return m_pInvocation; }
+
+private:
+    OperationsStage::Database&               m_database;
+    InvocationPolicy::RootPtr                m_pDerivationTreeRoot;
+    OperationsStage::Operations::Invocation* m_pInvocation;
+    Instructions::Root*                      m_pRootInstruction;
+    Variables::Parameter*                    m_pParameterVariable;
+};
 
 OperationsStage::Operations::Invocation*
 compileInvocation( OperationsStage::Database& database, const SymbolTables& symbolTables, const mega::InvocationID& id )
@@ -586,19 +666,10 @@ compileInvocation( OperationsStage::Database& database, const SymbolTables& symb
 
     Derivation::Disambiguation result = Derivation::disambiguate( pRoot, finalFrontier );
 
-    // clang-format off
-    auto pInvocation = database.construct< OperationsStage::Operations::Invocation >(
-        OperationsStage::Operations::Invocation::Args
-        {
-            id,
-            pRoot,
-            {}
-        });
-    // clang-format on
+    InvocationBuilder builder( database, id, pRoot, types );
+    builder.build();
 
-    build( database, pInvocation, pRoot, types );
-
-    return pInvocation;
+    return builder.getInvocation();
 }
 
 } // namespace mega::invocation

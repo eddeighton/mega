@@ -23,7 +23,6 @@ namespace Alias
     object Edge -> AliasAnalysis::Model
     {
         ref< Step >                             next;
-        value< bool >                           eliminated;
         array< ref< Concrete::Graph::Edge > >   edges;
     }
 

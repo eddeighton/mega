@@ -104,7 +104,6 @@ public:
                 case EdgeType::ePoly:
                 case EdgeType::ePolyParent:
                 case EdgeType::eParent:
-                case EdgeType::ePart:
                     break;
                 case EdgeType::TOTAL_EDGE_TYPES:
                 default:
@@ -293,7 +292,6 @@ public:
                             case EdgeType::eParent:
                             case EdgeType::eChildSingular:
                             case EdgeType::eChildNonSingular:
-                            case EdgeType::ePart:
                             case EdgeType::eDim:
                                 break;
                             case EdgeType::TOTAL_EDGE_TYPES:
@@ -358,7 +356,6 @@ public:
                                     }
                                     case EdgeType::eParent:
                                     case EdgeType::eChildNonSingular:
-                                    case EdgeType::ePart:
                                     case EdgeType::eMono:
                                     case EdgeType::ePoly:
                                     case EdgeType::ePolyParent:

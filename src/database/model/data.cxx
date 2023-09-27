@@ -6040,9 +6040,8 @@ namespace Model
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::Alias_Edge >( loader, this ) )          , next( loader )
     {
     }
-    Alias_Edge::Alias_Edge( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Model::Alias_Step >& next, const bool& eliminated, const std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& edges)
+    Alias_Edge::Alias_Edge( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Model::Alias_Step >& next, const std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& edges)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::Alias_Edge >( loader, this ) )          , next( next )
-          , eliminated( eliminated )
           , edges( edges )
     {
     }
@@ -6056,13 +6055,11 @@ namespace Model
     void Alias_Edge::load( mega::io::Loader& loader )
     {
         loader.load( next );
-        loader.load( eliminated );
         loader.load( edges );
     }
     void Alias_Edge::store( mega::io::Storer& storer ) const
     {
         storer.store( next );
-        storer.store( eliminated );
         storer.store( edges );
     }
     void Alias_Edge::to_json( nlohmann::json& _part__ ) const
@@ -6079,11 +6076,6 @@ namespace Model
         {
             nlohmann::json property = nlohmann::json::object({
                 { "next", next } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "eliminated", eliminated } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -7737,40 +7729,40 @@ namespace Operations
         }
     }
         
-    // struct Invocations_Variables_Instance : public mega::io::Object
-    Invocations_Variables_Instance::Invocations_Variables_Instance( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Instance >( loader, this ) )          , p_Operations_Invocations_Variables_Variable( loader )
+    // struct Invocations_Variables_Stack : public mega::io::Object
+    Invocations_Variables_Stack::Invocations_Variables_Stack( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Stack >( loader, this ) )          , p_Operations_Invocations_Variables_Variable( loader )
           , concrete( loader )
     {
     }
-    Invocations_Variables_Instance::Invocations_Variables_Instance( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& concrete)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Instance >( loader, this ) )          , p_Operations_Invocations_Variables_Variable( loader )
+    Invocations_Variables_Stack::Invocations_Variables_Stack( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& concrete)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Stack >( loader, this ) )          , p_Operations_Invocations_Variables_Variable( loader )
           , concrete( concrete )
     {
     }
-    bool Invocations_Variables_Instance::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Invocations_Variables_Stack::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Variables_Instance >( loader, const_cast< Invocations_Variables_Instance* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Variables_Stack >( loader, const_cast< Invocations_Variables_Stack* >( this ) ) };
     }
-    void Invocations_Variables_Instance::set_inheritance_pointer()
+    void Invocations_Variables_Stack::set_inheritance_pointer()
     {
-        p_Operations_Invocations_Variables_Variable->m_inheritance = data::Ptr< data::Operations::Invocations_Variables_Instance >( p_Operations_Invocations_Variables_Variable, this );
+        p_Operations_Invocations_Variables_Variable->m_inheritance = data::Ptr< data::Operations::Invocations_Variables_Stack >( p_Operations_Invocations_Variables_Variable, this );
     }
-    void Invocations_Variables_Instance::load( mega::io::Loader& loader )
+    void Invocations_Variables_Stack::load( mega::io::Loader& loader )
     {
         loader.load( p_Operations_Invocations_Variables_Variable );
         loader.load( concrete );
     }
-    void Invocations_Variables_Instance::store( mega::io::Storer& storer ) const
+    void Invocations_Variables_Stack::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Variables_Variable );
         storer.store( concrete );
     }
-    void Invocations_Variables_Instance::to_json( nlohmann::json& _part__ ) const
+    void Invocations_Variables_Stack::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Invocations_Variables_Instance" },
+                { "partname", "Invocations_Variables_Stack" },
                 { "filetype" , "Operations" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -7830,32 +7822,32 @@ namespace Operations
         }
     }
         
-    // struct Invocations_Variables_Dimension : public mega::io::Object
-    Invocations_Variables_Dimension::Invocations_Variables_Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Dimension >( loader, this ) )          , p_Operations_Invocations_Variables_Reference( loader )
+    // struct Invocations_Variables_Memory : public mega::io::Object
+    Invocations_Variables_Memory::Invocations_Variables_Memory( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Memory >( loader, this ) )          , p_Operations_Invocations_Variables_Reference( loader )
     {
     }
-    bool Invocations_Variables_Dimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Invocations_Variables_Memory::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Variables_Dimension >( loader, const_cast< Invocations_Variables_Dimension* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Variables_Memory >( loader, const_cast< Invocations_Variables_Memory* >( this ) ) };
     }
-    void Invocations_Variables_Dimension::set_inheritance_pointer()
+    void Invocations_Variables_Memory::set_inheritance_pointer()
     {
-        p_Operations_Invocations_Variables_Reference->m_inheritance = data::Ptr< data::Operations::Invocations_Variables_Dimension >( p_Operations_Invocations_Variables_Reference, this );
+        p_Operations_Invocations_Variables_Reference->m_inheritance = data::Ptr< data::Operations::Invocations_Variables_Memory >( p_Operations_Invocations_Variables_Reference, this );
     }
-    void Invocations_Variables_Dimension::load( mega::io::Loader& loader )
+    void Invocations_Variables_Memory::load( mega::io::Loader& loader )
     {
         loader.load( p_Operations_Invocations_Variables_Reference );
     }
-    void Invocations_Variables_Dimension::store( mega::io::Storer& storer ) const
+    void Invocations_Variables_Memory::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Variables_Reference );
     }
-    void Invocations_Variables_Dimension::to_json( nlohmann::json& _part__ ) const
+    void Invocations_Variables_Memory::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Invocations_Variables_Dimension" },
+                { "partname", "Invocations_Variables_Memory" },
                 { "filetype" , "Operations" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -7864,32 +7856,32 @@ namespace Operations
             });
     }
         
-    // struct Invocations_Variables_Context : public mega::io::Object
-    Invocations_Variables_Context::Invocations_Variables_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Context >( loader, this ) )          , p_Operations_Invocations_Variables_Reference( loader )
+    // struct Invocations_Variables_Parameter : public mega::io::Object
+    Invocations_Variables_Parameter::Invocations_Variables_Parameter( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Parameter >( loader, this ) )          , p_Operations_Invocations_Variables_Reference( loader )
     {
     }
-    bool Invocations_Variables_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Invocations_Variables_Parameter::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Variables_Context >( loader, const_cast< Invocations_Variables_Context* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Variables_Parameter >( loader, const_cast< Invocations_Variables_Parameter* >( this ) ) };
     }
-    void Invocations_Variables_Context::set_inheritance_pointer()
+    void Invocations_Variables_Parameter::set_inheritance_pointer()
     {
-        p_Operations_Invocations_Variables_Reference->m_inheritance = data::Ptr< data::Operations::Invocations_Variables_Context >( p_Operations_Invocations_Variables_Reference, this );
+        p_Operations_Invocations_Variables_Reference->m_inheritance = data::Ptr< data::Operations::Invocations_Variables_Parameter >( p_Operations_Invocations_Variables_Reference, this );
     }
-    void Invocations_Variables_Context::load( mega::io::Loader& loader )
+    void Invocations_Variables_Parameter::load( mega::io::Loader& loader )
     {
         loader.load( p_Operations_Invocations_Variables_Reference );
     }
-    void Invocations_Variables_Context::store( mega::io::Storer& storer ) const
+    void Invocations_Variables_Parameter::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Variables_Reference );
     }
-    void Invocations_Variables_Context::to_json( nlohmann::json& _part__ ) const
+    void Invocations_Variables_Parameter::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Invocations_Variables_Context" },
+                { "partname", "Invocations_Variables_Parameter" },
                 { "filetype" , "Operations" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -7977,12 +7969,12 @@ namespace Operations
     // struct Invocations_Instructions_Root : public mega::io::Object
     Invocations_Instructions_Root::Invocations_Instructions_Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Root >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
-          , context( loader )
+          , parameter( loader )
     {
     }
-    Invocations_Instructions_Root::Invocations_Instructions_Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Context >& context)
+    Invocations_Instructions_Root::Invocations_Instructions_Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Parameter >& parameter)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Root >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
-          , context( context )
+          , parameter( parameter )
     {
     }
     bool Invocations_Instructions_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -7996,12 +7988,12 @@ namespace Operations
     void Invocations_Instructions_Root::load( mega::io::Loader& loader )
     {
         loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
-        loader.load( context );
+        loader.load( parameter );
     }
     void Invocations_Instructions_Root::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
-        storer.store( context );
+        storer.store( parameter );
     }
     void Invocations_Instructions_Root::to_json( nlohmann::json& _part__ ) const
     {
@@ -8016,7 +8008,7 @@ namespace Operations
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "context", context } } );
+                { "parameter", parameter } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -8028,7 +8020,7 @@ namespace Operations
           , to( loader )
     {
     }
-    Invocations_Instructions_ParentDerivation::Invocations_Instructions_ParentDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& from, const data::Ptr< data::Operations::Invocations_Variables_Instance >& to)
+    Invocations_Instructions_ParentDerivation::Invocations_Instructions_ParentDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Variable >& from, const data::Ptr< data::Operations::Invocations_Variables_Stack >& to)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , from( from )
           , to( to )
@@ -8084,7 +8076,7 @@ namespace Operations
           , to( loader )
     {
     }
-    Invocations_Instructions_ChildDerivation::Invocations_Instructions_ChildDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& from, const data::Ptr< data::Operations::Invocations_Variables_Instance >& to)
+    Invocations_Instructions_ChildDerivation::Invocations_Instructions_ChildDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Variable >& from, const data::Ptr< data::Operations::Invocations_Variables_Stack >& to)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , from( from )
           , to( to )
@@ -8140,7 +8132,7 @@ namespace Operations
           , to( loader )
     {
     }
-    Invocations_Instructions_EnumDerivation::Invocations_Instructions_EnumDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& from, const data::Ptr< data::Operations::Invocations_Variables_Instance >& to)
+    Invocations_Instructions_EnumDerivation::Invocations_Instructions_EnumDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Variable >& from, const data::Ptr< data::Operations::Invocations_Variables_Stack >& to)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , from( from )
           , to( to )
@@ -8195,7 +8187,7 @@ namespace Operations
           , instance( loader )
     {
     }
-    Invocations_Instructions_Enumeration::Invocations_Instructions_Enumeration( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance)
+    Invocations_Instructions_Enumeration::Invocations_Instructions_Enumeration( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Variable >& instance)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , instance( instance )
     {
@@ -8244,7 +8236,7 @@ namespace Operations
           , concrete( loader )
     {
     }
-    Invocations_Instructions_DimensionReferenceRead::Invocations_Instructions_DimensionReferenceRead( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance, const data::Ptr< data::Operations::Invocations_Variables_Dimension >& dimension_reference, const data::Ptr< data::Concrete::Concrete_Dimensions_User >& concrete)
+    Invocations_Instructions_DimensionReferenceRead::Invocations_Instructions_DimensionReferenceRead( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Variable >& instance, const data::Ptr< data::Operations::Invocations_Variables_Memory >& dimension_reference, const data::Ptr< data::Concrete::Concrete_Dimensions_User >& concrete)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , instance( instance )
           , dimension_reference( dimension_reference )
@@ -8301,96 +8293,40 @@ namespace Operations
         }
     }
         
-    // struct Invocations_Instructions_MonoReference : public mega::io::Object
-    Invocations_Instructions_MonoReference::Invocations_Instructions_MonoReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
-          , reference( loader )
-          , instance( loader )
-    {
-    }
-    Invocations_Instructions_MonoReference::Invocations_Instructions_MonoReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Reference >& reference, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
-          , reference( reference )
-          , instance( instance )
-    {
-    }
-    bool Invocations_Instructions_MonoReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( loader, const_cast< Invocations_Instructions_MonoReference* >( this ) ) };
-    }
-    void Invocations_Instructions_MonoReference::set_inheritance_pointer()
-    {
-        p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance = data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( p_Operations_Invocations_Instructions_InstructionGroup, this );
-    }
-    void Invocations_Instructions_MonoReference::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
-        loader.load( reference );
-        loader.load( instance );
-    }
-    void Invocations_Instructions_MonoReference::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
-        storer.store( reference );
-        storer.store( instance );
-    }
-    void Invocations_Instructions_MonoReference::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_MonoReference" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "reference", reference } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "instance", instance } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Invocations_Instructions_PolyReference : public mega::io::Object
-    Invocations_Instructions_PolyReference::Invocations_Instructions_PolyReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
+    // struct Invocations_Instructions_PolyBranch : public mega::io::Object
+    Invocations_Instructions_PolyBranch::Invocations_Instructions_PolyBranch( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyBranch >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , from_reference( loader )
     {
     }
-    Invocations_Instructions_PolyReference::Invocations_Instructions_PolyReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Reference >& from_reference)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
+    Invocations_Instructions_PolyBranch::Invocations_Instructions_PolyBranch( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Reference >& from_reference)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyBranch >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , from_reference( from_reference )
     {
     }
-    bool Invocations_Instructions_PolyReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Invocations_Instructions_PolyBranch::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( loader, const_cast< Invocations_Instructions_PolyReference* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Instructions_PolyBranch >( loader, const_cast< Invocations_Instructions_PolyBranch* >( this ) ) };
     }
-    void Invocations_Instructions_PolyReference::set_inheritance_pointer()
+    void Invocations_Instructions_PolyBranch::set_inheritance_pointer()
     {
-        p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance = data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance = data::Ptr< data::Operations::Invocations_Instructions_PolyBranch >( p_Operations_Invocations_Instructions_InstructionGroup, this );
     }
-    void Invocations_Instructions_PolyReference::load( mega::io::Loader& loader )
+    void Invocations_Instructions_PolyBranch::load( mega::io::Loader& loader )
     {
         loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
         loader.load( from_reference );
     }
-    void Invocations_Instructions_PolyReference::store( mega::io::Storer& storer ) const
+    void Invocations_Instructions_PolyBranch::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
         storer.store( from_reference );
     }
-    void Invocations_Instructions_PolyReference::to_json( nlohmann::json& _part__ ) const
+    void Invocations_Instructions_PolyBranch::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Invocations_Instructions_PolyReference" },
+                { "partname", "Invocations_Instructions_PolyBranch" },
                 { "filetype" , "Operations" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -8408,13 +8344,13 @@ namespace Operations
     Invocations_Instructions_PolyCase::Invocations_Instructions_PolyCase( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , reference( loader )
-          , to( loader )
+          , type( loader )
     {
     }
-    Invocations_Instructions_PolyCase::Invocations_Instructions_PolyCase( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Reference >& reference, const data::Ptr< data::Operations::Invocations_Variables_Instance >& to)
+    Invocations_Instructions_PolyCase::Invocations_Instructions_PolyCase( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Reference >& reference, const data::Ptr< data::Concrete::Concrete_Context >& type)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , reference( reference )
-          , to( to )
+          , type( type )
     {
     }
     bool Invocations_Instructions_PolyCase::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -8429,13 +8365,13 @@ namespace Operations
     {
         loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
         loader.load( reference );
-        loader.load( to );
+        loader.load( type );
     }
     void Invocations_Instructions_PolyCase::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
         storer.store( reference );
-        storer.store( to );
+        storer.store( type );
     }
     void Invocations_Instructions_PolyCase::to_json( nlohmann::json& _part__ ) const
     {
@@ -8455,122 +8391,20 @@ namespace Operations
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "to", to } } );
+                { "type", type } } );
             _part__[ "properties" ].push_back( property );
         }
-    }
-        
-    // struct Invocations_Instructions_Failure : public mega::io::Object
-    Invocations_Instructions_Failure::Invocations_Instructions_Failure( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Failure >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
-    {
-    }
-    bool Invocations_Instructions_Failure::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Instructions_Failure >( loader, const_cast< Invocations_Instructions_Failure* >( this ) ) };
-    }
-    void Invocations_Instructions_Failure::set_inheritance_pointer()
-    {
-        p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance = data::Ptr< data::Operations::Invocations_Instructions_Failure >( p_Operations_Invocations_Instructions_InstructionGroup, this );
-    }
-    void Invocations_Instructions_Failure::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
-    }
-    void Invocations_Instructions_Failure::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
-    }
-    void Invocations_Instructions_Failure::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_Failure" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Invocations_Instructions_Elimination : public mega::io::Object
-    Invocations_Instructions_Elimination::Invocations_Instructions_Elimination( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Elimination >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
-    {
-    }
-    bool Invocations_Instructions_Elimination::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Instructions_Elimination >( loader, const_cast< Invocations_Instructions_Elimination* >( this ) ) };
-    }
-    void Invocations_Instructions_Elimination::set_inheritance_pointer()
-    {
-        p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance = data::Ptr< data::Operations::Invocations_Instructions_Elimination >( p_Operations_Invocations_Instructions_InstructionGroup, this );
-    }
-    void Invocations_Instructions_Elimination::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
-    }
-    void Invocations_Instructions_Elimination::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
-    }
-    void Invocations_Instructions_Elimination::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_Elimination" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Invocations_Instructions_Prune : public mega::io::Object
-    Invocations_Instructions_Prune::Invocations_Instructions_Prune( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Prune >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
-    {
-    }
-    bool Invocations_Instructions_Prune::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Invocations_Instructions_Prune >( loader, const_cast< Invocations_Instructions_Prune* >( this ) ) };
-    }
-    void Invocations_Instructions_Prune::set_inheritance_pointer()
-    {
-        p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance = data::Ptr< data::Operations::Invocations_Instructions_Prune >( p_Operations_Invocations_Instructions_InstructionGroup, this );
-    }
-    void Invocations_Instructions_Prune::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
-    }
-    void Invocations_Instructions_Prune::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
-    }
-    void Invocations_Instructions_Prune::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Invocations_Instructions_Prune" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
     }
         
     // struct Invocations_Operations_Operation : public mega::io::Object
     Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, this ) )          , p_Operations_Invocations_Instructions_Instruction( loader )
-          , instance( loader )
+          , variable( loader )
     {
     }
-    Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance)
+    Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Variable >& variable)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, this ) )          , p_Operations_Invocations_Instructions_Instruction( loader )
-          , instance( instance )
+          , variable( variable )
     {
     }
     bool Invocations_Operations_Operation::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -8584,12 +8418,12 @@ namespace Operations
     void Invocations_Operations_Operation::load( mega::io::Loader& loader )
     {
         loader.load( p_Operations_Invocations_Instructions_Instruction );
-        loader.load( instance );
+        loader.load( variable );
     }
     void Invocations_Operations_Operation::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Invocations_Instructions_Instruction );
-        storer.store( instance );
+        storer.store( variable );
     }
     void Invocations_Operations_Operation::to_json( nlohmann::json& _part__ ) const
     {
@@ -8604,7 +8438,7 @@ namespace Operations
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "instance", instance } } );
+                { "variable", variable } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -11005,17 +10839,9 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
         case data::Operations::Invocations_Instructions_DimensionReferenceRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_MonoReference::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_PolyReference::Object_Part_Type_ID:
+        case data::Operations::Invocations_Instructions_PolyBranch::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
         case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_Failure::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_Elimination::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_Prune::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
         default:
         {
@@ -11029,9 +10855,9 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& Invocations_Variab
     {
         case data::Operations::Invocations_Variables_Reference::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Reference >( m_data )->types;
-        case data::Operations::Invocations_Variables_Dimension::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Memory::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Reference >( m_data )->types;
-        case data::Operations::Invocations_Variables_Context::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Parameter::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Reference >( m_data )->types;
         default:
         {
@@ -11617,18 +11443,6 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Alias_Edge_edg
     {
         case data::Model::Alias_Edge::Object_Part_Type_ID:
             return data::convert< data::Model::Alias_Edge >( m_data )->edges;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-bool& get_Alias_Edge_eliminated(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Model::Alias_Edge::Object_Part_Type_ID:
-            return data::convert< data::Model::Alias_Edge >( m_data )->eliminated;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12501,9 +12315,9 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
-        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
+        case data::Concrete::Concrete_Root::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->in_edges;
         default:
         {
@@ -14237,7 +14051,7 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_Invocations_Instructi
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Dimension >& get_Invocations_Instructions_DimensionReferenceRead_dimension_reference(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Memory >& get_Invocations_Instructions_DimensionReferenceRead_dimension_reference(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -14249,7 +14063,7 @@ data::Ptr< data::Operations::Invocations_Variables_Dimension >& get_Invocations_
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& get_Invocations_Instructions_Enumeration_instance(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Variable >& get_Invocations_Instructions_Enumeration_instance(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -14257,40 +14071,6 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_Invocations_I
             return data::convert< data::Operations::Invocations_Instructions_Enumeration >( m_data )->instance;
         case data::Operations::Invocations_Instructions_DimensionReferenceRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_DimensionReferenceRead >( m_data )->instance;
-        case data::Operations::Invocations_Instructions_MonoReference::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_MonoReference >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Operation::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_BasicOperation::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_DimensionOperation::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_LinkOperation::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Allocate::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Call::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Start::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Stop::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Read::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Write::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_ReadLink::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_WriteLink::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Range::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14315,17 +14095,9 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
         case data::Operations::Invocations_Instructions_DimensionReferenceRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_MonoReference::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_PolyReference::Object_Part_Type_ID:
+        case data::Operations::Invocations_Instructions_PolyBranch::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
         case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_Failure::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_Elimination::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_Prune::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
         default:
         {
@@ -14333,21 +14105,7 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Reference >& get_Invocations_Instructions_MonoReference_reference(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Operations::Invocations_Instructions_MonoReference::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_MonoReference >( m_data )->reference;
-        case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_PolyCase >( m_data )->reference;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-data::Ptr< data::Operations::Invocations_Variables_Instance >& get_Invocations_Instructions_ParentDerivation_from(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Variable >& get_Invocations_Instructions_ParentDerivation_from(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -14363,7 +14121,7 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_Invocations_I
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& get_Invocations_Instructions_ParentDerivation_to(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Stack >& get_Invocations_Instructions_ParentDerivation_to(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -14373,32 +14131,54 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_Invocations_I
             return data::convert< data::Operations::Invocations_Instructions_ChildDerivation >( m_data )->to;
         case data::Operations::Invocations_Instructions_EnumDerivation::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_EnumDerivation >( m_data )->to;
-        case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_PolyCase >( m_data )->to;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Reference >& get_Invocations_Instructions_PolyReference_from_reference(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Reference >& get_Invocations_Instructions_PolyBranch_from_reference(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::Operations::Invocations_Instructions_PolyReference::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_PolyReference >( m_data )->from_reference;
+        case data::Operations::Invocations_Instructions_PolyBranch::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Instructions_PolyBranch >( m_data )->from_reference;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Context >& get_Invocations_Instructions_Root_context(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Reference >& get_Invocations_Instructions_PolyCase_reference(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Instructions_PolyCase >( m_data )->reference;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Context >& get_Invocations_Instructions_PolyCase_type(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Instructions_PolyCase >( m_data )->type;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Operations::Invocations_Variables_Parameter >& get_Invocations_Instructions_Root_parameter(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Operations::Invocations_Instructions_Root::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_Root >( m_data )->context;
+            return data::convert< data::Operations::Invocations_Instructions_Root >( m_data )->parameter;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14525,12 +14305,42 @@ data::Ptr< data::Tree::Interface_LinkTrait >& get_Invocations_Operations_LinkOpe
         }
     }
 }
-data::Ptr< data::Concrete::Concrete_Context >& get_Invocations_Variables_Instance_concrete(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Variable >& get_Invocations_Operations_Operation_variable(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::Operations::Invocations_Variables_Instance::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Variables_Instance >( m_data )->concrete;
+        case data::Operations::Invocations_Operations_Operation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_BasicOperation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_DimensionOperation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_LinkOperation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Allocate::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Call::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Start::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Stop::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_GetDimension::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Read::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Write::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_ReadLink::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_WriteLink::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Range::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14543,10 +14353,22 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Invocations_Va
     {
         case data::Operations::Invocations_Variables_Reference::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Reference >( m_data )->types;
-        case data::Operations::Invocations_Variables_Dimension::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Memory::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Reference >( m_data )->types;
-        case data::Operations::Invocations_Variables_Context::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Parameter::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Reference >( m_data )->types;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Context >& get_Invocations_Variables_Stack_concrete(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Invocations_Variables_Stack::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Variables_Stack >( m_data )->concrete;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -14559,13 +14381,13 @@ std::optional< data::Ptr< data::Operations::Invocations_Variables_Variable > >& 
     {
         case data::Operations::Invocations_Variables_Variable::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
-        case data::Operations::Invocations_Variables_Instance::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Stack::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
         case data::Operations::Invocations_Variables_Reference::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
-        case data::Operations::Invocations_Variables_Dimension::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Memory::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
-        case data::Operations::Invocations_Variables_Context::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Parameter::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
         default:
         {
@@ -16253,18 +16075,6 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& set_Alias_Edge_edg
     {
         case data::Model::Alias_Edge::Object_Part_Type_ID:
             return data::convert< data::Model::Alias_Edge >( m_data )->edges;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-bool& set_Alias_Edge_eliminated(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Model::Alias_Edge::Object_Part_Type_ID:
-            return data::convert< data::Model::Alias_Edge >( m_data )->eliminated;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -18751,7 +18561,7 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_Invocations_Instructi
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Dimension >& set_Invocations_Instructions_DimensionReferenceRead_dimension_reference(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Memory >& set_Invocations_Instructions_DimensionReferenceRead_dimension_reference(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -18763,7 +18573,7 @@ data::Ptr< data::Operations::Invocations_Variables_Dimension >& set_Invocations_
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& set_Invocations_Instructions_Enumeration_instance(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Variable >& set_Invocations_Instructions_Enumeration_instance(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -18771,40 +18581,6 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_Invocations_I
             return data::convert< data::Operations::Invocations_Instructions_Enumeration >( m_data )->instance;
         case data::Operations::Invocations_Instructions_DimensionReferenceRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_DimensionReferenceRead >( m_data )->instance;
-        case data::Operations::Invocations_Instructions_MonoReference::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_MonoReference >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Operation::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_BasicOperation::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_DimensionOperation::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_LinkOperation::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Allocate::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Call::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Start::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Stop::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Read::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Write::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_ReadLink::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_WriteLink::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
-        case data::Operations::Invocations_Operations_Range::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->instance;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -18829,17 +18605,9 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
         case data::Operations::Invocations_Instructions_DimensionReferenceRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_MonoReference::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_PolyReference::Object_Part_Type_ID:
+        case data::Operations::Invocations_Instructions_PolyBranch::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
         case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_Failure::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_Elimination::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
-        case data::Operations::Invocations_Instructions_Prune::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_InstructionGroup >( m_data )->children;
         default:
         {
@@ -18847,21 +18615,7 @@ std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction >
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Reference >& set_Invocations_Instructions_MonoReference_reference(data::Variant& m_data)
-{
-    switch( m_data.getType() )
-    {
-        case data::Operations::Invocations_Instructions_MonoReference::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_MonoReference >( m_data )->reference;
-        case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_PolyCase >( m_data )->reference;
-        default:
-        {
-            THROW_RTE( "Database used with incorrect type" );
-        }
-    }
-}
-data::Ptr< data::Operations::Invocations_Variables_Instance >& set_Invocations_Instructions_ParentDerivation_from(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Variable >& set_Invocations_Instructions_ParentDerivation_from(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -18877,7 +18631,7 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_Invocations_I
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Instance >& set_Invocations_Instructions_ParentDerivation_to(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Stack >& set_Invocations_Instructions_ParentDerivation_to(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -18887,32 +18641,54 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_Invocations_I
             return data::convert< data::Operations::Invocations_Instructions_ChildDerivation >( m_data )->to;
         case data::Operations::Invocations_Instructions_EnumDerivation::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Instructions_EnumDerivation >( m_data )->to;
-        case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_PolyCase >( m_data )->to;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Reference >& set_Invocations_Instructions_PolyReference_from_reference(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Reference >& set_Invocations_Instructions_PolyBranch_from_reference(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::Operations::Invocations_Instructions_PolyReference::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_PolyReference >( m_data )->from_reference;
+        case data::Operations::Invocations_Instructions_PolyBranch::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Instructions_PolyBranch >( m_data )->from_reference;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
         }
     }
 }
-data::Ptr< data::Operations::Invocations_Variables_Context >& set_Invocations_Instructions_Root_context(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Reference >& set_Invocations_Instructions_PolyCase_reference(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Instructions_PolyCase >( m_data )->reference;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Context >& set_Invocations_Instructions_PolyCase_type(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Invocations_Instructions_PolyCase::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Instructions_PolyCase >( m_data )->type;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Operations::Invocations_Variables_Parameter >& set_Invocations_Instructions_Root_parameter(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
         case data::Operations::Invocations_Instructions_Root::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Instructions_Root >( m_data )->context;
+            return data::convert< data::Operations::Invocations_Instructions_Root >( m_data )->parameter;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19039,12 +18815,42 @@ data::Ptr< data::Tree::Interface_LinkTrait >& set_Invocations_Operations_LinkOpe
         }
     }
 }
-data::Ptr< data::Concrete::Concrete_Context >& set_Invocations_Variables_Instance_concrete(data::Variant& m_data)
+data::Ptr< data::Operations::Invocations_Variables_Variable >& set_Invocations_Operations_Operation_variable(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
-        case data::Operations::Invocations_Variables_Instance::Object_Part_Type_ID:
-            return data::convert< data::Operations::Invocations_Variables_Instance >( m_data )->concrete;
+        case data::Operations::Invocations_Operations_Operation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_BasicOperation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_DimensionOperation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_LinkOperation::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Allocate::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Call::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Start::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Stop::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Move::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_GetAction::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_GetDimension::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Read::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Write::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_ReadLink::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_WriteLink::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
+        case data::Operations::Invocations_Operations_Range::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Operations_Operation >( m_data )->variable;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19057,10 +18863,22 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_Invocations_Va
     {
         case data::Operations::Invocations_Variables_Reference::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Reference >( m_data )->types;
-        case data::Operations::Invocations_Variables_Dimension::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Memory::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Reference >( m_data )->types;
-        case data::Operations::Invocations_Variables_Context::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Parameter::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Reference >( m_data )->types;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+data::Ptr< data::Concrete::Concrete_Context >& set_Invocations_Variables_Stack_concrete(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Operations::Invocations_Variables_Stack::Object_Part_Type_ID:
+            return data::convert< data::Operations::Invocations_Variables_Stack >( m_data )->concrete;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -19073,13 +18891,13 @@ std::optional< data::Ptr< data::Operations::Invocations_Variables_Variable > >& 
     {
         case data::Operations::Invocations_Variables_Variable::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
-        case data::Operations::Invocations_Variables_Instance::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Stack::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
         case data::Operations::Invocations_Variables_Reference::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
-        case data::Operations::Invocations_Variables_Dimension::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Memory::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
-        case data::Operations::Invocations_Variables_Context::Object_Part_Type_ID:
+        case data::Operations::Invocations_Variables_Parameter::Object_Part_Type_ID:
             return data::convert< data::Operations::Invocations_Variables_Variable >( m_data )->parent;
         default:
         {
@@ -20739,16 +20557,16 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 78: return new Tree::Interface_Interupt( loader, objectInfo );
         case 79: return new Tree::Interface_Function( loader, objectInfo );
         case 80: return new Tree::Interface_Object( loader, objectInfo );
-        case 190: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
-        case 191: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
-        case 192: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
-        case 161: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 162: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 163: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 164: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 165: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 166: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 168: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 186: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
+        case 187: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
+        case 188: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
+        case 157: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 158: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 159: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 160: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 161: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 162: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 164: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 39: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 43: return new PerSourceSymbols::Interface_LinkTrait( loader, objectInfo );
         case 67: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
@@ -20765,75 +20583,75 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 59: return new Clang::Interface_TransitionTypeTrait( loader, objectInfo );
         case 61: return new Clang::Interface_EventTypeTrait( loader, objectInfo );
         case 63: return new Clang::Interface_SizeTrait( loader, objectInfo );
-        case 116: return new Concrete::Concrete_Graph_Vertex( loader, objectInfo );
-        case 119: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
-        case 122: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
-        case 125: return new Concrete::Concrete_Dimensions_UserLink( loader, objectInfo );
-        case 126: return new Concrete::Concrete_Dimensions_OwnershipLink( loader, objectInfo );
-        case 130: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 131: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 134: return new Concrete::Concrete_Interupt( loader, objectInfo );
-        case 135: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 136: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
-        case 137: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 138: return new Concrete::Concrete_State( loader, objectInfo );
-        case 140: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 141: return new Concrete::Concrete_Component( loader, objectInfo );
-        case 142: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 144: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 148: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 170: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
-        case 171: return new Derivations::Inheritance_Mapping( loader, objectInfo );
+        case 112: return new Concrete::Concrete_Graph_Vertex( loader, objectInfo );
+        case 115: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
+        case 118: return new Concrete::Concrete_Dimensions_Link( loader, objectInfo );
+        case 121: return new Concrete::Concrete_Dimensions_UserLink( loader, objectInfo );
+        case 122: return new Concrete::Concrete_Dimensions_OwnershipLink( loader, objectInfo );
+        case 126: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 127: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 130: return new Concrete::Concrete_Interupt( loader, objectInfo );
+        case 131: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 132: return new Concrete::Concrete_UserDimensionContext( loader, objectInfo );
+        case 133: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 134: return new Concrete::Concrete_State( loader, objectInfo );
+        case 136: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 137: return new Concrete::Concrete_Component( loader, objectInfo );
+        case 138: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 140: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 144: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 166: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
+        case 167: return new Derivations::Inheritance_Mapping( loader, objectInfo );
         case 40: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
         case 44: return new PerSourceDerivations::Interface_LinkTrait( loader, objectInfo );
         case 68: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
-        case 118: return new Model::Concrete_Graph_Edge( loader, objectInfo );
-        case 172: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 173: return new Model::HyperGraph_ObjectRelation( loader, objectInfo );
-        case 174: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
-        case 175: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
-        case 176: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 114: return new Model::Concrete_Graph_Edge( loader, objectInfo );
+        case 168: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 169: return new Model::HyperGraph_ObjectRelation( loader, objectInfo );
+        case 170: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
+        case 171: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
+        case 172: return new Model::HyperGraph_Graph( loader, objectInfo );
         case 47: return new PerSourceModel::Interface_ObjectLinkTrait( loader, objectInfo );
-        case 117: return new PerSourceModel::Concrete_Graph_Vertex( loader, objectInfo );
-        case 146: return new PerSourceModel::Concrete_Object( loader, objectInfo );
-        case 149: return new Model::Alias_Edge( loader, objectInfo );
-        case 150: return new Model::Alias_Step( loader, objectInfo );
-        case 151: return new Model::Alias_And( loader, objectInfo );
-        case 152: return new Model::Alias_Or( loader, objectInfo );
-        case 153: return new Model::Alias_AliasDerivation( loader, objectInfo );
-        case 121: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
-        case 124: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
-        case 127: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 129: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
-        case 133: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 139: return new MemoryLayout::Concrete_State( loader, objectInfo );
-        case 143: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 145: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 177: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 178: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 179: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 180: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 181: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 182: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 183: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 184: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 185: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 186: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 187: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 188: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 189: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
-        case 147: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
-        case 167: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 169: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
-        case 120: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
-        case 123: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
-        case 128: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 132: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 113: return new PerSourceModel::Concrete_Graph_Vertex( loader, objectInfo );
+        case 142: return new PerSourceModel::Concrete_Object( loader, objectInfo );
+        case 145: return new Model::Alias_Edge( loader, objectInfo );
+        case 146: return new Model::Alias_Step( loader, objectInfo );
+        case 147: return new Model::Alias_And( loader, objectInfo );
+        case 148: return new Model::Alias_Or( loader, objectInfo );
+        case 149: return new Model::Alias_AliasDerivation( loader, objectInfo );
+        case 117: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 120: return new MemoryLayout::Concrete_Dimensions_Link( loader, objectInfo );
+        case 123: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 125: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
+        case 129: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 135: return new MemoryLayout::Concrete_State( loader, objectInfo );
+        case 139: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 141: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 173: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 174: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 175: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 176: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 177: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 178: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 179: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 180: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 181: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 182: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
+        case 183: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 184: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 185: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
+        case 143: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
+        case 163: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 165: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 116: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
+        case 119: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
+        case 124: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 128: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
         case 81: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
-        case 82: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
+        case 82: return new Operations::Invocations_Variables_Stack( loader, objectInfo );
         case 83: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
-        case 84: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
-        case 85: return new Operations::Invocations_Variables_Context( loader, objectInfo );
+        case 84: return new Operations::Invocations_Variables_Memory( loader, objectInfo );
+        case 85: return new Operations::Invocations_Variables_Parameter( loader, objectInfo );
         case 86: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
         case 87: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
         case 88: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
@@ -20842,43 +20660,39 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 91: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
         case 92: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
         case 93: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
-        case 94: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
-        case 95: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
-        case 96: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
-        case 97: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
-        case 98: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
-        case 99: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
-        case 100: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
-        case 101: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
-        case 102: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
-        case 103: return new Operations::Invocations_Operations_LinkOperation( loader, objectInfo );
-        case 104: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
-        case 105: return new Operations::Invocations_Operations_Call( loader, objectInfo );
-        case 106: return new Operations::Invocations_Operations_Start( loader, objectInfo );
-        case 107: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
-        case 108: return new Operations::Invocations_Operations_Move( loader, objectInfo );
-        case 109: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
-        case 110: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
-        case 111: return new Operations::Invocations_Operations_Read( loader, objectInfo );
-        case 112: return new Operations::Invocations_Operations_Write( loader, objectInfo );
-        case 113: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
-        case 114: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
-        case 115: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 154: return new Operations::Derivation_Edge( loader, objectInfo );
-        case 155: return new Operations::Derivation_Step( loader, objectInfo );
-        case 156: return new Operations::Derivation_And( loader, objectInfo );
-        case 157: return new Operations::Derivation_Or( loader, objectInfo );
-        case 158: return new Operations::Derivation_Root( loader, objectInfo );
-        case 159: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 160: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 94: return new Operations::Invocations_Instructions_PolyBranch( loader, objectInfo );
+        case 95: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
+        case 96: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
+        case 97: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
+        case 98: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
+        case 99: return new Operations::Invocations_Operations_LinkOperation( loader, objectInfo );
+        case 100: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
+        case 101: return new Operations::Invocations_Operations_Call( loader, objectInfo );
+        case 102: return new Operations::Invocations_Operations_Start( loader, objectInfo );
+        case 103: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
+        case 104: return new Operations::Invocations_Operations_Move( loader, objectInfo );
+        case 105: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
+        case 106: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
+        case 107: return new Operations::Invocations_Operations_Read( loader, objectInfo );
+        case 108: return new Operations::Invocations_Operations_Write( loader, objectInfo );
+        case 109: return new Operations::Invocations_Operations_ReadLink( loader, objectInfo );
+        case 110: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
+        case 111: return new Operations::Invocations_Operations_Range( loader, objectInfo );
+        case 150: return new Operations::Derivation_Edge( loader, objectInfo );
+        case 151: return new Operations::Derivation_Step( loader, objectInfo );
+        case 152: return new Operations::Derivation_And( loader, objectInfo );
+        case 153: return new Operations::Derivation_Or( loader, objectInfo );
+        case 154: return new Operations::Derivation_Root( loader, objectInfo );
+        case 155: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 156: return new Operations::Operations_Invocations( loader, objectInfo );
         case 69: return new Locations::Interface_InvocationInstance( loader, objectInfo );
         case 71: return new Locations::Interface_InvocationContext( loader, objectInfo );
-        case 193: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
-        case 194: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
-        case 195: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
-        case 196: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
-        case 197: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
-        case 198: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
+        case 189: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
+        case 190: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
+        case 191: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
+        case 192: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
+        case 193: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
+        case 194: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

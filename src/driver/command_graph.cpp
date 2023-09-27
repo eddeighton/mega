@@ -695,7 +695,6 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
                         strColour = "0000FF";
                         break;
                     case mega::EdgeType::eChildSingular:
-                    case mega::EdgeType::ePart:
                         strColour = "000000";
                         break;
                     case mega::EdgeType::eChildNonSingular:

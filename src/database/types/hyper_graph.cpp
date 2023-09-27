@@ -28,7 +28,7 @@ namespace
 {
 static const std::array< std::string, mega::EdgeType::TOTAL_EDGE_TYPES > g_edgeTypes = {
 
-    "Parent", "ChildSingular", "ChildNonSingular", "Part", "ObjectLink", "Dim",
+    "Parent", "ChildSingular", "ChildNonSingular", "ObjectLink", "Dim",
     "Mono",   "Poly", "PolyParent"
 
 };
@@ -44,7 +44,6 @@ const char* EdgeType::str() const
         case eParent:
         case eChildSingular:
         case eChildNonSingular:
-        case ePart:
         case eDim:
         case eObjectLink:
         case eMono:

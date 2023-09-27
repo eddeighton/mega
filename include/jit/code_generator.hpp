@@ -78,7 +78,7 @@ public:
 private:
     VariableMap
     generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
-                       ::FinalStage::Invocations::Variables::Context*                        pRootContext,
+                       ::FinalStage::Invocations::Variables::Parameter*                        pRootContext,
                        nlohmann::json&                                                       data,
                        Indent&                                                               indent ) const;
 

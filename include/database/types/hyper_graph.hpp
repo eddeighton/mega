@@ -38,7 +38,6 @@ public:
         eParent,
         eChildSingular,
         eChildNonSingular,
-        ePart,
         eDim,
         eObjectLink,
         eMono,
