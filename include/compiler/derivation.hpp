@@ -56,23 +56,18 @@ struct ExamplePolicy
     // enumerate the dimension links within the parent vertex
     using LinkDimension = std::pair< GraphVertex*, Concrete::Graph::Edge* >;
     GraphEdgeVector     enumerateLinks( GraphVertex* pParentVertex ) const;
-    GraphVertexVector   enumerateLinkContexts( GraphVertex* pVertex, bool bDerivingOnly ) const;
+    GraphVertexVector   enumerateLinkContexts( GraphVertex* pVertex ) const;
     bool commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const;
 };*/
 
 template < typename TPolicy >
-typename TPolicy::OrPtrVector
+static typename TPolicy::OrPtrVector
 solveStep( typename TPolicy::OrPtr pCurrentFrontierStep, const typename TPolicy::GraphVertexVector& typePathElement,
-           bool bUseDerivingLinksOnly, typename TPolicy::GraphVertexSet& visited, const TPolicy& policy )
+           bool bAllowInterObjectStep, const TPolicy& policy )
 {
     typename TPolicy::OrPtrVector nextFrontier;
 
     auto pCurrentVertex = pCurrentFrontierStep->get_vertex();
-    if( visited.contains( pCurrentVertex ) )
-    {
-        return nextFrontier;
-    }
-    visited.insert( pCurrentVertex );
 
     // attempt in-object common root derivation
     for( auto pTypePathVertex : typePathElement )
@@ -87,32 +82,35 @@ solveStep( typename TPolicy::OrPtr pCurrentFrontierStep, const typename TPolicy:
         }
     }
 
-    for( auto pLinkContextVertex : policy.enumerateLinkContexts( pCurrentVertex, bUseDerivingLinksOnly ) )
+    if( bAllowInterObjectStep )
     {
-        // is there a common root derivation to this link vertex?
-        typename TPolicy::GraphEdgeVector edges;
-        if( policy.commonRootDerivation( pCurrentVertex, pLinkContextVertex, edges ) )
+        for( auto pLinkContextVertex : policy.enumerateLinkContexts( pCurrentVertex ) )
         {
-            typename TPolicy::OrPtr pInObjectToLink = policy.makeOr( pLinkContextVertex );
-            pCurrentFrontierStep->push_back_edges( policy.makeEdge( pInObjectToLink, edges ) );
-
-            // if so generate the AND step
-            for( auto pContextToLinkVertex : policy.enumerateLinks( pLinkContextVertex ) )
+            // is there a common root derivation to this link vertex?
+            typename TPolicy::GraphEdgeVector edges;
+            if( policy.commonRootDerivation( pCurrentVertex, pLinkContextVertex, edges ) )
             {
-                auto pLinkTarget = pContextToLinkVertex->get_target();
-                typename TPolicy::AndPtr pBranch = policy.makeAnd( pLinkTarget );
-                pInObjectToLink->push_back_edges(
-                    policy.makeEdge( pBranch, typename TPolicy::GraphEdgeVector{ pContextToLinkVertex } ) );
+                typename TPolicy::OrPtr pInObjectToLink = policy.makeOr( pLinkContextVertex );
+                pCurrentFrontierStep->push_back_edges( policy.makeEdge( pInObjectToLink, edges ) );
 
-                for( auto pLinkEdge : policy.enumerateLink( pLinkTarget ) )
+                // if so generate the AND step
+                for( auto pContextToLinkVertex : policy.enumerateLinks( pLinkContextVertex ) )
                 {
-                    typename TPolicy::OrPtr pLinkedObjectToTarget = policy.makeOr( pLinkEdge->get_target() );
-                    pBranch->push_back_edges(
-                        policy.makeEdge( pLinkedObjectToTarget, typename TPolicy::GraphEdgeVector{ pLinkEdge } ) );
+                    auto pLinkTarget = pContextToLinkVertex->get_target();
+                    typename TPolicy::AndPtr pBranch = policy.makeAnd( pLinkTarget );
+                    pInObjectToLink->push_back_edges(
+                        policy.makeEdge( pBranch, typename TPolicy::GraphEdgeVector{ pContextToLinkVertex } ) );
 
-                    typename TPolicy::OrPtrVector recursiveResult
-                        = solveStep( pLinkedObjectToTarget, typePathElement, true, visited, policy );
-                    std::copy( recursiveResult.begin(), recursiveResult.end(), std::back_inserter( nextFrontier ) );
+                    for( auto pLinkEdge : policy.enumerateLink( pLinkTarget ) )
+                    {
+                        typename TPolicy::OrPtr pLinkedObjectToTarget = policy.makeOr( pLinkEdge->get_target() );
+                        pBranch->push_back_edges(
+                            policy.makeEdge( pLinkedObjectToTarget, typename TPolicy::GraphEdgeVector{ pLinkEdge } ) );
+
+                        typename TPolicy::OrPtrVector recursiveResult
+                            = solveStep( pLinkedObjectToTarget, typePathElement, false, policy );
+                        std::copy( recursiveResult.begin(), recursiveResult.end(), std::back_inserter( nextFrontier ) );
+                    }
                 }
             }
         }
@@ -122,7 +120,7 @@ solveStep( typename TPolicy::OrPtr pCurrentFrontierStep, const typename TPolicy:
 }
 
 template < typename TPolicy >
-typename TPolicy::RootPtr solveContextFree( 
+static typename TPolicy::RootPtr solveContextFree( 
         const typename TPolicy::Spec& spec, const TPolicy& policy, typename TPolicy::OrPtrVector& frontier )
 {
     typename TPolicy::RootPtr pSolutionRoot = policy.makeRoot( spec.context );
@@ -139,9 +137,8 @@ typename TPolicy::RootPtr solveContextFree(
         typename TPolicy::OrPtrVector nextFrontier;
         for( typename TPolicy::OrPtr pCurrentFrontierStep : frontier )
         {
-            typename TPolicy::GraphVertexSet visited;
             typename TPolicy::OrPtrVector    recursiveResult
-                = solveStep( pCurrentFrontierStep, typePathElement, false, visited, policy );
+                = solveStep( pCurrentFrontierStep, typePathElement, true, policy );
             std::copy( recursiveResult.begin(), recursiveResult.end(), std::back_inserter( nextFrontier ) );
         }
         nextFrontier.swap( frontier );
@@ -149,8 +146,6 @@ typename TPolicy::RootPtr solveContextFree(
 
     return pSolutionRoot;
 }
-
-
 
 } // namespace DerivationSolver
 

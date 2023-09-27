@@ -27,50 +27,52 @@
 #include "mega/invocation_io.hpp"
 #include "mega/common_strings.hpp"
 
-#include <iostream>
-
-static constexpr const char Basic_Name[] = "Basic";
+static constexpr const char Link_Name[] = "Link";
 
 // clang-format off
-static constexpr const char Basic_Code[] =
+static constexpr const char Link_Code[] =
 R"TESTCODE(
-object Root
+
+interface Base
+{
+}
+
+object A : Base
 {
     dim int m_x;
-
-    component c
-    {
-        dim int m_y;
-
-        action a
-        {
-            dim int m_z;
-        }
-    }
 }
+
+object B : Base
+{
+    dim int m_x;
+}
+
+object Root
+{
+    owns Base;
+}
+
 )TESTCODE";
 // clang-format on
 
-struct BasicData
+struct LinkData
 {
     std::string                context;
     std::vector< std::string > typePath;
 };
 
-std::ostream& operator<<( std::ostream& os, const BasicData& testData )
+std::ostream& operator<<( std::ostream& os, const LinkData& testData )
 {
     return os;
 }
 
-using BasicFixtureType = InvocationTestFixture< Basic_Name, Basic_Code, BasicData >;
+using LinkFixtureType = InvocationTestFixture< Link_Name, Link_Code, LinkData >;
 template <>
-BasicFixtureType::Impl::Ptr BasicFixtureType::m_pImpl;
+LinkFixtureType::Impl::Ptr LinkFixtureType::m_pImpl;
 
-TEST_P( BasicFixtureType, BasicParameterizedTest )
+TEST_P( LinkFixtureType, LinkParameterizedTest )
 {
-    const BasicData data = GetParam();
-
-    std::cout << "BasicParameterizedTest: " << m_pImpl->m_directories.installDir << std::endl;
+    const LinkData data = GetParam();
 
     OperationsStage::Database database( m_pImpl->m_environment, m_pImpl->m_megaSrcPath );
 
@@ -95,23 +97,15 @@ TEST_P( BasicFixtureType, BasicParameterizedTest )
     Operations::Invocation* pInvocation = mega::invocation::compileInvocation( database, symbolTables, id );
     ASSERT_TRUE( pInvocation );
 
-    ASSERT_EQ( pInvocation->get_operations().size(), 1 );
+    ASSERT_EQ( pInvocation->get_operations().size(), 2 );
 }
 
 using namespace std::string_literals;
 
 // clang-format off
-INSTANTIATE_TEST_SUITE_P( Basic, BasicFixtureType,
+INSTANTIATE_TEST_SUITE_P( Link, LinkFixtureType,
         ::testing::Values
         ( 
-            BasicData{ "Root"s, { "m_x"s } },
-            BasicData{ "Root"s, { "m_y"s } },
-            BasicData{ "Root"s, { "m_z"s } },
-
-            BasicData{ "Root"s, { "c"s, "m_y"s } },
-            BasicData{ "Root"s, { "c"s, "m_z"s } },
-
-            BasicData{ "Root"s, { "a"s, "m_z"s } },
-            BasicData{ "Root"s, { "c"s, "a"s, "m_z"s } }
+            LinkData{ "Root"s, { "m_x"s } }
         ));
 // clang-format on

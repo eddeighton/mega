@@ -31,13 +31,15 @@
 #include "database/common/exception.hpp"
 #include "database/types/cardinality.hpp"
 
+#include "mega/common_strings.hpp"
+
 #include <unordered_set>
 
 namespace HyperGraphAnalysis
 {
-#include "compiler/printer.hpp"
 #include "compiler/interface.hpp"
-#include "compiler/derivation.hpp"
+#include "compiler/interface_printer.hpp"
+#include "compiler/concrete_printer.hpp"
 } // namespace HyperGraphAnalysis
 
 namespace mega::compiler
@@ -77,10 +79,14 @@ public:
                     {
                         if( bFirst )
                         {
-                            // first MUST be object
+                            // first MUST be object or interface
                             if( auto pObject = db_cast< Interface::Object >( pContext ) )
                             {
                                 found.push_back( pContext );
+                            }
+                            else if( auto pInterface = db_cast< Interface::Abstract >( pContext ) )
+                            {
+                                found.push_back( pInterface );
                             }
                         }
                         else
@@ -321,7 +327,7 @@ public:
                 // create edge from object to the ownership link
                 {
                     database.construct< Concrete::Graph::Edge >(
-                        Concrete::Graph::Edge::Args{ mega::EdgeType::eObjectLink, pObject, pVertex } );
+                        Concrete::Graph::Edge::Args{ mega::EdgeType::eLink, pObject, pVertex } );
                 }
                 {
                     database.construct< Concrete::Graph::Edge >(
@@ -376,7 +382,7 @@ public:
                 {
                     {
                         database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
-                            mega::EdgeType::eObjectLink, pUserLink->get_parent_context(), pVertex } );
+                            mega::EdgeType::eLink, pUserLink->get_parent_context(), pVertex } );
                     }
                     {
                         database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{

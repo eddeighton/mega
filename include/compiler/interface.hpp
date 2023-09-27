@@ -22,7 +22,7 @@
 #define GUARD_2023_September_21_interface
 
 template < typename TContext >
-inline mega::U64 getSizeTraitSize( const TContext* pInterfaceContext )
+static inline mega::U64 getSizeTraitSize( const TContext* pInterfaceContext )
 {
     mega::U64                              allocationSize = 1U;
     std::optional< Interface::SizeTrait* > sizeTraitOpt   = pInterfaceContext->get_size_trait();

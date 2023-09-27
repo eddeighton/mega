@@ -35,7 +35,7 @@
 
 namespace AliasAnalysis
 {
-#include "compiler/printer.hpp"
+#include "compiler/interface_printer.hpp"
 #include "compiler/interface.hpp"
 #include "compiler/derivation.hpp"
 } // namespace AliasAnalysis
@@ -94,7 +94,7 @@ public:
             {
                 case EdgeType::eChildSingular:
                 case EdgeType::eChildNonSingular:
-                case EdgeType::eObjectLink:
+                case EdgeType::eLink:
                 case EdgeType::eDim:
                 {
                     recurseObjectTree( pEdge->get_target(), edges, vertices );
@@ -146,7 +146,7 @@ public:
                 for( auto i = edges.lower_bound( pVertex ), iEnd = edges.upper_bound( pVertex ); i != iEnd; ++i )
                 {
                     auto pEdge = i->second;
-                    if( pEdge->get_type().get() == EdgeType::eObjectLink )
+                    if( pEdge->get_type().get() == EdgeType::eLink )
                     {
                         links.push_back( pVertex );
                         break;
@@ -264,7 +264,7 @@ public:
                          i != iEnd; ++i )
                     {
                         auto pEdge = i->second;
-                        if( pEdge->get_type().get() == EdgeType::eObjectLink )
+                        if( pEdge->get_type().get() == EdgeType::eLink )
                         {
                             results.push_back( pEdge );
                         }
@@ -288,7 +288,7 @@ public:
                                 results.push_back( pEdge );
                             }
                             break;
-                            case EdgeType::eObjectLink:
+                            case EdgeType::eLink:
                             case EdgeType::eParent:
                             case EdgeType::eChildSingular:
                             case EdgeType::eChildNonSingular:
@@ -347,7 +347,7 @@ public:
                                 switch( pInverseEdge->get_type().get() )
                                 {
                                     case EdgeType::eChildSingular:
-                                    case EdgeType::eObjectLink:
+                                    case EdgeType::eLink:
                                     case EdgeType::eDim:
                                     {
                                         descendingPath.push_back( pInverseEdge );

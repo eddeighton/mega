@@ -30,6 +30,8 @@
 #include "database/types/sources.hpp"
 #include "utilities/cmake.hpp"
 
+#include "mega/common_strings.hpp"
+
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
 #include "common/requireSemicolon.hpp"
@@ -41,6 +43,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -126,8 +129,7 @@ const std::string& getIdentifier( FinalStage::Concrete::Dimensions::Link* pDim )
     }
     else
     {
-        static const std::string strOwnership = "_ownership_";
-        return strOwnership;
+        return mega::EG_OWNERSHIP;
     }
 }
 
@@ -700,7 +702,7 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
                     case mega::EdgeType::eChildNonSingular:
                         strColour = "00FF00";
                         break;
-                    case mega::EdgeType::eObjectLink:
+                    case mega::EdgeType::eLink:
                         strColour = "909000";
                         break;
                     case mega::EdgeType::TOTAL_EDGE_TYPES:
@@ -1243,13 +1245,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
     boost::filesystem::path srcDir, buildDir, databaseArchivePath, outputFilePath;
 
     namespace po = boost::program_options;
-    po::options_description commandOptions( " Generate graph json data" );
+    po::options_description commandOptions( " Generate graph json data from archive or source/build directories" );
     {
         // clang-format off
         commandOptions.add_options()
             ( "src_dir",    po::value< boost::filesystem::path >( &srcDir ),                            "Source directory" )
             ( "build_dir",  po::value< boost::filesystem::path >( &buildDir ),                          "Build directory" )
-            ( "database",   po::value< boost::filesystem::path >( &databaseArchivePath ),               "Path to database archive" )
+            ( "database",   po::value< boost::filesystem::path >( &databaseArchivePath ),               "Database archive path" )
             ( "type",       po::value< std::string >( &strGraphType )->default_value( "interface" ),    "graph type" )
             ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),                    "output file to generate" )
             ;
@@ -1268,16 +1270,22 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         std::ostringstream osOutput;
         {
-            std::unique_ptr< mega::io::Environment > pEnvironment;
-            mega::compiler::Directories              directories{ srcDir, buildDir, "", "" };
+            std::unique_ptr< mega::io::Environment >       pEnvironment;
+            std::unique_ptr< mega::compiler::Directories > m_pDirectories;
 
             if( !databaseArchivePath.empty() )
             {
-                pEnvironment.reset( new mega::io::ArchiveEnvironment( databaseArchivePath ) );
+                pEnvironment = std::make_unique< mega::io::ArchiveEnvironment >( databaseArchivePath );
+            }
+            else if( !srcDir.empty() && !buildDir.empty() )
+            {
+                m_pDirectories = std::make_unique< mega::compiler::Directories >(
+                    mega::compiler::Directories{ srcDir, buildDir, "", "" } );
+                pEnvironment = std::make_unique< mega::io::BuildEnvironment >( *m_pDirectories );
             }
             else
             {
-                pEnvironment.reset( new mega::io::BuildEnvironment( directories ) );
+                THROW_RTE( "Must specify either archive OR source and build dir" );
             }
 
             mega::io::Manifest manifest( *pEnvironment, pEnvironment->project_manifest() );

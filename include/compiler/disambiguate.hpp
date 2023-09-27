@@ -28,11 +28,13 @@ enum Disambiguation
     eAmbiguous
 };
 
-Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontier );
+static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontier );
 
-void inclusive( Step* pStep, const std::vector< Or* >& finalFrontier, std::optional< Disambiguation >& result )
+static Disambiguation inclusive( Step* pStep, const std::vector< Or* >& finalFrontier,
+                          std::optional< Disambiguation >& result )
 {
-    switch( disambiguate( pStep, finalFrontier ) )
+    const Disambiguation stepResult = disambiguate( pStep, finalFrontier );
+    switch( stepResult )
     {
         case eSuccess:
         {
@@ -86,11 +88,14 @@ void inclusive( Step* pStep, const std::vector< Or* >& finalFrontier, std::optio
         }
         break;
     }
+    return stepResult;
 }
 
-void exclusive( Step* pStep, const std::vector< Or* >& finalFrontier, std::optional< Disambiguation >& result )
+static Disambiguation exclusive( Step* pStep, const std::vector< Or* >& finalFrontier,
+                          std::optional< Disambiguation >& result )
 {
-    switch( disambiguate( pStep, finalFrontier ) )
+    const Disambiguation stepResult = disambiguate( pStep, finalFrontier );
+    switch( stepResult )
     {
         case eSuccess:
         {
@@ -144,9 +149,10 @@ void exclusive( Step* pStep, const std::vector< Or* >& finalFrontier, std::optio
         }
         break;
     }
+    return stepResult;
 }
 
-Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontier )
+static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontier )
 {
     std::optional< Disambiguation > result;
 
@@ -154,7 +160,7 @@ Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontie
     {
         for( auto pEdge : pStep->get_edges() )
         {
-            inclusive( pEdge->get_next(), finalFrontier, result );
+            const auto EdgeResult = inclusive( pEdge->get_next(), finalFrontier, result );
         }
     }
     else if( Or* pOr = db_cast< Or >( pStep ) )
@@ -167,7 +173,11 @@ Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontie
 
         for( auto pEdge : pStep->get_edges() )
         {
-            exclusive( pEdge->get_next(), finalFrontier, result );
+            const auto EdgeResult = exclusive( pEdge->get_next(), finalFrontier, result );
+            if( EdgeResult == eFailure )
+            {
+                pEdge->set_eliminated( true );
+            }
         }
     }
     else
@@ -185,7 +195,7 @@ Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontie
     }
 }
 
-Disambiguation disambiguate( Root* pStep, const std::vector< Or* >& finalFrontier )
+static Disambiguation disambiguate( Root* pStep, const std::vector< Or* >& finalFrontier )
 {
     std::optional< Disambiguation > result;
 

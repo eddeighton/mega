@@ -130,8 +130,10 @@ void gen( Args args, FinalStage::Invocations::Instructions::DimensionReferenceRe
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// Allocate
+// Operations
 /*
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// Allocate
 void gen( Args args, FinalStage::Invocations::Operations::Allocate* pAllocate )
 {
     using namespace FinalStage;
@@ -241,7 +243,7 @@ owning_relation_id }} } );
     }
 
     args.data[ "assignments" ].push_back( os.str() );
-}*/
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Move
@@ -288,7 +290,7 @@ R"TEMPLATE(
     THROW_TODO;
     std::ostringstream os;
     {
-        /*Concrete::Context*   pConcreteTarget = pMove->get_concrete_target();
+        Concrete::Context*   pConcreteTarget = pMove->get_concrete_target();
         Variables::Variable* pVariable       = pMove->get_variable();
 
         bool               bUnparentAll = false;
@@ -355,7 +357,7 @@ R"TEMPLATE(
 
         } );
 
-        os << args.inja.render( szTemplate, templateData );*/
+        os << args.inja.render( szTemplate, templateData );
     }
 
     args.data[ "assignments" ].push_back( os.str() );
@@ -708,7 +710,7 @@ R"TEMPLATE(
     std::ostringstream os;
     {
         THROW_TODO;
-        /*Concrete::Link*      pLink          = pReadLink->get_concrete_link();
+        Concrete::Link*      pLink          = pReadLink->get_concrete_link();
         auto                 pLinkReference = pLink->get_link_reference();
         Variables::Variable* pVariable       = pReadLink->get_variable();
         MemoryLayout::Part*  pPart          = pLinkReference->get_part();
@@ -722,7 +724,7 @@ R"TEMPLATE(
                                        { "dimension_offset", pLinkReference->get_offset() },
                                        { "instance", args.get( pVariable ) } } );
 
-        os << args.inja.render( szTemplate, templateData );*/
+        os << args.inja.render( szTemplate, templateData );
     }
 
     args.data[ "assignments" ].push_back( os.str() );
@@ -772,7 +774,7 @@ R"TEMPLATE(
     std::ostringstream os;
     {
         THROW_TODO;
-        /*Concrete::Link*      pLink          = pWriteLink->get_concrete_link();
+        Concrete::Link*      pLink          = pWriteLink->get_concrete_link();
         auto                 pLinkReference = pLink->get_link_reference();
         Variables::Variable* pVariable       = pWriteLink->get_variable();
 
@@ -788,7 +790,7 @@ R"TEMPLATE(
 
         } );
 
-        os << args.inja.render( szTemplate, templateData );*/
+        os << args.inja.render( szTemplate, templateData );
     }
 
     args.data[ "assignments" ].push_back( os.str() );
@@ -803,7 +805,7 @@ void gen( Args args, FinalStage::Invocations::Operations::Range* pRange )
 
     THROW_TODO;
 }
-
+*/
 } // namespace
 
 void CodeGenerator::generateInstructions( const JITDatabase&                                  database,
@@ -926,7 +928,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pAllocate );
         }
         else*/
-        if( auto pCall = db_cast< Call >( pOperation ) )
+        /*if( auto pCall = db_cast< Call >( pOperation ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pCall );
         }
@@ -973,7 +975,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         else
         {
             THROW_RTE( "Unknown operation type" );
-        }
+        }*/
     }
     else
     {

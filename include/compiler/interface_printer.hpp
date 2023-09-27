@@ -23,7 +23,7 @@
 
 // ensure database stage namespace defined i.e. namespace GlobalMemoryStage
 
-std::string printIContextFullType( Interface::IContext* pContext )
+static std::string printIContextFullType( Interface::IContext* pContext )
 {
     std::ostringstream os;
     using IContextVector = std::vector< Interface::IContext* >;
@@ -49,21 +49,21 @@ std::string printIContextFullType( Interface::IContext* pContext )
     return os.str();
 }
 
-void printDimensionTraitFullType( Interface::DimensionTrait* pDim, std::ostream& os )
+static void printDimensionTraitFullType( Interface::DimensionTrait* pDim, std::ostream& os )
 {
     auto pParent = db_cast< Interface::IContext >( pDim->get_parent() );
     VERIFY_RTE( pParent );
     os << printIContextFullType( pParent ) << "::" << pDim->get_id()->get_str();
 }
 
-void printLinkTraitFullType( Interface::LinkTrait* pLink, std::ostream& os )
+static void printLinkTraitFullType( Interface::LinkTrait* pLink, std::ostream& os )
 {
     auto pParent = db_cast< Interface::IContext >( pLink->get_parent() );
     VERIFY_RTE( pParent );
     os << printIContextFullType( pParent ) << "::" << pLink->get_id()->get_str();
 }
 
-void printContextType( std::vector< Interface::IContext* >& contexts, std::ostream& os )
+static void printContextType( std::vector< Interface::IContext* >& contexts, std::ostream& os )
 {
     VERIFY_RTE( !contexts.empty() );
     if( contexts.size() == 1 )
@@ -89,7 +89,7 @@ void printContextType( std::vector< Interface::IContext* >& contexts, std::ostre
     }
 }
 
-std::string printLinkTraitTypePath( const Interface::TypedLinkTrait* pLinkTrait )
+static std::string printLinkTraitTypePath( const Interface::TypedLinkTrait* pLinkTrait )
 {
     std::ostringstream os;
 
@@ -121,4 +121,5 @@ std::string printLinkTraitTypePath( const Interface::TypedLinkTrait* pLinkTrait 
 
     return os.str();
 }
+
 #endif //GUARD_2023_September_21_printer

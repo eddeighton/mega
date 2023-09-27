@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_July_28_generator_utility
 #define GUARD_2023_July_28_generator_utility
 
-inline std::string toHex( mega::TypeID typeID )
+static inline std::string toHex( mega::TypeID typeID )
 {
     std::ostringstream os;
     os << "0x" << std::hex << std::setw( 8 ) << std::setfill( '0' ) << 

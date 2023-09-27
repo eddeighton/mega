@@ -87,6 +87,7 @@ namespace Operations
 
         late< ref< Invocations::Instructions::Root > >      root_instruction;
         array< ref< Invocations::Variables::Variable > >    variables;
+        array< ref< Invocations::Operations::Operation > >  operations;
 
         // ref< Context >              context;
         // ref< TypePath >             type_path;
@@ -111,6 +112,56 @@ namespace Operations
         // late< value< bool > >                               is_function_call;
         // 
         // late< array< value< mega::SourceLocation > > > file_offsets;
+    }
+
+
+    object Allocate : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object Call : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object Start : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object Stop : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object Move : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object GetAction : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object GetDimension : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object Read : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object Write : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object ReadLink : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object WriteLink : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object Range : Invocation -> OperationsStage::Operations
+    {
+        // RangeType
     }
 
     object Invocations -> OperationsStage::Operations

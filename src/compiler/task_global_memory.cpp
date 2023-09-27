@@ -31,7 +31,7 @@
 
 namespace GlobalMemoryStage
 {
-#include "compiler/printer.hpp"
+#include "compiler/interface_printer.hpp"
 }
 
 namespace mega::compiler

@@ -38,6 +38,7 @@ set( INVOCATION_TESTS_DIR ${MEGA_TEST_DIR}/invocation_tests )
 set( INVOCATION_UNIT_TESTS
 	${INVOCATION_TESTS_DIR}/basic_tests.cpp 
 	${INVOCATION_TESTS_DIR}/get_tests.cpp 
+	${INVOCATION_TESTS_DIR}/link_tests.cpp 
 
 	## ensure the version is baked into the shared object
 	${MEGA_SRC_DIR}/version/version.cxx

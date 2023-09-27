@@ -30,6 +30,8 @@
 #include "database/types/sources.hpp"
 #include "utilities/cmake.hpp"
 
+#include "mega/common_strings.hpp"
+
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
 #include "common/requireSemicolon.hpp"
@@ -169,7 +171,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                         else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
                         {
                             std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent_context() )
-                                      << "::_ownership_\n";
+                                      << "::" << ::mega::EG_OWNERSHIP << "\n";
                         }
                         else
                         {

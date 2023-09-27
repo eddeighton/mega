@@ -129,54 +129,6 @@ namespace Invocations
             ref< Concrete::Dimensions::Link > concrete_link;
         }
 
-        object Allocate : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
-        object Call : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
-        object Start : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
-        object Stop : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
-        object Move : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
-        object GetAction : BasicOperation -> OperationsStage::Operations
-        {
-        }
-
-        object GetDimension : DimensionOperation -> OperationsStage::Operations
-        {
-        }
-
-        object Read : DimensionOperation -> OperationsStage::Operations
-        {
-        }
-
-        object Write : DimensionOperation -> OperationsStage::Operations
-        {
-        }
-
-        object ReadLink : LinkOperation -> OperationsStage::Operations
-        {
-        }
-
-        object WriteLink : LinkOperation -> OperationsStage::Operations
-        {
-        }
-
-        object Range : BasicOperation -> OperationsStage::Operations
-        {
-            // RangeType
-        }
 
     }
 
