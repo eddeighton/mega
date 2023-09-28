@@ -30,8 +30,6 @@ enum OperationID : TypeID::ValueType
 {
     id_Imp_NoParams = TypeID::LOWEST_SYMBOL_ID, // std::numeric_limits< TypeID >::min(),
     id_Imp_Params,
-    id_Start,
-    id_Stop,
     id_Move,
     id_Get,
     id_Range,
@@ -54,10 +52,6 @@ inline constexpr bool isOperationArgs( OperationID operationType )
             return false;
         case id_Imp_Params:
             return true;
-        case id_Start:
-            return false;
-        case id_Stop:
-            return false;
         case id_Move:
             return true;
         case id_Get:
@@ -99,12 +93,12 @@ enum ExplicitOperationID : TypeID::ValueType
     id_exp_Write,
     id_exp_Read_Link,
     id_exp_Write_Link,
-    id_exp_Allocate,
     id_exp_Call,
+    id_exp_Signal,
     id_exp_Start,
     id_exp_Stop,
     id_exp_Move,
-    id_exp_GetAction,
+    id_exp_GetContext,
     id_exp_GetDimension,
     id_exp_Range,
     HIGHEST_EXPLICIT_OPERATION_TYPE

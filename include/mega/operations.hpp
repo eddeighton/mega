@@ -40,22 +40,6 @@ struct [[clang::eg_type( mega::id_Imp_Params )]] __eg_ImpParams
     };
 };
 
-struct [[clang::eg_type( mega::id_Start )]] Start
-{
-    enum : mega::TypeID::ValueType
-    {
-        ID = mega::id_Start
-    };
-};
-
-struct [[clang::eg_type( mega::id_Stop )]] Stop
-{
-    enum : mega::TypeID::ValueType
-    {
-        ID = mega::id_Stop
-    };
-};
-
 struct [[clang::eg_type( mega::id_Move )]] Move
 {
     enum : mega::TypeID::ValueType

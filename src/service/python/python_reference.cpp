@@ -283,7 +283,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     return cast( m_module, result );
                 }
                 break;
-                case id_exp_Allocate:
+                /*case id_exp_Allocate:
                 {
                     mega::reference result;
                     m_module.invoke(
@@ -295,6 +295,11 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                             result = pAllocateFunction( m_reference );
                         } );
                     return cast( m_module, result );
+                }
+                break;*/
+                case id_exp_Signal:
+                {
+                    THROW_TODO;
                 }
                 break;
                 case id_exp_Call:
@@ -350,7 +355,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     return Py_None;
                 }
                 break;
-                case id_exp_GetAction:
+                case id_exp_GetContext:
                 case id_exp_GetDimension:
                 {
                     mega::reference result;

@@ -312,12 +312,12 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             result.mangledType = megaMangle( mega::psz_mega_reference );
         }
         break;
-
-        case mega::id_exp_Allocate:        functionType = mega::runtime::invocation::eAllocate; break;     
+  
         case mega::id_exp_Call:            functionType = mega::runtime::invocation::eCall; break; 
+        case mega::id_exp_Signal:          functionType = mega::runtime::invocation::eSignal; break; 
         case mega::id_exp_Start:           functionType = mega::runtime::invocation::eStart; break;     
         case mega::id_exp_Stop:            functionType = mega::runtime::invocation::eStop; break; 
-        case mega::id_exp_GetAction:       functionType = mega::runtime::invocation::eGet; break;         
+        case mega::id_exp_GetContext:       functionType = mega::runtime::invocation::eGet; break;         
         case mega::id_exp_GetDimension:    functionType = mega::runtime::invocation::eGet; break;  
         case mega::id_exp_Move:            functionType = mega::runtime::invocation::eMove; break;     
         case mega::id_exp_Range:    

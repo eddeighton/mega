@@ -61,9 +61,9 @@ struct ExamplePolicy
 };*/
 
 template < typename TPolicy >
-static typename TPolicy::OrPtrVector
-solveStep( typename TPolicy::OrPtr pCurrentFrontierStep, const typename TPolicy::GraphVertexVector& typePathElement,
-           bool bAllowInterObjectStep, const TPolicy& policy )
+static typename TPolicy::OrPtrVector solveStep( typename TPolicy::OrPtr                    pCurrentFrontierStep,
+                                                const typename TPolicy::GraphVertexVector& typePathElement,
+                                                bool bAllowInterObjectStep, const TPolicy& policy )
 {
     typename TPolicy::OrPtrVector nextFrontier;
 
@@ -73,7 +73,11 @@ solveStep( typename TPolicy::OrPtr pCurrentFrontierStep, const typename TPolicy:
     for( auto pTypePathVertex : typePathElement )
     {
         typename TPolicy::GraphEdgeVector edges;
-        if( policy.commonRootDerivation( pCurrentVertex, pTypePathVertex, edges ) )
+        if( pCurrentVertex == pTypePathVertex )
+        {
+            nextFrontier.push_back( pCurrentFrontierStep );
+        }
+        else if( policy.commonRootDerivation( pCurrentVertex, pTypePathVertex, edges ) )
         {
             typename TPolicy::OrPtr   pNextStep = policy.makeOr( pTypePathVertex );
             typename TPolicy::EdgePtr pEdge     = policy.makeEdge( pNextStep, edges );
@@ -86,30 +90,45 @@ solveStep( typename TPolicy::OrPtr pCurrentFrontierStep, const typename TPolicy:
     {
         for( auto pLinkContextVertex : policy.enumerateLinkContexts( pCurrentVertex ) )
         {
-            // is there a common root derivation to this link vertex?
-            typename TPolicy::GraphEdgeVector edges;
-            if( policy.commonRootDerivation( pCurrentVertex, pLinkContextVertex, edges ) )
+            // create common root if required ( which may fail )
+            auto pStep = pCurrentFrontierStep;
+            if( pCurrentVertex != pLinkContextVertex )
             {
-                typename TPolicy::OrPtr pInObjectToLink = policy.makeOr( pLinkContextVertex );
-                pCurrentFrontierStep->push_back_edges( policy.makeEdge( pInObjectToLink, edges ) );
-
+                typename TPolicy::GraphEdgeVector edges;
+                /*if( policy.commonRootDerivation( pCurrentVertex, pLinkContextVertex, edges ) )
+                {
+                    pStep = policy.makeOr( pLinkContextVertex );
+                    pCurrentFrontierStep->push_back_edges( policy.makeEdge( pStep, edges ) );
+                }
+                else*/
+                {
+                    pStep = nullptr;
+                }
+            }
+            if( pStep )
+            {
                 // if so generate the AND step
                 for( auto pContextToLinkVertex : policy.enumerateLinks( pLinkContextVertex ) )
                 {
                     auto pLinkTarget = pContextToLinkVertex->get_target();
-                    typename TPolicy::AndPtr pBranch = policy.makeAnd( pLinkTarget );
-                    pInObjectToLink->push_back_edges(
-                        policy.makeEdge( pBranch, typename TPolicy::GraphEdgeVector{ pContextToLinkVertex } ) );
-
-                    for( auto pLinkEdge : policy.enumerateLink( pLinkTarget ) )
+                    auto linkEdges   = policy.enumerateLink( pLinkTarget );
+                    if( !linkEdges.empty() )
                     {
-                        typename TPolicy::OrPtr pLinkedObjectToTarget = policy.makeOr( pLinkEdge->get_target() );
-                        pBranch->push_back_edges(
-                            policy.makeEdge( pLinkedObjectToTarget, typename TPolicy::GraphEdgeVector{ pLinkEdge } ) );
+                        typename TPolicy::AndPtr pBranch = policy.makeAnd( pLinkTarget );
+                        pStep->push_back_edges(
+                            policy.makeEdge( pBranch, typename TPolicy::GraphEdgeVector{ pContextToLinkVertex } ) );
 
-                        typename TPolicy::OrPtrVector recursiveResult
-                            = solveStep( pLinkedObjectToTarget, typePathElement, false, policy );
-                        std::copy( recursiveResult.begin(), recursiveResult.end(), std::back_inserter( nextFrontier ) );
+                        for( auto pLinkEdge : linkEdges )
+                        {
+                            typename TPolicy::OrPtr pLinkedObjectToTarget = policy.makeOr( pLinkEdge->get_target() );
+                            pBranch->push_back_edges( policy.makeEdge(
+                                pLinkedObjectToTarget, typename TPolicy::GraphEdgeVector{ pLinkEdge } ) );
+
+                            typename TPolicy::OrPtrVector recursiveResult
+                                = solveStep( pLinkedObjectToTarget, typePathElement, false, policy );
+                            std::copy(
+                                recursiveResult.begin(), recursiveResult.end(), std::back_inserter( nextFrontier ) );
+                        }
                     }
                 }
             }
@@ -120,8 +139,8 @@ solveStep( typename TPolicy::OrPtr pCurrentFrontierStep, const typename TPolicy:
 }
 
 template < typename TPolicy >
-static typename TPolicy::RootPtr solveContextFree( 
-        const typename TPolicy::Spec& spec, const TPolicy& policy, typename TPolicy::OrPtrVector& frontier )
+static typename TPolicy::RootPtr solveContextFree( const typename TPolicy::Spec& spec, const TPolicy& policy,
+                                                   typename TPolicy::OrPtrVector& frontier )
 {
     typename TPolicy::RootPtr pSolutionRoot = policy.makeRoot( spec.context );
 
@@ -137,7 +156,7 @@ static typename TPolicy::RootPtr solveContextFree(
         typename TPolicy::OrPtrVector nextFrontier;
         for( typename TPolicy::OrPtr pCurrentFrontierStep : frontier )
         {
-            typename TPolicy::OrPtrVector    recursiveResult
+            typename TPolicy::OrPtrVector recursiveResult
                 = solveStep( pCurrentFrontierStep, typePathElement, true, policy );
             std::copy( recursiveResult.begin(), recursiveResult.end(), std::back_inserter( nextFrontier ) );
         }
@@ -145,6 +164,67 @@ static typename TPolicy::RootPtr solveContextFree(
     }
 
     return pSolutionRoot;
+}
+
+// bottom up recursion
+// return if the edge should be back tracked
+template < typename TPolicy >
+static bool backtrackToLinkDimensionsRecurse( typename TPolicy::EdgePtr pEdge, const TPolicy& policy,
+                                              typename TPolicy::AndPtrVector& frontier )
+{
+    auto pStep = pEdge->get_next();
+
+    auto       pAnd                 = policy.isAndStep( pStep );
+    const bool bIsLinkDimAndAndStep = pAnd && policy.isLinkDimension( pStep->get_vertex() );
+
+    std::vector< typename TPolicy::EdgePtr > nonElimatedEdges;
+    for( auto pEdge : pStep->get_edges() )
+    {
+        if( !pEdge->get_eliminated() )
+        {
+            nonElimatedEdges.push_back( pEdge );
+        }
+    }
+
+    if( nonElimatedEdges.empty() )
+    {
+        return !bIsLinkDimAndAndStep;
+    }
+
+    int iBackTrackedEdges = 0;
+    for( auto pNextEdge : nonElimatedEdges )
+    {
+        if( backtrackToLinkDimensionsRecurse( pNextEdge, policy, frontier ) )
+        {
+            policy.backtrack( pNextEdge );
+            ++iBackTrackedEdges;
+        }
+    }
+    VERIFY_RTE_MSG( ( iBackTrackedEdges == 0 ) || ( iBackTrackedEdges == nonElimatedEdges.size() ),
+                    "Backtracking unbalenced in invocation" );
+
+    if( bIsLinkDimAndAndStep && ( iBackTrackedEdges != 0 ) )
+    {
+        frontier.push_back( pAnd );
+    }
+
+    return ( !bIsLinkDimAndAndStep ) && ( iBackTrackedEdges != 0 );
+}
+
+template < typename TPolicy >
+static void backtrackToLinkDimensions( typename TPolicy::RootPtr pRoot, const TPolicy& policy,
+                                       typename TPolicy::AndPtrVector& frontier )
+{
+    auto originalFrontier = frontier;
+    frontier.clear();
+
+    for( auto pEdge : pRoot->get_edges() )
+    {
+        if( !pEdge->get_eliminated() )
+        {
+            backtrackToLinkDimensionsRecurse( pEdge, policy, frontier );
+        }
+    }
 }
 
 } // namespace DerivationSolver

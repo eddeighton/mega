@@ -868,9 +868,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
             {
                 std::ostringstream os;
                 os << indent << "// PolyBranch\n";
-                const Variables::Reference* pReference = pPolyReference->get_from_reference();
-
-                os << indent << "switch( " << Args::get( variables, pReference ) << ".getType() )\n";
+                os << indent << "switch( " << Args::get( variables, pPolyReference->get_from_reference() ) << ".getType() )\n";
                 os << indent << "{";
                 data[ "assignments" ].push_back( os.str() );
             }

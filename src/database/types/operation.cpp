@@ -30,8 +30,6 @@ namespace mega
 static const OperationIDStringArray g_pszOperationStrings = {
     std::string( "__eg_ImpNoParams" ),
     std::string( "__eg_ImpParams" ),
-    std::string( "Start" ),
-    std::string( "Stop" ),
     std::string( "Move" ),
     std::string( "Get" ),
     std::string( "Range" )
@@ -68,8 +66,8 @@ static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings =
     std::string( "Write" ),
     std::string( "ReadLink" ),
     std::string( "WriteLink" ),
-    std::string( "Allocate" ),
     std::string( "Call" ),
+    std::string( "Signal" ),
     std::string( "Start" ),
     std::string( "Stop" ),
     std::string( "Move" ),

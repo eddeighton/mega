@@ -312,22 +312,6 @@ public:
                  }
              }
              break;
-             case mega::id_Start:
-             {
-                 if( std::optional< clang::QualType > resultOpt = buildContextReturnType(
-                         returnTypesContext, bIsSingular, pInvocation->get_is_function_call(), pDeclContext, loc ) )
-                 {
-                     resultType = resultOpt.value();
-                     return true;
-                 }
-             }
-             break;
-             case mega::id_Stop:
-             {
-                 resultType = clang::getVoidType( pASTContext );
-                 return true;
-             }
-             break;
              case mega::id_Move:
              {
                  resultType = clang::getVoidType( pASTContext );

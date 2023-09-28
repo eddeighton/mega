@@ -71,17 +71,18 @@ struct InvocationPolicy
         GraphVertexVectorVector path;
     };
 
-    using StepPtr     = OperationsStage::Derivation::Step*;
-    using EdgePtr     = OperationsStage::Derivation::Edge*;
-    using OrPtr       = OperationsStage::Derivation::Or*;
-    using OrPtrVector = std::vector< OrPtr >;
-    using AndPtr      = OperationsStage::Derivation::And*;
-    using RootPtr     = OperationsStage::Derivation::Root*;
+    using StepPtr      = OperationsStage::Derivation::Step*;
+    using EdgePtr      = OperationsStage::Derivation::Edge*;
+    using OrPtr        = OperationsStage::Derivation::Or*;
+    using OrPtrVector  = std::vector< OrPtr >;
+    using AndPtr       = OperationsStage::Derivation::And*;
+    using AndPtrVector = std::vector< AndPtr >;
+    using RootPtr      = OperationsStage::Derivation::Root*;
 
     EdgePtr makeEdge( StepPtr pNext, const GraphEdgeVector& edges ) const
     {
         // initially no edges are eliminated
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, edges } );
+        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, edges } );
     }
     OrPtr makeOr( GraphVertex* pVertex ) const
     {
@@ -98,8 +99,11 @@ struct InvocationPolicy
     }
     EdgePtr makeRootEdge( OrPtr pNext ) const
     {
-        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, {} } );
+        return m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pNext, false, false, 0, {} } );
     }
+    bool   isLinkDimension( GraphVertex* pVertex ) const { return db_cast< Concrete::Dimensions::Link >( pVertex ); }
+    AndPtr isAndStep( StepPtr pStep ) const { return db_cast< OperationsStage::Derivation::And >( pStep ); }
+    void   backtrack( EdgePtr pEdge ) const { pEdge->set_backtracked( true ); }
 
     // the link context MAY contain MULTIPLE links.  Each individual link is either deriving or not.
     // The Link context is considered to be deriving if ANY of its links are deriving
@@ -211,8 +215,8 @@ struct InvocationPolicy
                 {
                     path.push_back( pEdge );
                     pVertex = pEdge->get_target();
+                    VERIFY_RTE( !bFound );
                     bFound  = true;
-                    break;
                 }
             }
             if( !bFound )
@@ -231,7 +235,8 @@ struct InvocationPolicy
             bool bFound = false;
             for( auto pInverseEdge : pEdge->get_target()->get_out_edges() )
             {
-                if( pEdge->get_target() == pInverseEdge->get_source() )
+                VERIFY_RTE( pEdge->get_target() == pInverseEdge->get_source() );
+                if( pEdge->get_source() == pInverseEdge->get_target() )
                 {
                     switch( pInverseEdge->get_type().get() )
                     {
@@ -240,11 +245,14 @@ struct InvocationPolicy
                         case EdgeType::eDim:
                         {
                             descendingPath.push_back( pInverseEdge );
+                            VERIFY_RTE( !bFound );
                             bFound = true;
-                            break;
                         }
-                        case EdgeType::eParent:
+                        break;
                         case EdgeType::eChildNonSingular:
+                            // do no allow non-singular
+                            break;
+                        case EdgeType::eParent:
                         case EdgeType::eMono:
                         case EdgeType::ePoly:
                         case EdgeType::ePolyParent:
@@ -264,6 +272,9 @@ struct InvocationPolicy
 
     bool commonRootDerivation( GraphVertex* pSource, GraphVertex* pTarget, GraphEdgeVector& edges ) const
     {
+        if( pSource == pTarget )
+            return true;
+
         GraphEdgeVector sourcePath, targetPath;
         auto            pSourceObject = pathToObjectRoot( pSource, sourcePath );
         auto            pTargetObject = pathToObjectRoot( pTarget, targetPath );
@@ -279,11 +290,16 @@ struct InvocationPolicy
             targetPath.pop_back();
         }
 
-        std::copy( sourcePath.begin(), sourcePath.end(), std::back_inserter( edges ) );
         GraphEdgeVector descendingPath;
         if( invertObjectRootPath( targetPath, descendingPath ) )
         {
-            std::copy( targetPath.begin(), targetPath.end(), std::back_inserter( edges ) );
+            if( !sourcePath.empty() && !descendingPath.empty() )
+            {
+                VERIFY_RTE( descendingPath.front()->get_source() == sourcePath.back()->get_target() );
+            }
+
+            std::copy( sourcePath.begin(), sourcePath.end(), std::back_inserter( edges ) );
+            std::copy( descendingPath.begin(), descendingPath.end(), std::back_inserter( edges ) );
             return true;
         }
         else
@@ -416,7 +432,7 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
             spec.path.emplace_back( std::move( pathElement ) );
         }
     }
-
+    using ::operator<<;
     VERIFY_RTE_MSG( !operationIDOpt.has_value() || ( id.m_operation == operationIDOpt.value() ),
                     "Mismatching operation type in invocation: " << id );
 }
@@ -509,6 +525,7 @@ public:
         U64  activeOutEdgeCount = 0U;
         for( auto pEdge : rootOutEdges )
         {
+            VERIFY_RTE( !pEdge->get_backtracked() );
             if( !pEdge->get_eliminated() )
             {
                 ++activeOutEdgeCount;
@@ -537,7 +554,8 @@ public:
     }
 
 private:
-    void buildOperation( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable, Concrete::Graph::Vertex* pVertex )
+    void buildOperation( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable,
+                         Concrete::Graph::Vertex* pVertex )
     {
         Invocations::Operations::Operation* pOperation = m_database.construct< Invocations::Operations::Operation >(
             Invocations::Operations::Operation::Args{ Instructions::Instruction::Args{}, pVariable, pVertex } );
@@ -549,36 +567,37 @@ private:
                    const std::vector< Derivation::Edge* >& edges )
     {
         // create polymorphic branch
-        auto pRef = db_cast< Variables::Reference >( pVariable );
-        VERIFY_RTE( pRef );
-
-        auto pPolyReference = make_instruction< Instructions::PolyBranch >( pInstruction, pRef );
+        auto pPolyReference = make_instruction< Instructions::PolyBranch >( pInstruction, pVariable );
 
         bool bFound = false;
         for( auto pEdge : edges )
         {
             if( !pEdge->get_eliminated() )
             {
+                bFound = true;
+                VERIFY_RTE( !pEdge->get_backtracked() );
                 auto pNext          = pEdge->get_next();
                 auto pTargetContext = db_cast< Concrete::Context >( pNext->get_vertex() );
                 VERIFY_RTE( pTargetContext );
 
                 auto pPolyCaseInstruction
-                    = make_instruction< Instructions::PolyCase >( pPolyReference, pRef, pTargetContext );
+                    = make_instruction< Instructions::PolyCase >( pPolyReference, pVariable, pTargetContext );
 
                 // get the hypergraph object link edge
                 auto hyperGraphEdges = pEdge->get_edges();
-                VERIFY_RTE( hyperGraphEdges.size() == 1 );
-                auto pHyperGraphObjectLinkEdge = hyperGraphEdges.front();
-                VERIFY_RTE( ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::eMono )
-                            || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePoly )
-                            || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePolyParent ) );
-                VERIFY_RTE( pHyperGraphObjectLinkEdge->get_target() == pTargetContext );
+                if( !hyperGraphEdges.empty() )
+                {
+                    VERIFY_RTE( hyperGraphEdges.size() == 1 );
+                    auto pHyperGraphObjectLinkEdge = hyperGraphEdges.front();
+                    VERIFY_RTE( ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::eMono )
+                                || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePoly )
+                                || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePolyParent ) );
+                    VERIFY_RTE( pHyperGraphObjectLinkEdge->get_target() == pTargetContext );
+                }
 
                 auto pOR = db_cast< Derivation::Or >( pNext );
                 VERIFY_RTE( pOR );
-                buildOr( pPolyCaseInstruction, pRef, pOR );
-                bFound = true;
+                buildOr( pPolyCaseInstruction, pVariable, pOR );
             }
         }
         VERIFY_RTE_MSG( bFound, "Failed to find non-eliminated edge in OR step" );
@@ -586,7 +605,14 @@ private:
 
     void buildOr( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable, Derivation::Or* pOr )
     {
-        auto edges = pOr->get_edges();
+        std::vector< Derivation::Edge* > edges;
+        for( auto pEdge : pOr->get_edges() )
+        {
+            if( !pEdge->get_eliminated() && !pEdge->get_backtracked() )
+            {
+                edges.push_back( pEdge );
+            }
+        }
         if( edges.empty() )
         {
             // add the operation
@@ -595,14 +621,11 @@ private:
         else
         {
             bool bFound = false;
-            for( auto pEdge : pOr->get_edges() )
+            for( auto pEdge : edges )
             {
-                if( !pEdge->get_eliminated() )
-                {
-                    VERIFY_RTE_MSG( !bFound, "Multiple non-eliminated edges in OR derivation step" );
-                    build( pInstruction, pVariable, pEdge );
-                    bFound = true;
-                }
+                VERIFY_RTE_MSG( !bFound, "Multiple non-eliminated edges in OR derivation step" );
+                build( pInstruction, pVariable, pEdge );
+                bFound = true;
             }
             VERIFY_RTE_MSG( bFound, "Failed to find non-eliminated edge in OR derivation step" );
         }
@@ -617,7 +640,25 @@ private:
         auto pNextStep = pEdge->get_next();
         if( auto pAnd = db_cast< Derivation::And >( pNextStep ) )
         {
-            buildAnd( pInstruction, pVariable, pAnd->get_edges() );
+            // is the AND out edges backtracked for link dimension
+            int  iBackTrackedCount = 0;
+            auto edges             = pAnd->get_edges();
+            for( auto pAndEdge : edges )
+            {
+                if( pAndEdge->get_backtracked() )
+                {
+                    ++iBackTrackedCount;
+                }
+            }
+            if( iBackTrackedCount != 0 )
+            {
+                VERIFY_RTE( iBackTrackedCount == edges.size() );
+                buildOperation( pInstruction, pVariable, pAnd->get_vertex() );
+            }
+            else
+            {
+                buildAnd( pInstruction, pVariable, edges );
+            }
         }
         else if( auto pOr = db_cast< Derivation::Or >( pNextStep ) )
         {
@@ -656,12 +697,10 @@ private:
                 break;
                 case EdgeType::eChildNonSingular:
                 {
-                    THROW_TODO;
                 }
                 break;
                 case EdgeType::eDim:
                 {
-                    THROW_TODO;
                 }
                 break;
                 case EdgeType::eLink:
@@ -696,7 +735,6 @@ public:
 
 void buildOperation( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation )
 {
-
     std::vector< Concrete::Graph::Vertex* > operationContexts;
     for( auto pOperation : pInvocation->get_operations() )
     {
@@ -706,7 +744,6 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
     // clang-format off
     std::vector< Concrete::Object*              > objects;
     std::vector< Concrete::Component*           > components;
-    std::vector< Concrete::Action*              > actions;
     std::vector< Concrete::State*               > states;
     std::vector< Concrete::Function*            > functions;
     std::vector< Concrete::Namespace*           > namespaces;
@@ -714,56 +751,212 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
     std::vector< Concrete::Interupt*            > interupts;
     std::vector< Concrete::Dimensions::User*    > userDimensions;
     std::vector< Concrete::Dimensions::Link*    > linkDimensions;
+    // clang-format on
+
+    enum TargetType
+    {
+        eObjects,
+        eComponents,
+        eStates,
+        eFunctions,
+        eEvents,
+        eUserDimensions,
+        eLinkDimensions,
+        eUNSET
+    } targetType
+        = eUNSET;
 
     for( auto pVert : operationContexts )
     {
-        if( auto p = db_cast< Concrete::Object            >( pVert ) ) objects.push_back( p ); continue;
-        if( auto p = db_cast< Concrete::Component         >( pVert ) ) components.push_back( p ); continue;
-        if( auto p = db_cast< Concrete::Action            >( pVert ) ) actions.push_back( p ); continue;
-        if( auto p = db_cast< Concrete::State             >( pVert ) ) states.push_back( p ); continue;
-        if( auto p = db_cast< Concrete::Function          >( pVert ) ) functions.push_back( p ); continue;
-        if( auto p = db_cast< Concrete::Namespace         >( pVert ) ) namespaces.push_back( p ); continue;
-        if( auto p = db_cast< Concrete::Event             >( pVert ) ) events.push_back( p ); continue;
-        if( auto p = db_cast< Concrete::Interupt          >( pVert ) ) interupts.push_back( p ); continue;
-        if( auto p = db_cast< Concrete::Dimensions::User  >( pVert ) ) userDimensions.push_back( p ); continue;
-        if( auto p = db_cast< Concrete::Dimensions::Link  >( pVert ) ) linkDimensions.push_back( p ); continue;
+        if( auto p = db_cast< Concrete::Object >( pVert ) )
+        {
+            objects.push_back( p );
+            VERIFY_RTE_MSG( ( targetType == eUNSET ) || ( targetType == eObjects ),
+                            "Conflicting target types for invocation: " << pInvocation->get_id() );
+            targetType = eObjects;
+        }
+        else if( auto p = db_cast< Concrete::Component >( pVert ) )
+        {
+            components.push_back( p );
+            VERIFY_RTE_MSG( ( targetType == eUNSET ) || ( targetType == eComponents ),
+                            "Conflicting target types for invocation: " << pInvocation->get_id() );
+            targetType = eComponents;
+        }
+        else if( auto p = db_cast< Concrete::State >( pVert ) )
+        {
+            states.push_back( p );
+            VERIFY_RTE_MSG( ( targetType == eUNSET ) || ( targetType == eStates ),
+                            "Conflicting target types for invocation: " << pInvocation->get_id() );
+            targetType = eStates;
+        }
+        else if( auto p = db_cast< Concrete::Function >( pVert ) )
+        {
+            functions.push_back( p );
+            VERIFY_RTE_MSG( ( targetType == eUNSET ) || ( targetType == eFunctions ),
+                            "Conflicting target types for invocation: " << pInvocation->get_id() );
+            targetType = eFunctions;
+        }
+        else if( auto p = db_cast< Concrete::Namespace >( pVert ) )
+        {
+            namespaces.push_back( p );
+        }
+        else if( auto p = db_cast< Concrete::Event >( pVert ) )
+        {
+            events.push_back( p );
+            VERIFY_RTE_MSG( ( targetType == eUNSET ) || ( targetType == eEvents ),
+                            "Conflicting target types for invocation: " << pInvocation->get_id() );
+            targetType = eEvents;
+        }
+        else if( auto p = db_cast< Concrete::Interupt >( pVert ) )
+        {
+            interupts.push_back( p );
+        }
+        else if( auto p = db_cast< Concrete::Dimensions::User >( pVert ) )
+        {
+            userDimensions.push_back( p );
+            VERIFY_RTE_MSG( ( targetType == eUNSET ) || ( targetType == eUserDimensions ),
+                            "Conflicting target types for invocation: " << pInvocation->get_id() );
+            targetType = eUserDimensions;
+        }
+        else if( auto p = db_cast< Concrete::Dimensions::Link >( pVert ) )
+        {
+            linkDimensions.push_back( p );
+            VERIFY_RTE_MSG( ( targetType == eUNSET ) || ( targetType == eLinkDimensions ),
+                            "Conflicting target types for invocation: " << pInvocation->get_id() );
+            targetType = eLinkDimensions;
+        }
     }
-    // clang-format on
+
+    using ::operator<<;
+    VERIFY_RTE_MSG( namespaces.empty(), "Invalid invocation on namespace: " << pInvocation->get_id() );
+    VERIFY_RTE_MSG( interupts.empty(), "Invalid invocation on interupt: " << pInvocation->get_id() );
+    VERIFY_RTE_MSG( targetType != eUNSET, "No targe type for invocation: " << pInvocation->get_id() );
 
     std::set< std::string > dimensionTypes;
     for( auto pDim : userDimensions )
     {
         dimensionTypes.insert( pDim->get_interface_dimension()->get_canonical_type() );
     }
-    
+
+    ExplicitOperationID explicitOperationType = HIGHEST_EXPLICIT_OPERATION_TYPE;
+
+    using namespace OperationsStage::Operations;
+
     switch( pInvocation->get_id().m_operation )
     {
         case mega::id_Imp_NoParams:
         {
+            switch( targetType )
+            {
+                case eObjects:
+                    break;
+                case eComponents:
+                    break;
+                case eStates:
+                    database.construct< Start >( Start::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Start;
+                    break;
+                case eFunctions:
+                    database.construct< Call >( Call::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Call;
+                    break;
+                case eEvents:
+                    database.construct< Signal >( Signal::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Signal;
+                    break;
+                case eUserDimensions:
+                    database.construct< Read >( Read::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Read;
+                    break;
+                case eLinkDimensions:
+                    database.construct< ReadLink >( ReadLink::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Read_Link;
+                    break;
+                case eUNSET:
+                    break;
+            }
         }
         break;
         case mega::id_Imp_Params:
         {
-        }
-        break;
-        case mega::id_Start:
-        {
-        }
-        break;
-        case mega::id_Stop:
-        {
+            switch( targetType )
+            {
+                case eObjects:
+                    break;
+                case eComponents:
+                    break;
+                case eStates:
+                    database.construct< Start >( Start::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Start;
+                    break;
+                case eFunctions:
+                    database.construct< Call >( Call::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Call;
+                    break;
+                case eEvents:
+                    database.construct< Signal >( Signal::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Signal;
+                    break;
+                case eUserDimensions:
+                    database.construct< Write >( Write::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Write;
+                    break;
+                case eLinkDimensions:
+                    database.construct< WriteLink >( WriteLink::Args{ pInvocation } );
+                    explicitOperationType = id_exp_Write_Link;
+                    break;
+                case eUNSET:
+                    break;
+            }
         }
         break;
         case mega::id_Move:
         {
+            database.construct< Move >( Move::Args{ pInvocation } );
+            explicitOperationType = id_exp_Move;
         }
         break;
         case mega::id_Get:
         {
+            switch( targetType )
+            {
+                case eObjects:
+                    database.construct< GetContext >( GetContext::Args{ pInvocation } );
+                    explicitOperationType = id_exp_GetContext;
+                    break;
+                case eComponents:
+                    database.construct< GetContext >( GetContext::Args{ pInvocation } );
+                    explicitOperationType = id_exp_GetContext;
+                    break;
+                case eStates:
+                    database.construct< GetContext >( GetContext::Args{ pInvocation } );
+                    explicitOperationType = id_exp_GetContext;
+                    break;
+                case eFunctions:
+                    database.construct< GetContext >( GetContext::Args{ pInvocation } );
+                    explicitOperationType = id_exp_GetContext;
+                    break;
+                case eEvents:
+                    database.construct< GetContext >( GetContext::Args{ pInvocation } );
+                    explicitOperationType = id_exp_GetContext;
+                    break;
+                case eUserDimensions:
+                    database.construct< GetDimension >( GetDimension::Args{ pInvocation } );
+                    explicitOperationType = id_exp_GetDimension;
+                    break;
+                case eLinkDimensions:
+                    database.construct< GetDimension >( GetDimension::Args{ pInvocation } );
+                    explicitOperationType = id_exp_GetDimension;
+                    break;
+                case eUNSET:
+                    break;
+            }
         }
         break;
         case mega::id_Range:
         {
+            database.construct< Range >( Range::Args{ pInvocation } );
+            explicitOperationType = id_exp_Range;
         }
         break;
         default:
@@ -773,6 +966,10 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
         }
         break;
     }
+
+    VERIFY_RTE_MSG( explicitOperationType != HIGHEST_EXPLICIT_OPERATION_TYPE,
+                    "Failed to determine invocation explicit operation type: " << pInvocation->get_id() );
+    pInvocation->set_explicit_operation( explicitOperationType );
 }
 
 } // namespace
@@ -780,6 +977,8 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 OperationsStage::Operations::Invocation*
 compileInvocation( OperationsStage::Database& database, const SymbolTables& symbolTables, const mega::InvocationID& id )
 {
+    using ::operator<<;
+
     // determine the derivation of the invocationID
     std::vector< Concrete::Graph::Vertex* > types;
     InvocationPolicy::Spec                  derivationSpec;
@@ -790,29 +989,67 @@ compileInvocation( OperationsStage::Database& database, const SymbolTables& symb
     InvocationPolicy::OrPtrVector finalFrontier;
     InvocationPolicy::RootPtr     pRoot = DerivationSolver::solveContextFree( derivationSpec, policy, finalFrontier );
 
-    Derivation::Disambiguation result = Derivation::disambiguate( pRoot, finalFrontier );
-    if( result != Derivation::eSuccess )
+    Derivation::presedence( pRoot );
+
+    OperationsStage::Operations::Invocation* pInvocation = nullptr;
+    try
+    {
+        const Derivation::Disambiguation result = Derivation::disambiguate( pRoot, finalFrontier );
+        if( result != Derivation::eSuccess )
+        {
+            std::ostringstream os;
+            using ::           operator<<;
+            if( result == Derivation::eAmbiguous )
+                os << "Derivation disambiguation was ambiguous for: " << id << "\n";
+            else if( result == Derivation::eFailure )
+                os << "Derivation disambiguation failed for: " << id << "\n";
+            else
+                THROW_RTE( "Unknown derivation failure type" );
+            THROW_RTE( os.str() );
+        }
+
+        // is the invocation a link invocation?
+        InvocationPolicy::AndPtrVector linkFrontier;
+        if( ( id.m_operation == id_Imp_NoParams ) || ( id.m_operation == id_Imp_Params ) )
+        {
+            bool bTargetsObjectOrComponent = false;
+            bool bTargetsOtherContextType  = false;
+            for( auto pOr : finalFrontier )
+            {
+                if( db_cast< Concrete::Object >( pOr->get_vertex() )
+                    || db_cast< Concrete::Component >( pOr->get_vertex() ) )
+                {
+                    bTargetsObjectOrComponent = true;
+                }
+                else
+                {
+                    bTargetsOtherContextType = true;
+                }
+            }
+            VERIFY_RTE_MSG( !bTargetsObjectOrComponent || !bTargetsOtherContextType,
+                            "Conficting target types for invocation: " << id );
+            if( bTargetsObjectOrComponent )
+            {
+                // invocation IS a link read or write operation
+                DerivationSolver::backtrackToLinkDimensions( pRoot, policy, linkFrontier );
+            }
+        }
+
+        InvocationBuilder builder( database, id, pRoot, types );
+        builder.build();
+        pInvocation = builder.getInvocation();
+        buildOperation( database, pInvocation );
+    }
+    catch( std::exception& ex )
     {
         std::ostringstream os;
-        using ::           operator<<;
-        if( result == Derivation::eAmbiguous )
-            os << "Derivation disambiguation was ambiguous for: " << id << "\n";
-        else if( result == Derivation::eFailure )
-            os << "Derivation disambiguation failed for: " << id << "\n";
-        else
-            THROW_RTE( "Unknown derivation failure type" );
-        printDerivationStep( pRoot, os );
+        os << "Exception while compiling invocation: " << id << "\n";
+        printDerivationStep( pRoot, true, os );
+        os << "\nError: " << ex.what();
         THROW_RTE( os.str() );
     }
 
-    InvocationBuilder builder( database, id, pRoot, types );
-    builder.build();
-
-    auto pBaseInvocation = builder.getInvocation();
-
-    buildOperation( database, pBaseInvocation );
-
-    return pBaseInvocation;
+    return pInvocation;
 }
 
 } // namespace mega::invocation

@@ -32,8 +32,11 @@ static void pop_indent( std::string& str )
     str.pop_back();
 }
 
-static void printDerivationStep( Edge* pEdge, std::string& strIndent, std::ostream& os )
+static void printDerivationStep( Edge* pEdge, std::string& strIndent, bool bShowEliminated, std::ostream& os )
 {
+    if( !bShowEliminated && pEdge->get_eliminated() )
+        return;
+
     Step* pStep = pEdge->get_next();
     {
         if( db_cast< And >( pStep ) )
@@ -54,18 +57,22 @@ static void printDerivationStep( Edge* pEdge, std::string& strIndent, std::ostre
         {
             os << " <eliminated>";
         }
-        os << ")\n";
+        if( pEdge->get_backtracked() )
+        {
+            os << " <backtracked>";
+        }
+        os << "[" << pEdge->get_precedence() << "])\n";
     }
 
     push_indent( strIndent );
     for( auto pNextEdge : pStep->get_edges() )
     {
-        printDerivationStep( pNextEdge, strIndent, os );
+        printDerivationStep( pNextEdge, strIndent, bShowEliminated, os );
     }
     pop_indent( strIndent );
 }
 
-static void printDerivationStep( Root* pRoot, std::ostream& os )
+static void printDerivationStep( Root* pRoot, bool bShowEliminated, std::ostream& os )
 {
     {
         os << "ROOT (";
@@ -73,8 +80,10 @@ static void printDerivationStep( Root* pRoot, std::ostream& os )
         bool bFirst = true;
         for( auto pContext : pRoot->get_context() )
         {
-            if( bFirst ) bFirst= false;
-            else os << ", ";
+            if( bFirst )
+                bFirst = false;
+            else
+                os << ", ";
             printConcreteFullType( pContext, os );
         }
         os << ")\n";
@@ -85,11 +94,10 @@ static void printDerivationStep( Root* pRoot, std::ostream& os )
 
     for( auto pEdge : pRoot->get_edges() )
     {
-        printDerivationStep( pEdge, strIndent, os );
+        printDerivationStep( pEdge, strIndent, bShowEliminated, os );
     }
 
     pop_indent( strIndent );
-
 }
 
-#endif //GUARD_2023_September_27_derivation_printer
+#endif // GUARD_2023_September_27_derivation_printer

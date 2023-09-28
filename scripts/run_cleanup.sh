@@ -18,6 +18,7 @@ cleanup_folder "${WORKSPACE_ROOT_PATH}/src/basic/log"
 # temporary file folders
 cleanup_folder "/tmp/mega_registry"
 cleanup_folder "/tmp/megaenv"
+cleanup_folder "/tmp/invocation_tests"
 cleanup_folder "${BUILD_PATH}/${CFG_TUPLE}/basic/install/tmp"
 cleanup_folder "${BUILD_PATH}/${CFG_TUPLE}/game/install/tmp"
 

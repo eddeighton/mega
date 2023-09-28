@@ -31,7 +31,7 @@ enum Disambiguation
 static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& finalFrontier );
 
 static Disambiguation inclusive( Step* pStep, const std::vector< Or* >& finalFrontier,
-                          std::optional< Disambiguation >& result )
+                                 std::optional< Disambiguation >& result )
 {
     const Disambiguation stepResult = disambiguate( pStep, finalFrontier );
     switch( stepResult )
@@ -92,7 +92,7 @@ static Disambiguation inclusive( Step* pStep, const std::vector< Or* >& finalFro
 }
 
 static Disambiguation exclusive( Step* pStep, const std::vector< Or* >& finalFrontier,
-                          std::optional< Disambiguation >& result )
+                                 std::optional< Disambiguation >& result )
 {
     const Disambiguation stepResult = disambiguate( pStep, finalFrontier );
     switch( stepResult )
@@ -171,7 +171,26 @@ static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& final
             return eSuccess;
         }
 
+        int iHighestPrecedence = 0;
         for( auto pEdge : pStep->get_edges() )
+        {
+            iHighestPrecedence = std::max( iHighestPrecedence, pEdge->get_precedence() );
+        }
+
+        std::vector< Edge* > edges;
+        for( auto pEdge : pStep->get_edges() )
+        {
+            if( pEdge->get_precedence() == iHighestPrecedence )
+            {
+                edges.push_back( pEdge );
+            }
+            else
+            {
+                pEdge->set_eliminated( true );
+            }
+        }
+
+        for( auto pEdge : edges )
         {
             const auto EdgeResult = exclusive( pEdge->get_next(), finalFrontier, result );
             if( EdgeResult == eFailure )
@@ -211,6 +230,53 @@ static Disambiguation disambiguate( Root* pStep, const std::vector< Or* >& final
     else
     {
         return result.value();
+    }
+}
+
+static void precedence( Edge* pEdge )
+{
+    {
+        auto edges = pEdge->get_edges();
+        if( edges.size() == 1 )
+        {
+            auto pGraphEdge = edges.front();
+            switch( pGraphEdge->get_type().get() )
+            {
+                case ::mega::EdgeType::eChildSingular:
+                case ::mega::EdgeType::eChildNonSingular:
+                case ::mega::EdgeType::eDim:
+                    pEdge->set_precedence( 1 );
+                    break;
+                case ::mega::EdgeType::eLink:
+                    // do not give ownership link precedence
+                    if( !db_cast< Concrete::Dimensions::OwnershipLink >( pGraphEdge->get_target() ) )
+                    {
+                        pEdge->set_precedence( 1 );
+                    }
+                    break;
+                case ::mega::EdgeType::eParent:
+                case ::mega::EdgeType::eMono:
+                case ::mega::EdgeType::ePoly:
+                case ::mega::EdgeType::ePolyParent:
+                    break;
+                case ::mega::EdgeType::TOTAL_EDGE_TYPES:
+                default:
+                    THROW_RTE( "Unknown hyper graph edge type" );
+                    break;
+            }
+        }
+    }
+    for( auto pNextEdge : pEdge->get_next()->get_edges() )
+    {
+        precedence( pNextEdge );
+    }
+}
+
+static void presedence( Root* pStep )
+{
+    for( auto pEdge : pStep->get_edges() )
+    {
+        precedence( pEdge );
     }
 }
 

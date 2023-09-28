@@ -457,8 +457,8 @@ public:
                     for( auto pChild : pContext->get_children() )
                     {
                         const EdgeType edgeType = ( getLocalDomainSize( pChild ) > 1 )
-                                                      ? mega::EdgeType::eChildSingular
-                                                      : mega::EdgeType::eChildNonSingular;
+                                                      ? mega::EdgeType::eChildNonSingular
+                                                      : mega::EdgeType::eChildSingular;
                         {
                             database.construct< Concrete::Graph::Edge >(
                                 Concrete::Graph::Edge::Args{ edgeType, pContext, pChild } );

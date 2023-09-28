@@ -26,6 +26,17 @@
 
 #include "mega/invocation_io.hpp"
 #include "mega/common_strings.hpp"
+#include "mega/operation_id.hpp"
+
+namespace OperationsStage
+{
+#include "compiler/interface_printer.hpp"
+#include "compiler/concrete_printer.hpp"
+namespace Derivation
+{
+#include "compiler/derivation_printer.hpp"
+} // namespace Derivation
+} // namespace OperationsStage
 
 static constexpr const char Link_Name[] = "Link";
 
@@ -35,6 +46,15 @@ R"TESTCODE(
 
 interface Base
 {
+    component C
+    {
+        owns A;
+    }
+    component D
+    {
+        owns B;
+    }
+    dim int m_y;
 }
 
 object A : Base
@@ -59,6 +79,8 @@ struct LinkData
 {
     std::string                context;
     std::vector< std::string > typePath;
+    int                        expectedOperations;
+    mega::ExplicitOperationID  expectedOperationType;
 };
 
 std::ostream& operator<<( std::ostream& os, const LinkData& testData )
@@ -97,7 +119,13 @@ TEST_P( LinkFixtureType, LinkParameterizedTest )
     Operations::Invocation* pInvocation = mega::invocation::compileInvocation( database, symbolTables, id );
     ASSERT_TRUE( pInvocation );
 
-    ASSERT_EQ( pInvocation->get_operations().size(), 2 );
+    ASSERT_EQ( pInvocation->get_operations().size(), data.expectedOperations );
+
+    std::cout << "Link Test: " << data.context;
+    for( const auto& e : data.typePath )
+        std::cout << " " << e;
+    std::cout << "\n";
+    printDerivationStep( pInvocation->get_derivation(), false, std::cout );
 }
 
 using namespace std::string_literals;
@@ -106,6 +134,20 @@ using namespace std::string_literals;
 INSTANTIATE_TEST_SUITE_P( Link, LinkFixtureType,
         ::testing::Values
         ( 
-            LinkData{ "Root"s, { "m_x"s } }
+            LinkData{ "Root"s, { "m_x"s }, 2, mega::id_exp_Read },
+            LinkData{ "Root"s, { "Base"s }, 1, mega::id_exp_Read_Link },
+            LinkData{ "Root"s, { "C"s }, 1, mega::id_exp_Read_Link },
+            LinkData{ "Root"s, { "C"s, "A"s }, 2, mega::id_exp_Read_Link },
+            LinkData{ "Root"s, { "C"s, "A"s, "m_x"s }, 2, mega::id_exp_Read },
+            LinkData{ "Root"s, { "Base"s, "C"s, "A"s, "m_x"s }, 2, mega::id_exp_Read },
+
+            LinkData{ "Root"s, { "Base"s, "C"s, "A"s, "C"s, "A"s, "C"s, "A"s, "m_x"s }, 2, mega::id_exp_Read },
+            LinkData{ "Root"s, { "Base"s, "C"s, "A"s, "D"s, "B"s, "D"s, "B"s, "m_x"s }, 2, mega::id_exp_Read },
+
+
+            LinkData{ "D"s, { "m_x"s }, 2, mega::id_exp_Read },
+            LinkData{ "D"s, { "m_y"s }, 2, mega::id_exp_Read },
+            
+            LinkData{ "Base"s, { "m_y"s }, 2, mega::id_exp_Read }
         ));
 // clang-format on

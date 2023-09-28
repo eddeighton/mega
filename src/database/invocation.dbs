@@ -96,12 +96,12 @@ namespace Invocations
 */
         object PolyBranch : InstructionGroup -> OperationsStage::Operations
         {
-            ref< Variables::Reference > from_reference;
+            ref< Variables::Variable > from_reference;
         }
 
         object PolyCase : InstructionGroup -> OperationsStage::Operations
         {
-            ref< Variables::Reference > reference;
+            ref< Variables::Variable > reference;
             ref< Concrete::Context >    type;
         }
     }

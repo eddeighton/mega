@@ -112,6 +112,15 @@ INSTANTIATE_TEST_SUITE_P( Basic, BasicFixtureType,
             BasicData{ "Root"s, { "c"s, "m_z"s } },
 
             BasicData{ "Root"s, { "a"s, "m_z"s } },
-            BasicData{ "Root"s, { "c"s, "a"s, "m_z"s } }
+            BasicData{ "Root"s, { "c"s, "a"s, "m_z"s } },
+
+            // inverse
+
+            BasicData{ "a"s, { "Root"s } },
+            BasicData{ "a"s, { "c"s, "Root"s } },
+            BasicData{ "a"s, { "c"s, "m_x"s } },
+            BasicData{ "a"s, { "m_x"s } },
+            BasicData{ "a"s, { "m_y"s } },
+            BasicData{ "a"s, { "m_z"s } }
         ));
 // clang-format on
