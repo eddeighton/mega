@@ -99,7 +99,7 @@ std::optional< mega::TypeID > getMegaTypeID( ASTContext* pASTContext, QualType t
         }*/
     }
 
-    // CLANG_PLUGIN_LOG( "No symbol id for: "  << type.getAsString() );
+    CLANG_PLUGIN_LOG( "No symbol id for: "  << type.getAsString() );
 
     return std::optional< mega::TypeID >();
 }

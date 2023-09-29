@@ -55,8 +55,10 @@ std::string Compilation::generatePCHVerificationCMD() const
         osCmd << "-Xclang " << inputPCH.string() << " ";
     }
 
+    VERIFY_RTE( compilationMode.has_value() );
+
     // eg
-    if( compilationMode.has_value() )
+    if( compilationMode.value().get() != CompilationMode::eNormal )
     {
         VERIFY_RTE( compiler_plugin.has_value() );
         VERIFY_RTE( srcDir.has_value() );
@@ -124,8 +126,10 @@ std::string Compilation::generateCompilationCMD() const
         osCmd << "-Xclang " << inputPCH.string() << " ";
     }
 
+    VERIFY_RTE( compilationMode.has_value() );
+
     // eg
-    if( compilationMode.has_value() )
+    if( compilationMode.value().get() != CompilationMode::eNormal )
     {
         VERIFY_RTE( compiler_plugin.has_value() );
         VERIFY_RTE( srcDir.has_value() );

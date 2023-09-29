@@ -140,9 +140,6 @@ void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const JIT
             case mega::runtime::invocation::eWrite:
                 m_pInja->render_write( data, osCPPCode );
                 break;
-            case mega::runtime::invocation::eAllocate:
-                m_pInja->render_allocate( data, osCPPCode );
-                break;
             case mega::runtime::invocation::eCall:
                 m_pInja->render_call( data, osCPPCode );
                 break;
@@ -157,9 +154,6 @@ void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const JIT
                 break;
             case mega::runtime::invocation::eStart:
                 m_pInja->render_start( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eStop:
-                m_pInja->render_stop( data, osCPPCode );
                 break;
             case mega::runtime::invocation::eMove:
                 m_pInja->render_move( data, osCPPCode );

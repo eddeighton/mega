@@ -45,14 +45,12 @@ public:
     boost::filesystem::path        getExecutorPath() const;
 
     boost::filesystem::path getRuntimeTemplateAllocation() const;
-    boost::filesystem::path getRuntimeTemplateAllocate() const;
     boost::filesystem::path getRuntimeTemplateRead() const;
     boost::filesystem::path getRuntimeTemplateWrite() const;
     boost::filesystem::path getRuntimeTemplateReadLink() const;
     boost::filesystem::path getRuntimeTemplateWriteLink() const;
     boost::filesystem::path getRuntimeTemplateCall() const;
     boost::filesystem::path getRuntimeTemplateStart() const;
-    boost::filesystem::path getRuntimeTemplateStop() const;
     boost::filesystem::path getRuntimeTemplateGet() const;
     boost::filesystem::path getRuntimeTemplateRelation() const;
     boost::filesystem::path getRuntimeTemplateProgram() const;

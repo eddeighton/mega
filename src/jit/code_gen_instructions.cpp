@@ -509,8 +509,8 @@ R"TEMPLATE(
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// GetAction
-void gen( Args args, FinalStage::Invocations::Operations::GetAction* pGet )
+// GetContext
+void gen( Args args, FinalStage::Invocations::Operations::GetContext* pGet )
 {
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
@@ -964,7 +964,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pMove );
         }
-        else if( auto pGet = db_cast< GetAction >( pOperation ) )
+        else if( auto pGet = db_cast< GetContext >( pOperation ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pGet );
         }

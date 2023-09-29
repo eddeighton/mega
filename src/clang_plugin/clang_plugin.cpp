@@ -114,6 +114,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
                 case mega::CompilationMode::eNormal:
                 case mega::CompilationMode::TOTAL_COMPILATION_MODES:
                 default:
+                    THROW_RTE( "Megastructure Clang plugin used in normal compilation" );
                     g_bMegaEnabled = false;
                     g_pSession     = std::make_unique< clang::Session >( g_pASTContext, g_pSema );
                     return;

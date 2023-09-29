@@ -142,14 +142,11 @@ public:
 
         Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );
 
-        THROW_TODO;
-        /*for( auto pInvocationContext : database.many< Interface::InvocationContext >( m_sourceFilePath ) )
+        for( auto pInvocationContext : database.many< Interface::InvocationContext >( m_sourceFilePath ) )
         {
             std::vector< Interface::InvocationInstance* > invocationInstances;
             SourceLocation                                operationLoc;
 
-            // TODO add multi-inheritance to db
-            // for now ignore State
             if( db_cast< Interface::Action >( pInvocationContext )
                 || !db_cast< Interface::State >( pInvocationContext ) )
             {
@@ -179,7 +176,7 @@ public:
 
             database.construct< Interface::InvocationContext >(
                 Interface::InvocationContext::Args{ pInvocationContext, invocationInstances, operationLoc } );
-        }*/
+        }
 
         const task::FileHash fileHashCode = database.save_Locations_to_temp();
         m_environment.setBuildHashCode( compilationFile, fileHashCode );

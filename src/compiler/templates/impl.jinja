@@ -121,17 +121,6 @@ struct __invoke_impl
         static thread_local mega::runtime::invocation::WriteLink function( g_unit_name, id );
         return function( context, overload, interfaceRef );
     }
-{% else if invocation.explicit_operation == "Allocate" %}
-    template< typename... Args >
-    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... ) const
-    {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // Allocate
-        static thread_local mega::runtime::invocation::Allocate function( g_unit_name, id );
-        return function( context );
-    }
 {% else if invocation.explicit_operation == "Call" %}
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
@@ -161,17 +150,6 @@ struct __invoke_impl
         static thread_local mega::runtime::invocation::Start function( g_unit_name, id );
         return function( context );
     }
-{% else if invocation.explicit_operation == "Stop" %}
-    template< typename... Args >
-    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... ) const
-    {
-        static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
-        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-        static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // Stop
-        static thread_local mega::runtime::invocation::Stop function( g_unit_name, id );
-        function( context );
-    }
 {% else if invocation.explicit_operation == "Move" %}
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
@@ -183,14 +161,14 @@ struct __invoke_impl
         static thread_local mega::runtime::invocation::Move function( g_unit_name, id );
         function( context, args... );
     }
-{% else if invocation.explicit_operation == "GetAction" %}
+{% else if invocation.explicit_operation == "GetContext" %}
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... ) const
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
         static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // GetAction
+        // GetContext
         static thread_local mega::runtime::invocation::Get function( g_unit_name, id );
         return function( context );
     }
@@ -201,14 +179,12 @@ struct __invoke_impl
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
         static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
-        // GetAction
+        // GetDimension
         static thread_local mega::runtime::invocation::Get function( g_unit_name, id );
         return function( context );
     }
 {% else if invocation.explicit_operation == "Range" %}
         // Range
-{% else if invocation.explicit_operation == "Raw" %}
-        // Raw
 {% endif %}
 
 };
@@ -219,15 +195,13 @@ struct __invoke_impl
 template< typename Context, typename TypePath, typename Operation, typename... Args >
 static void invoke_impl_void( Context context, Args... args )
 {
-    using TypePathCanonical = typename mega::CanonicaliseTypePath< TypePath >::Type;
-    __invoke_impl< void, Context, TypePathCanonical, Operation >()( context, args... );
+    __invoke_impl< void, Context, TypePath, Operation >()( context, args... );
 }
 
 template< typename ResultType, typename Context, typename TypePath, typename Operation, typename... Args >
 static ResultType invoke_impl( Context context, Args... args )
 {
-    using TypePathCanonical = typename mega::CanonicaliseTypePath< TypePath >::Type;
-    return __invoke_impl< ResultType, Context, TypePathCanonical, Operation >()( context, args... );
+    return __invoke_impl< ResultType, Context, TypePath, Operation >()( context, args... );
 }
 
 template< typename To, typename From >

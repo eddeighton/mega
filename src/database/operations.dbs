@@ -81,6 +81,42 @@ namespace Derivation
 
 namespace Operations
 {
+    namespace ReturnTypes
+    {
+        object ReturnType -> OperationsStage::Operations
+        {
+            // set only when compiled by clang
+            late< value< std::string > > canonical_type;
+        }
+
+        object Void : ReturnType -> OperationsStage::Operations
+        {
+        }
+
+        object Dimension : ReturnType -> OperationsStage::Operations
+        {
+            array< ref< Interface::DimensionTrait > >   dimensions;
+            value< bool >                               homogeneous;
+        }
+
+        object Function : ReturnType -> OperationsStage::Operations
+        {
+            array< ref< Interface::Function > >         functions;
+            value< bool >                               homogeneous;
+        }
+
+        object Context : ReturnType -> OperationsStage::Operations
+        {
+            array< ref< Interface::IContext > > contexts;
+        }
+
+        object Range : Context -> OperationsStage::Operations
+        {
+
+        }
+    }
+
+
     object Invocation -> OperationsStage::Operations
     {
         value< mega::InvocationID > id;
@@ -93,26 +129,13 @@ namespace Operations
 
         late< value< mega::ExplicitOperationID > > explicit_operation;
 
-        // ref< Context >              context;
-        // ref< TypePath >             type_path;
-        // value< mega::OperationID >  operation;
-        
-        // value< std::string >            name;
-        // value< std::string >            context_str;
-        // value< std::string >            type_path_str;
-        
-        // late< value< std::string > >                        return_type_str;
-        // late< value< std::string > >                        runtime_return_type_str;
-        // late< value< std::string > >                        runtime_parameter_type_str;
-        
-        // late< array< ref< Interface::IContext > > >         parameter_contexts;
-        // late< array< ref< Interface::IContext > > >         return_type_contexts;
-        // late< array< ref< Interface::DimensionTrait > > >   return_type_dimensions;
-        // late< value< bool > >                               homogeneous;
-        // late< value< bool > >                               singular;
-        // late< value< bool > >                               is_function_call;
-        
-        late< array< value< mega::SourceLocation > > > file_offsets;
+        late< ref< ReturnTypes::ReturnType > > return_type;
+
+        // set only when compiled by clang
+        late< array< value< mega::SourceLocation > > >  file_offsets;
+        late< value< std::string > >                    canonical_context;
+        late< value< std::string > >                    canonical_type_path;
+        late< value< std::string > >                    canonical_operation;
     }
 
 
@@ -158,7 +181,6 @@ namespace Operations
 
     object Range : Invocation -> OperationsStage::Operations
     {
-        // RangeType
     }
 
     object Invocations -> OperationsStage::Operations

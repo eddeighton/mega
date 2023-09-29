@@ -216,7 +216,7 @@ struct InvocationPolicy
                     path.push_back( pEdge );
                     pVertex = pEdge->get_target();
                     VERIFY_RTE( !bFound );
-                    bFound  = true;
+                    bFound = true;
                 }
             }
             if( !bFound )
@@ -733,6 +733,32 @@ public:
     OperationsStage::Operations::Invocation* getInvocation() const { return m_pInvocation; }
 };
 
+namespace
+{
+template < class T >
+inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
+{
+    /*
+    not this...
+    std::sort( ids.begin(), ids.end() );
+    auto last = std::unique( ids.begin(), ids.end() );
+    ids.erase( last, ids.end() );
+    */
+
+    std::vector< T > result;
+    std::set< T >    uniq;
+    for( const T& value : ids )
+    {
+        if( uniq.count( value ) == 0 )
+        {
+            result.push_back( value );
+            uniq.insert( value );
+        }
+    }
+    return result;
+}
+} // namespace
+
 void buildOperation( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation )
 {
     std::vector< Concrete::Graph::Vertex* > operationContexts;
@@ -849,26 +875,117 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
             switch( targetType )
             {
                 case eObjects:
+                    THROW_RTE( "Implicit invocation cannot be on object context" );
                     break;
                 case eComponents:
+                    THROW_RTE( "Implicit invocation cannot be on component context" );
                     break;
                 case eStates:
+                    // return type is the started state
+                    {
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : states )
+                        {
+                            contexts.push_back( pConcrete->get_interface() );
+                        }
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< Start >( Start::Args{ pInvocation } );
+
                     explicitOperationType = id_exp_Start;
                     break;
                 case eFunctions:
+                    // return type is the function return type
+                    {
+                        std::vector< Interface::Function* > contexts;
+                        std::set< std::string >             types;
+                        for( auto pConcrete : functions )
+                        {
+                            contexts.push_back( pConcrete->get_interface_function() );
+                            types.insert(
+                                pConcrete->get_interface_function()->get_return_type_trait()->get_canonical_type() );
+                        }
+                        const bool bHomogenous = ( types.size() == 1 ) ? true : false;
+                        contexts               = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Function >(
+                            ReturnTypes::Function::Args{ ReturnTypes::ReturnType::Args{}, contexts, bHomogenous } ) );
+                    }
+
                     database.construct< Call >( Call::Args{ pInvocation } );
                     explicitOperationType = id_exp_Call;
                     break;
                 case eEvents:
+                    // return type is the signaled event
+                    {
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : events )
+                        {
+                            contexts.push_back( pConcrete->get_interface() );
+                        }
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< Signal >( Signal::Args{ pInvocation } );
                     explicitOperationType = id_exp_Signal;
                     break;
                 case eUserDimensions:
+                    // return type is the read dimensions
+                    {
+                        std::vector< Interface::DimensionTrait* > contexts;
+                        std::set< std::string >                   types;
+                        for( auto pConcrete : userDimensions )
+                        {
+                            auto pDimensionTrait = pConcrete->get_interface_dimension();
+                            contexts.push_back( pDimensionTrait );
+                            types.insert( pDimensionTrait->get_canonical_type() );
+                        }
+                        const bool bHomogenous = ( types.size() == 1 ) ? true : false;
+                        contexts               = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Dimension >(
+                            ReturnTypes::Dimension::Args{ ReturnTypes::ReturnType::Args{}, contexts, bHomogenous } ) );
+                    }
+
                     database.construct< Read >( Read::Args{ pInvocation } );
                     explicitOperationType = id_exp_Read;
                     break;
                 case eLinkDimensions:
+                    // return type is the target of the link
+                    {
+                        std::vector< Concrete::Context* > targets;
+                        for( auto pConcrete : linkDimensions )
+                        {
+                            bool bFound = false;
+                            for( auto pGraphEdge : pConcrete->get_out_edges() )
+                            {
+                                if( pGraphEdge->get_type().get() == EdgeType::eMono
+                                    || pGraphEdge->get_type().get() == EdgeType::ePoly
+                                    || pGraphEdge->get_type().get() == EdgeType::ePolyParent )
+                                {
+                                    auto pTargetContext = db_cast< Concrete::Context >( pGraphEdge->get_target() );
+                                    VERIFY_RTE( pTargetContext );
+                                    targets.push_back( pTargetContext );
+                                    bFound = true;
+                                }
+                            }
+                            VERIFY_RTE( bFound );
+                        }
+
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : targets )
+                        {
+                            contexts.push_back( pConcrete->get_interface() );
+                        }
+
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< ReadLink >( ReadLink::Args{ pInvocation } );
                     explicitOperationType = id_exp_Read_Link;
                     break;
@@ -882,26 +999,66 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
             switch( targetType )
             {
                 case eObjects:
+                    THROW_RTE( "Implicit invocation cannot be on object context" );
                     break;
                 case eComponents:
+                    THROW_RTE( "Implicit invocation cannot be on component context" );
                     break;
                 case eStates:
-                    database.construct< Start >( Start::Args{ pInvocation } );
-                    explicitOperationType = id_exp_Start;
+                    THROW_RTE( "Start operation cannot have parameters" );
                     break;
                 case eFunctions:
+                    // return type is the function return type
+                    {
+                        std::vector< Interface::Function* > contexts;
+                        std::set< std::string >             types;
+                        for( auto pConcrete : functions )
+                        {
+                            contexts.push_back( pConcrete->get_interface_function() );
+                            types.insert(
+                                pConcrete->get_interface_function()->get_return_type_trait()->get_canonical_type() );
+                        }
+                        const bool bHomogenous = ( types.size() == 1 ) ? true : false;
+                        contexts               = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Function >(
+                            ReturnTypes::Function::Args{ ReturnTypes::ReturnType::Args{}, contexts, bHomogenous } ) );
+                    }
+
                     database.construct< Call >( Call::Args{ pInvocation } );
                     explicitOperationType = id_exp_Call;
                     break;
                 case eEvents:
-                    database.construct< Signal >( Signal::Args{ pInvocation } );
-                    explicitOperationType = id_exp_Signal;
+                    THROW_RTE( "Event operation cannot have parameters" );
                     break;
                 case eUserDimensions:
+                    // return the context of the write
+                    {
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : userDimensions )
+                        {
+                            contexts.push_back( pConcrete->get_parent_context()->get_interface() );
+                        }
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< Write >( Write::Args{ pInvocation } );
                     explicitOperationType = id_exp_Write;
                     break;
                 case eLinkDimensions:
+                    // return the context of the write
+                    {
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : linkDimensions )
+                        {
+                            contexts.push_back( pConcrete->get_parent_context()->get_interface() );
+                        }
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< WriteLink >( WriteLink::Args{ pInvocation } );
                     explicitOperationType = id_exp_Write_Link;
                     break;
@@ -912,6 +1069,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
         break;
         case mega::id_Move:
         {
+            THROW_TODO;
             database.construct< Move >( Move::Args{ pInvocation } );
             explicitOperationType = id_exp_Move;
         }
@@ -921,32 +1079,94 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
             switch( targetType )
             {
                 case eObjects:
+                    // reference context of object
+                    {
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : objects )
+                        {
+                            contexts.push_back( pConcrete->get_interface() );
+                        }
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
                     break;
                 case eComponents:
+                    // reference context of component
+                    {
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : components )
+                        {
+                            contexts.push_back( pConcrete->get_interface() );
+                        }
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
                     break;
                 case eStates:
+                    // reference context of state
+                    {
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : states )
+                        {
+                            contexts.push_back( pConcrete->get_interface() );
+                        }
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
                     break;
                 case eFunctions:
+                    // reference context of function
+                    {
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : functions )
+                        {
+                            contexts.push_back( pConcrete->get_interface() );
+                        }
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
                     break;
                 case eEvents:
+                    // reference context of events
+                    {
+                        std::vector< Interface::IContext* > contexts;
+                        for( auto pConcrete : events )
+                        {
+                            contexts.push_back( pConcrete->get_interface() );
+                        }
+                        contexts = uniquify_without_reorder( contexts );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                    }
+
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
                     break;
                 case eUserDimensions:
-                    database.construct< GetDimension >( GetDimension::Args{ pInvocation } );
-                    explicitOperationType = id_exp_GetDimension;
+                    THROW_RTE( "Cannot get a dimension" );
+                    // database.construct< GetDimension >( GetDimension::Args{ pInvocation } );
+                    // explicitOperationType = id_exp_GetDimension;
                     break;
                 case eLinkDimensions:
-                    database.construct< GetDimension >( GetDimension::Args{ pInvocation } );
-                    explicitOperationType = id_exp_GetDimension;
+                    THROW_RTE( "Cannot get a dimension" );
+                    // database.construct< GetDimension >( GetDimension::Args{ pInvocation } );
+                    // explicitOperationType = id_exp_GetDimension;
                     break;
                 case eUNSET:
                     break;
@@ -955,6 +1175,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
         break;
         case mega::id_Range:
         {
+            THROW_TODO;
             database.construct< Range >( Range::Args{ pInvocation } );
             explicitOperationType = id_exp_Range;
         }

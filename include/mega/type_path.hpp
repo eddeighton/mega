@@ -30,6 +30,7 @@
 template< typename... Ts >
 struct [[clang::eg_type( mega::id_TypePath )]] __eg_type_path{};
 
+/*
 namespace mega
 {
     //https://stackoverflow.com/questions/19838965/how-can-i-use-variadic-templates-to-flatten-a-tree-of-types
@@ -76,5 +77,6 @@ namespace mega
     };
 
 }
+*/
 
 #endif //EG_TYPE_PATH

@@ -34,11 +34,13 @@
 #include <optional>
 #include <iostream>
 
-//#define CLANG_PLUGIN_LOG( msg )                                                                              \
-//    DO_STUFF_AND_REQUIRE_SEMI_COLON( std::cout << "FILE " << __FILE__ << " FUNC: " << BOOST_CURRENT_FUNCTION \
-//                                               << " LINE:" << __LINE__ << " MSG: " << msg << std::endl; )
-
+#ifdef ENABLE_CLANG_PLUGIN_LOG
+#define CLANG_PLUGIN_LOG( msg )                                                                              \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( std::cout << "FILE " << __FILE__ << " FUNC: " << BOOST_CURRENT_FUNCTION \
+                                               << " LINE:" << __LINE__ << " MSG: " << msg << std::endl; )
+#else
 #define CLANG_PLUGIN_LOG( msg )
+#endif
 
 namespace clang
 {

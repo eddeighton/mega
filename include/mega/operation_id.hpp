@@ -96,7 +96,6 @@ enum ExplicitOperationID : TypeID::ValueType
     id_exp_Call,
     id_exp_Signal,
     id_exp_Start,
-    id_exp_Stop,
     id_exp_Move,
     id_exp_GetContext,
     id_exp_GetDimension,

@@ -69,9 +69,8 @@ static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings =
     std::string( "Call" ),
     std::string( "Signal" ),
     std::string( "Start" ),
-    std::string( "Stop" ),
     std::string( "Move" ),
-    std::string( "GetAction" ),
+    std::string( "GetContext" ),
     std::string( "GetDimension" ),
     std::string( "Range" )
 };

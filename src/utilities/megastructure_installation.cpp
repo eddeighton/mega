@@ -84,10 +84,6 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateAllocation(
 {
     return m_installationPath / "templates/allocator.jinja";
 }
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateAllocate() const
-{
-    return m_installationPath / "templates/allocate.jinja";
-}
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateRead() const
 {
     return m_installationPath / "templates/read.jinja";
@@ -111,10 +107,6 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateCall() cons
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateStart() const
 {
     return m_installationPath / "templates/start.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateStop() const
-{
-    return m_installationPath / "templates/stop.jinja";
 }
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateGet() const
 {

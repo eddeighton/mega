@@ -342,19 +342,6 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     return cast( m_module, result );
                 }
                 break;
-                case id_exp_Stop:
-                {
-                    m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &m_module = m_module ]()
-                        {
-                            auto pStopFunction = reinterpret_cast< mega::runtime::invocation::Stop::FunctionPtr >(
-                                functionInfo.pFunctionPtr );
-                            pStopFunction( m_reference );
-                        } );
-                    Py_INCREF( Py_None );
-                    return Py_None;
-                }
-                break;
                 case id_exp_GetContext:
                 case id_exp_GetDimension:
                 {

@@ -38,7 +38,6 @@ namespace mega
 class Inja
 {
     ::inja::Environment m_injaEnvironment;
-    ::inja::Template    m_allocateTemplate;
     ::inja::Template    m_allocatorTemplate;
     ::inja::Template    m_callTemplate;
     ::inja::Template    m_getTemplate;
@@ -47,7 +46,6 @@ class Inja
     ::inja::Template    m_readTemplate;
     ::inja::Template    m_relationTemplate;
     ::inja::Template    m_startTemplate;
-    ::inja::Template    m_stopTemplate;
     ::inja::Template    m_writeLinkTemplate;
     ::inja::Template    m_writeTemplate;
     ::inja::Template    m_moveTemplate;
@@ -58,7 +56,6 @@ public:
     Inja( const mega::MegastructureInstallation& megaInstall, const mega::Project& project )
     {
         m_injaEnvironment.set_trim_blocks( true );
-        m_allocateTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocate().string() );
         m_allocatorTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().string() );
         m_callTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().string() );
         m_getTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateGet().string() );
@@ -67,7 +64,6 @@ public:
         m_readTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().string() );
         m_relationTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRelation().string() );
         m_startTemplate     = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().string() );
-        m_stopTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStop().string() );
         m_writeLinkTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWriteLink().string() );
         m_writeTemplate     = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().string() );
         m_moveTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateMove().string() );
@@ -76,10 +72,6 @@ public:
     void render_allocator( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_allocatorTemplate, data );
-    }
-    void render_allocate( const nlohmann::json& data, std::ostream& os )
-    {
-        m_injaEnvironment.render_to( os, m_allocateTemplate, data );
     }
     void render_read( const nlohmann::json& data, std::ostream& os )
     {
@@ -104,10 +96,6 @@ public:
     void render_start( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_startTemplate, data );
-    }
-    void render_stop( const nlohmann::json& data, std::ostream& os )
-    {
-        m_injaEnvironment.render_to( os, m_stopTemplate, data );
     }
     void render_get( const nlohmann::json& data, std::ostream& os )
     {

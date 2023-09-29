@@ -32,6 +32,7 @@
 
 #include "mega/operation_id.hpp"
 #include "mega/common_strings.hpp"
+#include "mega/types/traits.hpp"
 
 #include "common/file.hpp"
 
@@ -51,6 +52,11 @@ namespace InheritanceAnalysisView
 using namespace InheritanceAnalysisView::Interface;
 #include "compiler/generator_interface.hpp"
 } // namespace InheritanceAnalysisView
+
+namespace FinalStage
+{
+#include "compiler/generator_implementation.hpp"
+}
 
 namespace mega::compiler
 {
@@ -400,26 +406,6 @@ class Task_CPPImplementation : public BaseTask
 {
     const mega::io::cppFilePath& m_sourceFilePath;
 
-    class TemplateEngine
-    {
-        const mega::io::StashEnvironment& m_environment;
-        ::inja::Environment&              m_injaEnvironment;
-        ::inja::Template                  m_implTemplate;
-
-    public:
-        TemplateEngine( const mega::io::StashEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
-            : m_environment( buildEnvironment )
-            , m_injaEnvironment( injaEnv )
-            , m_implTemplate( m_injaEnvironment.parse_template( m_environment.ImplementationTemplate().string() ) )
-        {
-        }
-
-        void renderImpl( const nlohmann::json& data, std::ostream& os ) const
-        {
-            m_injaEnvironment.render_to( os, m_implTemplate, data );
-        }
-    };
-
 public:
     Task_CPPImplementation( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
         : BaseTask( taskArguments )
@@ -450,109 +436,12 @@ public:
 
         Database database( m_environment, m_environment.project_manifest() );
 
+        std::ostringstream os;
         {
-            ::inja::Environment injaEnvironment;
-            {
-                injaEnvironment.set_trim_blocks( true );
-            }
-
-            TemplateEngine templateEngine( m_environment, injaEnvironment );
-
-            nlohmann::json implData( { { "unitname", m_sourceFilePath.path().string() },
-                                       { "invocations", nlohmann::json::array() },
-                                       { "interfaces", nlohmann::json::array() } } );
-
-            Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );
-
-            std::vector< Interface::IContext* > contexts;
-            THROW_TODO;
-            /*{
-                std::set< Interface::IContext* > uniqueContexts;
-                for( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
-                {
-                    for( auto pElementVector : pInvocation->get_context()->get_vectors() )
-                    {
-                        for( auto pElement : pElementVector->get_elements() )
-                        {
-                            if( pElement->get_interface()->get_context().has_value() )
-                            {
-                                Interface::IContext* pContext = pElement->get_interface()->get_context().value();
-                                if( uniqueContexts.count( pContext ) == 0 )
-                                {
-                                    uniqueContexts.insert( pContext );
-                                    contexts.push_back( pContext );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            {
-                std::vector< std::string > typeNameStack;
-                for( Interface::IContext* pContext : contexts )
-                {
-                    Interface::IContext*       pIter = pContext;
-                    std::vector< std::string > typeNamePath;
-                    while( pIter )
-                    {
-                        typeNamePath.push_back( pIter->get_identifier() );
-                        pIter = db_cast< Interface::IContext >( pIter->get_parent() );
-                    }
-                    std::reverse( typeNamePath.begin(), typeNamePath.end() );
-                    std::ostringstream os;
-                    common::delimit( typeNamePath.begin(), typeNamePath.end(), "::", os );
-                    implData[ "interfaces" ].push_back( os.str() );
-                }
-
-                for( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
-                {
-                    std::ostringstream osContextIDs;
-                    {
-                        bool bFirst = true;
-                        for( TypeID typeID : id.m_context )
-                        {
-                            if( bFirst ) bFirst = false;
-                            else osContextIDs << ',';
-                            osContextIDs << "mega::TypeID{ " << typeID.getSymbolID() << " }";
-                        }
-                    }
-
-                    std::ostringstream osTypePathIDs;
-                    {
-                        bool bFirst = true;
-                        for( TypeID typeID : id.m_type_path )
-                        {
-                            if( bFirst ) bFirst = false;
-                            else osTypePathIDs << ',';
-                            osTypePathIDs << "mega::TypeID{ " << typeID.getSymbolID() << " }";
-                        }
-                    }
-
-                    nlohmann::json invocation(
-                        { { "return_type", pInvocation->get_return_type_str() },
-                          { "runtime_return_type", pInvocation->get_runtime_return_type_str() },
-                          { "runtime_param_type", pInvocation->get_runtime_parameter_type_str() },
-                          { "context", pInvocation->get_context_str() },
-                          { "type_path", pInvocation->get_type_path_str() },
-                          { "operation", mega::getOperationString( pInvocation->get_operation() ) },
-                          { "explicit_operation",
-                            mega::getExplicitOperationString( pInvocation->get_explicit_operation() ) },
-                          { "context_type_id_list", osContextIDs.str() },
-                          { "context_size", id.m_context.size() },
-                          { "type_path_type_id_list", osTypePathIDs.str() },
-                          { "type_path_size", id.m_type_path.size() },
-                          { "impl", "" } } );
-
-                    implData[ "invocations" ].push_back( invocation );
-                }
-            }*/
-
-            std::ostringstream os;
-            templateEngine.renderImpl( implData, os );
-
-            boost::filesystem::updateFileIfChanged( m_environment.FilePath( implementationFile ), os.str() );
+            ImplementationGen implGen( m_environment, m_sourceFilePath.path().string() );
+            implGen.generate( database.one< Operations::Invocations >( m_sourceFilePath ), os );
         }
+        boost::filesystem::updateFileIfChanged( m_environment.FilePath( implementationFile ), os.str() );
 
         m_environment.setBuildHashCode( implementationFile );
         m_environment.stash( implementationFile, determinant );

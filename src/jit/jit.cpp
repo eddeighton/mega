@@ -316,8 +316,7 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
         case mega::id_exp_Call:            functionType = mega::runtime::invocation::eCall; break; 
         case mega::id_exp_Signal:          functionType = mega::runtime::invocation::eSignal; break; 
         case mega::id_exp_Start:           functionType = mega::runtime::invocation::eStart; break;     
-        case mega::id_exp_Stop:            functionType = mega::runtime::invocation::eStop; break; 
-        case mega::id_exp_GetContext:       functionType = mega::runtime::invocation::eGet; break;         
+        case mega::id_exp_GetContext:      functionType = mega::runtime::invocation::eGet; break;         
         case mega::id_exp_GetDimension:    functionType = mega::runtime::invocation::eGet; break;  
         case mega::id_exp_Move:            functionType = mega::runtime::invocation::eMove; break;     
         case mega::id_exp_Range:    
@@ -393,12 +392,6 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
                 Symbol( invocationID, Symbol::Ref_Wo_CVStar ) );
         }
         break;
-        case invocation::eAllocate:
-        {
-            *ppFunction
-                = ( void* )pModule->get< invocation::Allocate::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
-        }
-        break;
         case invocation::eCall:
         {
             *ppFunction = ( void* )pModule->get< invocation::Call::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
@@ -413,11 +406,6 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
         {
             *ppFunction
                 = ( void* )pModule->get< invocation::Start::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
-        }
-        break;
-        case invocation::eStop:
-        {
-            *ppFunction = ( void* )pModule->get< invocation::Stop::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
         }
         break;
         case invocation::eMove:

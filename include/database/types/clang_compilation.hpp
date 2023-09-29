@@ -69,6 +69,7 @@ public:
                                  TComponentType* pComponent, const io::megaFilePath& sourceFile )
     {
         Compilation compilation;
+        compilation.compilationMode = CompilationMode::eNormal;
 
         // use ccache on linux to speed up include pch
 #ifdef __gnu_linux__
@@ -164,12 +165,13 @@ public:
 
         compilation.compilationMode = CompilationMode::eNormal;
 
-        compilation.compiler        = toolChain.clangCompilerPath;
-        compilation.compiler_plugin = toolChain.clangPluginPath;
-
-        compilation.srcDir     = environment.srcDir();
-        compilation.buildDir   = environment.buildDir();
-        compilation.sourceFile = environment.FilePath( sourceFile );
+#ifdef __gnu_linux__
+        std::ostringstream useCCache;
+        useCCache << "ccache " << toolChain.clangCompilerPath;
+        compilation.compiler = useCCache.str();
+#else
+        compilation.compiler = toolChain.clangCompilerPath;
+#endif
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -191,8 +193,15 @@ public:
                                                                TComponentType*             pComponent )
     {
         Compilation compilation;
+        compilation.compilationMode = CompilationMode::eNormal;
 
+#ifdef __gnu_linux__
+        std::ostringstream useCCache;
+        useCCache << "ccache " << toolChain.clangCompilerPath;
+        compilation.compiler = useCCache.str();
+#else
         compilation.compiler = toolChain.clangCompilerPath;
+#endif
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -286,13 +295,13 @@ public:
 
         compilation.compilationMode = CompilationMode::eNormal;
 
-        compilation.compiler        = toolChain.clangCompilerPath;
-        compilation.compiler_plugin = toolChain.clangPluginPath;
-
-        compilation.srcDir     = environment.srcDir();
-        compilation.buildDir   = environment.buildDir();
-        compilation.sourceFile = environment.FilePath( sourceFile );
-
+#ifdef __gnu_linux__
+        std::ostringstream useCCache;
+        useCCache << "ccache " << toolChain.clangCompilerPath;
+        compilation.compiler = useCCache.str();
+#else
+        compilation.compiler = toolChain.clangCompilerPath;
+#endif
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
         compilation.includeDirs = pComponent->get_include_directories();
@@ -320,12 +329,13 @@ public:
 
         compilation.compilationMode = CompilationMode::eNormal;
 
-        compilation.compiler        = toolChain.clangCompilerPath;
-        compilation.compiler_plugin = toolChain.clangPluginPath;
-
-        compilation.srcDir     = environment.srcDir();
-        compilation.buildDir   = environment.buildDir();
-        compilation.sourceFile = environment.FilePath( sourceFile );
+#ifdef __gnu_linux__
+        std::ostringstream useCCache;
+        useCCache << "ccache " << toolChain.clangCompilerPath;
+        compilation.compiler = useCCache.str();
+#else
+        compilation.compiler = toolChain.clangCompilerPath;
+#endif
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -352,12 +362,13 @@ public:
 
         compilation.compilationMode = CompilationMode::eNormal;
 
-        compilation.compiler        = toolChain.clangCompilerPath;
-        compilation.compiler_plugin = toolChain.clangPluginPath;
-
-        compilation.srcDir     = environment.srcDir();
-        compilation.buildDir   = environment.buildDir();
-        compilation.sourceFile = environment.FilePath( sourceFile );
+#ifdef __gnu_linux__
+        std::ostringstream useCCache;
+        useCCache << "ccache " << toolChain.clangCompilerPath;
+        compilation.compiler = useCCache.str();
+#else
+        compilation.compiler = toolChain.clangCompilerPath;
+#endif
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
