@@ -27,6 +27,7 @@
 #include "mega/operation_id.hpp"
 #include "mega/common_strings.hpp"
 #include "mega/invocation_io.hpp"
+#include "mega/make_unique_without_reorder.hpp"
 
 #include "mega/types/traits.hpp"
 
@@ -733,32 +734,6 @@ public:
     OperationsStage::Operations::Invocation* getInvocation() const { return m_pInvocation; }
 };
 
-namespace
-{
-template < class T >
-inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
-{
-    /*
-    not this...
-    std::sort( ids.begin(), ids.end() );
-    auto last = std::unique( ids.begin(), ids.end() );
-    ids.erase( last, ids.end() );
-    */
-
-    std::vector< T > result;
-    std::set< T >    uniq;
-    for( const T& value : ids )
-    {
-        if( uniq.count( value ) == 0 )
-        {
-            result.push_back( value );
-            uniq.insert( value );
-        }
-    }
-    return result;
-}
-} // namespace
-
 void buildOperation( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation )
 {
     std::vector< Concrete::Graph::Vertex* > operationContexts;
@@ -888,7 +863,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         {
                             contexts.push_back( pConcrete->get_interface() );
                         }
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
@@ -909,7 +884,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                                 pConcrete->get_interface_function()->get_return_type_trait()->get_canonical_type() );
                         }
                         const bool bHomogenous = ( types.size() == 1 ) ? true : false;
-                        contexts               = uniquify_without_reorder( contexts );
+                        contexts               = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Function >(
                             ReturnTypes::Function::Args{ ReturnTypes::ReturnType::Args{}, contexts, bHomogenous } ) );
                     }
@@ -925,7 +900,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         {
                             contexts.push_back( pConcrete->get_interface() );
                         }
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
@@ -945,7 +920,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                             types.insert( pDimensionTrait->get_canonical_type() );
                         }
                         const bool bHomogenous = ( types.size() == 1 ) ? true : false;
-                        contexts               = uniquify_without_reorder( contexts );
+                        contexts               = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Dimension >(
                             ReturnTypes::Dimension::Args{ ReturnTypes::ReturnType::Args{}, contexts, bHomogenous } ) );
                     }
@@ -981,7 +956,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                             contexts.push_back( pConcrete->get_interface() );
                         }
 
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
@@ -1019,7 +994,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                                 pConcrete->get_interface_function()->get_return_type_trait()->get_canonical_type() );
                         }
                         const bool bHomogenous = ( types.size() == 1 ) ? true : false;
-                        contexts               = uniquify_without_reorder( contexts );
+                        contexts               = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Function >(
                             ReturnTypes::Function::Args{ ReturnTypes::ReturnType::Args{}, contexts, bHomogenous } ) );
                     }
@@ -1038,7 +1013,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         {
                             contexts.push_back( pConcrete->get_parent_context()->get_interface() );
                         }
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
@@ -1054,7 +1029,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         {
                             contexts.push_back( pConcrete->get_parent_context()->get_interface() );
                         }
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
@@ -1086,7 +1061,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         {
                             contexts.push_back( pConcrete->get_interface() );
                         }
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
@@ -1102,7 +1077,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         {
                             contexts.push_back( pConcrete->get_interface() );
                         }
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
@@ -1118,7 +1093,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         {
                             contexts.push_back( pConcrete->get_interface() );
                         }
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
@@ -1134,7 +1109,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         {
                             contexts.push_back( pConcrete->get_interface() );
                         }
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
@@ -1150,7 +1125,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         {
                             contexts.push_back( pConcrete->get_interface() );
                         }
-                        contexts = uniquify_without_reorder( contexts );
+                        contexts = make_unique_without_reorder( contexts );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }

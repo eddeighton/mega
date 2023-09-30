@@ -228,8 +228,7 @@ stage HyperGraphAnalysis
 
     file Model;
 
-    persource accessor array< ref< Interface::ObjectLinkTrait > >;
-    persource accessor array< ref< Interface::ComponentLinkTrait > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor array< ref< Concrete::Graph::Vertex > >;
     persource accessor ref< Concrete::Root >;
     global accessor ref< Symbols::SymbolTable >;
@@ -252,7 +251,7 @@ stage HyperGraphAnalysisRollout
 
     file PerSourceModel;
 
-    persource accessor array< ref< Interface::ObjectLinkTrait > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor array< ref< Concrete::Object > >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Concrete::Graph::Vertex >;
@@ -267,8 +266,7 @@ stage AliasAnalysis
 
     file Model;
 
-    persource accessor array< ref< Interface::ObjectLinkTrait > >;
-    persource accessor array< ref< Interface::ComponentLinkTrait > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor array< ref< Concrete::Graph::Vertex > >;
     persource accessor ref< Concrete::Root >;
     global accessor ref< Symbols::SymbolTable >;
@@ -291,7 +289,7 @@ stage AliasAnalysisRollout
 
     file PerSourceModel;
 
-    persource accessor array< ref< Interface::ObjectLinkTrait > >;
+    persource accessor array< ref< Interface::LinkTrait > >;
     persource accessor array< ref< Concrete::Object > >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Concrete::Graph::Vertex >;

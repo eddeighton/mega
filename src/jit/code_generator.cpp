@@ -101,14 +101,12 @@ nlohmann::json CodeGenerator::generate( const JITDatabase& database, const mega:
 
         Indent indent;
 
-        THROW_TODO;
-        /*const VariableMap variables = generateVariables(
-            pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), data, indent );
+        const VariableMap variables = generateVariables( pInvocation->get_variables(), data, indent );
 
         for( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
-            generateInstructions( database, pInstruction, variables, functions, data, indent );
-        }*/
+            generateInstructions( database, pInvocation, pInstruction, variables, functions, data, indent );
+        }
     }
     catch( inja::InjaError& ex )
     {
@@ -153,6 +151,7 @@ void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const JIT
                 m_pInja->render_get( data, osCPPCode );
                 break;
             case mega::runtime::invocation::eStart:
+                // also works for event
                 m_pInja->render_start( data, osCPPCode );
                 break;
             case mega::runtime::invocation::eMove:

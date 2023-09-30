@@ -89,7 +89,7 @@ static void printContextType( std::vector< Interface::IContext* >& contexts, std
     }
 }
 
-static std::string printLinkTraitTypePath( const Interface::TypedLinkTrait* pLinkTrait )
+static std::string printLinkTraitTypePath( const Interface::LinkTrait* pLinkTrait )
 {
     std::ostringstream os;
 
@@ -122,4 +122,4 @@ static std::string printLinkTraitTypePath( const Interface::TypedLinkTrait* pLin
     return os.str();
 }
 
-#endif //GUARD_2023_September_21_printer
+#endif // GUARD_2023_September_21_printer

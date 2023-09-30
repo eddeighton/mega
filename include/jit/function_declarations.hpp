@@ -36,11 +36,9 @@ namespace mega
 
 struct FunctionDeclarations
 {
-    using CallSet      = std::set< const FinalStage::Concrete::Context* >;
     using CopySet      = std::set< std::string >;
     using EventSet     = std::set< std::string >;
 
-    CallSet  callSet;
     CopySet  copySet;
     EventSet eventSet;
 
@@ -56,7 +54,6 @@ struct FunctionDeclarations
         return {
             { "name", strName },
             { "module_name", strName },
-            { "calls", nlohmann::json::array() },
             { "copiers", nlohmann::json::array() },
             { "events", nlohmann::json::array() },
 
@@ -65,10 +62,6 @@ struct FunctionDeclarations
 
     void generate( nlohmann::json& data )
     {
-        for( auto pCall : callSet )
-        {
-            data[ "calls" ].push_back( pCall->get_concrete_id() );
-        }
         for( auto copy : copySet )
         {
             data[ "copiers" ].push_back( copy );

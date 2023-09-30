@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,31 +18,36 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-// ed was here
-#include "mega/native_types.hpp"
-#include "mega/reference.hpp"
-#include "service/protocol/common/mpo_context_interface.hpp" 
-#include "jit/object_functions.hxx"
-#include "jit/jit_exception.hpp"
+#ifndef GUARD_2023_September_30_make_unique_without_reorder
+#define GUARD_2023_September_30_make_unique_without_reorder
 
-static const char* g_pszModuleName = "{{module_name}}";
+#include <vector>
+#include <set>
 
-namespace mega::mangle
+namespace mega
 {
-    void action_start( const mega::reference& );
-    void event_signal( const mega::reference& );
+template < class T >
+[[ nodiscard ]] inline std::vector< T > make_unique_without_reorder( const std::vector< T >& ids )
+{
+    /*
+    not this...
+    std::sort( ids.begin(), ids.end() );
+    auto last = std::unique( ids.begin(), ids.end() );
+    ids.erase( last, ids.end() );
+    */
+
+    std::vector< T > result;
+    std::set< T >    uniq;
+    for( const T& value : ids )
+    {
+        if( uniq.count( value ) == 0 )
+        {
+            result.push_back( value );
+            uniq.insert( value );
+        }
+    }
+    return result;
+}
 }
 
-mega::reference {{ name }}( mega::reference context )
-{
-{% for variable in variables %}
-{{ variable }}
-{% endfor %}
-
-{% for assignment in assignments %}
-{{ assignment }}
-{% endfor %}
-
-    throw mega::runtime::JITException{ "Start invocation failed" };
-    return mega::reference{};
-}
+#endif //GUARD_2023_September_30_make_unique_without_reorder

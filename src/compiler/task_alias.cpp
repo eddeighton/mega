@@ -59,12 +59,12 @@ public:
 
     // struct ObjectLinkPair
     // {
-    //     AliasAnalysis::Interface::ObjectLinkTrait* pLink          = nullptr;
+    //     AliasAnalysis::Interface::LinkTrait* pLink          = nullptr;
     //     AliasAnalysis::Interface::IContext*        pTargetContext = nullptr;
     // };
     // using ObjectLinkTargets = std::vector< ObjectLinkPair >;
     using RelationsMap
-        = std::map< AliasAnalysis::Interface::ObjectLinkTrait*, AliasAnalysis::HyperGraph::Relation* >;
+        = std::map< AliasAnalysis::Interface::LinkTrait*, AliasAnalysis::HyperGraph::Relation* >;
 
     using PathSet = std::set< mega::io::megaFilePath >;
     PathSet getSortedSourceFiles() const
@@ -173,19 +173,14 @@ public:
         using namespace AliasAnalysis;
         using namespace AliasAnalysis::HyperGraph;
 
-        std::vector< Interface::ComponentLinkTrait* > componentLinks;
+        /*std::vector<  > componentLinks;
         {
             for( auto sourceFile : getSortedSourceFiles() )
             {
-                for( Interface::ComponentLinkTrait* pComponentLink :
-                     database.many< Interface::ComponentLinkTrait >( sourceFile ) )
-                {
-                    componentLinks.push_back( pComponentLink );
-                }
             }
         }
 
-        for( auto pComponentLink : componentLinks )
+        for( auto pComponentLink : componentLinks )*/
         {
             // attempt to solve the component link type derivation
 
@@ -481,7 +476,7 @@ public:
             {
                 for( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
                 {
-                    for( auto pLink : database.many< Interface::ObjectLinkTrait >( sourceFilePath ) )
+                    for( auto pLink : database.many< Interface::LinkTrait >( sourceFilePath ) )
                     {
                         Interface::IContext* pTarget = findObjectLinkTarget( pLink );
                         linkTargets.push_back( { pLink, pTarget } );
@@ -563,13 +558,13 @@ public:
 
         {
             HyperGraph::Graph* pHyperGraph = database.one< HyperGraph::Graph >( m_environment.project_manifest() );
-            auto               relations   = pHyperGraph->get_relations();
-            /*for( Interface::ObjectLinkTrait* pLink : database.many< Interface::ObjectLinkTrait >( m_sourceFilePath ) )
+            // auto               relations   = pHyperGraph->get_relations();
+            /*for( Interface::LinkTrait* pLink : database.many< Interface::LinkTrait >( m_sourceFilePath ) )
             {
                 auto iFind = relations.find( pLink );
                 VERIFY_RTE( iFind != relations.end() );
-                database.construct< Interface::ObjectLinkTrait >(
-                    Interface::ObjectLinkTrait::Args{ pLink, iFind->second } );
+                database.construct< Interface::LinkTrait >(
+                    Interface::LinkTrait::Args{ pLink, iFind->second } );
             }
 
             for( Concrete::Graph::Vertex* pVertex : database.many< Concrete::Graph::Vertex >( m_sourceFilePath ) )

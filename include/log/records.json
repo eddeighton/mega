@@ -75,7 +75,7 @@
                     "name": "Type",
                     "values": [
                         "Start",
-                        "Stop"
+                        "Signal"
                     ]
                 }
             ],

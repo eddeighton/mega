@@ -32,6 +32,7 @@
 #include "database/types/cardinality.hpp"
 
 #include "mega/common_strings.hpp"
+#include "mega/make_unique_without_reorder.hpp"
 
 #include <unordered_set>
 
@@ -59,7 +60,7 @@ public:
     using GraphType = std::map< HyperGraphAnalysis::Interface::LinkTrait*, HyperGraphAnalysis::HyperGraph::Relation* >;
 
     HyperGraphAnalysis::Interface::IContext*
-    findObjectLinkTarget( HyperGraphAnalysis::Interface::ObjectLinkTrait* pLinkTrait )
+    findObjectLinkTarget( HyperGraphAnalysis::Interface::LinkTrait* pLinkTrait )
     {
         using namespace HyperGraphAnalysis;
         using namespace HyperGraphAnalysis::HyperGraph;
@@ -123,18 +124,17 @@ public:
 
     struct ObjectLinkPair
     {
-        HyperGraphAnalysis::Interface::ObjectLinkTrait* pLink          = nullptr;
-        HyperGraphAnalysis::Interface::IContext*        pTargetContext = nullptr;
+        HyperGraphAnalysis::Interface::LinkTrait* pLink          = nullptr;
+        HyperGraphAnalysis::Interface::IContext*  pTargetContext = nullptr;
     };
     using ObjectLinkTargets = std::vector< ObjectLinkPair >;
-    using RelationsMap
-        = std::map< HyperGraphAnalysis::Interface::ObjectLinkTrait*, HyperGraphAnalysis::HyperGraph::Relation* >;
-    RelationsMap calculateRelations( HyperGraphAnalysis::Database& database, const ObjectLinkTargets& links ) const
+    HyperGraphAnalysis::HyperGraph::Graph* constructGraph( HyperGraphAnalysis::Database& database,
+                                                           const ObjectLinkTargets&      links ) const
     {
         using namespace HyperGraphAnalysis;
         using namespace HyperGraphAnalysis::HyperGraph;
 
-        using LinkParentMap = std::unordered_map< Interface::IContext*, Interface::ObjectLinkTrait* >;
+        using LinkParentMap = std::unordered_map< Interface::IContext*, Interface::LinkTrait* >;
         LinkParentMap linkParentMap;
         {
             for( const ObjectLinkPair& link : links )
@@ -166,7 +166,7 @@ public:
             }
         }
 
-        // now test for disjoint link target concrete sets at each context
+        // now test for disjoint link target concrete sets at each parent context
         for( auto i = linkMap.begin(), iEnd = linkMap.end(); i != iEnd; )
         {
             std::vector< Concrete::Context* > concrete;
@@ -186,14 +186,21 @@ public:
             }
         }
 
-        std::map< Interface::IContext*, std::vector< Interface::ObjectLinkTrait* > > owningLinks;
-        std::map< Interface::ObjectLinkTrait*, Interface::ObjectLinkTrait* >         nonOwningLinks;
+        std::multimap< Interface::LinkTrait*, Concrete::Dimensions::OwnershipLink* > owners;
+        std::multimap< Concrete::Dimensions::OwnershipLink*, Interface::LinkTrait* > owned;
+        std::map< Interface::LinkTrait*, Interface::LinkTrait* >                     nonOwningLinks;
 
         for( const ObjectLinkPair& link : links )
         {
             if( link.pLink->get_owning() )
             {
-                owningLinks[ link.pTargetContext ].push_back( link.pLink );
+                for( auto pConcreteTarget : link.pTargetContext->get_concrete() )
+                {
+                    VERIFY_RTE( pConcreteTarget->get_concrete_object().has_value() );
+                    auto pOwnershipLink = pConcreteTarget->get_concrete_object().value()->get_ownership_link();
+                    owners.insert( { link.pLink, pOwnershipLink } );
+                    owned.insert( { pOwnershipLink, link.pLink } );
+                }
             }
             else
             {
@@ -210,41 +217,12 @@ public:
             }
         }
 
-        std::map< Interface::ObjectLinkTrait*, Relation* > relations;
+        // construct the ownership relation
+        const mega::RelationID relationID( TypeID{}, TypeID{} );
+        OwningObjectRelation*  pOwningRelation = database.construct< OwningObjectRelation >(
+            OwningObjectRelation::Args{ Relation::Args{ relationID }, owners, owned } );
 
-        // construct the relations
-        for( const auto& [ pContext, owners ] : owningLinks )
-        {
-            {
-                // check unique
-                auto temp = owners;
-                std::sort( temp.begin(), temp.end() );
-                VERIFY_RTE( std::unique( temp.begin(), temp.end() ) == temp.end() );
-            }
-            const mega::RelationID relationID( pContext->get_interface_id(), TypeID{} );
-            // clang-format off
-            auto pRelation =
-                database.construct< OwningObjectRelation >(
-                    OwningObjectRelation::Args
-                    {
-                        ObjectRelation::Args
-                        {
-                            Relation::Args
-                            {
-                                relationID
-                            }
-                        },
-                        owners,
-                        pContext
-                    }
-                );
-            // clang-format on
-            for( auto pLink : owners )
-            {
-                VERIFY_RTE( relations.insert( { pLink, pRelation } ).second );
-            }
-        }
-
+        std::map< Interface::LinkTrait*, NonOwningObjectRelation* > nonOwningRelations;
         for( const auto& [ pLink1, pLink2 ] : nonOwningLinks )
         {
             auto bCmp        = pLink1->get_interface_id() < pLink2->get_interface_id();
@@ -252,28 +230,13 @@ public:
             auto pLinkTarget = bCmp ? pLink2 : pLink1;
 
             const mega::RelationID relationID( pLinkSource->get_interface_id(), pLinkTarget->get_interface_id() );
-            // clang-format off
-            auto pRelation =
-                database.construct< NonOwningObjectRelation >(
-                    NonOwningObjectRelation::Args
-                    {
-                        ObjectRelation::Args
-                        {
-                            Relation::Args
-                            {
-                                relationID
-                            }
-                        },
-                        pLinkSource,
-                        pLinkTarget
-                    }
-                );
-            // clang-format on
-            VERIFY_RTE( relations.insert( { pLinkSource, pRelation } ).second );
-            VERIFY_RTE( relations.insert( { pLinkTarget, pRelation } ).second );
+            auto                   pRelation = database.construct< NonOwningObjectRelation >(
+                NonOwningObjectRelation::Args{ Relation::Args{ relationID }, pLinkSource, pLinkTarget } );
+            VERIFY_RTE( nonOwningRelations.insert( { pLinkSource, pRelation } ).second );
+            VERIFY_RTE( nonOwningRelations.insert( { pLinkTarget, pRelation } ).second );
         }
 
-        return relations;
+        return database.construct< Graph >( Graph::Args{ pOwningRelation, nonOwningRelations } );
     }
 
     using PathSet = std::set< mega::io::megaFilePath >;
@@ -287,22 +250,21 @@ public:
         return sourceFiles;
     }
 
-    void calculateEdges( HyperGraphAnalysis::Database& database, const RelationsMap& relations )
+    void calculateEdges( HyperGraphAnalysis::Database& database, const HyperGraphAnalysis::HyperGraph::Graph* pGraph )
     {
         using namespace HyperGraphAnalysis;
         using namespace HyperGraphAnalysis::HyperGraph;
 
+        auto owners             = pGraph->get_owning_relation()->get_owners();
+        auto owned              = pGraph->get_owning_relation()->get_owned();
+        auto nonOwningRelations = pGraph->get_non_owning_relations();
+
         std::vector< Concrete::Graph::Vertex* > vertices;
-        std::vector< Concrete::Graph::Vertex* > objects;
         for( auto sourceFile : getSortedSourceFiles() )
         {
             for( Concrete::Graph::Vertex* pVertex : database.many< Concrete::Graph::Vertex >( sourceFile ) )
             {
                 vertices.push_back( pVertex );
-                if( db_cast< Concrete::Object >( pVertex ) )
-                {
-                    objects.push_back( pVertex );
-                }
             }
         }
 
@@ -335,67 +297,61 @@ public:
                 }
 
                 // find ownership relations
-                std::vector< OwningObjectRelation* > owningRelations;
+                std::vector< Concrete::Dimensions::Link* > owners;
+                for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink );
+                     i != iEnd; ++i )
                 {
-                    std::set< Relation* > uniqueRelations;
-                    for( auto [ _, pRelation ] : relations )
+                    auto pInterfaceLinktrait = i->second;
+                    for( auto pOwningConcreteContext : pInterfaceLinktrait->get_concrete() )
                     {
-                        if( !uniqueRelations.contains( pRelation ) )
-                        {
-                            uniqueRelations.insert( pRelation );
-                            if( auto pOwningRelation = db_cast< OwningObjectRelation >( pRelation ) )
-                            {
-                                for( auto pOwnedConcreteContext : pOwningRelation->get_owned()->get_concrete() )
-                                {
-                                    auto pOwnedConcreteObjectOpt = pOwnedConcreteContext->get_concrete_object();
-                                    if( pOwnedConcreteObjectOpt.has_value() )
-                                    {
-                                        if( pObject == pOwnedConcreteObjectOpt.value() )
-                                        {
-                                            owningRelations.push_back( pOwningRelation );
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        owners.push_back( pOwningConcreteContext );
                     }
                 }
-
-                // create edges describing the ownership
-                for( auto pOwningObjectRelation : owningRelations )
+                owners = mega::make_unique_without_reorder( owners );
+                const EdgeType edgeType
+                    = ( owners.size() == 1 ) ? mega::EdgeType::ePolyParent : mega::EdgeType::ePolyParent;
+                for( auto pOwningConcreteContext : owners )
                 {
-                    for( auto pObjectLinkTrait : pOwningObjectRelation->get_owners() )
-                    {
-                        for( auto pOwningConcreteContext : pObjectLinkTrait->get_concrete() )
-                        {
-                            database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
-                                EdgeType::ePolyParent, pOwnershipLink, pOwningConcreteContext } );
-                        }
-                    }
+                    database.construct< Concrete::Graph::Edge >(
+                        Concrete::Graph::Edge::Args{ EdgeType::ePolyParent, pOwnershipLink, pOwningConcreteContext } );
                 }
             }
             else if( auto* pUserLink = db_cast< Concrete::Dimensions::UserLink >( pVertex ) )
             {
-                auto pLinkTrait = pUserLink->get_interface_link();
-                if( auto* pObjectLinkTrait = db_cast< Interface::ObjectLinkTrait >( pLinkTrait ) )
+                auto* pObjectLinkTrait = db_cast< Interface::LinkTrait >( pUserLink->get_interface_link() );
+                VERIFY_RTE( pObjectLinkTrait );
+                
                 {
-                    {
-                        database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
-                            mega::EdgeType::eLink, pUserLink->get_parent_context(), pVertex } );
-                    }
-                    {
-                        database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
-                            EdgeType::eParent, pVertex, pUserLink->get_parent_context() } );
-                    }
+                    database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
+                        mega::EdgeType::eLink, pUserLink->get_parent_context(), pVertex } );
+                }
+                {
+                    database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
+                        EdgeType::eParent, pVertex, pUserLink->get_parent_context() } );
+                }
 
-                    auto iFind = relations.find( pObjectLinkTrait );
-                    VERIFY_RTE( iFind != relations.end() );
-                    Relation* pRelation = iFind->second;
-
-                    if( auto* pOwningObjectRelation = db_cast< OwningObjectRelation >( pRelation ) )
+                if( pObjectLinkTrait->get_owning() )
+                {
+                    auto i = owners.lower_bound( pObjectLinkTrait ), iEnd = owners.upper_bound( pObjectLinkTrait );
+                    const EdgeType edgeType
+                        = ( std::distance( i, iEnd ) == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
+                    for( ; i != iEnd; ++i )
                     {
-                        auto           concreteTargets = pOwningObjectRelation->get_owned()->get_concrete();
+                        database.construct< Concrete::Graph::Edge >(
+                            Concrete::Graph::Edge::Args{ edgeType, pVertex, i->second } );
+                    }
+                }
+                else
+                {
+                    auto iFind = nonOwningRelations.find( pObjectLinkTrait );
+                    VERIFY_RTE( iFind != nonOwningRelations.end() );
+                    auto pNonOwningObjectRelation = iFind->second;
+
+                    if( pNonOwningObjectRelation->get_source() == pObjectLinkTrait )
+                    {
+                        Interface::LinkTrait* pTargetObjectLink = pNonOwningObjectRelation->get_target();
+
+                        auto           concreteTargets = pTargetObjectLink->get_concrete();
                         const EdgeType edgeType
                             = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
                         for( auto pConcreteTarget : concreteTargets )
@@ -404,50 +360,23 @@ public:
                                 Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
                         }
                     }
-                    else if( auto* pNonOwningObjectRelation = db_cast< NonOwningObjectRelation >( pRelation ) )
+                    else if( pNonOwningObjectRelation->get_target() == pObjectLinkTrait )
                     {
-                        if( pNonOwningObjectRelation->get_source() == pObjectLinkTrait )
-                        {
-                            Interface::ObjectLinkTrait* pTargetObjectLink = pNonOwningObjectRelation->get_target();
+                        Interface::LinkTrait* pSourceObjectLink = pNonOwningObjectRelation->get_source();
 
-                            auto           concreteTargets = pTargetObjectLink->get_concrete();
-                            const EdgeType edgeType
-                                = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
-                            for( auto pConcreteTarget : concreteTargets )
-                            {
-                                database.construct< Concrete::Graph::Edge >(
-                                    Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
-                            }
-                        }
-                        else if( pNonOwningObjectRelation->get_target() == pObjectLinkTrait )
+                        auto           concreteTargets = pSourceObjectLink->get_concrete();
+                        const EdgeType edgeType
+                            = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
+                        for( auto pConcreteTarget : concreteTargets )
                         {
-                            Interface::ObjectLinkTrait* pSourceObjectLink = pNonOwningObjectRelation->get_source();
-
-                            auto           concreteTargets = pSourceObjectLink->get_concrete();
-                            const EdgeType edgeType
-                                = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
-                            for( auto pConcreteTarget : concreteTargets )
-                            {
-                                database.construct< Concrete::Graph::Edge >(
-                                    Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
-                            }
-                        }
-                        else
-                        {
-                            THROW_RTE( "ObjectLinkTrait does not match non owning relation" );
+                            database.construct< Concrete::Graph::Edge >(
+                                Concrete::Graph::Edge::Args{ edgeType, pVertex, pConcreteTarget } );
                         }
                     }
                     else
                     {
-                        THROW_RTE( "Unknown object type" );
+                        THROW_RTE( "LinkTrait does not match non owning relation" );
                     }
-                }
-                else if( auto* pComponentLinkTrait = db_cast< Interface::ComponentLinkTrait >( pLinkTrait ) )
-                {
-                }
-                else
-                {
-                    THROW_RTE( "Unknown link trait type" );
                 }
             }
             else if( auto* pContextGroup = db_cast< Concrete::ContextGroup >( pVertex ) )
@@ -528,16 +457,24 @@ public:
             {
                 for( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
                 {
-                    for( auto pLink : database.many< Interface::ObjectLinkTrait >( sourceFilePath ) )
+                    for( auto pLink : database.many< Interface::LinkTrait >( sourceFilePath ) )
                     {
                         Interface::IContext* pTarget = findObjectLinkTarget( pLink );
+                        if( pLink->get_owning() )
+                        {
+                            for( auto pConcrete : pTarget->get_concrete() )
+                            {
+                                if( !db_cast< Concrete::Object >( pConcrete ) )
+                                {
+                                    THROW_RTE( "Owning link NOT to object: " << printLinkTraitTypePath( pLink ) );
+                                }
+                            }
+                        }
                         linkTargets.push_back( { pLink, pTarget } );
                     }
                 }
             }
-            auto relations = calculateRelations( database, linkTargets );
-            database.construct< HyperGraph::Graph >( HyperGraph::Graph::Args{ relations } );
-            calculateEdges( database, relations );
+            calculateEdges( database, constructGraph( database, linkTargets ) );
         }
 
         const task::FileHash fileHashCode = database.save_Model_to_temp();
@@ -611,13 +548,22 @@ public:
 
         {
             HyperGraph::Graph* pHyperGraph = database.one< HyperGraph::Graph >( m_environment.project_manifest() );
-            auto               relations   = pHyperGraph->get_relations();
-            for( Interface::ObjectLinkTrait* pLink : database.many< Interface::ObjectLinkTrait >( m_sourceFilePath ) )
+
+            auto pOwnershipRelation = pHyperGraph->get_owning_relation();
+            auto nonOwningRelations = pHyperGraph->get_non_owning_relations();
+
+            for( Interface::LinkTrait* pLink : database.many< Interface::LinkTrait >( m_sourceFilePath ) )
             {
-                auto iFind = relations.find( pLink );
-                VERIFY_RTE( iFind != relations.end() );
-                database.construct< Interface::ObjectLinkTrait >(
-                    Interface::ObjectLinkTrait::Args{ pLink, iFind->second } );
+                if( pLink->get_owning() )
+                {
+                    database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLink, pOwnershipRelation } );
+                }
+                else
+                {
+                    auto iFind = nonOwningRelations.find( pLink );
+                    VERIFY_RTE( iFind != nonOwningRelations.end() );
+                    database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLink, iFind->second } );
+                }
             }
 
             auto edges = database.many< Concrete::Graph::Edge >( m_environment.project_manifest() );
@@ -644,52 +590,40 @@ public:
             for( Concrete::Object* pObject : database.many< Concrete::Object >( m_sourceFilePath ) )
             {
                 // std::vector< Concrete::Link* > allObjectLinks;
-                std::vector< HyperGraphAnalysisRollout::Concrete::UserDimensionContext* > linkContexts;
+                std::vector< Concrete::UserDimensionContext* > linkContexts;
                 collectLinkContexts( pObject, linkContexts );
 
-                // determine the owning links for object
-                std::vector< Concrete::Dimensions::Link* > links;
+                // set the concrete link associated relation
+                for( auto pLinkContext : linkContexts )
                 {
-                    /*for( Concrete::Link* pLink : allObjectLinks )
+                    for( auto pLink : pLinkContext->get_links() )
                     {
-                        // NOTE: pLink->get_link_interface()->get_relation(); will not work since being set above in
-                        // this stage
-                        auto iFind = relations.find( pLink->get_link() );
-                        VERIFY_RTE( iFind != relations.end() );
-                        HyperGraph::Relation* pRelation = iFind->second;
-                        const mega::Ownership ownership = pRelation->get_ownership();
-
-                        if( pRelation->get_source_interface() == pLink->get_link_interface() )
+                        if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
                         {
-                            if( mega::Ownership::eOwnSource == ownership.get() )
+                            if( pUserLink->get_interface_link()->get_owning() )
                             {
-                                owningLinks.push_back( pLink );
+                                database.construct< Concrete::Dimensions::Link >(
+                                    Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation } );
+                            }
+                            else
+                            {
+                                auto iFind = nonOwningRelations.find( pUserLink->get_interface_link() );
+                                VERIFY_RTE( iFind != nonOwningRelations.end() );
+                                database.construct< Concrete::Dimensions::Link >(
+                                    Concrete::Dimensions::Link::Args{ pLink, iFind->second } );
                             }
                         }
-                        else if( pRelation->get_target_interface() == pLink->get_link_interface() )
+                        else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pLink ) )
                         {
-                            if( mega::Ownership::eOwnTarget == ownership.get() )
-                            {
-                                owningLinks.push_back( pLink );
-                            }
+                            database.construct< Concrete::Dimensions::Link >(
+                                Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation } );
                         }
                         else
                         {
-                            THROW_RTE( "Relation error" );
+                            THROW_RTE( "Unknown link type" );
                         }
-                    }*/
+                    }
                 }
-
-                /*if( pObject->get_interface()->get_identifier() == ROOT_TYPE_NAME )
-                {
-                    VERIFY_RTE_MSG( owningLinks.empty(), "Hypergraph error Root has owning links" );
-                }
-                else
-                {
-                    VERIFY_RTE_MSG( !owningLinks.empty(),
-                                    "Hypergraph error non-Root object: " << pObject->get_interface()->get_identifier()
-                                                                         << " has NO owning links" );
-                }*/
 
                 database.construct< Concrete::Object >( Concrete::Object::Args{ pObject, linkContexts } );
             }

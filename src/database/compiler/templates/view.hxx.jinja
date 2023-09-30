@@ -188,6 +188,11 @@ namespace {{ stage.name }}
     };
 
     template< typename TTo, typename TFrom >
+    inline const TTo* db_cast( const TFrom* pFrom )
+    {
+        return PointerCast< const TFrom, const TTo >()( pFrom );
+    }
+    template< typename TTo, typename TFrom >
     inline TTo* db_cast( TFrom* pFrom )
     {
         return PointerCast< TFrom, TTo >()( pFrom );

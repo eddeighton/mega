@@ -56,6 +56,8 @@ namespace Concrete
 
             value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
 
+            ref< HyperGraph::Relation > relation -> HyperGraphAnalysisRollout::PerSourceModel;
+
             value< mega::U64 >          offset      -> MemoryStage::MemoryLayout;
             ref< MemoryLayout::Part >   part        -> MemoryStage::MemoryLayout;
             value< bool >               singular    -> MemoryStage::MemoryLayout;
@@ -63,7 +65,7 @@ namespace Concrete
 
         object UserLink : Link -> ConcreteStage::Concrete
         {
-            ref< Interface::TypedLinkTrait > interface_link;
+            ref< Interface::LinkTrait > interface_link;
         }
 
         object OwnershipLink : Link -> ConcreteStage::Concrete

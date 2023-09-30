@@ -120,11 +120,11 @@ void action_start( const mega::reference& source )
     mega::log::FileStorage& log = mega::Context::get()->getLog();
     log.record( mega::log::Scheduling::Write( source, mega::log::Scheduling::eStart ) );
 }
-void action_stop( const mega::reference& source )
+void event_signal( const mega::reference& event )
 {
-    VERIFY_RTE_MSG( source.isHeapAddress(), "action_stop passed network address " );
+    VERIFY_RTE_MSG( event.isHeapAddress(), "event_signal passed network address " );
     mega::log::FileStorage& log = mega::Context::get()->getLog();
-    log.record( mega::log::Scheduling::Write( source, mega::log::Scheduling::eStop ) );
+    log.record( mega::log::Scheduling::Write( event, mega::log::Scheduling::eSignal ) );
 }
 
 bool ref_vector_empty( void* pData )

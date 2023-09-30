@@ -220,8 +220,6 @@ public:
         {
             for( Interface::LinkTrait* pInterfaceLink : inheritedContexts.links )
             {
-                auto pTypedLinkTrait = db_cast< Interface::TypedLinkTrait >( pInterfaceLink );
-                VERIFY_RTE( pTypedLinkTrait );
                 auto pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
                 // clang-format off
                 Dimensions::UserLink* pConcreteLink = database.construct< Dimensions::UserLink >
@@ -233,7 +231,7 @@ public:
                             Graph::Vertex::Args{}, 
                             pParentConcreteContext
                         },
-                        pTypedLinkTrait 
+                        pInterfaceLink 
                     } );
                 // clang-format on
                 links.push_back( pConcreteLink );

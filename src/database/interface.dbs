@@ -55,20 +55,9 @@ namespace Interface
         value< mega::TypeID > interface_id -> SymbolRollout::PerSourceSymbols;
 
         array< ref< Concrete::Dimensions::UserLink > > concrete -> InheritanceAnalysisRollout::PerSourceDerivations;
-    }
 
-    object TypedLinkTrait : LinkTrait -> InterfaceAnalysisStage::Clang
-    {
-        array< ref< TypePathVariant > > tuple;
-    }
-
-    object ObjectLinkTrait : TypedLinkTrait -> InterfaceAnalysisStage::Clang
-    {
+        array< ref< TypePathVariant > > tuple -> InterfaceAnalysisStage::Clang;
         ref< HyperGraph::Relation > relation -> HyperGraphAnalysisRollout::PerSourceModel;
-    }
-
-    object ComponentLinkTrait : TypedLinkTrait -> InterfaceAnalysisStage::Clang
-    {
     }
 
     object InheritanceTrait : Parser::Inheritance -> InterfaceStage::Tree

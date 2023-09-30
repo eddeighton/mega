@@ -160,6 +160,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/maths_types.hpp
     ${MEGA_API_DIR}/mega/memory.hpp
     ${MEGA_API_DIR}/mega/mpo.hpp
+    ${MEGA_API_DIR}/mega/make_unique_without_reorder.hpp
     ${MEGA_API_DIR}/mega/native_types_io.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp
     ${MEGA_API_DIR}/mega/operation_id.hpp 

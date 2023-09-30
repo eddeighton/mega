@@ -85,9 +85,9 @@ void Scheduler::cycle()
                 m_activations.insert( { ref, Activation( ref, function ) } );
             }
             break;
-            case log::Scheduling::eStop:
+            case log::Scheduling::eSignal:
             {
-                m_activations.erase( read.getRef() );
+                //
             }
             break;
             default:

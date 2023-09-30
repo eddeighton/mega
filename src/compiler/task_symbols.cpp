@@ -27,6 +27,15 @@
 #include "database/common/environment_archive.hpp"
 #include "database/common/exception.hpp"
 
+namespace SymbolAnalysis
+{
+#include "compiler/interface_typeid_sequence.hpp"
+}
+namespace SymbolRollout
+{
+#include "compiler/interface_typeid_sequence.hpp"
+}
+
 namespace mega::compiler
 {
 
@@ -67,63 +76,6 @@ public:
         }
         return sourceFiles;
     }
-
-    template < typename SymbolTypeID   = SymbolAnalysis::Symbols::SymbolTypeID,
-               typename ContextGroup   = SymbolAnalysis::Interface::ContextGroup,
-               typename IContext       = SymbolAnalysis::Interface::IContext,
-               typename DimensionTrait = SymbolAnalysis::Interface::DimensionTrait,
-               typename LinkTrait      = SymbolAnalysis::Interface::LinkTrait  >
-    struct TypeIDSequenceGen
-    {
-        using NewSymbolNames = std::map< std::string, SymbolTypeID* >;
-        using CastFunctor    = std::function< IContext*( ContextGroup* ) >;
-        const NewSymbolNames& symbolNames;
-        CastFunctor           castFunctor;
-        TypeIDSequenceGen( const NewSymbolNames& symbolNames, CastFunctor castFunctor )
-            : symbolNames( symbolNames )
-            , castFunctor( std::move( castFunctor ) )
-        {
-        }
-
-        TypeID getTypeID( const std::string& strID ) const
-        {
-            auto iFind = symbolNames.find( strID );
-            VERIFY_RTE( iFind != symbolNames.end() );
-            const SymbolTypeID* pSymbolTypeID = iFind->second;
-            return pSymbolTypeID->get_id();
-        }
-
-        void recurse( ContextGroup* pContextGroup, TypeIDSequence& sequence ) const
-        {
-            if( auto pContext = castFunctor( pContextGroup ) )
-            {
-                sequence.push_back( getTypeID( pContext->get_identifier() ) );
-                recurse( pContext->get_parent(), sequence );
-            }
-        }
-
-        TypeIDSequence operator()( IContext* pContext ) const
-        {
-            TypeIDSequence sequence{ getTypeID( pContext->get_identifier() ) };
-            recurse( pContext->get_parent(), sequence );
-            std::reverse( sequence.begin(), sequence.end() );
-            return sequence;
-        }
-        TypeIDSequence operator()( DimensionTrait* pDimension ) const
-        {
-            TypeIDSequence sequence{ getTypeID( pDimension->get_id()->get_str() ) };
-            recurse( pDimension->get_parent(), sequence );
-            std::reverse( sequence.begin(), sequence.end() );
-            return sequence;
-        }
-        TypeIDSequence operator()( LinkTrait* pLink ) const
-        {
-            TypeIDSequence sequence{ getTypeID( pLink->get_id()->get_str() ) };
-            recurse( pLink->get_parent(), sequence );
-            std::reverse( sequence.begin(), sequence.end() );
-            return sequence;
-        }
-    };
 
     SymbolAnalysis::Symbols::SymbolTable* calculateSymbolTable(
         SymbolAnalysis::Database&                                                        newDatabase,
@@ -174,8 +126,9 @@ public:
                         }
                         else
                         {
-                            auto pNewSymbol = newDatabase.construct< New::Symbols::SymbolTypeID >(
-                                New::Symbols::SymbolTypeID::Args{ strSymbol, pOldSymbol->get_id(), { pContext }, {}, {} } );
+                            auto pNewSymbol
+                                = newDatabase.construct< New::Symbols::SymbolTypeID >( New::Symbols::SymbolTypeID::Args{
+                                    strSymbol, pOldSymbol->get_id(), { pContext }, {}, {} } );
                             VERIFY_RTE( usedTypeIDs.insert( pOldSymbol->get_id() ).second );
                             VERIFY_RTE( newSymbolNames.insert( { strSymbol, pNewSymbol } ).second );
                             VERIFY_RTE( newSymbolTypeIDs.insert( { pOldSymbol->get_id(), pNewSymbol } ).second );
@@ -242,8 +195,7 @@ public:
                     }
                 }
 
-                for( New::Interface::LinkTrait* pLink :
-                     newDatabase.many< New::Interface::LinkTrait >( newSourceFile ) )
+                for( New::Interface::LinkTrait* pLink : newDatabase.many< New::Interface::LinkTrait >( newSourceFile ) )
                 {
                     const auto strSymbol = pLink->get_id()->get_str();
                     auto       iFind     = oldSymbolTypeIDs.find( strSymbol );
@@ -316,14 +268,7 @@ public:
         std::map< TypeIDSequence, New::Symbols::InterfaceTypeID* > newInterfaceTypeIDSequences;
         std::map< TypeID, New::Symbols::InterfaceTypeID* >         newInterfaceTypeIDs;
         {
-            const TypeIDSequenceGen< SymbolAnalysis::Symbols::SymbolTypeID,
-                                     SymbolAnalysis::Interface::ContextGroup,
-                                     SymbolAnalysis::Interface::IContext,
-                                     SymbolAnalysis::Interface::DimensionTrait,
-                                     SymbolAnalysis::Interface::LinkTrait >
-                idSequenceGen( newSymbolNames,
-                               &SymbolAnalysis::db_cast< SymbolAnalysis::Interface::IContext,
-                                                         SymbolAnalysis::Interface::ContextGroup > );
+            const New::TypeIDSequenceGen idSequenceGen( newSymbolNames );
 
             {
                 // always have root be type ROOT_TYPE_ID
@@ -385,7 +330,8 @@ public:
                             }
 
                             auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
-                                New::Symbols::InterfaceTypeID::Args{ idSeq, reusedTypeID, pContext, std::nullopt, std::nullopt } );
+                                New::Symbols::InterfaceTypeID::Args{
+                                    idSeq, reusedTypeID, pContext, std::nullopt, std::nullopt } );
                             VERIFY_RTE( newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } ).second );
 
                             if( reusedTypeID != TypeID{} )
@@ -405,7 +351,8 @@ public:
                             }
 
                             auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
-                                New::Symbols::InterfaceTypeID::Args{ idSeq, TypeID{}, pContext, std::nullopt, std::nullopt } );
+                                New::Symbols::InterfaceTypeID::Args{
+                                    idSeq, TypeID{}, pContext, std::nullopt, std::nullopt } );
                             VERIFY_RTE( newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } ).second );
                         }
                     }
@@ -442,13 +389,13 @@ public:
                                             << idSeq << " : " << pDimension->get_id()->get_str() );
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
-                            New::Symbols::InterfaceTypeID::Args{ idSeq, TypeID{}, std::nullopt, pDimension, std::nullopt } );
+                            New::Symbols::InterfaceTypeID::Args{
+                                idSeq, TypeID{}, std::nullopt, pDimension, std::nullopt } );
                         VERIFY_RTE( newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } ).second );
                     }
                 }
 
-                for( New::Interface::LinkTrait* pLink :
-                     newDatabase.many< New::Interface::LinkTrait >( newSourceFile ) )
+                for( New::Interface::LinkTrait* pLink : newDatabase.many< New::Interface::LinkTrait >( newSourceFile ) )
                 {
                     const TypeIDSequence idSeq = idSequenceGen( pLink );
                     auto                 iFind = oldInterfaceTypeIDSequences.find( idSeq );
@@ -459,8 +406,8 @@ public:
                         auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
                         using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                        "Duplicate Interface Type ID Sequnce found: "
-                                            << idSeq << " : " << pLink->get_id()->get_str() );
+                                        "Duplicate Interface Type ID Sequnce found: " << idSeq << " : "
+                                                                                      << pLink->get_id()->get_str() );
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{
@@ -474,8 +421,8 @@ public:
                         auto    jFind = newInterfaceTypeIDSequences.find( idSeq );
                         using ::operator<<;
                         VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                        "Duplicate Interface Type ID Sequnce found: "
-                                            << idSeq << " : " << pLink->get_id()->get_str() );
+                                        "Duplicate Interface Type ID Sequnce found: " << idSeq << " : "
+                                                                                      << pLink->get_id()->get_str() );
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{ idSeq, TypeID{}, std::nullopt, std::nullopt, pLink } );
@@ -744,14 +691,7 @@ public:
         const auto            symbolNames  = pSymbolTable->get_symbol_names();
         const auto            interfaceTypeIDs = pSymbolTable->get_interface_type_id_sequences();
 
-        Task_SymbolAnalysis::TypeIDSequenceGen< SymbolRollout::Symbols::SymbolTypeID,
-                                                SymbolRollout::Interface::ContextGroup,
-                                                SymbolRollout::Interface::IContext,
-                                                SymbolRollout::Interface::DimensionTrait,
-                                                SymbolRollout::Interface::LinkTrait >
-            idSequenceGen(
-                symbolNames,
-                &SymbolRollout::db_cast< SymbolRollout::Interface::IContext, SymbolRollout::Interface::ContextGroup > );
+        const TypeIDSequenceGen idSequenceGen( symbolNames );
 
         for( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
         {

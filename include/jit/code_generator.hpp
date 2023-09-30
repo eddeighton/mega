@@ -49,7 +49,7 @@ class JIT_EXPORT CodeGenerator
 public:
     using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
 
-    static std::string allocatorTypeName( const JITDatabase&                      database,
+    static std::string allocatorTypeName( const JITDatabase&                           database,
                                           FinalStage::Concrete::Dimensions::Allocator* pAllocDim );
 
     class LLVMCompiler
@@ -60,16 +60,15 @@ public:
             = 0;
     };
 
-    CodeGenerator( const mega::MegastructureInstallation& megastructureInstallation,
-                   const mega::Project&                   project );
+    CodeGenerator( const mega::MegastructureInstallation& megastructureInstallation, const mega::Project& project );
 
     void generate_alllocator( const LLVMCompiler& compiler, const JITDatabase& database, mega::TypeID objectTypeID,
                               std::ostream& os );
     void generate_invocation( const LLVMCompiler& compiler, const JITDatabase& database,
                               const mega::InvocationID&               invocationID,
                               mega::runtime::invocation::FunctionType invocationType, std::ostream& os );
-    void generate_relation( const LLVMCompiler& compiler, const JITDatabase& database,
-                            const RelationID& relationID, std::ostream& os );
+    void generate_relation( const LLVMCompiler& compiler, const JITDatabase& database, const RelationID& relationID,
+                            std::ostream& os );
     void generate_program( const LLVMCompiler& compiler, const JITDatabase& database, std::ostream& os );
 
     void generate_operator( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target,
@@ -78,12 +77,11 @@ public:
 private:
     VariableMap
     generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
-                       ::FinalStage::Invocations::Variables::Parameter*                        pRootContext,
                        nlohmann::json&                                                       data,
                        Indent&                                                               indent ) const;
 
-    void generateInstructions( const JITDatabase&                             database,
-                               FinalStage::Invocations::Instructions::Instruction* pInstruction,
+    void generateInstructions( const JITDatabase& database, const FinalStage::Operations::Invocation* pInvocation,
+                               const FinalStage::Invocations::Instructions::Instruction* pInstruction,
                                const VariableMap& variables, FunctionDeclarations& functions, nlohmann::json& data,
                                Indent& indent ) const;
 
