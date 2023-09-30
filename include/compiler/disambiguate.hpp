@@ -171,10 +171,25 @@ static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& final
             return eSuccess;
         }
 
+        // first test all edges
+        auto tempResult = result;
+        for( auto pEdge : pStep->get_edges() )
+        {
+            const auto EdgeResult = exclusive( pEdge->get_next(), finalFrontier, tempResult );
+            if( EdgeResult == eFailure )
+            {
+                pEdge->set_eliminated( true );
+            }
+        }
+
+        // now determine highest precedence for any successful edges
         int iHighestPrecedence = 0;
         for( auto pEdge : pStep->get_edges() )
         {
-            iHighestPrecedence = std::max( iHighestPrecedence, pEdge->get_precedence() );
+            if( !pEdge->get_eliminated() )
+            {
+                iHighestPrecedence = std::max( iHighestPrecedence, pEdge->get_precedence() );
+            }
         }
 
         std::vector< Edge* > edges;
@@ -272,7 +287,7 @@ static void precedence( Edge* pEdge )
     }
 }
 
-static void presedence( Root* pStep )
+static void precedence( Root* pStep )
 {
     for( auto pEdge : pStep->get_edges() )
     {

@@ -56,6 +56,7 @@ struct FunctionDeclarations
             { "module_name", strName },
             { "copiers", nlohmann::json::array() },
             { "events", nlohmann::json::array() },
+            { "variables", nlohmann::json::array() },
 
         };
     }

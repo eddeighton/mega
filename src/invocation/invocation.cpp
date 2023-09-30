@@ -1187,7 +1187,7 @@ compileInvocation( OperationsStage::Database& database, const SymbolTables& symb
     InvocationPolicy::OrPtrVector finalFrontier;
     InvocationPolicy::RootPtr     pRoot = DerivationSolver::solveContextFree( derivationSpec, policy, finalFrontier );
 
-    Derivation::presedence( pRoot );
+    Derivation::precedence( pRoot );
 
     OperationsStage::Operations::Invocation* pInvocation = nullptr;
     try
