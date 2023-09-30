@@ -75,7 +75,7 @@ FileBufferFactory::FileBufferFactory( const boost::filesystem::path logFolderPat
                 {
                     if( diskFileName == toName( TrackID::TOTAL ) )
                     {
-                        ASSERT( files.insert( { diskFileIndex, TrackID::TOTAL } ).second );
+                        VERIFY_RTE( files.insert( { diskFileIndex, TrackID::TOTAL } ).second );
                     }
                 }
             }

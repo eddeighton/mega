@@ -95,7 +95,6 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
             if( bShowLogRecords )
             {
-                SPDLOG_INFO( "=== Msgs      === " );
                 using namespace mega::log::Log;
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
@@ -125,11 +124,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
                             break;
                     }
                 }
-                SPDLOG_INFO( "================= " );
             }
             if( bShowStructureRecords )
             {
-                SPDLOG_INFO( "=== Structure === " );
                 using namespace mega::log::Structure;
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
@@ -139,11 +136,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
                        << record.getSource() << ": " << record.getTarget() << ": " << record.getRelation();
                     SPDLOG_INFO( os.str() );
                 }
-                SPDLOG_INFO( "================= " );
             }
             if( bShowSchedulingRecords )
             {
-                SPDLOG_INFO( "=== Scheduling == " );
                 using namespace mega::log::Scheduling;
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
@@ -153,18 +148,15 @@ void command( bool bHelp, const std::vector< std::string >& args )
                        << schedulingRecord.getRef();
                     SPDLOG_INFO( os.str() );
                 }
-                SPDLOG_INFO( "================= " );
             }
             if( bShowMemoryRecords )
             {
-                SPDLOG_INFO( "=== Memory     == " );
                 using namespace mega::log::Memory;
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
                     const Read& memoryRecord = *i;
                     SPDLOG_INFO( memoryRecord.getRef() );
                 }
-                SPDLOG_INFO( "================= " );
             }
         }
         else
