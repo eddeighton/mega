@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_September_27_concrete_printer
 #define GUARD_2023_September_27_concrete_printer
 
-static std::string printContextFullType( Concrete::Context* pContext )
+static std::string printContextFullType( Concrete::Context* pContext, const std::string& strDelimiter = "::" )
 {
     std::ostringstream os;
     using ContextVector = std::vector< Concrete::Context* >;
@@ -41,30 +41,30 @@ static std::string printContextFullType( Concrete::Context* pContext )
         }
         else
         {
-            os << ( *i )->get_interface()->get_identifier() << "::";
+            os << ( *i )->get_interface()->get_identifier() << strDelimiter;
         }
     }
     return os.str();
 }
 
-static void printConcreteFullType( Concrete::Dimensions::User* pDim, std::ostream& os )
+static void printConcreteFullType( Concrete::Dimensions::User* pDim, std::ostream& os, const std::string& strDelimiter = "::" )
 {
     auto pParent = db_cast< Concrete::Context >( pDim->get_parent_context() );
     VERIFY_RTE( pParent );
-    os << printContextFullType( pParent ) << "::" << pDim->get_interface_dimension()->get_id()->get_str();
+    os << printContextFullType( pParent ) << strDelimiter << pDim->get_interface_dimension()->get_id()->get_str();
 }
 
-static void printConcreteFullType( Concrete::Dimensions::Link* pLink, std::ostream& os )
+static void printConcreteFullType( Concrete::Dimensions::Link* pLink, std::ostream& os, const std::string& strDelimiter = "::" )
 {
     auto pParent = db_cast< Concrete::Context >( pLink->get_parent_context() );
     VERIFY_RTE( pParent );
     if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
     {
-        os << printContextFullType( pParent ) << "::" << pUserLink->get_interface_link()->get_id()->get_str();
+        os << printContextFullType( pParent ) << strDelimiter << pUserLink->get_interface_link()->get_id()->get_str();
     }
     else if( auto pOwningLink = db_cast< Concrete::Dimensions::OwnershipLink >( pLink ) )
     {
-        os << printContextFullType( pParent ) << "::" << ::mega::EG_OWNERSHIP;
+        os << printContextFullType( pParent ) << strDelimiter << ::mega::EG_OWNERSHIP;
     }
     else
     {
@@ -72,19 +72,19 @@ static void printConcreteFullType( Concrete::Dimensions::Link* pLink, std::ostre
     }
 }
 
-static void printConcreteFullType( Concrete::Graph::Vertex* pVertex, std::ostream& os )
+static void printConcreteFullType( Concrete::Graph::Vertex* pVertex, std::ostream& os, const std::string& strDelimiter = "::" )
 {
     if( auto pContext = db_cast< Concrete::Context >( pVertex ) )
     {
-        os << printContextFullType( pContext );
+        os << printContextFullType( pContext, strDelimiter );
     }
     else if( auto pLink = db_cast< Concrete::Dimensions::Link >( pVertex ) )
     {
-        printConcreteFullType( pLink, os );
+        printConcreteFullType( pLink, os, strDelimiter );
     }
     else if( auto pDim = db_cast< Concrete::Dimensions::User >( pVertex ) )
     {
-        printConcreteFullType( pDim, os );
+        printConcreteFullType( pDim, os, strDelimiter );
     }
     else
     {

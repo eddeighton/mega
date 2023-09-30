@@ -5903,9 +5903,12 @@ namespace PerSourceModel
           , relation( loader )
     {
     }
-    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const data::Ptr< data::Model::HyperGraph_Relation >& relation)
+    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const data::Ptr< data::Model::HyperGraph_Relation >& relation, const bool& owning, const bool& owned, const bool& source)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( p_Concrete_Concrete_Dimensions_Link )
           , relation( relation )
+          , owning( owning )
+          , owned( owned )
+          , source( source )
     {
     }
     bool Concrete_Dimensions_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -5920,11 +5923,17 @@ namespace PerSourceModel
     {
         loader.load( p_Concrete_Concrete_Dimensions_Link );
         loader.load( relation );
+        loader.load( owning );
+        loader.load( owned );
+        loader.load( source );
     }
     void Concrete_Dimensions_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Dimensions_Link );
         storer.store( relation );
+        storer.store( owning );
+        storer.store( owned );
+        storer.store( source );
     }
     void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
     {
@@ -5940,6 +5949,21 @@ namespace PerSourceModel
         {
             nlohmann::json property = nlohmann::json::object({
                 { "relation", relation } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "owning", owning } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "owned", owned } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "source", source } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -11837,9 +11861,9 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_Concrete_Conte
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::Concrete::Concrete_ContextGroup >( m_data )->children;
         default:
         {
@@ -12139,6 +12163,38 @@ data::Ptr< data::MemoryLayout::Allocators_Allocator >& get_Concrete_Dimensions_A
         }
     }
 }
+bool& get_Concrete_Dimensions_Link_owned(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owned;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owned;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owned;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& get_Concrete_Dimensions_Link_owning(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owning;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owning;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owning;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 data::Ptr< data::Concrete::Concrete_Context >& get_Concrete_Dimensions_Link_parent_context(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -12183,6 +12239,22 @@ bool& get_Concrete_Dimensions_Link_singular(data::Variant& m_data)
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
         case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& get_Concrete_Dimensions_Link_source(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->source;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->source;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->source;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -12449,9 +12521,9 @@ std::vector< data::Ptr< data::Model::Concrete_Graph_Edge > >& get_Concrete_Graph
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_Object::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
-        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
-            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         case data::Concrete::Concrete_Root::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
+        case data::GlobalMemoryRollout::Concrete_MemoryMappedObject::Object_Part_Type_ID:
             return data::convert< data::PerSourceModel::Concrete_Graph_Vertex >( m_data )->out_edges;
         default:
         {
@@ -16985,6 +17057,38 @@ data::Ptr< data::MemoryLayout::Allocators_Allocator >& set_Concrete_Dimensions_A
         }
     }
 }
+bool& set_Concrete_Dimensions_Link_owned(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owned;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owned;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owned;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& set_Concrete_Dimensions_Link_owning(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owning;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owning;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->owning;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 data::Ptr< data::Model::HyperGraph_Relation >& set_Concrete_Dimensions_Link_relation(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -17011,6 +17115,22 @@ bool& set_Concrete_Dimensions_Link_singular(data::Variant& m_data)
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
         case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+bool& set_Concrete_Dimensions_Link_source(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->source;
+        case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->source;
+        case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->source;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );

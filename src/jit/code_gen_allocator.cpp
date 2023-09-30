@@ -99,49 +99,6 @@ std::string getContextTypeClass( const FinalStage::Concrete::Context* pContext )
         THROW_RTE( "Unknown context type class" );
     }
 }
-/*
-void getLinkOwnership( const FinalStage::Concrete::Link* pConcreteLink, bool& bSource, bool& bOwning, bool& bOwned )
-{
-    using namespace FinalStage;
-
-    THROW_TODO;
-
-    const Interface::LinkInterface* pLinkInterface = pConcreteLink->get_link_interface();
-    const HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
-
-    bSource = false;
-    if( pRelation->get_source_interface() == pLinkInterface )
-    {
-        bSource = true;
-    }
-    else if( pRelation->get_target_interface() == pLinkInterface )
-    {
-        bSource = false;
-    }
-    else
-    {
-        THROW_RTE( "Invalid link" );
-    }
-
-    bOwning = false;
-    bOwned  = false;
-    {
-        if( bSource )
-        {
-            if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
-                bOwning = true;
-            if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
-                bOwned = true;
-        }
-        else
-        {
-            if( pRelation->get_ownership().get() == mega::Ownership::eOwnTarget )
-                bOwned = true;
-            if( pRelation->get_ownership().get() == mega::Ownership::eOwnSource )
-                bOwning = true;
-        }
-    }
-}*/
 
 std::string makeStartState( const mega::TypeID& typeID )
 {
@@ -164,12 +121,11 @@ void recurseTraversalStates( const JITDatabase& database, nlohmann::json& data,
     auto makeContextState = [ & ]( const Context* pContext, bool bStart, const std::string& strSuccessorState )
     {
         bool bOwning = false, bOwned = false;
-        THROW_TODO;
-        /*if( auto pConcreteLink = db_cast< const Link >( pContext ) )
+        if( auto pConcreteLink = db_cast< const Dimensions::Link >( pContext ) )
         {
-            bool bSource = false;
-            getLinkOwnership( pConcreteLink, bSource, bOwning, bOwned );
-        }*/
+            bOwning = pConcreteLink->get_owning();
+            bOwned  = pConcreteLink->get_owned();
+        }
 
         nlohmann::json state( { { "value", bStart ? makeStartState( pContext->get_concrete_id() )
                                                   : makeEndState( pContext->get_concrete_id() ) },
@@ -318,7 +274,6 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
         } );
         data[ "states" ].push_back( state );
     }
-    // std::vector< FinalStage::HyperGraph::Relation* > owningRelations;
 
     std::set< std::string > mangledDataTypes;
     {
@@ -359,28 +314,20 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                     mangledDataTypes.insert( strMangle );
                 }
 
-                THROW_TODO;
-                /*for( auto pLinkDim : pPart->get_link_dimensions() )
+                for( auto pLinkDim : pPart->get_link_dimensions() )
                 {
-                    Concrete::Link*           pConcreteLink  = pLinkDim->get_link();
-                    Interface::LinkInterface* pLinkInterface = pConcreteLink->get_link_interface();
-                    HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
-
-                    bool bSource = false, bOwning = false, bOwned = false;
-                    getLinkOwnership( pConcreteLink, bSource, bOwning, bOwned );
+                    HyperGraph::Relation* pRelation = pLinkDim->get_relation();
 
                     std::string    strMangle;
                     RelationID     relationID = pRelation->get_id();
                     nlohmann::json link( { { "type", mega::psz_mega_reference_vector },
-                                           { "type_id", printTypeID( pLinkDim->get_concrete_id() ) },
-                                           { "link_type_id", printTypeID( pLinkDim->get_link()->get_concrete_id() ) },
+                                           { "link_type_id", printTypeID( pLinkDim->get_concrete_id() ) },
                                            { "mangle", "" },
-                                           { "name", pLinkDim->get_link()->get_link()->get_identifier() },
                                            { "offset", pLinkDim->get_offset() },
                                            { "singular", false },
                                            { "types", nlohmann::json::array() },
-                                           { "owning", bOwning },
-                                           { "owned", bOwned },
+                                           { "owning", pLinkDim->get_owning() },
+                                           { "owned", pLinkDim->get_owned() },
                                            { "relation_id_lower", printTypeID( relationID.getLower() ) },
                                            { "relation_id_upper", printTypeID( relationID.getUpper() ) }
 
@@ -397,13 +344,22 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                         link[ "singular" ] = false;
                     }
 
-                    if( bSource )
+                    if( auto pOwningRelation = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
                     {
-                        for( auto pTarget : pRelation->get_targets() )
+                        if( pLinkDim->get_owning() )
                         {
-                            for( auto pConcreteLink : pTarget->get_concrete() )
+                            auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pLinkDim );
+                            VERIFY_RTE( pUserLink );
+                            auto pInterfaceLinkTrait = pUserLink->get_interface_link();
+                            auto owners              = pOwningRelation->get_owners();
+
+                            for( auto i    = owners.lower_bound( pInterfaceLinkTrait ),
+                                      iEnd = owners.upper_bound( pInterfaceLinkTrait );
+                                 i != iEnd;
+                                 ++i )
                             {
-                                auto pObjectOpt = pConcreteLink->get_concrete_object();
+                                auto pConcreteLink = i->second;
+                                auto pObjectOpt    = pConcreteLink->get_parent_context()->get_concrete_object();
                                 VERIFY_RTE( pObjectOpt.has_value() );
                                 nlohmann::json type(
                                     { { "link_type_id", printTypeID( pConcreteLink->get_concrete_id() ) },
@@ -412,30 +368,66 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                                     } );
                                 link[ "types" ].push_back( type );
                             }
+                        }
+                        else
+                        {
+                            auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pLinkDim );
+                            VERIFY_RTE( pOwnershipLink );
+                            auto owned = pOwningRelation->get_owned();
+
+                            for( auto i    = owned.lower_bound( pOwnershipLink ),
+                                      iEnd = owned.upper_bound( pOwnershipLink );
+                                 i != iEnd;
+                                 ++i )
+                            {
+                                auto pLinkTrait = i->second;
+                                for( auto pConcreteLink : pLinkTrait->get_concrete() )
+                                {
+                                    auto pObjectOpt = pConcreteLink->get_parent_context()->get_concrete_object();
+                                    VERIFY_RTE( pObjectOpt.has_value() );
+                                    nlohmann::json type(
+                                        { { "link_type_id", printTypeID( pConcreteLink->get_concrete_id() ) },
+                                          { "object_type_id", printTypeID( pObjectOpt.value()->get_concrete_id() ) }
+
+                                        } );
+                                    link[ "types" ].push_back( type );
+                                }
+                            }
+                        }
+                    }
+                    else if( auto pNonOwningRelation = db_cast< HyperGraph::NonOwningObjectRelation >( pRelation ) )
+                    {
+                        Interface::LinkTrait* pOther = nullptr;
+                        if( pLinkDim->get_source() )
+                        {
+                            pOther = pNonOwningRelation->get_target();
+                        }
+                        else
+                        {
+                            pOther = pNonOwningRelation->get_source();
+                        }
+                        for( auto pConcreteLink : pOther->get_concrete() )
+                        {
+                            auto pObjectOpt = pConcreteLink->get_parent_context()->get_concrete_object();
+                            VERIFY_RTE( pObjectOpt.has_value() );
+                            nlohmann::json type(
+                                { { "link_type_id", printTypeID( pConcreteLink->get_concrete_id() ) },
+                                  { "object_type_id", printTypeID( pObjectOpt.value()->get_concrete_id() ) }
+
+                                } );
+                            link[ "types" ].push_back( type );
                         }
                     }
                     else
                     {
-                        for( auto pTarget : pRelation->get_sources() )
-                        {
-                            for( auto pConcreteLink : pTarget->get_concrete() )
-                            {
-                                auto pObjectOpt = pConcreteLink->get_concrete_object();
-                                VERIFY_RTE( pObjectOpt.has_value() );
-                                nlohmann::json type(
-                                    { { "link_type_id", printTypeID( pConcreteLink->get_concrete_id() ) },
-                                      { "object_type_id", printTypeID( pObjectOpt.value()->get_concrete_id() ) }
-
-                                    } );
-                                link[ "types" ].push_back( type );
-                            }
-                        }
+                        THROW_RTE( "Unknown relation type" );
                     }
 
                     link[ "mangle" ] = strMangle;
                     part[ "links" ].push_back( link );
                     mangledDataTypes.insert( strMangle );
-                }*/
+                }
+
                 for( auto pAllocDim : pPart->get_allocation_dimensions() )
                 {
                     if( auto pAllocator = db_cast< Concrete::Dimensions::Allocator >( pAllocDim ) )
@@ -475,7 +467,6 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
     std::ostringstream osCPPCode;
     m_pInja->render_allocator( data, osCPPCode );
-    // compiler.compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
     compiler.compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, std::nullopt );
 }
 

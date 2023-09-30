@@ -320,14 +320,14 @@ public:
             {
                 auto* pObjectLinkTrait = db_cast< Interface::LinkTrait >( pUserLink->get_interface_link() );
                 VERIFY_RTE( pObjectLinkTrait );
-                
+
                 {
                     database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
                         mega::EdgeType::eLink, pUserLink->get_parent_context(), pVertex } );
                 }
                 {
-                    database.construct< Concrete::Graph::Edge >( Concrete::Graph::Edge::Args{
-                        EdgeType::eParent, pVertex, pUserLink->get_parent_context() } );
+                    database.construct< Concrete::Graph::Edge >(
+                        Concrete::Graph::Edge::Args{ EdgeType::eParent, pVertex, pUserLink->get_parent_context() } );
                 }
 
                 if( pObjectLinkTrait->get_owning() )
@@ -556,7 +556,8 @@ public:
             {
                 if( pLink->get_owning() )
                 {
-                    database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLink, pOwnershipRelation } );
+                    database.construct< Interface::LinkTrait >(
+                        Interface::LinkTrait::Args{ pLink, pOwnershipRelation } );
                 }
                 else
                 {
@@ -603,20 +604,22 @@ public:
                             if( pUserLink->get_interface_link()->get_owning() )
                             {
                                 database.construct< Concrete::Dimensions::Link >(
-                                    Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation } );
+                                    Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation, true, false, true } );
                             }
                             else
                             {
                                 auto iFind = nonOwningRelations.find( pUserLink->get_interface_link() );
                                 VERIFY_RTE( iFind != nonOwningRelations.end() );
+                                auto       pRelation = iFind->second;
+                                const bool bSource   = pRelation->get_source() == pUserLink->get_interface_link();
                                 database.construct< Concrete::Dimensions::Link >(
-                                    Concrete::Dimensions::Link::Args{ pLink, iFind->second } );
+                                    Concrete::Dimensions::Link::Args{ pLink, pRelation, false, false, bSource } );
                             }
                         }
                         else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pLink ) )
                         {
                             database.construct< Concrete::Dimensions::Link >(
-                                Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation } );
+                                Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation, false, true, false } );
                         }
                         else
                         {

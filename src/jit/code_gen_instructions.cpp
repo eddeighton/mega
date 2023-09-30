@@ -888,7 +888,7 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
             std::ostringstream osName;
             {
                 osName << "var_";
-                printConcreteFullType( pInstanceVar->get_concrete(), osName );
+                printConcreteFullType( pInstanceVar->get_concrete(), osName, "_" );
                 osName << "_" << iVariableCounter++;
             }
             variables.insert( { pVariable, osName.str() } );
@@ -904,7 +904,7 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
             std::ostringstream osName;
             {
                 osName << "var_";
-                printConcreteFullType( pDimensionVar->get_types().front(), osName );
+                printConcreteFullType( pDimensionVar->get_types().front(), osName, "_" );
                 osName << "_" << iVariableCounter++;
             }
             variables.insert( { pVariable, osName.str() } );

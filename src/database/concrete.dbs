@@ -56,7 +56,10 @@ namespace Concrete
 
             value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
 
-            ref< HyperGraph::Relation > relation -> HyperGraphAnalysisRollout::PerSourceModel;
+            ref< HyperGraph::Relation > relation    -> HyperGraphAnalysisRollout::PerSourceModel;
+            value< bool >               owning      -> HyperGraphAnalysisRollout::PerSourceModel;
+            value< bool >               owned       -> HyperGraphAnalysisRollout::PerSourceModel;
+            value< bool >               source      -> HyperGraphAnalysisRollout::PerSourceModel;
 
             value< mega::U64 >          offset      -> MemoryStage::MemoryLayout;
             ref< MemoryLayout::Part >   part        -> MemoryStage::MemoryLayout;

@@ -246,31 +246,32 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
         m_database.addDynamicInvocation( invocationID, pInvocationFinal );
     }
 
-    THROW_TODO;
-    /*JITBase::InvocationTypeInfo result{ pInvocationFinal->get_explicit_operation() };
+    JITBase::InvocationTypeInfo result{ pInvocationFinal->get_explicit_operation() };
 
     mega::runtime::invocation::FunctionType functionType = mega::runtime::invocation::TOTAL_FUNCTION_TYPES;
     switch( pInvocationFinal->get_explicit_operation() )
     {
-        // clang-format off
-        case mega::id_exp_Read:   
-        case mega::id_exp_Write:          
+        case mega::id_exp_Read:
+        case mega::id_exp_Write:
         {
-            if( pInvocationFinal->get_explicit_operation()  == mega::id_exp_Read )
+            if( pInvocationFinal->get_explicit_operation() == mega::id_exp_Read )
             {
-                functionType = mega::runtime::invocation::eRead; 
+                functionType = mega::runtime::invocation::eRead;
             }
             else
             {
-                functionType = mega::runtime::invocation::eWrite; 
+                functionType = mega::runtime::invocation::eWrite;
             }
 
-            const auto returnDim = pInvocationFinal->get_return_type_dimensions();
-            const auto returnRef = pInvocationFinal->get_return_type_contexts();
-
-            if( returnDim.size() )
+            auto pReturnType = pInvocationFinal->get_return_type();
+            using namespace FinalStage;
+            if( auto pVoid = db_cast< Operations::ReturnTypes::Void >( pReturnType ) )
             {
-                for( const auto& pDim : returnDim )
+                THROW_RTE( "void dimension" );
+            }
+            else if( auto pDimension = db_cast< Operations::ReturnTypes::Dimension >( pReturnType ) )
+            {
+                for( auto pDim : pDimension->get_dimensions() )
                 {
                     if( result.mangledType.empty() )
                     {
@@ -283,20 +284,41 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
                     }
                 }
             }
-            else if( returnRef.size() )
+            else if( auto pFunction = db_cast< Operations::ReturnTypes::Function >( pReturnType ) )
             {
-                result.mangledType = megaMangle( mega::psz_mega_reference );
+                THROW_RTE( "Read or Write returning function" );
+            }
+            else if( auto pContextReturnType = db_cast< Operations::ReturnTypes::Context >( pReturnType ) )
+            {
+                auto returnTypes = pContextReturnType->get_contexts();
+                if( returnTypes.size() == 1 )
+                {
+                    result.mangledType = megaMangle( mega::psz_mega_reference );
+                }
+                else
+                {
+                    result.mangledType = megaMangle( mega::psz_mega_reference_vector );
+                }
+            }
+            else if( auto pRange = db_cast< Operations::ReturnTypes::Range >( pReturnType ) )
+            {
+                THROW_RTE( "Read or Write returning range" );
             }
             else
             {
-                THROW_RTE( "Unknown invocation return type" );
+                THROW_RTE( "Unknown return type" );
             }
-            break; 
+            break;
         }
         case mega::id_exp_Read_Link:
         {
-            functionType = mega::runtime::invocation::eReadLink; 
-            if( pInvocationFinal->get_singular() )
+            functionType     = mega::runtime::invocation::eReadLink;
+            auto pReturnType = pInvocationFinal->get_return_type();
+            using namespace FinalStage;
+            auto pContextReturnType = db_cast< Operations::ReturnTypes::Context >( pReturnType );
+            VERIFY_RTE( pContextReturnType );
+            auto returnTypes = pContextReturnType->get_contexts();
+            if( returnTypes.size() == 1 )
             {
                 result.mangledType = megaMangle( mega::psz_mega_reference );
             }
@@ -304,32 +326,45 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             {
                 result.mangledType = megaMangle( mega::psz_mega_reference_vector );
             }
-            break; 
-        }        
+            break;
+        }
         case mega::id_exp_Write_Link:
         {
-            functionType = mega::runtime::invocation::eWriteLink;
+            functionType       = mega::runtime::invocation::eWriteLink;
             result.mangledType = megaMangle( mega::psz_mega_reference );
         }
         break;
-  
-        case mega::id_exp_Call:            functionType = mega::runtime::invocation::eCall; break; 
-        case mega::id_exp_Signal:          functionType = mega::runtime::invocation::eSignal; break; 
-        case mega::id_exp_Start:           functionType = mega::runtime::invocation::eStart; break;     
-        case mega::id_exp_GetContext:      functionType = mega::runtime::invocation::eGet; break;         
-        case mega::id_exp_GetDimension:    functionType = mega::runtime::invocation::eGet; break;  
-        case mega::id_exp_Move:            functionType = mega::runtime::invocation::eMove; break;     
-        case mega::id_exp_Range:    
-        default:         
+
+        case mega::id_exp_Call:
+            functionType = mega::runtime::invocation::eCall;
+            break;
+
+        case mega::id_exp_Signal:
+            functionType = mega::runtime::invocation::eStart;
+            break;
+        case mega::id_exp_Start:
+            functionType = mega::runtime::invocation::eStart;
+            break;
+
+        case mega::id_exp_GetContext:
+            functionType = mega::runtime::invocation::eGet;
+            break;
+        case mega::id_exp_GetDimension:
+            functionType = mega::runtime::invocation::eGet;
+            break;
+        case mega::id_exp_Move:
+            functionType = mega::runtime::invocation::eMove;
+            break;
+        case mega::id_exp_Range:
+        default:
         case mega::HIGHEST_EXPLICIT_OPERATION_TYPE:
             THROW_RTE( "Unknown explicit operation type" );
             break;
-            // clang-format on
     }
 
     getInvocationFunction( pLLVMCompiler, pszUnitName, invocationID, functionType, ppFunction );
 
-    return result;*/
+    return result;
 }
 
 void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, const mega::InvocationID& invocationID,
