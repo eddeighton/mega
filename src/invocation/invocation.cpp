@@ -577,12 +577,10 @@ private:
             {
                 bFound = true;
                 VERIFY_RTE( !pEdge->get_backtracked() );
-                auto pNext          = pEdge->get_next();
-                auto pTargetContext = db_cast< Concrete::Context >( pNext->get_vertex() );
-                VERIFY_RTE( pTargetContext );
+                auto pNext = pEdge->get_next();
 
                 auto pPolyCaseInstruction
-                    = make_instruction< Instructions::PolyCase >( pPolyReference, pVariable, pTargetContext );
+                    = make_instruction< Instructions::PolyCase >( pPolyReference, pVariable, pNext->get_vertex() );
 
                 // get the hypergraph object link edge
                 auto hyperGraphEdges = pEdge->get_edges();
@@ -593,7 +591,7 @@ private:
                     VERIFY_RTE( ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::eMono )
                                 || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePoly )
                                 || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePolyParent ) );
-                    VERIFY_RTE( pHyperGraphObjectLinkEdge->get_target() == pTargetContext );
+                    VERIFY_RTE( pHyperGraphObjectLinkEdge->get_target() == pNext->get_vertex() );
                 }
 
                 auto pOR = db_cast< Derivation::Or >( pNext );
@@ -737,7 +735,7 @@ public:
 void buildOperation( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation )
 {
     using ::operator<<;
-    
+
     std::vector< Concrete::Graph::Vertex* > operationContexts;
     for( auto pOperation : pInvocation->get_operations() )
     {
@@ -933,7 +931,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                 case eLinkDimensions:
                     // return type is the target of the link
                     {
-                        std::vector< Concrete::Context* > targets;
+                        /*std::vector< Concrete::Dimensions::Link* > targets;
                         for( auto pConcrete : linkDimensions )
                         {
                             bool bFound = false;
@@ -943,24 +941,19 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                                     || pGraphEdge->get_type().get() == EdgeType::ePoly
                                     || pGraphEdge->get_type().get() == EdgeType::ePolyParent )
                                 {
-                                    auto pTargetContext = db_cast< Concrete::Context >( pGraphEdge->get_target() );
+                                    auto pTargetContext
+                                        = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
                                     VERIFY_RTE( pTargetContext );
                                     targets.push_back( pTargetContext );
                                     bFound = true;
                                 }
                             }
                             VERIFY_RTE( bFound );
-                        }
+                        }*/
 
-                        std::vector< Interface::IContext* > contexts;
-                        for( auto pConcrete : targets )
-                        {
-                            contexts.push_back( pConcrete->get_interface() );
-                        }
-
-                        contexts = make_unique_without_reorder( contexts );
-                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
-                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
+                        linkDimensions = make_unique_without_reorder( linkDimensions );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Link >(
+                            ReturnTypes::Link::Args{ ReturnTypes::ReturnType::Args{}, linkDimensions } ) );
                     }
 
                     database.construct< ReadLink >( ReadLink::Args{ pInvocation } );

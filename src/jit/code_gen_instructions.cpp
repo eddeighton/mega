@@ -774,8 +774,24 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
             {
                 std::ostringstream os;
                 os << indent << "// PolyCase\n";
-                Concrete::Context* pType = pPolyCase->get_type();
-                os << indent << "case " << printTypeID( pType->get_concrete_id() ) << " :\n";
+                Concrete::Graph::Vertex* pType = pPolyCase->get_type();
+                if( auto pUserDim = db_cast< Concrete::Dimensions::User >( pType ) )
+                {
+                    os << indent << "case " << printTypeID( pUserDim->get_concrete_id() ) << " :\n";
+                }
+                else if( auto pLinkDim = db_cast< Concrete::Dimensions::Link >( pType ) )
+                {
+                    os << indent << "case " << printTypeID( pLinkDim->get_concrete_id() ) << " :\n";
+                }
+                else if( auto pContext = db_cast< Concrete::Context >( pType ) )
+                {
+                    os << indent << "case " << printTypeID( pContext->get_concrete_id() ) << " :\n";
+                }
+                else
+                {
+                    THROW_RTE( "Unknown poly case vertex type" );
+                }
+
                 os << indent << "{\n";
                 ++indent;
                 data[ "assignments" ].push_back( os.str() );

@@ -2,6 +2,13 @@
     "functions" :
     [
         {
+            "name" : "New",
+            "arguments" : [
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
             "name" : "Cast",
             "arguments" : [
                 {
@@ -14,6 +21,17 @@
         },
         {
             "name" : "Active",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "bool",
+            "return" : "value"
+        },
+        {
+            "name" : "Enabled",
             "arguments" : [
                 {
                     "name" : "ref",

@@ -101,8 +101,8 @@ namespace Invocations
 
         object PolyCase : InstructionGroup -> OperationsStage::Operations
         {
-            ref< Variables::Variable > reference;
-            ref< Concrete::Context >    type;
+            ref< Variables::Variable >      reference;
+            ref< Concrete::Graph::Vertex >  type;
         }
     }
 
