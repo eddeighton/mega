@@ -736,6 +736,8 @@ public:
 
 void buildOperation( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation )
 {
+    using ::operator<<;
+    
     std::vector< Concrete::Graph::Vertex* > operationContexts;
     for( auto pOperation : pInvocation->get_operations() )
     {

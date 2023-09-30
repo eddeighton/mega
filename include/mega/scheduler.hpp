@@ -33,7 +33,6 @@
 #include <chrono>
 
 #ifndef ERR
-#define LOG( msg )
 #define ERR( msg )
 #endif
 

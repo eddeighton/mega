@@ -91,46 +91,45 @@ void command( bool bHelp, const std::vector< std::string >& args )
             VERIFY_RTE_MSG(
                 boost::filesystem::exists( logFolderPath ), "Failed to locate folder: " << logFolderPath.string() );
             mega::log::FileStorage log( logFolderPath, true );
-            SPDLOG_INFO( "Loaded log folder: {}", logFolderPath.string() );
+            SPDLOG_INFO( "Loading event log: {}", logFolderPath.string() );
 
             if( bShowLogRecords )
             {
+                SPDLOG_INFO( "=== Msgs      === " );
                 using namespace mega::log::Log;
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
-                    const Read& logMsg = *i;
+                    const Read&        logMsg = *i;
                     std::ostringstream os;
                     os << std::setw( 15 ) << std::setfill( ' ' ) << toString( logMsg.getType() ) << ": "
                        << logMsg.getMessage();
                     switch( logMsg.getType() )
                     {
                         case eTrace:
-                            SPDLOG_LOGGER_CALL(
-                                spdlog::default_logger_raw(), spdlog::level::trace, os.str() );
+                            SPDLOG_TRACE( os.str() );
                             break;
                         case eDebug:
-                            SPDLOG_LOGGER_CALL(
-                                spdlog::default_logger_raw(), spdlog::level::debug, os.str() );
+                            SPDLOG_DEBUG( os.str() );
                             break;
                         case eInfo:
-                            SPDLOG_LOGGER_CALL(
-                                spdlog::default_logger_raw(), spdlog::level::info, os.str());
+                            SPDLOG_INFO( os.str() );
                             break;
                         case eWarn:
-                            SPDLOG_LOGGER_CALL(
-                                spdlog::default_logger_raw(), spdlog::level::warn, os.str() );
+                            SPDLOG_WARN( os.str() );
                             break;
                         case eError:
-                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, os.str() );
+                            SPDLOG_ERROR( os.str() );
                             break;
                         case eFatal:
-                            SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::err, os.str() );
+                            SPDLOG_CRITICAL( os.str() );
                             break;
                     }
                 }
+                SPDLOG_INFO( "================= " );
             }
             if( bShowStructureRecords )
             {
+                SPDLOG_INFO( "=== Structure === " );
                 using namespace mega::log::Structure;
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
@@ -138,11 +137,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     std::ostringstream os;
                     os << std::setw( 15 ) << std::setfill( ' ' ) << toString( record.getType() ) << ": "
                        << record.getSource() << ": " << record.getTarget() << ": " << record.getRelation();
-                    SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, os.str() );
+                    SPDLOG_INFO( os.str() );
                 }
+                SPDLOG_INFO( "================= " );
             }
             if( bShowSchedulingRecords )
             {
+                SPDLOG_INFO( "=== Scheduling == " );
                 using namespace mega::log::Scheduling;
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
@@ -150,17 +151,20 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     std::ostringstream os;
                     os << std::setw( 15 ) << std::setfill( ' ' ) << toString( schedulingRecord.getType() ) << ": "
                        << schedulingRecord.getRef();
-                    SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, os.str() );
+                    SPDLOG_INFO( os.str() );
                 }
+                SPDLOG_INFO( "================= " );
             }
             if( bShowMemoryRecords )
             {
+                SPDLOG_INFO( "=== Memory     == " );
                 using namespace mega::log::Memory;
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
                     const Read& memoryRecord = *i;
-                    SPDLOG_LOGGER_CALL( spdlog::default_logger_raw(), spdlog::level::info, memoryRecord.getRef() );
+                    SPDLOG_INFO( memoryRecord.getRef() );
                 }
+                SPDLOG_INFO( "================= " );
             }
         }
         else
