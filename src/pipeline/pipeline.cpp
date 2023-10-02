@@ -382,11 +382,17 @@ PipelineResult runPipelineLocally( const boost::filesystem::path& stashDir, cons
             {
                 pPipeline->execute( task, progressReporter, stashImpl, dependencies );
                 if( !pipelineResult.getSuccess() )
+                {
+                    osLog << "Pipeline task: " << task.getName() << " " << task.getSourceFile()
+                          << "failed: " << pipelineResult.getMessage() << std::endl;
+                    THROW_RTE( "Pipeline task: " << task.getName() << " " << task.getSourceFile()
+                                                 << "failed: " << pipelineResult.getMessage() );
                     break;
+                }
                 schedule.complete( task );
                 bProgress = true;
             }
-            VERIFY_RTE_MSG( bProgress, "Failed to make progress executing pipeline" );
+            VERIFY_RTE_MSG( bProgress, "Failed to make progress executing pipeline: " << pipelineResult.getMessage() );
         }
         if( pipelineResult.getSuccess() )
         {

@@ -68,6 +68,8 @@ BasicFixtureType::Impl::Ptr BasicFixtureType::m_pImpl;
 
 TEST_P( BasicFixtureType, BasicParameterizedTest )
 {
+    ASSERT_TRUE( m_pImpl.get() );
+    
     const BasicData data = GetParam();
 
     std::cout << "BasicParameterizedTest: " << m_pImpl->m_directories.installDir << std::endl;

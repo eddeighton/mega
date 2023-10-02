@@ -931,7 +931,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                 case eLinkDimensions:
                     // return type is the target of the link
                     {
-                        /*std::vector< Concrete::Dimensions::Link* > targets;
+                        std::vector< Concrete::Dimensions::Link* > targets;
                         for( auto pConcrete : linkDimensions )
                         {
                             bool bFound = false;
@@ -949,11 +949,11 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                                 }
                             }
                             VERIFY_RTE( bFound );
-                        }*/
+                        }
 
-                        linkDimensions = make_unique_without_reorder( linkDimensions );
+                        targets = make_unique_without_reorder( targets );
                         pInvocation->set_return_type( database.construct< ReturnTypes::Link >(
-                            ReturnTypes::Link::Args{ ReturnTypes::ReturnType::Args{}, linkDimensions } ) );
+                            ReturnTypes::Link::Args{ ReturnTypes::ReturnType::Args{}, targets } ) );
                     }
 
                     database.construct< ReadLink >( ReadLink::Args{ pInvocation } );

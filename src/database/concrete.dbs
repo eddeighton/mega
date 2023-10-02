@@ -116,6 +116,10 @@ namespace Concrete
         ref< Interface::Interupt > interface_interupt;
     }
 
+    object Requirement : Interupt -> ConcreteStage::Concrete
+    {
+    }
+
     object Function : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Function > interface_function;

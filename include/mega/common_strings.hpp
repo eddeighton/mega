@@ -54,6 +54,7 @@ namespace mega
     static const char* EG_TRANSITION_TRAIT_TYPE = "__Transition";
     static const char* EG_BASE_PREFIX_TRAIT_TYPE = "__Base";
     static const char* EG_SIZE_PREFIX_TRAIT_TYPE = "__Size";
+    static const char* EG_LINK_PREFIX_TRAIT_TYPE = "__Link";
     static const char* EG_TRAITS_SIZE = "Size";
     static const char* EG_TRAITS_ALIGNMENT = "Alignment";
     static const char* EG_TRAITS_SIMPLE = "Simple";

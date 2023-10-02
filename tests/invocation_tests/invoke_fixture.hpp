@@ -68,6 +68,8 @@ public:
     {
         using Ptr = std::unique_ptr< Impl >;
 
+        bool m_bSuccess = false;
+
         mega::compiler::Directories   m_directories;
         mega::io::BuildEnvironment    m_environment;
         mega::pipeline::Configuration m_pipeline;
@@ -124,28 +126,38 @@ public:
             return mega::pipeline::runPipelineLocally(
                 g_stashDir, g_toolChain, m_pipeline, "Task_OperationsPCH", "", {}, false, true, std::cout );
         };
+
+        
     };
 
     static void SetUpTestSuite()
     {
-        // create directories
-        boost::filesystem::path testFolder = boost::filesystem::temp_directory_path() / "invocation_tests" / TEST_NAME;
-        boost::filesystem::create_directories( testFolder );
-        VERIFY_RTE_MSG(
-            boost::filesystem::exists( testFolder ), "Failed to create temporary folder: " << testFolder.string() );
+        try
+        {
+            // create directories
+            boost::filesystem::path testFolder = boost::filesystem::temp_directory_path() / "invocation_tests" / TEST_NAME;
+            boost::filesystem::create_directories( testFolder );
+            VERIFY_RTE_MSG(
+                boost::filesystem::exists( testFolder ), "Failed to create temporary folder: " << testFolder.string() );
 
-        boost::filesystem::path srcDir = testFolder / "src";
-        boost::filesystem::create_directories( srcDir );
-        boost::filesystem::path buildDir = testFolder / "build";
-        boost::filesystem::create_directories( buildDir );
-        boost::filesystem::path installDir = testFolder / "install";
-        boost::filesystem::create_directories( installDir );
+            boost::filesystem::path srcDir = testFolder / "src";
+            boost::filesystem::create_directories( srcDir );
+            boost::filesystem::path buildDir = testFolder / "build";
+            boost::filesystem::create_directories( buildDir );
+            boost::filesystem::path installDir = testFolder / "install";
+            boost::filesystem::create_directories( installDir );
 
-        m_pImpl
-            = std::make_unique< Impl >( mega::compiler::Directories{ srcDir, buildDir, installDir, g_templatesDir } );
+            m_pImpl
+                = std::make_unique< Impl >( mega::compiler::Directories{ srcDir, buildDir, installDir, g_templatesDir } );
 
-        mega::pipeline::PipelineResult result = m_pImpl->runPipeline();
-        ASSERT_TRUE( result.m_bSuccess );
+            mega::pipeline::PipelineResult result = m_pImpl->runPipeline();
+            ASSERT_TRUE( result.m_bSuccess );
+        }
+        catch( std::exception& ex )
+        {
+            std::cout << "Setup failed with exception: " << ex.what() << std::endl;
+            m_pImpl.reset();
+        }
     }
 
     static void TearDownTestSuite() {}

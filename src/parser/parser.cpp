@@ -145,6 +145,17 @@ public:
             ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
     }
 
+    ScopedIdentifier* generate_ScopeIdentifier( Database& database, Identifier* pIdentifier )
+    {
+        const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
+        const mega::U64   szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
+
+        std::vector< Identifier* > identifiers;
+        identifiers.push_back( pIdentifier );
+        return database.construct< ScopedIdentifier >(
+            ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
+    }
+
     ScopedIdentifier* generate_unamedScopeIdentifier( Database& database )
     {
         const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
@@ -493,33 +504,73 @@ public:
         }
     }
 
+    mega::Type::Vector parse_typeList()
+    {
+        clang::SourceLocation startLoc = Tok.getLocation();
+        clang::SourceLocation endLoc   = Tok.getEndLoc();
+
+        while( !Tok.is( clang::tok::l_square ) && !Tok.is( clang::tok::semi ) && !Tok.is( clang::tok::equal ) )
+        {
+            endLoc = Tok.getEndLoc();
+            ConsumeAnyToken();
+        }
+
+        std::string strTypeList;
+        VERIFY_RTE( getSourceText( startLoc, endLoc, strTypeList ) );
+        strTypeList.erase( std::remove( strTypeList.begin(), strTypeList.end(), ' ' ), strTypeList.end() );
+
+        mega::Type::Vector typeList;
+        mega::parse( strTypeList, typeList );
+
+        return typeList;
+    }
+
     Link* parse_link( Database& database, bool bOwning )
     {
         // link Type.Path.To.Somehere [ 0:* ];
+        // link Type.Path.To.Somehere;
         // Interface::TypeName [ 1:1 ];
-        Identifier* pID = generate_unamedIdentifier( database );
+        // link Foo = Type.Path.To.Somehere [ 0:* ];
+        // link Foo = Type.Path.To.Somehere;
 
-        TypeList* pTypeList = nullptr;
+        Identifier* pID       = nullptr;
+        TypeList*   pTypeList = nullptr;
+
+        mega::Type::Vector typeList = parse_typeList();
+        parse_comment();
+
+        if( Tok.is( clang::tok::equal ) )
         {
-            clang::SourceLocation startLoc = Tok.getLocation();
-            clang::SourceLocation endLoc   = Tok.getEndLoc();
-
-            while( !Tok.is( clang::tok::l_square ) && !Tok.is( clang::tok::semi ) )
+            if( typeList.size() != 1 )
             {
-                endLoc = Tok.getEndLoc();
-                ConsumeAnyToken();
+                MEGA_PARSER_ERROR( "Link alias must be a single symbol" );
+            }
+            const auto& identifier = typeList.front();
+
+            pID = database.construct< Identifier >( Identifier::Args{ identifier.get() } );
+
+            ConsumeToken();
+            parse_comment();
+
+            mega::Type::Vector actulTypeList = parse_typeList();
+            if( actulTypeList.size() == 0 )
+            {
+                MEGA_PARSER_ERROR( "Link must contain a symbol" );
+            }
+            pTypeList = database.construct< TypeList >( TypeList::Args( actulTypeList ) );
+        }
+        else
+        {
+            if( typeList.size() == 0 )
+            {
+                MEGA_PARSER_ERROR( "Link must contain a symbol" );
             }
 
-            std::string strTypeList;
-            VERIFY_RTE( getSourceText( startLoc, endLoc, strTypeList ) );
-            strTypeList.erase( std::remove( strTypeList.begin(), strTypeList.end(), ' ' ), strTypeList.end() );
-
-            mega::Type::Vector args;
-            mega::parse( strTypeList, args );
-
-            pTypeList = database.construct< TypeList >( TypeList::Args( args ) );
-            parse_comment();
+            pID       = database.construct< Identifier >( Identifier::Args{ typeList.back().get() } );
+            pTypeList = database.construct< TypeList >( TypeList::Args( typeList ) );
         }
+
+        parse_comment();
 
         std::optional< mega::CardinalityRange > cardinality_range;
         if( Tok.is( clang::tok::l_square ) )
@@ -700,15 +751,6 @@ public:
         return database.construct< Dependency >( Dependency::Args{ strDependency } );
     }
 
-    Requirement* parse_requirement( Database& database )
-    {
-        Identifier* pID = generate_unamedIdentifier( database );
-        TypeList* pTypeList = parse_typeList( database );
-        parse_semicolon();
-        parse_comment();
-        return database.construct< Requirement >( Requirement::Args{ pID, pTypeList } );
-    }
-
     Part* parse_part( Database& database )
     {
         std::vector< std::string > names;
@@ -775,7 +817,6 @@ public:
                                std::vector< Link* >{},
                                std::vector< Include* >{},
                                std::vector< Dependency* >{},
-                               std::vector< Requirement* >{},
                                std::vector< Part* >{},
                                std::string{} );
         return body;
@@ -862,7 +903,7 @@ public:
         return database.construct< EventDef >( EventDef::Args{ body, pSize, pInheritance } );
     }
 
-    InteruptDef* parse_interupt( Database& database )
+    InteruptDef* parse_interupt( Database& database, bool bIsRequirement )
     {
         ScopedIdentifier* pScopedIdentifier = nullptr;
         if( Tok.is( clang::tok::identifier ) )
@@ -898,8 +939,15 @@ public:
                 MEGA_PARSER_ERROR( "Expected semicolon" );
             }
         }
-
-        return database.construct< InteruptDef >( InteruptDef::Args{ body, pArgumentList, pTransition } );
+        if( bIsRequirement )
+        {
+            return database.construct< RequirementDef >(
+                RequirementDef::Args{ InteruptDef::Args{ body, pArgumentList, pTransition } } );
+        }
+        else
+        {
+            return database.construct< InteruptDef >( InteruptDef::Args{ body, pArgumentList, pTransition } );
+        }
     }
 
     FunctionDef* parse_function( Database& database )
@@ -1093,7 +1141,12 @@ public:
             else if( Tok.is( clang::tok::kw_interupt ) )
             {
                 ConsumeToken();
-                bodyArgs.children.value().push_back( parse_interupt( database ) );
+                bodyArgs.children.value().push_back( parse_interupt( database, false ) );
+            }
+            else if( Tok.is( clang::tok::kw_requirement ) )
+            {
+                ConsumeToken();
+                bodyArgs.children.value().push_back( parse_interupt( database, true ) );
             }
             else if( Tok.is( clang::tok::kw_function ) )
             {
@@ -1157,12 +1210,6 @@ public:
                 Dependency* pDependency = parse_dependency( database );
                 bodyArgs.dependencies.value().push_back( pDependency );
             }
-            else if( Tok.is( clang::tok::kw_requirement ) )
-            {
-                ConsumeToken();
-                Requirement* pRequirement = parse_requirement( database );
-                bodyArgs.requirements.value().push_back( pRequirement );
-            }
             else if( Tok.is( clang::tok::kw_part ) )
             {
                 ConsumeToken();
@@ -1197,12 +1244,12 @@ public:
                             clang::tok::kw_event,
                             clang::tok::kw_interface,
                             clang::tok::kw_interupt,
+                            clang::tok::kw_requirement,
                             clang::tok::kw_dim,
                             clang::tok::kw_link,
                             clang::tok::kw_owns,
                             clang::tok::kw_include,
                             clang::tok::kw_dependency,
-                            clang::tok::kw_requirement,
                             clang::tok::kw_part,
                             clang::tok::kw_state,
                             clang::tok::kw_component

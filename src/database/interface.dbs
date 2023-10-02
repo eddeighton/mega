@@ -80,12 +80,6 @@ namespace Interface
         ref< IContext > parent;
 
     }
-    
-    object RequirementTrait : Parser::Requirement -> InterfaceStage::Tree
-    {
-        ref< IContext > parent;
-        array< ref< TypePathVariant > > tuple  -> InterfaceAnalysisStage::Clang;
-    }
 
     object TransitionTypeTrait : Parser::Transition -> InterfaceStage::Tree
     {
@@ -152,7 +146,6 @@ namespace Interface
         late< array< ref< LinkTrait > > >           link_traits;
         late< opt< ref< InheritanceTrait > > >      inheritance_trait;
         late< opt< ref< SizeTrait > > >             size_trait;
-        late< array< ref< RequirementTrait > > >    requirement_traits;
     }
 
     object State : InvocationContext -> InterfaceStage::Tree
@@ -164,7 +157,6 @@ namespace Interface
         late< opt< ref< SizeTrait > > >             size_trait;
         late< opt< ref< TransitionTypeTrait > > >   transition_trait;
         late< array< ref< PartTrait > > >           part_traits;
-        late< array< ref< RequirementTrait > > >    requirement_traits;
     }
 
     object Action : State -> InterfaceStage::Tree
@@ -187,6 +179,10 @@ namespace Interface
         array< ref< Parser::InteruptDef > >         interupt_defs;
         late< ref< EventTypeTrait > >               events_trait;
         late< opt< ref< TransitionTypeTrait > > >   transition_trait;
+    }
+    object Requirement : Interupt -> InterfaceStage::Tree
+    {
+
     }
     object Function : InvocationContext -> InterfaceStage::Tree
     {

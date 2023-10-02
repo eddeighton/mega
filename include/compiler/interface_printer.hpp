@@ -55,12 +55,24 @@ static void printDimensionTraitFullType( Interface::DimensionTrait* pDim, std::o
     VERIFY_RTE( pParent );
     os << printIContextFullType( pParent ) << "::" << pDim->get_id()->get_str();
 }
+static std::string printDimensionTraitFullType( Interface::DimensionTrait* pDim )
+{
+    std::ostringstream os;
+    printDimensionTraitFullType( pDim, os );
+    return os.str();
+}
 
 static void printLinkTraitFullType( Interface::LinkTrait* pLink, std::ostream& os )
 {
     auto pParent = db_cast< Interface::IContext >( pLink->get_parent() );
     VERIFY_RTE( pParent );
     os << printIContextFullType( pParent ) << "::" << pLink->get_id()->get_str();
+}
+static std::string printLinkTraitFullType( Interface::LinkTrait* pLink )
+{
+    std::ostringstream os;
+    printLinkTraitFullType( pLink, os );
+    return os.str();
 }
 
 static void printContextType( std::vector< Interface::IContext* >& contexts, std::ostream& os )

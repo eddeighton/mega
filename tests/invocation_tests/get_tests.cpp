@@ -49,6 +49,8 @@ GetFixtureType::Impl::Ptr GetFixtureType::m_pImpl;
 
 TEST_P( GetFixtureType, GetParameterizedTest )
 {
+    ASSERT_TRUE( m_pImpl.get() );
+    
     const GetData data = GetParam();
 
     OperationsStage::Database database( m_pImpl->m_environment, m_pImpl->m_megaSrcPath );

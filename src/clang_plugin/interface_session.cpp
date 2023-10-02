@@ -39,6 +39,11 @@
 #include "clang/Basic/DiagnosticParse.h"
 // #include "clang/Basic/DiagnosticSema.h"
 
+namespace InterfaceAnalysisStage
+{
+#include "compiler/interface_printer.hpp"
+}
+
 #pragma warning( pop )
 
 #include <map>
@@ -157,8 +162,10 @@ public:
     {
         for( Interface::LinkTrait* pLinkTrait : pContext->get_link_traits() )
         {
+            std::ostringstream osLinkTraitName;
+            osLinkTraitName << mega::EG_LINK_PREFIX_TRAIT_TYPE << pLinkTrait->get_id()->get_str();
             DeclLocType traitDecl
-                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pLinkTrait->get_id()->get_str() );
+                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, osLinkTraitName.str() );
             if( traitDecl.pDeclContext )
             {
                 DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
@@ -170,40 +177,40 @@ public:
                     std::vector< std::vector< std::vector< mega::TypeID > > > result;
                     if( !getTypePathVariantTupleSymbolIDs( pASTContext, typeTypeCanonical, result ) )
                     {
-                        REPORT_ERROR( "Failed to resolve link type for " << pContext->get_identifier() << "("
-                                                                         << pContext->get_interface_id() << ")" );
+                        REPORT_ERROR( "Failed to resolve link type for " << printLinkTraitFullType( pLinkTrait ) << "("
+                                                                         << pLinkTrait->get_interface_id() << ")" );
                         return false;
                     }
 
                     std::vector< Interface::TypePathVariant* > linkType;
                     if( !convert( result, linkType ) )
                     {
-                        REPORT_ERROR( "Failed to convert link type for " << pContext->get_identifier() << "("
-                                                                         << pContext->get_interface_id() << ")" );
+                        REPORT_ERROR( "Failed to convert link type for " << printLinkTraitFullType( pLinkTrait ) << "("
+                                                                         << pLinkTrait->get_interface_id() << ")" );
                         return false;
                     }
 
-                    m_database.construct< Interface::LinkTrait >(
-                        Interface::LinkTrait::Args{ pLinkTrait, linkType } );
+                    m_database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkTrait, linkType } );
                 }
                 else
                 {
-                    REPORT_ERROR( "Failed to resolve link target type for " << pContext->get_identifier() << "("
-                                                                            << pContext->get_interface_id() << ")" );
+                    REPORT_ERROR( "Failed to resolve link target type for " << printLinkTraitFullType( pLinkTrait )
+                                                                            << "(" << pLinkTrait->get_interface_id()
+                                                                            << ")" );
                     return false;
                 }
             }
             else
             {
-                REPORT_ERROR( "Failed to resolve link for " << pContext->get_identifier() << "("
-                                                            << pContext->get_interface_id() << ")" );
+                REPORT_ERROR( "Failed to resolve link for " << printLinkTraitFullType( pLinkTrait ) << "("
+                                                            << pLinkTrait->get_interface_id() << ")" );
                 return false;
             }
         }
         return true;
     }
 
-    template < typename TContextType >
+    /*template < typename TContextType >
     bool requirementAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
         for( Interface::RequirementTrait* pRequirementTrait : pContext->get_requirement_traits() )
@@ -252,7 +259,7 @@ public:
             }
         }
         return true;
-    }
+    }*/
 
     template < typename TContextType >
     bool dimensionAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
@@ -685,7 +692,7 @@ public:
             {
                 dimensionAnalysis( pAbstract, result.loc, result.pDeclContext );
                 linkAnalysis( pAbstract, result.loc, result.pDeclContext );
-                requirementAnalysis( pAbstract, result.loc, result.pDeclContext );
+                // requirementAnalysis( pAbstract, result.loc, result.pDeclContext );
 
                 if( std::optional< InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
                 {
@@ -705,7 +712,7 @@ public:
             {
                 dimensionAnalysis( pState, result.loc, result.pDeclContext );
                 linkAnalysis( pState, result.loc, result.pDeclContext );
-                requirementAnalysis( pState, result.loc, result.pDeclContext );
+                // requirementAnalysis( pState, result.loc, result.pDeclContext );
 
                 if( std::optional< InheritanceTrait* > inheritanceOpt = pState->get_inheritance_trait() )
                 {

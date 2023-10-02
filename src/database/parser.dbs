@@ -122,12 +122,6 @@ namespace Parser
         opt< ref< Initialiser > > initialiser;
     }
 
-    object Requirement -> ParserStage::AST
-    {
-        ref< Identifier > id;
-        ref< TypeList > argumentList;
-    }
-
     object Part -> ParserStage::AST
     {
         array< value< std::string > > identifiers;
@@ -174,7 +168,6 @@ namespace Parser
         array< ref< Link > > links;
         array< ref< Include > > includes;
         array< ref< Dependency > > dependencies;
-        array< ref< Requirement > > requirements;
         array< ref< Part > > parts;
         value< std::string > body -> ParserStage::Body;
     }
@@ -214,6 +207,10 @@ namespace Parser
     {
         ref< ArgumentList > argumentList;
         ref< Transition > transition;
+    }
+
+    object RequirementDef : InteruptDef -> ParserStage::AST
+    {
     }
 
     object FunctionDef : ContextDef -> ParserStage::AST
