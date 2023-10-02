@@ -45,13 +45,11 @@ struct EGDB_EXPORT Cardinality
 
     Cardinality()
         : m_number( ONE )
-        , m_allow_null( false )
     {
     }
 
-    Cardinality( NumberType number, bool bAllowNull = false )
+    Cardinality( NumberType number )
         : m_number( number )
-        , m_allow_null( bAllowNull )
     {
     }
 
@@ -59,10 +57,8 @@ struct EGDB_EXPORT Cardinality
     inline void serialize( Archive& archive, const unsigned int version )
     {
         archive& m_number;
-        archive& m_allow_null;
     }
 
-    bool       isNullAllowed() const { return m_allow_null; }
     bool       isZero() const { return m_number == ZERO; }
     bool       isOne() const { return m_number == ONE; }
     bool       isMany() const { return m_number == MANY; }
@@ -73,11 +69,9 @@ struct EGDB_EXPORT Cardinality
     void setOne() { m_number = ONE; }
     void setMany() { m_number = MANY; }
     void setNumber( NumberType number ) { m_number = number; }
-    void setIsNullAllowed( bool bIsAllowed ) { m_allow_null = bIsAllowed; }
 
 private:
     NumberType m_number;
-    bool       m_allow_null;
 };
 
 struct EGDB_EXPORT CardinalityRange
@@ -92,6 +86,23 @@ struct EGDB_EXPORT CardinalityRange
 
     const Cardinality& minimum() const { return m_minimum; }
     const Cardinality& maximum() const { return m_maximum; }
+
+    inline bool isOptional() const
+    {
+        return m_minimum.isZero();
+    }
+    inline bool isMandatory() const
+    {
+        return !isOptional();
+    }
+    inline bool isSingular() const
+    {
+        return m_maximum.isOne();
+    }
+    inline bool isNonSingular() const
+    {
+        return !isSingular();
+    }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -112,7 +123,7 @@ namespace mega
 {
 inline void to_json( nlohmann::json& j, const mega::Cardinality& cardinality )
 {
-    j = nlohmann::json{ { "isNullAllowed", cardinality.isNullAllowed() }, { "number", cardinality.getNumber() } };
+    j = nlohmann::json{ { "number", cardinality.getNumber() } };
 }
 inline void to_json( nlohmann::json& j, const mega::CardinalityRange& cardinalityRange )
 {

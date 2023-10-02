@@ -24,6 +24,8 @@
 #include "database/common/api.hpp"
 #include "database/common/serialisation.hpp"
 
+#include "database/types/cardinality.hpp"
+
 #include <ostream>
 
 namespace mega
@@ -31,7 +33,6 @@ namespace mega
 
 class EdgeType
 {
-
 public:
     enum Value
     {
@@ -40,8 +41,17 @@ public:
         eChildNonSingular,
         eDim,
         eLink,
-        eMono,
-        ePoly,
+
+        eMonoSingularMandatory,
+        ePolySingularMandatory,
+        eMonoNonSingularMandatory,
+        ePolyNonSingularMandatory,
+
+        eMonoSingularOptional,
+        ePolySingularOptional,
+        eMonoNonSingularOptional,
+        ePolyNonSingularOptional,
+
         ePolyParent,
         TOTAL_EDGE_TYPES
     };
@@ -55,7 +65,7 @@ public:
     {
     }
 
-    const char*      str() const;
+    const char*     str() const;
     static EdgeType fromStr( const char* psz );
 
     Value get() const { return m_value; }
@@ -66,6 +76,7 @@ public:
     {
         archive& m_value;
     }
+
 private:
     Value m_value;
 };
@@ -80,7 +91,76 @@ inline void to_json( nlohmann::json& j, mega::EdgeType edgeType )
 {
     j = nlohmann::json{ { "edge_type", edgeType.str() } };
 }
+
+inline EdgeType fromCardinality( bool bMonoMorphic, const std::optional< CardinalityRange > cardinalityOpt )
+{
+    if( cardinalityOpt.has_value() )
+    {
+        auto& cardinality = cardinalityOpt.value();
+        if( cardinality.isOptional() )
+        {
+            if( cardinality.isNonSingular() )
+            {
+                if( bMonoMorphic )
+                {
+                    return EdgeType::eMonoNonSingularOptional;
+                }
+                else
+                {
+                    return EdgeType::ePolyNonSingularOptional;
+                }
+            }
+            else
+            {
+                if( bMonoMorphic )
+                {
+                    return EdgeType::eMonoSingularOptional;
+                }
+                else
+                {
+                    return EdgeType::ePolySingularOptional;
+                }
+            }
+        }
+        else
+        {
+            if( cardinality.isNonSingular() )
+            {
+                if( bMonoMorphic )
+                {
+                    return EdgeType::eMonoNonSingularMandatory;
+                }
+                else
+                {
+                    return EdgeType::ePolyNonSingularMandatory;
+                }
+            }
+            else
+            {
+                if( bMonoMorphic )
+                {
+                    return EdgeType::eMonoSingularMandatory;
+                }
+                else
+                {
+                    return EdgeType::ePolySingularMandatory;
+                }
+            }
+        }
+    }
+    else
+    {
+        if( bMonoMorphic )
+        {
+            return EdgeType::eMonoSingularOptional;
+        }
+        else
+        {
+            return EdgeType::ePolySingularOptional;
+        }
+    }
+}
+
 } // namespace mega
 
-
-#endif //GUARD_2023_September_21_hyper_graph
+#endif // GUARD_2023_September_21_hyper_graph

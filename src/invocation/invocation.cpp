@@ -149,16 +149,14 @@ struct InvocationPolicy
         {
             switch( pEdge->get_type().get() )
             {
-                case EdgeType::eMono:
-                {
-                    result.push_back( pEdge );
-                }
-                break;
-                case EdgeType::ePoly:
-                {
-                    result.push_back( pEdge );
-                }
-                break;
+                case EdgeType::eMonoSingularMandatory:
+                case EdgeType::ePolySingularMandatory:
+                case EdgeType::eMonoNonSingularMandatory:
+                case EdgeType::ePolyNonSingularMandatory:
+                case EdgeType::eMonoSingularOptional:
+                case EdgeType::ePolySingularOptional:
+                case EdgeType::eMonoNonSingularOptional:
+                case EdgeType::ePolyNonSingularOptional:
                 case EdgeType::ePolyParent:
                 {
                     result.push_back( pEdge );
@@ -191,8 +189,16 @@ struct InvocationPolicy
                 }
                 break;
                 case EdgeType::ePolyParent:
-                case EdgeType::eMono:
-                case EdgeType::ePoly:
+
+                case EdgeType::eMonoSingularMandatory:
+                case EdgeType::ePolySingularMandatory:
+                case EdgeType::eMonoNonSingularMandatory:
+                case EdgeType::ePolyNonSingularMandatory:
+                case EdgeType::eMonoSingularOptional:
+                case EdgeType::ePolySingularOptional:
+                case EdgeType::eMonoNonSingularOptional:
+                case EdgeType::ePolyNonSingularOptional:
+
                 case EdgeType::eParent:
                 case EdgeType::eChildSingular:
                 case EdgeType::eChildNonSingular:
@@ -216,16 +222,14 @@ struct InvocationPolicy
             {
                 switch( pEdge->get_type().get() )
                 {
-                    case EdgeType::eMono:
-                    {
-                        edges.push_back( pEdge );
-                    }
-                    break;
-                    case EdgeType::ePoly:
-                    {
-                        edges.push_back( pEdge );
-                    }
-                    break;
+                    case EdgeType::eMonoSingularMandatory:
+                    case EdgeType::ePolySingularMandatory:
+                    case EdgeType::eMonoNonSingularMandatory:
+                    case EdgeType::ePolyNonSingularMandatory:
+                    case EdgeType::eMonoSingularOptional:
+                    case EdgeType::ePolySingularOptional:
+                    case EdgeType::eMonoNonSingularOptional:
+                    case EdgeType::ePolyNonSingularOptional:
                     case EdgeType::ePolyParent:
                     {
                         edges.push_back( pEdge );
@@ -259,26 +263,16 @@ struct InvocationPolicy
                     auto pLinkTarget = pGraphEdge->get_target();
                     for( auto pLinkGraphEdge : pLinkTarget->get_out_edges() )
                     {
-                        switch( pLinkGraphEdge->get_type().get() )
+                        if( pLinkGraphEdge->get_type().get() == EdgeType::eParent )
                         {
-                            case EdgeType::eMono:
-                            case EdgeType::ePoly:
-                            case EdgeType::ePolyParent:
-                                break;
-                            case EdgeType::eParent:
-                                VERIFY_RTE( !pParentVertex );
-                                pParentEdge   = pLinkGraphEdge;
-                                pParentVertex = pLinkGraphEdge->get_target();
-                                break;
-                            case EdgeType::eChildSingular:
-                            case EdgeType::eChildNonSingular:
-                            case EdgeType::eDim:
-                            case EdgeType::eLink:
-                            case EdgeType::TOTAL_EDGE_TYPES:
-                                break;
+                            VERIFY_RTE( !pParentVertex );
+                            pParentEdge   = pLinkGraphEdge;
+                            pParentVertex = pLinkGraphEdge->get_target();
                         }
                     }
                 }
+                VERIFY_RTE( pParentEdge );
+                VERIFY_RTE( pParentVertex );
 
                 auto pLinkTargetOr = m_database.construct< Derivation::Or >(
                     Derivation::Or::Args{ Derivation::Step::Args{ pParentVertex, {} } } );
@@ -347,11 +341,7 @@ struct InvocationPolicy
                         case EdgeType::eChildNonSingular:
                             // do no allow non-singular
                             break;
-                        case EdgeType::eParent:
-                        case EdgeType::eMono:
-                        case EdgeType::ePoly:
-                        case EdgeType::ePolyParent:
-                        case EdgeType::TOTAL_EDGE_TYPES:
+                        default:
                             break;
                     }
                 }
@@ -800,14 +790,15 @@ private:
                 {
                 }
                 break;
-                case EdgeType::eMono:
-                {
-                }
-                break;
-                case EdgeType::ePoly:
-                {
-                }
-                break;
+                case EdgeType::eMonoSingularMandatory:
+                case EdgeType::ePolySingularMandatory:
+                case EdgeType::eMonoNonSingularMandatory:
+                case EdgeType::ePolyNonSingularMandatory:
+                case EdgeType::eMonoSingularOptional:
+                case EdgeType::ePolySingularOptional:
+                case EdgeType::eMonoNonSingularOptional:
+                case EdgeType::ePolyNonSingularOptional:
+                    break;
                 case EdgeType::ePolyParent:
                 {
                 }
@@ -1031,15 +1022,25 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                             bool bFound = false;
                             for( auto pGraphEdge : pConcrete->get_out_edges() )
                             {
-                                if( pGraphEdge->get_type().get() == EdgeType::eMono
-                                    || pGraphEdge->get_type().get() == EdgeType::ePoly
-                                    || pGraphEdge->get_type().get() == EdgeType::ePolyParent )
+                                switch( pGraphEdge->get_type().get() )
                                 {
-                                    auto pTargetContext
-                                        = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
-                                    VERIFY_RTE( pTargetContext );
-                                    targets.push_back( pTargetContext );
-                                    bFound = true;
+                                    case EdgeType::eMonoSingularMandatory:
+                                    case EdgeType::ePolySingularMandatory:
+                                    case EdgeType::eMonoNonSingularMandatory:
+                                    case EdgeType::ePolyNonSingularMandatory:
+                                    case EdgeType::eMonoSingularOptional:
+                                    case EdgeType::ePolySingularOptional:
+                                    case EdgeType::eMonoNonSingularOptional:
+                                    case EdgeType::ePolyNonSingularOptional:
+                                    case EdgeType::ePolyParent:
+                                    {
+                                        auto pTargetContext
+                                            = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
+                                        VERIFY_RTE( pTargetContext );
+                                        targets.push_back( pTargetContext );
+                                        bFound = true;
+                                    }
+                                    break;
                                 }
                             }
                             VERIFY_RTE( bFound );

@@ -100,8 +100,16 @@ public:
                     recurseObjectTree( pEdge->get_target(), edges, vertices );
                 }
                 break;
-                case EdgeType::eMono:
-                case EdgeType::ePoly:
+
+                case EdgeType::eMonoSingularMandatory:
+                case EdgeType::ePolySingularMandatory:
+                case EdgeType::eMonoNonSingularMandatory:
+                case EdgeType::ePolyNonSingularMandatory:
+                case EdgeType::eMonoSingularOptional:
+                case EdgeType::ePolySingularOptional:
+                case EdgeType::eMonoNonSingularOptional:
+                case EdgeType::ePolyNonSingularOptional:
+
                 case EdgeType::ePolyParent:
                 case EdgeType::eParent:
                     break;
@@ -276,8 +284,10 @@ public:
                         auto pEdge = i->second;
                         switch( pEdge->get_type().get() )
                         {
-                            case EdgeType::eMono:
-                            case EdgeType::ePoly:
+                            case EdgeType::eMonoSingular:
+                            case EdgeType::ePolySingular:
+                            case EdgeType::eMonoNonSingular:
+                            case EdgeType::ePolyNonSingular:
                             case EdgeType::ePolyParent:
                             {
                                 results.push_back( pEdge );
@@ -351,8 +361,16 @@ public:
                                     }
                                     case EdgeType::eParent:
                                     case EdgeType::eChildNonSingular:
-                                    case EdgeType::eMono:
-                                    case EdgeType::ePoly:
+                                    
+                                    case EdgeType::eMonoSingularMandatory:
+                                    case EdgeType::ePolySingularMandatory:
+                                    case EdgeType::eMonoNonSingularMandatory:
+                                    case EdgeType::ePolyNonSingularMandatory:
+                                    case EdgeType::eMonoSingularOptional:
+                                    case EdgeType::ePolySingularOptional:
+                                    case EdgeType::eMonoNonSingularOptional:
+                                    case EdgeType::ePolyNonSingularOptional:
+
                                     case EdgeType::ePolyParent:
                                     case EdgeType::TOTAL_EDGE_TYPES:
                                         break;

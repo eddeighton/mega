@@ -270,8 +270,16 @@ static void precedence( Edge* pEdge )
                     }
                     break;
                 case ::mega::EdgeType::eParent:
-                case ::mega::EdgeType::eMono:
-                case ::mega::EdgeType::ePoly:
+
+                case ::mega::EdgeType::eMonoSingularMandatory:
+                case ::mega::EdgeType::ePolySingularMandatory:
+                case ::mega::EdgeType::eMonoNonSingularMandatory:
+                case ::mega::EdgeType::ePolyNonSingularMandatory:
+                case ::mega::EdgeType::eMonoSingularOptional:
+                case ::mega::EdgeType::ePolySingularOptional:
+                case ::mega::EdgeType::eMonoNonSingularOptional:
+                case ::mega::EdgeType::ePolyNonSingularOptional:
+
                 case ::mega::EdgeType::ePolyParent:
                     break;
                 case ::mega::EdgeType::TOTAL_EDGE_TYPES:

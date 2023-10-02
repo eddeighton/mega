@@ -29,8 +29,19 @@ namespace
 using namespace std::string_literals;
 static const std::array< std::string, mega::EdgeType::TOTAL_EDGE_TYPES > g_edgeTypes = {
 
-    "Parent"s, "ChildSingular"s, "ChildNonSingular"s, "Link"s, "Dim"s,
-    "Mono"s,   "Poly"s,          "PolyParent"s
+    "Parent"s,       "ChildSingular"s,   "ChildNonSingular"s, "Link"s,      "Dim"s, 
+
+    "MonoSingularMandatory"s,
+    "PolySingularMandatory"s, 
+    "MonoNonSingularMandatory"s, 
+    "PolyNonSingularMandatory"s,  
+    
+    "MonoSingularOptional"s,
+    "PolySingularOptional"s, 
+    "MonoNonSingularOptional"s, 
+    "PolyNonSingularOptional"s,  
+
+    "PolyParent"s
 
 };
 } // namespace
@@ -47,8 +58,17 @@ const char* EdgeType::str() const
         case eChildNonSingular:
         case eDim:
         case eLink:
-        case eMono:
-        case ePoly:
+
+        case eMonoSingularMandatory:
+        case ePolySingularMandatory:
+        case eMonoNonSingularMandatory:
+        case ePolyNonSingularMandatory:
+
+        case eMonoSingularOptional:
+        case ePolySingularOptional:
+        case eMonoNonSingularOptional:
+        case ePolyNonSingularOptional:
+
         case ePolyParent:
             return g_edgeTypes[ m_value ].c_str();
         case TOTAL_EDGE_TYPES:

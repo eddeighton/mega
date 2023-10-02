@@ -333,8 +333,10 @@ public:
                 if( pObjectLinkTrait->get_owning() )
                 {
                     auto i = owners.lower_bound( pObjectLinkTrait ), iEnd = owners.upper_bound( pObjectLinkTrait );
+
                     const EdgeType edgeType
-                        = ( std::distance( i, iEnd ) == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
+                        = mega::fromCardinality( std::distance( i, iEnd ) == 1, pObjectLinkTrait->get_cardinality() );
+
                     for( ; i != iEnd; ++i )
                     {
                         database.construct< Concrete::Graph::Edge >(
@@ -351,9 +353,11 @@ public:
                     {
                         Interface::LinkTrait* pTargetObjectLink = pNonOwningObjectRelation->get_target();
 
-                        auto           concreteTargets = pTargetObjectLink->get_concrete();
+                        auto concreteTargets = pTargetObjectLink->get_concrete();
+
                         const EdgeType edgeType
-                            = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
+                            = mega::fromCardinality( concreteTargets.size() == 1, pObjectLinkTrait->get_cardinality() );
+
                         for( auto pConcreteTarget : concreteTargets )
                         {
                             database.construct< Concrete::Graph::Edge >(
@@ -365,8 +369,10 @@ public:
                         Interface::LinkTrait* pSourceObjectLink = pNonOwningObjectRelation->get_source();
 
                         auto           concreteTargets = pSourceObjectLink->get_concrete();
+
                         const EdgeType edgeType
-                            = ( concreteTargets.size() == 1 ) ? mega::EdgeType::eMono : mega::EdgeType::ePoly;
+                            = mega::fromCardinality( concreteTargets.size() == 1, pObjectLinkTrait->get_cardinality() );
+                            
                         for( auto pConcreteTarget : concreteTargets )
                         {
                             database.construct< Concrete::Graph::Edge >(
