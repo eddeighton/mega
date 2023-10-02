@@ -528,8 +528,8 @@ using namespace OperationsStage::Invocations;
 
 class InvocationBuilder
 {
-    Variables::Stack* make_stack_variable( Variables::Variable*                pParentVariable,
-                                           OperationsStage::Concrete::Context* pTargetContext )
+    Variables::Stack* make_stack_variable( Variables::Variable*                      pParentVariable,
+                                           OperationsStage::Concrete::Graph::Vertex* pTargetContext )
     {
         using namespace OperationsStage;
         auto pStack = m_database.construct< Variables::Stack >(
@@ -630,7 +630,17 @@ public:
         }
         else if( activeOutEdgeCount > 1 )
         {
-            buildAnd( m_pRootInstruction, m_pParameterVariable, m_pDerivationTreeRoot->get_edges() );
+            auto pPolyReference
+                = make_instruction< Instructions::PolyBranch >( m_pRootInstruction, m_pParameterVariable );
+            for( auto pEdge : m_pDerivationTreeRoot->get_edges() )
+            {
+                auto pInstruction = make_instruction< Instructions::PolyCase >(
+                    pPolyReference, m_pParameterVariable, pEdge->get_next()->get_vertex() );
+                auto pNext = pEdge->get_next();
+                auto pOR   = db_cast< Derivation::Or >( pNext );
+                VERIFY_RTE( pOR );
+                buildOr( pInstruction, m_pParameterVariable, pOR );
+            }
         }
         else
         {
@@ -648,39 +658,78 @@ private:
         m_pInvocation->push_back_operations( pOperation );
     }
 
-    void buildAnd( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable,
-                   const std::vector< Derivation::Edge* >& edges )
+    void buildAnd( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable, Derivation::And* pAnd )
     {
+
+        // read the link
+        auto pLink = db_cast< Concrete::Dimensions::Link >( pAnd->get_vertex() );
+
+        auto pLinkReference = make_memory_variable( pVariable, {} );
+
+        auto pDereference = make_instruction< Instructions::Dereference >( pInstruction, pVariable, pLinkReference, pLink );
+
         // create polymorphic branch
-        auto pPolyReference = make_instruction< Instructions::PolyBranch >( pInstruction, pVariable );
+        auto pPolyReference = make_instruction< Instructions::PolyBranch >( pDereference, pLinkReference );
 
         bool bFound = false;
-        for( auto pEdge : edges )
+        for( auto pEdge : pAnd->get_edges() )
         {
             if( !pEdge->get_eliminated() )
             {
                 bFound = true;
                 VERIFY_RTE( !pEdge->get_backtracked() );
-                auto pNext = pEdge->get_next();
 
-                auto pPolyCaseInstruction
-                    = make_instruction< Instructions::PolyCase >( pPolyReference, pVariable, pNext->get_vertex() );
+                pInstruction         = pPolyReference;
+                auto pResultVariable = pVariable;
 
-                // get the hypergraph object link edge
-                /*auto hyperGraphEdges = pEdge->get_edges();
-                if( !hyperGraphEdges.empty() )
+                auto hyperGraphEdges = pEdge->get_edges();
+                VERIFY_RTE( !hyperGraphEdges.empty() );
+
+                for( auto hyperGraphEdge : hyperGraphEdges )
                 {
-                    VERIFY_RTE( hyperGraphEdges.size() == 1 );
-                    auto pHyperGraphObjectLinkEdge = hyperGraphEdges.front();
-                    VERIFY_RTE( ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::eMono )
-                                || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePoly )
-                                || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePolyParent ) );
-                    VERIFY_RTE( pHyperGraphObjectLinkEdge->get_target() == pNext->get_vertex() );
-                }*/
+                    switch( hyperGraphEdge->get_type().get() )
+                    {
+                        case EdgeType::eMonoSingularMandatory:
+                        case EdgeType::eMonoNonSingularMandatory:
+                        case EdgeType::eMonoSingularOptional:
+                        case EdgeType::eMonoNonSingularOptional:
+                        {
+                            pInstruction = make_instruction< Instructions::PolyCase >(
+                                pInstruction, pResultVariable, hyperGraphEdge->get_target() );
+                        }
+                        break;
+                        case EdgeType::ePolySingularMandatory:
+                        case EdgeType::ePolyNonSingularMandatory:
+                        case EdgeType::ePolySingularOptional:
+                        case EdgeType::ePolyNonSingularOptional:
+                        case EdgeType::ePolyParent:
+                        {
+                            pInstruction = make_instruction< Instructions::PolyCase >(
+                                pInstruction, pResultVariable, hyperGraphEdge->get_target() );
+                        }
+                        break;
 
-                auto pOR = db_cast< Derivation::Or >( pNext );
+                        case EdgeType::eParent:
+                        {
+                            auto pTo     = make_stack_variable( pResultVariable, hyperGraphEdge->get_target() );
+                            pInstruction = make_instruction< Instructions::ParentDerivation >(
+                                pInstruction, pResultVariable, pTo );
+                            pResultVariable = pTo;
+                        }
+                        break;
+
+                        default:
+                        {
+                            THROW_RTE( "Unsupported AND hypergraph edge" );
+                        }
+                        break;
+                    }
+                }
+
+                auto pNext = pEdge->get_next();
+                auto pOR   = db_cast< Derivation::Or >( pNext );
                 VERIFY_RTE( pOR );
-                buildOr( pPolyCaseInstruction, pVariable, pOR );
+                buildOr( pInstruction, pResultVariable, pOR );
             }
         }
         VERIFY_RTE_MSG( bFound, "Failed to find non-eliminated edge in OR step" );
@@ -740,7 +789,7 @@ private:
             }
             else
             {
-                buildAnd( pInstruction, pVariable, edges );
+                buildAnd( pInstruction, pVariable, pAnd );
             }
         }
         else if( auto pOr = db_cast< Derivation::Or >( pNextStep ) )

@@ -87,13 +87,15 @@ namespace Invocations
             ref< Variables::Variable > instance;
         }
 
-        object DimensionReferenceRead : InstructionGroup -> OperationsStage::Operations
-        {
-            ref< Variables::Variable > instance;
-            ref< Variables::Memory > dimension_reference;
-            ref< Concrete::Dimensions::User > concrete;
-        }
 */
+
+        object Dereference : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Variable >          instance;
+            ref< Variables::Memory >            read_value;
+            ref< Concrete::Dimensions::Link >   link_dimension;
+        }
+
         object PolyBranch : InstructionGroup -> OperationsStage::Operations
         {
             ref< Variables::Variable > from_reference;
