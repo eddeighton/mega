@@ -89,11 +89,11 @@ struct InvocationPolicy
     {
         return m_database.construct< Derivation::Or >( Derivation::Or::Args{ Derivation::Step::Args{ pVertex, {} } } );
     }
-    AndPtr makeAnd( GraphVertex* pVertex ) const
+    /*AndPtr makeAnd( GraphVertex* pVertex ) const
     {
         return m_database.construct< Derivation::And >(
             Derivation::And::Args{ Derivation::Step::Args{ pVertex, {} } } );
-    }
+    }*/
     RootPtr makeRoot( const GraphVertexVector& context ) const
     {
         return m_database.construct< Derivation::Root >( Derivation::Root::Args{ context, {} } );
@@ -108,7 +108,7 @@ struct InvocationPolicy
 
     // the link context MAY contain MULTIPLE links.  Each individual link is either deriving or not.
     // The Link context is considered to be deriving if ANY of its links are deriving
-    GraphVertexVector enumerateLinkContexts( GraphVertex* pVertex ) const
+    /*GraphVertexVector enumerateLinkContexts( GraphVertex* pVertex ) const
     {
         Concrete::Context* pContext = nullptr;
         {
@@ -200,6 +200,100 @@ struct InvocationPolicy
                 case EdgeType::TOTAL_EDGE_TYPES:
                     break;
             }
+        }
+
+        return result;
+    }*/
+
+    OrPtrVector expandLink( OrPtr pOr ) const
+    {
+        OrPtrVector result;
+
+        if( auto pLink = db_cast< Concrete::Dimensions::Link >( pOr->get_vertex() ) )
+        {
+            GraphEdgeVector edges;
+            for( auto pEdge : pLink->get_out_edges() )
+            {
+                switch( pEdge->get_type().get() )
+                {
+                    case EdgeType::eMono:
+                    {
+                        edges.push_back( pEdge );
+                    }
+                    break;
+                    case EdgeType::ePoly:
+                    {
+                        edges.push_back( pEdge );
+                    }
+                    break;
+                    case EdgeType::ePolyParent:
+                    {
+                        edges.push_back( pEdge );
+                    }
+                    break;
+                    case EdgeType::eParent:
+                    case EdgeType::eChildSingular:
+                    case EdgeType::eChildNonSingular:
+                    case EdgeType::eDim:
+                    case EdgeType::eLink:
+                    case EdgeType::TOTAL_EDGE_TYPES:
+                        break;
+                }
+            }
+            VERIFY_RTE( !edges.empty() );
+
+            auto pAnd = m_database.construct< Derivation::And >(
+                Derivation::And::Args{ Derivation::Step::Args{ pLink, {} } } );
+
+            auto pOrToAndEdge
+                = m_database.construct< Derivation::Edge >( Derivation::Edge::Args{ pAnd, false, false, 0, {} } );
+
+            pOr->push_back_edges( pOrToAndEdge );
+
+            for( auto pGraphEdge : edges )
+            {
+                // determine the parent context of the link target
+                GraphVertex* pParentVertex = nullptr;
+                GraphEdge*   pParentEdge   = nullptr;
+                {
+                    auto pLinkTarget = pGraphEdge->get_target();
+                    for( auto pLinkGraphEdge : pLinkTarget->get_out_edges() )
+                    {
+                        switch( pLinkGraphEdge->get_type().get() )
+                        {
+                            case EdgeType::eMono:
+                            case EdgeType::ePoly:
+                            case EdgeType::ePolyParent:
+                                break;
+                            case EdgeType::eParent:
+                                VERIFY_RTE( !pParentVertex );
+                                pParentEdge   = pLinkGraphEdge;
+                                pParentVertex = pLinkGraphEdge->get_target();
+                                break;
+                            case EdgeType::eChildSingular:
+                            case EdgeType::eChildNonSingular:
+                            case EdgeType::eDim:
+                            case EdgeType::eLink:
+                            case EdgeType::TOTAL_EDGE_TYPES:
+                                break;
+                        }
+                    }
+                }
+
+                auto pLinkTargetOr = m_database.construct< Derivation::Or >(
+                    Derivation::Or::Args{ Derivation::Step::Args{ pParentVertex, {} } } );
+
+                auto pDerivationEdge = m_database.construct< Derivation::Edge >(
+                    Derivation::Edge::Args{ pLinkTargetOr, false, false, 0, { pGraphEdge, pParentEdge } } );
+
+                pAnd->push_back_edges( pDerivationEdge );
+
+                result.push_back( pLinkTargetOr );
+            }
+        }
+        else
+        {
+            result.push_back( pOr );
         }
 
         return result;
@@ -583,7 +677,7 @@ private:
                     = make_instruction< Instructions::PolyCase >( pPolyReference, pVariable, pNext->get_vertex() );
 
                 // get the hypergraph object link edge
-                auto hyperGraphEdges = pEdge->get_edges();
+                /*auto hyperGraphEdges = pEdge->get_edges();
                 if( !hyperGraphEdges.empty() )
                 {
                     VERIFY_RTE( hyperGraphEdges.size() == 1 );
@@ -592,7 +686,7 @@ private:
                                 || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePoly )
                                 || ( pHyperGraphObjectLinkEdge->get_type().get() == EdgeType::ePolyParent ) );
                     VERIFY_RTE( pHyperGraphObjectLinkEdge->get_target() == pNext->get_vertex() );
-                }
+                }*/
 
                 auto pOR = db_cast< Derivation::Or >( pNext );
                 VERIFY_RTE( pOR );

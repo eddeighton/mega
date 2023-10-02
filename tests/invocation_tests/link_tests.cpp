@@ -46,14 +46,14 @@ R"TESTCODE(
 
 interface Base
 {
-    /*component C
+    component C
     {
         owns A;
     }
     component D
     {
         owns B;
-    }*/
+    }
     dim int m_y;
 }
 
@@ -69,7 +69,7 @@ object B : Base
 
 object Root
 {
-    owns Base;
+    owns Base = Base;
 }
 
 )TESTCODE";
@@ -118,7 +118,15 @@ TEST_P( LinkFixtureType, LinkParameterizedTest )
     mega::OperationID        operationTypeID = mega::id_Imp_NoParams;
     const mega::InvocationID id{ contextSymbolIDs, typePathSymbolIDs, operationTypeID };
 
-    Operations::Invocation* pInvocation = mega::invocation::compileInvocation( database, symbolTables, id );
+    Operations::Invocation* pInvocation = nullptr;
+    try
+    {
+        pInvocation = mega::invocation::compileInvocation( database, symbolTables, id );
+    }
+    catch( std::exception& ex )
+    {
+        std::cerr << "mega::invocation::compileInvocation failed: " << ex.what() << std::endl;
+    }
     ASSERT_TRUE( pInvocation );
 
     ASSERT_EQ( pInvocation->get_operations().size(), data.expectedOperations );
@@ -136,20 +144,20 @@ using namespace std::string_literals;
 INSTANTIATE_TEST_SUITE_P( Link, LinkFixtureType,
         ::testing::Values
         ( 
-            LinkData{ "Root"s, { "m_x"s }, 2, mega::id_exp_Read }
-            /*LinkData{ "Root"s, { "Base"s }, 1, mega::id_exp_Read_Link },
-            LinkData{ "Root"s, { "C"s }, 1, mega::id_exp_Read_Link },
-            LinkData{ "Root"s, { "C"s, "A"s }, 2, mega::id_exp_Read_Link },
-            LinkData{ "Root"s, { "C"s, "A"s, "m_x"s }, 2, mega::id_exp_Read },
+            LinkData{ "Root"s, { "Base"s }, 1, mega::id_exp_Read_Link },
+            LinkData{ "Root"s, { "Base"s, "m_x"s }, 2, mega::id_exp_Read },
+            LinkData{ "Base"s, { "m_y"s }, 2, mega::id_exp_Read },
+            
+            LinkData{ "Root"s, { "Base"s, "C"s }, 1, mega::id_exp_Read_Link },
+            LinkData{ "Root"s, { "Base"s, "C"s, "A"s }, 2, mega::id_exp_Read_Link },
             LinkData{ "Root"s, { "Base"s, "C"s, "A"s, "m_x"s }, 2, mega::id_exp_Read },
 
             LinkData{ "Root"s, { "Base"s, "C"s, "A"s, "C"s, "A"s, "C"s, "A"s, "m_x"s }, 2, mega::id_exp_Read },
             LinkData{ "Root"s, { "Base"s, "C"s, "A"s, "D"s, "B"s, "D"s, "B"s, "m_x"s }, 2, mega::id_exp_Read },
 
-
             LinkData{ "D"s, { "m_x"s }, 2, mega::id_exp_Read },
             LinkData{ "D"s, { "m_y"s }, 2, mega::id_exp_Read },
             
-            LinkData{ "Base"s, { "m_y"s }, 2, mega::id_exp_Read }*/
+            LinkData{ "Base"s, { "m_y"s }, 2, mega::id_exp_Read }
         ));
 // clang-format on

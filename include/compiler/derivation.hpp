@@ -86,7 +86,7 @@ static typename TPolicy::OrPtrVector solveStep( typename TPolicy::OrPtr         
         }
     }
 
-    if( bAllowInterObjectStep )
+    /*if( bAllowInterObjectStep )
     {
         for( auto pLinkContextVertex : policy.enumerateLinkContexts( pCurrentVertex ) )
         {
@@ -95,12 +95,12 @@ static typename TPolicy::OrPtrVector solveStep( typename TPolicy::OrPtr         
             if( pCurrentVertex != pLinkContextVertex )
             {
                 typename TPolicy::GraphEdgeVector edges;
-                /*if( policy.commonRootDerivation( pCurrentVertex, pLinkContextVertex, edges ) )
-                {
-                    pStep = policy.makeOr( pLinkContextVertex );
-                    pCurrentFrontierStep->push_back_edges( policy.makeEdge( pStep, edges ) );
-                }
-                else*/
+                // if( policy.commonRootDerivation( pCurrentVertex, pLinkContextVertex, edges ) )
+                // {
+                //     pStep = policy.makeOr( pLinkContextVertex );
+                //     pCurrentFrontierStep->push_back_edges( policy.makeEdge( pStep, edges ) );
+                // }
+                // else
                 {
                     pStep = nullptr;
                 }
@@ -133,7 +133,7 @@ static typename TPolicy::OrPtrVector solveStep( typename TPolicy::OrPtr         
                 }
             }
         }
-    }
+    }*/
 
     return nextFrontier;
 }
@@ -157,8 +157,13 @@ static typename TPolicy::RootPtr solveContextFree( const typename TPolicy::Spec&
         for( typename TPolicy::OrPtr pCurrentFrontierStep : frontier )
         {
             typename TPolicy::OrPtrVector recursiveResult
-                = solveStep( pCurrentFrontierStep, typePathElement, true, policy );
-            std::copy( recursiveResult.begin(), recursiveResult.end(), std::back_inserter( nextFrontier ) );
+                = solveStep( pCurrentFrontierStep, typePathElement, false, policy );
+
+            for( auto pOr : recursiveResult )
+            {
+                auto linkFrontier = policy.expandLink( pOr );
+                std::copy( linkFrontier.begin(), linkFrontier.end(), std::back_inserter( nextFrontier ) );
+            }
         }
         nextFrontier.swap( frontier );
     }

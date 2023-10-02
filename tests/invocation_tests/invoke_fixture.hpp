@@ -158,6 +158,11 @@ public:
             std::cout << "Setup failed with exception: " << ex.what() << std::endl;
             m_pImpl.reset();
         }
+        catch( ... )
+        {
+            std::cout << "Setup failed with unknown exception" << std::endl;
+            m_pImpl.reset();
+        }
     }
 
     static void TearDownTestSuite() {}
