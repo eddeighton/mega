@@ -403,7 +403,7 @@ private:
 };
 
 void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationID& id,
-                       std::vector< Concrete::Graph::Vertex* > types, InvocationPolicy::Spec& spec )
+                       std::vector< Concrete::Graph::Vertex* >& contextTypes, InvocationPolicy::Spec& spec )
 {
     std::optional< mega::OperationID > operationIDOpt;
 
@@ -423,7 +423,7 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
             {
                 for( auto pConcrete : pContext->get_concrete() )
                 {
-                    types.push_back( pConcrete );
+                    contextTypes.push_back( pConcrete );
                     spec.context.push_back( pConcrete );
                 }
             }
@@ -438,7 +438,7 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
             {
                 for( auto pConcrete : pInterfaceContext->get_concrete() )
                 {
-                    types.push_back( pConcrete );
+                    contextTypes.push_back( pConcrete );
                     spec.context.push_back( pConcrete );
                 }
             }
@@ -448,14 +448,33 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
     for( auto& symbolID : id.m_type_path )
     {
         std::vector< Concrete::Graph::Vertex* > pathElement;
+
+        std::optional< TypeID > actualSymbolID;
+
         if( isOperationType( symbolID ) )
         {
             VERIFY_RTE_MSG( !operationIDOpt.has_value(), "Operation ID defined twice" );
             operationIDOpt = static_cast< mega::OperationID >( symbolID.getSymbolID() );
         }
+        else if( symbolID.isContextID() )
+        {
+            // NOTE: Always convert any interface type id BACK to its symbol ID
+            auto iFind = symbolTables.interfaceIDMap.find( symbolID );
+            VERIFY_RTE( iFind != symbolTables.interfaceIDMap.end() );
+            auto pInterfaceSymbol = iFind->second;
+
+            const auto& typeIDSequence = pInterfaceSymbol->get_symbol_ids();
+            VERIFY_RTE( !typeIDSequence.empty() );
+            actualSymbolID = typeIDSequence.back();
+        }
         else if( symbolID.isSymbolID() )
         {
-            auto iFind = symbolTables.symbolIDMap.find( symbolID );
+            actualSymbolID = symbolID;
+        }
+
+        if( actualSymbolID.has_value() )
+        {
+            auto iFind = symbolTables.symbolIDMap.find( actualSymbolID.value() );
             VERIFY_RTE( iFind != symbolTables.symbolIDMap.end() );
             auto pSymbol = iFind->second;
             for( auto pContext : pSymbol->get_contexts() )
@@ -479,44 +498,13 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
                     pathElement.push_back( pConcrete );
                 }
             }
-        }
-        else
-        {
-            auto iFind = symbolTables.interfaceIDMap.find( symbolID );
-            VERIFY_RTE( iFind != symbolTables.interfaceIDMap.end() );
-            auto pSymbol = iFind->second;
-
-            if( pSymbol->get_context().has_value(); auto pContext = pSymbol->get_context().value() )
+            if( !pathElement.empty() )
             {
-                for( auto pConcrete : pContext->get_concrete() )
-                {
-                    pathElement.push_back( pConcrete );
-                }
+                spec.path.emplace_back( std::move( pathElement ) );
             }
-            else if( pSymbol->get_dimension().has_value(); auto pDimension = pSymbol->get_dimension().value() )
-            {
-                for( auto pConcrete : pDimension->get_concrete() )
-                {
-                    pathElement.push_back( pConcrete );
-                }
-            }
-            else if( pSymbol->get_link().has_value(); auto pLink = pSymbol->get_link().value() )
-            {
-                for( auto pConcrete : pLink->get_concrete() )
-                {
-                    pathElement.push_back( pConcrete );
-                }
-            }
-            else
-            {
-                THROW_RTE( "Unknown symbolID" );
-            }
-        }
-        if( !pathElement.empty() )
-        {
-            spec.path.emplace_back( std::move( pathElement ) );
         }
     }
+
     using ::operator<<;
     VERIFY_RTE_MSG( !operationIDOpt.has_value() || ( id.m_operation == operationIDOpt.value() ),
                     "Mismatching operation type in invocation: " << id );
@@ -593,12 +581,12 @@ private:
 public:
     InvocationBuilder( OperationsStage::Database& database, const mega::InvocationID& id,
                        InvocationPolicy::RootPtr                      pDerivationTreeRoot,
-                       const std::vector< Concrete::Graph::Vertex* >& types )
+                       const std::vector< Concrete::Graph::Vertex* >& contextTypes )
         : m_database( database )
         , m_pDerivationTreeRoot( pDerivationTreeRoot )
         , m_pInvocation( database.construct< OperationsStage::Operations::Invocation >(
               OperationsStage::Operations::Invocation::Args{ id, pDerivationTreeRoot, {}, {} } ) )
-        , m_pParameterVariable( make_parameter_variable( types ) )
+        , m_pParameterVariable( make_parameter_variable( contextTypes ) )
         , m_pRootInstruction( make_instruction< Instructions::Root >( nullptr, m_pParameterVariable ) )
     {
         m_pInvocation->set_root_instruction( m_pRootInstruction );
@@ -660,13 +648,13 @@ private:
 
     void buildAnd( Instructions::InstructionGroup* pInstruction, Variables::Variable* pVariable, Derivation::And* pAnd )
     {
-
         // read the link
         auto pLink = db_cast< Concrete::Dimensions::Link >( pAnd->get_vertex() );
 
         auto pLinkReference = make_memory_variable( pVariable, {} );
 
-        auto pDereference = make_instruction< Instructions::Dereference >( pInstruction, pVariable, pLinkReference, pLink );
+        auto pDereference
+            = make_instruction< Instructions::Dereference >( pInstruction, pVariable, pLinkReference, pLink );
 
         // create polymorphic branch
         auto pPolyReference = make_instruction< Instructions::PolyBranch >( pDereference, pLinkReference );
@@ -690,18 +678,31 @@ private:
                     switch( hyperGraphEdge->get_type().get() )
                     {
                         case EdgeType::eMonoSingularMandatory:
-                        case EdgeType::eMonoNonSingularMandatory:
                         case EdgeType::eMonoSingularOptional:
-                        case EdgeType::eMonoNonSingularOptional:
                         {
                             pInstruction = make_instruction< Instructions::PolyCase >(
                                 pInstruction, pResultVariable, hyperGraphEdge->get_target() );
                         }
                         break;
+                        case EdgeType::eMonoNonSingularMandatory:
+                        case EdgeType::eMonoNonSingularOptional:
+                        {
+                            THROW_RTE( "Non singular dereference" );
+                        }
+                        break;
                         case EdgeType::ePolySingularMandatory:
-                        case EdgeType::ePolyNonSingularMandatory:
                         case EdgeType::ePolySingularOptional:
+                        {
+                            pInstruction = make_instruction< Instructions::PolyCase >(
+                                pInstruction, pResultVariable, hyperGraphEdge->get_target() );
+                        }
+                        break;
+                        case EdgeType::ePolyNonSingularMandatory:
                         case EdgeType::ePolyNonSingularOptional:
+                        {
+                            THROW_RTE( "Non singular dereference" );
+                        }
+                        break;
                         case EdgeType::ePolyParent:
                         {
                             pInstruction = make_instruction< Instructions::PolyCase >(
@@ -1315,9 +1316,9 @@ compileInvocation( OperationsStage::Database& database, const SymbolTables& symb
     using ::operator<<;
 
     // determine the derivation of the invocationID
-    std::vector< Concrete::Graph::Vertex* > types;
+    std::vector< Concrete::Graph::Vertex* > contextTypes;
     InvocationPolicy::Spec                  derivationSpec;
-    fromInvocationID( symbolTables, id, types, derivationSpec );
+    fromInvocationID( symbolTables, id, contextTypes, derivationSpec );
 
     // solve the context free derivation
     InvocationPolicy              policy( database );
@@ -1370,7 +1371,7 @@ compileInvocation( OperationsStage::Database& database, const SymbolTables& symb
             }
         }
 
-        InvocationBuilder builder( database, id, pRoot, types );
+        InvocationBuilder builder( database, id, pRoot, contextTypes );
         builder.build();
         pInvocation = builder.getInvocation();
         buildOperation( database, pInvocation );

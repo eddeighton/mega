@@ -109,6 +109,61 @@ void gen( Args args, const FinalStage::Invocations::Instructions::ChildDerivatio
     args.data[ "assignments" ].push_back( os.str() );
 }
 
+//
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// Dereference
+void gen( Args args, const FinalStage::Invocations::Instructions::Dereference* pDereference )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Invocations;
+
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::readLock( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    else if( {{ instance }}.isNetworkAddress() )
+{{ indent }}    {
+{{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
+{{ indent }}    }
+{{ indent }}    {{ to }} = *reinterpret_cast< mega::reference* >( reinterpret_cast< char* >( {{ instance }}.getHeap() )
+{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() )
+{{ indent }}        + {{ dimension_offset }} );
+{{ indent }}}
+)TEMPLATE";
+
+    // clang-format on
+    std::ostringstream os;
+    {
+        os << args.indent << "// Dereference\n";
+
+        const Variables::Variable*        pFrom = pDereference->get_instance();
+        const Variables::Memory*          pTo   = pDereference->get_read_value();
+        const Concrete::Dimensions::Link* pLink = pDereference->get_link_dimension();
+        MemoryLayout::Part*               pPart = pLink->get_part();
+
+        std::ostringstream osIndent;
+        osIndent << args.indent;
+
+        nlohmann::json templateData( { { "indent", osIndent.str() },
+                                       { "part_offset", pPart->get_offset() },
+                                       { "part_size", pPart->get_size() },
+                                       { "dimension_offset", pLink->get_offset() },
+                                       { "instance", args.get( pFrom ) },
+                                       { "to", args.get( pTo ) }
+
+        } );
+
+        os << args.inja.render( szTemplate, templateData );
+    }
+
+    args.data[ "assignments" ].push_back( os.str() );
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // EnumDerivation
 /*
@@ -726,6 +781,11 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pChildDerivation );
         }
+        else if( auto pDereference = db_cast< Instructions::Dereference >( pInstructionGroup ) )
+        {
+            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pDereference );
+        }
+
         /*else if( auto pEnumDerivation = db_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pEnumDerivation );

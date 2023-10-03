@@ -167,7 +167,8 @@ public:
         }
 
         // now test for disjoint link target concrete sets at each parent context
-        for( auto i = linkMap.begin(), iEnd = linkMap.end(); i != iEnd; )
+        // TODO - work this out properly!!
+        /*for( auto i = linkMap.begin(), iEnd = linkMap.end(); i != iEnd; )
         {
             std::vector< Concrete::Context* > concrete;
             for( auto iNext = linkMap.upper_bound( i->first ); i != iNext; ++i )
@@ -184,11 +185,12 @@ public:
                                    pContext ) << " to " << printIContextFullType( pTargetContext ) );
                 }
             }
-        }
+        }*/
 
         std::multimap< Interface::LinkTrait*, Concrete::Dimensions::OwnershipLink* > owners;
         std::multimap< Concrete::Dimensions::OwnershipLink*, Interface::LinkTrait* > owned;
         std::map< Interface::LinkTrait*, Interface::LinkTrait* >                     nonOwningLinks;
+        std::set< Interface::LinkTrait* >                                            visitedNonOwningLinks;
 
         for( const ObjectLinkPair& link : links )
         {
@@ -204,15 +206,16 @@ public:
             }
             else
             {
-                auto iFind = nonOwningLinks.find( link.pLink );
-                if( iFind == nonOwningLinks.end() )
+                if( !visitedNonOwningLinks.contains( link.pLink ) )
                 {
                     auto iFindOther = linkParentMap.find( link.pTargetContext );
                     VERIFY_RTE( iFindOther != linkParentMap.end() );
                     auto pOtherLink = iFindOther->second;
 
-                    nonOwningLinks.insert( { link.pLink, pOtherLink } );
-                    nonOwningLinks.insert( { pOtherLink, link.pLink } );
+                    VERIFY_RTE( nonOwningLinks.insert( { link.pLink, pOtherLink } ).second );
+
+                    visitedNonOwningLinks.insert( link.pLink );
+                    visitedNonOwningLinks.insert( pOtherLink );
                 }
             }
         }
@@ -368,11 +371,11 @@ public:
                     {
                         Interface::LinkTrait* pSourceObjectLink = pNonOwningObjectRelation->get_source();
 
-                        auto           concreteTargets = pSourceObjectLink->get_concrete();
+                        auto concreteTargets = pSourceObjectLink->get_concrete();
 
                         const EdgeType edgeType
                             = mega::fromCardinality( concreteTargets.size() == 1, pObjectLinkTrait->get_cardinality() );
-                            
+
                         for( auto pConcreteTarget : concreteTargets )
                         {
                             database.construct< Concrete::Graph::Edge >(

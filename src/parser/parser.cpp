@@ -496,7 +496,9 @@ public:
                 }
                 std::string strInteger;
                 if( !getSourceText( startLoc, endLoc, strInteger ) )
+                {
                     MEGA_PARSER_ERROR( "Error link size" );
+                }
                 std::istringstream is( strInteger );
                 is >> iNumber;
             }
@@ -546,6 +548,13 @@ public:
                 MEGA_PARSER_ERROR( "Link alias must be a single symbol" );
             }
             const auto& identifier = typeList.front();
+            {
+                auto iFind = std::find( identifier.get().begin(), identifier.get().end(), '.' );
+                if( iFind != identifier.get().end() )
+                {
+                    MEGA_PARSER_ERROR( "Link alias cannot be a type path" );
+                }
+            }
 
             pID = database.construct< Identifier >( Identifier::Args{ identifier.get() } );
 
@@ -566,7 +575,18 @@ public:
                 MEGA_PARSER_ERROR( "Link must contain a symbol" );
             }
 
-            pID       = database.construct< Identifier >( Identifier::Args{ typeList.back().get() } );
+            const std::string& strLast   = typeList.back().get();
+            auto               iFindLast = std::find( strLast.rbegin(), strLast.rend(), '.' );
+            if( iFindLast != strLast.rend() )
+            {
+                pID = database.construct< Identifier >(
+                    Identifier::Args{ std::string( iFindLast.base(), strLast.end() ) } );
+            }
+            else
+            {
+                pID = database.construct< Identifier >( Identifier::Args{ typeList.back().get() } );
+            }
+
             pTypeList = database.construct< TypeList >( TypeList::Args( typeList ) );
         }
 
