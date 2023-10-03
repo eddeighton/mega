@@ -51,9 +51,13 @@ void writeLock( reference& ref )
 {
     getMPOContext()->writeLock( ref );
 }
-reference allocate( const reference& parent, TypeID typeID )
+reference allocate( mega::TypeID objectType )
 {
-    return getMPOContext()->allocate( parent, typeID );
+    return getMPOContext()->allocate( objectType );
+}
+reference allocateRemote( const MPO& remote, mega::TypeID objectType )
+{
+    return getMPOContext()->allocateRemote( remote, objectType );
 }
 void* log()
 {
@@ -117,27 +121,35 @@ void MPOContext::destroyExecutor( MP mp )
     return request.EnroleDestroy();
 }
 
-reference MPOContext::allocate( const reference& parent, TypeID objectTypeID )
+reference MPOContext::allocate( TypeID objectTypeID )
+{
+    using ::operator<<;
+
+    reference allocated = m_pMemoryManager->New( objectTypeID );
+    m_pLog->record( mega::log::Structure::Write( allocated, {}, 0, mega::log::Structure::eConstruct ) );
+
+    return allocated;
+}
+
+reference MPOContext::allocateRemote( const MPO& remote, TypeID objectTypeID )
 {
     using ::operator<<;
 
     reference allocated;
-    if( parent.getMPO() == getThisMPO() )
+    if( remote == getThisMPO() )
     {
-        allocated = m_pMemoryManager->New( objectTypeID );
-        m_pLog->record( mega::log::Structure::Write( parent, allocated, 0, mega::log::Structure::eConstruct ) );
+        allocated = allocate( objectTypeID );
     }
     else
     {
-        MPO       targetMPO = parent.getMPO();
-        TimeStamp lockCycle = m_lockTracker.isWrite( targetMPO );
+        TimeStamp lockCycle = m_lockTracker.isWrite( remote );
         if( lockCycle == 0U )
         {
-            lockCycle = getMPOSimRequest( targetMPO ).SimLockWrite( getThisMPO(), targetMPO );
-            VERIFY_RTE_MSG( lockCycle != 0U, "Failed to acquire write lock on: " << targetMPO );
-            m_lockTracker.onWrite( targetMPO, lockCycle );
+            lockCycle = getMPOSimRequest( remote ).SimLockWrite( getThisMPO(), remote );
+            VERIFY_RTE_MSG( lockCycle != 0U, "Failed to acquire write lock on: " << remote );
+            m_lockTracker.onWrite( remote, lockCycle );
         }
-        allocated = getLeafMemoryRequest().NetworkAllocate( targetMPO, objectTypeID, lockCycle );
+        allocated = getLeafMemoryRequest().NetworkAllocate( remote, objectTypeID, lockCycle );
     }
 
     return allocated;

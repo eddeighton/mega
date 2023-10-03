@@ -165,6 +165,7 @@ namespace Allocators
 
     object Range : Allocator -> MemoryStage::MemoryLayout
     {
+        value< mega::U64 > local_size;
     }
 
     object Range32 : Range -> MemoryStage::MemoryLayout

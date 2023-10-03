@@ -363,9 +363,9 @@ mega::U64 JITDatabase::getLocalDomainSize( mega::TypeID concreteID ) const
         {
             return pEvent->get_local_size();
         }
-        else if( auto pAction = db_cast< Concrete::Action >( pContext ) )
+        else if( auto pState = db_cast< Concrete::State >( pContext ) )
         {
-            return pAction->get_local_size();
+            return pState->get_local_size();
         }
         else
         {

@@ -102,7 +102,8 @@ public:
     }
 
     // mpo management
-    reference allocate( const reference& parent, TypeID objectTypeID );
+    reference allocate( mega::TypeID objectType );
+    reference allocateRemote( const MPO& remote, mega::TypeID objectType );
     void      networkToHeap( reference& ref );
     void      readLock( reference& ref );
     void      writeLock( reference& ref );

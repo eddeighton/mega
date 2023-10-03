@@ -204,7 +204,7 @@
             "canon": "mega::Bitmask32Allocator< 13 >",
             "mangle": "mega00Bitmask32Allocator3134",
             "impl": "Simple",
-"blit": ""
+            "blit": ""
         },
         {
             "canon": "mega::Bitmask32Allocator< 14 >",

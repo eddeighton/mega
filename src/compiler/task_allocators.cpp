@@ -281,17 +281,17 @@ void Task_Allocators::createallocators(
         else if( szDomainSize <= 32 )
         {
             pAllocator = database.construct< Range32 >(
-                Range32::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext } } } );
+                Range32::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext }, szDomainSize } } );
         }
         else if( szDomainSize <= 64 )
         {
             pAllocator = database.construct< Range64 >(
-                Range64::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext } } } );
+                Range64::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext }, szDomainSize } } );
         }
         else
         {
             pAllocator = database.construct< RangeAny >(
-                RangeAny::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext } } } );
+                RangeAny::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext }, szDomainSize } } );
         }
         VERIFY_RTE( pAllocator );
 

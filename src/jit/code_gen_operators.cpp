@@ -28,6 +28,47 @@ namespace mega::runtime
 namespace
 {
 
+void gen_new( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database, TypeID target,
+               std::ostream& os )
+{
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+
+#include "mega/native_types.hpp"
+#include "mega/reference.hpp"
+#include "service/protocol/common/mpo_context_interface.hpp" 
+
+mega::reference mega_new_{{ target }}()
+{
+    return ::mega::runtime::allocate( mega::TypeID{ {{ target }} } );
+}
+
+)TEMPLATE";
+    // clang-format on
+
+    std::ostringstream osCPPCode;
+    try
+    {
+        nlohmann::json templateData( { { "target", printTypeID( target ) }, { "types", nlohmann::json::array() } } );
+
+        for( TypeID type : database.getCompatibleConcreteTypes( target ) )
+        {
+            templateData[ "types" ].push_back( printTypeID( type ) );
+        }
+
+        osCPPCode << inja.render( szTemplate, templateData );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::gen_new: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::gen_new: " << ex.what() );
+    }
+    std::ostringstream osModule;
+    osModule << "mega_new_" << printTypeID( target );
+    compiler.compileToLLVMIR( osModule.str(), osCPPCode.str(), os, std::nullopt );
+}
+
 void gen_cast( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database, TypeID target,
                std::ostream& os )
 {
@@ -83,12 +124,14 @@ void CodeGenerator::generate_operator( const LLVMCompiler& compiler, const JITDa
     {
         case operators::eNew:
         {
-            THROW_TODO;
+            gen_new( compiler, *m_pInja, database, target, os );
         }
+        break;
         case operators::eDelete:
         {
             THROW_TODO;
         }
+        break;
         case operators::eCast:
         {
             THROW_TODO;

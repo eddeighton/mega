@@ -54,29 +54,37 @@ std::string CodeGenerator::allocatorTypeName( const JITDatabase&                
 
     std::ostringstream     osTypeName;
     Allocators::Allocator* pAllocator = pAllocDim->get_allocator();
-    if( auto pAlloc = db_cast< Allocators::Nothing >( pAllocator ) )
+
+    // paranoia check - ensure the local domain size matches up
+    const auto localDomainSize = database.getLocalDomainSize( pAllocator->get_allocated_context()->get_concrete_id() );
+
+    if( db_cast< Allocators::Nothing >( pAllocator ) )
     {
         // do nothing
         THROW_RTE( "Unreachable" );
     }
-    else if( auto pAlloc = db_cast< Allocators::Singleton >( pAllocator ) )
+    else if( db_cast< Allocators::Singleton >( pAllocator ) )
     {
+        VERIFY_RTE( localDomainSize == 1 );
         osTypeName << "bool";
     }
-    else if( auto pAlloc = db_cast< Allocators::Range32 >( pAllocator ) )
+    else if( auto pAlloc32 = db_cast< Allocators::Range32 >( pAllocator ) )
     {
-        osTypeName << "mega::Bitmask32Allocator< "
-                   << database.getLocalDomainSize( pAlloc->get_allocated_context()->get_concrete_id() ) << " >";
+        const auto allocatorSize = pAlloc32->get_local_size();
+        VERIFY_RTE( localDomainSize == allocatorSize );
+        osTypeName << "mega::Bitmask32Allocator< " << allocatorSize << " >";
     }
-    else if( auto pAlloc = db_cast< Allocators::Range64 >( pAllocator ) )
+    else if( auto pAlloc64 = db_cast< Allocators::Range64 >( pAllocator ) )
     {
-        osTypeName << "mega::Bitmask64Allocator< "
-                   << database.getLocalDomainSize( pAlloc->get_allocated_context()->get_concrete_id() ) << " >";
+        const auto allocatorSize = pAlloc32->get_local_size();
+        VERIFY_RTE( localDomainSize == allocatorSize );
+        osTypeName << "mega::Bitmask64Allocator< " << allocatorSize << " >";
     }
-    else if( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocator ) )
+    else if( auto pAllocAny = db_cast< Allocators::RangeAny >( pAllocator ) )
     {
-        osTypeName << "mega::RingAllocator< mega::Instance, "
-                   << database.getLocalDomainSize( pAlloc->get_allocated_context()->get_concrete_id() ) << " >";
+        const auto allocatorSize = pAlloc32->get_local_size();
+        VERIFY_RTE( localDomainSize == allocatorSize );
+        osTypeName << "mega::RingAllocator< mega::Instance, " << allocatorSize << " >";
     }
     else
     {
@@ -176,16 +184,31 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
 {
     SPDLOG_TRACE( "RUNTIME: generate_relation" );
 
+    using namespace FinalStage;
+
+    auto pRelation = database.getRelation( relationID );
+
+    bool bSourceSingular, bTargetSingular, bTargetOwned = false;
+
     THROW_TODO;
 
-    /*auto pRelation = database.getRelation( relationID );
+    // NOTE: owners can have DIFFERENT cardinalities for same object
 
-    const bool bSourceSingular
-        = !pRelation->get_source_interface()->get_link_trait()->get_cardinality().maximum().isMany();
-    const bool bTargetSingular
-        = !pRelation->get_target_interface()->get_link_trait()->get_cardinality().maximum().isMany();
-
-    const auto ownership = pRelation->get_ownership();
+    if( auto pOwningRelation = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
+    {
+        bTargetSingular = true;
+        bSourceSingular = false;
+        bTargetOwned = true;
+    }
+    else if( auto pNonOwningRelation = db_cast< HyperGraph::NonOwningObjectRelation >( pRelation ) )
+    {
+        bSourceSingular = pNonOwningRelation->get_source()->get_cardinality()->isSingular();
+        bTargetSingular = pNonOwningRelation->get_target()->get_cardinality()->isSingular();
+    }
+    else
+    {
+        THROW_RTE( "Unknown relation type" );
+    }
 
     std::ostringstream osRelationID;
     {
@@ -202,12 +225,12 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                            { "module_name", osModuleName.str() },
                            { "source_singular", bSourceSingular },
                            { "target_singular", bTargetSingular },
-                           { "source_owned", ownership.get() == Ownership::eOwnSource },
-                           { "target_owned", ownership.get() == Ownership::eOwnTarget },
+                           { "source_owned", false },
+                           { "target_owned", bTargetOwned },
                            { "sources", nlohmann::json::array() },
                            { "targets", nlohmann::json::array() } } );
-
-    for( FinalStage::Interface::Link* pSource : pRelation->get_sources() )
+/*
+    for( FinalStage::Interface::LinkTrait* pSource : pRelation->get_sources() )
     {
         using namespace FinalStage;
         for( auto pConcrete : pSource->get_concrete() )
@@ -242,7 +265,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
             } );
             data[ "targets" ].push_back( target );
         }
-    }
+    }*/
 
     std::ostringstream osCPPCode;
     try
@@ -254,7 +277,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
         SPDLOG_ERROR( "inja::InjaError in CodeGenerator::generate_relation: {}", ex.what() );
         THROW_RTE( "inja::InjaError in CodeGenerator::generate_relation: " << ex.what() );
     }
-    compiler.compileToLLVMIR( osModuleName.str(), osCPPCode.str(), os, std::nullopt );*/
+    compiler.compileToLLVMIR( osModuleName.str(), osCPPCode.str(), os, std::nullopt );
 }
 
 void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDatabase& database, std::ostream& os )

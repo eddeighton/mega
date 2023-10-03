@@ -29,7 +29,8 @@ MPO       getThisMPO();
 void      networkToHeap( reference& ref );
 void      readLock( reference& ref );
 void      writeLock( reference& ref );
-reference allocate( const reference& parent, TypeID typeID );
+reference allocate( mega::TypeID objectType );
+reference allocateRemote( const MPO& remote, mega::TypeID objectType );
 void*     log();
 } // namespace mega
 

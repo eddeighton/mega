@@ -78,7 +78,7 @@ namespace mega::runtime
         {
             switch( params )
             {
-                case Symbol::None           : return "";
+                case Symbol::None           : return "v";
                 case Symbol::VStar          : return "Pv";
                 case Symbol::VStar_VStar    : return "PvS_";
                 case Symbol::Ref            : return "N4mega9referenceE";

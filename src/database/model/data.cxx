@@ -6739,6 +6739,11 @@ namespace MemoryLayout
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Range >( loader, this ) )          , p_MemoryLayout_Allocators_Allocator( loader )
     {
     }
+    Allocators_Range::Allocators_Range( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::U64& local_size)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Range >( loader, this ) )          , p_MemoryLayout_Allocators_Allocator( loader )
+          , local_size( local_size )
+    {
+    }
     bool Allocators_Range::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
         return m_inheritance == data::Variant{ data::Ptr< data::MemoryLayout::Allocators_Range >( loader, const_cast< Allocators_Range* >( this ) ) };
@@ -6750,10 +6755,12 @@ namespace MemoryLayout
     void Allocators_Range::load( mega::io::Loader& loader )
     {
         loader.load( p_MemoryLayout_Allocators_Allocator );
+        loader.load( local_size );
     }
     void Allocators_Range::store( mega::io::Storer& storer ) const
     {
         storer.store( p_MemoryLayout_Allocators_Allocator );
+        storer.store( local_size );
     }
     void Allocators_Range::to_json( nlohmann::json& _part__ ) const
     {
@@ -6766,6 +6773,11 @@ namespace MemoryLayout
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "local_size", local_size } } );
+            _part__[ "properties" ].push_back( property );
+        }
     }
         
     // struct Allocators_Range32 : public mega::io::Object
@@ -11901,6 +11913,24 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& get_Allocators_A
         }
     }
 }
+mega::U64& get_Allocators_Range_local_size(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
+        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
+        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
+        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
 boost::filesystem::path& get_Components_Component_build_dir(data::Variant& m_data)
 {
     switch( m_data.getType() )
@@ -16853,6 +16883,24 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& set_Allocators_A
             return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
         case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
             return data::convert< data::MemoryLayout::Allocators_Allocator >( m_data )->parent_context;
+        default:
+        {
+            THROW_RTE( "Database used with incorrect type" );
+        }
+    }
+}
+mega::U64& set_Allocators_Range_local_size(data::Variant& m_data)
+{
+    switch( m_data.getType() )
+    {
+        case data::MemoryLayout::Allocators_Range::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
+        case data::MemoryLayout::Allocators_Range32::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
+        case data::MemoryLayout::Allocators_Range64::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
+        case data::MemoryLayout::Allocators_RangeAny::Object_Part_Type_ID:
+            return data::convert< data::MemoryLayout::Allocators_Range >( m_data )->local_size;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );

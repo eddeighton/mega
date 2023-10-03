@@ -75,9 +75,9 @@ public:
                     }
                 }
             }
-            else if( auto pAction = db_cast< Interface::Action >( pIContext ) )
+            else if( auto pState = db_cast< Interface::State >( pIContext ) )
             {
-                if( auto opt = pAction->get_inheritance_trait(); opt.has_value() )
+                if( auto opt = pState->get_inheritance_trait(); opt.has_value() )
                 {
                     for( auto pInheritedIContext : opt.value()->get_contexts() )
                     {
