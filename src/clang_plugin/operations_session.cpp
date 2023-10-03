@@ -27,6 +27,7 @@
 #include "mega/invocation_io.hpp"
 #include "mega/common_strings.hpp"
 #include "mega/invocation_id.hpp"
+#include "mega/operator_id.hpp"
 #include "database/types/source_location.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -97,7 +98,7 @@ public:
 
         if( m_symbols.find( strIdentifier ) != m_symbols.end() )
             return true;
-        CLANG_PLUGIN_LOG( "isPossibleEGTypeIdentifier: " << strIdentifier );
+        // CLANG_PLUGIN_LOG( "isPossibleEGTypeIdentifier: " << strIdentifier );
         return false;
     }
 
@@ -392,7 +393,7 @@ public:
         try
         {
             InvocationIDCanonicalTypes canonicalTypes;
-            auto invocationID = getInvocationID( loc, type, canonicalTypes );
+            auto                       invocationID = getInvocationID( loc, type, canonicalTypes );
             if( invocationID.has_value() )
             {
                 using namespace OperationsStage;
@@ -500,58 +501,183 @@ public:
         }
     }
 
-    virtual void runFinalAnalysis()
+    void recordInvocationLocations()
     {
-        bool bSuccess = !m_bError;
+        // ensure ALL invocations are matched and file offset recorded
 
         using namespace OperationsStage;
-        if( bSuccess )
-        {
-            try
-            {
-                // ensure ALL invocations are matched and file offset recorded
-                using namespace clang;
-                using namespace clang::ast_matchers;
+        using namespace clang;
+        using namespace clang::ast_matchers;
 
-                for( auto de : pASTContext->getTranslationUnitDecl()->noload_decls() )
+        for( auto de : pASTContext->getTranslationUnitDecl()->noload_decls() )
+        {
+            if( auto pMethod = llvm::dyn_cast< clang::CXXMethodDecl >( de ) )
+            {
+                // CLANG_PLUGIN_LOG( "Method: " << pMethod->getThisType().getAsString() );
                 {
-                    if( clang::CXXMethodDecl* pMethod = llvm::dyn_cast< clang::CXXMethodDecl >( de ) )
+                    auto results
+                        = match( cxxMethodDecl( hasDescendant( findAll( cxxMemberCallExpr().bind( "invocation" ) ) ) ),
+                                 *pMethod, *pASTContext );
+                    for( auto result : results )
                     {
-                        CLANG_PLUGIN_LOG( "Method: " << pMethod->getThisType().getAsString() );
+                        if( auto pCall = result.getNodeAs< clang::CXXMemberCallExpr >( "invocation" ) )
                         {
-                            auto results = match(
-                                cxxMethodDecl( hasDescendant( findAll( cxxMemberCallExpr().bind( "invocation" ) ) ) ),
-                                *pMethod, *pASTContext );
-                            for( auto result : results )
+                            if( pCall->getMethodDecl()->getNameAsString() == "invoke" )
                             {
-                                if( auto pCall = result.getNodeAs< clang::CXXMemberCallExpr >( "invocation" ) )
+                                if( auto pElaboratedType
+                                    = pCall->getCallReturnType( *pASTContext )->getAs< clang::ElaboratedType >() )
                                 {
-                                    if( pCall->getMethodDecl()->getNameAsString() == "invoke" )
+                                    if( auto pTypeDefType
+                                        = pElaboratedType->getNamedType()->getAs< clang::TypedefType >() )
                                     {
-                                        if( const clang::ElaboratedType* pElaboratedType
-                                            = pCall->getCallReturnType( *pASTContext )
-                                                  ->getAs< clang::ElaboratedType >() )
+                                        if( auto pTypeAliasDecl
+                                            = llvm::dyn_cast< clang::TypeAliasDecl >( pTypeDefType->getDecl() ) )
                                         {
-                                            if( const clang::TypedefType* pTypeDefType
-                                                = pElaboratedType->getNamedType()->getAs< clang::TypedefType >() )
+                                            if( auto pUnaryTransformType = pTypeAliasDecl->getUnderlyingType()
+                                                                               ->getAs< clang::UnaryTransformType >() )
                                             {
-                                                if( const clang::TypeAliasDecl* pTypeAliasDecl
-                                                    = llvm::dyn_cast< clang::TypeAliasDecl >(
-                                                        pTypeDefType->getDecl() ) )
+                                                auto pMemberExpr = llvm::dyn_cast< MemberExpr >( pCall->getCallee() );
+                                                VERIFY_RTE_MSG(
+                                                    pMemberExpr, "Failed to resolve member expression for invocation" );
+                                                recordInvocationLocs( pMemberExpr->getMemberLoc(),
+                                                                      pCall->getEndLoc(),
+                                                                      pUnaryTransformType );
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    std::map< mega::OperatorID, OperationsStage::Operations::Operator* > detectOperatorInstantiations()
+    {
+        using namespace OperationsStage;
+        std::map< mega::OperatorID, Operations::Operator* > operators;
+
+        using namespace std::string_literals;
+        static const std::array< std::pair< mega::Operator, std::string >, mega::HIGHEST_OPERATOR_TYPE > operatorNames
+            = { std::pair< mega::Operator, std::string >{ mega::op_new, "mega_new"s },
+                std::pair< mega::Operator, std::string >{ mega::op_delete, "mega_delete"s },
+                std::pair< mega::Operator, std::string >{ mega::op_cast, "mega_cast"s },
+                std::pair< mega::Operator, std::string >{ mega::op_active, "mega_active"s },
+                std::pair< mega::Operator, std::string >{ mega::op_enabled, "mega_enabled"s } };
+
+        using namespace clang;
+        using namespace clang::ast_matchers;
+
+        for( const auto& [ operatorType, strOpName ] : operatorNames )
+        {
+            for( auto de : pASTContext->getTranslationUnitDecl()->noload_decls() )
+            {
+                if( auto pMethod = llvm::dyn_cast< clang::CXXMethodDecl >( de ) )
+                {
+                    // CLANG_PLUGIN_LOG( "Method: " << pMethod->getThisType().getAsString() );
+                    {
+                        auto results = match( cxxMethodDecl( hasDescendant( findAll(
+                                                  callExpr( callee( functionDecl().bind( "operator" ) ) ) ) ) ),
+                                              *pMethod, *pASTContext );
+
+                        for( auto result : results )
+                        {
+                            if( auto pFunctionDecl = result.getNodeAs< FunctionDecl >( "operator" ) )
+                            {
+                                if( pFunctionDecl->getNameAsString() == strOpName )
+                                {
+                                    CLANG_PLUGIN_LOG( "Found operator instance: "
+                                                      << pFunctionDecl->getNameAsString()
+                                                      << " in function: " << pMethod->getThisType().getAsString() );
+
+                                    if( pFunctionDecl->getTemplatedKind()
+                                        != FunctionDecl::TK_FunctionTemplateSpecialization )
+                                    {
+                                        pASTContext->getDiagnostics().Report(
+                                            pFunctionDecl->getLocation(), clang::diag::err_mega_generic_error )
+                                            << "Unexpected template kind for operator: " << strOpName << " in "
+                                            << pMethod->getThisType().getAsString();
+                                        m_bError = true;
+                                    }
+                                    else
+                                    {
+                                        auto pTempalteArgs = pFunctionDecl->getTemplateSpecializationArgs();
+
+                                        if( pTempalteArgs->size() != 1 )
+                                        {
+                                            pASTContext->getDiagnostics().Report(
+                                                pFunctionDecl->getLocation(), clang::diag::err_mega_generic_error )
+                                                << "Unexpected number of template arguemnts for operator: " << strOpName
+                                                << " in " << pMethod->getThisType().getAsString();
+                                            m_bError = true;
+                                        }
+                                        else
+                                        {
+                                            auto pTemplateArg    = pTempalteArgs->get( 0 );
+                                            auto templateArgType = pTemplateArg.getAsType();
+
+                                            auto megaType = getMegaTypeID( pASTContext, templateArgType );
+                                            if( !megaType.has_value() )
+                                            {
+                                                pASTContext->getDiagnostics().Report(
+                                                    pFunctionDecl->getLocation(), clang::diag::err_mega_generic_error )
+                                                    << "Failed to resolve mega type for operator template argument: "
+                                                    << strOpName << " in " << pMethod->getThisType().getAsString();
+                                                m_bError = true;
+                                            }
+                                            else
+                                            {
+                                                const mega::OperatorID operatorID{ operatorType, megaType.value() };
+
+                                                auto iFind = operators.find( operatorID );
+                                                if( iFind == operators.end() )
                                                 {
-                                                    if( const clang::UnaryTransformType* pUnaryTransformType
-                                                        = pTypeAliasDecl->getUnderlyingType()
-                                                              ->getAs< clang::UnaryTransformType >() )
+                                                    Operations::Operator* pOperator = nullptr;
+                                                    switch( operatorType )
                                                     {
-                                                        const clang::MemberExpr* pMemberExpr
-                                                            = llvm::dyn_cast< MemberExpr >( pCall->getCallee() );
-                                                        VERIFY_RTE_MSG(
-                                                            pMemberExpr,
-                                                            "Failed to resolve member expression for invocation" );
-                                                        recordInvocationLocs( pMemberExpr->getMemberLoc(),
-                                                                              pCall->getEndLoc(),
-                                                                              pUnaryTransformType );
+                                                        case mega::op_new:
+                                                        {
+                                                            pOperator = m_database.construct< Operations::New >(
+                                                                Operations::New::Args{
+                                                                    Operations::Operator::Args{ operatorID } } );
+                                                        }
+                                                        break;
+                                                        case mega::op_delete:
+                                                        {
+                                                            pOperator = m_database.construct< Operations::Delete >(
+                                                                Operations::Delete::Args{
+                                                                    Operations::Operator::Args{ operatorID } } );
+                                                        }
+                                                        break;
+                                                        case mega::op_cast:
+                                                        {
+                                                            pOperator = m_database.construct< Operations::Cast >(
+                                                                Operations::Cast::Args{
+                                                                    Operations::Operator::Args{ operatorID } } );
+                                                        }
+                                                        break;
+                                                        case mega::op_active:
+                                                        {
+                                                            pOperator = m_database.construct< Operations::Active >(
+                                                                Operations::Active::Args{
+                                                                    Operations::Operator::Args{ operatorID } } );
+                                                        }
+                                                        break;
+                                                        case mega::op_enabled:
+                                                        {
+                                                            pOperator = m_database.construct< Operations::Enabled >(
+                                                                Operations::Enabled::Args{
+                                                                    Operations::Operator::Args{ operatorID } } );
+                                                        }
+                                                        break;
+                                                        default:
+                                                        case mega::HIGHEST_OPERATOR_TYPE:
+                                                            break;
                                                     }
+                                                    VERIFY_RTE( pOperator );
+                                                    operators.insert( { operatorID, pOperator } );
                                                 }
                                             }
                                         }
@@ -561,8 +687,27 @@ public:
                         }
                     }
                 }
+            }
+        }
 
-                m_database.construct< Operations::Invocations >( Operations::Invocations::Args{ m_invocationsMap } );
+        return operators;
+    }
+
+    virtual void runFinalAnalysis()
+    {
+        bool bSuccess = !m_bError;
+
+        using namespace OperationsStage;
+        if( bSuccess )
+        {
+            try
+            {
+                recordInvocationLocations();
+
+                auto operators = detectOperatorInstantiations();
+
+                m_database.construct< Operations::Invocations >(
+                    Operations::Invocations::Args{ m_invocationsMap, operators } );
             }
             catch( std::exception& ex )
             {

@@ -34,6 +34,8 @@
 #include <optional>
 #include <iostream>
 
+#define ENABLE_CLANG_PLUGIN_LOG 1
+
 #ifdef ENABLE_CLANG_PLUGIN_LOG
 #define CLANG_PLUGIN_LOG( msg )                                                                              \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( std::cout << "FILE " << __FILE__ << " FUNC: " << BOOST_CURRENT_FUNCTION \

@@ -204,8 +204,23 @@ static ResultType invoke_impl( Context context, Args... args )
     return __invoke_impl< ResultType, Context, TypePath, Operation >()( context, args... );
 }
 
+
+template< typename TObject >
+static TObject mega_new()
+{
+    static thread_local mega::runtime::operators::New function( g_unit_name, TObject::ID );
+    return function();
+}
+
+template< typename TObject >
+static void mega_delete( const TObject& context )
+{
+    static thread_local mega::runtime::operators::Delete function( g_unit_name, TObject::ID );
+    function( context );
+}
+
 template< typename To, typename From >
-static To mega_cast( const From& from )
+static To mega_cast( const mega::reference& from )
 {
     static thread_local mega::runtime::operators::Cast function( g_unit_name, To::ID );
     return function( from );
@@ -219,8 +234,8 @@ static bool mega_active( const Context& context )
 }
 
 template< typename Context >
-static bool mega_stopped( const Context& context )
+static bool mega_enabled( const Context& context )
 {
-    static thread_local mega::runtime::operators::Stopped function( g_unit_name, Context::ID );
+    static thread_local mega::runtime::operators::Enabled function( g_unit_name, Context::ID );
     return function( context );
 }

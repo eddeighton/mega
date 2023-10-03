@@ -24,6 +24,7 @@
 #include "mega/type_id.hpp"
 #include "mega/invocation_id.hpp"
 #include "mega/relation_id.hpp"
+#include "mega/operator_id.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -51,6 +52,11 @@ inline void to_json( nlohmann::json& j, const mega::InvocationID& invocationID )
     j = nlohmann::json{ { "context", invocationID.m_context },
                         { "type_path", invocationID.m_type_path },
                         { "operation", invocationID.m_operation } };
+}
+inline void to_json( nlohmann::json& j, const mega::OperatorID& operatorID )
+{
+    j = nlohmann::json{ { "operator", operatorID.m_operator },
+                        { "type_id", operatorID.m_typeID } };
 }
 } // namespace mega
 

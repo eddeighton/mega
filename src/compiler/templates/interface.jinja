@@ -36,15 +36,23 @@ static void invoke_impl_void( Context context, Args... args );
 template< typename ResultType, typename Context, typename TypePath, typename Operation, typename... Args >
 static ResultType invoke_impl( Context context, Args... args );
 
-template< typename To, typename From >
-static To mega_cast( const From& from );
+// operators
+template< typename TObject >
+static TObject mega_new();
+
+template< typename TObject >
+static void mega_delete( const TObject& context );
+
+template< typename To >
+static To mega_cast( const mega::reference& from );
 
 template< typename Context >
 static bool mega_active( const Context& context );
 
 template< typename Context >
-static bool mega_stopped( const Context& context );
+static bool mega_enabled( const Context& context );
 
+// interface
 {{ interface }}
 
 {% for struct in structs %}

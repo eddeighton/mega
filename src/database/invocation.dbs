@@ -75,19 +75,6 @@ namespace Invocations
             ref< Variables::Variable > from;
             ref< Variables::Stack > to;
         }
-/*
-        object EnumDerivation : InstructionGroup -> OperationsStage::Operations
-        {
-            ref< Variables::Variable > from;
-            ref< Variables::Stack > to;
-        }
-
-        object Enumeration : InstructionGroup -> OperationsStage::Operations
-        {
-            ref< Variables::Variable > instance;
-        }
-
-*/
 
         object Dereference : InstructionGroup -> OperationsStage::Operations
         {
@@ -115,24 +102,6 @@ namespace Invocations
             ref< Variables::Variable >      variable;
             ref< Concrete::Graph::Vertex >  context;
         }
-/*
-        object BasicOperation : Operation -> OperationsStage::Operations
-        {
-            ref< Interface::IContext > interface;
-            ref< Concrete::Context > concrete_target;
-        }
-        object DimensionOperation : Operation -> OperationsStage::Operations
-        {
-            ref< Interface::DimensionTrait > interface_dimension;
-            ref< Concrete::Dimensions::User > concrete_dimension;
-        }
-        object LinkOperation : Operation -> OperationsStage::Operations
-        {
-            ref< Interface::LinkTrait > interface_link;
-            ref< Concrete::Dimensions::Link > concrete_link;
-        }
-*/
-
     }
 
 }

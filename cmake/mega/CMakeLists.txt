@@ -132,10 +132,10 @@ set_target_properties( generate_mega_mangle_meta PROPERTIES FOLDER service )
 
 set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/address_table.hpp
-    ${MEGA_API_DIR}/mega/allocator.hpp
     ${MEGA_API_DIR}/mega/allocator_io.hpp
-    ${MEGA_API_DIR}/mega/any.hpp
+    ${MEGA_API_DIR}/mega/allocator.hpp
     ${MEGA_API_DIR}/mega/any_io.hpp
+    ${MEGA_API_DIR}/mega/any.hpp
     ${MEGA_API_DIR}/mega/archive_traits.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
     ${MEGA_API_DIR}/mega/bin_archive.hpp
@@ -156,21 +156,23 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/logical_reference.hpp
     ${MEGA_API_DIR}/mega/logical_tree.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
+    ${MEGA_API_DIR}/mega/make_unique_without_reorder.hpp
     ${MEGA_API_DIR}/mega/maths_types_io.hpp
     ${MEGA_API_DIR}/mega/maths_types.hpp
     ${MEGA_API_DIR}/mega/memory.hpp
     ${MEGA_API_DIR}/mega/mpo.hpp
-    ${MEGA_API_DIR}/mega/make_unique_without_reorder.hpp
     ${MEGA_API_DIR}/mega/native_types_io.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp
     ${MEGA_API_DIR}/mega/operation_id.hpp 
     ${MEGA_API_DIR}/mega/operations.hpp
+    ${MEGA_API_DIR}/mega/operator_id.hpp 
+    ${MEGA_API_DIR}/mega/operator_io.hpp 
     ${MEGA_API_DIR}/mega/printer.hpp
     ${MEGA_API_DIR}/mega/record_archive.hpp
     ${MEGA_API_DIR}/mega/reference_io.hpp
     ${MEGA_API_DIR}/mega/reference_limits.hpp
-    ${MEGA_API_DIR}/mega/reference.hpp
     ${MEGA_API_DIR}/mega/reference_tree.hpp
+    ${MEGA_API_DIR}/mega/reference.hpp
     ${MEGA_API_DIR}/mega/relation_id.hpp
     ${MEGA_API_DIR}/mega/relation_io.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp

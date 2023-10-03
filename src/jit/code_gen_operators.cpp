@@ -77,23 +77,32 @@ mega::reference mega_cast_{{ target }}( const mega::reference& source )
 } // namespace
 
 void CodeGenerator::generate_operator( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target,
-                                       mega::runtime::operators::FunctionType invocationType, std::ostream& os )
+                                       mega::runtime::operators::FunctionType operatorType, std::ostream& os )
 {
-    switch( invocationType )
+    switch( operatorType )
     {
+        case operators::eNew:
+        {
+            THROW_TODO;
+        }
+        case operators::eDelete:
+        {
+            THROW_TODO;
+        }
         case operators::eCast:
         {
-            gen_cast( compiler, *m_pInja, database, target, os );
+            THROW_TODO;
+            // gen_cast( compiler, *m_pInja, database, target, os );
         }
         break;
         case operators::eActive:
         {
-            //
+            THROW_TODO;
         }
         break;
-        case operators::eStopped:
+        case operators::eEnabled:
         {
-            //
+            THROW_TODO;
         }
         break;
         default:

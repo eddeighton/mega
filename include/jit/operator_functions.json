@@ -9,6 +9,17 @@
             "return" : "value"
         },
         {
+            "name" : "Delete",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference"
+                }
+            ],
+            "return_type" : "void",
+            "return" : "void"
+        },
+        {
             "name" : "Cast",
             "arguments" : [
                 {
@@ -32,17 +43,6 @@
         },
         {
             "name" : "Enabled",
-            "arguments" : [
-                {
-                    "name" : "ref",
-                    "type" : "mega::reference"
-                }
-            ],
-            "return_type" : "bool",
-            "return" : "value"
-        },
-        {
-            "name" : "Stopped",
             "arguments" : [
                 {
                     "name" : "ref",

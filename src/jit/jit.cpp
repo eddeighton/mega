@@ -655,6 +655,18 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
 
     switch( functionType )
     {
+        case operators::eNew:
+        {
+            *ppFunction
+                = ( void* )pModule->get< operators::New::FunctionPtr >( Symbol( "mega_new_", target, Symbol::None ) );
+        }
+        break;
+        case operators::eDelete:
+        {
+            *ppFunction = ( void* )pModule->get< operators::Delete::FunctionPtr >(
+                Symbol( "mega_delete_", target, Symbol::Ref ) );
+        }
+        break;
         case operators::eCast:
         {
             *ppFunction
@@ -664,13 +676,13 @@ void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, Typ
         case operators::eActive:
         {
             *ppFunction = ( void* )pModule->get< operators::Active::FunctionPtr >(
-                Symbol( "mega_cast_", target, Symbol::Ref ) );
+                Symbol( "mega_active_", target, Symbol::Ref ) );
         }
         break;
-        case operators::eStopped:
+        case operators::eEnabled:
         {
-            *ppFunction = ( void* )pModule->get< operators::Stopped::FunctionPtr >(
-                Symbol( "mega_cast_", target, Symbol::Ref ) );
+            *ppFunction = ( void* )pModule->get< operators::Enabled::FunctionPtr >(
+                Symbol( "mega_enabled_", target, Symbol::Ref ) );
         }
         break;
         default:

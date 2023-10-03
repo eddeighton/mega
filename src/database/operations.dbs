@@ -121,6 +121,31 @@ namespace Operations
         }
     }
 
+    object Operator -> OperationsStage::Operations
+    {
+        value< mega::OperatorID > id;
+    }
+
+    object New : Operator -> OperationsStage::Operations
+    {
+    }
+
+    object Delete : Operator -> OperationsStage::Operations
+    {
+    }
+
+    object Cast : Operator -> OperationsStage::Operations
+    {
+    }
+
+    object Active : Operator -> OperationsStage::Operations
+    {
+    }
+
+    object Enabled : Operator -> OperationsStage::Operations
+    {
+    }
+
 
     object Invocation -> OperationsStage::Operations
     {
@@ -190,6 +215,7 @@ namespace Operations
 
     object Invocations -> OperationsStage::Operations
     {
-        map< value< mega::InvocationID >, ref< Invocation > > invocations;
+        map< value< mega::InvocationID >, ref< Invocation > >   invocations;
+        map< value< mega::OperatorID >, ref< Operator > >       operators;
     }
 }
