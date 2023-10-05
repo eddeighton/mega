@@ -76,8 +76,8 @@ private:
 
 struct EGDB_EXPORT CardinalityRange
 {
-    CardinalityRange() {}
-
+    CardinalityRange() = default;
+    
     CardinalityRange( const Cardinality& minimum, const Cardinality& maximum )
         : m_minimum( minimum )
         , m_maximum( maximum )

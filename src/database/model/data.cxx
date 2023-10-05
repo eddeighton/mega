@@ -699,7 +699,7 @@ namespace AST
           , type( loader )
     {
     }
-    Parser_Link::Parser_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_Identifier >& id, const data::Ptr< data::AST::Parser_TypeList >& type, const bool& owning, const std::optional< mega::CardinalityRange >& cardinality)
+    Parser_Link::Parser_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_Identifier >& id, const data::Ptr< data::AST::Parser_TypeList >& type, const bool& owning, const mega::CardinalityRange& cardinality)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Link >( loader, this ) )          , id( id )
           , type( type )
           , owning( owning )
@@ -5835,12 +5835,13 @@ namespace PerSourceModel
           , relation( loader )
     {
     }
-    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const data::Ptr< data::Model::HyperGraph_Relation >& relation, const bool& owning, const bool& owned, const bool& source)
+    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const data::Ptr< data::Model::HyperGraph_Relation >& relation, const bool& owning, const bool& owned, const bool& source, const bool& singular)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( p_Concrete_Concrete_Dimensions_Link )
           , relation( relation )
           , owning( owning )
           , owned( owned )
           , source( source )
+          , singular( singular )
     {
     }
     bool Concrete_Dimensions_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -5858,6 +5859,7 @@ namespace PerSourceModel
         loader.load( owning );
         loader.load( owned );
         loader.load( source );
+        loader.load( singular );
     }
     void Concrete_Dimensions_Link::store( mega::io::Storer& storer ) const
     {
@@ -5866,6 +5868,7 @@ namespace PerSourceModel
         storer.store( owning );
         storer.store( owned );
         storer.store( source );
+        storer.store( singular );
     }
     void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
     {
@@ -5896,6 +5899,11 @@ namespace PerSourceModel
         {
             nlohmann::json property = nlohmann::json::object({
                 { "source", source } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "singular", singular } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -6234,11 +6242,10 @@ namespace MemoryLayout
           , part( loader )
     {
     }
-    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const mega::U64& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part, const bool& singular)
+    Concrete_Dimensions_Link::Concrete_Dimensions_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_Link > p_Concrete_Concrete_Dimensions_Link, const mega::U64& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_Link( p_Concrete_Concrete_Dimensions_Link )
           , offset( offset )
           , part( part )
-          , singular( singular )
     {
     }
     bool Concrete_Dimensions_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -6254,14 +6261,12 @@ namespace MemoryLayout
         loader.load( p_Concrete_Concrete_Dimensions_Link );
         loader.load( offset );
         loader.load( part );
-        loader.load( singular );
     }
     void Concrete_Dimensions_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Dimensions_Link );
         storer.store( offset );
         storer.store( part );
-        storer.store( singular );
     }
     void Concrete_Dimensions_Link::to_json( nlohmann::json& _part__ ) const
     {
@@ -6282,11 +6287,6 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "part", part } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "singular", singular } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -12538,11 +12538,11 @@ bool& get_Concrete_Dimensions_Link_singular(data::Variant& m_data)
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->singular;
         case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->singular;
         case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->singular;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -15965,7 +15965,7 @@ data::Ptr< data::AST::Parser_ArgumentList >& get_Parser_InteruptDef_argumentList
         }
     }
 }
-std::optional< mega::CardinalityRange >& get_Parser_Link_cardinality(data::Variant& m_data)
+mega::CardinalityRange& get_Parser_Link_cardinality(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {
@@ -17480,11 +17480,11 @@ bool& set_Concrete_Dimensions_Link_singular(data::Variant& m_data)
     switch( m_data.getType() )
     {
         case data::Concrete::Concrete_Dimensions_Link::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->singular;
         case data::Concrete::Concrete_Dimensions_UserLink::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->singular;
         case data::Concrete::Concrete_Dimensions_OwnershipLink::Object_Part_Type_ID:
-            return data::convert< data::MemoryLayout::Concrete_Dimensions_Link >( m_data )->singular;
+            return data::convert< data::PerSourceModel::Concrete_Dimensions_Link >( m_data )->singular;
         default:
         {
             THROW_RTE( "Database used with incorrect type" );
@@ -20811,7 +20811,7 @@ data::Ptr< data::AST::Parser_ArgumentList >& set_Parser_InteruptDef_argumentList
         }
     }
 }
-std::optional< mega::CardinalityRange >& set_Parser_Link_cardinality(data::Variant& m_data)
+mega::CardinalityRange& set_Parser_Link_cardinality(data::Variant& m_data)
 {
     switch( m_data.getType() )
     {

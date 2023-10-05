@@ -667,8 +667,8 @@ private:
                 bFound = true;
                 VERIFY_RTE( !pEdge->get_backtracked() );
 
-                pInstruction         = pPolyReference;
-                auto pResultVariable = pVariable;
+                pInstruction                         = pPolyReference;
+                Variables::Variable* pResultVariable = pLinkReference;
 
                 auto hyperGraphEdges = pEdge->get_edges();
                 VERIFY_RTE( !hyperGraphEdges.empty() );
@@ -819,38 +819,33 @@ private:
                     pVariable    = pTo;
                 }
                 break;
+                case EdgeType::eDim:
+                case EdgeType::eLink:
                 case EdgeType::eChildSingular:
                 {
-                    auto pContext = db_cast< Concrete::Context >( pGraphEdge->get_target() );
-                    VERIFY_RTE( pContext );
-                    Variables::Stack* pTo = make_stack_variable( pVariable, pContext );
+                    Variables::Stack* pTo = make_stack_variable( pVariable, pGraphEdge->get_target() );
                     pInstruction = make_instruction< Instructions::ChildDerivation >( pInstruction, pVariable, pTo );
                     pVariable    = pTo;
                 }
                 break;
                 case EdgeType::eChildNonSingular:
                 {
-                }
-                break;
-                case EdgeType::eDim:
-                {
-                }
-                break;
-                case EdgeType::eLink:
-                {
+                    THROW_TODO;
                 }
                 break;
                 case EdgeType::eMonoSingularMandatory:
-                case EdgeType::ePolySingularMandatory:
-                case EdgeType::eMonoNonSingularMandatory:
-                case EdgeType::ePolyNonSingularMandatory:
                 case EdgeType::eMonoSingularOptional:
-                case EdgeType::ePolySingularOptional:
+                case EdgeType::eMonoNonSingularMandatory:
                 case EdgeType::eMonoNonSingularOptional:
+                case EdgeType::ePolySingularMandatory:
+                case EdgeType::ePolySingularOptional:
+                case EdgeType::ePolyNonSingularMandatory:
                 case EdgeType::ePolyNonSingularOptional:
+                    THROW_TODO;
                     break;
                 case EdgeType::ePolyParent:
                 {
+                    THROW_TODO;
                 }
                 break;
                 default:

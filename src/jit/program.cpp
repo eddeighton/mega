@@ -44,7 +44,7 @@ Program::Program( JITDatabase& database, JITCompiler::Module::Ptr pModule )
     m_recordBreak = m_pModule->get< program::RecordBreak::FunctionPtr >( Symbol( "record_break", Symbol::Ref_Ref ) );
     m_traverse    = m_pModule->get< program::Traverse::FunctionPtr >( Symbol( "traverse", Symbol::VStar ) );
     m_pLinkSize   = pModule->get< program::LinkSize::FunctionPtr >( Symbol( "link_size", Symbol::Ref ) );
-    m_pLinkObject = pModule->get< program::LinkObject::FunctionPtr >( Symbol( "link_object", Symbol::Ref_U64 ) );
+    m_pLinkGet    = pModule->get< program::LinkGet::FunctionPtr >( Symbol( "link_get", Symbol::Ref_U64 ) );
     m_pReadAny    = pModule->get< program::ReadAny::FunctionPtr >( Symbol( "read_any", Symbol::Ref ) );
     m_pWriteAny   = pModule->get< program::WriteAny::FunctionPtr >( Symbol( "write_any", Symbol::Ref_Any ) );
 }

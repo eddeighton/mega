@@ -592,30 +592,33 @@ public:
 
         parse_comment();
 
-        std::optional< mega::CardinalityRange > cardinality_range;
+        // default cardinality of zero to one
+        mega::CardinalityRange cardinality_range( mega::Cardinality::ZERO, mega::Cardinality::ONE );
         if( Tok.is( clang::tok::l_square ) )
         {
             BalancedDelimiterTracker T( *this, clang::tok::l_square );
             T.consumeOpen();
 
             mega::Cardinality minimum, maximum;
-            parse_cardinality( minimum );
-            if( Tok.is( clang::tok::colon ) )
             {
-                ConsumeToken();
-                parse_cardinality( maximum );
-                parse_comment();
-                cardinality_range = mega::CardinalityRange{ minimum, maximum };
+                parse_cardinality( minimum );
+                if( Tok.is( clang::tok::colon ) )
+                {
+                    ConsumeToken();
+                    parse_cardinality( maximum );
+                    parse_comment();
+                }
+                else
+                {
+                    MEGA_PARSER_ERROR( "Expected colon in link cardinality specifier" );
+                }
+                if( !Tok.is( clang::tok::r_square ) )
+                {
+                    MEGA_PARSER_ERROR( "Expected right square bracket for link relation specifier" );
+                }
+                T.consumeClose();
             }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected colon in link cardinality specifier" );
-            }
-            if( !Tok.is( clang::tok::r_square ) )
-            {
-                MEGA_PARSER_ERROR( "Expected right square bracket for link relation specifier" );
-            }
-            T.consumeClose();
+            cardinality_range = mega::CardinalityRange{ minimum, maximum };
         }
         parse_comment();
         parse_semicolon();

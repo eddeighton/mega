@@ -610,10 +610,12 @@ public:
                     {
                         if( auto pUserLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
                         {
+                            const bool bSingular = pUserLink->get_interface_link()->get_cardinality().isSingular();
+
                             if( pUserLink->get_interface_link()->get_owning() )
                             {
                                 database.construct< Concrete::Dimensions::Link >(
-                                    Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation, true, false, true } );
+                                    Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation, true, false, true, bSingular } );
                             }
                             else
                             {
@@ -622,13 +624,13 @@ public:
                                 auto       pRelation = iFind->second;
                                 const bool bSource   = pRelation->get_source() == pUserLink->get_interface_link();
                                 database.construct< Concrete::Dimensions::Link >(
-                                    Concrete::Dimensions::Link::Args{ pLink, pRelation, false, false, bSource } );
+                                    Concrete::Dimensions::Link::Args{ pLink, pRelation, false, false, bSource, bSingular } );
                             }
                         }
                         else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pLink ) )
                         {
                             database.construct< Concrete::Dimensions::Link >(
-                                Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation, false, true, false } );
+                                Concrete::Dimensions::Link::Args{ pLink, pOwnershipRelation, false, true, false, true } );
                         }
                         else
                         {

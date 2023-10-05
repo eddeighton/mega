@@ -88,10 +88,10 @@ struct MPORealToLogicalVisitor
         return linkSizeFPtr( fromLogical( logicalRef ) );
     }
 
-    LogicalObject linkObject( const LogicalReference& logicalRef, U64 index )
+    LogicalObject linkGet( const LogicalReference& logicalRef, U64 index )
     {
-        static thread_local mega::runtime::program::LinkObject linkObjectFptr;
-        return toLogicalObject( linkObjectFptr( fromLogical( logicalRef ), index ) );
+        static thread_local mega::runtime::program::LinkGet linkGetFptr;
+        return toLogicalObject( linkGetFptr( fromLogical( logicalRef ), index ) );
     }
 
     Any read( const LogicalReference& logicalRef )
@@ -125,10 +125,10 @@ struct MPORealVisitor
         return linkSizeFPtr( ref );
     }
 
-    reference linkObject( const reference& ref, U64 index )
+    reference linkGet( const reference& ref, U64 index )
     {
-        static thread_local mega::runtime::program::LinkObject linkObjectFptr;
-        return linkObjectFptr( ref, index );
+        static thread_local mega::runtime::program::LinkGet linkGetFptr;
+        return linkGetFptr( ref, index );
     }
 
     Any read( const reference& ref )

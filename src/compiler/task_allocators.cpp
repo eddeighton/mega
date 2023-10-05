@@ -378,15 +378,14 @@ struct PartDimensions
         {
             for( auto pLink : link )
             {
-                pLink->set_part( pPart );
-
                 if( pLink->get_singular() )
                 {
                     const U64 szAlign = alignof( mega::reference );
                     const U64 szSize  = sizeof( mega::reference );
                     result.alignment  = std::max( result.alignment, szAlign );
                     result.size       = padToAlignment( szAlign, result.size );
-                    pLink->set_offset( result.size );
+                    database.construct< Concrete::Dimensions::Link >(
+                        Concrete::Dimensions::Link::Args{ pLink, result.size, pPart } );
                     result.size += szSize;
                 }
                 else
@@ -395,7 +394,8 @@ struct PartDimensions
                     const U64 szSize  = mega::DimensionTraits< mega::ReferenceVector >::Size;
                     result.alignment  = std::max( result.alignment, szAlign );
                     result.size       = padToAlignment( szAlign, result.size );
-                    pLink->set_offset( result.size );
+                    database.construct< Concrete::Dimensions::Link >(
+                        Concrete::Dimensions::Link::Args{ pLink, result.size, pPart } );
                     result.size += szSize;
                 }
             }
@@ -484,10 +484,9 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
 
     U64 szTotalDomainSize;
     {
-        if( Concrete::Namespace* pNamespace = db_cast< Concrete::Namespace >( pContext ) )
+        if( auto pUserDimensionContext = db_cast< Concrete::UserDimensionContext >( pContext ) )
         {
-            szTotalDomainSize = 1U;
-            for( Concrete::Dimensions::User* pDim : pNamespace->get_dimensions() )
+            for( auto pDim : pUserDimensionContext->get_dimensions() )
             {
                 if( pDim->get_interface_dimension()->get_simple() )
                 {
@@ -498,52 +497,34 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
                     nonSimple.user.push_back( pDim );
                 }
             }
+            for( auto pLink : pUserDimensionContext->get_links() )
+            {
+                if( pLink->get_singular() )
+                {
+                    simple.link.push_back( pLink );
+                }
+                else
+                {
+                    nonSimple.link.push_back( pLink );
+                }
+            }
+        }
+
+        if( Concrete::Namespace* pNamespace = db_cast< Concrete::Namespace >( pContext ) )
+        {
+            szTotalDomainSize = 1U;
         }
         else if( Concrete::Object* pObject = db_cast< Concrete::Object >( pContext ) )
         {
             szTotalDomainSize = 1U;
-            for( Concrete::Dimensions::User* pDim : pObject->get_dimensions() )
-            {
-                if( pDim->get_interface_dimension()->get_simple() )
-                {
-                    simple.user.push_back( pDim );
-                }
-                else
-                {
-                    nonSimple.user.push_back( pDim );
-                }
-            }
         }
         else if( Concrete::State* pState = db_cast< Concrete::State >( pContext ) )
         {
             szTotalDomainSize = pState->get_total_size();
-            for( Concrete::Dimensions::User* pDim : pState->get_dimensions() )
-            {
-                if( pDim->get_interface_dimension()->get_simple() )
-                {
-                    simple.user.push_back( pDim );
-                }
-                else
-                {
-                    nonSimple.user.push_back( pDim );
-                }
-            }
         }
         else if( Concrete::Event* pEvent = db_cast< Concrete::Event >( pContext ) )
         {
             szTotalDomainSize = pEvent->get_total_size();
-
-            for( Concrete::Dimensions::User* pDim : pEvent->get_dimensions() )
-            {
-                if( pDim->get_interface_dimension()->get_simple() )
-                {
-                    simple.user.push_back( pDim );
-                }
-                else
-                {
-                    nonSimple.user.push_back( pDim );
-                }
-            }
         }
         else if( Concrete::Interupt* pFunction = db_cast< Concrete::Interupt >( pContext ) )
         {

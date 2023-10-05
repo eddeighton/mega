@@ -41,20 +41,20 @@ public:
 
     Relation( const RelationID& relationID, JITDatabase& database, JITCompiler::Module::Ptr pModule );
 
-    relation::LinkMake::FunctionPtr   getMake() const { return m_pMake; }
-    relation::LinkBreak::FunctionPtr  getBreak() const { return m_pBreak; }
-    relation::LinkReset::FunctionPtr  getReset() const { return m_pReset; }
-    relation::LinkSize::FunctionPtr   getSize() const { return m_pSize; }
-    relation::LinkObject::FunctionPtr getObject() const { return m_pObject; }
+    relation::LinkMake::FunctionPtr  getMake() const { return m_pMake; }
+    relation::LinkBreak::FunctionPtr getBreak() const { return m_pBreak; }
+    relation::LinkReset::FunctionPtr getReset() const { return m_pReset; }
+    relation::LinkSize::FunctionPtr  getSize() const { return m_pSize; }
+    relation::LinkGet::FunctionPtr   getGet() const { return m_pGet; }
 
 private:
-    RelationID                        m_relationID;
-    JITCompiler::Module::Ptr          m_pModule;
-    relation::LinkMake::FunctionPtr   m_pMake   = nullptr;
-    relation::LinkBreak::FunctionPtr  m_pBreak  = nullptr;
-    relation::LinkReset::FunctionPtr  m_pReset  = nullptr;
-    relation::LinkSize::FunctionPtr   m_pSize   = nullptr;
-    relation::LinkObject::FunctionPtr m_pObject = nullptr;
+    RelationID                       m_relationID;
+    JITCompiler::Module::Ptr         m_pModule;
+    relation::LinkMake::FunctionPtr  m_pMake  = nullptr;
+    relation::LinkBreak::FunctionPtr m_pBreak = nullptr;
+    relation::LinkReset::FunctionPtr m_pReset = nullptr;
+    relation::LinkSize::FunctionPtr  m_pSize  = nullptr;
+    relation::LinkGet::FunctionPtr   m_pGet   = nullptr;
 };
 } // namespace mega::runtime
 

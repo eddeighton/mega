@@ -46,7 +46,7 @@ public:
     program::RecordBreak::FunctionPtr   getRecordBreak() const { return m_recordBreak; }
     program::Traverse::FunctionPtr      getTraverse() const { return m_traverse; }
     program::LinkSize::FunctionPtr      getLinkSize() const { return m_pLinkSize; }
-    program::LinkObject::FunctionPtr    getLinkObject() const { return m_pLinkObject; }
+    program::LinkGet::FunctionPtr       getLinkGet() const { return m_pLinkGet; }
     program::ReadAny::FunctionPtr       getReadAny() const { return m_pReadAny; }
     program::WriteAny::FunctionPtr      getWriteAny() const { return m_pWriteAny; }
 
@@ -59,7 +59,7 @@ private:
     program::RecordBreak::FunctionPtr   m_recordBreak   = nullptr;
     program::Traverse::FunctionPtr      m_traverse      = nullptr;
     program::LinkSize::FunctionPtr      m_pLinkSize     = nullptr;
-    program::LinkObject::FunctionPtr    m_pLinkObject   = nullptr;
+    program::LinkGet::FunctionPtr       m_pLinkGet      = nullptr;
     program::ReadAny::FunctionPtr       m_pReadAny      = nullptr;
     program::WriteAny::FunctionPtr      m_pWriteAny     = nullptr;
 };

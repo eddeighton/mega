@@ -54,7 +54,7 @@
             "return" : "value"
         },
         {
-            "name" : "LinkObject",
+            "name" : "LinkGet",
             "arguments" : [
                 {
                     "name" : "ref",

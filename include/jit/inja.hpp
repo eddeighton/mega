@@ -26,11 +26,20 @@
 #include "utilities/megastructure_installation.hpp"
 #include "utilities/project.hpp"
 
+#include "common/requireSemicolon.hpp"
+#include "common/assert_verify.hpp"
+
 #include "inja/inja.hpp"
 #include "inja/environment.hpp"
 #include "inja/template.hpp"
 
 #include <memory>
+
+#define CATCH_INFO_ERROR( code, templateType )                                                        \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                                  \
+        try { code; } catch( ::inja::RenderError & ex ) {                                             \
+            THROW_RTE( "Inja exception while rendering: " << templateType << " msg: " << ex.what() ); \
+        } )
 
 namespace mega
 {
@@ -71,47 +80,47 @@ public:
 
     void render_allocator( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_allocatorTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_allocatorTemplate, data ), "Allocator" );
     }
     void render_read( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_readTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_readTemplate, data ), "Read" );
     }
     void render_write( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_writeTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_writeTemplate, data ), "Write" );
     }
     void render_readLink( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_readLinkTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_readLinkTemplate, data ), "ReadLink" );
     }
     void render_writeLink( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_writeLinkTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_writeLinkTemplate, data ), "WriteLink" );
     }
     void render_call( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_callTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_callTemplate, data ), "Call" );
     }
     void render_start( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_startTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_startTemplate, data ), "Start" );
     }
     void render_get( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_getTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_getTemplate, data ), "Get" );
     }
     void render_relation( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_relationTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_relationTemplate, data ), "Relation" );
     }
     void render_program( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_programTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_programTemplate, data ), "Program" );
     }
     void render_move( const nlohmann::json& data, std::ostream& os )
     {
-        m_injaEnvironment.render_to( os, m_moveTemplate, data );
+        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_moveTemplate, data ), "Move" );
     }
 
     std::string render( const std::string& strTemplate, const nlohmann::json& data )

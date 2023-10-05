@@ -108,10 +108,10 @@ namespace Parser
 
     object Link -> ParserStage::AST
     {
-        ref< Identifier >                       id;
-        ref< TypeList >                         type;
-        value< bool >                           owning;
-        opt< value< mega::CardinalityRange > >  cardinality;
+        ref< Identifier >               id;
+        ref< TypeList >                 type;
+        value< bool >                   owning;
+        value< mega::CardinalityRange > cardinality;
     }
 
     object Dimension -> ParserStage::AST

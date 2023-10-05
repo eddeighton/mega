@@ -205,9 +205,9 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
             *ppFunction = ( void* )m_pProgram->getLinkSize();
         }
         break;
-        case program::eLinkObject:
+        case program::eLinkGet:
         {
-            *ppFunction = ( void* )m_pProgram->getLinkObject();
+            *ppFunction = ( void* )m_pProgram->getLinkGet();
         }
         break;
         case program::eReadAny:
@@ -519,10 +519,10 @@ void JIT::getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, mega:
             *ppFunction     = ( void* )pAllocator->getLinkSize();
         }
         break;
-        case object::eLinkObject:
+        case object::eLinkGet:
         {
             auto pAllocator = getAllocator( compiler, typeID );
-            *ppFunction     = ( void* )pAllocator->getLinkObject();
+            *ppFunction     = ( void* )pAllocator->getLinkGet();
         }
         break;
         case object::eReadAny:
@@ -584,10 +584,10 @@ void JIT::getRelationFunction( void* pLLVMCompiler, const char* pszUnitName, con
             *ppFunction    = ( void* )pRelation->getSize();
         }
         break;
-        case relation::eLinkObject:
+        case relation::eLinkGet:
         {
             auto pRelation = getRelation( compiler, relationID );
-            *ppFunction    = ( void* )pRelation->getObject();
+            *ppFunction    = ( void* )pRelation->getGet();
         }
         break;
         default:

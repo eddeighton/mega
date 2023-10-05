@@ -48,7 +48,4 @@ mega::reference {{ name }}( mega::reference context, WriteOperation overload, co
 {% for assignment in assignments %}
 {{ assignment }}
 {% endfor %}
-
-    throw mega::runtime::JITException{ "WriteLink invocation failed" };
-    return mega::reference{};
 }

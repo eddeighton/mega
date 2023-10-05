@@ -63,10 +63,10 @@ void ctor_{{ objectTypeID }}( void* pBuffer )
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
-        mega::mangle::new_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+        mega::mangle::new_{{member.mangle}}( pIter + {{ member.offset }} );
 {% endfor %}
 {% for member in part.links %}
-        mega::mangle::new_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+        mega::mangle::new_{{member.mangle}}( pIter + {{ member.offset }} );
 {% endfor %}
     }
 {% endfor %}
@@ -80,7 +80,7 @@ void dtor_{{ objectTypeID }}( mega::reference ref, void* pBuffer, bool bLinkRese
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }}, ++instance )
     {
 {% for member in part.members %}
-        mega::mangle::delete_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+        mega::mangle::delete_{{member.mangle}}( pIter + {{ member.offset }} );
 {% endfor %}
 {% for link in part.links %}
 {% if link.owning %}
@@ -93,7 +93,7 @@ void dtor_{{ objectTypeID }}( mega::reference ref, void* pBuffer, bool bLinkRese
                 g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );
             function( linkRef );
         }
-        mega::mangle::delete_{{link.mangle}}( pIter + {{ link.offset }} ); // {{ link.type }} {{ link.name }}
+        mega::mangle::delete_{{link.mangle}}( pIter + {{ link.offset }} );
     }
 {% endif %}
 {% endfor %}
@@ -108,10 +108,10 @@ void save_object_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
-        mega::mangle::save_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser ); // {{ member.type }} {{ member.name }}
+        mega::mangle::save_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser );
 {% endfor %}
 {% for member in part.links %}
-        mega::mangle::save_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser ); // {{ member.type }} {{ member.name }}
+        mega::mangle::save_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser );
 {% endfor %}
     }
 {% endfor %}
@@ -123,10 +123,10 @@ void load_object_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
     for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
-        mega::mangle::load_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser ); // {{ member.type }} {{ member.name }}
+        mega::mangle::load_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser );
 {% endfor %}
 {% for member in part.links %}
-        mega::mangle::load_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser ); // {{ member.type }} {{ member.name }}
+        mega::mangle::load_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser );
 {% endfor %}
     }
 {% endfor %}
@@ -248,7 +248,7 @@ mega::U64 link_size_{{ objectTypeID }}( mega::reference ref )
     return {};
 }
 
-mega::reference link_object_{{ objectTypeID }}( mega::reference ref, mega::U64 index )
+mega::reference link_get_{{ objectTypeID }}( mega::reference ref, mega::U64 index )
 {
     switch( ref.getType() )
     {
@@ -256,7 +256,7 @@ mega::reference link_object_{{ objectTypeID }}( mega::reference ref, mega::U64 i
 {% for link in part.links %}
         case {{ link.link_type_id }}:
         {
-            static thread_local mega::runtime::relation::LinkObject function( 
+            static thread_local mega::runtime::relation::LinkGet function( 
                 g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );
             return function( ref, index );
         }
@@ -264,7 +264,7 @@ mega::reference link_object_{{ objectTypeID }}( mega::reference ref, mega::U64 i
 {% endfor %}
 {% endfor %}
         default:
-            throw mega::runtime::JITException{ "link_object_{{ objectTypeID }} Unknown concrete type id" };
+            throw mega::runtime::JITException{ "link_get_{{ objectTypeID }} Unknown concrete type id" };
         break;
     }
     return {};

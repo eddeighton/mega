@@ -231,20 +231,20 @@ mega::U64 link_size( mega::reference ref )
     }
 }
 
-mega::reference link_object( mega::reference ref, mega::U64 index )
+mega::reference link_get( mega::reference ref, mega::U64 index )
 {
     switch( mega::TypeID::make_object_from_typeID( ref.getType() ) )
     {
 {% for type in object_types %}
         case {{ type }}:
         {
-            static thread_local mega::runtime::object::LinkObject linkObjectFPtr( "simulation", mega::TypeID{ {{ type }} } );
-            return linkObjectFPtr( ref, index );
+            static thread_local mega::runtime::object::LinkGet linkGetFPtr( "simulation", mega::TypeID{ {{ type }} } );
+            return linkGetFPtr( ref, index );
         }
 {% endfor %}
         default:
         {
-            throw mega::runtime::JITException{ "program link_object Unknown concrete type id" };
+            throw mega::runtime::JITException{ "program link_get Unknown concrete type id" };
         }
         break;
     }

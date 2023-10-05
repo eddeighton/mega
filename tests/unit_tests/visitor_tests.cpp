@@ -272,7 +272,7 @@ struct TestLogicalInstantiation
         }
     }
 
-    LogicalObject linkObject( const LogicalReference& link, U64 index )
+    LogicalObject linkGet( const LogicalReference& link, U64 index )
     {
         if( index == 0 )
         {

@@ -95,16 +95,31 @@ void gen( Args args, const FinalStage::Invocations::Instructions::ChildDerivatio
     std::ostringstream os;
     os << args.indent << "// ChildDerivation\n";
 
-    const Variables::Variable* pFrom      = pChildDerivation->get_from();
-    const Variables::Stack*    pTo        = pChildDerivation->get_to();
-    const Concrete::Context*   pToContext = db_cast< Concrete::Context >( pTo->get_concrete() );
+    const Variables::Variable* pFrom = pChildDerivation->get_from();
+    const Variables::Stack*    pTo   = pChildDerivation->get_to();
 
-    const std::string  s           = args.get( pFrom );
-    const mega::TypeID targetType  = pToContext->get_concrete_id();
-    const mega::U64    szLocalSize = args.database.getLocalDomainSize( targetType );
+    mega::TypeID targetType;
+    {
+        if( auto pContext = db_cast< Concrete::Context >( pTo->get_concrete() ) )
+        {
+            targetType = pContext->get_concrete_id();
+        }
+        else if( auto pDim = db_cast< Concrete::Dimensions::User >( pTo->get_concrete() ) )
+        {
+            targetType = pDim->get_concrete_id();
+        }
+        else if( auto pLink = db_cast< Concrete::Dimensions::Link >( pTo->get_concrete() ) )
+        {
+            targetType = pLink->get_concrete_id();
+        }
+        else
+        {
+            THROW_RTE( "Unknown child derivation target" );
+        }
+    }
 
     os << args.indent << args.get( pTo ) << " = mega::reference::make( " << args.get( pFrom )
-       << ", mega::TypeInstance{ " << printTypeID( targetType ) << ", " << s << ".getInstance() } );\n";
+       << ", mega::TypeInstance{ " << printTypeID( targetType ) << ", " << args.get( pFrom ) << ".getInstance() } );\n";
 
     args.data[ "assignments" ].push_back( os.str() );
 }
@@ -823,6 +838,12 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
 
             {
                 std::ostringstream os;
+                os << indent << "   case 0x00000000:\n";
+                os << indent << "   default:\n";
+                os << indent << "   {\n";
+                os << indent << "       throw mega::runtime::JITException{ \"Null reference in poly branch\" };\n";
+                os << indent << "   }\n";
+                os << indent << "   break;\n";
                 os << indent << "}";
                 data[ "assignments" ].push_back( os.str() );
             }
@@ -868,7 +889,8 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
             {
                 --indent;
                 std::ostringstream os;
-                os << indent << "}";
+                os << indent << "}\n";
+                os << indent << "break;\n";
                 data[ "assignments" ].push_back( os.str() );
             }
         }
@@ -979,8 +1001,12 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
         {
             std::ostringstream osName;
             {
-                osName << "var_";
-                printConcreteFullType( pDimensionVar->get_types().front(), osName, "_" );
+                osName << "var";
+                for( auto pType : pDimensionVar->get_types() )
+                {
+                    osName << '_';
+                    printConcreteFullType( pType, osName, "_" );
+                }
                 osName << "_" << iVariableCounter++;
             }
             variables.insert( { pVariable, osName.str() } );

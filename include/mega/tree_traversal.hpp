@@ -36,7 +36,7 @@ struct LogicalInstantiation
     LogicalObject start()
     void* read( const LogicalReference& ref )
     U64 linkSize( const LogicalReference& ref, bool bOwning, bool bOwned )
-    LogicalObject linkObject( const LogicalReference& link, U64 index )
+    LogicalObject linkGet( const LogicalReference& link, U64 index )
 };
 struct LogicalTreeVisitor
 {
@@ -179,7 +179,7 @@ private:
         if( frame.iterator != frame.size )
         {
             // push the object frame
-            Object linkedObject = m_instantiation.linkObject( frame.link, frame.iterator );
+            Object linkedObject = m_instantiation.linkGet( frame.link, frame.iterator );
             ++frame.iterator;
             ObjectFrame objectFrame{ linkedObject };
             m_stack.push_back( objectFrame );

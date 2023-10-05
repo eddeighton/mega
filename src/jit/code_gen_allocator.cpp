@@ -320,11 +320,10 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
                     std::string    strMangle;
                     RelationID     relationID = pRelation->get_id();
-                    nlohmann::json link( { { "type", mega::psz_mega_reference_vector },
-                                           { "link_type_id", printTypeID( pLinkDim->get_concrete_id() ) },
+                    nlohmann::json link( { { "link_type_id", printTypeID( pLinkDim->get_concrete_id() ) },
                                            { "mangle", "" },
                                            { "offset", pLinkDim->get_offset() },
-                                           { "singular", false },
+                                           { "singular", pLinkDim->get_singular() },
                                            { "types", nlohmann::json::array() },
                                            { "owning", pLinkDim->get_owning() },
                                            { "owned", pLinkDim->get_owned() },
@@ -335,13 +334,11 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
                     if( pLinkDim->get_singular() )
                     {
-                        strMangle          = megaMangle( mega::psz_mega_reference );
-                        link[ "singular" ] = true;
+                        strMangle = megaMangle( mega::psz_mega_reference );
                     }
                     else
                     {
-                        strMangle          = megaMangle( mega::psz_mega_reference_vector );
-                        link[ "singular" ] = false;
+                        strMangle = megaMangle( mega::psz_mega_reference_vector );
                     }
 
                     if( auto pOwningRelation = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )

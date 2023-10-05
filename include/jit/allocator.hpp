@@ -52,7 +52,7 @@ public:
     object::ObjectUnparent::FunctionPtr getUnparent() const { return m_pUnparent; }
     object::ObjectTraverse::FunctionPtr getTraverse() const { return m_pTraverse; }
     object::LinkSize::FunctionPtr       getLinkSize() const { return m_pLinkSize; }
-    object::LinkObject::FunctionPtr     getLinkObject() const { return m_pLinkObject; }
+    object::LinkGet::FunctionPtr        getLinkGet() const { return m_pLinkGet; }
     object::ReadAny::FunctionPtr        getReadAny() const { return m_pReadAny; }
     object::WriteAny::FunctionPtr       getWriteAny() const { return m_pWriteAny; }
 
@@ -60,16 +60,16 @@ private:
     JITCompiler::Module::Ptr            m_pModule;
     TypeID                              m_objectTypeID;
     mega::SizeAlignment                 m_sizeAlignment;
-    object::ObjectCtor::FunctionPtr     m_pCtor       = nullptr;
-    object::ObjectDtor::FunctionPtr     m_pDtor       = nullptr;
-    object::ObjectSaveBin::FunctionPtr  m_pSaveBin    = nullptr;
-    object::ObjectLoadBin::FunctionPtr  m_pLoadBin    = nullptr;
-    object::ObjectUnparent::FunctionPtr m_pUnparent   = nullptr;
-    object::ObjectTraverse::FunctionPtr m_pTraverse   = nullptr;
-    object::LinkSize::FunctionPtr       m_pLinkSize   = nullptr;
-    object::LinkObject::FunctionPtr     m_pLinkObject = nullptr;
-    object::ReadAny::FunctionPtr        m_pReadAny    = nullptr;
-    object::WriteAny::FunctionPtr       m_pWriteAny   = nullptr;
+    object::ObjectCtor::FunctionPtr     m_pCtor     = nullptr;
+    object::ObjectDtor::FunctionPtr     m_pDtor     = nullptr;
+    object::ObjectSaveBin::FunctionPtr  m_pSaveBin  = nullptr;
+    object::ObjectLoadBin::FunctionPtr  m_pLoadBin  = nullptr;
+    object::ObjectUnparent::FunctionPtr m_pUnparent = nullptr;
+    object::ObjectTraverse::FunctionPtr m_pTraverse = nullptr;
+    object::LinkSize::FunctionPtr       m_pLinkSize = nullptr;
+    object::LinkGet::FunctionPtr        m_pLinkGet  = nullptr;
+    object::ReadAny::FunctionPtr        m_pReadAny  = nullptr;
+    object::WriteAny::FunctionPtr       m_pWriteAny = nullptr;
 };
 
 } // namespace mega::runtime

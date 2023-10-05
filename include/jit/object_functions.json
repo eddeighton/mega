@@ -100,7 +100,7 @@
             "return" : "value"
         },
         {
-            "name" : "LinkObject",
+            "name" : "LinkGet",
             "arguments" : [
                 {
                     "name" : "link",

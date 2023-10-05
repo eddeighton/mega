@@ -175,10 +175,47 @@ static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& final
         auto tempResult = result;
         for( auto pEdge : pStep->get_edges() )
         {
-            const auto EdgeResult = exclusive( pEdge->get_next(), finalFrontier, tempResult );
-            if( EdgeResult == eFailure )
+            bool bContainsInvalidEdge = false;
+            for( auto pGraphEdge : pEdge->get_edges() )
+            {
+                switch( pGraphEdge->get_type().get() )
+                {
+                    case ::mega::EdgeType::eMonoNonSingularMandatory:
+                    case ::mega::EdgeType::eMonoNonSingularOptional:
+                    case ::mega::EdgeType::ePolyNonSingularMandatory:
+                    case ::mega::EdgeType::ePolyNonSingularOptional:
+                    case ::mega::EdgeType::eChildNonSingular:
+                         bContainsInvalidEdge = true;
+                         break;
+                    case ::mega::EdgeType::eChildSingular:
+                    case ::mega::EdgeType::eDim:
+                    case ::mega::EdgeType::eLink:
+                    case ::mega::EdgeType::eParent:
+
+                    case ::mega::EdgeType::eMonoSingularMandatory:
+                    case ::mega::EdgeType::eMonoSingularOptional:
+                    case ::mega::EdgeType::ePolySingularMandatory:
+                    case ::mega::EdgeType::ePolySingularOptional:
+
+                    case ::mega::EdgeType::ePolyParent:
+                        break;
+                    case ::mega::EdgeType::TOTAL_EDGE_TYPES:
+                    default:
+                        THROW_RTE( "Unknown hyper graph edge type" );
+                        break;
+                }
+            }
+            if( bContainsInvalidEdge )
             {
                 pEdge->set_eliminated( true );
+            }
+            else
+            {
+                const auto EdgeResult = exclusive( pEdge->get_next(), finalFrontier, tempResult );
+                if( EdgeResult == eFailure )
+                {
+                    pEdge->set_eliminated( true );
+                }
             }
         }
 
@@ -272,12 +309,13 @@ static void precedence( Edge* pEdge )
                 case ::mega::EdgeType::eParent:
 
                 case ::mega::EdgeType::eMonoSingularMandatory:
-                case ::mega::EdgeType::ePolySingularMandatory:
-                case ::mega::EdgeType::eMonoNonSingularMandatory:
-                case ::mega::EdgeType::ePolyNonSingularMandatory:
                 case ::mega::EdgeType::eMonoSingularOptional:
-                case ::mega::EdgeType::ePolySingularOptional:
+                case ::mega::EdgeType::eMonoNonSingularMandatory:
                 case ::mega::EdgeType::eMonoNonSingularOptional:
+
+                case ::mega::EdgeType::ePolySingularMandatory:
+                case ::mega::EdgeType::ePolySingularOptional:
+                case ::mega::EdgeType::ePolyNonSingularMandatory:
                 case ::mega::EdgeType::ePolyNonSingularOptional:
 
                 case ::mega::EdgeType::ePolyParent:

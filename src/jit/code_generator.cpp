@@ -190,32 +190,11 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
 
     bool bSourceSingular, bTargetSingular, bTargetOwned = false;
 
-    THROW_TODO;
-
-    // NOTE: owners can have DIFFERENT cardinalities for same object
-
-    if( auto pOwningRelation = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
-    {
-        bTargetSingular = true;
-        bSourceSingular = false;
-        bTargetOwned = true;
-    }
-    else if( auto pNonOwningRelation = db_cast< HyperGraph::NonOwningObjectRelation >( pRelation ) )
-    {
-        bSourceSingular = pNonOwningRelation->get_source()->get_cardinality()->isSingular();
-        bTargetSingular = pNonOwningRelation->get_target()->get_cardinality()->isSingular();
-    }
-    else
-    {
-        THROW_RTE( "Unknown relation type" );
-    }
-
     std::ostringstream osRelationID;
     {
         using ::operator<<;
         osRelationID << relationID;
     }
-
     std::ostringstream osModuleName;
     {
         osModuleName << "relation_" << osRelationID.str();
@@ -223,49 +202,109 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
 
     nlohmann::json data( { { "relationID", osRelationID.str() },
                            { "module_name", osModuleName.str() },
-                           { "source_singular", bSourceSingular },
-                           { "target_singular", bTargetSingular },
-                           { "source_owned", false },
-                           { "target_owned", bTargetOwned },
                            { "sources", nlohmann::json::array() },
                            { "targets", nlohmann::json::array() } } );
-/*
-    for( FinalStage::Interface::LinkTrait* pSource : pRelation->get_sources() )
+
+    if( auto pOwningRelation = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
     {
-        using namespace FinalStage;
-        for( auto pConcrete : pSource->get_concrete() )
+        data[ "owning" ] = true;
+
         {
-            Concrete::Link*     pLink          = db_cast< Concrete::Link >( pConcrete );
-            auto                pLinkReference = pLink->get_link_reference();
-            MemoryLayout::Part* pPart          = pLinkReference->get_part();
+            std::vector< Interface::LinkTrait* > linkTraits;
+            {
+                auto owners = pOwningRelation->get_owners();
+                for( auto i = owners.begin(), iEnd = owners.end(); i != iEnd; i = owners.upper_bound( i->first ) )
+                {
+                    linkTraits.push_back( i->first );
+                }
+            }
+            for( auto pLinkTrait : linkTraits )
+            {
+                for( auto pConcrete : pLinkTrait->get_concrete() )
+                {
+                    auto           pPart = pConcrete->get_part();
+                    nlohmann::json source( { { "type", printTypeID( pConcrete->get_concrete_id() ) },
+                                             { "part_offset", pPart->get_offset() },
+                                             { "part_size", pPart->get_size() },
+                                             { "dimension_offset", pConcrete->get_offset() },
+                                             { "singular", pLinkTrait->get_cardinality().isSingular() }
 
-            nlohmann::json source( { { "type", printTypeID( pLink->get_concrete_id() ) },
-                                     { "part_offset", pPart->get_offset() },
-                                     { "part_size", pPart->get_size() },
-                                     { "dimension_offset", pLinkReference->get_offset() }
+                    } );
+                    data[ "sources" ].push_back( source );
+                }
+            }
+        }
+        {
+            std::vector< Concrete::Dimensions::OwnershipLink* > ownershipLinks;
+            {
+                auto owned = pOwningRelation->get_owned();
+                for( auto i = owned.begin(), iEnd = owned.end(); i != iEnd; i = owned.upper_bound( i->first ) )
+                {
+                    ownershipLinks.push_back( i->first );
+                }
+            }
+            for( auto pOwnershipLink : ownershipLinks )
+            {
+                auto pObject = db_cast< Concrete::Object >( pOwnershipLink->get_parent_context() );
+                VERIFY_RTE( pObject );
 
-            } );
-            data[ "sources" ].push_back( source );
+                auto           pPart = pOwnershipLink->get_part();
+                nlohmann::json target( { { "type", printTypeID( pOwnershipLink->get_concrete_id() ) },
+                                         { "object_type", printTypeID( pObject->get_concrete_id() ) },
+                                         { "part_offset", pPart->get_offset() },
+                                         { "part_size", pPart->get_size() },
+                                         { "dimension_offset", pOwnershipLink->get_offset() },
+                                         { "singular", true }
+
+                } );
+                data[ "targets" ].push_back( target );
+            }
         }
     }
-    for( auto pTarget : pRelation->get_targets() )
+    else if( auto pNonOwningRelation = db_cast< HyperGraph::NonOwningObjectRelation >( pRelation ) )
     {
-        using namespace FinalStage;
-        for( auto pConcrete : pTarget->get_concrete() )
+        data[ "owning" ] = false;
         {
-            Concrete::Link*     pLink          = db_cast< Concrete::Link >( pConcrete );
-            auto                pLinkReference = pLink->get_link_reference();
-            MemoryLayout::Part* pPart          = pLinkReference->get_part();
+            auto pSource = pNonOwningRelation->get_source();
+            for( auto pConcrete : pSource->get_concrete() )
+            {
+                auto pLink = db_cast< Concrete::Dimensions::Link >( pConcrete );
+                VERIFY_RTE( pLink );
+                auto pPart = pLink->get_part();
 
-            nlohmann::json target( { { "type", printTypeID( pLink->get_concrete_id() ) },
-                                     { "part_offset", pPart->get_offset() },
-                                     { "part_size", pPart->get_size() },
-                                     { "dimension_offset", pLinkReference->get_offset() }
+                nlohmann::json source( { { "type", printTypeID( pLink->get_concrete_id() ) },
+                                         { "part_offset", pPart->get_offset() },
+                                         { "part_size", pPart->get_size() },
+                                         { "dimension_offset", pLink->get_offset() },
+                                         { "singular", pSource->get_cardinality().isSingular() }
 
-            } );
-            data[ "targets" ].push_back( target );
+                } );
+                data[ "sources" ].push_back( source );
+            }
         }
-    }*/
+        {
+            auto pTarget = pNonOwningRelation->get_target();
+            for( auto pConcrete : pTarget->get_concrete() )
+            {
+                auto pLink = db_cast< Concrete::Dimensions::Link >( pConcrete );
+                VERIFY_RTE( pLink );
+                auto pPart = pLink->get_part();
+
+                nlohmann::json target( { { "type", printTypeID( pLink->get_concrete_id() ) },
+                                         { "part_offset", pPart->get_offset() },
+                                         { "part_size", pPart->get_size() },
+                                         { "dimension_offset", pLink->get_offset() },
+                                         { "singular", pTarget->get_cardinality().isSingular() }
+
+                } );
+                data[ "targets" ].push_back( target );
+            }
+        }
+    }
+    else
+    {
+        THROW_RTE( "Unknown relation type" );
+    }
 
     std::ostringstream osCPPCode;
     try

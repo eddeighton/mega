@@ -92,71 +92,56 @@ inline void to_json( nlohmann::json& j, mega::EdgeType edgeType )
     j = nlohmann::json{ { "edge_type", edgeType.str() } };
 }
 
-inline EdgeType fromCardinality( bool bMonoMorphic, const std::optional< CardinalityRange > cardinalityOpt )
+inline EdgeType fromCardinality( bool bMonoMorphic, const CardinalityRange& cardinality )
 {
-    if( cardinalityOpt.has_value() )
+    if( cardinality.isOptional() )
     {
-        auto& cardinality = cardinalityOpt.value();
-        if( cardinality.isOptional() )
+        if( cardinality.isNonSingular() )
         {
-            if( cardinality.isNonSingular() )
+            if( bMonoMorphic )
             {
-                if( bMonoMorphic )
-                {
-                    return EdgeType::eMonoNonSingularOptional;
-                }
-                else
-                {
-                    return EdgeType::ePolyNonSingularOptional;
-                }
+                return EdgeType::eMonoNonSingularOptional;
             }
             else
             {
-                if( bMonoMorphic )
-                {
-                    return EdgeType::eMonoSingularOptional;
-                }
-                else
-                {
-                    return EdgeType::ePolySingularOptional;
-                }
+                return EdgeType::ePolyNonSingularOptional;
             }
         }
         else
         {
-            if( cardinality.isNonSingular() )
+            if( bMonoMorphic )
             {
-                if( bMonoMorphic )
-                {
-                    return EdgeType::eMonoNonSingularMandatory;
-                }
-                else
-                {
-                    return EdgeType::ePolyNonSingularMandatory;
-                }
+                return EdgeType::eMonoSingularOptional;
             }
             else
             {
-                if( bMonoMorphic )
-                {
-                    return EdgeType::eMonoSingularMandatory;
-                }
-                else
-                {
-                    return EdgeType::ePolySingularMandatory;
-                }
+                return EdgeType::ePolySingularOptional;
             }
         }
     }
     else
     {
-        if( bMonoMorphic )
+        if( cardinality.isNonSingular() )
         {
-            return EdgeType::eMonoSingularOptional;
+            if( bMonoMorphic )
+            {
+                return EdgeType::eMonoNonSingularMandatory;
+            }
+            else
+            {
+                return EdgeType::ePolyNonSingularMandatory;
+            }
         }
         else
         {
-            return EdgeType::ePolySingularOptional;
+            if( bMonoMorphic )
+            {
+                return EdgeType::eMonoSingularMandatory;
+            }
+            else
+            {
+                return EdgeType::ePolySingularMandatory;
+            }
         }
     }
 }

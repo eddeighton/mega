@@ -45,8 +45,8 @@ namespace Concrete
 
             value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
 
-            value< mega::U64 > offset -> MemoryStage::MemoryLayout;
-            ref< MemoryLayout::Part > part -> MemoryStage::MemoryLayout;
+            value< mega::U64 >          offset      -> MemoryStage::MemoryLayout;
+            ref< MemoryLayout::Part >   part        -> MemoryStage::MemoryLayout;
         }
 
         // HyperGraph
@@ -60,10 +60,10 @@ namespace Concrete
             value< bool >               owning      -> HyperGraphAnalysisRollout::PerSourceModel;
             value< bool >               owned       -> HyperGraphAnalysisRollout::PerSourceModel;
             value< bool >               source      -> HyperGraphAnalysisRollout::PerSourceModel;
+            value< bool >               singular    -> HyperGraphAnalysisRollout::PerSourceModel;
 
             value< mega::U64 >          offset      -> MemoryStage::MemoryLayout;
             ref< MemoryLayout::Part >   part        -> MemoryStage::MemoryLayout;
-            value< bool >               singular    -> MemoryStage::MemoryLayout;
         }
 
         object UserLink : Link -> ConcreteStage::Concrete

@@ -168,7 +168,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                             std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent_context() )
                                       << "::" << getIdentifier( pUserLink ) << "\n";
                         }
-                        else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::UserLink >( pLink ) )
+                        else if( auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pLink ) )
                         {
                             std::cout << concreteTypeID << " " << getContextFullTypeName( pLink->get_parent_context() )
                                       << "::" << ::mega::EG_OWNERSHIP << "\n";
@@ -206,6 +206,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
                         std::cout << interfaceTypeID << " " << getContextFullTypeName( pDimension->get_parent() )
                                   << "::" << pDimension->get_id()->get_str()
                                   << " type:" << pDimension->get_canonical_type() << "\n";
+                    }
+                    else if( pInterfaceTypeID->get_link().has_value() )
+                    {
+                        Interface::LinkTrait* pLink = pInterfaceTypeID->get_link().value();
+
+                        std::cout << interfaceTypeID << " " << getContextFullTypeName( pLink->get_parent() )
+                                  << "::" << pLink->get_id()->get_str() << " owning:" << pLink->get_owning() << "\n";
                     }
                     else
                     {
