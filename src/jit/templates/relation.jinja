@@ -37,9 +37,9 @@ namespace mega::mangle
 
     U64 ref_vector_get_size( void* pData );
     U64 ref_vector_find( void* pData, const mega::reference& ref );
+    mega::reference& ref_vector_get_at( void* pData, mega::U64 index );
     /*bool ref_vector_empty( void* pData );
     mega::reference& ref_vector_back( void* pData );
-    mega::reference& ref_vector_get_at( void* pData, mega::U64 index );
 
     void ref_vector_pop( void* pData );
     void ref_vector_add( void* pData, const mega::reference& ref );;*/
@@ -473,7 +473,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.link_type_offset }} 
             );
             const auto targetIndex = mega::mangle::ref_vector_find( source.pRef, link.target_ref );
-            if( targetIndex < mega::mangle::ref_vector_get_size( source.pRef ) )
+            if( targetIndex != mega::mangle::ref_vector_get_size( source.pRef ) )
             {
                 switch( link.target_type )
                 {
@@ -502,7 +502,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                             {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.link_type_offset }} 
                         );
                         const auto sourceIndex = mega::mangle::ref_vector_find( target.pRef, link.source_ref );
-                        if( sourceIndex < mega::mangle::ref_vector_get_size( target.pRef ) )
+                        if( sourceIndex != mega::mangle::ref_vector_get_size( target.pRef ) )
                         {
                             // break the link
                             mega::mangle::ref_vectors_remove_at( source.pRef, source.pType, targetIndex );
@@ -533,36 +533,277 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
         {{ relationID }} );
 }
 
-void link_reset_{{ relationID }}( mega::reference context )
+struct Context
 {
-    // test pointer
+    mega::reference ref;
+    mega::TypeID    type;
+    bool            bIsSource;
+};
 
-    // load pointer to heap
+// context is ALWAYS actual link type
+// parameter can be link type or link parent context
+Context context_load_{{ relationID }}( mega::reference& ref )
+{
+    // test pointers
+    if( ( !ref.valid() ) )
+    {
+        throw mega::runtime::JITException{ "Invalid ref to link_load_{{ relationID }}" };
+    }
 
-    // determine source and target
+    // load into memory
+    prepare( ref );
 
-    // unlink ALL existing links
+    Context context;
+
+    if( isSource( ref ) )
+    {
+        context.bIsSource = true;
+        context.type = ref.getType();
+        switch( context.type )
+        {
+{% for source in sources %}
+            case {{ source.type }} : 
+            {
+                context.ref = mega::reference::make( ref, mega::TypeInstance{ {{ source.parent_type }}, ref.getInstance() } );
+            }
+            break;
+{% endfor %}
+            default:
+            {
+                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+            }
+        }
+    }
+    else if( isTarget( ref ) )
+    {
+        context.bIsSource = false;
+        context.type = ref.getType();
+        switch( context.type )
+        {
+{% for target in targets %}
+            case {{ target.type }} : 
+            {
+                context.ref = mega::reference::make( ref, mega::TypeInstance{ {{ target.parent_type }}, ref.getInstance() } );
+            }
+            break;
+{% endfor %}
+            default:
+            {
+                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid target ref" };
+            }
+        }
+    }
+    else
+    {
+        throw mega::runtime::JITException{ "Counld not match ref type to link_load_{{ relationID }}" };
+    }
+
+    return context;
+}
+
+void link_reset_{{ relationID }}( mega::reference ref )
+{
+    Context context = context_load_{{ relationID }}( ref );
+
+    if( context.bIsSource )
+    {
+        switch( context.type )
+        {
+{% for source in sources %}
+            case {{ source.type }} : 
+            {
+{% if source.singular %}
+            LinkDataSingular source = get_data_singular( context.ref, 
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
+            );
+            if( source.ref.valid() )
+            {
+                link_break_{{ relationID }}( context.ref, source.ref );
+            }
+{% else %}
+            LinkDataNonSingular source = get_data_non_singular( context.ref, 
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
+            );
+            while( 0 != mega::mangle::ref_vector_get_size( source.pRef ) )
+            {
+                link_break_{{ relationID }}( context.ref, mega::mangle::ref_vector_get_at( source.pRef, 0U ) );
+            }
+{% endif %}
+            }
+            break;
+{% endfor %}
+            default:
+            {
+                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+            }
+        }
+    }
+    else
+    {
+        switch( context.type )
+        {
+{% for target in targets %}
+            case {{ target.type }} : 
+            {
+{% if target.singular %}
+            LinkDataSingular target = get_data_singular( context.ref, 
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
+            );
+            if( target.ref.valid() )
+            {
+                link_break_{{ relationID }}( target.ref, context.ref );
+            }
+{% else %}
+            LinkDataNonSingular target = get_data_non_singular( context.ref, 
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
+            );
+            while( 0 != mega::mangle::ref_vector_get_size( target.pRef ) )
+            {
+                link_break_{{ relationID }}( mega::mangle::ref_vector_get_at( target.pRef, 0U ), context.ref,  );
+            }
+{% endif %}
+            }
+            break;
+{% endfor %}
+            default:
+            {
+                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+            }
+        }
+    }
 }
 
 
-mega::U64 link_size_{{ relationID }}( mega::reference context )
+mega::U64 link_size_{{ relationID }}( mega::reference ref )
 {
-    // test pointer
+    Context context = context_load_{{ relationID }}( ref );
 
-    // load pointer to heap
-
-    // determine size
+    if( context.bIsSource )
+    {
+        switch( context.type )
+        {
+{% for source in sources %}
+            case {{ source.type }} : 
+            {
+{% if source.singular %}
+            LinkDataSingular source = get_data_singular( context.ref, 
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
+            );
+            return source.ref.valid() ? 1U : 0U;
+{% else %}
+            LinkDataNonSingular source = get_data_non_singular( context.ref, 
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
+            );
+            return mega::mangle::ref_vector_get_size( source.pRef );
+{% endif %}
+            }
+            break;
+{% endfor %}
+            default:
+            {
+                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+            }
+        }
+    }
+    else
+    {
+        switch( context.type )
+        {
+{% for target in targets %}
+            case {{ target.type }} : 
+            {
+{% if target.singular %}
+            LinkDataSingular target = get_data_singular( context.ref, 
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
+            );
+            return target.ref.valid() ? 1U : 0U;
+{% else %}
+            LinkDataNonSingular target = get_data_non_singular( context.ref, 
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
+            );
+            return mega::mangle::ref_vector_get_size( target.pRef );
+{% endif %}
+            }
+            break;
+{% endfor %}
+            default:
+            {
+                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+            }
+        }
+    }
     return 0;
 }
 
-
-mega::reference link_get_{{ relationID }}( mega::reference context, mega::U64 index )
+mega::reference link_get_{{ relationID }}( mega::reference ref, mega::U64 index )
 {
-    // test pointer
+    Context context = context_load_{{ relationID }}( ref );
 
-    // load pointer to heap
-
-    // read existing link
-    return mega::reference{};
-        
+    if( context.bIsSource )
+    {
+        switch( context.type )
+        {
+{% for source in sources %}
+            case {{ source.type }} : 
+            {
+{% if source.singular %}
+            LinkDataSingular source = get_data_singular( context.ref, 
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
+            );
+            return source.ref;
+{% else %}
+            LinkDataNonSingular source = get_data_non_singular( context.ref, 
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
+                {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
+            );
+            return mega::mangle::ref_vector_get_at( source.pRef, index );
+{% endif %}
+            }
+            break;
+{% endfor %}
+            default:
+            {
+                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+            }
+        }
+    }
+    else
+    {
+        switch( context.type )
+        {
+{% for target in targets %}
+            case {{ target.type }} : 
+            {
+{% if target.singular %}
+            LinkDataSingular target = get_data_singular( context.ref, 
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
+            );
+            return target.ref;
+{% else %}
+            LinkDataNonSingular target = get_data_non_singular( context.ref, 
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
+                {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
+            );
+            return mega::mangle::ref_vector_get_at( target.pRef, index  );
+{% endif %}
+            }
+            break;
+{% endfor %}
+            default:
+            {
+                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+            }
+        }
+    }
+    return {};
 }
