@@ -170,51 +170,57 @@ static Disambiguation disambiguate( Step* pStep, const std::vector< Or* >& final
             ASSERT( pStep->get_edges().empty() );
             return eSuccess;
         }
+        else
+        {
+            ASSERT( !pStep->get_edges().empty() );
+        }
 
         // first test all edges
-        auto tempResult = result;
-        for( auto pEdge : pStep->get_edges() )
         {
-            bool bContainsInvalidEdge = false;
-            for( auto pGraphEdge : pEdge->get_edges() )
+            auto tempResult = result;
+            for( auto pEdge : pStep->get_edges() )
             {
-                switch( pGraphEdge->get_type().get() )
+                /*bool bContainsInvalidEdge = false;
+                for( auto pGraphEdge : pEdge->get_edges() )
                 {
-                    case ::mega::EdgeType::eMonoNonSingularMandatory:
-                    case ::mega::EdgeType::eMonoNonSingularOptional:
-                    case ::mega::EdgeType::ePolyNonSingularMandatory:
-                    case ::mega::EdgeType::ePolyNonSingularOptional:
-                    case ::mega::EdgeType::eChildNonSingular:
-                         bContainsInvalidEdge = true;
-                         break;
-                    case ::mega::EdgeType::eChildSingular:
-                    case ::mega::EdgeType::eDim:
-                    case ::mega::EdgeType::eLink:
-                    case ::mega::EdgeType::eParent:
+                    switch( pGraphEdge->get_type().get() )
+                    {
+                        case ::mega::EdgeType::eMonoNonSingularMandatory:
+                        case ::mega::EdgeType::eMonoNonSingularOptional:
+                        case ::mega::EdgeType::ePolyNonSingularMandatory:
+                        case ::mega::EdgeType::ePolyNonSingularOptional:
+                        case ::mega::EdgeType::eChildNonSingular:
+                             bContainsInvalidEdge = true;
+                             break;
+                        case ::mega::EdgeType::eChildSingular:
+                        case ::mega::EdgeType::eDim:
+                        case ::mega::EdgeType::eLink:
+                        case ::mega::EdgeType::eParent:
 
-                    case ::mega::EdgeType::eMonoSingularMandatory:
-                    case ::mega::EdgeType::eMonoSingularOptional:
-                    case ::mega::EdgeType::ePolySingularMandatory:
-                    case ::mega::EdgeType::ePolySingularOptional:
+                        case ::mega::EdgeType::eMonoSingularMandatory:
+                        case ::mega::EdgeType::eMonoSingularOptional:
+                        case ::mega::EdgeType::ePolySingularMandatory:
+                        case ::mega::EdgeType::ePolySingularOptional:
 
-                    case ::mega::EdgeType::ePolyParent:
-                        break;
-                    case ::mega::EdgeType::TOTAL_EDGE_TYPES:
-                    default:
-                        THROW_RTE( "Unknown hyper graph edge type" );
-                        break;
+                        case ::mega::EdgeType::ePolyParent:
+                            break;
+                        case ::mega::EdgeType::TOTAL_EDGE_TYPES:
+                        default:
+                            THROW_RTE( "Unknown hyper graph edge type" );
+                            break;
+                    }
                 }
-            }
-            if( bContainsInvalidEdge )
-            {
-                pEdge->set_eliminated( true );
-            }
-            else
-            {
-                const auto EdgeResult = exclusive( pEdge->get_next(), finalFrontier, tempResult );
-                if( EdgeResult == eFailure )
+                if( bContainsInvalidEdge )
                 {
                     pEdge->set_eliminated( true );
+                }
+                else*/
+                {
+                    const auto EdgeResult = exclusive( pEdge->get_next(), finalFrontier, tempResult );
+                    if( EdgeResult == eFailure )
+                    {
+                        pEdge->set_eliminated( true );
+                    }
                 }
             }
         }

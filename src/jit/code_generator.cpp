@@ -222,14 +222,23 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
             {
                 for( auto pConcrete : pLinkTrait->get_concrete() )
                 {
-                    auto           pPart = pConcrete->get_part();
-                    nlohmann::json source( { { "type", printTypeID( pConcrete->get_concrete_id() ) },
-                                             { "part_offset", pPart->get_offset() },
-                                             { "part_size", pPart->get_size() },
-                                             { "dimension_offset", pConcrete->get_offset() },
-                                             { "singular", pLinkTrait->get_cardinality().isSingular() }
+                    auto pParent = db_cast< Concrete::UserDimensionContext >( pConcrete->get_parent_context() );
+                    VERIFY_RTE( pParent );
+                    const bool bHasUniqueParent = pParent->get_links().size() == 1;
 
-                    } );
+                    auto pPart = pConcrete->get_part();
+                    VERIFY_RTE( pConcrete->get_link_type()->get_part() == pPart );
+                    nlohmann::json source(
+                        { { "type", printTypeID( pConcrete->get_concrete_id() ) },
+                          { "parent_type", printTypeID( pConcrete->get_parent_context()->get_concrete_id() ) },
+                          { "has_unique_parent", bHasUniqueParent },
+                          { "part_offset", pPart->get_offset() },
+                          { "part_size", pPart->get_size() },
+                          { "dimension_offset", pConcrete->get_offset() },
+                          { "link_type_offset", pConcrete->get_link_type()->get_offset() },
+                          { "singular", pLinkTrait->get_cardinality().isSingular() }
+
+                        } );
                     data[ "sources" ].push_back( source );
                 }
             }
@@ -248,12 +257,19 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                 auto pObject = db_cast< Concrete::Object >( pOwnershipLink->get_parent_context() );
                 VERIFY_RTE( pObject );
 
-                auto           pPart = pOwnershipLink->get_part();
+                auto pParent = db_cast< Concrete::UserDimensionContext >( pObject );
+                VERIFY_RTE( pParent );
+                const bool bHasUniqueParent = pParent->get_links().size() == 1;
+
+                auto pPart = pOwnershipLink->get_part();
+                VERIFY_RTE( pOwnershipLink->get_link_type()->get_part() == pPart );
                 nlohmann::json target( { { "type", printTypeID( pOwnershipLink->get_concrete_id() ) },
-                                         { "object_type", printTypeID( pObject->get_concrete_id() ) },
+                                         { "parent_type", printTypeID( pObject->get_concrete_id() ) },
+                                         { "has_unique_parent", bHasUniqueParent },
                                          { "part_offset", pPart->get_offset() },
                                          { "part_size", pPart->get_size() },
                                          { "dimension_offset", pOwnershipLink->get_offset() },
+                                         { "link_type_offset", pOwnershipLink->get_link_type()->get_offset() },
                                          { "singular", true }
 
                 } );
@@ -271,14 +287,23 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                 auto pLink = db_cast< Concrete::Dimensions::Link >( pConcrete );
                 VERIFY_RTE( pLink );
                 auto pPart = pLink->get_part();
+                VERIFY_RTE( pLink->get_link_type()->get_part() == pPart );
 
-                nlohmann::json source( { { "type", printTypeID( pLink->get_concrete_id() ) },
-                                         { "part_offset", pPart->get_offset() },
-                                         { "part_size", pPart->get_size() },
-                                         { "dimension_offset", pLink->get_offset() },
-                                         { "singular", pSource->get_cardinality().isSingular() }
+                auto pParent = db_cast< Concrete::UserDimensionContext >( pConcrete->get_parent_context() );
+                VERIFY_RTE( pParent );
+                const bool bHasUniqueParent = pParent->get_links().size() == 1;
 
-                } );
+                nlohmann::json source(
+                    { { "type", printTypeID( pLink->get_concrete_id() ) },
+                      { "parent_type", printTypeID( pLink->get_parent_context()->get_concrete_id() ) },
+                      { "has_unique_parent", bHasUniqueParent },
+                      { "part_offset", pPart->get_offset() },
+                      { "part_size", pPart->get_size() },
+                      { "dimension_offset", pLink->get_offset() },
+                      { "link_type_offset", pLink->get_link_type()->get_offset() },
+                      { "singular", pSource->get_cardinality().isSingular() }
+
+                    } );
                 data[ "sources" ].push_back( source );
             }
         }
@@ -290,13 +315,21 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                 VERIFY_RTE( pLink );
                 auto pPart = pLink->get_part();
 
-                nlohmann::json target( { { "type", printTypeID( pLink->get_concrete_id() ) },
-                                         { "part_offset", pPart->get_offset() },
-                                         { "part_size", pPart->get_size() },
-                                         { "dimension_offset", pLink->get_offset() },
-                                         { "singular", pTarget->get_cardinality().isSingular() }
+                auto pParent = db_cast< Concrete::UserDimensionContext >( pConcrete->get_parent_context() );
+                VERIFY_RTE( pParent );
+                const bool bHasUniqueParent = pParent->get_links().size() == 1;
 
-                } );
+                nlohmann::json target(
+                    { { "type", printTypeID( pLink->get_concrete_id() ) },
+                      { "parent_type", printTypeID( pLink->get_parent_context()->get_concrete_id() ) },
+                      { "has_unique_parent", bHasUniqueParent },
+                      { "part_offset", pPart->get_offset() },
+                      { "part_size", pPart->get_size() },
+                      { "dimension_offset", pLink->get_offset() },
+                      { "link_type_offset", pLink->get_link_type()->get_offset() },
+                      { "singular", pTarget->get_cardinality().isSingular() }
+
+                    } );
                 data[ "targets" ].push_back( target );
             }
         }

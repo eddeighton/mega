@@ -74,12 +74,14 @@ inline std::ostream& operator<<( std::ostream& os, const mega::MPO& mpo )
 
 inline std::ostream& operator<<( std::ostream& os, const mega::TypeInstance& typeInstance )
 {
+    using ::operator<<;
     return os << std::dec << '[' << typeInstance.type << "." << std::setw( 4 ) << std::setfill( '0' )
               << typeInstance.instance << ']';
 }
 inline std::istream& operator>>( std::istream& is, mega::TypeInstance& typeInstance )
 {
-    char c;
+    using ::operator>>;
+    char    c;
     return is >> std::dec >> c >> typeInstance.type >> c >> std::setw( 4 ) >> typeInstance.instance >> c;
 }
 

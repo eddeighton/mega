@@ -23,6 +23,13 @@
 #include "mega/type_id_limits.hpp"
 #include "mega/type_id_io.hpp"
 
+#include "mega/bin_archive.hpp"
+#include "mega/record_archive.hpp"
+
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/interprocess/streams/vectorstream.hpp>
+
 #include <limits>
 #include <sstream>
 
@@ -223,6 +230,63 @@ TEST_P( TypeIDIOTest, TypeIDIO )
 
 // clang-format off
 INSTANTIATE_TEST_SUITE_P( TypeIDIO, TypeIDIOTest,
+        ::testing::Values
+        (
+            // default
+            TypeIDTestData{ mega::TypeID{} },
+
+            TypeIDTestData{ mega::ROOT_TYPE_ID },
+            TypeIDTestData{ mega::ROOT_SYMBOL_ID },
+
+            TypeIDTestData{ mega::max_typeID_symbol },
+            TypeIDTestData{ mega::min_typeID_symbol },
+            TypeIDTestData{ mega::max_typeID_context },
+            TypeIDTestData{ mega::min_typeID_context },
+
+            TypeIDTestData{ mega::TypeID::make_object_from_typeID( mega::ROOT_TYPE_ID ) },
+            TypeIDTestData{ mega::TypeID::make_object_from_typeID( mega::TypeID::make_context( mega::max_object_id, mega::max_sub_object_id )) }
+        ));
+// clang-format on
+
+class TypeIDBinArchiveTest : public ::testing::TestWithParam< TypeIDTestData >
+{
+protected:
+};
+
+TEST_P( TypeIDBinArchiveTest, TypeIDBinArchive )
+{
+    const TypeIDTestData data = GetParam();
+
+    {
+        mega::BinSaveArchive saveArchive;
+        saveArchive.save( data.expected );
+
+        mega::BinLoadArchive loadArchive( saveArchive.makeSnapshot( 0 ) );
+        mega::TypeID         result;
+        loadArchive.load( result );
+
+        std::ostringstream osError;
+        osError << " expected: " << data.expected << " actual: " << result;
+        ASSERT_TRUE( result == data.expected ) << osError.str();
+    }
+
+    {
+        boost::interprocess::basic_vectorbuf< std::vector< char > > buffer;
+        boost::archive::binary_oarchive                             saveArchive( buffer );
+        saveArchive&                                                data.expected;
+
+        boost::archive::binary_iarchive loadArchive( buffer );
+        mega::TypeID                    result;
+        loadArchive&                    result;
+
+        std::ostringstream osError;
+        osError << " expected: " << data.expected << " actual: " << result;
+        ASSERT_TRUE( result == data.expected ) << osError.str();
+    }
+}
+
+// clang-format off
+INSTANTIATE_TEST_SUITE_P( TypeIDBinArchive, TypeIDBinArchiveTest,
         ::testing::Values
         (
             // default

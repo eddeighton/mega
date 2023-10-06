@@ -22,7 +22,6 @@
 #define GUARD_2022_November_07_address_table
 
 #include "mega/reference.hpp"
-#include "mega/reference_io.hpp"
 #include "mega/native_types.hpp"
 
 #include <boost/serialization/unordered_map.hpp>

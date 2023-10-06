@@ -378,14 +378,29 @@ struct PartDimensions
         {
             for( auto pLink : link )
             {
+                Concrete::Dimensions::LinkType* pLinkType = nullptr;
+                {
+                    const U64 szAlign = alignof( mega::TypeID );
+                    const U64 szSize  = sizeof( mega::TypeID );
+                    result.alignment  = std::max( result.alignment, szAlign );
+                    result.size       = padToAlignment( szAlign, result.size );
+                
+                    pLinkType = database.construct< Concrete::Dimensions::LinkType >(
+                        Concrete::Dimensions::LinkType::Args{ 
+                            pLink->get_parent_context(), result.size, pPart } 
+                    );
+                    result.size += szSize;
+                }
+
                 if( pLink->get_singular() )
                 {
                     const U64 szAlign = alignof( mega::reference );
                     const U64 szSize  = sizeof( mega::reference );
                     result.alignment  = std::max( result.alignment, szAlign );
                     result.size       = padToAlignment( szAlign, result.size );
-                    database.construct< Concrete::Dimensions::Link >(
-                        Concrete::Dimensions::Link::Args{ pLink, result.size, pPart } );
+                    auto pLink2 = database.construct< Concrete::Dimensions::Link >(
+                        Concrete::Dimensions::Link::Args{ pLink, result.size, pPart, pLinkType } );
+                    pLinkType->set_link( pLink2 );
                     result.size += szSize;
                 }
                 else
@@ -394,8 +409,9 @@ struct PartDimensions
                     const U64 szSize  = mega::DimensionTraits< mega::ReferenceVector >::Size;
                     result.alignment  = std::max( result.alignment, szAlign );
                     result.size       = padToAlignment( szAlign, result.size );
-                    database.construct< Concrete::Dimensions::Link >(
-                        Concrete::Dimensions::Link::Args{ pLink, result.size, pPart } );
+                    auto pLink2 = database.construct< Concrete::Dimensions::Link >(
+                        Concrete::Dimensions::Link::Args{ pLink, result.size, pPart, pLinkType } );
+                    pLinkType->set_link( pLink2 );
                     result.size += szSize;
                 }
             }

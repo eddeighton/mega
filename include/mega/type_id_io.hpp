@@ -50,6 +50,23 @@ inline std::ostream& operator<<( std::ostream& os, const mega::TypeID& typeID )
         return os << std::dec << typeID.getSymbolID();
     }
 }
+inline std::ostream& operator<<( std::ostream& os, const std::vector< mega::TypeID >& typeID )
+{
+    for( auto p = typeID.begin(), pNext = typeID.begin(); p != typeID.end(); ++p )
+    {
+        ++pNext;
+        if( pNext == typeID.end() )
+        {
+            os << *p;
+        }
+        else
+        {
+            os << *p << " ";
+        }
+    }
+    // common::delimit(  refVector.begin(), refVector.end(), " ", os );
+    return os;
+}
 inline std::istream& operator>>( std::istream& is, mega::TypeID& typeID )
 {
     char c;

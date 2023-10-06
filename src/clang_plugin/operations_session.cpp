@@ -422,6 +422,11 @@ public:
                         pInvocation->get_return_type()->set_canonical_type(
                             resultType.getCanonicalType().getAsString() );
 
+                        if( auto pWrite = db_cast< Operations::Write >( pInvocation ) )
+                        {
+                            pWrite->get_parameter_type()->set_canonical_type( "" );
+                        }
+
                         // need to strip struct or class from type
                         boost::replace_all( canonicalTypes.strContext, "struct ", " " );
                         boost::replace_all( canonicalTypes.strTypePath, "struct ", " " );

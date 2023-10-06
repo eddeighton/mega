@@ -64,6 +64,7 @@ namespace Concrete
 
             value< mega::U64 >          offset      -> MemoryStage::MemoryLayout;
             ref< MemoryLayout::Part >   part        -> MemoryStage::MemoryLayout;
+            ref< LinkType >             link_type   -> MemoryStage::MemoryLayout;
         }
 
         object UserLink : Link -> ConcreteStage::Concrete
@@ -73,6 +74,15 @@ namespace Concrete
 
         object OwnershipLink : Link -> ConcreteStage::Concrete
         {
+        }
+
+        object LinkType -> MemoryStage::MemoryLayout
+        {
+            ref< Concrete::Context >    parent_context;
+            value< mega::U64 >          offset;
+            ref< MemoryLayout::Part >   part;
+
+            late< ref< Link >  >        link;
         }
 
         // MemoryStage
@@ -127,8 +137,8 @@ namespace Concrete
 
     object UserDimensionContext : Context  -> ConcreteStage::Concrete
     {
-        array< ref< Dimensions::User > > dimensions;
-        array< ref< Dimensions::Link > > links;
+        array< ref< Dimensions::User > >        dimensions;
+        array< ref< Dimensions::Link > >        links;
     }
 
     object Namespace : UserDimensionContext -> ConcreteStage::Concrete

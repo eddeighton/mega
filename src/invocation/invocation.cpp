@@ -525,6 +525,15 @@ class InvocationBuilder
         m_pInvocation->push_back_variables( pStack );
         return pStack;
     }
+    Variables::LinkType* make_link_type_variable( Variables::Variable*                             pParentVariable,
+                                                  OperationsStage::Concrete::Dimensions::LinkType* pLinkType )
+    {
+        using namespace OperationsStage;
+        auto pStack = m_database.construct< Variables::LinkType >(
+            Variables::LinkType::Args{ Variables::Variable::Args{ pParentVariable }, pLinkType } );
+        m_pInvocation->push_back_variables( pStack );
+        return pStack;
+    }
 
     OperationsStage::Invocations::Variables::Memory*
     make_memory_variable( Variables::Variable* pParentVariable, const std::vector< Concrete::Graph::Vertex* >& types )
@@ -652,12 +661,13 @@ private:
         auto pLink = db_cast< Concrete::Dimensions::Link >( pAnd->get_vertex() );
 
         auto pLinkReference = make_memory_variable( pVariable, {} );
+        auto pLinkType      = make_link_type_variable( pVariable, pLink->get_link_type() );
 
         auto pDereference
-            = make_instruction< Instructions::Dereference >( pInstruction, pVariable, pLinkReference, pLink );
+            = make_instruction< Instructions::Dereference >( pInstruction, pVariable, pLinkReference, pLinkType, pLink );
 
         // create polymorphic branch
-        auto pPolyReference = make_instruction< Instructions::PolyBranch >( pDereference, pLinkReference );
+        auto pPolyReference = make_instruction< Instructions::LinkBranch >( pDereference, pLinkType );
 
         bool bFound = false;
         for( auto pEdge : pAnd->get_edges() )
@@ -986,6 +996,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                     THROW_RTE( "Implicit invocation cannot be on component context" );
                     break;
                 case eStates:
+                {
                     // return type is the started state
                     {
                         std::vector< Interface::IContext* > contexts;
@@ -1001,8 +1012,10 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                     database.construct< Start >( Start::Args{ pInvocation } );
 
                     explicitOperationType = id_exp_Start;
-                    break;
+                }
+                break;
                 case eFunctions:
+                {
                     // return type is the function return type
                     {
                         std::vector< Interface::Function* > contexts;
@@ -1021,8 +1034,10 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< Call >( Call::Args{ pInvocation } );
                     explicitOperationType = id_exp_Call;
-                    break;
+                }
+                break;
                 case eEvents:
+                {
                     // return type is the signaled event
                     {
                         std::vector< Interface::IContext* > contexts;
@@ -1037,8 +1052,10 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< Signal >( Signal::Args{ pInvocation } );
                     explicitOperationType = id_exp_Signal;
-                    break;
+                }
+                break;
                 case eUserDimensions:
+                {
                     // return type is the read dimensions
                     {
                         std::vector< Interface::DimensionTrait* > contexts;
@@ -1057,11 +1074,13 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< Read >( Read::Args{ pInvocation } );
                     explicitOperationType = id_exp_Read;
-                    break;
+                }
+                break;
                 case eLinkDimensions:
+                {
                     // return type is the target of the link
                     {
-                        std::vector< Concrete::Dimensions::Link* > targets;
+                        std::vector< Interface::IContext* > targets;
                         for( auto pConcrete : linkDimensions )
                         {
                             bool bFound = false;
@@ -1071,18 +1090,21 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                                 {
                                     case EdgeType::eMonoSingularMandatory:
                                     case EdgeType::ePolySingularMandatory:
-                                    case EdgeType::eMonoNonSingularMandatory:
-                                    case EdgeType::ePolyNonSingularMandatory:
                                     case EdgeType::eMonoSingularOptional:
                                     case EdgeType::ePolySingularOptional:
+                                    case EdgeType::ePolyParent:
+
+                                    case EdgeType::eMonoNonSingularMandatory:
+                                    case EdgeType::ePolyNonSingularMandatory:
                                     case EdgeType::eMonoNonSingularOptional:
                                     case EdgeType::ePolyNonSingularOptional:
-                                    case EdgeType::ePolyParent:
                                     {
+                                        VERIFY_RTE( !bFound );
                                         auto pTargetContext
                                             = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
                                         VERIFY_RTE( pTargetContext );
-                                        targets.push_back( pTargetContext );
+                                        auto pParentContext = pTargetContext->get_parent_context();
+                                        targets.push_back( pParentContext->get_interface() );
                                         bFound = true;
                                     }
                                     break;
@@ -1092,13 +1114,14 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         }
 
                         targets = make_unique_without_reorder( targets );
-                        pInvocation->set_return_type( database.construct< ReturnTypes::Link >(
-                            ReturnTypes::Link::Args{ ReturnTypes::ReturnType::Args{}, targets } ) );
+                        pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, targets } ) );
                     }
 
                     database.construct< ReadLink >( ReadLink::Args{ pInvocation } );
                     explicitOperationType = id_exp_Read_Link;
-                    break;
+                }
+                break;
                 case eUNSET:
                     break;
             }
@@ -1118,6 +1141,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                     THROW_RTE( "Start operation cannot have parameters" );
                     break;
                 case eFunctions:
+                {
                     // return type is the function return type
                     {
                         std::vector< Interface::Function* > contexts;
@@ -1136,11 +1160,15 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< Call >( Call::Args{ pInvocation } );
                     explicitOperationType = id_exp_Call;
-                    break;
+                }
+                break;
                 case eEvents:
+                {
                     THROW_RTE( "Event operation cannot have parameters" );
-                    break;
+                }
+                break;
                 case eUserDimensions:
+                {
                     // return the context of the write
                     {
                         std::vector< Interface::IContext* > contexts;
@@ -1152,11 +1180,29 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
                         pInvocation->set_return_type( database.construct< ReturnTypes::Context >(
                             ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, contexts } ) );
                     }
+                    // parameter type
+                    ReturnTypes::Dimension* pParameterType = nullptr;
+                    {
+                        std::vector< Interface::DimensionTrait* > contexts;
+                        std::set< std::string >                   types;
+                        for( auto pConcrete : userDimensions )
+                        {
+                            auto pDimensionTrait = pConcrete->get_interface_dimension();
+                            contexts.push_back( pDimensionTrait );
+                            types.insert( pDimensionTrait->get_canonical_type() );
+                        }
+                        const bool bHomogenous = ( types.size() == 1 ) ? true : false;
+                        contexts               = make_unique_without_reorder( contexts );
+                        pParameterType         = database.construct< ReturnTypes::Dimension >(
+                            ReturnTypes::Dimension::Args{ ReturnTypes::ReturnType::Args{}, contexts, bHomogenous } );
+                    }
 
-                    database.construct< Write >( Write::Args{ pInvocation } );
+                    database.construct< Write >( Write::Args{ pInvocation, pParameterType } );
                     explicitOperationType = id_exp_Write;
-                    break;
+                }
+                break;
                 case eLinkDimensions:
+                {
                     // return the context of the write
                     {
                         std::vector< Interface::IContext* > contexts;
@@ -1171,7 +1217,8 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< WriteLink >( WriteLink::Args{ pInvocation } );
                     explicitOperationType = id_exp_Write_Link;
-                    break;
+                }
+                break;
                 case eUNSET:
                     break;
             }
@@ -1189,6 +1236,7 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
             switch( targetType )
             {
                 case eObjects:
+                {
                     // reference context of object
                     {
                         std::vector< Interface::IContext* > contexts;
@@ -1203,8 +1251,10 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
-                    break;
+                }
+                break;
                 case eComponents:
+                {
                     // reference context of component
                     {
                         std::vector< Interface::IContext* > contexts;
@@ -1219,8 +1269,10 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
-                    break;
+                }
+                break;
                 case eStates:
+                {
                     // reference context of state
                     {
                         std::vector< Interface::IContext* > contexts;
@@ -1235,8 +1287,10 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
-                    break;
+                }
+                break;
                 case eFunctions:
+                {
                     // reference context of function
                     {
                         std::vector< Interface::IContext* > contexts;
@@ -1251,8 +1305,10 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
-                    break;
+                }
+                break;
                 case eEvents:
+                {
                     // reference context of events
                     {
                         std::vector< Interface::IContext* > contexts;
@@ -1267,14 +1323,15 @@ void buildOperation( OperationsStage::Database& database, OperationsStage::Opera
 
                     database.construct< GetContext >( GetContext::Args{ pInvocation } );
                     explicitOperationType = id_exp_GetContext;
-                    break;
+                }
+                break;
                 case eUserDimensions:
                     THROW_RTE( "Cannot get a dimension" );
                     // database.construct< GetDimension >( GetDimension::Args{ pInvocation } );
                     // explicitOperationType = id_exp_GetDimension;
                     break;
                 case eLinkDimensions:
-                    THROW_RTE( "Cannot get a dimension" );
+                    THROW_RTE( "Cannot get a link" );
                     // database.construct< GetDimension >( GetDimension::Args{ pInvocation } );
                     // explicitOperationType = id_exp_GetDimension;
                     break;
@@ -1340,7 +1397,7 @@ compileInvocation( OperationsStage::Database& database, const SymbolTables& symb
         }
 
         // is the invocation a link invocation?
-        InvocationPolicy::AndPtrVector linkFrontier;
+        /*InvocationPolicy::AndPtrVector linkFrontier;
         if( ( id.m_operation == id_Imp_NoParams ) || ( id.m_operation == id_Imp_Params ) )
         {
             bool bTargetsObjectOrComponent = false;
@@ -1364,7 +1421,7 @@ compileInvocation( OperationsStage::Database& database, const SymbolTables& symb
                 // invocation IS a link read or write operation
                 DerivationSolver::backtrackToLinkDimensions( pRoot, policy, linkFrontier );
             }
-        }
+        }*/
 
         InvocationBuilder builder( database, id, pRoot, contextTypes );
         builder.build();

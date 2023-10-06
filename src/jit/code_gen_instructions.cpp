@@ -145,9 +145,12 @@ R"TEMPLATE(
 {{ indent }}    {
 {{ indent }}        mega::runtime::networkToHeap( {{ instance }} );
 {{ indent }}    }
-{{ indent }}    {{ to }} = *reinterpret_cast< mega::reference* >( reinterpret_cast< char* >( {{ instance }}.getHeap() )
+{{ indent }}    {{ ref }} = *reinterpret_cast< mega::reference* >( reinterpret_cast< char* >( {{ instance }}.getHeap() )
 {{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() )
-{{ indent }}        + {{ dimension_offset }} );
+{{ indent }}        + {{ ref_offset }} );
+{{ indent }}    {{ type }} = *reinterpret_cast< mega::TypeID* >( reinterpret_cast< char* >( {{ instance }}.getHeap() )
+{{ indent }}        + {{ part_offset }} + ( {{ part_size }} * {{ instance }}.getInstance() )
+{{ indent }}        + {{ type_offset }} );
 {{ indent }}}
 )TEMPLATE";
 
@@ -157,19 +160,24 @@ R"TEMPLATE(
         os << args.indent << "// Dereference\n";
 
         const Variables::Variable*        pFrom = pDereference->get_instance();
-        const Variables::Memory*          pTo   = pDereference->get_read_value();
+        const Variables::Memory*          pRef  = pDereference->get_ref();
+        const Variables::LinkType*        pType = pDereference->get_link_type();
         const Concrete::Dimensions::Link* pLink = pDereference->get_link_dimension();
         MemoryLayout::Part*               pPart = pLink->get_part();
 
         std::ostringstream osIndent;
         osIndent << args.indent;
 
+        VERIFY_RTE( pLink->get_part() == pLink->get_link_type()->get_part() );
+
         nlohmann::json templateData( { { "indent", osIndent.str() },
                                        { "part_offset", pPart->get_offset() },
                                        { "part_size", pPart->get_size() },
-                                       { "dimension_offset", pLink->get_offset() },
+                                       { "ref_offset", pLink->get_offset() },
+                                       { "type_offset", pLink->get_link_type()->get_offset() },
                                        { "instance", args.get( pFrom ) },
-                                       { "to", args.get( pTo ) }
+                                       { "ref", args.get( pRef ) },
+                                       { "type", args.get( pType ) }
 
         } );
 
@@ -813,6 +821,40 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pDimensionReferenceRead );
         }*/
+        else if( auto pLinkBranch = db_cast< Instructions::LinkBranch >( pInstructionGroup ) )
+        {
+            bTailRecursion = false;
+
+            {
+                std::ostringstream os;
+                os << indent << "// LinkBranch\n";
+                os << indent << "switch( " << Args::get( variables, pLinkBranch->get_link_type() ) << " )\n";
+                os << indent << "{";
+                data[ "assignments" ].push_back( os.str() );
+            }
+
+            {
+                ++indent;
+                for( auto pChildInstruction : pInstructionGroup->get_children() )
+                {
+                    generateInstructions(
+                        database, pInvocation, pChildInstruction, variables, functions, data, indent );
+                }
+                --indent;
+            }
+
+            {
+                std::ostringstream os;
+                os << indent << "   case 0x00000000:\n";
+                os << indent << "   default:\n";
+                os << indent << "   {\n";
+                os << indent << "       throw mega::runtime::JITException{ \"Null reference in poly branch\" };\n";
+                os << indent << "   }\n";
+                os << indent << "   break;\n";
+                os << indent << "}";
+                data[ "assignments" ].push_back( os.str() );
+            }
+        }
         else if( auto pPolyReference = db_cast< Instructions::PolyBranch >( pInstructionGroup ) )
         {
             bTailRecursion = false;
@@ -820,8 +862,7 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
             {
                 std::ostringstream os;
                 os << indent << "// PolyBranch\n";
-                os << indent << "switch( " << Args::get( variables, pPolyReference->get_from_reference() )
-                   << ".getType() )\n";
+                os << indent << "switch( " << Args::get( variables, pPolyReference->get_parameter() ) << ".getType() )\n";
                 os << indent << "{";
                 data[ "assignments" ].push_back( os.str() );
             }
@@ -1020,6 +1061,21 @@ CodeGenerator::VariableMap CodeGenerator::generateVariables(
         else if( auto pContextVar = db_cast< Variables::Parameter >( pVariable ) )
         {
             variables.insert( { pContextVar, "context" } );
+        }
+        else if( auto pLinkType = db_cast< Variables::LinkType >( pVariable ) )
+        {
+            std::ostringstream osName;
+            {
+                osName << "var";
+                osName << "_" << iVariableCounter++;
+            }
+            variables.insert( { pVariable, osName.str() } );
+
+            std::ostringstream osVar;
+            {
+                osVar << indent << "mega::TypeID " << osName.str() << ";";
+            }
+            data[ "variables" ].push_back( osVar.str() );
         }
         else
         {

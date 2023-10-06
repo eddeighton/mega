@@ -22,15 +22,15 @@
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
 
-#include "mega/xml_archive.hpp"
-#include "mega/record_archive.hpp"
-#include "mega/bin_archive.hpp"
-
 #include "mega/iterator.hpp"
 
 #include "traits.hpp"
 
 #include "mega/maths_types_io.hpp"
+
+#include "mega/xml_archive.hpp"
+#include "mega/record_archive.hpp"
+#include "mega/bin_archive.hpp"
 
 #include "log/file_log.hpp"
 
@@ -141,8 +141,8 @@ mega::U64 ref_vector_get_size( void* pData )
 }
 mega::U64 ref_vector_find( void* pData, const mega::reference& ref )
 {
-    const ReferenceVector& vec = reify< ReferenceVector >( pData );
-    auto iFind =std::find( vec.cbegin(), vec.cend(), ref.getNetworkAddress() );
+    const ReferenceVector& vec   = reify< ReferenceVector >( pData );
+    auto                   iFind = std::find( vec.cbegin(), vec.cend(), ref.getNetworkAddress() );
     return std::distance( iFind, vec.cend() );
 }
 
@@ -192,6 +192,35 @@ void ref_vector_add( void* pData, const mega::reference& ref )
     vec.push_back( ref.getNetworkAddress() );
 }
 
+
+/////////////////////////////////////////////////////////////
+void ref_vectors_remove( void* pData1, void* pData2, const mega::reference& ref )
+{
+    auto& refs  = reify< ReferenceVector >( pData1 );
+    auto& types = reify< LinkTypeVector >( pData2 );
+    auto  iFind = std::find( refs.begin(), refs.end(), ref.getNetworkAddress() );
+    if( iFind != refs.end() )
+    {
+        types.erase( types.begin() + std::distance( refs.begin(), iFind ) );
+        refs.erase( iFind );
+    }
+}
+void ref_vectors_add( void* pData1, void* pData2, const mega::reference& ref, const mega::TypeID& type )
+{
+    auto& refs  = reify< ReferenceVector >( pData1 );
+    auto& types = reify< LinkTypeVector >( pData2 );
+    refs.push_back( ref.getNetworkAddress() );
+    types.push_back( type );
+}
+void ref_vectors_remove_at( void* pData1, void* pData2, mega::U64 index )
+{
+    auto& refs  = reify< ReferenceVector >( pData1 );
+    auto& types = reify< LinkTypeVector >( pData2 );
+    refs.erase( refs.begin() + index );
+    types.erase( types.begin() + index );
+}
+
+/////////////////////////////////////////////////////////////
 void xml_save_begin_structure( const mega::reference& ref, void* pSerialiser )
 {
     auto& archive = reify< XMLSaveArchive >( pSerialiser );

@@ -81,6 +81,12 @@
             "blit": "System.Byte"
         },
         {
+            "canon": "class mega::TypeID",
+            "mangle": "classmega00TypeID",
+            "impl": "Simple",
+            "blit": "interop.TypeID"
+        },
+        {
             "canon": "class mega::reference",
             "mangle": "classmega00reference",
             "impl": "NonSimple",
@@ -89,6 +95,12 @@
         {
             "canon": "class std::vector<class mega::reference>",
             "mangle": "classstd00vector3classmega00reference4",
+            "impl": "NonSimple",
+            "blit": ""
+        },
+        {
+            "canon": "class std::vector<class mega::TypeID>",
+            "mangle": "classstd00vector3classmega00TypeID4",
             "impl": "NonSimple",
             "blit": ""
         },

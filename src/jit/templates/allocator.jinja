@@ -67,6 +67,7 @@ void ctor_{{ objectTypeID }}( void* pBuffer )
 {% endfor %}
 {% for member in part.links %}
         mega::mangle::new_{{member.mangle}}( pIter + {{ member.offset }} );
+        mega::mangle::new_{{member.link_type_mangle}}( pIter + {{ member.link_type_offset }} );
 {% endfor %}
     }
 {% endfor %}
@@ -94,6 +95,7 @@ void dtor_{{ objectTypeID }}( mega::reference ref, void* pBuffer, bool bLinkRese
             function( linkRef );
         }
         mega::mangle::delete_{{link.mangle}}( pIter + {{ link.offset }} );
+        mega::mangle::delete_{{link.link_type_mangle}}( pIter + {{ link.link_type_offset }} );
     }
 {% endif %}
 {% endfor %}
@@ -112,6 +114,7 @@ void save_object_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {% endfor %}
 {% for member in part.links %}
         mega::mangle::save_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser );
+        mega::mangle::save_bin_{{member.link_type_mangle}}( pIter + {{ member.link_type_offset }}, pSerialiser );
 {% endfor %}
     }
 {% endfor %}
@@ -127,6 +130,7 @@ void load_object_bin_{{ objectTypeID }}( void* pBuffer, void* pSerialiser )
 {% endfor %}
 {% for member in part.links %}
         mega::mangle::load_bin_{{member.mangle}}( pIter + {{ member.offset }}, pSerialiser );
+        mega::mangle::load_bin_{{member.link_type_mangle}}( pIter + {{ member.link_type_offset }}, pSerialiser );
 {% endfor %}
     }
 {% endfor %}

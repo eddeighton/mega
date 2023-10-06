@@ -99,11 +99,6 @@ namespace Operations
             value< bool >                               homogeneous;
         }
 
-        object Link : ReturnType -> OperationsStage::Operations
-        {
-            array< ref< Concrete::Dimensions::Link > > links;
-        }
-
         object Function : ReturnType -> OperationsStage::Operations
         {
             array< ref< Interface::Function > >         functions;
@@ -199,6 +194,7 @@ namespace Operations
 
     object Write : Invocation -> OperationsStage::Operations
     {
+        ref< ReturnTypes::ReturnType > parameter_type;
     }
 
     object ReadLink : Invocation -> OperationsStage::Operations

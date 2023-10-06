@@ -22,7 +22,6 @@
 #define GUARD_2023_January_16_record_archive
 
 #include "mega/reference.hpp"
-#include "mega/reference_io.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -109,6 +108,15 @@ inline void serialize( boost::archive::RecordIArchive& ar, ::mega::reference& va
 }
 
 inline void serialize( boost::archive::RecordOArchive& ar, ::mega::reference& value, const unsigned int version )
+{
+    ar.save( value );
+}
+inline void serialize( boost::archive::RecordIArchive& ar, ::mega::TypeID& value, const unsigned int version )
+{
+    ar.load( value );
+}
+
+inline void serialize( boost::archive::RecordOArchive& ar, ::mega::TypeID& value, const unsigned int version )
 {
     ar.save( value );
 }

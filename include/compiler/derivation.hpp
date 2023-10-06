@@ -151,18 +151,30 @@ static typename TPolicy::RootPtr solveContextFree( const typename TPolicy::Spec&
         pSolutionRoot->push_back_edges( policy.makeRootEdge( p ) );
     }
 
-    for( auto typePathElement : spec.path )
+    for( auto i = spec.path.begin(), iNext = spec.path.begin(), iEnd = spec.path.end(); i != iEnd; ++i )
     {
+        ++iNext;
+
+        const bool  bLast           = iNext == iEnd;
+        const auto& typePathElement = *i;
+
         typename TPolicy::OrPtrVector nextFrontier;
         for( typename TPolicy::OrPtr pCurrentFrontierStep : frontier )
         {
             typename TPolicy::OrPtrVector recursiveResult
                 = solveStep( pCurrentFrontierStep, typePathElement, false, policy );
 
-            for( auto pOr : recursiveResult )
+            if( !bLast )
             {
-                auto linkFrontier = policy.expandLink( pOr );
-                std::copy( linkFrontier.begin(), linkFrontier.end(), std::back_inserter( nextFrontier ) );
+                for( auto pOr : recursiveResult )
+                {
+                    auto linkFrontier = policy.expandLink( pOr );
+                    std::copy( linkFrontier.begin(), linkFrontier.end(), std::back_inserter( nextFrontier ) );
+                }
+            }
+            else
+            {
+                std::copy( recursiveResult.begin(), recursiveResult.end(), std::back_inserter( nextFrontier ) );
             }
         }
         nextFrontier.swap( frontier );
@@ -173,6 +185,7 @@ static typename TPolicy::RootPtr solveContextFree( const typename TPolicy::Spec&
 
 // bottom up recursion
 // return if the edge should be back tracked
+/*
 template < typename TPolicy >
 static bool backtrackToLinkDimensionsRecurse( typename TPolicy::EdgePtr pEdge, const TPolicy& policy,
                                               typename TPolicy::AndPtrVector& frontier )
@@ -230,7 +243,7 @@ static void backtrackToLinkDimensions( typename TPolicy::RootPtr pRoot, const TP
             backtrackToLinkDimensionsRecurse( pEdge, policy, frontier );
         }
     }
-}
+}*/
 
 } // namespace DerivationSolver
 

@@ -136,7 +136,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/allocator.hpp
     ${MEGA_API_DIR}/mega/any_io.hpp
     ${MEGA_API_DIR}/mega/any.hpp
-    ${MEGA_API_DIR}/mega/archive_traits.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
     ${MEGA_API_DIR}/mega/bin_archive.hpp
     ${MEGA_API_DIR}/mega/boost_serialization_workaround.hpp

@@ -120,6 +120,16 @@ inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::reference& 
 {
     ar.save( value );
 }
+
+inline void serialize( boost::archive::SnapshotIArchive& ar, ::mega::TypeID& value, const unsigned int version )
+{
+    ar.load( value );
+}
+
+inline void serialize( boost::archive::SnapshotOArchive& ar, ::mega::TypeID& value, const unsigned int version )
+{
+    ar.save( value );
+}
 } // namespace boost::serialization
 
 namespace mega

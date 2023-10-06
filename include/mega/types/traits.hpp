@@ -96,6 +96,10 @@ using ReferenceVector = std::vector< mega::reference >;
 static constexpr char psz_mega_reference[]        = "class mega::reference";
 static constexpr char psz_mega_reference_vector[] = "class std::vector<class mega::reference>";
 
+using LinkTypeVector = std::vector< mega::TypeID >;
+
+static constexpr char psz_link_type[]        = "class mega::TypeID";
+static constexpr char psz_link_type_vector[] = "class std::vector<class mega::TypeID>";
 } // namespace mega
 
 #endif // EG_DEFAULT_TRAITS

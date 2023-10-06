@@ -68,11 +68,11 @@ struct __invoke_impl
         static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // Write
         static thread_local mega::runtime::invocation::Write function( g_unit_name, id );
-        const {{ invocation.runtime_return_type }} temp{ args... };
+        const {{ invocation.parameter_type }} temp{ args... };
         return function( context, (const void*)&temp );
     }
     template<>
-    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, const {{ invocation.runtime_return_type }}& arg ) const
+    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, const {{ invocation.parameter_type }}& arg ) const
     {
         static constexpr std::array< mega::TypeID, {{ invocation.context_size }} > g_context_types = { {{ invocation.context_type_id_list }} };
         static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };

@@ -318,11 +318,26 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                 {
                     HyperGraph::Relation* pRelation = pLinkDim->get_relation();
 
-                    std::string    strMangle;
+                    std::string strMangle, strLinkTypeMangle;
+                    if( pLinkDim->get_singular() )
+                    {
+                        strMangle = megaMangle( mega::psz_mega_reference );
+                        strLinkTypeMangle = megaMangle( mega::psz_link_type );
+                    }
+                    else
+                    {
+                        strMangle = megaMangle( mega::psz_mega_reference_vector );
+                        strLinkTypeMangle = megaMangle( mega::psz_link_type_vector );
+                    }
+                    mangledDataTypes.insert( strMangle );
+                    mangledDataTypes.insert( strLinkTypeMangle );
+
                     RelationID     relationID = pRelation->get_id();
                     nlohmann::json link( { { "link_type_id", printTypeID( pLinkDim->get_concrete_id() ) },
-                                           { "mangle", "" },
+                                           { "mangle", strMangle },
                                            { "offset", pLinkDim->get_offset() },
+                                           { "link_type_offset", pLinkDim->get_link_type()->get_offset() },
+                                           { "link_type_mangle", strLinkTypeMangle },
                                            { "singular", pLinkDim->get_singular() },
                                            { "types", nlohmann::json::array() },
                                            { "owning", pLinkDim->get_owning() },
@@ -331,15 +346,6 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                                            { "relation_id_upper", printTypeID( relationID.getUpper() ) }
 
                     } );
-
-                    if( pLinkDim->get_singular() )
-                    {
-                        strMangle = megaMangle( mega::psz_mega_reference );
-                    }
-                    else
-                    {
-                        strMangle = megaMangle( mega::psz_mega_reference_vector );
-                    }
 
                     if( auto pOwningRelation = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
                     {
@@ -420,9 +426,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                         THROW_RTE( "Unknown relation type" );
                     }
 
-                    link[ "mangle" ] = strMangle;
                     part[ "links" ].push_back( link );
-                    mangledDataTypes.insert( strMangle );
                 }
 
                 for( auto pAllocDim : pPart->get_allocation_dimensions() )
