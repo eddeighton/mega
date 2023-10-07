@@ -58,11 +58,6 @@ PYBIND11_MODULE( megastructure, pythonModule )
 
     pythonModule.doc() = "Python Module for Megastructure";
 
-    pybind11::enum_< WriteOperation >( pythonModule, "WriteOperation" )
-        .value( "DEFAULT", WriteOperation::DEFAULT )
-        .value( "REMOVE", WriteOperation::REMOVE )
-        .value( "RESET", WriteOperation::RESET );
-
     pybind11::class_< PythonRoot >( pythonModule, "Root" )
         .def( "getMachines", &PythonRoot::getMachines, "Get all machines connected to the Root" );
 

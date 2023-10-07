@@ -28,8 +28,8 @@ namespace mega::runtime
 namespace
 {
 
-void gen_new( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database, TypeID target,
-               std::ostream& os )
+void gen_new( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database,
+              TypeID interfaceTypeID, std::ostream& os )
 {
     // clang-format off
 static const char* szTemplate =
@@ -39,23 +39,25 @@ R"TEMPLATE(
 #include "mega/reference.hpp"
 #include "service/protocol/common/mpo_context_interface.hpp" 
 
-mega::reference mega_new_{{ target }}()
+mega::reference mega_new_{{ interface_type }}()
 {
-    return ::mega::runtime::allocate( mega::TypeID{ {{ target }} } );
+    return ::mega::runtime::allocate( mega::TypeID{ {{ concrete_type }} } );
 }
 
 )TEMPLATE";
     // clang-format on
 
+    const auto concreteID = database.getSingularConcreteTypeID( interfaceTypeID );
+
     std::ostringstream osCPPCode;
     try
     {
-        nlohmann::json templateData( { { "target", printTypeID( target ) }, { "types", nlohmann::json::array() } } );
+        nlohmann::json templateData( {
 
-        for( TypeID type : database.getCompatibleConcreteTypes( target ) )
-        {
-            templateData[ "types" ].push_back( printTypeID( type ) );
-        }
+            { "interface_type", printTypeID( interfaceTypeID ) }, 
+            { "concrete_type", printTypeID( concreteID ) }
+
+        } );
 
         osCPPCode << inja.render( szTemplate, templateData );
     }
@@ -65,12 +67,56 @@ mega::reference mega_new_{{ target }}()
         THROW_RTE( "inja::InjaError in CodeGenerator::gen_new: " << ex.what() );
     }
     std::ostringstream osModule;
-    osModule << "mega_new_" << printTypeID( target );
+    osModule << "mega_new_" << printTypeID( interfaceTypeID );
     compiler.compileToLLVMIR( osModule.str(), osCPPCode.str(), os, std::nullopt );
 }
 
-void gen_cast( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database, TypeID target,
-               std::ostream& os )
+void gen_delete( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database,
+                 TypeID interfaceTypeID, std::ostream& os )
+{
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+
+#include "mega/native_types.hpp"
+#include "mega/reference.hpp"
+#include "jit/object_functions.hxx"
+
+void mega_delete_{{ interface_type }}( mega::reference ref )
+{
+    static thread_local mega::runtime::object::ObjectUnparent unparent( "operators", {{ concrete_type }} );
+    unparent( ref.getObjectAddress() );
+}
+
+)TEMPLATE";
+    // clang-format on
+
+    const auto concreteID = database.getSingularConcreteTypeID( interfaceTypeID );
+
+    std::ostringstream osCPPCode;
+    try
+    {
+        nlohmann::json templateData( {
+
+            { "interface_type", printTypeID( interfaceTypeID ) }, 
+            { "concrete_type", printTypeID( concreteID ) }
+
+        } );
+
+        osCPPCode << inja.render( szTemplate, templateData );
+    }
+    catch( inja::InjaError& ex )
+    {
+        SPDLOG_ERROR( "inja::InjaError in CodeGenerator::gen_new: {}", ex.what() );
+        THROW_RTE( "inja::InjaError in CodeGenerator::gen_new: " << ex.what() );
+    }
+    std::ostringstream osModule;
+    osModule << "mega_new_" << printTypeID( interfaceTypeID );
+    compiler.compileToLLVMIR( osModule.str(), osCPPCode.str(), os, std::nullopt );
+}
+
+void gen_cast( const CodeGenerator::LLVMCompiler& compiler, Inja& inja, const JITDatabase& database,
+               TypeID interfaceTypeID, std::ostream& os )
 {
     // clang-format off
 static const char* szTemplate =
@@ -79,12 +125,12 @@ R"TEMPLATE(
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
 
-mega::reference mega_cast_{{ target }}( const mega::reference& source )
+mega::reference mega_cast_{{ interface_type }}( const mega::reference& source )
 {
     switch( source.getType() )
     {
-{% for type in types %}
-        case {{ type }}: return source;
+{% for type in concrete_types %}
+        case {{ type }}: return mega::reference::make( source, mega::TypeInstance( {{ type }}, source.getInstance() ) );
 {% endfor %}
         default:  return mega::reference{};
     }
@@ -96,11 +142,12 @@ mega::reference mega_cast_{{ target }}( const mega::reference& source )
     std::ostringstream osCPPCode;
     try
     {
-        nlohmann::json templateData( { { "target", printTypeID( target ) }, { "types", nlohmann::json::array() } } );
+        nlohmann::json templateData(
+            { { "interface_type", printTypeID( interfaceTypeID ) }, { "concrete_types", nlohmann::json::array() } } );
 
-        for( TypeID type : database.getCompatibleConcreteTypes( target ) )
+        for( TypeID type : database.getCompatibleConcreteTypes( interfaceTypeID ) )
         {
-            templateData[ "types" ].push_back( printTypeID( type ) );
+            templateData[ "concrete_types" ].push_back( printTypeID( type ) );
         }
 
         osCPPCode << inja.render( szTemplate, templateData );
@@ -111,31 +158,31 @@ mega::reference mega_cast_{{ target }}( const mega::reference& source )
         THROW_RTE( "inja::InjaError in CodeGenerator::gen_cast: " << ex.what() );
     }
     std::ostringstream osModule;
-    osModule << "mega_cast_" << printTypeID( target );
+    osModule << "mega_cast_" << printTypeID( interfaceTypeID );
     compiler.compileToLLVMIR( osModule.str(), osCPPCode.str(), os, std::nullopt );
 }
 
 } // namespace
 
-void CodeGenerator::generate_operator( const LLVMCompiler& compiler, const JITDatabase& database, TypeID target,
-                                       mega::runtime::operators::FunctionType operatorType, std::ostream& os )
+void CodeGenerator::generate_operator( const LLVMCompiler& compiler, const JITDatabase& database,
+                                       TypeID interfaceTypeID, mega::runtime::operators::FunctionType operatorType,
+                                       std::ostream& os )
 {
     switch( operatorType )
     {
         case operators::eNew:
         {
-            gen_new( compiler, *m_pInja, database, target, os );
+            gen_new( compiler, *m_pInja, database, interfaceTypeID, os );
         }
         break;
         case operators::eDelete:
         {
-            THROW_TODO;
+            gen_delete( compiler, *m_pInja, database, interfaceTypeID, os );
         }
         break;
         case operators::eCast:
         {
-            THROW_TODO;
-            // gen_cast( compiler, *m_pInja, database, target, os );
+            gen_cast( compiler, *m_pInja, database, interfaceTypeID, os );
         }
         break;
         case operators::eActive:

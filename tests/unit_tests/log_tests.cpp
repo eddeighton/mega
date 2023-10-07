@@ -221,7 +221,7 @@ TEST_F( BasicLogTest, StructureMsg )
         Structure::eDestruct, 
         Structure::eMake, 
         Structure::eBreak,
-        Structure::eBreakSource
+        Structure::eBreak
     };
     std::vector< mega::reference > sources =
     {

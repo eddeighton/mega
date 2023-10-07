@@ -33,13 +33,9 @@
 #include "inja/environment.hpp"
 #include "inja/template.hpp"
 
-#include <memory>
+#include "boost/filesystem/operations.hpp"
 
-#define CATCH_INFO_ERROR( code, templateType )                                                        \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                                  \
-        try { code; } catch( ::inja::RenderError & ex ) {                                             \
-            THROW_RTE( "Inja exception while rendering: " << templateType << " msg: " << ex.what() ); \
-        } )
+#include <memory>
 
 namespace mega
 {
@@ -47,81 +43,60 @@ namespace mega
 class Inja
 {
     ::inja::Environment m_injaEnvironment;
-    ::inja::Template    m_allocatorTemplate;
-    ::inja::Template    m_callTemplate;
-    ::inja::Template    m_getTemplate;
-    ::inja::Template    m_programTemplate;
-    ::inja::Template    m_readLinkTemplate;
-    ::inja::Template    m_readTemplate;
-    ::inja::Template    m_relationTemplate;
-    ::inja::Template    m_startTemplate;
-    ::inja::Template    m_writeLinkTemplate;
-    ::inja::Template    m_writeTemplate;
-    ::inja::Template    m_moveTemplate;
+
+    enum TemplateType
+    {
+        eAllocator,
+        eRelation,
+        eProgram,
+        eInvocation,
+        TOTAL_TEMPLATE_TYPES
+    };
+
+    std::array< std::string, TOTAL_TEMPLATE_TYPES >      m_templateNames;
+    std::array< ::inja::Template, TOTAL_TEMPLATE_TYPES > m_templates;
+
+    void renderTemplate( const nlohmann::json& data, TemplateType templateType, std::ostream& os )
+    {
+        try
+        {
+            m_injaEnvironment.render_to( os, m_templates[ templateType ], data );
+        }
+        catch( ::inja::RenderError& ex )
+        {
+            THROW_RTE( "Inja Exception rendering template: " << m_templateNames[ templateType ]
+                                                             << " error: " << ex.what() );
+        }
+        catch( std::exception& ex )
+        {
+            THROW_RTE( "Exception rendering template: " << m_templateNames[ templateType ] << " error: " << ex.what() );
+        }
+    }
 
 public:
     using Ptr = std::unique_ptr< Inja >;
 
     Inja( const mega::MegastructureInstallation& megaInstall, const mega::Project& project )
+        : m_templateNames{ "allocator.jinja", "relation.jinja", "program.jinja", "invocation.jinja" }
     {
         m_injaEnvironment.set_trim_blocks( true );
-        m_allocatorTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateAllocation().string() );
-        m_callTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateCall().string() );
-        m_getTemplate       = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateGet().string() );
-        m_programTemplate   = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateProgram().string() );
-        m_readLinkTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateReadLink().string() );
-        m_readTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRead().string() );
-        m_relationTemplate  = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateRelation().string() );
-        m_startTemplate     = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateStart().string() );
-        m_writeLinkTemplate = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWriteLink().string() );
-        m_writeTemplate     = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateWrite().string() );
-        m_moveTemplate      = m_injaEnvironment.parse_template( megaInstall.getRuntimeTemplateMove().string() );
+
+        const auto runtimeTemplatesDir = megaInstall.getRuntimeTemplateDir();
+
+        for( int i = 0; i != TOTAL_TEMPLATE_TYPES; ++i )
+        {
+            const auto templateType = static_cast< TemplateType >( i );
+            auto       templatePath = runtimeTemplatesDir / m_templateNames[ templateType ];
+            VERIFY_RTE_MSG( boost::filesystem::exists( templatePath ),
+                            "Failed to locate runtime template: " << templatePath.string() );
+            m_templates[ templateType ] = m_injaEnvironment.parse_template( templatePath.string() );
+        }
     }
 
-    void render_allocator( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_allocatorTemplate, data ), "Allocator" );
-    }
-    void render_read( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_readTemplate, data ), "Read" );
-    }
-    void render_write( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_writeTemplate, data ), "Write" );
-    }
-    void render_readLink( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_readLinkTemplate, data ), "ReadLink" );
-    }
-    void render_writeLink( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_writeLinkTemplate, data ), "WriteLink" );
-    }
-    void render_call( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_callTemplate, data ), "Call" );
-    }
-    void render_start( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_startTemplate, data ), "Start" );
-    }
-    void render_get( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_getTemplate, data ), "Get" );
-    }
-    void render_relation( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_relationTemplate, data ), "Relation" );
-    }
-    void render_program( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_programTemplate, data ), "Program" );
-    }
-    void render_move( const nlohmann::json& data, std::ostream& os )
-    {
-        CATCH_INFO_ERROR( m_injaEnvironment.render_to( os, m_moveTemplate, data ), "Move" );
-    }
+    void render_invocation( const nlohmann::json& data, std::ostream& os ) { renderTemplate( data, eInvocation, os ); }
+    void render_allocator( const nlohmann::json& data, std::ostream& os ) { renderTemplate( data, eAllocator, os ); }
+    void render_relation( const nlohmann::json& data, std::ostream& os ) { renderTemplate( data, eRelation, os ); }
+    void render_program( const nlohmann::json& data, std::ostream& os ) { renderTemplate( data, eProgram, os ); }
 
     std::string render( const std::string& strTemplate, const nlohmann::json& data )
     {

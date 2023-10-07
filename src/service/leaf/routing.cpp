@@ -185,7 +185,7 @@ network::Message LeafRequestLogicalThread::MPUp( const network::Message& request
 network::Message LeafRequestLogicalThread::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    ASSERT( m_leaf.m_mpos.count( mpo ) );
+    ASSERT_MSG( m_leaf.m_mpos.count( mpo ), "MPODown leaf does not contain mpo: " << mpo );
     switch( m_leaf.m_nodeType )
     {
         case network::Node::Executor:

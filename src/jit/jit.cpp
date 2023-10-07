@@ -310,9 +310,9 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             }
             break;
         }
-        case mega::id_exp_Read_Link:
+        case mega::id_exp_Link_Read:
         {
-            functionType     = mega::runtime::invocation::eReadLink;
+            functionType     = mega::runtime::invocation::eLinkRead;
             auto pReturnType = pInvocationFinal->get_return_type();
             using namespace FinalStage;
             auto pContextReturnType = db_cast< Operations::ReturnTypes::Context >( pReturnType );
@@ -328,12 +328,18 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             }
             break;
         }
-        case mega::id_exp_Write_Link:
+        case mega::id_exp_Link_Add:
         {
-            functionType       = mega::runtime::invocation::eWriteLink;
+            functionType       = mega::runtime::invocation::eLinkAdd;
             result.mangledType = megaMangle( mega::psz_mega_reference );
         }
         break;
+        case mega::id_exp_Link_Remove:
+            functionType = mega::runtime::invocation::eLinkRemove;
+            break;
+        case mega::id_exp_Link_Clear:
+            functionType = mega::runtime::invocation::eLinkClear;
+            break;
 
         case mega::id_exp_Call:
             functionType = mega::runtime::invocation::eCall;
@@ -347,9 +353,6 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             break;
 
         case mega::id_exp_GetContext:
-            functionType = mega::runtime::invocation::eGet;
-            break;
-        case mega::id_exp_GetDimension:
             functionType = mega::runtime::invocation::eGet;
             break;
         case mega::id_exp_Move:
@@ -400,53 +403,61 @@ void JIT::getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, c
     {
         case invocation::eRead:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Read::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction
+                = ( void* )pModule->get< invocation::Read::FunctionPtr >( Symbol( invocationID, Symbol::RefR ) );
         }
         break;
         case invocation::eWrite:
         {
-            *ppFunction
-                = ( void* )pModule->get< invocation::Write::FunctionPtr >( Symbol( invocationID, Symbol::Ref_CVStar ) );
+            *ppFunction = ( void* )pModule->get< invocation::Write::FunctionPtr >(
+                Symbol( invocationID, Symbol::RefR_CVStar ) );
         }
         break;
-        case invocation::eReadLink:
+        case invocation::eLinkRead:
         {
             *ppFunction
-                = ( void* )pModule->get< invocation::ReadLink::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
+                = ( void* )pModule->get< invocation::LinkRead::FunctionPtr >( Symbol( invocationID, Symbol::RefR ) );
         }
         break;
-        case invocation::eWriteLink:
+        case invocation::eLinkAdd:
         {
-            *ppFunction = ( void* )pModule->get< invocation::WriteLink::FunctionPtr >(
-                Symbol( invocationID, Symbol::Ref_Wo_RefCR ) );
+            *ppFunction = ( void* )pModule->get< invocation::LinkAdd::FunctionPtr >(
+                Symbol( invocationID, Symbol::RefR_RefR ) );
         }
         break;
-        case invocation::eWriteLinkRange:
+        case invocation::eLinkRemove:
         {
-            *ppFunction = ( void* )pModule->get< invocation::WriteLinkRange::FunctionPtr >(
-                Symbol( invocationID, Symbol::Ref_Wo_CVStar ) );
+            *ppFunction = ( void* )pModule->get< invocation::LinkRemove::FunctionPtr >(
+                Symbol( invocationID, Symbol::RefR_RefR ) );
+        }
+        break;
+        case invocation::eLinkClear:
+        {
+            *ppFunction
+                = ( void* )pModule->get< invocation::LinkClear::FunctionPtr >( Symbol( invocationID, Symbol::RefR ) );
         }
         break;
         case invocation::eCall:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Call::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction
+                = ( void* )pModule->get< invocation::Call::FunctionPtr >( Symbol( invocationID, Symbol::RefR ) );
         }
         break;
         case invocation::eGet:
         {
-            *ppFunction = ( void* )pModule->get< invocation::Get::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
+            *ppFunction = ( void* )pModule->get< invocation::Get::FunctionPtr >( Symbol( invocationID, Symbol::RefR ) );
         }
         break;
         case invocation::eStart:
         {
             *ppFunction
-                = ( void* )pModule->get< invocation::Start::FunctionPtr >( Symbol( invocationID, Symbol::Ref ) );
+                = ( void* )pModule->get< invocation::Start::FunctionPtr >( Symbol( invocationID, Symbol::RefR ) );
         }
         break;
         case invocation::eMove:
         {
             *ppFunction
-                = ( void* )pModule->get< invocation::Move::FunctionPtr >( Symbol( invocationID, Symbol::Ref_Ref ) );
+                = ( void* )pModule->get< invocation::Move::FunctionPtr >( Symbol( invocationID, Symbol::RefR_RefR ) );
         }
         break;
         default:

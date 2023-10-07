@@ -33,6 +33,8 @@ enum OperationID : TypeID::ValueType
     id_Move,
     id_Get,
     id_Range,
+    id_Remove,
+    id_Clear,
     HIGHEST_OPERATION_TYPE
 };
 
@@ -58,6 +60,12 @@ inline constexpr bool isOperationArgs( OperationID operationType )
             return false;
         case id_Range:
             return false;
+            
+        case id_Remove:
+            return false;
+        case id_Clear:
+            return false;
+
         case HIGHEST_OPERATION_TYPE:
             return false;
         default:
@@ -91,14 +99,17 @@ enum ExplicitOperationID : TypeID::ValueType
 {
     id_exp_Read,
     id_exp_Write,
-    id_exp_Read_Link,
-    id_exp_Write_Link,
+
+    id_exp_Link_Read,
+    id_exp_Link_Add,
+    id_exp_Link_Remove,
+    id_exp_Link_Clear,
+
     id_exp_Call,
     id_exp_Signal,
     id_exp_Start,
     id_exp_Move,
     id_exp_GetContext,
-    id_exp_GetDimension,
     id_exp_Range,
     HIGHEST_EXPLICIT_OPERATION_TYPE
 };

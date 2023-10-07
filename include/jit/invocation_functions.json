@@ -6,7 +6,7 @@
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
+                    "type" : "mega::reference&"
                 }
             ],
             "return_type" : "void*",
@@ -17,7 +17,7 @@
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
+                    "type" : "mega::reference&"
                 },
                 {
                     "name" : "pData",
@@ -32,56 +32,59 @@
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
+                    "type" : "mega::reference&"
                 }
             ],
             "return_type" : "mega::runtime::CallResult",
             "return" : "value"
         },
         {
-            "name" : "ReadLink",
+            "name" : "LinkRead",
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
+                    "type" : "mega::reference&"
                 }
             ],
             "return_type" : "void*",
             "return" : "value"
         },
         {
-            "name" : "WriteLink",
+            "name" : "LinkAdd",
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
-                },
-                {
-                    "name" : "overload",
-                    "type" : "WriteOperation"
+                    "type" : "mega::reference&"
                 },
                 {
                     "name" : "target",
-                    "type" : "const mega::reference&"
+                    "type" : "mega::reference&"
                 }
             ],
             "return_type" : "mega::reference",
             "return" : "value"
         },
         {
-            "name" : "WriteLinkRange",
+            "name" : "LinkRemove",
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
-                },
-                {
-                    "name" : "overload",
-                    "type" : "WriteOperation"
+                    "type" : "mega::reference&"
                 },
                 {
                     "name" : "target",
-                    "type" : "const void*"
+                    "type" : "mega::reference&"
+                }
+            ],
+            "return_type" : "mega::reference",
+            "return" : "value"
+        },
+        {
+            "name" : "LinkClear",
+            "arguments" : [
+                {
+                    "name" : "ref",
+                    "type" : "mega::reference&"
                 }
             ],
             "return_type" : "mega::reference",
@@ -92,7 +95,7 @@
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
+                    "type" : "mega::reference&"
                 }
             ],
             "return_type" : "mega::reference",
@@ -103,7 +106,7 @@
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
+                    "type" : "mega::reference&"
                 }
             ],
             "return_type" : "mega::reference",
@@ -114,11 +117,11 @@
             "arguments" : [
                 {
                     "name" : "ref",
-                    "type" : "mega::reference"
+                    "type" : "mega::reference&"
                 },
                 {
                     "name" : "target",
-                    "type" : "mega::reference"
+                    "type" : "mega::reference&"
                 }
             ],
             "return_type" : "void",

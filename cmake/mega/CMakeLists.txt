@@ -188,7 +188,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/type_instance.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
     ${MEGA_API_DIR}/mega/variant.hpp
-    ${MEGA_API_DIR}/mega/write_operation.hpp
     ${MEGA_API_DIR}/mega/xml_archive.hpp
 )
 

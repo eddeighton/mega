@@ -27,46 +27,47 @@
 
 namespace mega::runtime
 {
-    class Symbol
+class Symbol
+{
+    std::string m_symbolName;
+
+public:
+    // VStar = void*
+    // CVStar = const void*
+    // Ref = mega::reference
+    // RefR = mega::reference&
+    // RefCR = const mega::reference&
+    // ID = TypeID
+    // U64 = mega::U64
+    enum Parameters
     {
-        std::string m_symbolName;
-    public:
-        // VStar = void*
-        // CVStar = const void*
-        // Ref = mega::reference
-        // RefCR = const mega::reference&
-        // Wo = WriteOperation
-        // ID = TypeID
-        // U64 = mega::U64
-        enum Parameters
-        {
-            None,
-            VStar,              // "Pv"
-            VStar_VStar,        // "PvS_"
-            Ref,                // "N4mega9referenceE"
-            Ref_Ref,            // "N4mega9referenceES0_"
-            Ref_VStar,          // "N4mega9referenceEPv"
-            Ref_VStar_Bool,     // "N4mega9referenceEPv"
-            Ref_CVStar,         // "N4mega9referenceEPKv"
-            Ref_Wo_RefCR,       // "N4mega9referenceE14WriteOperationRKS0_"
-            Ref_Wo_CVStar,      // "N4mega9referenceE14WriteOperationRKS0_"
-            ID_VStar_VStar,     // "N4mega6TypeIDEPvS1_"
-            Ref_VStar_U64,      // "N4mega9referenceEPvm"
-            Ref_U64,            // "N4mega9referenceEm"
-            Ref_Any             // "N4mega9referenceEm"
-        };
+        None,
+        VStar,
+        VStar_VStar,
+        Ref,
+        Ref_Ref,
+        Ref_VStar,
+        Ref_VStar_Bool,
+        Ref_CVStar,
+        ID_VStar_VStar,
+        Ref_VStar_U64,
+        Ref_U64,
+        Ref_Any,
 
-        Symbol( const char* prefix, Parameters params );
-        Symbol( const char* prefix, RelationID relationID, Parameters params );
-        Symbol( const char* prefix, mega::TypeID objectTypeID, Parameters params );
-        Symbol( const mega::InvocationID& invocationID, Parameters params );
-        Symbol( const char* prefix, mega::TypeID objectTypeID, mega::TypeID objectTypeID2 );
-        
-        const std::string& get() const { return m_symbolName; }
+        RefR,
+        RefR_RefR,
+        RefR_VStar,
+        RefR_CVStar
     };
-}
 
-#endif //GUARD_2023_April_26_orc_symbol
+    Symbol( const char* prefix, Parameters params );
+    Symbol( const char* prefix, RelationID relationID, Parameters params );
+    Symbol( const char* prefix, mega::TypeID objectTypeID, Parameters params );
+    Symbol( const mega::InvocationID& invocationID, Parameters params );
+    Symbol( const char* prefix, mega::TypeID objectTypeID, mega::TypeID objectTypeID2 );
 
+    const std::string& get() const { return m_symbolName; }
+};
+} // namespace mega::runtime
 
-
+#endif // GUARD_2023_April_26_orc_symbol

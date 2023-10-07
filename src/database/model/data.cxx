@@ -9461,40 +9461,6 @@ namespace Operations
             });
     }
         
-    // struct Operations_GetDimension : public mega::io::Object
-    Operations_GetDimension::Operations_GetDimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_GetDimension >( loader, this ) )          , p_Operations_Operations_Invocation( loader )
-    {
-    }
-    bool Operations_GetDimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Operations_GetDimension >( loader, const_cast< Operations_GetDimension* >( this ) ) };
-    }
-    void Operations_GetDimension::set_inheritance_pointer()
-    {
-        p_Operations_Operations_Invocation->m_inheritance = data::Ptr< data::Operations::Operations_GetDimension >( p_Operations_Operations_Invocation, this );
-    }
-    void Operations_GetDimension::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Operations_Operations_Invocation );
-    }
-    void Operations_GetDimension::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Operations_Operations_Invocation );
-    }
-    void Operations_GetDimension::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Operations_GetDimension" },
-                { "filetype" , "Operations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
     // struct Operations_Read : public mega::io::Object
     Operations_Read::Operations_Read( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Read >( loader, this ) )          , p_Operations_Operations_Invocation( loader )
@@ -9576,32 +9542,32 @@ namespace Operations
         }
     }
         
-    // struct Operations_ReadLink : public mega::io::Object
-    Operations_ReadLink::Operations_ReadLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_ReadLink >( loader, this ) )          , p_Operations_Operations_Invocation( loader )
+    // struct Operations_LinkRead : public mega::io::Object
+    Operations_LinkRead::Operations_LinkRead( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_LinkRead >( loader, this ) )          , p_Operations_Operations_Invocation( loader )
     {
     }
-    bool Operations_ReadLink::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Operations_LinkRead::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Operations_ReadLink >( loader, const_cast< Operations_ReadLink* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Operations_LinkRead >( loader, const_cast< Operations_LinkRead* >( this ) ) };
     }
-    void Operations_ReadLink::set_inheritance_pointer()
+    void Operations_LinkRead::set_inheritance_pointer()
     {
-        p_Operations_Operations_Invocation->m_inheritance = data::Ptr< data::Operations::Operations_ReadLink >( p_Operations_Operations_Invocation, this );
+        p_Operations_Operations_Invocation->m_inheritance = data::Ptr< data::Operations::Operations_LinkRead >( p_Operations_Operations_Invocation, this );
     }
-    void Operations_ReadLink::load( mega::io::Loader& loader )
+    void Operations_LinkRead::load( mega::io::Loader& loader )
     {
         loader.load( p_Operations_Operations_Invocation );
     }
-    void Operations_ReadLink::store( mega::io::Storer& storer ) const
+    void Operations_LinkRead::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Invocation );
     }
-    void Operations_ReadLink::to_json( nlohmann::json& _part__ ) const
+    void Operations_LinkRead::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Operations_ReadLink" },
+                { "partname", "Operations_LinkRead" },
                 { "filetype" , "Operations" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -9610,32 +9576,100 @@ namespace Operations
             });
     }
         
-    // struct Operations_WriteLink : public mega::io::Object
-    Operations_WriteLink::Operations_WriteLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_WriteLink >( loader, this ) )          , p_Operations_Operations_Invocation( loader )
+    // struct Operations_LinkAdd : public mega::io::Object
+    Operations_LinkAdd::Operations_LinkAdd( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_LinkAdd >( loader, this ) )          , p_Operations_Operations_Invocation( loader )
     {
     }
-    bool Operations_WriteLink::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Operations_LinkAdd::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Operations_WriteLink >( loader, const_cast< Operations_WriteLink* >( this ) ) };
+        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Operations_LinkAdd >( loader, const_cast< Operations_LinkAdd* >( this ) ) };
     }
-    void Operations_WriteLink::set_inheritance_pointer()
+    void Operations_LinkAdd::set_inheritance_pointer()
     {
-        p_Operations_Operations_Invocation->m_inheritance = data::Ptr< data::Operations::Operations_WriteLink >( p_Operations_Operations_Invocation, this );
+        p_Operations_Operations_Invocation->m_inheritance = data::Ptr< data::Operations::Operations_LinkAdd >( p_Operations_Operations_Invocation, this );
     }
-    void Operations_WriteLink::load( mega::io::Loader& loader )
+    void Operations_LinkAdd::load( mega::io::Loader& loader )
     {
         loader.load( p_Operations_Operations_Invocation );
     }
-    void Operations_WriteLink::store( mega::io::Storer& storer ) const
+    void Operations_LinkAdd::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Operations_Operations_Invocation );
     }
-    void Operations_WriteLink::to_json( nlohmann::json& _part__ ) const
+    void Operations_LinkAdd::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Operations_WriteLink" },
+                { "partname", "Operations_LinkAdd" },
+                { "filetype" , "Operations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Operations_LinkRemove : public mega::io::Object
+    Operations_LinkRemove::Operations_LinkRemove( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_LinkRemove >( loader, this ) )          , p_Operations_Operations_Invocation( loader )
+    {
+    }
+    bool Operations_LinkRemove::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Operations_LinkRemove >( loader, const_cast< Operations_LinkRemove* >( this ) ) };
+    }
+    void Operations_LinkRemove::set_inheritance_pointer()
+    {
+        p_Operations_Operations_Invocation->m_inheritance = data::Ptr< data::Operations::Operations_LinkRemove >( p_Operations_Operations_Invocation, this );
+    }
+    void Operations_LinkRemove::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Operations_Operations_Invocation );
+    }
+    void Operations_LinkRemove::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Operations_Operations_Invocation );
+    }
+    void Operations_LinkRemove::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Operations_LinkRemove" },
+                { "filetype" , "Operations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Operations_LinkClear : public mega::io::Object
+    Operations_LinkClear::Operations_LinkClear( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_LinkClear >( loader, this ) )          , p_Operations_Operations_Invocation( loader )
+    {
+    }
+    bool Operations_LinkClear::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == data::Variant{ data::Ptr< data::Operations::Operations_LinkClear >( loader, const_cast< Operations_LinkClear* >( this ) ) };
+    }
+    void Operations_LinkClear::set_inheritance_pointer()
+    {
+        p_Operations_Operations_Invocation->m_inheritance = data::Ptr< data::Operations::Operations_LinkClear >( p_Operations_Operations_Invocation, this );
+    }
+    void Operations_LinkClear::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Operations_Operations_Invocation );
+    }
+    void Operations_LinkClear::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Operations_Operations_Invocation );
+    }
+    void Operations_LinkClear::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Operations_LinkClear" },
                 { "filetype" , "Operations" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -11310,15 +11344,17 @@ std::optional< std::vector< mega::SourceLocation > >& Operations_Invocation_push
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
@@ -11344,15 +11380,17 @@ std::vector< data::Ptr< data::Operations::Invocations_Operations_Operation > >& 
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
@@ -11378,15 +11416,17 @@ std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >& Op
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
@@ -15208,15 +15248,17 @@ std::optional< std::string >& get_Operations_Invocation_canonical_context(data::
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
@@ -15242,15 +15284,17 @@ std::optional< std::string >& get_Operations_Invocation_canonical_operation(data
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
@@ -15276,15 +15320,17 @@ std::optional< std::string >& get_Operations_Invocation_canonical_type_path(data
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
@@ -15310,15 +15356,17 @@ data::Ptr< data::Operations::Derivation_Root >& get_Operations_Invocation_deriva
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
@@ -15344,15 +15392,17 @@ std::optional< mega::ExplicitOperationID >& get_Operations_Invocation_explicit_o
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
@@ -15378,15 +15428,17 @@ std::optional< std::vector< mega::SourceLocation > >& get_Operations_Invocation_
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
@@ -15412,15 +15464,17 @@ mega::InvocationID& get_Operations_Invocation_id(data::Variant& m_data)
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
@@ -15446,15 +15500,17 @@ std::vector< data::Ptr< data::Operations::Invocations_Operations_Operation > >& 
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
@@ -15480,15 +15536,17 @@ std::optional< data::Ptr< data::Operations::Operations_ReturnTypes_ReturnType > 
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
@@ -15514,15 +15572,17 @@ std::optional< data::Ptr< data::Operations::Invocations_Instructions_Root > >& g
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
@@ -15548,15 +15608,17 @@ std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >& ge
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
@@ -20150,15 +20212,17 @@ std::optional< std::string >& set_Operations_Invocation_canonical_context(data::
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_context;
@@ -20184,15 +20248,17 @@ std::optional< std::string >& set_Operations_Invocation_canonical_operation(data
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_operation;
@@ -20218,15 +20284,17 @@ std::optional< std::string >& set_Operations_Invocation_canonical_type_path(data
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->canonical_type_path;
@@ -20252,15 +20320,17 @@ data::Ptr< data::Operations::Derivation_Root >& set_Operations_Invocation_deriva
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->derivation;
@@ -20286,15 +20356,17 @@ std::optional< mega::ExplicitOperationID >& set_Operations_Invocation_explicit_o
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->explicit_operation;
@@ -20320,15 +20392,17 @@ std::optional< std::vector< mega::SourceLocation > >& set_Operations_Invocation_
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->file_offsets;
@@ -20354,15 +20428,17 @@ mega::InvocationID& set_Operations_Invocation_id(data::Variant& m_data)
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->id;
@@ -20388,15 +20464,17 @@ std::vector< data::Ptr< data::Operations::Invocations_Operations_Operation > >& 
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->operations;
@@ -20422,15 +20500,17 @@ std::optional< data::Ptr< data::Operations::Operations_ReturnTypes_ReturnType > 
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->return_type;
@@ -20456,15 +20536,17 @@ std::optional< data::Ptr< data::Operations::Invocations_Instructions_Root > >& s
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->root_instruction;
@@ -20490,15 +20572,17 @@ std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >& se
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_GetContext::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
-        case data::Operations::Operations_GetDimension::Object_Part_Type_ID:
-            return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_Read::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_Write::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
-        case data::Operations::Operations_ReadLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkRead::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
-        case data::Operations::Operations_WriteLink::Object_Part_Type_ID:
+        case data::Operations::Operations_LinkAdd::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
+        case data::Operations::Operations_LinkRemove::Object_Part_Type_ID:
+            return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
+        case data::Operations::Operations_LinkClear::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
         case data::Operations::Operations_Range::Object_Part_Type_ID:
             return data::convert< data::Operations::Operations_Invocation >( m_data )->variables;
@@ -21928,16 +22012,16 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 75: return new Tree::Interface_Requirement( loader, objectInfo );
         case 76: return new Tree::Interface_Function( loader, objectInfo );
         case 77: return new Tree::Interface_Object( loader, objectInfo );
-        case 193: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
-        case 194: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
-        case 195: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
-        case 165: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 166: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 167: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 168: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 169: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
-        case 170: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
-        case 172: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 194: return new MetaAnalysis::Meta_SequenceAction( loader, objectInfo );
+        case 195: return new MetaAnalysis::Meta_StackAction( loader, objectInfo );
+        case 196: return new MetaAnalysis::Meta_PlanAction( loader, objectInfo );
+        case 166: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 167: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 168: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 169: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 170: return new SymbolTable::Symbols_SymbolTypeID( loader, objectInfo );
+        case 171: return new SymbolTable::Symbols_InterfaceTypeID( loader, objectInfo );
+        case 173: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 39: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 43: return new PerSourceSymbols::Interface_LinkTrait( loader, objectInfo );
         case 63: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
@@ -21969,16 +22053,16 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 123: return new Concrete::Concrete_Event( loader, objectInfo );
         case 125: return new Concrete::Concrete_Object( loader, objectInfo );
         case 129: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 174: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
-        case 175: return new Derivations::Inheritance_Mapping( loader, objectInfo );
+        case 175: return new Derivations::Inheritance_ObjectMapping( loader, objectInfo );
+        case 176: return new Derivations::Inheritance_Mapping( loader, objectInfo );
         case 40: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
         case 44: return new PerSourceDerivations::Interface_LinkTrait( loader, objectInfo );
         case 64: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
         case 96: return new Model::Concrete_Graph_Edge( loader, objectInfo );
-        case 176: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 177: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
-        case 178: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
-        case 179: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 177: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 178: return new Model::HyperGraph_OwningObjectRelation( loader, objectInfo );
+        case 179: return new Model::HyperGraph_NonOwningObjectRelation( loader, objectInfo );
+        case 180: return new Model::HyperGraph_Graph( loader, objectInfo );
         case 46: return new PerSourceModel::Interface_LinkTrait( loader, objectInfo );
         case 95: return new PerSourceModel::Concrete_Graph_Vertex( loader, objectInfo );
         case 102: return new PerSourceModel::Concrete_Dimensions_Link( loader, objectInfo );
@@ -21997,22 +22081,22 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 120: return new MemoryLayout::Concrete_State( loader, objectInfo );
         case 124: return new MemoryLayout::Concrete_Event( loader, objectInfo );
         case 126: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 180: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 181: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 182: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 183: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 184: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 185: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 186: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 187: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 188: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 189: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 190: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 191: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 192: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
+        case 181: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 182: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 183: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 184: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 185: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 186: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 187: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 188: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 189: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 190: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
+        case 191: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 192: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 193: return new GlobalMemoryLayout::MemoryLayout_MemoryMap( loader, objectInfo );
         case 128: return new GlobalMemoryRollout::Concrete_MemoryMappedObject( loader, objectInfo );
-        case 171: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
-        case 173: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 172: return new ConcreteTable::Symbols_ConcreteTypeID( loader, objectInfo );
+        case 174: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
         case 98: return new PerSourceConcreteTable::Concrete_Dimensions_User( loader, objectInfo );
         case 101: return new PerSourceConcreteTable::Concrete_Dimensions_Link( loader, objectInfo );
         case 108: return new PerSourceConcreteTable::Concrete_Dimensions_Allocation( loader, objectInfo );
@@ -22056,21 +22140,22 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 155: return new Operations::Operations_Signal( loader, objectInfo );
         case 156: return new Operations::Operations_Move( loader, objectInfo );
         case 157: return new Operations::Operations_GetContext( loader, objectInfo );
-        case 158: return new Operations::Operations_GetDimension( loader, objectInfo );
-        case 159: return new Operations::Operations_Read( loader, objectInfo );
-        case 160: return new Operations::Operations_Write( loader, objectInfo );
-        case 161: return new Operations::Operations_ReadLink( loader, objectInfo );
-        case 162: return new Operations::Operations_WriteLink( loader, objectInfo );
-        case 163: return new Operations::Operations_Range( loader, objectInfo );
-        case 164: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 158: return new Operations::Operations_Read( loader, objectInfo );
+        case 159: return new Operations::Operations_Write( loader, objectInfo );
+        case 160: return new Operations::Operations_LinkRead( loader, objectInfo );
+        case 161: return new Operations::Operations_LinkAdd( loader, objectInfo );
+        case 162: return new Operations::Operations_LinkRemove( loader, objectInfo );
+        case 163: return new Operations::Operations_LinkClear( loader, objectInfo );
+        case 164: return new Operations::Operations_Range( loader, objectInfo );
+        case 165: return new Operations::Operations_Invocations( loader, objectInfo );
         case 65: return new Locations::Interface_InvocationInstance( loader, objectInfo );
         case 67: return new Locations::Interface_InvocationContext( loader, objectInfo );
-        case 196: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
-        case 197: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
-        case 198: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
-        case 199: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
-        case 200: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
-        case 201: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
+        case 197: return new UnityAnalysis::UnityAnalysis_DataBinding( loader, objectInfo );
+        case 198: return new UnityAnalysis::UnityAnalysis_LinkBinding( loader, objectInfo );
+        case 199: return new UnityAnalysis::UnityAnalysis_ObjectBinding( loader, objectInfo );
+        case 200: return new UnityAnalysis::UnityAnalysis_Prefab( loader, objectInfo );
+        case 201: return new UnityAnalysis::UnityAnalysis_Manual( loader, objectInfo );
+        case 202: return new UnityAnalysis::UnityAnalysis_Binding( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

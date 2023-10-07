@@ -21,9 +21,8 @@
 // ed was here
 #include "mega/native_types.hpp"
 #include "mega/reference.hpp"
-#include "mega/write_operation.hpp"
-#include "mega/relation_id.hpp"
-#include "service/protocol/common/mpo_context_interface.hpp"
+#include "service/protocol/common/mpo_context_interface.hpp" 
+#include "jit/object_functions.hxx"
 #include "jit/relation_functions.hxx"
 #include "jit/jit_exception.hpp"
 
@@ -37,9 +36,10 @@ namespace mega::mangle
 {% for event in events %}
     void save_record_{{event}}(const reference&,const void*);
 {% endfor %}
+    void log( const char* );
 }
 
-mega::reference {{ name }}( mega::reference context, WriteOperation overload, const mega::reference& target )
+{{ return_type }} {{ name }}( mega::reference& context {% if has_parameter_context %}, mega::reference& target{% endif %}{% if has_parameter_data %}, const void* pData{% endif%} )
 {
 {% for variable in variables %}
 {{ variable }}
@@ -48,4 +48,7 @@ mega::reference {{ name }}( mega::reference context, WriteOperation overload, co
 {% for assignment in assignments %}
 {{ assignment }}
 {% endfor %}
+
+    throw mega::runtime::JITException{ "Invocation failed" };
+    return {};
 }

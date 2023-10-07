@@ -144,12 +144,12 @@ using namespace std::string_literals;
 INSTANTIATE_TEST_SUITE_P( Link, LinkFixtureType,
         ::testing::Values
         ( 
-            LinkData{ "Root"s, { "Base"s }, 1, mega::id_exp_Read_Link },
+            LinkData{ "Root"s, { "Base"s }, 1, mega::id_exp_Link_Read },
             LinkData{ "Root"s, { "Base"s, "m_x"s }, 2, mega::id_exp_Read },
             LinkData{ "Base"s, { "m_y"s }, 2, mega::id_exp_Read },
             
-            LinkData{ "Root"s, { "Base"s, "C"s }, 1, mega::id_exp_Read_Link },
-            LinkData{ "Root"s, { "Base"s, "C"s, "A"s }, 2, mega::id_exp_Read_Link },
+            LinkData{ "Root"s, { "Base"s, "C"s }, 1, mega::id_exp_Link_Read },
+            LinkData{ "Root"s, { "Base"s, "C"s, "A"s }, 2, mega::id_exp_Link_Read },
             LinkData{ "Root"s, { "Base"s, "C"s, "A"s, "m_x"s }, 2, mega::id_exp_Read },
 
             LinkData{ "Root"s, { "Base"s, "C"s, "A"s, "C"s, "A"s, "C"s, "A"s, "m_x"s }, 2, mega::id_exp_Read },

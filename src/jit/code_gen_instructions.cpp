@@ -188,38 +188,6 @@ R"TEMPLATE(
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// EnumDerivation
-/*
-void gen( Args args, const FinalStage::Invocations::Instructions::EnumDerivation* pEnumDerivation )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    THROW_TODO;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// Enumeration
-void gen( Args args, const FinalStage::Invocations::Instructions::Enumeration* pEnumeration )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    THROW_TODO;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// DimensionReferenceRead
-void gen( Args args, const FinalStage::Invocations::Instructions::DimensionReferenceRead* pDimensionReferenceRead )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    THROW_TODO;
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Operations
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -258,6 +226,7 @@ R"TEMPLATE(
     }
 
     args.data[ "assignments" ].push_back( os.str() );
+    args.data[ "return_type" ] = "mega::runtime::CallResult";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -293,6 +262,8 @@ R"TEMPLATE(
     }
 
     args.data[ "assignments" ].push_back( os.str() );
+    args.data[ "return_type" ] = "mega::reference";
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -328,6 +299,7 @@ R"TEMPLATE(
     }
 
     args.data[ "assignments" ].push_back( os.str() );
+    args.data[ "return_type" ] = "mega::reference";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -361,46 +333,7 @@ R"TEMPLATE(
     }
 
     args.data[ "assignments" ].push_back( os.str() );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// GetDimension
-void gen( Args args, const FinalStage::Operations::GetDimension* pGetDimension,
-          const FinalStage::Invocations::Operations::Operation* pOperation )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    THROW_TODO;
-    /*
-        // clang-format off
-    static const char* szTemplate =
-    R"TEMPLATE(
-    {{ indent }}{
-    {{ indent }}    return mega::reference::make( {{ instance }}, mega::TypeInstance{ {{ concrete_type_id }}, {{
-    instance }}.getInstance() } );
-    {{ indent }}}
-    )TEMPLATE";
-        // clang-format on
-
-        std::ostringstream os;
-        {
-            Variables::Variable* pVariable = pGetDimension->get_variable();
-
-            std::ostringstream osIndent;
-            osIndent << args.indent;
-
-            nlohmann::json templateData(
-                { { "indent", osIndent.str() },
-                  { "instance", args.get( pVariable ) },
-                  { "concrete_type_id", printTypeID( pGetDimension->get_concrete_dimension()->get_concrete_id() ) } }
-
-            );
-
-            os << args.inja.render( szTemplate, templateData );
-        }
-
-        args.data[ "assignments" ].push_back( os.str() );*/
+    args.data[ "return_type" ] = "mega::reference";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -451,6 +384,7 @@ R"TEMPLATE(
     }
 
     args.data[ "assignments" ].push_back( os.str() );
+    args.data[ "return_type" ] = "void*";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -527,11 +461,13 @@ R"TEMPLATE(
     }
 
     args.data[ "assignments" ].push_back( os.str() );
+    args.data[ "return_type" ] = "mega::reference";
+    args.data[ "has_parameter_data" ] = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// ReadLink
-void gen( Args args, const FinalStage::Operations::ReadLink* pReadLink,
+// LinkRead
+void gen( Args args, const FinalStage::Operations::LinkRead* pLinkRead,
           const FinalStage::Invocations::Operations::Operation* pOperation )
 {
     using namespace FinalStage;
@@ -541,7 +477,7 @@ void gen( Args args, const FinalStage::Operations::ReadLink* pReadLink,
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    // ReadLink
+{{ indent }}    // LinkRead
 {{ indent }}    if( {{ instance }}.getMPO() != mega::runtime::getThisMPO() )
 {{ indent }}    {
 {{ indent }}        mega::runtime::readLock( {{ instance }} );
@@ -577,11 +513,12 @@ R"TEMPLATE(
     }
 
     args.data[ "assignments" ].push_back( os.str() );
+    args.data[ "return_type" ] = "void*";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-// WriteLink
-void gen( Args args, const FinalStage::Operations::WriteLink* pWriteLink,
+// LinkAdd
+void gen( Args args, const FinalStage::Operations::LinkAdd* pLinkAdd,
           const FinalStage::Invocations::Operations::Operation* pOperation )
 {
     using namespace FinalStage;
@@ -591,34 +528,9 @@ void gen( Args args, const FinalStage::Operations::WriteLink* pWriteLink,
 static const char* szTemplate =
 R"TEMPLATE(
 {{ indent }}{
-{{ indent }}    switch( overload )
-{{ indent }}    {
-{{ indent }}        case WriteOperation::DEFAULT:
-{{ indent }}        {
-{{ indent }}            static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName,
+{{ indent }}    static thread_local mega::runtime::relation::LinkMake function( g_pszModuleName,
 mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
-{{ indent }}            function( {{ instance }}, target );
-{{ indent }}        }
-{{ indent }}        break;
-{{ indent }}        case WriteOperation::REMOVE:
-{{ indent }}        {
-{{ indent }}            static thread_local mega::runtime::relation::LinkBreak function( g_pszModuleName,
-mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
-{{ indent }}            function( {{ instance }}, target );
-{{ indent }}        }
-{{ indent }}        break;
-{{ indent }}        case WriteOperation::RESET:
-{{ indent }}        {
-{{ indent }}            static thread_local mega::runtime::relation::LinkReset function( g_pszModuleName,
-mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
-{{ indent }}            function( {{ instance }} );
-{{ indent }}        }
-{{ indent }}        break;
-{{ indent }}        case WriteOperation::TOTAL_WRITE_OPERATIONS:
-{{ indent }}        default:
-{{ indent }}            throw mega::runtime::JITException{ "Unrecognised write link overload" };
-{{ indent }}        break;
-{{ indent }}    }
+{{ indent }}    function( {{ instance }}, target );
 {{ indent }}}
 {{ indent }}return {{ instance }};
 )TEMPLATE";
@@ -645,8 +557,98 @@ mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
     }
 
     args.data[ "assignments" ].push_back( os.str() );
+    args.data[ "return_type" ] = "mega::reference";
+    args.data[ "has_parameter_context" ] = true;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// LinkRemove
+void gen( Args args, const FinalStage::Operations::LinkRemove* pLinkRemove,
+          const FinalStage::Invocations::Operations::Operation* pOperation )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Invocations;
+
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    static thread_local mega::runtime::relation::LinkBreak function( g_pszModuleName,
+mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
+{{ indent }}    function( {{ instance }}, target );
+{{ indent }}}
+{{ indent }}return {{ instance }};
+)TEMPLATE";
+    // clang-format on
+
+    std::ostringstream os;
+    {
+        auto pLink = db_cast< Concrete::Dimensions::Link >( pOperation->get_context() );
+        VERIFY_RTE( pLink );
+
+        RelationID relationID = pLink->get_relation()->get_id();
+
+        std::ostringstream osIndent;
+        osIndent << args.indent;
+
+        nlohmann::json templateData( { { "indent", osIndent.str() },
+                                       { "relation_id_lower", printTypeID( relationID.getLower() ) },
+                                       { "relation_id_upper", printTypeID( relationID.getUpper() ) },
+                                       { "instance", args.get( pOperation->get_variable() ) }
+
+        } );
+
+        os << args.inja.render( szTemplate, templateData );
+    }
+
+    args.data[ "assignments" ].push_back( os.str() );
+    args.data[ "return_type" ] = "mega::reference";
+    args.data[ "has_parameter_context" ] = true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// LinkClear
+void gen( Args args, const FinalStage::Operations::LinkClear* pLinkClear,
+          const FinalStage::Invocations::Operations::Operation* pOperation )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Invocations;
+
+    // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+{{ indent }}{
+{{ indent }}    static thread_local mega::runtime::relation::LinkReset function( g_pszModuleName,
+mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
+{{ indent }}    function( {{ instance }} );
+{{ indent }}}
+{{ indent }}return {{ instance }};
+)TEMPLATE";
+    // clang-format on
+
+    std::ostringstream os;
+    {
+        auto pLink = db_cast< Concrete::Dimensions::Link >( pOperation->get_context() );
+        VERIFY_RTE( pLink );
+
+        RelationID relationID = pLink->get_relation()->get_id();
+
+        std::ostringstream osIndent;
+        osIndent << args.indent;
+
+        nlohmann::json templateData( { { "indent", osIndent.str() },
+                                       { "relation_id_lower", printTypeID( relationID.getLower() ) },
+                                       { "relation_id_upper", printTypeID( relationID.getUpper() ) },
+                                       { "instance", args.get( pOperation->get_variable() ) }
+
+        } );
+
+        os << args.inja.render( szTemplate, templateData );
+    }
+
+    args.data[ "assignments" ].push_back( os.str() );
+    args.data[ "return_type" ] = "mega::reference";
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Range
 void gen( Args args, const FinalStage::Operations::Range* pRange,
@@ -780,7 +782,8 @@ void gen( Args args, const FinalStage::Operations::Move* pMove,
             os << args.inja.render( szTemplate, templateData );
         }
 
-        args.data[ "assignments" ].push_back( os.str() );*/
+        args.data[ "assignments" ].push_back( os.str() );
+        args.data[ "has_parameter_context" ] = true;*/
 }
 } // namespace
 
@@ -808,19 +811,6 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pDereference );
         }
-
-        /*else if( auto pEnumDerivation = db_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pEnumDerivation );
-        }
-        else if( auto pEnumeration = db_cast< Instructions::Enumeration >( pInstructionGroup ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pEnumeration );
-        }
-        else if( auto pDimensionReferenceRead = db_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pDimensionReferenceRead );
-        }*/
         else if( auto pLinkBranch = db_cast< Instructions::LinkBranch >( pInstructionGroup ) )
         {
             bTailRecursion = false;
@@ -974,10 +964,6 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pGetContext, pOperation );
         }
-        else if( auto pGetDimension = db_cast< GetDimension >( pInvocation ) )
-        {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pGetDimension, pOperation );
-        }
         else if( auto pRead = db_cast< Read >( pInvocation ) )
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pRead, pOperation );
@@ -986,13 +972,21 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
         {
             gen( Args{ database, variables, functions, data, indent, *m_pInja }, pWrite, pOperation );
         }
-        else if( auto pReadLink = db_cast< ReadLink >( pInvocation ) )
+        else if( auto pLinkRead = db_cast< LinkRead >( pInvocation ) )
         {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pReadLink, pOperation );
+            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkRead, pOperation );
         }
-        else if( auto pWriteLink = db_cast< WriteLink >( pInvocation ) )
+        else if( auto pLinkAdd = db_cast< LinkAdd >( pInvocation ) )
         {
-            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pWriteLink, pOperation );
+            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkAdd, pOperation );
+        }
+        else if( auto pLinkRemove = db_cast< LinkRemove >( pInvocation ) )
+        {
+            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkRemove, pOperation );
+        }
+        else if( auto pLinkClear = db_cast< LinkClear >( pInvocation ) )
+        {
+            gen( Args{ database, variables, functions, data, indent, *m_pInja }, pLinkClear, pOperation );
         }
         else if( auto pRange = db_cast< Range >( pInvocation ) )
         {

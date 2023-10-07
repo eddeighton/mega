@@ -21,7 +21,6 @@
 #include "mega/reference.hpp"
 #include "mega/relation_id.hpp"
 #include "mega/invocation_id.hpp"
-#include "mega/write_operation.hpp"
 
 #if defined( _WIN32 )
 #    define EXPORT_TEST_SYMBOL __declspec( dllexport )
@@ -36,8 +35,6 @@ EXPORT_TEST_SYMBOL void foobar_Ref             ( mega::reference ) {}
 EXPORT_TEST_SYMBOL void foobar_Ref_Ref         ( mega::reference, mega::reference) {}
 EXPORT_TEST_SYMBOL void foobar_Ref_VStar       ( mega::reference, void*) {}
 EXPORT_TEST_SYMBOL void foobar_Ref_CVStar      ( mega::reference, const void* ) {}
-EXPORT_TEST_SYMBOL void foobar_Ref_Wo_RefCR    ( mega::reference, WriteOperation, const mega::reference& ) {}
-EXPORT_TEST_SYMBOL void foobar_Ref_Wo_CVStar   ( mega::reference, WriteOperation, const void* ) {}
 EXPORT_TEST_SYMBOL void foobar_ID_VStar_VStar  ( mega::TypeID, void*, void* ) {}
 EXPORT_TEST_SYMBOL void foobar_Ref_VStar_U64   ( mega::reference, void*, mega::U64 ) {}
 

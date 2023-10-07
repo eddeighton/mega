@@ -361,7 +361,7 @@ reference Simulation::SimAllocate( const TypeID& objectTypeID, boost::asio::yiel
     SPDLOG_TRACE( "SIM::SimAllocate: {} {}", getThisMPO(), objectTypeID );
     QueueStackDepth queueMsgs( m_queueStack );
     reference       allocated = m_pMemoryManager->New( objectTypeID );
-    getLog().record( mega::log::Structure::Write( reference{}, allocated, 0, mega::log::Structure::eConstruct ) );
+    getLog().record( mega::log::Structure::Write( allocated, reference{}, 0, mega::log::Structure::eConstruct ) );
     return allocated.getHeaderAddress();
 }
 

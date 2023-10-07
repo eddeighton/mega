@@ -80,49 +80,9 @@ boost::filesystem::path MegastructureInstallation::getExecutorPath() const
     return getToolchain().megaExecutorPath;
 }
 
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateAllocation() const
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateDir() const
 {
-    return m_installationPath / "templates/allocator.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateRead() const
-{
-    return m_installationPath / "templates/read.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateWrite() const
-{
-    return m_installationPath / "templates/write.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateReadLink() const
-{
-    return m_installationPath / "templates/read_link.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateWriteLink() const
-{
-    return m_installationPath / "templates/write_link.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateCall() const
-{
-    return m_installationPath / "templates/call.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateStart() const
-{
-    return m_installationPath / "templates/start.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateGet() const
-{
-    return m_installationPath / "templates/get.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateRelation() const
-{
-    return m_installationPath / "templates/relation.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateProgram() const
-{
-    return m_installationPath / "templates/program.jinja";
-}
-boost::filesystem::path MegastructureInstallation::getRuntimeTemplateMove() const
-{
-    return m_installationPath / "templates/move.jinja";
+    return m_installationPath / "templates/";
 }
 
 } // namespace mega

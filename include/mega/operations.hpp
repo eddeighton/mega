@@ -40,7 +40,7 @@ struct [[clang::eg_type( mega::id_Imp_Params )]] __eg_ImpParams
     };
 };
 
-struct [[clang::eg_type( mega::id_Move )]] Move
+struct [[clang::eg_type( mega::id_Move )]] MOVE
 {
     enum : mega::TypeID::ValueType
     {
@@ -48,7 +48,7 @@ struct [[clang::eg_type( mega::id_Move )]] Move
     };
 };
 
-struct [[clang::eg_type( mega::id_Get )]] Get
+struct [[clang::eg_type( mega::id_Get )]] GET
 {
     enum : mega::TypeID::ValueType
     {
@@ -56,11 +56,27 @@ struct [[clang::eg_type( mega::id_Get )]] Get
     };
 };
 
-struct [[clang::eg_type( mega::id_Range )]] Range
+struct [[clang::eg_type( mega::id_Range )]] RANGE
 {
     enum : mega::TypeID::ValueType
     {
         ID = mega::id_Range
+    };
+};
+
+struct [[clang::eg_type( mega::id_Remove )]] REMOVE
+{
+    enum : mega::TypeID::ValueType
+    {
+        ID = mega::id_Remove
+    };
+};
+
+struct [[clang::eg_type( mega::id_Clear )]] CLEAR
+{
+    enum : mega::TypeID::ValueType
+    {
+        ID = mega::id_Clear
     };
 };
 

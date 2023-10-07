@@ -29,11 +29,7 @@
 namespace mega::mangle
 {
     void structure_make( const mega::reference& source, const mega::reference& target, mega::U64 relationID );
-    void structure_make_source( const mega::reference& source, const mega::reference& target, mega::U64 relationID );
-    void structure_make_target( const mega::reference& source, const mega::reference& target, mega::U64 relationID );
     void structure_break( const mega::reference& source, const mega::reference& target, mega::U64 relationID );
-    void structure_break_source( const mega::reference& source, const mega::reference& target, mega::U64 relationID );
-    void structure_break_target( const mega::reference& source, const mega::reference& target, mega::U64 relationID );
 
     U64 ref_vector_get_size( void* pData );
     U64 ref_vector_find( void* pData, const mega::reference& ref );
@@ -198,7 +194,7 @@ Link link_load_{{ relationID }}( mega::reference& context, mega::reference& para
     }
     else
     {
-        throw mega::runtime::JITException{ "Counld not match context type to link_load_{{ relationID }}" };
+        throw mega::runtime::JITException{ "Could not match context type in link_load_{{ relationID }}" };
     }
 
     return link;
@@ -209,9 +205,9 @@ struct LinkDataSingular
     mega::reference& ref;
     mega::TypeID& type;
 };
-LinkDataSingular get_data_singular( const mega::reference& ref, mega::U64 refOffset, mega::U64 typeOffset )
+LinkDataSingular get_data_singular( mega::HeapAddress pHeap, mega::U64 refOffset, mega::U64 typeOffset )
 {
-    char* p = reinterpret_cast< char* >( ref.getHeap() );
+    char* p = reinterpret_cast< char* >( pHeap );
     return 
     {
         *reinterpret_cast< mega::reference* >( p + refOffset ),
@@ -224,9 +220,9 @@ struct LinkDataNonSingular
     void* pRef;
     void* pType;
 };
-LinkDataNonSingular get_data_non_singular( const mega::reference& ref, mega::U64 refOffset, mega::U64 typeOffset )
+LinkDataNonSingular get_data_non_singular( mega::HeapAddress pHeap, mega::U64 refOffset, mega::U64 typeOffset )
 {
-    char* p = reinterpret_cast< char* >( ref.getHeap() );
+    char* p = reinterpret_cast< char* >( pHeap );
     return 
     {
         p + refOffset,
@@ -245,7 +241,7 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
 {% if source.singular %}
         case {{ source.type }} :
         {
-            LinkDataSingular source = get_data_singular( link.source_ref, 
+            LinkDataSingular source = get_data_singular( link.source_ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.dimension_offset }}, 
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.link_type_offset }} 
             );
@@ -259,14 +255,14 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
                     case {{ target.type }} :
                     {
 {% if target.singular %}
-                        LinkDataSingular targetRef = get_data_singular( source.ref, 
+                        LinkDataSingular targetRef = get_data_singular( source.ref.getHeap(), 
                             {{ target.part_offset }} + ( {{ target.part_size }} * source.ref.getInstance() ) + {{ target.dimension_offset }}, 
                             {{ target.part_offset }} + ( {{ target.part_size }} * source.ref.getInstance() ) + {{ target.link_type_offset }} 
                         );
                         targetRef.ref   = mega::reference{};
                         targetRef.type  = mega::TypeID{};
 {% else %}
-                        LinkDataNonSingular target = get_data_non_singular( source.ref, 
+                        LinkDataNonSingular target = get_data_non_singular( source.ref.getHeap(), 
                             {{ target.part_offset }} + ( {{ target.part_size }} * source.ref.getInstance() ) + {{ target.dimension_offset }}, 
                             {{ target.part_offset }} + ( {{ target.part_size }} * source.ref.getInstance() ) + {{ target.link_type_offset }} 
                         );
@@ -296,7 +292,7 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
         case {{ target.type }} :
         {
             LinkDataSingular target = get_data_singular( 
-                link.target_ref, 
+                link.target_ref.getHeap(), 
                 {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.link_type_offset }} 
             );
@@ -312,7 +308,7 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
                     {
 {% if source.singular %}
                         LinkDataSingular sourceRef = get_data_singular( 
-                            target.ref, 
+                            target.ref.getHeap(), 
                             {{ source.part_offset }} + ( {{ source.part_size }} * target.ref.getInstance() ) + {{ source.dimension_offset }},
                             {{ source.part_offset }} + ( {{ source.part_size }} * target.ref.getInstance() ) + {{ source.link_type_offset }} 
                         );
@@ -320,7 +316,7 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
                         sourceRef.type = mega::TypeID{};
 {% else %}
                         LinkDataNonSingular sourceRef = get_data_non_singular( 
-                            target.ref, 
+                            target.ref.getHeap(), 
                             {{ source.part_offset }} + ( {{ source.part_size }} * target.ref.getInstance() ) + {{ source.dimension_offset }},
                             {{ source.part_offset }} + ( {{ source.part_size }} * target.ref.getInstance() ) + {{ source.link_type_offset }} 
                         );
@@ -352,14 +348,14 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
         case {{ source.type }} :
         {
 {% if source.singular %}
-            LinkDataSingular source = get_data_singular( link.source_ref, 
+            LinkDataSingular source = get_data_singular( link.source_ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.link_type_offset }} 
             );
             source.ref   = link.target_ref;
             source.type  = link.target_type;
 {% else %}
-            LinkDataNonSingular source = get_data_non_singular( link.source_ref, 
+            LinkDataNonSingular source = get_data_non_singular( link.source_ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.link_type_offset }} 
             );
@@ -375,14 +371,14 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
         case {{ target.type }} :
         {
 {% if target.singular %}
-            LinkDataSingular target = get_data_singular( link.target_ref, 
+            LinkDataSingular target = get_data_singular( link.target_ref.getHeap(), 
                 {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.link_type_offset }}
             );
             target.ref   = link.source_ref;
             target.type  = link.source_type;
 {% else %}
-            LinkDataNonSingular target = get_data_non_singular( link.target_ref, 
+            LinkDataNonSingular target = get_data_non_singular( link.target_ref.getHeap(), 
                 {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.link_type_offset }}
             );
@@ -411,7 +407,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
         case {{ source.type }} :
         {
 {%      if source.singular %}
-            LinkDataSingular source = get_data_singular( link.source_ref, 
+            LinkDataSingular source = get_data_singular( link.source_ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.link_type_offset }} 
             );
@@ -423,7 +419,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                     case {{ target.type }} :
                     {
 {%              if target.singular %}
-                        LinkDataSingular target = get_data_singular( link.target_ref, 
+                        LinkDataSingular target = get_data_singular( link.target_ref.getHeap(), 
                             {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.dimension_offset }},
                             {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.link_type_offset }} 
                         );
@@ -441,7 +437,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                             throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
                         }
 {%              else %}
-                        LinkDataNonSingular target = get_data_non_singular( link.target_ref, 
+                        LinkDataNonSingular target = get_data_non_singular( link.target_ref.getHeap(), 
                             {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.dimension_offset }},
                             {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.link_type_offset }}
                         );
@@ -468,7 +464,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                 throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
             }
 {%      else %}
-            LinkDataNonSingular source = get_data_non_singular( link.source_ref, 
+            LinkDataNonSingular source = get_data_non_singular( link.source_ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * link.source_ref.getInstance() ) + {{ source.link_type_offset }} 
             );
@@ -481,7 +477,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                     case {{ target.type }} :
                     {
 {%              if target.singular %}
-                        LinkDataSingular target = get_data_singular( link.target_ref, 
+                        LinkDataSingular target = get_data_singular( link.target_ref.getHeap(), 
                             {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.dimension_offset }},
                             {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.link_type_offset }}
                         );
@@ -497,7 +493,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                             throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
                         }
 {%              else %}
-                        LinkDataNonSingular target = get_data( link.target_ref, 
+                        LinkDataNonSingular target = get_data( link.target_ref.getHeap(), 
                             {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.dimension_offset }},
                             {{ target.part_offset }} + ( {{ target.part_size }} * link.target_ref.getInstance() ) + {{ target.link_type_offset }} 
                         );
@@ -535,9 +531,8 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
 
 struct Context
 {
-    mega::reference ref;
-    mega::TypeID    type;
-    bool            bIsSource;
+    mega::reference& ref;
+    bool             bIsSource;
 };
 
 // context is ALWAYS actual link type
@@ -553,18 +548,14 @@ Context context_load_{{ relationID }}( mega::reference& ref )
     // load into memory
     prepare( ref );
 
-    Context context;
-
     if( isSource( ref ) )
     {
-        context.bIsSource = true;
-        context.type = ref.getType();
-        switch( context.type )
+        switch( ref.getType() )
         {
 {% for source in sources %}
             case {{ source.type }} : 
             {
-                context.ref = mega::reference::make( ref, mega::TypeInstance{ {{ source.parent_type }}, ref.getInstance() } );
+                return Context{ ref, true };
             }
             break;
 {% endfor %}
@@ -576,14 +567,12 @@ Context context_load_{{ relationID }}( mega::reference& ref )
     }
     else if( isTarget( ref ) )
     {
-        context.bIsSource = false;
-        context.type = ref.getType();
-        switch( context.type )
+        switch( ref.getType() )
         {
 {% for target in targets %}
             case {{ target.type }} : 
             {
-                context.ref = mega::reference::make( ref, mega::TypeInstance{ {{ target.parent_type }}, ref.getInstance() } );
+                return Context{ ref, false };
             }
             break;
 {% endfor %}
@@ -593,12 +582,9 @@ Context context_load_{{ relationID }}( mega::reference& ref )
             }
         }
     }
-    else
-    {
-        throw mega::runtime::JITException{ "Counld not match ref type to link_load_{{ relationID }}" };
-    }
-
-    return context;
+    
+    throw mega::runtime::JITException{ "Could not match ref type to link_load_{{ relationID }}" };
+    return { ref, false };
 }
 
 void link_reset_{{ relationID }}( mega::reference ref )
@@ -607,13 +593,13 @@ void link_reset_{{ relationID }}( mega::reference ref )
 
     if( context.bIsSource )
     {
-        switch( context.type )
+        switch( ref.getType() )
         {
 {% for source in sources %}
             case {{ source.type }} : 
             {
 {% if source.singular %}
-            LinkDataSingular source = get_data_singular( context.ref, 
+            LinkDataSingular source = get_data_singular( context.ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
             );
@@ -622,7 +608,7 @@ void link_reset_{{ relationID }}( mega::reference ref )
                 link_break_{{ relationID }}( context.ref, source.ref );
             }
 {% else %}
-            LinkDataNonSingular source = get_data_non_singular( context.ref, 
+            LinkDataNonSingular source = get_data_non_singular( context.ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
             );
@@ -636,34 +622,34 @@ void link_reset_{{ relationID }}( mega::reference ref )
 {% endfor %}
             default:
             {
-                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+                throw mega::runtime::JITException{ "link_reset_{{ relationID }} given invalid source ref" };
             }
         }
     }
     else
     {
-        switch( context.type )
+        switch( ref.getType() )
         {
 {% for target in targets %}
             case {{ target.type }} : 
             {
 {% if target.singular %}
-            LinkDataSingular target = get_data_singular( context.ref, 
+            LinkDataSingular target = get_data_singular( context.ref.getHeap(), 
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
             );
             if( target.ref.valid() )
             {
-                link_break_{{ relationID }}( target.ref, context.ref );
+                link_break_{{ relationID }}( context.ref, target.ref );
             }
 {% else %}
-            LinkDataNonSingular target = get_data_non_singular( context.ref, 
+            LinkDataNonSingular target = get_data_non_singular( context.ref.getHeap(), 
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
             );
             while( 0 != mega::mangle::ref_vector_get_size( target.pRef ) )
             {
-                link_break_{{ relationID }}( mega::mangle::ref_vector_get_at( target.pRef, 0U ), context.ref,  );
+                link_break_{{ relationID }}( context.ref, mega::mangle::ref_vector_get_at( target.pRef, 0U ) );
             }
 {% endif %}
             }
@@ -671,12 +657,11 @@ void link_reset_{{ relationID }}( mega::reference ref )
 {% endfor %}
             default:
             {
-                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+                throw mega::runtime::JITException{ "link_reset_{{ relationID }} given invalid source ref" };
             }
         }
     }
 }
-
 
 mega::U64 link_size_{{ relationID }}( mega::reference ref )
 {
@@ -684,19 +669,19 @@ mega::U64 link_size_{{ relationID }}( mega::reference ref )
 
     if( context.bIsSource )
     {
-        switch( context.type )
+        switch( ref.getType() )
         {
 {% for source in sources %}
             case {{ source.type }} : 
             {
 {% if source.singular %}
-            LinkDataSingular source = get_data_singular( context.ref, 
+            LinkDataSingular source = get_data_singular( context.ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
             );
             return source.ref.valid() ? 1U : 0U;
 {% else %}
-            LinkDataNonSingular source = get_data_non_singular( context.ref, 
+            LinkDataNonSingular source = get_data_non_singular( context.ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
             );
@@ -707,25 +692,25 @@ mega::U64 link_size_{{ relationID }}( mega::reference ref )
 {% endfor %}
             default:
             {
-                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+                throw mega::runtime::JITException{ "link_size_{{ relationID }} given invalid source ref" };
             }
         }
     }
     else
     {
-        switch( context.type )
+        switch( ref.getType() )
         {
 {% for target in targets %}
             case {{ target.type }} : 
             {
 {% if target.singular %}
-            LinkDataSingular target = get_data_singular( context.ref, 
+            LinkDataSingular target = get_data_singular( context.ref.getHeap(), 
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
             );
             return target.ref.valid() ? 1U : 0U;
 {% else %}
-            LinkDataNonSingular target = get_data_non_singular( context.ref, 
+            LinkDataNonSingular target = get_data_non_singular( context.ref.getHeap(), 
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
             );
@@ -736,7 +721,7 @@ mega::U64 link_size_{{ relationID }}( mega::reference ref )
 {% endfor %}
             default:
             {
-                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+                throw mega::runtime::JITException{ "link_size_{{ relationID }} given invalid source ref" };
             }
         }
     }
@@ -749,19 +734,19 @@ mega::reference link_get_{{ relationID }}( mega::reference ref, mega::U64 index 
 
     if( context.bIsSource )
     {
-        switch( context.type )
+        switch( ref.getType() )
         {
 {% for source in sources %}
             case {{ source.type }} : 
             {
 {% if source.singular %}
-            LinkDataSingular source = get_data_singular( context.ref, 
+            LinkDataSingular source = get_data_singular( context.ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
             );
             return source.ref;
 {% else %}
-            LinkDataNonSingular source = get_data_non_singular( context.ref, 
+            LinkDataNonSingular source = get_data_non_singular( context.ref.getHeap(), 
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
             );
@@ -772,25 +757,25 @@ mega::reference link_get_{{ relationID }}( mega::reference ref, mega::U64 index 
 {% endfor %}
             default:
             {
-                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+                throw mega::runtime::JITException{ "link_get_{{ relationID }} given invalid source ref" };
             }
         }
     }
     else
     {
-        switch( context.type )
+        switch( ref.getType() )
         {
 {% for target in targets %}
             case {{ target.type }} : 
             {
 {% if target.singular %}
-            LinkDataSingular target = get_data_singular( context.ref, 
+            LinkDataSingular target = get_data_singular( context.ref.getHeap(), 
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
             );
             return target.ref;
 {% else %}
-            LinkDataNonSingular target = get_data_non_singular( context.ref, 
+            LinkDataNonSingular target = get_data_non_singular( context.ref.getHeap(), 
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
             );
@@ -801,7 +786,7 @@ mega::reference link_get_{{ relationID }}( mega::reference ref, mega::U64 index 
 {% endfor %}
             default:
             {
-                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source ref" };
+                throw mega::runtime::JITException{ "link_get_{{ relationID }} given invalid source ref" };
             }
         }
     }

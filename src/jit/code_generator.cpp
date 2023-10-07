@@ -76,13 +76,13 @@ std::string CodeGenerator::allocatorTypeName( const JITDatabase&                
     }
     else if( auto pAlloc64 = db_cast< Allocators::Range64 >( pAllocator ) )
     {
-        const auto allocatorSize = pAlloc32->get_local_size();
+        const auto allocatorSize = pAlloc64->get_local_size();
         VERIFY_RTE( localDomainSize == allocatorSize );
         osTypeName << "mega::Bitmask64Allocator< " << allocatorSize << " >";
     }
     else if( auto pAllocAny = db_cast< Allocators::RangeAny >( pAllocator ) )
     {
-        const auto allocatorSize = pAlloc32->get_local_size();
+        const auto allocatorSize = pAllocAny->get_local_size();
         VERIFY_RTE( localDomainSize == allocatorSize );
         osTypeName << "mega::RingAllocator< mega::Instance, " << allocatorSize << " >";
     }
@@ -138,38 +138,7 @@ void CodeGenerator::generate_invocation( const LLVMCompiler& compiler, const JIT
     std::ostringstream osCPPCode;
     try
     {
-        switch( invocationType )
-        {
-            case mega::runtime::invocation::eRead:
-                m_pInja->render_read( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eWrite:
-                m_pInja->render_write( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eCall:
-                m_pInja->render_call( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eReadLink:
-                m_pInja->render_readLink( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eWriteLink:
-                m_pInja->render_writeLink( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eGet:
-                m_pInja->render_get( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eStart:
-                // also works for event
-                m_pInja->render_start( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eMove:
-                m_pInja->render_move( data, osCPPCode );
-                break;
-            case mega::runtime::invocation::eWriteLinkRange:
-            case mega::runtime::invocation::TOTAL_FUNCTION_TYPES:
-            default:
-                THROW_RTE( "Unsupported operation type" );
-        }
+        m_pInja->render_invocation( data, osCPPCode );
     }
     catch( inja::InjaError& ex )
     {

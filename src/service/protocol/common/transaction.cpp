@@ -51,8 +51,6 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
             }
             break;
             case log::Structure::eMake:
-            case log::Structure::eMakeSource:
-            case log::Structure::eMakeTarget:
             {
                 transactions[ r.getSource().getMPO() ].push_back( r );
             }
@@ -61,26 +59,14 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
             {
                 ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
                 transactions[ r.getSource().getMPO() ].push_back( r );
-            }
-            break;
-            case log::Structure::eBreakSource:
-            {
-                transactions[ r.getSource().getMPO() ].push_back( r );
-                ASSERT( r.getSource().isHeapAddress() );
-                if( r.getSource().getRefCount() == 0U )
+                /*if( r.getSource().getRefCount() == 0U )
                 {
                     unparented.insert( r.getSource().getObjectAddress() );
                 }
-            }
-            break;
-            case log::Structure::eBreakTarget:
-            {
-                transactions[ r.getTarget().getMPO() ].push_back( r );
-                ASSERT( r.getTarget().isHeapAddress() );
                 if( r.getTarget().getRefCount() == 0U )
                 {
-                    unparented.insert( r.getTarget().getObjectAddress() );
-                }
+                    unparented.insert( r.getSource().getObjectAddress() );
+                }*/
             }
             break;
             case log::Structure::eMove:
@@ -88,7 +74,7 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
                 // transactions[ r.getSource().getMPO() ].push_back( r );
 
                 // prevent locally deleting the object
-                unparented.erase( r.getSource().getObjectAddress() );
+                //unparented.erase( r.getSource().getObjectAddress() );
                 movedObjects.insert( { r.getTarget().getMPO(), { r.getSource(), r.getTarget() } } );
             }
             break;

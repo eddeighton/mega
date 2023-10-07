@@ -89,10 +89,10 @@ struct variant_runtime_type_check
 } // namespace mega
 
 template< typename Context, typename TypePath, typename Operation, typename... Args >
-static void invoke_impl_void( Context context, Args... args );
+static void invoke_impl_void( Context& context, Args... args );
 
 template< typename ResultType, typename Context, typename TypePath, typename Operation, typename... Args >
-static ResultType invoke_impl( Context context, Args... args );
+static ResultType invoke_impl( Context& context, Args... args );
 
 template < typename... Ts >
 struct [[clang::eg_type( mega::id_Variant )]] __eg_variant : public mega::reference
@@ -174,11 +174,12 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant : public mega::refere
     template< typename TypePath, typename Operation, typename... Args >
     inline typename mega::result_type< __eg_variant< Ts... >, TypePath, Operation >::Type invoke( Args... args ) const
     {
-        using ResultType = typename mega::result_type< __eg_variant< Ts... >, TypePath, Operation >::Type;
+        using ThisType = __eg_variant< Ts... >;
+        using ResultType = typename mega::result_type< ThisType, TypePath, Operation >::Type;
         if constexpr ( std::is_same< ResultType, void >::value )
-            invoke_impl_void< __eg_variant< Ts... >, TypePath, Operation, Args... >( *this, args... );
+            invoke_impl_void< ThisType, TypePath, Operation, Args... >( const_cast< ThisType& >( *this ), args... );
         if constexpr ( !std::is_same< ResultType, void >::value )
-            return invoke_impl< ResultType, __eg_variant< Ts... >, TypePath, Operation, Args... >( *this, args... );
+            return invoke_impl< ResultType,ThisType, TypePath, Operation, Args... >( const_cast< ThisType& >( *this ), args... );
     }
 };
 

@@ -54,6 +54,9 @@ struct FunctionDeclarations
         return {
             { "name", strName },
             { "module_name", strName },
+            { "has_parameter_context", false },
+            { "has_parameter_data", false },
+            { "return_type", "void" },
             { "copiers", nlohmann::json::array() },
             { "events", nlohmann::json::array() },
             { "variables", nlohmann::json::array() },

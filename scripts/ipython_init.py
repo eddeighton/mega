@@ -42,8 +42,6 @@ F2 = mega.F2
 F3 = mega.F3
 F4 = mega.F4
 Quat = mega.Quat
-REMOVE = mega.WriteOperation.REMOVE
-RESET = mega.WriteOperation.RESET
 
 _continue = True
 

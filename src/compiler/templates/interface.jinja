@@ -31,10 +31,10 @@ struct [[clang::eg_type( {{ forward_decl.symbol }} )]]{{ forward_decl.name }}
 {% endfor %}
 
 template< typename Context, typename TypePath, typename Operation, typename... Args >
-static void invoke_impl_void( Context context, Args... args );
+static void invoke_impl_void( Context& context, Args... args );
 
 template< typename ResultType, typename Context, typename TypePath, typename Operation, typename... Args >
-static ResultType invoke_impl( Context context, Args... args );
+static ResultType invoke_impl( Context& context, Args... args );
 
 // operators
 template< typename TObject >

@@ -63,6 +63,7 @@ public:
     void addDynamicInvocation( const InvocationID& invocation, const FinalStage::Operations::Invocation* pInvocation );
 
     TypeID                                       getInterfaceTypeID( TypeID concreteTypeID ) const;
+    TypeID                                       getSingularConcreteTypeID( TypeID interfaceTypeID ) const;
     std::vector< TypeID >                        getCompatibleConcreteTypes( TypeID interfaceTypeID ) const;
     FinalStage::Concrete::Object*                getObject( TypeID objectType ) const;
     FinalStage::Interface::Action*               getAction( TypeID interfaceTypeID ) const;

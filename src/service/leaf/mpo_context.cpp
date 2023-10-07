@@ -267,7 +267,8 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     // instantiate the root
     m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
     VERIFY_RTE_MSG( m_root.valid(), "Root allocation failed" );
-    m_pLog->record( mega::log::Structure::Write( reference{}, m_root, 0, mega::log::Structure::eConstruct ) );
+    SPDLOG_TRACE( "MPOContext::createRoot: root: {} net: {}", m_root.getObjectAddress(), m_root.getNetworkAddress() );
+    m_pLog->record( mega::log::Structure::Write( m_root, reference{}, 0, mega::log::Structure::eConstruct ) );
 }
 
 void MPOContext::jit( runtime::JITFunctor func )
@@ -301,13 +302,9 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
                 case log::Structure::eDestruct:
                     break;
                 case log::Structure::eMake:
-                case log::Structure::eMakeSource:
-                case log::Structure::eMakeTarget:
                     recordMake( structure.m_data.m_Source, structure.m_data.m_Target );
                     break;
                 case log::Structure::eBreak:
-                case log::Structure::eBreakSource:
-                case log::Structure::eBreakTarget:
                     recordBreak( structure.m_data.m_Source, structure.m_data.m_Target );
                     break;
                 case log::Structure::eMove:

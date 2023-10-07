@@ -43,18 +43,7 @@ public:
     boost::filesystem::path        getClangPath() const;
     boost::filesystem::path        getMegaIncludePath() const;
     boost::filesystem::path        getExecutorPath() const;
-
-    boost::filesystem::path getRuntimeTemplateAllocation() const;
-    boost::filesystem::path getRuntimeTemplateRead() const;
-    boost::filesystem::path getRuntimeTemplateWrite() const;
-    boost::filesystem::path getRuntimeTemplateReadLink() const;
-    boost::filesystem::path getRuntimeTemplateWriteLink() const;
-    boost::filesystem::path getRuntimeTemplateCall() const;
-    boost::filesystem::path getRuntimeTemplateStart() const;
-    boost::filesystem::path getRuntimeTemplateGet() const;
-    boost::filesystem::path getRuntimeTemplateRelation() const;
-    boost::filesystem::path getRuntimeTemplateProgram() const;
-    boost::filesystem::path getRuntimeTemplateMove() const;
+    boost::filesystem::path        getRuntimeTemplateDir() const;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -66,6 +55,6 @@ private:
     boost::filesystem::path m_installationPath;
 };
 
-} // namespace mega::network
+} // namespace mega
 
 #endif // MEGASTRUCTURE_INSTALLATION_16_AUG_2022

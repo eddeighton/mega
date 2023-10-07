@@ -184,10 +184,6 @@ namespace Operations
     {
     }
 
-    object GetDimension : Invocation -> OperationsStage::Operations
-    {
-    }
-
     object Read : Invocation -> OperationsStage::Operations
     {
     }
@@ -197,11 +193,19 @@ namespace Operations
         ref< ReturnTypes::ReturnType > parameter_type;
     }
 
-    object ReadLink : Invocation -> OperationsStage::Operations
+    object LinkRead : Invocation -> OperationsStage::Operations
     {
     }
 
-    object WriteLink : Invocation -> OperationsStage::Operations
+    object LinkAdd : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object LinkRemove : Invocation -> OperationsStage::Operations
+    {
+    }
+
+    object LinkClear : Invocation -> OperationsStage::Operations
     {
     }
 

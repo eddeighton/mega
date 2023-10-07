@@ -39,11 +39,7 @@
                         "Construct",
                         "Destruct",
                         "Make",
-                        "MakeSource",
-                        "MakeTarget",
                         "Break",
-                        "BreakSource",
-                        "BreakTarget",
                         "Move"
                     ]
                 }

@@ -21,7 +21,7 @@
 #ifndef GUARD_2023_January_07_memory_manager
 #define GUARD_2023_January_07_memory_manager
 
-#include "fixed_allocator.hpp"
+//#include "fixed_allocator.hpp"
 
 #include "jit/allocator.hpp"
 #include "jit/object_header.hpp"
@@ -43,21 +43,24 @@ namespace mega::runtime
 
 class MemoryManager
 {
-    using PtrVariant = std::variant< HeapBufferPtr, FixedAllocator::FixedPtr >;
+    using PtrVariant = std::variant< 
+        HeapBufferPtr
+        //, FixedAllocator::FixedPtr
+     >;
     inline void* get( const PtrVariant& ptr )
     {
         struct GetPtrVisitor
         {
             void* operator()( const HeapBufferPtr& heapPtr ) const { return heapPtr.get(); }
-            void* operator()( const FixedAllocator::FixedPtr& fixedPtr ) const { return fixedPtr.get(); }
+            //void* operator()( const FixedAllocator::FixedPtr& fixedPtr ) const { return fixedPtr.get(); }
         };
         return std::visit( GetPtrVisitor{}, ptr );
     }
 
     using HeapMap       = std::unordered_map< reference, PtrVariant, reference::Hash >;
     using NetMap        = std::unordered_map< reference, reference, reference::Hash >;
-    using Allocators    = std::map< TypeID, FixedAllocator::Ptr >;
-    using AllocatorMap  = std::unordered_map< TypeID, FixedAllocator*, TypeID::Hash >;
+    //using Allocators    = std::map< TypeID, FixedAllocator::Ptr >;
+    //using AllocatorMap  = std::unordered_map< TypeID, FixedAllocator*, TypeID::Hash >;
     using OldHeapVector = std::vector< PtrVariant >;
 
 public:
@@ -69,13 +72,13 @@ public:
         status.m_heap   = m_usedHeapMemory;
         status.m_object = m_heapMap.size();
 
-        auto i = status.m_allocators.begin();
+        /*auto i = status.m_allocators.begin();
         for( const auto& [ typeID, pAllocator ] : m_allocators )
         {
             i->typeID = typeID;
             i->status = pAllocator->getStatus();
             ++i;
-        }
+        }*/
         return status;
     }
 
@@ -85,7 +88,7 @@ public:
         , m_mpo( mpo )
         , m_getAllocatorFPtr( std::move( getAllocatorFunction ) )
     {
-        for( const auto& [ typeID, pMapping ] : database.getMemoryMappings() )
+        /*for( const auto& [ typeID, pMapping ] : database.getMemoryMappings() )
         {
             FixedAllocator::Ptr pAllocator = std::make_unique< FixedAllocator >(
                 pMapping->get_block_size(), pMapping->get_fixed_allocation(), pMapping->get_block_alignment() );
@@ -98,7 +101,7 @@ public:
             }
 
             m_allocators.insert( { typeID, std::move( pAllocator ) } );
-        }
+        }*/
     }
 /*
     inline network::SenderRef::AllocatorBaseArray getAllocators() const
@@ -167,7 +170,7 @@ public:
         // must acquire allocator EVERYTIME for now - which means request to JIT
         const TypeID   objectType = TypeID::make_object_from_typeID( typeID );
         Allocator::Ptr pAllocator = m_getAllocatorFPtr( objectType );
-        auto           iFind      = m_allocatorsMap.find( objectType );
+        /*auto           iFind      = m_allocatorsMap.find( objectType );
         if( iFind != m_allocatorsMap.end() )
         {
             // SPDLOG_TRACE( "Memory Manager:New fixed allocation for: {} of {}", typeID, objectType );
@@ -175,7 +178,7 @@ public:
             const reference          networkAddress{ TypeInstance{ typeID, 0 }, m_mpo, pFixed.getID() };
             return construct( networkAddress, PtrVariant{ std::move( pFixed ) }, pAllocator );
         }
-        else
+        else*/
         {
             // SPDLOG_TRACE( "Memory Manager:New heap allocation for: {} of {}", typeID, objectType );
             auto          sizeAlign = pAllocator->getSizeAlignment();
@@ -245,8 +248,8 @@ private:
     GetAllocatorFPtr m_getAllocatorFPtr;
     HeapMap          m_heapMap;
     NetMap           m_netMap;
-    Allocators       m_allocators;
-    AllocatorMap     m_allocatorsMap;
+    //Allocators       m_allocators;
+    //AllocatorMap     m_allocatorsMap;
     OldHeapVector    m_oldHeap;
 };
 

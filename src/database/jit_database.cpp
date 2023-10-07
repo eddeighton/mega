@@ -256,6 +256,31 @@ mega::TypeID JITDatabase::getInterfaceTypeID( mega::TypeID concreteTypeID ) cons
     }
 }
 
+TypeID JITDatabase::getSingularConcreteTypeID( TypeID interfaceTypeID ) const
+{
+    auto iFind = m_interfaceTypeIDs.find( interfaceTypeID );
+    VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate interface type id: " << interfaceTypeID );
+    auto pInterfaceTypeID = iFind->second;
+
+    // assume only for context
+    auto pContextOPT = pInterfaceTypeID->get_context();
+    VERIFY_RTE_MSG( pContextOPT.has_value(), "Interface type not a context for type id: " << interfaceTypeID );
+    auto pInterfaceContext = pContextOPT.value();
+
+    std::optional< TypeID > matchingConcrete;
+    for( auto pConcrete : pInterfaceContext->get_concrete() )
+    {
+        if( pConcrete->get_interface() == pInterfaceContext )
+        {
+            VERIFY_RTE( !matchingConcrete.has_value() );
+            matchingConcrete = pConcrete->get_concrete_id();
+        }
+    }
+    VERIFY_RTE_MSG( matchingConcrete.has_value(),
+                    "Failed to determine unique concrete type for interface type: " << interfaceTypeID );
+    return matchingConcrete.value();
+}
+
 std::vector< TypeID > JITDatabase::getCompatibleConcreteTypes( TypeID interfaceTypeID ) const
 {
     using ::operator<<;

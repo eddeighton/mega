@@ -30,9 +30,11 @@ namespace mega
 static const OperationIDStringArray g_pszOperationStrings = {
     std::string( "__eg_ImpNoParams" ),
     std::string( "__eg_ImpParams" ),
-    std::string( "Move" ),
-    std::string( "Get" ),
-    std::string( "Range" )
+    std::string( "MOVE" ),
+    std::string( "GET" ),
+    std::string( "RANGE" ),
+    std::string( "REMOVE" ),
+    std::string( "CLEAR" )
 };
 static_assert( HIGHEST_OPERATION_TYPE - TypeID::LOWEST_SYMBOL_ID == g_pszOperationStrings.size(),
                "Incorrect operation strings" );
@@ -64,14 +66,17 @@ static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings =
 {
     std::string( "Read" ),
     std::string( "Write" ),
-    std::string( "ReadLink" ),
-    std::string( "WriteLink" ),
+
+    std::string( "LinkRead" ),
+    std::string( "LinkAdd" ),
+    std::string( "LinkRemove" ),
+    std::string( "LinkClear" ),
+
     std::string( "Call" ),
     std::string( "Signal" ),
     std::string( "Start" ),
     std::string( "Move" ),
     std::string( "GetContext" ),
-    std::string( "GetDimension" ),
     std::string( "Range" )
 };
 // clang-format on
