@@ -111,7 +111,7 @@ void mega_delete_{{ interface_type }}( mega::reference ref )
         THROW_RTE( "inja::InjaError in CodeGenerator::gen_new: " << ex.what() );
     }
     std::ostringstream osModule;
-    osModule << "mega_new_" << printTypeID( interfaceTypeID );
+    osModule << "mega_delete_" << printTypeID( interfaceTypeID );
     compiler.compileToLLVMIR( osModule.str(), osCPPCode.str(), os, std::nullopt );
 }
 

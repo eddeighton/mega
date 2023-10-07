@@ -178,10 +178,11 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
     {
         data[ "owning" ] = true;
 
+        auto owners = pOwningRelation->get_owners();
+
         {
             std::vector< Interface::LinkTrait* > linkTraits;
             {
-                auto owners = pOwningRelation->get_owners();
                 for( auto i = owners.begin(), iEnd = owners.end(); i != iEnd; i = owners.upper_bound( i->first ) )
                 {
                     linkTraits.push_back( i->first );
@@ -193,14 +194,13 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                 {
                     auto pParent = db_cast< Concrete::UserDimensionContext >( pConcrete->get_parent_context() );
                     VERIFY_RTE( pParent );
-                    const bool bHasUniqueParent = pParent->get_links().size() == 1;
 
                     auto pPart = pConcrete->get_part();
                     VERIFY_RTE( pConcrete->get_link_type()->get_part() == pPart );
                     nlohmann::json source(
                         { { "type", printTypeID( pConcrete->get_concrete_id() ) },
                           { "parent_type", printTypeID( pConcrete->get_parent_context()->get_concrete_id() ) },
-                          { "has_unique_parent", bHasUniqueParent },
+                          { "parameter_types", nlohmann::json::array() },
                           { "part_offset", pPart->get_offset() },
                           { "part_size", pPart->get_size() },
                           { "dimension_offset", pConcrete->get_offset() },
@@ -208,14 +208,37 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                           { "singular", pLinkTrait->get_cardinality().isSingular() }
 
                         } );
+
+                    // determine if parent context is unique for the parameter
+                    std::map< Concrete::Context*, int > contextCount;
+                    for( auto i = owners.lower_bound( pLinkTrait ), iEnd = owners.upper_bound( pLinkTrait ); i != iEnd;
+                         ++i )
+                    {
+                        contextCount[ i->second->get_parent_context() ]++;
+                    }
+                    for( auto i = owners.lower_bound( pLinkTrait ), iEnd = owners.upper_bound( pLinkTrait ); i != iEnd;
+                         ++i )
+                    {
+                        auto           pConcreteOwnershipLink = i->second;
+                        nlohmann::json parameter_type(
+                            { { "type", printTypeID( pConcreteOwnershipLink->get_concrete_id() ) },
+                              { "parent_type",
+                                printTypeID( pConcreteOwnershipLink->get_parent_context()->get_concrete_id() ) },
+                              { "unique_parent_context",
+                                contextCount[ pConcreteOwnershipLink->get_parent_context() ] == 1 } }
+
+                        );
+                        source[ "parameter_types" ].push_back( parameter_type );
+                    }
+
                     data[ "sources" ].push_back( source );
                 }
             }
         }
         {
+            auto                                                owned = pOwningRelation->get_owned();
             std::vector< Concrete::Dimensions::OwnershipLink* > ownershipLinks;
             {
-                auto owned = pOwningRelation->get_owned();
                 for( auto i = owned.begin(), iEnd = owned.end(); i != iEnd; i = owned.upper_bound( i->first ) )
                 {
                     ownershipLinks.push_back( i->first );
@@ -226,15 +249,11 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                 auto pObject = db_cast< Concrete::Object >( pOwnershipLink->get_parent_context() );
                 VERIFY_RTE( pObject );
 
-                auto pParent = db_cast< Concrete::UserDimensionContext >( pObject );
-                VERIFY_RTE( pParent );
-                const bool bHasUniqueParent = pParent->get_links().size() == 1;
-
                 auto pPart = pOwnershipLink->get_part();
                 VERIFY_RTE( pOwnershipLink->get_link_type()->get_part() == pPart );
                 nlohmann::json target( { { "type", printTypeID( pOwnershipLink->get_concrete_id() ) },
                                          { "parent_type", printTypeID( pObject->get_concrete_id() ) },
-                                         { "has_unique_parent", bHasUniqueParent },
+                                         { "parameter_types", nlohmann::json::array() },
                                          { "part_offset", pPart->get_offset() },
                                          { "part_size", pPart->get_size() },
                                          { "dimension_offset", pOwnershipLink->get_offset() },
@@ -242,6 +261,34 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                                          { "singular", true }
 
                 } );
+
+                // determine if parent context is unique for the parameter
+                std::map< Concrete::Context*, int > contextCount;
+                for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink );
+                     i != iEnd; ++i )
+                {
+                    auto pLinkTrait = i->second;
+                    for( auto pConcrete : pLinkTrait->get_concrete() )
+                    {
+                        contextCount[ pConcrete->get_parent_context() ]++;
+                    }
+                }
+                for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink );
+                     i != iEnd; ++i )
+                {
+                    auto pLinkTrait = i->second;
+                    for( auto pConcrete : pLinkTrait->get_concrete() )
+                    {
+                        nlohmann::json parameter_type(
+                            { { "type", printTypeID( pConcrete->get_concrete_id() ) },
+                              { "parent_type", printTypeID( pConcrete->get_parent_context()->get_concrete_id() ) },
+                              { "unique_parent_context", contextCount[ pConcrete->get_parent_context() ] == 1 } }
+
+                        );
+                        target[ "parameter_types" ].push_back( parameter_type );
+                    }
+                }
+
                 data[ "targets" ].push_back( target );
             }
         }
@@ -258,14 +305,10 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                 auto pPart = pLink->get_part();
                 VERIFY_RTE( pLink->get_link_type()->get_part() == pPart );
 
-                auto pParent = db_cast< Concrete::UserDimensionContext >( pConcrete->get_parent_context() );
-                VERIFY_RTE( pParent );
-                const bool bHasUniqueParent = pParent->get_links().size() == 1;
-
                 nlohmann::json source(
                     { { "type", printTypeID( pLink->get_concrete_id() ) },
                       { "parent_type", printTypeID( pLink->get_parent_context()->get_concrete_id() ) },
-                      { "has_unique_parent", bHasUniqueParent },
+                      { "parameter_types", nlohmann::json::array() },
                       { "part_offset", pPart->get_offset() },
                       { "part_size", pPart->get_size() },
                       { "dimension_offset", pLink->get_offset() },
@@ -273,6 +316,19 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                       { "singular", pSource->get_cardinality().isSingular() }
 
                     } );
+
+                // determine if parent context is unique for the parameter
+                for( auto pConcrete : pNonOwningRelation->get_target()->get_concrete() )
+                {
+                    nlohmann::json parameter_type(
+                        { { "type", printTypeID( pConcrete->get_concrete_id() ) },
+                          { "parent_type", printTypeID( pConcrete->get_parent_context()->get_concrete_id() ) },
+                          { "unique_parent_context", true } }
+
+                    );
+                    source[ "parameter_types" ].push_back( parameter_type );
+                }
+
                 data[ "sources" ].push_back( source );
             }
         }
@@ -284,14 +340,10 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                 VERIFY_RTE( pLink );
                 auto pPart = pLink->get_part();
 
-                auto pParent = db_cast< Concrete::UserDimensionContext >( pConcrete->get_parent_context() );
-                VERIFY_RTE( pParent );
-                const bool bHasUniqueParent = pParent->get_links().size() == 1;
-
                 nlohmann::json target(
                     { { "type", printTypeID( pLink->get_concrete_id() ) },
                       { "parent_type", printTypeID( pLink->get_parent_context()->get_concrete_id() ) },
-                      { "has_unique_parent", bHasUniqueParent },
+                      { "parameter_types", nlohmann::json::array() },
                       { "part_offset", pPart->get_offset() },
                       { "part_size", pPart->get_size() },
                       { "dimension_offset", pLink->get_offset() },
@@ -299,6 +351,19 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                       { "singular", pTarget->get_cardinality().isSingular() }
 
                     } );
+
+                // determine if parent context is unique for the parameter
+                for( auto pConcrete : pNonOwningRelation->get_target()->get_concrete() )
+                {
+                    nlohmann::json parameter_type(
+                        { { "type", printTypeID( pConcrete->get_concrete_id() ) },
+                          { "parent_type", printTypeID( pConcrete->get_parent_context()->get_concrete_id() ) },
+                          { "unique_parent_context", true } }
+
+                    );
+                    target[ "parameter_types" ].push_back( parameter_type );
+                }
+
                 data[ "targets" ].push_back( target );
             }
         }

@@ -117,36 +117,36 @@ Link link_load_{{ relationID }}( mega::reference& context, mega::reference& para
             case {{ source.type }} : 
             {
                 link.source_ref = mega::reference::make( context, mega::TypeInstance{ {{ source.parent_type }}, context.getInstance() } );
+
+                switch( parameter.getType() )
+                {
+{% for parameter_type in source.parameter_types %}
+{% if parameter_type.unique_parent_context %}
+                    case {{ parameter_type.parent_type }}:
+                    {
+                        link.target_type = mega::TypeID{ {{ parameter_type.type }} };
+                        link.target_ref = mega::reference::make( parameter, mega::TypeInstance{ {{ parameter_type.parent_type }}, parameter.getInstance() } );
+                    }
+                    break;
+{% endif %}
+                    case {{ parameter_type.type }}:
+                    {
+                        link.target_type = mega::TypeID{ {{ parameter_type.type }} };
+                        link.target_ref = mega::reference::make( parameter, mega::TypeInstance{ {{ parameter_type.parent_type }}, parameter.getInstance() } );
+                    }
+                    break;
+{% endfor %}
+                    default:
+                    {
+                        throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid target parameter" };
+                    }
+                }
             }
             break;
 {% endfor %}
             default:
             {
                 throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source context" };
-            }
-        }
-
-        switch( parameter.getType() )
-        {
-{% for target in targets %}
-{% if target.has_unique_parent %}
-            case {{ target.parent_type }} : 
-            {
-                link.target_type = mega::TypeID{ {{ target.type }} };
-                link.target_ref = mega::reference::make( parameter, mega::TypeInstance{ {{ target.parent_type }}, parameter.getInstance() } );
-            }
-            break;
-{% endif %}
-            case {{ target.type }} : 
-            {
-                link.target_type = mega::TypeID{ {{ target.type }} };
-                link.target_ref = mega::reference::make( parameter, mega::TypeInstance{ {{ target.parent_type }}, parameter.getInstance() } );
-            }
-            break;
-{% endfor %}
-            default:
-            {
-                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid target parameter" };
             }
         }
     }
@@ -159,36 +159,37 @@ Link link_load_{{ relationID }}( mega::reference& context, mega::reference& para
             case {{ target.type }} : 
             {
                 link.target_ref = mega::reference::make( context, mega::TypeInstance{ {{ target.parent_type }}, context.getInstance() } );
+
+                switch( parameter.getType() )
+                {
+{% for parameter_type in target.parameter_types %}
+{% if parameter_type.unique_parent_context %}
+                    case {{ parameter_type.parent_type }}:
+                    {
+                        link.source_type = mega::TypeID{ {{ parameter_type.type }} };
+                        link.source_ref = mega::reference::make( parameter, mega::TypeInstance{ {{ parameter_type.parent_type }}, parameter.getInstance() } );
+                    }
+                    break;
+{% endif %}
+                    case {{ parameter_type.type }}:
+                    {
+                        link.source_type = mega::TypeID{ {{ parameter_type.type }} };
+                        link.source_ref = mega::reference::make( parameter, mega::TypeInstance{ {{ parameter_type.parent_type }}, parameter.getInstance() } );
+                    }
+                    break;
+{% endfor %}
+                    default:
+                    {
+                        throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source parameter" };
+                    }
+                }
+
             }
             break;
 {% endfor %}
             default:
             {
                 throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid target context" };
-            }
-        }
-
-        switch( parameter.getType() )
-        {
-{% for source in sources %}
-{% if source.has_unique_parent %}
-            case {{ source.parent_type }} : 
-            {
-                link.source_type = mega::TypeID{ {{ source.type }} };
-                link.source_ref = mega::reference::make( parameter, mega::TypeInstance{ {{ source.parent_type }}, parameter.getInstance() } );
-            }
-            break;
-{% endif %}
-            case {{ source.type }} : 
-            {
-                link.source_type = mega::TypeID{ {{ source.type }} };
-                link.source_ref = mega::reference::make( parameter, mega::TypeInstance{ {{ source.parent_type }}, parameter.getInstance() } );
-            }
-            break;
-{% endfor %}
-            default:
-            {
-                throw mega::runtime::JITException{ "link_load_{{ relationID }} given invalid source parameter" };
             }
         }
     }
@@ -605,7 +606,8 @@ void link_reset_{{ relationID }}( mega::reference ref )
             );
             if( source.ref.valid() )
             {
-                link_break_{{ relationID }}( context.ref, source.ref );
+                link_break_{{ relationID }}( context.ref, 
+                    mega::reference::make( source.ref, mega::TypeInstance( source.type, source.ref.getInstance() ) ) );
             }
 {% else %}
             LinkDataNonSingular source = get_data_non_singular( context.ref.getHeap(), 
@@ -614,7 +616,9 @@ void link_reset_{{ relationID }}( mega::reference ref )
             );
             while( 0 != mega::mangle::ref_vector_get_size( source.pRef ) )
             {
-                link_break_{{ relationID }}( context.ref, mega::mangle::ref_vector_get_at( source.pRef, 0U ) );
+                auto temp = mega::mangle::ref_vector_get_at( source.pRef, 0U );
+                link_break_{{ relationID }}( context.ref, 
+                    mega::reference::make( temp.ref, mega::TypeInstance( source.type, temp.ref.getInstance() ) ) );
             }
 {% endif %}
             }
@@ -640,7 +644,8 @@ void link_reset_{{ relationID }}( mega::reference ref )
             );
             if( target.ref.valid() )
             {
-                link_break_{{ relationID }}( context.ref, target.ref );
+                link_break_{{ relationID }}( context.ref, 
+                    mega::reference::make( target.ref, mega::TypeInstance( target.type, target.ref.getInstance() ) ) );
             }
 {% else %}
             LinkDataNonSingular target = get_data_non_singular( context.ref.getHeap(), 
@@ -649,7 +654,9 @@ void link_reset_{{ relationID }}( mega::reference ref )
             );
             while( 0 != mega::mangle::ref_vector_get_size( target.pRef ) )
             {
-                link_break_{{ relationID }}( context.ref, mega::mangle::ref_vector_get_at( target.pRef, 0U ) );
+                auto temp = mega::mangle::ref_vector_get_at( target.pRef, 0U );
+                link_break_{{ relationID }}( context.ref, 
+                    mega::reference::make( temp.ref, mega::TypeInstance( target.type, temp.ref.getInstance() ) ) );
             }
 {% endif %}
             }
