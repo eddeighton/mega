@@ -211,6 +211,7 @@ public:
                     auto iFindOther = linkParentMap.find( link.pTargetContext );
                     VERIFY_RTE( iFindOther != linkParentMap.end() );
                     auto pOtherLink = iFindOther->second;
+                    VERIFY_RTE( pOtherLink != link.pLink );
 
                     VERIFY_RTE( nonOwningLinks.insert( { link.pLink, pOtherLink } ).second );
 

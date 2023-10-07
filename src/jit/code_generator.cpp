@@ -353,7 +353,7 @@ void CodeGenerator::generate_relation( const LLVMCompiler& compiler, const JITDa
                     } );
 
                 // determine if parent context is unique for the parameter
-                for( auto pConcrete : pNonOwningRelation->get_target()->get_concrete() )
+                for( auto pConcrete : pNonOwningRelation->get_source()->get_concrete() )
                 {
                     nlohmann::json parameter_type(
                         { { "type", printTypeID( pConcrete->get_concrete_id() ) },
