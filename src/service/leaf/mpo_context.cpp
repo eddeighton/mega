@@ -126,7 +126,7 @@ reference MPOContext::allocate( TypeID objectTypeID )
     using ::operator<<;
 
     reference allocated = m_pMemoryManager->New( objectTypeID );
-    m_pLog->record( mega::log::Structure::Write( allocated, {}, 0, mega::log::Structure::eConstruct ) );
+    m_pLog->record( mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
 
     return allocated;
 }
@@ -268,7 +268,7 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
     VERIFY_RTE_MSG( m_root.valid(), "Root allocation failed" );
     SPDLOG_TRACE( "MPOContext::createRoot: root: {} net: {}", m_root.getObjectAddress(), m_root.getNetworkAddress() );
-    m_pLog->record( mega::log::Structure::Write( m_root, reference{}, 0, mega::log::Structure::eConstruct ) );
+    m_pLog->record( mega::log::Structure::Write( m_root, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
 }
 
 void MPOContext::jit( runtime::JITFunctor func )
@@ -352,6 +352,9 @@ void MPOContext::cycleComplete()
 
     for( const auto& unparentedObject : unparentedObjects )
     {
+        // DONT DESTOY THE ROOT!
+        VERIFY_RTE( unparentedObject.getType() != ROOT_TYPE_ID );
+
         // destroy the object
         SPDLOG_TRACE( "MPOContext: cycleComplete: {} unparented: {}", m_mpo.value(), unparentedObject );
         if( unparentedObject.getMPO() == m_mpo.value() )
@@ -363,7 +366,7 @@ void MPOContext::cycleComplete()
                 deleteRef = m_pMemoryManager->networkToHeap( deleteRef );
             }
             m_pMemoryManager->Delete( deleteRef );
-            m_pLog->record( mega::log::Structure::Write( reference{}, deleteRef, 0, mega::log::Structure::eDestruct ) );
+            m_pLog->record( mega::log::Structure::Write( deleteRef, deleteRef.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
         }
     }
 

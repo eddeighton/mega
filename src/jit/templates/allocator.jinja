@@ -85,6 +85,7 @@ void dtor_{{ objectTypeID }}( mega::reference ref, void* pBuffer, bool bLinkRese
 {% endfor %}
 {% for link in part.links %}
 {% if link.owning %}
+{% endif %}
     {
         if( bLinkReset )
         {
@@ -97,7 +98,6 @@ void dtor_{{ objectTypeID }}( mega::reference ref, void* pBuffer, bool bLinkRese
         mega::mangle::delete_{{link.mangle}}( pIter + {{ link.offset }} );
         mega::mangle::delete_{{link.link_type_mangle}}( pIter + {{ link.link_type_offset }} );
     }
-{% endif %}
 {% endfor %}
     }
 }
@@ -156,6 +156,7 @@ void unparent_{{ objectTypeID }}( mega::reference ref )
     {
 {% for link in part.links %}
 {% if link.owned %}
+{% endif %}
     {
         const mega::reference linkRef = mega::reference::make( ref, 
                 mega::TypeInstance{ {{ link.link_type_id }}, static_cast< mega::Instance >( instance ) } );
@@ -163,7 +164,6 @@ void unparent_{{ objectTypeID }}( mega::reference ref )
             g_pszModuleName, mega::RelationID{ {{ link.relation_id_lower }}, {{ link.relation_id_upper }} } );
         function( linkRef );
     }
-{% endif %}
 {% endfor %}
     }
 }

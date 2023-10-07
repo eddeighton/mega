@@ -339,7 +339,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                                            { "link_type_offset", pLinkDim->get_link_type()->get_offset() },
                                            { "link_type_mangle", strLinkTypeMangle },
                                            { "singular", pLinkDim->get_singular() },
-                                           { "types", nlohmann::json::array() },
+                                           //{ "types", nlohmann::json::array() },
                                            { "owning", pLinkDim->get_owning() },
                                            { "owned", pLinkDim->get_owned() },
                                            { "relation_id_lower", printTypeID( relationID.getLower() ) },
@@ -347,7 +347,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
 
                     } );
 
-                    if( auto pOwningRelation = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
+                    /*if( auto pOwningRelation = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
                     {
                         if( pLinkDim->get_owning() )
                         {
@@ -424,7 +424,7 @@ void CodeGenerator::generate_alllocator( const LLVMCompiler& compiler, const JIT
                     else
                     {
                         THROW_RTE( "Unknown relation type" );
-                    }
+                    }*/
 
                     part[ "links" ].push_back( link );
                 }

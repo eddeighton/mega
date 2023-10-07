@@ -57,16 +57,20 @@ void TransactionProducer::generateStructure( MPOTransactions& transactions, Unpa
             break;
             case log::Structure::eBreak:
             {
+                ASSERT( r.getSource().valid() );
+                ASSERT( r.getTarget().valid() );
+
                 ASSERT( r.getSource().getMPO() == r.getTarget().getMPO() );
                 transactions[ r.getSource().getMPO() ].push_back( r );
+                // Only check the target since owning links always own target
                 /*if( r.getSource().getRefCount() == 0U )
                 {
                     unparented.insert( r.getSource().getObjectAddress() );
-                }
+                }*/
                 if( r.getTarget().getRefCount() == 0U )
                 {
-                    unparented.insert( r.getSource().getObjectAddress() );
-                }*/
+                    unparented.insert( r.getTarget().getObjectAddress() );
+                }
             }
             break;
             case log::Structure::eMove:

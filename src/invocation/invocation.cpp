@@ -909,6 +909,8 @@ class OperationBuilder
 
     void classifyOperations()
     {
+        using ::operator<<;
+
         std::vector< Concrete::Graph::Vertex* > operationContexts;
         for( auto pOperation : m_pInvocation->get_operations() )
         {
@@ -990,6 +992,8 @@ class OperationBuilder
 
     void buildNoParams()
     {
+        using ::operator<<;
+
         switch( m_targetType )
         {
             case eObjects:
@@ -1133,6 +1137,8 @@ class OperationBuilder
 
     void buildParams()
     {
+        using ::operator<<;
+
         switch( m_targetType )
         {
             case eObjects:
@@ -1232,6 +1238,8 @@ class OperationBuilder
 
     void buildGet()
     {
+        using ::operator<<;
+
         switch( m_targetType )
         {
             case eObjects:
@@ -1339,6 +1347,8 @@ class OperationBuilder
 
     void buildRemove()
     {
+        using ::operator<<;
+
         switch( m_targetType )
         {
             case eObjects:
@@ -1401,6 +1411,8 @@ class OperationBuilder
 
     void buildClear()
     {
+        using ::operator<<;
+
         switch( m_targetType )
         {
             case eObjects:
@@ -1448,6 +1460,7 @@ class OperationBuilder
 
     void buildMove()
     {
+        using ::operator<<;
         THROW_TODO;
         switch( m_targetType )
         {
@@ -1469,6 +1482,7 @@ class OperationBuilder
 
     void buildRange()
     {
+        using ::operator<<;
         THROW_TODO;
         switch( m_targetType )
         {
@@ -1497,6 +1511,8 @@ public:
 
     void build()
     {
+        using ::operator<<;
+        
         classifyOperations();
 
         m_pInvocation->set_explicit_operation( HIGHEST_EXPLICIT_OPERATION_TYPE );

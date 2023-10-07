@@ -34,7 +34,6 @@
 #include "clock.hpp"
 #include "operations.hpp" 
 #include "iterators.hpp" // has array and vector and defines __mega_vector std::vector type alias
-#include "write_operation.hpp"
 
 #include "coroutine.hpp" // has stl dependencies
 #include "resumption.hpp" // has stl dependencies

@@ -34,11 +34,6 @@ namespace mega::mangle
     U64 ref_vector_get_size( void* pData );
     U64 ref_vector_find( void* pData, const mega::reference& ref );
     mega::reference& ref_vector_get_at( void* pData, mega::U64 index );
-    /*bool ref_vector_empty( void* pData );
-    mega::reference& ref_vector_back( void* pData );
-
-    void ref_vector_pop( void* pData );
-    void ref_vector_add( void* pData, const mega::reference& ref );;*/
 
     void ref_vectors_remove( void* pData1, void* pData2, const mega::reference& ref );
     void ref_vectors_add( void* pData1, void* pData2, const mega::reference& ref, const mega::TypeID& type );
@@ -277,6 +272,9 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
                     mega::reference::make( link.source_ref, mega::TypeInstance( link.source_type, link.source_ref.getInstance() ) ), 
                     mega::reference::make( source.ref, mega::TypeInstance( source.type, source.ref.getInstance() ) ), 
                     {{ relationID }} );
+{% if owning %}
+                source.ref.decRefCount();
+{% endif %}
 
                 source.ref   = mega::reference{};
                 source.type  = mega::TypeID{};
@@ -332,6 +330,9 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
                     mega::reference::make( link.target_ref, mega::TypeInstance( link.target_type, link.target_ref.getInstance() ) ), 
                     mega::reference::make( target.ref, mega::TypeInstance( target.type, target.ref.getInstance() ) ), 
                     {{ relationID }} );
+{% if owning %}
+                target.ref.decRefCount();
+{% endif %}
 
                 target.ref   = mega::reference{};
                 target.type  = mega::TypeID{};
@@ -394,6 +395,10 @@ void link_make_{{ relationID }}( mega::reference context, mega::reference parame
         mega::reference::make( link.source_ref, mega::TypeInstance( link.source_type, link.source_ref.getInstance() ) ), 
         mega::reference::make( link.target_ref, mega::TypeInstance( link.target_type, link.target_ref.getInstance() ) ), 
         {{ relationID }} );
+
+{% if owning %}
+    link.target_ref.incRefCount();
+{% endif %}
 }
 
 
@@ -528,6 +533,9 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
         mega::reference::make( link.source_ref, mega::TypeInstance( link.source_type, link.source_ref.getInstance() ) ), 
         mega::reference::make( link.target_ref, mega::TypeInstance( link.target_type, link.target_ref.getInstance() ) ), 
         {{ relationID }} );
+{% if owning %}
+    link.target_ref.decRefCount();
+{% endif %}
 }
 
 struct Context
