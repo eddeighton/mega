@@ -263,7 +263,6 @@ R"TEMPLATE(
 
     args.data[ "assignments" ].push_back( os.str() );
     args.data[ "return_type" ] = "mega::reference";
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -461,7 +460,7 @@ R"TEMPLATE(
     }
 
     args.data[ "assignments" ].push_back( os.str() );
-    args.data[ "return_type" ] = "mega::reference";
+    args.data[ "return_type" ]        = "mega::reference";
     args.data[ "has_parameter_data" ] = true;
 }
 
@@ -557,7 +556,7 @@ mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
     }
 
     args.data[ "assignments" ].push_back( os.str() );
-    args.data[ "return_type" ] = "mega::reference";
+    args.data[ "return_type" ]           = "mega::reference";
     args.data[ "has_parameter_context" ] = true;
 }
 
@@ -602,7 +601,7 @@ mega::RelationID{ {{ relation_id_lower }}, {{ relation_id_upper }} } );
     }
 
     args.data[ "assignments" ].push_back( os.str() );
-    args.data[ "return_type" ] = "mega::reference";
+    args.data[ "return_type" ]           = "mega::reference";
     args.data[ "has_parameter_context" ] = true;
 }
 
@@ -834,11 +833,14 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
             }
 
             {
+                using ::operator<<;
                 std::ostringstream os;
                 os << indent << "   case 0x00000000:\n";
                 os << indent << "   default:\n";
                 os << indent << "   {\n";
-                os << indent << "       throw mega::runtime::JITException{ \"Null reference in poly branch\" };\n";
+                os << indent
+                   << "       throw mega::runtime::JITException{ \"Null reference in poly branch for invocation: "
+                   << pInvocation->get_id() << "\" };\n";
                 os << indent << "   }\n";
                 os << indent << "   break;\n";
                 os << indent << "}";
@@ -852,7 +854,8 @@ void CodeGenerator::generateInstructions( const JITDatabase&                    
             {
                 std::ostringstream os;
                 os << indent << "// PolyBranch\n";
-                os << indent << "switch( " << Args::get( variables, pPolyReference->get_parameter() ) << ".getType() )\n";
+                os << indent << "switch( " << Args::get( variables, pPolyReference->get_parameter() )
+                   << ".getType() )\n";
                 os << indent << "{";
                 data[ "assignments" ].push_back( os.str() );
             }
