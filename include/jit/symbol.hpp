@@ -46,6 +46,7 @@ public:
         VStar_VStar,
         Ref,
         Ref_Ref,
+        Ref_Ref_U64,
         Ref_VStar,
         Ref_VStar_Bool,
         Ref_CVStar,

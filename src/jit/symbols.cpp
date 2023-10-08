@@ -103,6 +103,7 @@ const char* toStr( Symbol::Parameters params )
                 case Symbol::VStar_VStar    : return "PvS_";
                 case Symbol::Ref            : return "N4mega9referenceE";
                 case Symbol::Ref_Ref        : return "N4mega9referenceES0_";
+                case Symbol::Ref_Ref_U64    : return "N4mega9referenceES0_m";
                 case Symbol::Ref_VStar      : return "N4mega9referenceEPv";
                 case Symbol::Ref_VStar_Bool : return "N4mega9referenceEPvb";
                 case Symbol::Ref_CVStar     : return "N4mega9referenceEPKv";

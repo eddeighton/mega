@@ -95,38 +95,6 @@ void JITDatabase::getConcreteToInterface( ConcreteToInterface& objectTypes ) con
     }
 }
 
-void JITDatabase::getConcreteToLinkInterface( ConcreteToInterface& objectTypes ) const
-{
-    THROW_TODO;
-    /*using namespace FinalStage;
-    for( const auto& [ id, pConcreteTypeID ] : m_concreteTypeIDs )
-    {
-        if( pConcreteTypeID->get_context().has_value() )
-        {
-            if( Concrete::Link* pLink = db_cast< Concrete::Link >( pConcreteTypeID->get_context().value() ) )
-            {
-                objectTypes.push_back( { id, pLink->get_link_interface()->get_interface_id() } );
-            }
-        }
-        else if( pConcreteTypeID->get_dim_user().has_value() )
-        {
-            // do nothing
-        }
-        else if( pConcreteTypeID->get_dim_allocation().has_value() )
-        {
-            // do nothing
-        }
-        else if( pConcreteTypeID->get_dim_link().has_value() )
-        {
-            // do nothing
-        }
-        else
-        {
-            THROW_RTE( "Unreachable" );
-        }
-    }*/
-}
-
 FinalStage::HyperGraph::Relation* JITDatabase::getRelation( const RelationID& relationID ) const
 {
     auto    iFind = m_relations.find( relationID );

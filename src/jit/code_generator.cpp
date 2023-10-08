@@ -407,16 +407,6 @@ void CodeGenerator::generate_program( const LLVMCompiler& compiler, const JITDat
             data[ "concrete_types" ].push_back( typeInfo );
         }
     }
-    {
-        JITDatabase::ConcreteToInterface concreteToLinkInterface;
-        database.getConcreteToLinkInterface( concreteToLinkInterface );
-        for( const auto& type : concreteToLinkInterface )
-        {
-            nlohmann::json typeInfo(
-                { { "concrete", printTypeID( type.first ) }, { "interface", printTypeID( type.second ) } } );
-            data[ "concrete_link_types" ].push_back( typeInfo );
-        }
-    }
 
     for( const auto pObject : database.getObjects() )
     {

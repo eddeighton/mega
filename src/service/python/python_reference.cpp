@@ -139,9 +139,10 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 
             const mega::InvocationID invocationID{ { interfaceTypeID }, m_type_path, operationID };
 
-            SPDLOG_TRACE( "PythonReference::call: {}", invocationID );
-
             const PythonModule::FunctionInfo& functionInfo = m_module.invoke( invocationID );
+
+            SPDLOG_TRACE( "PythonReference::call: {} {}", invocationID,
+                          mega::getExplicitOperationString( functionInfo.typeInfo.operationType ) );
             switch( functionInfo.typeInfo.operationType )
             {
                 case id_exp_Read:
@@ -150,15 +151,16 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                     m_module.invoke(
                         [ &functionInfo, &m_reference = m_reference, &pResult ]()
                         {
-                            auto pReadFunction = reinterpret_cast< mega::runtime::invocation::Read::FunctionPtr >(
+                            auto pFunction = reinterpret_cast< mega::runtime::invocation::Read::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
-                            pResult = pReadFunction( m_reference );
+                            pResult = pFunction( m_reference );
                         } );
                     if( pResult )
                     {
                         return m_module.getPythonMangle().cppToPython( functionInfo.typeInfo.mangledType, pResult );
                     }
                 }
+                break;
                 case id_exp_Write:
                 {
                     VERIFY_RTE_MSG( pyArgs.size() > 0, "Write requires atleast one argument" );
@@ -176,15 +178,16 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                         } );
                     return cast( m_module, result );
                 }
+                break;
                 case id_exp_Link_Read:
                 {
                     void* pResult = nullptr;
                     m_module.invoke(
                         [ &functionInfo, &m_reference = m_reference, &pResult ]()
                         {
-                            auto pReadFunction = reinterpret_cast< mega::runtime::invocation::LinkRead::FunctionPtr >(
+                            auto pFunction = reinterpret_cast< mega::runtime::invocation::LinkRead::FunctionPtr >(
                                 functionInfo.pFunctionPtr );
-                            pResult = pReadFunction( m_reference );
+                            pResult = pFunction( m_reference );
                         } );
                     if( pResult )
                     {
@@ -194,85 +197,60 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                 break;
                 case id_exp_Link_Add:
                 {
-                    VERIFY_RTE_MSG( pyArgs.size() > 0, "Write Link requires atleast one argument" );
+                    VERIFY_RTE_MSG( pyArgs.size() > 0, "Link Add requires one argument" );
+                    pybind11::object firstArg = pyArgs[ 0 ];
+                    auto             refOpt   = tryCast( firstArg.ptr() );
+                    VERIFY_RTE_MSG( refOpt.has_value(), "Link Add requires a reference parameter" );
 
-                    std::optional< mega::reference >       argRefOpt;
-                    {
-                        if( pyArgs.size() == 1 )
-                        {
-                            pybind11::object arg = pyArgs[ 0 ];
-                            try
-                            {
-                                argRefOpt = tryCast( arg.ptr() );
-                                // if( !argRefOpt.has_value() )
-                                // {
-                                //     argRefVectorOpt = pybind11::cast< mega::ReferenceVector >( arg );
-                                // }
-                            }
-                            catch( pybind11::cast_error& )
-                            {
-                            }
-                        }
-                        else
-                        {
-                            THROW_RTE( "Invalid number of arguments to link write" );
-                        }
-                    }
-
+                    mega::reference refArg = refOpt.value();
                     mega::reference result;
 
-                    THROW_TODO;
-
-                    /*if( !argRefOpt.has_value() )
-                    {
-                        m_module.invoke(
-                            [ &functionInfo, &m_reference = m_reference, &result ]()
-                            {
-                                auto pWriteLinkFunction
-                                    = reinterpret_cast< mega::runtime::invocation::LinkAdd::FunctionPtr >(
-                                        functionInfo.pFunctionPtr );
-                                result = pWriteLinkFunction( m_reference, {} );
-                            } );
-                    }
-                    else if( argRefOpt.has_value() )
-                    {
-                        m_module.invoke(
-                            [ &functionInfo, &m_reference = m_reference, &argRefOpt, &result ]()
-                            {
-                                auto pWriteLinkFunction
-                                    = reinterpret_cast< mega::runtime::invocation::LinkAdd::FunctionPtr >(
-                                        functionInfo.pFunctionPtr );
-                                result = pWriteLinkFunction( m_reference, argRefOpt.value() );
-                            } );
-                    }*/
+                    m_module.invoke(
+                        [ &functionInfo, &m_reference = m_reference, &refArg, &result ]()
+                        {
+                            auto pFunction = reinterpret_cast< mega::runtime::invocation::LinkAdd::FunctionPtr >(
+                                functionInfo.pFunctionPtr );
+                            result = pFunction( m_reference, refArg );
+                        } );
 
                     return cast( m_module, result );
                 }
                 break;
                 case id_exp_Link_Remove:
                 {
-                    THROW_TODO;
+                    VERIFY_RTE_MSG( pyArgs.size() > 0, "Link Remove requires one argument" );
+                    pybind11::object firstArg = pyArgs[ 0 ];
+                    auto             refOpt   = tryCast( firstArg.ptr() );
+                    VERIFY_RTE_MSG( refOpt.has_value(), "Link Remove requires a reference parameter" );
+
+                    mega::reference refArg = refOpt.value();
+                    mega::reference result;
+
+                    m_module.invoke(
+                        [ &functionInfo, &m_reference = m_reference, &refArg, &result ]()
+                        {
+                            auto pFunction = reinterpret_cast< mega::runtime::invocation::LinkRemove::FunctionPtr >(
+                                functionInfo.pFunctionPtr );
+                            result = pFunction( m_reference, refArg );
+                        } );
+
+                    return cast( m_module, result );
                 }
                 break;
                 case id_exp_Link_Clear:
                 {
-                    THROW_TODO;
-                }
-                break;
-                /*case id_exp_Allocate:
-                {
                     mega::reference result;
                     m_module.invoke(
-                        [ &functionInfo, &m_reference = m_reference, &m_module = m_module, &result ]()
+                        [ &functionInfo, &m_reference = m_reference, &result ]()
                         {
-                            auto pAllocateFunction
-                                = reinterpret_cast< mega::runtime::invocation::Allocate::FunctionPtr >(
-                                    functionInfo.pFunctionPtr );
-                            result = pAllocateFunction( m_reference );
+                            auto pFunction = reinterpret_cast< mega::runtime::invocation::LinkClear::FunctionPtr >(
+                                functionInfo.pFunctionPtr );
+                            result = pFunction( m_reference );
                         } );
+
                     return cast( m_module, result );
                 }
-                break;*/
+                break;
                 case id_exp_Signal:
                 {
                     THROW_TODO;

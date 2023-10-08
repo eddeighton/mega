@@ -68,6 +68,10 @@
                 {
                     "name" : "target",
                     "type" : "mega::reference"
+                },
+                {
+                    "name" : "relationID",
+                    "type" : "mega::U64"
                 }
             ],
             "return_type" : "void",
@@ -83,6 +87,10 @@
                 {
                     "name" : "target",
                     "type" : "mega::reference"
+                },
+                {
+                    "name" : "relationID",
+                    "type" : "mega::U64"
                 }
             ],
             "return_type" : "void",

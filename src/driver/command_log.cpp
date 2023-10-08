@@ -155,7 +155,19 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 for( auto i = log.begin< Read >(), iEnd = log.end< Read >(); i != iEnd; ++i )
                 {
                     const Read& memoryRecord = *i;
-                    SPDLOG_INFO( memoryRecord.getRef() );
+                    const auto& data         = memoryRecord.getData();
+
+                    std::ostringstream osMem;
+                    osMem << memoryRecord.getRef();
+
+                    int x = 0;
+                    for( auto i = data.begin(), iEnd = data.end(); i != iEnd; ++i, ++x )
+                    {
+                        if( x % 4 == 0 ) osMem << ' ';
+                        osMem << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<unsigned>( *i );
+                    }
+
+                    SPDLOG_INFO( osMem.str() );
                 }
             }
         }

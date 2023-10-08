@@ -121,28 +121,9 @@ mega::TypeID concrete_to_interface( mega::TypeID concreteTypeID )
     }
 }
 
-mega::TypeID concrete_to_link_interface( mega::TypeID concreteTypeID )
+void record_make( mega::reference source, mega::reference target, mega::U64 relationID )
 {
-    switch( concreteTypeID.getSymbolID() )
-    {
-{% for type in concrete_link_types %}
-        case {{ type.concrete }}: return mega::TypeID( {{ type.interface }} );
-{% endfor %}
-        default:
-        {
-            throw mega::runtime::JITException{ "program concrete_to_link_interface Unknown concrete type id" };
-        }
-        break;
-    }
-}
-
-void record_make( mega::reference source, mega::reference target )
-{
-    const mega::RelationID relationID{ 
-        concrete_to_link_interface( source.getType() ), 
-        concrete_to_link_interface( target.getType() ) };
-
-    switch( relationID.getID() )
+    switch( relationID )
     {
 {% for relation in relation_types %}
         case {{ relation.id }}:
@@ -163,13 +144,9 @@ void record_make( mega::reference source, mega::reference target )
     }
 }
 
-void record_break( mega::reference source, mega::reference target )
+void record_break( mega::reference source, mega::reference target, mega::U64 relationID )
 {
-    const mega::RelationID relationID{ 
-        concrete_to_link_interface( source.getType() ), 
-        concrete_to_link_interface( target.getType() ) };
-
-    switch( relationID.getID() )
+    switch( relationID )
     {
 {% for relation in relation_types %}
         case {{ relation.id }}:

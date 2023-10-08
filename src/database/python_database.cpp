@@ -36,56 +36,28 @@ void recurseTree( PythonDatabase::SymbolTable&   symbols,
     {
         for( auto pUserDim : pDimensionContext->get_dimensions() )
         {
-            symbols.insert( { pUserDim->get_interface_dimension()->get_id()->get_str(), pUserDim->get_concrete_id() } );
+            symbols.insert( { pUserDim->get_interface_dimension()->get_id()->get_str(),
+                              pUserDim->get_interface_dimension()->get_interface_id() } );
         }
-    }
-
-    THROW_TODO;
-    /*if( Link* pLink = db_cast< Link >( pContext ) )
-    {
-        links.insert( { pContext->get_interface()->get_identifier(), pContext->get_concrete_id() } );
-
-        Interface::LinkInterface* pLinkInterface = pLink->get_link_interface();
-        HyperGraph::Relation*     pRelation      = pLinkInterface->get_relation();
-
-        const mega::Ownership ownership = pRelation->get_ownership();
-
-        // const mega::DerivationDirection derivation =
-        //     pLinkInterface->get_link_trait()->get_derivation();
-
-        if( pRelation->get_source_interface() == pLinkInterface )
+        for( auto pLinkDim : pDimensionContext->get_links() )
         {
-            if( ownership.get() == mega::Ownership::eOwnTarget )
+            if( auto pUserLink = db_cast< Dimensions::UserLink >( pLinkDim ) )
             {
-                for( auto pTarget : pRelation->get_targets() )
-                {
-                    for( auto pConcreteLink : pTarget->get_concrete() )
-                    {
-                    }
-                }
+                links.insert( { pUserLink->get_interface_link()->get_id()->get_str(),
+                                pUserLink->get_interface_link()->get_interface_id() } );
+            }
+            else if( auto pOwnershipLink = db_cast< Dimensions::OwnershipLink >( pLinkDim ) )
+            {
+                // Ownership symbol
+            }
+            else
+            {
+                THROW_RTE( "Unknown link type" );
             }
         }
-        else if( pRelation->get_target_interface() == pLinkInterface )
-        {
-            if( ownership.get() == mega::Ownership::eOwnSource )
-            {
-                for( auto pTarget : pRelation->get_sources() )
-                {
-                    for( auto pConcreteLink : pTarget->get_concrete() )
-                    {
-                    }
-                }
-            }
-        }
-        else
-        {
-            THROW_RTE( "Invalid relation" );
-        }
     }
-    else*/
-    {
-        symbols.insert( { pContext->get_interface()->get_identifier(), pContext->get_concrete_id() } );
-    }
+
+    symbols.insert( { pContext->get_interface()->get_identifier(), pContext->get_interface()->get_interface_id() } );
 
     for( Concrete::Context* pChildContext : pContext->get_children() )
     {
@@ -100,14 +72,16 @@ PythonDatabase::PythonDatabase( const boost::filesystem::path& projectDatabasePa
     , m_manifest( m_environment, m_environment.project_manifest() )
     , m_database( m_environment, m_manifest.getManifestFilePath() )
     , m_pSymbolTable( m_database.one< FinalStage::Symbols::SymbolTable >( m_manifest.getManifestFilePath() ) )
+    , m_interfaceTypeIDs( m_pSymbolTable->get_interface_type_ids() )
     , m_concreteTypeIDs( m_pSymbolTable->get_concrete_type_ids() )
 {
 }
 
-void PythonDatabase::getObjectSymbols( TypeID::SubValueType objectID, SymbolTable& symbols, SymbolTable& links )
+void PythonDatabase::getObjectSymbols( TypeID::SubValueType objectConcreteID, SymbolTable& symbols, SymbolTable& links )
 {
-    auto iFind = m_concreteTypeIDs.find( TypeID::make_object_from_objectID( objectID ) );
-    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id for object: " << objectID );
+    auto iFind = m_concreteTypeIDs.find( TypeID::make_object_from_objectID( objectConcreteID ) );
+    VERIFY_RTE_MSG(
+        iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id for object: " << objectConcreteID );
 
     auto pSymbol     = iFind->second;
     auto pContextOpt = pSymbol->get_context();
@@ -119,25 +93,80 @@ void PythonDatabase::getObjectSymbols( TypeID::SubValueType objectID, SymbolTabl
     recurseTree( symbols, links, pObject );
 }
 
-void PythonDatabase::getLinkObjectTypes( TypeID linkTypeID, std::vector< TypeID::SubValueType >& objectTypes )
+void PythonDatabase::getLinkObjectTypes( TypeID linkTypeID, std::set< TypeID::SubValueType >& objectTypes )
 {
+    using namespace FinalStage;
+
+    auto iFind = m_interfaceTypeIDs.find( linkTypeID );
+    VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate interface type id for link: " << linkTypeID );
+
+    auto pSymbol    = iFind->second;
+    auto dimLinkOpt = pSymbol->get_link();
+    VERIFY_RTE( dimLinkOpt.has_value() );
+    auto pDimLink = dimLinkOpt.value();
+
+    auto pRelation = pDimLink->get_relation();
+    if( auto pOwning = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
+    {
+        if( pDimLink->get_owning() )
+        {
+            auto owners = pOwning->get_owners();
+            for( auto i = owners.lower_bound( pDimLink ), iEnd = owners.upper_bound( pDimLink ); i != iEnd; ++i )
+            {
+                auto pOwnershipLink = i->second;
+                auto pObject        = pOwnershipLink->get_parent_context()->get_concrete_object().value();
+                objectTypes.insert( pObject->get_concrete_id().getObjectID() );
+            }
+        }
+        else
+        {
+            auto owned = pOwning->get_owned();
+            for( auto pConcrete : pDimLink->get_concrete() )
+            {
+                auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pConcrete );
+                for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink );
+                     i != iEnd; ++i )
+                {
+                    auto pLinkTrait = i->second;
+                    for( auto pOwnerLinkTrait : pLinkTrait->get_concrete() )
+                    {
+                        auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
+                        VERIFY_RTE( objectOpt.has_value() );
+                        objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+                    }
+                }
+            }
+        }
+    }
+    else if( auto pNonOwning = db_cast< HyperGraph::NonOwningObjectRelation >( pRelation ) )
+    {
+        if( pDimLink == pNonOwning->get_source() )
+        {
+            for( auto pOwnerLinkTrait : pNonOwning->get_target()->get_concrete() )
+            {
+                auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
+                VERIFY_RTE( objectOpt.has_value() );
+                objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+            }
+        }
+        else if( pDimLink == pNonOwning->get_target() )
+        {
+            for( auto pOwnerLinkTrait : pNonOwning->get_source()->get_concrete() )
+            {
+                auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
+                VERIFY_RTE( objectOpt.has_value() );
+                objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+            }
+        }
+        else
+        {
+            THROW_RTE( "Could not match link trait to non owning relation" );
+        }
+    }
+    else
+    {
+        THROW_RTE( "Unknown relation type" );
+    }
 }
 
-/*
-std::unordered_map< std::string, mega::TypeID > JITDatabase::getIdentities() const
-{
-    std::unordered_map< std::string, mega::TypeID > identities;
-    for( const auto& [ name, pSymbol ] : m_pSymbolTable->get_symbol_names() )
-    {
-        identities.insert( { name, pSymbol->get_id() } );
-    }
-
-    // add the operations
-    for( mega::TypeID::ValueType id = mega::id_Imp_NoParams; id != mega::HIGHEST_OPERATION_TYPE; ++id )
-    {
-        identities.insert( { mega::getOperationString( mega::OperationID{ id } ), mega::TypeID{ id } } );
-    }
-
-    return identities;
-}*/
 } // namespace mega::runtime

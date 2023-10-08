@@ -413,19 +413,7 @@ R"TEMPLATE(
 {{ indent }}        + {{ dimension_offset }};
 {{ indent }}
 {{ indent }}    mega::mangle::copy_{{ mangled_type_name }}( pData, pTarget );
-{{ indent }}    mega::mangle::save_record_{{ mangled_type_name }}
-{{ indent }}    (
-{{ indent }}        mega::reference
-{{ indent }}        (
-{{ indent }}            mega::TypeInstance
-{{ indent }}            (
-{{ indent }}                {{ concrete_type_id }},
-{{ indent }}                {{ instance }}.getInstance()
-{{ indent }}            ),
-{{ indent }}            {{ instance }}.getHeap()
-{{ indent }}        ),
-{{ indent }}        pTarget
-{{ indent }}    );
+{{ indent }}    mega::mangle::save_record_{{ mangled_type_name }}( {{ instance }}, pTarget );
 {{ indent }}    return {{ instance }};
 {{ indent }}}
 )TEMPLATE";

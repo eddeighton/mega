@@ -78,7 +78,6 @@ public:
 
     using ConcreteToInterface = std::vector< std::pair< TypeID, TypeID > >;
     void getConcreteToInterface( ConcreteToInterface& concreteToInterface ) const;
-    void getConcreteToLinkInterface( ConcreteToInterface& concreteToInterface ) const;
 
     using PrefabBindings = std::vector< FinalStage::UnityAnalysis::Binding* >;
     PrefabBindings getPrefabBindings() const;

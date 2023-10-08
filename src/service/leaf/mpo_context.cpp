@@ -302,10 +302,10 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
                 case log::Structure::eDestruct:
                     break;
                 case log::Structure::eMake:
-                    recordMake( structure.m_data.m_Source, structure.m_data.m_Target );
+                    recordMake( structure.m_data.m_Source, structure.m_data.m_Target, structure.m_data.m_Relation );
                     break;
                 case log::Structure::eBreak:
-                    recordBreak( structure.m_data.m_Source, structure.m_data.m_Target );
+                    recordBreak( structure.m_data.m_Source, structure.m_data.m_Target, structure.m_data.m_Relation );
                     break;
                 case log::Structure::eMove:
                 {

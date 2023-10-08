@@ -49,11 +49,17 @@ Type::Ptr TypeSystem::getLinkType( TypeID typeID )
     }
     else
     {
-        // establish the symbol table for the object type
+        Type::ObjectTypeSet objectTypes;
+        m_pDatabase->getLinkObjectTypes( typeID, objectTypes );
+        VERIFY_RTE( !objectTypes.empty() );
+
+        // establish the symbol table for the object types
         Type::SymbolTablePtr pSymbolTable = std::make_shared< Type::SymbolTable >();
         Type::SymbolTablePtr pLinkTable   = std::make_shared< Type::SymbolTable >();
-
-        Type::ObjectTypeSet objectTypes;
+        for( auto objectID : objectTypes )
+        {
+            m_pDatabase->getObjectSymbols( objectID, *pSymbolTable, *pLinkTable );
+        }
 
         // create type for object
         pResult = std::make_shared< Type >( m_module, *this, pSymbolTable, pLinkTable, std::move( objectTypes ) );

@@ -144,6 +144,12 @@ Type::Type( PythonModule& module, TypeSystem& typeSystem, Type::SymbolTablePtr p
         PyGetSetDef data = { pszNonConst, ( getter )type_get, ( setter )type_set, pszNonConst, ( void* )pszNonConst };
         m_pythonAttributesData.push_back( data );
     }
+    for( const auto& [ id, _ ] : *m_pLinkTable )
+    {
+        char*       pszNonConst = const_cast< char* >( id.c_str() );
+        PyGetSetDef data = { pszNonConst, ( getter )type_get, ( setter )type_set, pszNonConst, ( void* )pszNonConst };
+        m_pythonAttributesData.push_back( data );
+    }
     m_pythonAttributesData.push_back( PyGetSetDef{ nullptr } );
 
     // generate heap allocated python type...

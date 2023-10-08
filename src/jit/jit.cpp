@@ -267,7 +267,7 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             using namespace FinalStage;
             if( auto pVoid = db_cast< Operations::ReturnTypes::Void >( pReturnType ) )
             {
-                THROW_RTE( "void dimension" );
+                THROW_RTE( "void return type" );
             }
             else if( auto pDimension = db_cast< Operations::ReturnTypes::Dimension >( pReturnType ) )
             {
@@ -300,8 +300,8 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             {
                 THROW_RTE( "Unknown return type" );
             }
-            break;
         }
+        break;
         case mega::id_exp_Link_Read:
         {
             functionType     = mega::runtime::invocation::eLinkRead;
@@ -318,8 +318,8 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             {
                 result.mangledType = megaMangle( mega::psz_mega_reference_vector );
             }
-            break;
         }
+        break;
         case mega::id_exp_Link_Add:
         {
             functionType       = mega::runtime::invocation::eLinkAdd;

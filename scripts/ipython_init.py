@@ -60,22 +60,7 @@ asyncio.create_task(run_megastructure())
 print( "CFG_TUPLE: {}".format( CFG_TUPLE ) )
 print( "cwd: {}".format( os.getcwd() ) )
 
-# r = mega.getMPO().getRoot()
-# print( "Local root r is: {}".format( r ) )
-
-def getAllMPOs():
-    for machine in megastructure.getRoot().getMachines():
-        for process in machine.getProcesses():
-            for mpo in process.getMPOs():
-                yield mpo
-
-def getAllMPOsList():
-    return [mpo for mpo in getAllMPOs()]
-
-def getFirstMPO():
-    return getAllMPOsList()[0]
-
-def getFirstRoot():
-    return getFirstMPO().getRoot()
-
-
+def createMPOOnProcess( process ):
+    p = mega.getProcess( process )
+    m = p.createMPO()
+    return m
