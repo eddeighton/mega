@@ -288,21 +288,13 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             {
                 THROW_RTE( "Read or Write returning function" );
             }
-            else if( auto pContextReturnType = db_cast< Operations::ReturnTypes::Context >( pReturnType ) )
-            {
-                auto returnTypes = pContextReturnType->get_contexts();
-                if( returnTypes.size() == 1 )
-                {
-                    result.mangledType = megaMangle( mega::psz_mega_reference );
-                }
-                else
-                {
-                    result.mangledType = megaMangle( mega::psz_mega_reference_vector );
-                }
-            }
             else if( auto pRange = db_cast< Operations::ReturnTypes::Range >( pReturnType ) )
             {
-                THROW_RTE( "Read or Write returning range" );
+                result.mangledType = megaMangle( mega::psz_mega_reference_vector );
+            }
+            else if( auto pContextReturnType = db_cast< Operations::ReturnTypes::Context >( pReturnType ) )
+            {
+                result.mangledType = megaMangle( mega::psz_mega_reference );
             }
             else
             {

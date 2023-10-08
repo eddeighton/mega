@@ -1087,6 +1087,7 @@ class OperationBuilder
                 // return type is the target of the link
                 {
                     std::vector< Interface::IContext* > targets;
+                    bool                                bSingular = true;
                     for( auto pConcrete : linkDimensions )
                     {
                         bool bFound = false;
@@ -1099,12 +1100,23 @@ class OperationBuilder
                                 case EdgeType::eMonoSingularOptional:
                                 case EdgeType::ePolySingularOptional:
                                 case EdgeType::ePolyParent:
+                                {
+                                    VERIFY_RTE( !bFound );
+                                    auto pTargetContext
+                                        = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
+                                    VERIFY_RTE( pTargetContext );
+                                    auto pParentContext = pTargetContext->get_parent_context();
+                                    targets.push_back( pParentContext->get_interface() );
+                                    bFound = true;
+                                }
+                                break;
 
                                 case EdgeType::eMonoNonSingularMandatory:
                                 case EdgeType::ePolyNonSingularMandatory:
                                 case EdgeType::eMonoNonSingularOptional:
                                 case EdgeType::ePolyNonSingularOptional:
                                 {
+                                    bSingular = false;
                                     VERIFY_RTE( !bFound );
                                     auto pTargetContext
                                         = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
@@ -1120,8 +1132,17 @@ class OperationBuilder
                     }
 
                     targets = make_unique_without_reorder( targets );
-                    m_pInvocation->set_return_type( m_database.construct< ReturnTypes::Context >(
-                        ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, targets } ) );
+                    if( bSingular )
+                    {
+                        m_pInvocation->set_return_type( m_database.construct< ReturnTypes::Context >(
+                            ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, targets } ) );
+                    }
+                    else
+                    {
+                        m_pInvocation->set_return_type(
+                            m_database.construct< ReturnTypes::Range >( ReturnTypes::Range::Args{
+                                ReturnTypes::Context::Args{ ReturnTypes::ReturnType::Args{}, targets } } ) );
+                    }
                 }
 
                 m_database.construct< LinkRead >( LinkRead::Args{ m_pInvocation } );
@@ -1512,7 +1533,7 @@ public:
     void build()
     {
         using ::operator<<;
-        
+
         classifyOperations();
 
         m_pInvocation->set_explicit_operation( HIGHEST_EXPLICIT_OPERATION_TYPE );

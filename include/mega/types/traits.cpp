@@ -114,7 +114,7 @@ mega::U64 ref_vector_find( void* pData, const mega::reference& ref )
 {
     const ReferenceVector& vec   = reify< ReferenceVector >( pData );
     auto                   iFind = std::find( vec.cbegin(), vec.cend(), ref.getNetworkAddress() );
-    return std::distance( iFind, vec.cend() );
+    return std::distance( vec.cbegin(), iFind );
 }
 
 mega::reference& ref_vector_back( void* pData )
@@ -127,6 +127,13 @@ mega::reference& ref_vector_back( void* pData )
 mega::reference& ref_vector_get_at( void* pData, mega::U64 index )
 {
     auto& vec = reify< ReferenceVector >( pData );
+    VERIFY_RTE( index < vec.size() );
+    return vec[ index ];
+}
+
+mega::TypeID& type_vector_get_at( void* pData, mega::U64 index )
+{
+    auto& vec = reify< LinkTypeVector >( pData );
     VERIFY_RTE( index < vec.size() );
     return vec[ index ];
 }

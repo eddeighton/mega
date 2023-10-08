@@ -114,17 +114,21 @@ void command( bool bHelp, const std::vector< std::string >& args )
     std::string             strGraphType;
     boost::filesystem::path databaseArchivePath, outputFilePath;
     bool                    bConcrete = false;
+    bool                    bSymbols = false;
 
     namespace po = boost::program_options;
-    po::options_description commandOptions( " Generate graph json data" );
+    po::options_description commandOptions( " Print TypeIDs.  Defaults to interface types but can show concrete or symbols" );
     {
         // clang-format off
         commandOptions.add_options()
             ( "database",   po::value< boost::filesystem::path >( &databaseArchivePath ),               "Path to database archive" )
-            ( "concrete",   po::bool_switch( &bConcrete ),                                              "Concrete symbols" )
+            ( "concrete",   po::bool_switch( &bConcrete ),                                              "Concrete TypeIDs" )
+            ( "tokens",     po::bool_switch( &bSymbols ),                                               "Token Symbol TypeIDs" )
             ;
         // clang-format on
     }
+
+    VERIFY_RTE_MSG( !bSymbols || !bConcrete, "Error - choose concrete OR symbols " );
 
     po::variables_map vm;
     po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
@@ -144,7 +148,15 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
             Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
 
-            if( bConcrete )
+
+            if( bSymbols )
+            {
+                for( const auto& [ typeID, pSymbol ] : pSymbolTable->get_symbol_type_ids() )
+                {
+                    std::cout << std::setw( 8 ) << typeID << " " << pSymbol->get_symbol() << "\n";
+                }
+            }
+            else if( bConcrete )
             {
                 for( const auto& [ concreteTypeID, pConcreteTypeID ] : pSymbolTable->get_concrete_type_ids() )
                 {

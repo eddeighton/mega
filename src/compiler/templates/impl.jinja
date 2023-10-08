@@ -87,7 +87,8 @@ struct __invoke_impl
         static thread_local const mega::InvocationID id{ g_context_types, g_type_path_types, mega::TypeID{ {{ invocation.operation }}::ID } };
         // LinkRead
         static thread_local mega::runtime::invocation::LinkRead function( g_unit_name, id );
-        return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( function( context ) );
+        using ReturnType = std::remove_reference< {{ invocation.return_type }} >::type;
+        return *reinterpret_cast< ReturnType* >( function( context ) );
     }
 {% else if invocation.explicit_operation == "LinkAdd" %}
     template< typename T >

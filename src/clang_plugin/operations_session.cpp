@@ -287,13 +287,13 @@ public:
         {
             return buildFunctionReturnType( pFunction, resultType );
         }
-        else if( auto pContext = db_cast< Operations::ReturnTypes::Context >( pReturnType ) )
-        {
-            return buildContextReturnType( pContext, resultType );
-        }
         else if( auto pRange = db_cast< Operations::ReturnTypes::Range >( pReturnType ) )
         {
             return buildRangeReturnType( pRange, resultType );
+        }
+        else if( auto pContext = db_cast< Operations::ReturnTypes::Context >( pReturnType ) )
+        {
+            return buildContextReturnType( pContext, resultType );
         }
         else
         {
@@ -412,6 +412,8 @@ public:
                             = mega::invocation::compileInvocation( m_database, m_symbolTables, invocationID.value() );
                         m_invocationsMap.insert( std::make_pair( invocationID.value(), pInvocation ) );
                         bNewInvocation = true;
+                        using ::operator<<;
+                        CLANG_PLUGIN_LOG( "Compiled invocation: " << invocationID.value() );
                     }
                 }
 
@@ -501,7 +503,28 @@ public:
                             m_bError = true;
                         }
                     }
+                    else
+                    {
+                        CLANG_PLUGIN_LOG( "Failed to determine invocation ID" );
+                        pASTContext->getDiagnostics().Report( beginLoc, clang::diag::err_mega_generic_error )
+                            << "Failed to determine invocation ID";
+                        m_bError = true;
+                    }
                 }
+                else
+                {
+                    CLANG_PLUGIN_LOG( "Wrong number of template parameters in EGResultType" );
+                    pASTContext->getDiagnostics().Report( beginLoc, clang::diag::err_mega_generic_error )
+                        << "Wrong number of template parameters in EGResultType";
+                    m_bError = true;
+                }
+            }
+            else
+            {
+                CLANG_PLUGIN_LOG( "Failed to locate EGResultType" );
+                pASTContext->getDiagnostics().Report( beginLoc, clang::diag::err_mega_generic_error )
+                    << "Failed to locate invocation EGResultType";
+                m_bError = true;
             }
         }
     }
@@ -527,7 +550,8 @@ public:
                     {
                         if( auto pCall = result.getNodeAs< clang::CXXMemberCallExpr >( "invocation" ) )
                         {
-                            if( pCall->getMethodDecl()->getNameAsString() == "invoke" )
+                            CLANG_PLUGIN_LOG( "Found member function call: " << pCall->getMethodDecl()->getNameAsString() );
+                            if( pCall->getMethodDecl()->getNameAsString() == mega::EG_INVOKE_MEMBER_FUNCTION_NAME )
                             {
                                 if( auto pElaboratedType
                                     = pCall->getCallReturnType( *pASTContext )->getAs< clang::ElaboratedType >() )
@@ -708,6 +732,25 @@ public:
             try
             {
                 recordInvocationLocations();
+
+                // check found ALL invocations
+                for( const auto& [ id, pInvocation ] : m_invocationsMap )
+                {
+                    try
+                    {
+                        // will throw exception if NOT set at all
+                        pInvocation->get_file_offsets();
+                    }
+                    catch( std::exception& ex )
+                    {
+                        using ::           operator<<;
+                        std::ostringstream osError;
+                        osError << "Failed to determine file offsets for invocation: " << id;
+                        pASTContext->getDiagnostics().Report( SourceLocation(), clang::diag::err_mega_generic_error )
+                            << osError.str();
+                        bSuccess = false;
+                    }
+                }
 
                 auto operators = detectOperatorInstantiations();
 

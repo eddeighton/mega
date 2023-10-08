@@ -86,13 +86,13 @@ class ImplementationGen
 
             os << ")";
         }
-        else if( auto pContext = db_cast< Operations::ReturnTypes::Context >( pReturnType ) )
-        {
-            os << mega::psz_mega_reference;
-        }
         else if( auto pRange = db_cast< Operations::ReturnTypes::Range >( pReturnType ) )
         {
             os << mega::psz_mega_reference_vector;
+        }
+        else if( auto pContext = db_cast< Operations::ReturnTypes::Context >( pReturnType ) )
+        {
+            os << mega::psz_mega_reference;
         }
         else
         {

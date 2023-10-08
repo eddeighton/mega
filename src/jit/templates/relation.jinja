@@ -34,6 +34,7 @@ namespace mega::mangle
     U64 ref_vector_get_size( void* pData );
     U64 ref_vector_find( void* pData, const mega::reference& ref );
     mega::reference& ref_vector_get_at( void* pData, mega::U64 index );
+    mega::TypeID& type_vector_get_at( void* pData, mega::U64 index );
 
     void ref_vectors_remove( void* pData1, void* pData2, const mega::reference& ref );
     void ref_vectors_add( void* pData1, void* pData2, const mega::reference& ref, const mega::TypeID& type );
@@ -440,7 +441,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                         }
                         else
                         {
-                            throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
+                            throw mega::runtime::JITException{ "link_break_{{ relationID }} singular source singular target combination does not {{ source.type }} -> {{ target.type }}" };
                         }
 {%              else %}
                         LinkDataNonSingular target = get_data_non_singular( link.target_ref.getHeap(), 
@@ -457,7 +458,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                         }
                         else
                         {
-                            throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
+                            throw mega::runtime::JITException{ "link_break_{{ relationID }} singular source non singular target combination does not {{ source.type }} -> {{ target.type }}" };
                         }
 {%              endif %}
                     }
@@ -467,7 +468,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
             }
             else
             {
-                throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
+                throw mega::runtime::JITException{ "link_break_{{ relationID }} singular source {{ source.type }} does not match target" };
             }
 {%      else %}
             LinkDataNonSingular source = get_data_non_singular( link.source_ref.getHeap(), 
@@ -496,7 +497,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                         }
                         else
                         {
-                            throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
+                            throw mega::runtime::JITException{ "link_break_{{ relationID }} non singular source singular target does not match {{ source.type }} -> {{ target.type }}" };
                         }
 {%              else %}
                         LinkDataNonSingular target = get_data( link.target_ref.getHeap(), 
@@ -512,7 +513,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
                         }
                         else
                         {
-                            throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
+                            throw mega::runtime::JITException{ "link_break_{{ relationID }} non singular source non singular target does not match {{ source.type }} -> {{ target.type }}" };
                         }
 {%              endif %}
                     }
@@ -522,7 +523,7 @@ void link_break_{{ relationID }}( mega::reference context, mega::reference param
             }
             else
             {
-                throw mega::runtime::JITException{ "link_break_{{ relationID }} source target combination does not match link" };
+                throw mega::runtime::JITException{ "link_break_{{ relationID }} non singular source {{ source.type }} does not match target" };
             }
 {%      endif %}
         }
@@ -622,11 +623,14 @@ void link_reset_{{ relationID }}( mega::reference ref )
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.dimension_offset }},
                 {{ source.part_offset }} + ( {{ source.part_size }} * context.ref.getInstance() ) + {{ source.link_type_offset }} 
             );
-            while( 0 != mega::mangle::ref_vector_get_size( source.pRef ) )
+            int iTotal = mega::mangle::ref_vector_get_size( source.pRef ) ;
+            while( iTotal )
             {
-                auto temp = mega::mangle::ref_vector_get_at( source.pRef, 0U );
+                --iTotal;
+                auto tempRef    = mega::mangle::ref_vector_get_at( source.pRef, iTotal );
+                auto tempType   = mega::mangle::type_vector_get_at( source.pType, iTotal );
                 link_break_{{ relationID }}( context.ref, 
-                    mega::reference::make( temp.ref, mega::TypeInstance( source.type, temp.ref.getInstance() ) ) );
+                    mega::reference::make( tempRef, mega::TypeInstance( tempType, tempRef.getInstance() ) ) );
             }
 {% endif %}
             }
@@ -660,11 +664,14 @@ void link_reset_{{ relationID }}( mega::reference ref )
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.dimension_offset }},
                 {{ target.part_offset }} + ( {{ target.part_size }} * context.ref.getInstance() ) + {{ target.link_type_offset }} 
             );
-            while( 0 != mega::mangle::ref_vector_get_size( target.pRef ) )
+            int iTotal = mega::mangle::ref_vector_get_size( target.pRef ) ;
+            while( iTotal )
             {
-                auto temp = mega::mangle::ref_vector_get_at( target.pRef, 0U );
+                --iTotal;
+                auto tempRef    = mega::mangle::ref_vector_get_at( target.pRef, iTotal );
+                auto tempType   = mega::mangle::type_vector_get_at( source.pType, iTotal );
                 link_break_{{ relationID }}( context.ref, 
-                    mega::reference::make( temp.ref, mega::TypeInstance( target.type, temp.ref.getInstance() ) ) );
+                    mega::reference::make( tempRef, mega::TypeInstance( tempType, tempRef.getInstance() ) ) );
             }
 {% endif %}
             }
