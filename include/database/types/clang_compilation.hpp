@@ -37,7 +37,7 @@
 #include <string>
 #include <vector>
 
-#define DISABLE_CCACHE 1
+// #define DISABLE_CCACHE 1
 
 namespace mega
 {

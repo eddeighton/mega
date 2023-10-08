@@ -55,6 +55,7 @@ struct BasicData
 {
     std::string                context;
     std::vector< std::string > typePath;
+    mega::OperationID operationID;
 };
 
 std::ostream& operator<<( std::ostream& os, const BasicData& testData )
@@ -91,8 +92,7 @@ TEST_P( BasicFixtureType, BasicParameterizedTest )
     {
         typePathSymbolIDs.push_back( symbolNames[ t ]->get_id() );
     }
-    mega::OperationID        operationTypeID = mega::id_Imp_NoParams;
-    const mega::InvocationID id{ contextSymbolIDs, typePathSymbolIDs, operationTypeID };
+    const mega::InvocationID id{ contextSymbolIDs, typePathSymbolIDs, data.operationID };
 
     Operations::Invocation* pInvocation = mega::invocation::compileInvocation( database, symbolTables, id );
     ASSERT_TRUE( pInvocation );
@@ -106,23 +106,23 @@ using namespace std::string_literals;
 INSTANTIATE_TEST_SUITE_P( Basic, BasicFixtureType,
         ::testing::Values
         ( 
-            BasicData{ "Root"s, { "m_x"s } },
-            BasicData{ "Root"s, { "m_y"s } },
-            BasicData{ "Root"s, { "m_z"s } },
+            BasicData{ "Root"s, { "m_x"s }, mega::id_Imp_NoParams },
+            BasicData{ "Root"s, { "m_y"s }, mega::id_Imp_NoParams },
+            BasicData{ "Root"s, { "m_z"s }, mega::id_Imp_NoParams },
 
-            BasicData{ "Root"s, { "c"s, "m_y"s } },
-            BasicData{ "Root"s, { "c"s, "m_z"s } },
+            BasicData{ "Root"s, { "c"s, "m_y"s }, mega::id_Imp_NoParams },
+            BasicData{ "Root"s, { "c"s, "m_z"s }, mega::id_Imp_NoParams },
 
-            BasicData{ "Root"s, { "a"s, "m_z"s } },
-            BasicData{ "Root"s, { "c"s, "a"s, "m_z"s } },
+            BasicData{ "Root"s, { "a"s, "m_z"s }, mega::id_Imp_NoParams },
+            BasicData{ "Root"s, { "c"s, "a"s, "m_z"s }, mega::id_Imp_NoParams },
 
             // inverse
 
-            BasicData{ "a"s, { "Root"s } },
-            BasicData{ "a"s, { "c"s, "Root"s } },
-            BasicData{ "a"s, { "c"s, "m_x"s } },
-            BasicData{ "a"s, { "m_x"s } },
-            BasicData{ "a"s, { "m_y"s } },
-            BasicData{ "a"s, { "m_z"s } }
+            BasicData{ "a"s, { "Root"s }, mega::id_Get },
+            BasicData{ "a"s, { "c"s, "Root"s }, mega::id_Get },
+            BasicData{ "a"s, { "c"s, "m_x"s }, mega::id_Imp_NoParams },
+            BasicData{ "a"s, { "m_x"s }, mega::id_Imp_NoParams },
+            BasicData{ "a"s, { "m_y"s }, mega::id_Imp_NoParams },
+            BasicData{ "a"s, { "m_z"s }, mega::id_Imp_NoParams }
         ));
 // clang-format on

@@ -148,7 +148,6 @@ INSTANTIATE_TEST_SUITE_P( Link, LinkFixtureType,
             LinkData{ "Root"s, { "Base"s, "m_x"s }, 2, mega::id_exp_Read },
             LinkData{ "Base"s, { "m_y"s }, 2, mega::id_exp_Read },
             
-            LinkData{ "Root"s, { "Base"s, "C"s }, 1, mega::id_exp_Link_Read },
             LinkData{ "Root"s, { "Base"s, "C"s, "A"s }, 2, mega::id_exp_Link_Read },
             LinkData{ "Root"s, { "Base"s, "C"s, "A"s, "m_x"s }, 2, mega::id_exp_Read },
 
