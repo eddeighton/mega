@@ -37,12 +37,14 @@
 #include <string>
 #include <vector>
 
+#define DISABLE_CCACHE 1
+
 namespace mega
 {
 
 class EGDB_EXPORT Compilation
 {
-    boost::filesystem::path                  compiler;
+    std::string                              compiler_command;
     std::optional< boost::filesystem::path > compiler_plugin;
     std::vector< std::string >               flags;
     std::vector< std::string >               defines;
@@ -59,6 +61,22 @@ class EGDB_EXPORT Compilation
 
     Compilation() = default;
 
+    static std::string maybeUseCCache( const utilities::ToolChain& toolChain )
+    {
+        // use ccache on linux to speed up include pch
+#ifndef DISABLE_CCACHE
+#ifdef __gnu_linux__
+        std::ostringstream useCCache;
+        useCCache << "ccache " << toolChain.clangCompilerPath.string();
+        return useCCache.str();
+#else
+        return toolChain.clangCompilerPath.string();
+#endif
+#else
+        return toolChain.clangCompilerPath.string();
+#endif
+    }
+
 public:
     std::string generatePCHVerificationCMD() const;
     std::string generateCompilationCMD() const;
@@ -69,16 +87,8 @@ public:
                                  TComponentType* pComponent, const io::megaFilePath& sourceFile )
     {
         Compilation compilation;
-        compilation.compilationMode = CompilationMode::eNormal;
-
-        // use ccache on linux to speed up include pch
-#ifdef __gnu_linux__
-        std::ostringstream useCCache;
-        useCCache << "ccache " << toolChain.clangCompilerPath;
-        compilation.compiler = useCCache.str();
-#else
-        compilation.compiler = toolChain.clangCompilerPath;
-#endif
+        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -102,8 +112,8 @@ public:
 
         compilation.compilationMode = CompilationMode::eInterface;
 
-        compilation.compiler        = toolChain.clangCompilerPath;
-        compilation.compiler_plugin = toolChain.clangPluginPath;
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
+        compilation.compiler_plugin  = toolChain.clangPluginPath;
 
         compilation.srcDir     = environment.srcDir();
         compilation.buildDir   = environment.buildDir();
@@ -133,8 +143,8 @@ public:
 
         compilation.compilationMode = CompilationMode::eOperations;
 
-        compilation.compiler        = toolChain.clangCompilerPath;
-        compilation.compiler_plugin = toolChain.clangPluginPath;
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
+        compilation.compiler_plugin  = toolChain.clangPluginPath;
 
         compilation.srcDir     = environment.srcDir();
         compilation.buildDir   = environment.buildDir();
@@ -163,15 +173,8 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode::eNormal;
-
-#ifdef __gnu_linux__
-        std::ostringstream useCCache;
-        useCCache << "ccache " << toolChain.clangCompilerPath;
-        compilation.compiler = useCCache.str();
-#else
-        compilation.compiler = toolChain.clangCompilerPath;
-#endif
+        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -193,15 +196,8 @@ public:
                                                                TComponentType*             pComponent )
     {
         Compilation compilation;
-        compilation.compilationMode = CompilationMode::eNormal;
-
-#ifdef __gnu_linux__
-        std::ostringstream useCCache;
-        useCCache << "ccache " << toolChain.clangCompilerPath;
-        compilation.compiler = useCCache.str();
-#else
-        compilation.compiler = toolChain.clangCompilerPath;
-#endif
+        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -226,8 +222,8 @@ public:
 
         compilation.compilationMode = CompilationMode::eLibrary;
 
-        compilation.compiler        = toolChain.clangCompilerPath;
-        compilation.compiler_plugin = toolChain.clangPluginPath;
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
+        compilation.compiler_plugin  = toolChain.clangPluginPath;
 
         compilation.srcDir   = environment.srcDir();
         compilation.buildDir = environment.buildDir();
@@ -259,8 +255,8 @@ public:
 
         compilation.compilationMode = CompilationMode::eCPP;
 
-        compilation.compiler        = toolChain.clangCompilerPath;
-        compilation.compiler_plugin = toolChain.clangPluginPath;
+        compilation.compiler_command = toolChain.clangCompilerPath.string();
+        compilation.compiler_plugin  = toolChain.clangPluginPath;
 
         compilation.srcDir     = environment.srcDir();
         compilation.buildDir   = environment.buildDir();
@@ -293,15 +289,9 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode::eNormal;
+        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compiler_command = maybeUseCCache( toolChain );
 
-#ifdef __gnu_linux__
-        std::ostringstream useCCache;
-        useCCache << "ccache " << toolChain.clangCompilerPath;
-        compilation.compiler = useCCache.str();
-#else
-        compilation.compiler = toolChain.clangCompilerPath;
-#endif
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
         compilation.includeDirs = pComponent->get_include_directories();
@@ -327,15 +317,8 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode::eNormal;
-
-#ifdef __gnu_linux__
-        std::ostringstream useCCache;
-        useCCache << "ccache " << toolChain.clangCompilerPath;
-        compilation.compiler = useCCache.str();
-#else
-        compilation.compiler = toolChain.clangCompilerPath;
-#endif
+        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
@@ -360,15 +343,8 @@ public:
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode::eNormal;
-
-#ifdef __gnu_linux__
-        std::ostringstream useCCache;
-        useCCache << "ccache " << toolChain.clangCompilerPath;
-        compilation.compiler = useCCache.str();
-#else
-        compilation.compiler = toolChain.clangCompilerPath;
-#endif
+        compilation.compilationMode  = CompilationMode::eNormal;
+        compilation.compiler_command = maybeUseCCache( toolChain );
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();

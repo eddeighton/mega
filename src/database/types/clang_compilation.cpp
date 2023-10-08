@@ -32,7 +32,7 @@ std::string Compilation::generatePCHVerificationCMD() const
     std::ostringstream osCmd;
 
     // the compiler itself
-    osCmd << compiler.string() << " -x c++ ";
+    osCmd << compiler_command << " -x c++ ";
 
     // flags
     for( const std::string& flag : flags )
@@ -103,7 +103,7 @@ std::string Compilation::generateCompilationCMD() const
     std::ostringstream osCmd;
 
     // the compiler itself
-    osCmd << compiler.string() << " ";
+    osCmd << compiler_command << " ";
 
     // flags
     for( const std::string& flag : flags )

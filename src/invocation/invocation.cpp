@@ -425,8 +425,11 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
             {
                 for( auto pConcrete : pContext->get_concrete() )
                 {
-                    contextTypes.push_back( pConcrete );
-                    spec.context.push_back( pConcrete );
+                    if( std::find( contextTypes.begin(), contextTypes.end(), pConcrete ) == contextTypes.end() )
+                    {
+                        contextTypes.push_back( pConcrete );
+                        spec.context.push_back( pConcrete );
+                    }
                 }
             }
         }
@@ -440,8 +443,11 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
             {
                 for( auto pConcrete : pInterfaceContext->get_concrete() )
                 {
-                    contextTypes.push_back( pConcrete );
-                    spec.context.push_back( pConcrete );
+                    if( std::find( contextTypes.begin(), contextTypes.end(), pConcrete ) == contextTypes.end() )
+                    {
+                        contextTypes.push_back( pConcrete );
+                        spec.context.push_back( pConcrete );
+                    }
                 }
             }
         }
@@ -483,21 +489,30 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
             {
                 for( auto pConcrete : pContext->get_concrete() )
                 {
-                    pathElement.push_back( pConcrete );
+                    if( std::find( pathElement.begin(), pathElement.end(), pConcrete ) == pathElement.end() )
+                    {
+                        pathElement.push_back( pConcrete );
+                    }
                 }
             }
             for( auto pDimension : pSymbol->get_dimensions() )
             {
                 for( auto pConcrete : pDimension->get_concrete() )
                 {
-                    pathElement.push_back( pConcrete );
+                    if( std::find( pathElement.begin(), pathElement.end(), pConcrete ) == pathElement.end() )
+                    {
+                        pathElement.push_back( pConcrete );
+                    }
                 }
             }
             for( auto pLink : pSymbol->get_links() )
             {
                 for( auto pConcrete : pLink->get_concrete() )
                 {
-                    pathElement.push_back( pConcrete );
+                    if( std::find( pathElement.begin(), pathElement.end(), pConcrete ) == pathElement.end() )
+                    {
+                        pathElement.push_back( pConcrete );
+                    }
                 }
             }
             if( !pathElement.empty() )
@@ -633,12 +648,15 @@ public:
                 = make_instruction< Instructions::PolyBranch >( m_pRootInstruction, m_pParameterVariable );
             for( auto pEdge : m_pDerivationTreeRoot->get_edges() )
             {
-                auto pInstruction = make_instruction< Instructions::PolyCase >(
-                    pPolyReference, m_pParameterVariable, pEdge->get_next()->get_vertex() );
-                auto pNext = pEdge->get_next();
-                auto pOR   = db_cast< Derivation::Or >( pNext );
-                VERIFY_RTE( pOR );
-                buildOr( pInstruction, m_pParameterVariable, pOR );
+                if( !pEdge->get_eliminated() )
+                {
+                    auto pInstruction = make_instruction< Instructions::PolyCase >(
+                        pPolyReference, m_pParameterVariable, pEdge->get_next()->get_vertex() );
+                    auto pNext = pEdge->get_next();
+                    auto pOR   = db_cast< Derivation::Or >( pNext );
+                    VERIFY_RTE( pOR );
+                    buildOr( pInstruction, m_pParameterVariable, pOR );
+                }
             }
         }
         else
@@ -1101,7 +1119,7 @@ class OperationBuilder
                                 case EdgeType::ePolySingularOptional:
                                 case EdgeType::ePolyParent:
                                 {
-                                    VERIFY_RTE( !bFound );
+                                    // VERIFY_RTE( !bFound );
                                     auto pTargetContext
                                         = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
                                     VERIFY_RTE( pTargetContext );
@@ -1117,7 +1135,7 @@ class OperationBuilder
                                 case EdgeType::ePolyNonSingularOptional:
                                 {
                                     bSingular = false;
-                                    VERIFY_RTE( !bFound );
+                                    // VERIFY_RTE( !bFound );
                                     auto pTargetContext
                                         = db_cast< Concrete::Dimensions::Link >( pGraphEdge->get_target() );
                                     VERIFY_RTE( pTargetContext );

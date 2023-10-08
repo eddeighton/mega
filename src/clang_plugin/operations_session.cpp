@@ -195,17 +195,38 @@ public:
     bool buildFunctionReturnType( OperationsStage::Operations::ReturnTypes::Function* pFunctionReturnType,
                                   clang::QualType&                                    resultType )
     {
+        using namespace OperationsStage;
+
         VERIFY_RTE_MSG( pFunctionReturnType->get_homogeneous(), "Non-homogeneous function return types NOT supported" );
         auto functions = pFunctionReturnType->get_functions();
-        VERIFY_RTE( functions.size() == 1 );
-
-        DeclLocType declLocType      = locateInterfaceContext( functions.front() );
-        DeclLocType returnTypeResult = getNestedDeclContext(
-            pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, ::mega::EG_FUNCTION_TRAIT_TYPE );
-        QualType typeType
-            = getTypeTrait( pASTContext, pSema, returnTypeResult.pDeclContext, returnTypeResult.loc, "Type" );
-        resultType = typeType.getCanonicalType();
-        return true;
+        if( pFunctionReturnType->get_homogeneous() )
+        {
+            DeclLocType declLocType      = locateInterfaceContext( functions.front() );
+            DeclLocType returnTypeResult = getNestedDeclContext(
+                pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, ::mega::EG_FUNCTION_TRAIT_TYPE );
+            QualType typeType
+                = getTypeTrait( pASTContext, pSema, returnTypeResult.pDeclContext, returnTypeResult.loc, "Type" );
+            resultType = typeType.getCanonicalType();
+            return true;
+        }
+        else
+        {
+            std::vector< clang::QualType > types;
+            for( Interface::Function* pTarget : functions )
+            {
+                DeclLocType declLocType      = locateInterfaceContext( pTarget );
+                DeclLocType returnTypeResult = getNestedDeclContext(
+                    pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, ::mega::EG_FUNCTION_TRAIT_TYPE );
+                QualType typeType
+                    = getTypeTrait( pASTContext, pSema, returnTypeResult.pDeclContext, returnTypeResult.loc, "Type" );
+                types.push_back( typeType.getCanonicalType() );
+            }
+            clang::SourceLocation loc;
+            auto                  variantType
+                = clang::getVariantType( pASTContext, pSema, pASTContext->getTranslationUnitDecl(), loc, types );
+            resultType = variantType;
+            return true;
+        }
     }
 
     bool buildContextReturnType( OperationsStage::Operations::ReturnTypes::Context* pContextReturnType,
@@ -550,7 +571,8 @@ public:
                     {
                         if( auto pCall = result.getNodeAs< clang::CXXMemberCallExpr >( "invocation" ) )
                         {
-                            CLANG_PLUGIN_LOG( "Found member function call: " << pCall->getMethodDecl()->getNameAsString() );
+                            CLANG_PLUGIN_LOG(
+                                "Found member function call: " << pCall->getMethodDecl()->getNameAsString() );
                             if( pCall->getMethodDecl()->getNameAsString() == mega::EG_INVOKE_MEMBER_FUNCTION_NAME )
                             {
                                 if( auto pElaboratedType
