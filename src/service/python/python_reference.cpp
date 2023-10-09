@@ -86,7 +86,8 @@ std::optional< mega::reference > PythonReference::tryCast( PyObject* pObject )
 
 int PythonReference::set( void* pClosure, PyObject* pValue )
 {
-    // const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
+    const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
+    SPDLOG_ERROR( "PythonReference::set called with symbol: {}", pszAttributeIdentity );
     return 0;
 }
 
@@ -116,7 +117,6 @@ PyObject* PythonReference::dump() const
 
 PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 {
-    SPDLOG_TRACE( "PythonReference::call" );
     if( m_reference.valid() )
     {
         try
@@ -336,11 +336,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
     }
     else
     {
-        SPDLOG_TRACE( "PythonReference::call reference invalid" );
-        std::ostringstream os;
-        os << "Invocation on null reference";
-        // ERR( os.str() );
-
+        SPDLOG_ERROR( "PythonReference::call on invalid reference" );
         Py_INCREF( Py_None );
         return Py_None;
     }

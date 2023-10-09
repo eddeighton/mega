@@ -38,32 +38,69 @@ void TypeSystem::reload( const Project& project )
     m_pDatabase = std::make_unique< runtime::PythonDatabase >( project.getProjectDatabase() );
 }
 
-Type::Ptr TypeSystem::getLinkType( TypeID typeID )
+Type::Ptr TypeSystem::getLinkType( TypeID::SubValueType concreteObjectID, TypeID typeID )
 {
+    const ConcreteObjectLinkSymbol cols{ concreteObjectID, typeID };
+
     Type::Ptr pResult;
 
-    auto iFind = m_links.find( typeID );
+    auto iFind = m_links.find( cols );
     if( iFind != m_links.end() )
     {
         pResult = iFind->second;
     }
     else
     {
-        Type::ObjectTypeSet objectTypes;
-        m_pDatabase->getLinkObjectTypes( typeID, objectTypes );
-        VERIFY_RTE( !objectTypes.empty() );
+        // collect the set of concrete object types the link is to
+        Type::ConcreteObjectTypeSet concreteObjectTypes;
+        m_pDatabase->getLinkObjectTypes( concreteObjectID, typeID, concreteObjectTypes );
+        VERIFY_RTE( !concreteObjectTypes.empty() );
+        using SymbolTypeID = std::pair< std::string, TypeID >;
+        std::map< SymbolTypeID, std::size_t > symbolTypeIDCount, linkTypeIDCount;
 
-        // establish the symbol table for the object types
-        Type::SymbolTablePtr pSymbolTable = std::make_shared< Type::SymbolTable >();
-        Type::SymbolTablePtr pLinkTable   = std::make_shared< Type::SymbolTable >();
-        for( auto objectID : objectTypes )
+        // for each object type collect its symbols and record them into a
+        // map that associated with a count
+        for( auto concreteObjectID : concreteObjectTypes )
         {
-            m_pDatabase->getObjectSymbols( objectID, *pSymbolTable, *pLinkTable );
+            std::unordered_map< std::string, TypeID > symbols, links;
+            m_pDatabase->getConcreteObjectSymbols( concreteObjectID, symbols, links );
+
+            for( const auto& [ strSymbol, typeID ] : symbols )
+            {
+                symbolTypeIDCount[ { strSymbol, typeID } ]++;
+            }
+            for( const auto& [ strSymbol, typeID ] : links )
+            {
+                linkTypeIDCount[ { strSymbol, typeID } ]++;
+            }
+        }
+
+        // now establish the symbols as those that occur for ALL concrete types
+        Type::SymbolTablePtr pSymbolTable = std::make_shared< Type::SymbolTable >();
+        {
+            for( const auto& [ symbolTypeID, count ] : symbolTypeIDCount )
+            {
+                if( count == concreteObjectTypes.size() )
+                {
+                    pSymbolTable->insert( symbolTypeID );
+                }
+            }
+        }
+        Type::SymbolTablePtr pLinkTable = std::make_shared< Type::SymbolTable >();
+        {
+            for( const auto& [ symbolTypeID, count ] : linkTypeIDCount )
+            {
+                if( count == concreteObjectTypes.size() )
+                {
+                    pLinkTable->insert( symbolTypeID );
+                }
+            }
         }
 
         // create type for object
-        pResult = std::make_shared< Type >( m_module, *this, pSymbolTable, pLinkTable, std::move( objectTypes ) );
-        m_links.insert( { typeID, pResult } );
+        pResult
+            = std::make_shared< Type >( m_module, *this, pSymbolTable, pLinkTable, std::move( concreteObjectTypes ) );
+        m_links.insert( { cols, pResult } );
     }
 
     return pResult;
@@ -73,9 +110,9 @@ PyObject* TypeSystem::cast( const mega::reference& ref )
 {
     Type::Ptr pType;
     {
-        auto objectID = ref.getType().getObjectID();
-        auto iFind    = m_types.find( objectID );
-        if( iFind != m_types.end() )
+        auto concreteObjectID = ref.getType().getObjectID();
+        auto iFind            = m_concreteObjectTypes.find( concreteObjectID );
+        if( iFind != m_concreteObjectTypes.end() )
         {
             pType = iFind->second;
         }
@@ -85,12 +122,15 @@ PyObject* TypeSystem::cast( const mega::reference& ref )
             Type::SymbolTablePtr pSymbolTable = std::make_shared< Type::SymbolTable >();
             Type::SymbolTablePtr pLinkTable   = std::make_shared< Type::SymbolTable >();
 
-            m_pDatabase->getObjectSymbols( objectID, *pSymbolTable, *pLinkTable );
+            if( ref.valid() )
+            {
+                m_pDatabase->getConcreteObjectSymbols( concreteObjectID, *pSymbolTable, *pLinkTable );
+            }
 
             // create type for object
             pType = std::make_shared< Type >(
-                m_module, *this, pSymbolTable, pLinkTable, Type::ObjectTypeSet{ objectID } );
-            m_types.insert( { objectID, pType } );
+                m_module, *this, pSymbolTable, pLinkTable, Type::ConcreteObjectTypeSet{ concreteObjectID } );
+            m_concreteObjectTypes.insert( { concreteObjectID, pType } );
         }
     }
 

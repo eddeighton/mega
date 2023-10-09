@@ -37,14 +37,14 @@ void recurseTree( PythonDatabase::SymbolTable&   symbols,
         for( auto pUserDim : pDimensionContext->get_dimensions() )
         {
             symbols.insert( { pUserDim->get_interface_dimension()->get_id()->get_str(),
-                              pUserDim->get_interface_dimension()->get_interface_id() } );
+                              pUserDim->get_interface_dimension()->get_symbol_id() } );
         }
         for( auto pLinkDim : pDimensionContext->get_links() )
         {
             if( auto pUserLink = db_cast< Dimensions::UserLink >( pLinkDim ) )
             {
                 links.insert( { pUserLink->get_interface_link()->get_id()->get_str(),
-                                pUserLink->get_interface_link()->get_interface_id() } );
+                                pUserLink->get_interface_link()->get_symbol_id() } );
             }
             else if( auto pOwnershipLink = db_cast< Dimensions::OwnershipLink >( pLinkDim ) )
             {
@@ -57,7 +57,7 @@ void recurseTree( PythonDatabase::SymbolTable&   symbols,
         }
     }
 
-    symbols.insert( { pContext->get_interface()->get_identifier(), pContext->get_interface()->get_interface_id() } );
+    symbols.insert( { pContext->get_interface()->get_identifier(), pContext->get_interface()->get_symbol_id() } );
 
     for( Concrete::Context* pChildContext : pContext->get_children() )
     {
@@ -72,12 +72,13 @@ PythonDatabase::PythonDatabase( const boost::filesystem::path& projectDatabasePa
     , m_manifest( m_environment, m_environment.project_manifest() )
     , m_database( m_environment, m_manifest.getManifestFilePath() )
     , m_pSymbolTable( m_database.one< FinalStage::Symbols::SymbolTable >( m_manifest.getManifestFilePath() ) )
-    , m_interfaceTypeIDs( m_pSymbolTable->get_interface_type_ids() )
+    , m_symbolTypeIDs( m_pSymbolTable->get_symbol_type_ids() )
     , m_concreteTypeIDs( m_pSymbolTable->get_concrete_type_ids() )
 {
 }
 
-void PythonDatabase::getObjectSymbols( TypeID::SubValueType objectConcreteID, SymbolTable& symbols, SymbolTable& links )
+void PythonDatabase::getConcreteObjectSymbols( TypeID::SubValueType objectConcreteID, SymbolTable& symbols,
+                                               SymbolTable& links )
 {
     auto iFind = m_concreteTypeIDs.find( TypeID::make_object_from_objectID( objectConcreteID ) );
     VERIFY_RTE_MSG(
@@ -93,79 +94,99 @@ void PythonDatabase::getObjectSymbols( TypeID::SubValueType objectConcreteID, Sy
     recurseTree( symbols, links, pObject );
 }
 
-void PythonDatabase::getLinkObjectTypes( TypeID linkTypeID, std::set< TypeID::SubValueType >& objectTypes )
+void PythonDatabase::getLinkObjectTypes( TypeID::SubValueType concreteObjectID, TypeID linkTypeID,
+                                         std::set< TypeID::SubValueType >& objectTypes )
 {
     using namespace FinalStage;
 
-    auto iFind = m_interfaceTypeIDs.find( linkTypeID );
-    VERIFY_RTE_MSG( iFind != m_interfaceTypeIDs.end(), "Failed to locate interface type id for link: " << linkTypeID );
+    auto iFind = m_symbolTypeIDs.find( linkTypeID );
+    VERIFY_RTE_MSG( iFind != m_symbolTypeIDs.end(), "Failed to locate interface type id for link: " << linkTypeID );
+    auto pSymbol = iFind->second;
 
-    auto pSymbol    = iFind->second;
-    auto dimLinkOpt = pSymbol->get_link();
-    VERIFY_RTE( dimLinkOpt.has_value() );
-    auto pDimLink = dimLinkOpt.value();
-
-    auto pRelation = pDimLink->get_relation();
-    if( auto pOwning = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
+    std::vector< Interface::LinkTrait* > interfaceLinkTraits;
+    for( auto pLinkTrait : pSymbol->get_links() )
     {
-        if( pDimLink->get_owning() )
+        for( auto pConcrete : pLinkTrait->get_concrete() )
         {
-            auto owners = pOwning->get_owners();
-            for( auto i = owners.lower_bound( pDimLink ), iEnd = owners.upper_bound( pDimLink ); i != iEnd; ++i )
+            auto object = pConcrete->get_parent_context()->get_concrete_object();
+            VERIFY_RTE( object.has_value() );
+            auto pObject = object.value();
+            if( pObject->get_concrete_id().getObjectID() == concreteObjectID )
             {
-                auto pOwnershipLink = i->second;
-                auto pObject        = pOwnershipLink->get_parent_context()->get_concrete_object().value();
-                objectTypes.insert( pObject->get_concrete_id().getObjectID() );
+                interfaceLinkTraits.push_back( pLinkTrait );
+                break;
             }
         }
-        else
+    }
+
+    VERIFY_RTE_MSG(
+        !interfaceLinkTraits.empty(),
+        "Failed to determine interface link for object: " << concreteObjectID << " and symbol: " << linkTypeID );
+
+    for( auto pDimLink : interfaceLinkTraits )
+    {
+        auto pRelation = pDimLink->get_relation();
+        if( auto pOwning = db_cast< HyperGraph::OwningObjectRelation >( pRelation ) )
         {
-            auto owned = pOwning->get_owned();
-            for( auto pConcrete : pDimLink->get_concrete() )
+            if( pDimLink->get_owning() )
             {
-                auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pConcrete );
-                for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink );
-                     i != iEnd; ++i )
+                auto owners = pOwning->get_owners();
+                for( auto i = owners.lower_bound( pDimLink ), iEnd = owners.upper_bound( pDimLink ); i != iEnd; ++i )
                 {
-                    auto pLinkTrait = i->second;
-                    for( auto pOwnerLinkTrait : pLinkTrait->get_concrete() )
+                    auto pOwnershipLink = i->second;
+                    auto pObject        = pOwnershipLink->get_parent_context()->get_concrete_object().value();
+                    objectTypes.insert( pObject->get_concrete_id().getObjectID() );
+                }
+            }
+            else
+            {
+                auto owned = pOwning->get_owned();
+                for( auto pConcrete : pDimLink->get_concrete() )
+                {
+                    auto pOwnershipLink = db_cast< Concrete::Dimensions::OwnershipLink >( pConcrete );
+                    for( auto i = owned.lower_bound( pOwnershipLink ), iEnd = owned.upper_bound( pOwnershipLink );
+                         i != iEnd; ++i )
                     {
-                        auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
-                        VERIFY_RTE( objectOpt.has_value() );
-                        objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+                        auto pLinkTrait = i->second;
+                        for( auto pOwnerLinkTrait : pLinkTrait->get_concrete() )
+                        {
+                            auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
+                            VERIFY_RTE( objectOpt.has_value() );
+                            objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+                        }
                     }
                 }
             }
         }
-    }
-    else if( auto pNonOwning = db_cast< HyperGraph::NonOwningObjectRelation >( pRelation ) )
-    {
-        if( pDimLink == pNonOwning->get_source() )
+        else if( auto pNonOwning = db_cast< HyperGraph::NonOwningObjectRelation >( pRelation ) )
         {
-            for( auto pOwnerLinkTrait : pNonOwning->get_target()->get_concrete() )
+            if( pDimLink == pNonOwning->get_source() )
             {
-                auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
-                VERIFY_RTE( objectOpt.has_value() );
-                objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+                for( auto pOwnerLinkTrait : pNonOwning->get_target()->get_concrete() )
+                {
+                    auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
+                    VERIFY_RTE( objectOpt.has_value() );
+                    objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+                }
             }
-        }
-        else if( pDimLink == pNonOwning->get_target() )
-        {
-            for( auto pOwnerLinkTrait : pNonOwning->get_source()->get_concrete() )
+            else if( pDimLink == pNonOwning->get_target() )
             {
-                auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
-                VERIFY_RTE( objectOpt.has_value() );
-                objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+                for( auto pOwnerLinkTrait : pNonOwning->get_source()->get_concrete() )
+                {
+                    auto objectOpt = pOwnerLinkTrait->get_parent_context()->get_concrete_object();
+                    VERIFY_RTE( objectOpt.has_value() );
+                    objectTypes.insert( objectOpt.value()->get_concrete_id().getObjectID() );
+                }
+            }
+            else
+            {
+                THROW_RTE( "Could not match link trait to non owning relation" );
             }
         }
         else
         {
-            THROW_RTE( "Could not match link trait to non owning relation" );
+            THROW_RTE( "Unknown relation type" );
         }
-    }
-    else
-    {
-        THROW_RTE( "Unknown relation type" );
     }
 }
 

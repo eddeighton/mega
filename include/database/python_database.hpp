@@ -34,22 +34,22 @@ namespace mega::runtime
 
 class EGDB_EXPORT PythonDatabase
 {
-    using InterfaceTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::InterfaceTypeID* >;
+    using SymbolTypeIDMap    = std::map< mega::TypeID, ::FinalStage::Symbols::SymbolTypeID* >;
     using ConcreteTypeIDMap  = std::map< TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
 
 public:
     PythonDatabase( const boost::filesystem::path& projectDatabasePath );
 
     using SymbolTable = std::unordered_map< std::string, TypeID >;
-    void getObjectSymbols( TypeID::SubValueType objectConcreteID, SymbolTable& symbols, SymbolTable& links );
-    void getLinkObjectTypes( TypeID linkInterfaceTypeID, std::set< TypeID::SubValueType >& objectTypes );
+    void getConcreteObjectSymbols( TypeID::SubValueType objectConcreteID, SymbolTable& symbols, SymbolTable& links );
+    void getLinkObjectTypes( TypeID::SubValueType concreteObjectID, TypeID linkInterfaceTypeID, std::set< TypeID::SubValueType >& objectTypes );
 
 private:
     io::ArchiveEnvironment            m_environment;
     io::Manifest                      m_manifest;
     FinalStage::Database              m_database;
     FinalStage::Symbols::SymbolTable* m_pSymbolTable;
-    InterfaceTypeIDMap                m_interfaceTypeIDs;
+    SymbolTypeIDMap                   m_symbolTypeIDs;
     ConcreteTypeIDMap                 m_concreteTypeIDs;
 };
 } // namespace mega::runtime

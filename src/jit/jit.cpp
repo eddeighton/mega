@@ -229,19 +229,75 @@ void JIT::getProgramFunction( void* pLLVMCompiler, int fType, void** ppFunction 
     }
 }
 
+std::string JIT::getReturnTypeMangleType( FinalStage::Operations::ReturnTypes::ReturnType* pReturnType,
+                                          const mega::InvocationID&                        invocationID )
+{
+    using namespace FinalStage;
+    using ::operator<<;
+
+    std::optional< std::string > strTypeOpt;
+
+    if( auto pVoid = db_cast< Operations::ReturnTypes::Void >( pReturnType ) )
+    {
+        THROW_RTE( "void return type in invocation: " << invocationID );
+    }
+    else if( auto pDimension = db_cast< Operations::ReturnTypes::Dimension >( pReturnType ) )
+    {
+        if( pDimension->get_homogeneous() )
+        {
+            for( auto pDim : pDimension->get_dimensions() )
+            {
+                if( !strTypeOpt.has_value() )
+                {
+                    strTypeOpt = megaMangle( pDim->get_erased_type() );
+                }
+                else
+                {
+                    VERIFY_RTE_MSG( megaMangle( pDim->get_erased_type() ) == strTypeOpt.value(),
+                                    "Inconsistent dimension return types in invocation: " << invocationID );
+                }
+            }
+        }
+        else
+        {
+            THROW_RTE( "Non-homogeneous dimensions in invocation return type: " << invocationID );
+        }
+    }
+    else if( auto pFunction = db_cast< Operations::ReturnTypes::Function >( pReturnType ) )
+    {
+        THROW_RTE( "Read or Write returning function in invocation: " << invocationID );
+    }
+    else if( auto pRange = db_cast< Operations::ReturnTypes::Range >( pReturnType ) )
+    {
+        strTypeOpt = megaMangle( mega::psz_mega_reference_vector );
+    }
+    else if( auto pContextReturnType = db_cast< Operations::ReturnTypes::Context >( pReturnType ) )
+    {
+        strTypeOpt = megaMangle( mega::psz_mega_reference );
+    }
+    else
+    {
+        THROW_RTE( "Unknown return type in invocation: " << invocationID );
+    }
+    VERIFY_RTE_MSG( strTypeOpt.has_value(), "Failed to resolve type for invocation: " << invocationID );
+    return strTypeOpt.value();
+}
+
 JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                                             const mega::InvocationID& invocationID, void** ppFunction )
 {
+    using namespace FinalStage;
+    using ::operator<<;
     SPDLOG_TRACE( "JIT: compileInvocationFunction: {} {}", pszUnitName, invocationID );
 
-    const FinalStage::Operations::Invocation* pInvocationFinal = m_database.tryGetInvocation( invocationID );
+    const Operations::Invocation* pInvocationFinal = m_database.tryGetInvocation( invocationID );
     if( pInvocationFinal == nullptr )
     {
         // compile the invocation using the OperationsStage
         const OperationsStage::Operations::Invocation* pInvocation
             = mega::invocation::compileInvocation( m_pythonDatabase, m_symbolTables, invocationID );
         // now convert to the FinalStage database
-        pInvocationFinal = m_pythonDatabaseFinal.convert< FinalStage::Operations::Invocation >( pInvocation );
+        pInvocationFinal = m_pythonDatabaseFinal.convert< Operations::Invocation >( pInvocation );
         // and store in the database wrapper so will be found as dynamic invocation
         m_database.addDynamicInvocation( invocationID, pInvocationFinal );
     }
@@ -252,72 +308,23 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
     switch( pInvocationFinal->get_explicit_operation() )
     {
         case mega::id_exp_Read:
+        {
+            functionType       = mega::runtime::invocation::eRead;
+            result.mangledType = getReturnTypeMangleType( pInvocationFinal->get_return_type(), invocationID );
+        }
+        break;
         case mega::id_exp_Write:
         {
-            if( pInvocationFinal->get_explicit_operation() == mega::id_exp_Read )
-            {
-                functionType = mega::runtime::invocation::eRead;
-            }
-            else
-            {
-                functionType = mega::runtime::invocation::eWrite;
-            }
-
-            auto pReturnType = pInvocationFinal->get_return_type();
-            using namespace FinalStage;
-            if( auto pVoid = db_cast< Operations::ReturnTypes::Void >( pReturnType ) )
-            {
-                THROW_RTE( "void return type" );
-            }
-            else if( auto pDimension = db_cast< Operations::ReturnTypes::Dimension >( pReturnType ) )
-            {
-                for( auto pDim : pDimension->get_dimensions() )
-                {
-                    if( result.mangledType.empty() )
-                    {
-                        result.mangledType = megaMangle( pDim->get_erased_type() );
-                    }
-                    else
-                    {
-                        const std::string strMangle = megaMangle( pDim->get_erased_type() );
-                        VERIFY_RTE_MSG( strMangle == result.mangledType, "Inconsistent dimension return types" );
-                    }
-                }
-            }
-            else if( auto pFunction = db_cast< Operations::ReturnTypes::Function >( pReturnType ) )
-            {
-                THROW_RTE( "Read or Write returning function" );
-            }
-            else if( auto pRange = db_cast< Operations::ReturnTypes::Range >( pReturnType ) )
-            {
-                result.mangledType = megaMangle( mega::psz_mega_reference_vector );
-            }
-            else if( auto pContextReturnType = db_cast< Operations::ReturnTypes::Context >( pReturnType ) )
-            {
-                result.mangledType = megaMangle( mega::psz_mega_reference );
-            }
-            else
-            {
-                THROW_RTE( "Unknown return type" );
-            }
+            functionType          = mega::runtime::invocation::eWrite;
+            auto pWriteInvocation = db_cast< Operations::Write >( pInvocationFinal );
+            VERIFY_RTE( pWriteInvocation );
+            result.mangledType = getReturnTypeMangleType( pWriteInvocation->get_parameter_type(), invocationID );
         }
         break;
         case mega::id_exp_Link_Read:
         {
             functionType     = mega::runtime::invocation::eLinkRead;
-            auto pReturnType = pInvocationFinal->get_return_type();
-            using namespace FinalStage;
-            auto pContextReturnType = db_cast< Operations::ReturnTypes::Context >( pReturnType );
-            VERIFY_RTE( pContextReturnType );
-            auto returnTypes = pContextReturnType->get_contexts();
-            if( returnTypes.size() == 1 )
-            {
-                result.mangledType = megaMangle( mega::psz_mega_reference );
-            }
-            else
-            {
-                result.mangledType = megaMangle( mega::psz_mega_reference_vector );
-            }
+            result.mangledType = getReturnTypeMangleType( pInvocationFinal->get_return_type(), invocationID );
         }
         break;
         case mega::id_exp_Link_Add:
@@ -326,9 +333,11 @@ JITBase::InvocationTypeInfo JIT::compileInvocationFunction( void* pLLVMCompiler,
             result.mangledType = megaMangle( mega::psz_mega_reference );
         }
         break;
+
         case mega::id_exp_Link_Remove:
             functionType = mega::runtime::invocation::eLinkRemove;
             break;
+
         case mega::id_exp_Link_Clear:
             functionType = mega::runtime::invocation::eLinkClear;
             break;

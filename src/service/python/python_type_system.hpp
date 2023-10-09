@@ -40,8 +40,26 @@ class PythonModule;
 
 class TypeSystem
 {
-    using TypeMap        = std::unordered_map< TypeID::SubValueType, Type::Ptr >;
-    using LinkTypeMap    = std::unordered_map< TypeID, Type::Ptr, TypeID::Hash >;
+    using ConcreteObjectTypes = std::unordered_map< TypeID::SubValueType, Type::Ptr >;
+    struct ConcreteObjectLinkSymbol
+    {
+        TypeID::SubValueType concreteObjectID;
+        TypeID               linkSymbol;
+
+        inline bool operator==( const ConcreteObjectLinkSymbol& value ) const
+        {
+            return ( concreteObjectID == value.concreteObjectID ) && ( linkSymbol == value.linkSymbol );
+        }
+
+        struct Hash
+        {
+            inline U64 operator()( const ConcreteObjectLinkSymbol& value ) const noexcept
+            {
+                return value.linkSymbol.getSymbolID() + ( static_cast< U64 >( value.concreteObjectID ) << 32 );
+            }
+        };
+    };
+    using LinkTypeMap    = std::unordered_map< ConcreteObjectLinkSymbol, Type::Ptr, ConcreteObjectLinkSymbol::Hash >;
     using SymbolTablePtr = std::unique_ptr< Type::SymbolTable >;
     using SymbolTableMap = std::unordered_map< TypeID::SubValueType, SymbolTablePtr >;
     using DatabasePtr    = std::unique_ptr< runtime::PythonDatabase >;
@@ -53,16 +71,16 @@ public:
 
     void reload( const Project& project );
 
-    Type::Ptr getLinkType( TypeID typeID );
+    Type::Ptr getLinkType( TypeID::SubValueType concreteObjectID, TypeID typeID );
 
     PyObject* cast( const mega::reference& ref );
 
 private:
-    PythonModule&  m_module;
-    DatabasePtr    m_pDatabase;
-    TypeMap        m_types;
-    LinkTypeMap    m_links;
-    SymbolTableMap m_symbolTables;
+    PythonModule&       m_module;
+    DatabasePtr         m_pDatabase;
+    ConcreteObjectTypes m_concreteObjectTypes;
+    LinkTypeMap         m_links;
+    SymbolTableMap      m_symbolTables;
 };
 
 } // namespace mega::service::python

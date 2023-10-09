@@ -35,31 +35,26 @@ typedef struct
     PyObject_HEAD PythonReference* pReference;
 } PythonReferenceData;
 
-static PyTypeObject* g_pTypeObject_Hack = nullptr;
-
-static PythonReference* fromPyObject( PyObject* pPyObject )
+PythonReference* fromPyObject( PyObject* pPyObject )
 {
-    if( g_pTypeObject_Hack != nullptr )
-    {
-        if( pPyObject->ob_type == g_pTypeObject_Hack )
-        {
-            PythonReferenceData* pLogicalObject = ( PythonReferenceData* )pPyObject;
-            return pLogicalObject->pReference;
-        }
-    }
-    return nullptr;
+    PythonReferenceData* pLogicalObject = ( PythonReferenceData* )pPyObject;
+    return pLogicalObject->pReference;
 }
 
-static void type_dealloc( PyObject* pPyObject )
+void type_dealloc( PyObject* pPyObject )
 {
     if( PythonReference* pReference = fromPyObject( pPyObject ) )
     {
         delete pReference;
         Py_TYPE( pPyObject )->tp_free( ( PyObject* )pPyObject );
     }
+    else
+    {
+        SPDLOG_ERROR( "PythonReference type_dealloc invalid python reference" );
+    }
 }
 
-static PyObject* type_get( PyObject* self, void* pClosure )
+PyObject* type_get( PyObject* self, void* pClosure )
 {
     if( PythonReference* pRef = fromPyObject( self ) )
     {
@@ -67,12 +62,12 @@ static PyObject* type_get( PyObject* self, void* pClosure )
     }
     else
     {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
+        SPDLOG_ERROR( "PythonReference type_get invalid python reference" );
         return nullptr;
     }
 }
 
-static int type_set( PyObject* self, PyObject* pValue, void* pClosure )
+int type_set( PyObject* self, PyObject* pValue, void* pClosure )
 {
     if( PythonReference* pRef = fromPyObject( self ) )
     {
@@ -80,7 +75,7 @@ static int type_set( PyObject* self, PyObject* pValue, void* pClosure )
     }
     else
     {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
+        SPDLOG_ERROR( "PythonReference type_set invalid python reference" );
         return -1;
     }
 }
@@ -93,7 +88,7 @@ PyObject* type_str( PyObject* self )
     }
     else
     {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
+        SPDLOG_ERROR( "PythonReference type_str invalid python reference" );
         return nullptr;
     }
 }
@@ -106,7 +101,7 @@ PyObject* type_call( PyObject* callable, PyObject* args, PyObject* kwargs )
     }
     else
     {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
+        SPDLOG_ERROR( "PythonReference type_call invalid python reference" );
         return nullptr;
     }
 }
@@ -119,7 +114,7 @@ PyObject* type_dump( PyObject* self )
     }
     else
     {
-        // PYTHON_ERROR( "PythonEGReferenceFactory is out of date" );
+        SPDLOG_ERROR( "PythonReference type_dump invalid python reference" );
         return nullptr;
     }
 }
@@ -131,12 +126,12 @@ static PyMethodDef type_methods[] = {
 } // namespace
 
 Type::Type( PythonModule& module, TypeSystem& typeSystem, Type::SymbolTablePtr pSymbolTable, SymbolTablePtr pLinkTable,
-            Type::ObjectTypeSet&& objectTypes )
+            Type::ConcreteObjectTypeSet&& concreteObjects )
     : m_module( module )
     , m_typeSystem( typeSystem )
     , m_pSymbolTable( pSymbolTable )
     , m_pLinkTable( pLinkTable )
-    , m_objectTypes( std::move( objectTypes ) )
+    , m_concreteObjectTypes( std::move( concreteObjects ) )
 {
     for( const auto& [ id, _ ] : *m_pSymbolTable )
     {
@@ -177,6 +172,7 @@ Type::Type( PythonModule& module, TypeSystem& typeSystem, Type::SymbolTablePtr p
 
     if( PyType_Ready( m_pTypeObject ) < 0 )
     {
+        SPDLOG_ERROR( "Type failed to create python type" );
         // set exception
         THROW_RTE( "Failed to create python mega.reference type" );
     }
@@ -185,8 +181,7 @@ Type::Type( PythonModule& module, TypeSystem& typeSystem, Type::SymbolTablePtr p
         Py_INCREF( m_pTypeObject );
         // successfully generated the dynamic type...
         // PyModule_AddObject( pPythonModule, "Host", (PyObject*)&m_type );
-        g_pTypeObject_Hack = m_pTypeObject;
-        // SPDLOG_INFO( "Successfully registered Python Reference Type" );
+        SPDLOG_TRACE( "Successfully registered Python Reference Type" );
     }
 }
 
@@ -194,7 +189,6 @@ Type::~Type()
 {
     if( m_pTypeObject )
     {
-        g_pTypeObject_Hack = nullptr;
         Py_DECREF( m_pTypeObject );
     }
 }
@@ -208,20 +202,33 @@ PyObject* Type::createReference( const mega::reference& ref )
     return pPythonObject;
 }
 
-PyObject* Type::createReference( const mega::reference& ref, const std::vector< mega::TypeID >& typePath,
-                                 const char* symbol )
+inline Type::TypeIDVector Type::append( const Type::TypeIDVector& from, mega::TypeID next )
 {
-    auto iFind = m_pSymbolTable->find( symbol );
-    if( iFind != m_pSymbolTable->end() )
+    TypeIDVector newTypePath;
+    {
+        newTypePath.reserve( from.size() + 1U );
+        newTypePath = from;
+        newTypePath.push_back( next );
+    }
+    return newTypePath;
+}
+
+PyObject* Type::createReference( const mega::reference& ref, const Type::TypeIDVector& typePath, const char* symbol )
+{
+    if( auto iFind = m_pLinkTable->find( symbol ); iFind != m_pLinkTable->end() )
+    {
+        const TypeIDVector   newTypePath   = append( typePath, iFind->second );
+        Type::Ptr            pLinkType     = m_typeSystem.getLinkType( ref.getType().getObjectID(), iFind->second );
+        PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, m_pTypeObject );
+        PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, m_pTypeObject );
+        pRootObject->pReference            = new PythonReference( m_module, *pLinkType, ref, newTypePath );
+        Py_INCREF( pPythonObject );
+        return pPythonObject;
+    }
+    else if( auto iFind = m_pSymbolTable->find( symbol ); iFind != m_pSymbolTable->end() )
     {
         // determine new type
-        std::vector< mega::TypeID > newTypePath;
-        {
-            newTypePath.reserve( typePath.size() + 1U );
-            newTypePath = typePath;
-            newTypePath.push_back( iFind->second );
-        }
-
+        const TypeIDVector   newTypePath   = append( typePath, iFind->second );
         PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, m_pTypeObject );
         PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, m_pTypeObject );
         pRootObject->pReference            = new PythonReference( m_module, *this, ref, newTypePath );
@@ -230,51 +237,30 @@ PyObject* Type::createReference( const mega::reference& ref, const std::vector< 
     }
     else
     {
-        auto iFind = m_pLinkTable->find( symbol );
-        if( iFind != m_pLinkTable->end() )
+        std::ostringstream os;
         {
-            std::vector< mega::TypeID > newTypePath;
+            using ::operator<<;
+            os << "Invalid symbol for reference: " << ref;
+            if( !typePath.empty() )
             {
-                newTypePath.reserve( typePath.size() + 1U );
-                newTypePath = typePath;
-                newTypePath.push_back( iFind->second );
-            }
-
-            Type::Ptr pLinkType = m_typeSystem.getLinkType( iFind->second );
-
-            PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, m_pTypeObject );
-            PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, m_pTypeObject );
-            pRootObject->pReference            = new PythonReference( m_module, *pLinkType, ref, newTypePath );
-            Py_INCREF( pPythonObject );
-            return pPythonObject;
-        }
-        else
-        {
-            std::ostringstream os;
-            {
-                using ::operator<<;
-                os << "Invalid symbol for reference: " << ref;
-                if( !typePath.empty() )
+                os << " Type Path: ";
+                bool bFirst = true;
+                for( auto& i : typePath )
                 {
-                    os << " Type Path: ";
-                    bool bFirst = true;
-                    for( auto& i : typePath )
-                    {
-                        if( bFirst )
-                            bFirst = false;
-                        else
-                            os << '.';
-                        os << i;
-                    }
+                    if( bFirst )
+                        bFirst = false;
+                    else
+                        os << '.';
+                    os << i;
                 }
-                os << " Symbol: " << symbol;
             }
-
-            SPDLOG_ERROR( os.str() );
-
-            Py_INCREF( Py_None );
-            return Py_None;
+            os << " Symbol: " << symbol;
         }
+
+        SPDLOG_ERROR( os.str() );
+
+        Py_INCREF( Py_None );
+        return Py_None;
     }
 }
 

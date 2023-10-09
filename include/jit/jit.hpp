@@ -62,7 +62,8 @@ public:
     virtual InvocationTypeInfo compileInvocationFunction( void* pLLVMCompiler, const char* pszUnitName,
                                                           const InvocationID& invocationID,
                                                           void**              ppFunction ) override;
-    virtual void               getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
+
+    virtual void getProgramFunction( void* pLLVMCompiler, int functionType, void** ppFunction ) override;
     virtual void getInvocationFunction( void* pLLVMCompiler, const char* pszUnitName, const InvocationID& invocationID,
                                         int functionType, void** ppFunction ) override;
     virtual void getObjectFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID typeID, int functionType,
@@ -77,6 +78,8 @@ public:
 private:
     Relation::Ptr getRelation( const CodeGenerator::LLVMCompiler& compiler, const RelationID& relationID );
     Program::Ptr  getProgram( const CodeGenerator::LLVMCompiler& compiler );
+
+    std::string getReturnTypeMangleType( FinalStage::Operations::ReturnTypes::ReturnType* pType, const mega::InvocationID& invocationID );
 
     JITCompiler::Module::Ptr compile( const std::string& strCode );
 

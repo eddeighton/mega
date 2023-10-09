@@ -55,7 +55,7 @@ def dump( ref ):
     print( ref.dump() )
 
 
-asyncio.create_task(run_megastructure())
+asyncio.create_task( run_megastructure() )
 
 print( "CFG_TUPLE: {}".format( CFG_TUPLE ) )
 print( "cwd: {}".format( os.getcwd() ) )

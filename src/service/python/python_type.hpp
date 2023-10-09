@@ -38,28 +38,30 @@ class TypeSystem;
 class Type
 {
 public:
-    using Ptr            = std::shared_ptr< Type >;
-    using SymbolTable    = std::unordered_map< std::string, TypeID >;
-    using SymbolTablePtr = std::shared_ptr< SymbolTable >;
-    using ObjectTypeSet  = std::set< mega::TypeID::SubValueType >;
+    using Ptr                   = std::shared_ptr< Type >;
+    using SymbolTable           = std::unordered_map< std::string, TypeID >;
+    using SymbolTablePtr        = std::shared_ptr< SymbolTable >;
+    using ConcreteObjectTypeSet = std::set< mega::TypeID::SubValueType >;
+    using TypeIDVector          = std::vector< mega::TypeID >;
 
     Type( PythonModule& module, TypeSystem& typeSystem, SymbolTablePtr pSymbolTable, SymbolTablePtr pLinkTable,
-          ObjectTypeSet&& objectTypes );
+          ConcreteObjectTypeSet&& concreteObjects );
     ~Type();
 
     PyObject* createReference( const mega::reference& ref );
-    PyObject* createReference( const mega::reference& ref, const std::vector< mega::TypeID >& typePath,
-                               const char* symbol );
+    PyObject* createReference( const mega::reference& ref, const TypeIDVector& typePath, const char* symbol );
 
     static reference                        cast( PyObject* pObject );
     static std::optional< mega::reference > tryCast( PyObject* pObject );
 
 private:
+    static TypeIDVector append( const TypeIDVector& from, mega::TypeID next );
+
     PythonModule&              m_module;
     TypeSystem&                m_typeSystem;
     SymbolTablePtr             m_pSymbolTable;
     SymbolTablePtr             m_pLinkTable;
-    ObjectTypeSet              m_objectTypes;
+    ConcreteObjectTypeSet      m_concreteObjectTypes;
     std::vector< PyGetSetDef > m_pythonAttributesData;
     PyTypeObject*              m_pTypeObject;
 };
