@@ -41,20 +41,36 @@
 
 #include <sstream>
 
-mega::service::python::PythonModule::Ptr getModule()
+namespace mega::service::python
 {
-    static mega::service::python::PythonModule::Ptr g_pPythonModule;
+
+PythonModule::Ptr getModule()
+{
+    static PythonModule::Ptr g_pPythonModule;
     if( !g_pPythonModule )
     {
-        g_pPythonModule = std::make_shared< mega::service::python::PythonModule >(
-            mega::network::MegaDaemonPort(), "info", "trace" );
+        g_pPythonModule = std::make_shared< PythonModule >( mega::network::MegaDaemonPort(), "info", "trace" );
     }
     return g_pPythonModule;
 }
 
+struct CasterImpl : IPythonModuleCast
+{
+    PyObject* cast( const mega::reference& ref ) override { return getModule()->getTypeSystem().cast( ref ); }
+} g_casterImpl;
+
+PyObject* cast( const mega::reference& ref )
+{
+    return getModule()->getTypeSystem().cast( ref );
+}
+
+} // namespace mega::service::python
+
 PYBIND11_MODULE( megastructure, pythonModule )
 {
     using namespace mega::service::python;
+
+    // pybind11::set_shared_data( "megastructure_shared", &g_casterImpl );
 
     mega::service::python::PythonModule::Ptr pMegaModule = getModule();
     const TypeSystem&                        typeSystem  = pMegaModule->getTypeSystem();
@@ -451,10 +467,10 @@ PythonReference::PythonWrapperFunction PythonModule::getPythonFunctionWrapper( T
 
     PythonModule::WrapperInfo& wrapperInfo = iFind->second;
     mega::runtime::JITFunctor  functor(
-        [ &interfaceTypeID, &wrapperInfo ]( mega::runtime::JITBase& jit, void* )
+        [ &interfaceTypeID, &wrapperInfo, pCaster = &g_casterImpl ]( mega::runtime::JITBase& jit, void* )
         {
             void** ppFunction = reinterpret_cast< void** >( &wrapperInfo.pFunctionPtr );
-            jit.getPythonFunction( interfaceTypeID, ppFunction );
+            jit.getPythonFunction( interfaceTypeID, ppFunction, pCaster );
         } );
 
     pythonRequest().PythonExecuteJIT( functor );

@@ -28,6 +28,27 @@
 #include "service/python/python_reference.hpp"
 #include "service/python/python_cast.hpp"
 
+{% if define_setPythonCaster %}
+namespace mega::service::python
+{
+    static IPythonModuleCast* g_pIPythonModuleCast = nullptr;
+
+    void setPythonCaster( void* pPythonCaster )
+    {
+        g_pIPythonModuleCast = (IPythonModuleCast*)pPythonCaster;
+    }
+
+    PyObject* cast( const mega::reference& ref )
+    {
+        if( !g_pIPythonModuleCast )
+        {
+            throw std::runtime_error( "g_pIPythonModuleCast not initialised" );
+        }
+        return g_pIPythonModuleCast->cast( ref );
+    }
+}
+BOOST_DLL_ALIAS( mega::service::python::setPythonCaster, _{{ component_name }}_setPythonCaster )
+{% endif %}
 
 {% for operation in operations %}
 

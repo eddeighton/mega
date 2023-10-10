@@ -51,9 +51,6 @@ public:
     PyObject* createReference( const mega::reference& ref );
     PyObject* createReference( const mega::reference& ref, const TypeIDVector& typePath, const char* symbol );
 
-    static reference                        cast( PyObject* pObject );
-    static std::optional< mega::reference > tryCast( PyObject* pObject );
-
 private:
     static TypeIDVector append( const TypeIDVector& from, mega::TypeID next );
 

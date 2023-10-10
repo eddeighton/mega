@@ -18,9 +18,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "service/python/python_reference.hpp"
+#include "service/python/python_cast.hpp"
 #include "service/python/python_type.hpp"
 #include "service/python/python_type_system.hpp"
-#include "service/python/python_reference.hpp"
 
 #include "service/network/log.hpp"
 
@@ -29,17 +30,6 @@ namespace mega::service::python
 
 namespace
 {
-
-typedef struct
-{
-    PyObject_HEAD PythonReference* pReference;
-} PythonReferenceData;
-
-PythonReference* fromPyObject( PyObject* pPyObject )
-{
-    PythonReferenceData* pLogicalObject = ( PythonReferenceData* )pPyObject;
-    return pLogicalObject->pReference;
-}
 
 void type_dealloc( PyObject* pPyObject )
 {
@@ -280,29 +270,4 @@ PyObject* Type::createReference( const reference& ref, const Type::TypeIDVector&
         return Py_None;
     }
 }
-
-reference Type::cast( PyObject* pObject )
-{
-    if( PythonReference* pRef = fromPyObject( pObject ) )
-    {
-        return pRef->getReference();
-    }
-    else
-    {
-        return {};
-    }
-}
-
-std::optional< reference > Type::tryCast( PyObject* pObject )
-{
-    if( PythonReference* pRef = fromPyObject( pObject ) )
-    {
-        return pRef->getReference();
-    }
-    else
-    {
-        return {};
-    }
-}
-
 } // namespace mega::service::python

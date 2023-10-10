@@ -45,36 +45,8 @@ Quat = mega.Quat
 
 Type = mega.Type
 
-_continue = True
-
-async def run_megastructure():
-    global _continue
-    while _continue:
-        megastructure.run_one()
-        await asyncio.sleep(0.1)
-
 def dump( ref ):
     print( ref.dump() )
 
-
-asyncio.create_task( run_megastructure() )
-
 print( "CFG_TUPLE: {}".format( CFG_TUPLE ) )
 print( "cwd: {}".format( os.getcwd() ) )
-
-def createMPOOnProcess( process ):
-    p = mega.getProcess( process )
-    m = p.createMPO()
-    return m
-
-def test():
-    
-    r = mega.getMPO().getRoot()
-    t = mega.new( Type.Toaster )
-    dump( r )
-    dump( t )
-    
-def test2():
-    b = mega.new( Type.Brick )
-    print( b.test( 123 ) )
-    

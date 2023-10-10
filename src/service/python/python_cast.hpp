@@ -22,22 +22,53 @@
 #define GUARD_2023_September_14_python_cast
 
 #include "mega/reference.hpp"
-
 #include "service/python/python_reference.hpp"
 
 #include <pybind11/pybind11.h>
 
-#include <memory>
-
-template < typename T >
-concept IsReferenceType = std::is_base_of< mega::reference, T >::value;
+#include <optional>
 
 namespace mega::service::python
 {
-    class PythonModule;
-}
-extern std::shared_ptr< mega::service::python::PythonModule > getModule();
 
+typedef struct
+{
+    PyObject_HEAD PythonReference* pReference;
+} PythonReferenceData;
+
+inline PythonReference* fromPyObject( PyObject* pPyObject )
+{
+    PythonReferenceData* pLogicalObject = ( PythonReferenceData* )pPyObject;
+    return pLogicalObject->pReference;
+}
+
+inline const mega::reference& cast( PyObject* pObject )
+{
+    return fromPyObject( pObject )->getReference();
+}
+
+inline std::optional< reference > tryCast( PyObject* pObject )
+{
+    if( PythonReference* pRef = fromPyObject( pObject ) )
+    {
+        return pRef->getReference();
+    }
+    else
+    {
+        return {};
+    }
+}
+
+struct IPythonModuleCast
+{
+    virtual PyObject* cast( const mega::reference& ref ) = 0;
+};
+PyObject* cast( const mega::reference& ref );
+
+} // namespace mega::service::python
+
+template < typename T >
+concept IsReferenceType = std::is_base_of< mega::reference, T >::value;
 
 namespace PYBIND11_NAMESPACE
 {
@@ -67,7 +98,7 @@ public:
             return false;
 
         /* Now try to convert into a C++ int */
-        value = mega::service::python::PythonReference::cast( source );
+        value = mega::service::python::cast( source );
 
         /* Ensure return code was OK (to avoid out-of-range errors etc) */
         // return !( value != mega::reference{} && !PyErr_Occurred() );
@@ -83,7 +114,7 @@ public:
      */
     static handle cast( mega::reference src, return_value_policy /* policy */, handle /* parent */ )
     {
-        return mega::service::python::PythonReference::cast( *getModule(), src );
+        return mega::service::python::cast( src );
     }
 };
 
@@ -111,7 +142,7 @@ public:
             return false;
 
         /* Now try to convert into a C++ int */
-        value = mega::service::python::PythonReference::cast( source );
+        value = mega::service::python::cast( source );
 
         /* Ensure return code was OK (to avoid out-of-range errors etc) */
         return !PyErr_Occurred();
@@ -126,11 +157,11 @@ public:
      */
     static handle cast( TReferenceType src, return_value_policy /* policy */, handle /* parent */ )
     {
-        return mega::service::python::PythonReference::cast( *getModule(), src );
+        return mega::service::python::cast( src );
     }
 };
 
 } // namespace detail
 } // namespace PYBIND11_NAMESPACE
 
-#endif //GUARD_2023_September_14_python_cast
+#endif // GUARD_2023_September_14_python_cast

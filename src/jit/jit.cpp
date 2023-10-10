@@ -626,13 +626,13 @@ void JIT::getActionFunction( mega::TypeID concreteTypeID, void** ppFunction, Act
     actionInfo.type = ActionInfo::eAction;
 }
 
-void JIT::getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction )
+void JIT::getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction, void* pPythonCaster )
 {
     SPDLOG_TRACE( "JIT::getPythonFunction : {}", interfaceTypeID );
 
     m_functionPointers.insert( ppFunction );
 
-    *ppFunction = ( void* )m_componentManager.getPythonFunctionPtr( interfaceTypeID );
+    *ppFunction = ( void* )m_componentManager.getPythonFunctionPtr( interfaceTypeID, pPythonCaster );
 }
 
 void JIT::getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int fType,

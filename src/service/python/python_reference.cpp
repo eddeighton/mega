@@ -20,6 +20,7 @@
 
 #include "python_reference.hpp"
 #include "python_type_system.hpp"
+#include "python_cast.hpp"
 
 #include "module.hpp"
 
@@ -67,21 +68,6 @@ PythonReference::PythonReference( PythonModule&          module,
 PyObject* PythonReference::get( void* pClosure )
 {
     return m_type.createReference( m_reference, m_type_path, reinterpret_cast< char* >( pClosure ) );
-}
-
-PyObject* PythonReference::cast( PythonModule& module, const mega::reference& ref )
-{
-    return module.getTypeSystem().cast( ref );
-}
-
-mega::reference PythonReference::cast( PyObject* pObject )
-{
-    return Type::cast( pObject );
-}
-
-std::optional< mega::reference > PythonReference::tryCast( PyObject* pObject )
-{
-    return Type::tryCast( pObject );
 }
 
 int PythonReference::set( void* pClosure, PyObject* pValue )
@@ -176,7 +162,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                                 functionInfo.pFunctionPtr );
                             result = pWriteFunction( m_reference, pArg );
                         } );
-                    return cast( m_module, result );
+                    return m_module.getTypeSystem().cast( result );
                 }
                 break;
                 case id_exp_Link_Read:
@@ -213,7 +199,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                             result = pFunction( m_reference, refArg );
                         } );
 
-                    return cast( m_module, result );
+                    return m_module.getTypeSystem().cast( result );
                 }
                 break;
                 case id_exp_Link_Remove:
@@ -234,7 +220,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                             result = pFunction( m_reference, refArg );
                         } );
 
-                    return cast( m_module, result );
+                    return m_module.getTypeSystem().cast( result );
                 }
                 break;
                 case id_exp_Link_Clear:
@@ -248,7 +234,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                             result = pFunction( m_reference );
                         } );
 
-                    return cast( m_module, result );
+                    return m_module.getTypeSystem().cast( result );
                 }
                 break;
                 case id_exp_Signal:
@@ -270,7 +256,8 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                         } );
 
                     // given the result can now obtain the corresponding python wrapper function
-                    auto pPythonWrapperFunction = m_module.getPythonFunctionWrapper( result.interfaceTypeID );
+                    auto pPythonWrapperFunction
+                        = m_module.getPythonFunctionWrapper( result.interfaceTypeID );
 
                     // execute the wrapper function in the MPO context passing in the CallResult and args
                     PyObject* pPyObject = nullptr;
@@ -293,7 +280,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                                 functionInfo.pFunctionPtr );
                             result = pStartFunction( m_reference );
                         } );
-                    return cast( m_module, result );
+                    return m_module.getTypeSystem().cast( result );
                 }
                 break;
                 case id_exp_GetContext:
@@ -306,7 +293,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
                                 functionInfo.pFunctionPtr );
                             result = pGetFunction( m_reference );
                         } );
-                    return cast( m_module, result );
+                    return m_module.getTypeSystem().cast( result );
                 }
                 break;
                 case id_exp_Move:

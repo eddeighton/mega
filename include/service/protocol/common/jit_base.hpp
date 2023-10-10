@@ -65,7 +65,7 @@ public:
         Type type;
     };
     virtual void getActionFunction( mega::TypeID concreteTypeID, void** ppFunction, ActionInfo& actionInfo ) = 0;
-    virtual void getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction )                        = 0;
+    virtual void getPythonFunction( mega::TypeID interfaceTypeID, void** ppFunction, void* pPythonCaster )   = 0;
 
     virtual void getOperatorFunction( void* pLLVMCompiler, const char* pszUnitName, TypeID target, int functionType,
                                       void** ppFunction )

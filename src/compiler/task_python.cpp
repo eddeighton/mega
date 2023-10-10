@@ -65,7 +65,7 @@ class Task_PythonWrapper : public BaseTask
         {
         }
 
-        void renderOperations( const nlohmann::json& data, std::ostream& os ) const
+        void renderPythonWrappers( const nlohmann::json& data, std::ostream& os ) const
         {
             m_injaEnvironment.render_to( os, m_pythonWrapperTemplate, data );
         }
@@ -203,6 +203,10 @@ public:
 
             Database database( m_environment, m_sourceFilePath );
 
+            auto pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
+
+            const bool bFirst = m_sourceFilePath == pComponent->get_mega_source_files().front();
+
             std::ostringstream os;
             {
                 ::inja::Environment injaEnvironment;
@@ -211,7 +215,9 @@ public:
                 }
                 TemplateEngine templateEngine( m_environment, injaEnvironment );
 
-                nlohmann::json data( { { "operations", nlohmann::json::array() },
+                nlohmann::json data( { { "component_name", pComponent->get_name() },
+                                       { "define_setPythonCaster", bFirst },
+                                       { "operations", nlohmann::json::array() },
                                        { "include", m_environment.FilePath( includeFilePath ).string() } } );
 
                 Interface::Root*      pRoot = database.one< Interface::Root >( m_sourceFilePath );
@@ -221,7 +227,7 @@ public:
                     recurse( pContext, data, namespaces, types );
                 }
 
-                templateEngine.renderOperations( data, os );
+                templateEngine.renderPythonWrappers( data, os );
             }
             std::string strOperations = os.str();
             mega::utilities::clang_format( strOperations, std::optional< boost::filesystem::path >() );

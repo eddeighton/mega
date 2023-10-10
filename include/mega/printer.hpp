@@ -50,13 +50,19 @@ class LogicalTreePrinter
         return std::string( iFind.base(), s.end() );
     }
 
+    void line( std::ostream& os, const char* pszMetaType, const char* pszType, const LogicalReference& ref )
+    {
+        using ::operator<<;
+        os << ref.typeInstance << indent << pszMetaType << ": " << lastType( pszType );
+    }
+
 public:
     LogicalTreePrinter( std::ostream& os ) : os( os ) {}
 
     void on_object_start( const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
-        os << indent << "obj: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        line( os, "obj", pszType, ref );
+        os << "\n";
         push();
     }
     void on_object_end( const char* pszType, const LogicalReference& ref )
@@ -65,8 +71,8 @@ public:
     }
     void on_component_start( const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
-        os << indent << "com: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        line( os, "com", pszType, ref );
+        os << "\n";
         push();
     }
     void on_component_end( const char* pszType, const LogicalReference& ref )
@@ -75,8 +81,8 @@ public:
     }
     void on_action_start( const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
-        os << indent << "act: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        line( os, "act", pszType, ref );
+        os << "\n";
         push();
     }
     void on_action_end( const char* pszType, const LogicalReference& ref )
@@ -85,8 +91,8 @@ public:
     }
     void on_state_start( const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
-        os << indent << "sta: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        line( os, "sta", pszType, ref );
+        os << "\n";
         push();
     }
     void on_state_end( const char* pszType, const LogicalReference& ref )
@@ -95,8 +101,8 @@ public:
     }
     void on_event_start( const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
-        os << indent << "eve: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        line( os, "eve", pszType, ref );
+        os << "\n";
         push();
     }
     void on_event_end( const char* pszType, const LogicalReference& ref )
@@ -105,8 +111,8 @@ public:
     }
     void on_link_start( const char* pszType, const LogicalReference& ref, bool bOwning, bool bOwned )
     {
-        using ::operator<<;
-        os << indent << "lin: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        line( os, "lin", pszType, ref );
+        os << "\n";
         push();
     }
     void on_link_end( const char* pszType, const LogicalReference& ref, bool bOwning, bool bOwned )
@@ -115,23 +121,24 @@ public:
     }
     void on_interupt( const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
-        os << indent << "int: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        line( os, "int", pszType, ref );
+        os << "\n";
     }
     void on_function( const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
-        os << indent << "fun: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        line( os, "fun", pszType, ref );
+        os << "\n";
     }
     void on_namespace( const char* pszType, const LogicalReference& ref )
     {
-        using ::operator<<;
-        os << indent << "nam: " << lastType( pszType ) << " " << ref.typeInstance << std::endl;
+        line( os, "nam", pszType, ref );
+        os << "\n";
     }
     void on_dimension( const char* pszType, const LogicalReference& ref, const mega::Any& value )
     {
         using ::operator<<;
-        os << indent << "dim: " << lastType( pszType ) << " " << ref.typeInstance << " " << value << std::endl;
+        line( os, "dim", pszType, ref );
+        os << " " << value << "\n";
     }
 };
 }

@@ -52,11 +52,7 @@ public:
     PyObject* dump() const;
     PyObject* call( PyObject* args, PyObject* kwargs );
 
-    const mega::reference getReference() const { return m_reference; }
-
-    static PyObject*                        cast( PythonModule& module, const mega::reference& ref );
-    static mega::reference                  cast( PyObject* pObject );
-    static std::optional< mega::reference > tryCast( PyObject* pObject );
+    inline const mega::reference& getReference() const { return m_reference; }
 
 private:
     PythonModule&   m_module;

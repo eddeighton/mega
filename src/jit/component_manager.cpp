@@ -30,6 +30,8 @@
 #include <boost/dll/shared_library.hpp>
 #include <boost/filesystem/operations.hpp>
 
+#include <boost/function.hpp>
+
 #include <cstddef>
 
 namespace mega::runtime
@@ -88,6 +90,19 @@ ComponentManager::InterfaceComponent::InterfaceComponent( const ComponentPath&  
     }
 }
 
+void ComponentManager::InterfaceComponent::setPythonCaster( const std::string& strComponentName,
+                                                            void*              pInterface ) const
+{
+    std::ostringstream osCasterSymbol;
+    osCasterSymbol << '_' << strComponentName << "_setPythonCaster";
+
+    typedef void( CasterFunctionPtr )( void* );
+    boost::function< CasterFunctionPtr > pFunction = m_library.get_alias< CasterFunctionPtr >( osCasterSymbol.str() );
+
+    VERIFY_RTE_MSG( pFunction, "Failed to resolve component python caster" );
+    pFunction( pInterface );
+}
+
 ComponentManager::ComponentManager( const mega::Project& project, JITDatabase& database )
     : m_project( project )
     , m_database( database )
@@ -97,7 +112,6 @@ ComponentManager::ComponentManager( const mega::Project& project, JITDatabase& d
 TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID interfaceTypeID )
 {
     SPDLOG_TRACE( "RUNTIME: ComponentManager getOperationFunctionPtr : {}", interfaceTypeID );
-
 
     {
         auto iFind = m_functions.find( interfaceTypeID );
@@ -132,7 +146,7 @@ TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID inter
     THROW_RTE( "Failed to locate symbol: " << interfaceTypeID );
 }
 
-TypeErasedFunction ComponentManager::getPythonFunctionPtr( mega::TypeID interfaceTypeID )
+TypeErasedFunction ComponentManager::getPythonFunctionPtr( mega::TypeID interfaceTypeID, void* pPythonCaster )
 {
     SPDLOG_TRACE( "RUNTIME: ComponentManager getPythonFunctionPtr : {}", interfaceTypeID );
 
@@ -157,6 +171,9 @@ TypeErasedFunction ComponentManager::getPythonFunctionPtr( mega::TypeID interfac
             InterfaceComponent::Ptr pComponent
                 = std::make_shared< InterfaceComponent >( componentPath, m_pythonFunctions );
             m_pythonComponents.insert( { componentPath, pComponent } );
+
+            // configure the python caster interface
+            pComponent->setPythonCaster( pDBComponent->get_name(), pPythonCaster );
         }
     }
 

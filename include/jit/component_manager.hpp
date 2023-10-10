@@ -53,6 +53,7 @@ class JIT_EXPORT ComponentManager
         static ComponentPath makeTempComponent( const ComponentPath& path );
         InterfaceComponent( const ComponentPath& path, FunctionPtrMap& functions );
 
+        void setPythonCaster( const std::string& strComponentName, void* pInterface ) const;
         const ComponentPath& getPath() const { return m_path; }
 
     private:
@@ -70,17 +71,17 @@ public:
     ComponentManager( const mega::Project& project, JITDatabase& database );
 
     TypeErasedFunction getOperationFunctionPtr( mega::TypeID interfaceTypeID );
-    TypeErasedFunction getPythonFunctionPtr( mega::TypeID interfaceTypeID );
+    TypeErasedFunction getPythonFunctionPtr( mega::TypeID interfaceTypeID, void* pPythonCaster );
 
 private:
     void loadComponent() {}
 
-    const mega::Project& m_project;
-    JITDatabase&             m_database;
-    InterfaceComponentMap         m_interfaceComponents;
-    FunctionPtrMap                m_functions;
-    InterfaceComponentMap         m_pythonComponents;
-    FunctionPtrMap                m_pythonFunctions;
+    const mega::Project&  m_project;
+    JITDatabase&          m_database;
+    InterfaceComponentMap m_interfaceComponents;
+    FunctionPtrMap        m_functions;
+    InterfaceComponentMap m_pythonComponents;
+    FunctionPtrMap        m_pythonFunctions;
 };
 
 } // namespace mega::runtime
