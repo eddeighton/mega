@@ -332,7 +332,7 @@ void PythonModule::operatorDelete( mega::reference ref )
     const mega::TypeID interfaceTypeID = getInterfaceTypeID( ref.getType() );
 
     auto pDeleteFunction = ( mega::runtime::operators::Delete::FunctionPtr )getOperator(
-        OperatorFunction{ mega::runtime::operators::eDelete, TypeID::make_object_from_objectID( interfaceTypeID ) } );
+        OperatorFunction{ mega::runtime::operators::eDelete, TypeID::make_object_from_typeID( interfaceTypeID ) } );
 
     invoke( [ &pDeleteFunction, &ref ]() { pDeleteFunction( ref ); } );
 }
