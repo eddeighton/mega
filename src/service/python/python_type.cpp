@@ -133,7 +133,7 @@ Type::Type( PythonModule& module, TypeSystem& typeSystem, Type::SymbolTablePtr p
     , m_pLinkTable( pLinkTable )
     , m_concreteObjectTypes( std::move( concreteObjects ) )
 {
-    for( const auto& operationSymbol : mega::getOperationStrings() )
+    for( const auto& operationSymbol : getOperationStrings() )
     {
         char*       pszNonConst = const_cast< char* >( operationSymbol.c_str() );
         PyGetSetDef data = { pszNonConst, ( getter )type_get, ( setter )type_set, pszNonConst, ( void* )pszNonConst };
@@ -200,7 +200,7 @@ Type::~Type()
     }
 }
 
-PyObject* Type::createReference( const mega::reference& ref )
+PyObject* Type::createReference( const reference& ref )
 {
     PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, m_pTypeObject );
     PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, m_pTypeObject );
@@ -209,7 +209,7 @@ PyObject* Type::createReference( const mega::reference& ref )
     return pPythonObject;
 }
 
-inline Type::TypeIDVector Type::append( const Type::TypeIDVector& from, mega::TypeID next )
+inline Type::TypeIDVector Type::append( const Type::TypeIDVector& from, TypeID next )
 {
     TypeIDVector newTypePath;
     {
@@ -220,9 +220,19 @@ inline Type::TypeIDVector Type::append( const Type::TypeIDVector& from, mega::Ty
     return newTypePath;
 }
 
-PyObject* Type::createReference( const mega::reference& ref, const Type::TypeIDVector& typePath, const char* symbol )
+PyObject* Type::createReference( const reference& ref, const Type::TypeIDVector& typePath, const char* symbol )
 {
-    if( auto iFind = m_pLinkTable->find( symbol ); iFind != m_pLinkTable->end() )
+    const OperationID opID = getOperationName( symbol );
+    if( opID != mega::HIGHEST_OPERATION_TYPE )
+    {
+        const TypeIDVector   newTypePath   = append( typePath, TypeID( opID ) );
+        PythonReferenceData* pRootObject   = PyObject_New( PythonReferenceData, m_pTypeObject );
+        PyObject*            pPythonObject = PyObject_Init( ( PyObject* )pRootObject, m_pTypeObject );
+        pRootObject->pReference            = new PythonReference( m_module, *this, ref, newTypePath );
+        Py_INCREF( pPythonObject );
+        return pPythonObject;
+    }
+    else if( auto iFind = m_pLinkTable->find( symbol ); iFind != m_pLinkTable->end() )
     {
         const TypeIDVector   newTypePath   = append( typePath, iFind->second );
         Type::Ptr            pLinkType     = m_typeSystem.getLinkType( ref.getType().getObjectID(), iFind->second );
@@ -271,7 +281,7 @@ PyObject* Type::createReference( const mega::reference& ref, const Type::TypeIDV
     }
 }
 
-mega::reference Type::cast( PyObject* pObject )
+reference Type::cast( PyObject* pObject )
 {
     if( PythonReference* pRef = fromPyObject( pObject ) )
     {
@@ -283,7 +293,7 @@ mega::reference Type::cast( PyObject* pObject )
     }
 }
 
-std::optional< mega::reference > Type::tryCast( PyObject* pObject )
+std::optional< reference > Type::tryCast( PyObject* pObject )
 {
     if( PythonReference* pRef = fromPyObject( pObject ) )
     {

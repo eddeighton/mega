@@ -66,3 +66,8 @@ def createMPOOnProcess( process ):
     p = mega.getProcess( process )
     m = p.createMPO()
     return m
+
+def test():
+    
+    r = mega.getMPO().getRoot()
+    t = mega.new( Type.Toaster )

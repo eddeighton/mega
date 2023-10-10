@@ -458,26 +458,27 @@ void fromInvocationID( const SymbolTables& symbolTables, const mega::InvocationI
         std::vector< Concrete::Graph::Vertex* > pathElement;
 
         std::optional< TypeID > actualSymbolID;
+        {
+            if( isOperationType( symbolID ) )
+            {
+                VERIFY_RTE_MSG( !operationIDOpt.has_value(), "Operation ID defined twice" );
+                operationIDOpt = static_cast< mega::OperationID >( symbolID.getSymbolID() );
+            }
+            else if( symbolID.isContextID() )
+            {
+                // NOTE: Always convert any interface type id BACK to its symbol ID
+                auto iFind = symbolTables.interfaceIDMap.find( symbolID );
+                VERIFY_RTE( iFind != symbolTables.interfaceIDMap.end() );
+                auto pInterfaceSymbol = iFind->second;
 
-        if( isOperationType( symbolID ) )
-        {
-            VERIFY_RTE_MSG( !operationIDOpt.has_value(), "Operation ID defined twice" );
-            operationIDOpt = static_cast< mega::OperationID >( symbolID.getSymbolID() );
-        }
-        else if( symbolID.isContextID() )
-        {
-            // NOTE: Always convert any interface type id BACK to its symbol ID
-            auto iFind = symbolTables.interfaceIDMap.find( symbolID );
-            VERIFY_RTE( iFind != symbolTables.interfaceIDMap.end() );
-            auto pInterfaceSymbol = iFind->second;
-
-            const auto& typeIDSequence = pInterfaceSymbol->get_symbol_ids();
-            VERIFY_RTE( !typeIDSequence.empty() );
-            actualSymbolID = typeIDSequence.back();
-        }
-        else if( symbolID.isSymbolID() )
-        {
-            actualSymbolID = symbolID;
+                const auto& typeIDSequence = pInterfaceSymbol->get_symbol_ids();
+                VERIFY_RTE( !typeIDSequence.empty() );
+                actualSymbolID = typeIDSequence.back();
+            }
+            else if( symbolID.isSymbolID() )
+            {
+                actualSymbolID = symbolID;
+            }
         }
 
         if( actualSymbolID.has_value() )
