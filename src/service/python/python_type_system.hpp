@@ -69,10 +69,12 @@ public:
 
     TypeSystem( PythonModule& module, const Project& project );
 
+    using ObjectTypesMap = std::map< std::string, TypeID::SubValueType >;
+    ObjectTypesMap getObjectTypes() const;
+
     void reload( const Project& project );
 
     Type::Ptr getLinkType( TypeID::SubValueType concreteObjectID, TypeID typeID );
-
     PyObject* cast( const mega::reference& ref );
 
 private:

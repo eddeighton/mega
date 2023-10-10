@@ -20,6 +20,8 @@
 
 #include "request.hpp"
 
+#include "mpo_logical_thread.hpp"
+
 #include "service/network/log.hpp"
 
 namespace mega::service::python
@@ -60,7 +62,47 @@ PythonRequestLogicalThread::getPythonRequest( boost::asio::yield_context& yield_
 network::Message PythonRequestLogicalThread::RootAllBroadcast( const network::Message&     request,
                                                               boost::asio::yield_context& yield_ctx )
 {
-    return dispatchInBoundRequest( request, yield_ctx );
+
+    // dispatch to the python MPO conversation
+    SPDLOG_TRACE( "PythonRequestLogicalThread::RootAllBroadcast" );
+    std::vector< network::Message > responses;
+    {
+        for( auto pThread : m_python.getLogicalThreads() )
+        {
+            if( std::dynamic_pointer_cast< MPOLogicalThread >( pThread ) )
+            {
+                if( pThread->getID() != getID() )
+                {
+                    switch( request.getID() )
+                    {
+                        case network::status::MSG_GetStatus_Request::ID:
+                        {
+                            SPDLOG_TRACE(
+                                "PythonRequestLogicalThread::RootAllBroadcast to logical thread: {}", pThread->getID() );
+                            auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
+                            network::status::Request_Sender rq( *this, pThread, yield_ctx );
+                            const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
+                                request.getLogicalThreadID(),
+                                network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) } );
+                            responses.push_back( responseWrapper );
+                        }
+                        break;
+                        default:
+                        {
+                            THROW_RTE( "Unsupported RootAllBroadcast request type" );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    SPDLOG_TRACE( "PythonRequestLogicalThread::RootAllBroadcast got: {} responses", responses.size() );
+
+    network::Message aggregateRequest = std::move( request );
+    network::aggregate( aggregateRequest, responses );
+
+    return dispatchInBoundRequest( aggregateRequest, yield_ctx );
 }
 
 network::Message PythonRequestLogicalThread::PythonRoot( const network::Message&     request,

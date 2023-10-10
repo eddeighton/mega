@@ -32,8 +32,14 @@ TypeSystem::TypeSystem( PythonModule& module, const Project& project )
 {
 }
 
+TypeSystem::ObjectTypesMap TypeSystem::getObjectTypes() const
+{
+    return m_pDatabase->getObjectTypes();
+}
+
 void TypeSystem::reload( const Project& project )
 {
+    THROW_TODO;
     m_pDatabase.reset();
     m_pDatabase = std::make_unique< runtime::PythonDatabase >( project.getProjectDatabase() );
 }

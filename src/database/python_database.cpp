@@ -73,8 +73,28 @@ PythonDatabase::PythonDatabase( const boost::filesystem::path& projectDatabasePa
     , m_database( m_environment, m_manifest.getManifestFilePath() )
     , m_pSymbolTable( m_database.one< FinalStage::Symbols::SymbolTable >( m_manifest.getManifestFilePath() ) )
     , m_symbolTypeIDs( m_pSymbolTable->get_symbol_type_ids() )
+    , m_interfaceTypeIDs( m_pSymbolTable->get_interface_type_ids() )
     , m_concreteTypeIDs( m_pSymbolTable->get_concrete_type_ids() )
 {
+    
+}
+
+PythonDatabase::ObjectTypesMap PythonDatabase::getObjectTypes()
+{
+    ObjectTypesMap result;
+
+    for( const auto& [ typeID, pInterfaceTypeID ] : m_interfaceTypeIDs )
+    {
+        if( auto contextOpt = pInterfaceTypeID->get_context(); contextOpt.has_value() )
+        {
+            auto pContext = contextOpt.value();
+            if( db_cast< FinalStage::Interface::Object >( pContext ) )
+            {
+                result.insert( { pContext->get_identifier(), typeID.getObjectID() } );
+            }
+        }
+    }
+    return result;
 }
 
 void PythonDatabase::getConcreteObjectSymbols( TypeID::SubValueType objectConcreteID, SymbolTable& symbols,

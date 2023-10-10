@@ -43,6 +43,8 @@ F3 = mega.F3
 F4 = mega.F4
 Quat = mega.Quat
 
+Type = mega.Type
+
 _continue = True
 
 async def run_megastructure():

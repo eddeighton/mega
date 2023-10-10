@@ -125,8 +125,11 @@ reference MPOContext::allocate( TypeID objectTypeID )
 {
     using ::operator<<;
 
+    VERIFY_RTE_MSG( m_pMemoryManager, "Memory manager not instantiated" );
+
     reference allocated = m_pMemoryManager->New( objectTypeID );
-    m_pLog->record( mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+    m_pLog->record(
+        mega::log::Structure::Write( allocated, allocated.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
 
     return allocated;
 }
@@ -268,7 +271,8 @@ void MPOContext::createRoot( const Project& project, const mega::MPO& mpo )
     m_root = m_pMemoryManager->New( ROOT_TYPE_ID );
     VERIFY_RTE_MSG( m_root.valid(), "Root allocation failed" );
     SPDLOG_TRACE( "MPOContext::createRoot: root: {} net: {}", m_root.getObjectAddress(), m_root.getNetworkAddress() );
-    m_pLog->record( mega::log::Structure::Write( m_root, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
+    m_pLog->record(
+        mega::log::Structure::Write( m_root, m_root.getNetworkAddress(), 0, mega::log::Structure::eConstruct ) );
 }
 
 void MPOContext::jit( runtime::JITFunctor func )
@@ -310,8 +314,8 @@ void MPOContext::applyTransaction( const network::Transaction& transaction )
                 case log::Structure::eMove:
                 {
                     THROW_TODO;
-                    //m_movedObjects.insert( { structure.m_data.m_Target.getMPO(),
-                    //                         { structure.m_data.m_Source, structure.m_data.m_Target } } );
+                    // m_movedObjects.insert( { structure.m_data.m_Target.getMPO(),
+                    //                          { structure.m_data.m_Source, structure.m_data.m_Target } } );
                 }
                 break;
                 default:
@@ -366,7 +370,8 @@ void MPOContext::cycleComplete()
                 deleteRef = m_pMemoryManager->networkToHeap( deleteRef );
             }
             m_pMemoryManager->Delete( deleteRef );
-            m_pLog->record( mega::log::Structure::Write( deleteRef, deleteRef.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
+            m_pLog->record( mega::log::Structure::Write(
+                deleteRef, deleteRef.getNetworkAddress(), 0, mega::log::Structure::eDestruct ) );
         }
     }
 

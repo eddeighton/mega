@@ -51,7 +51,7 @@ Python::Python( boost::asio::io_context& io_context, short daemonPortNumber )
     , m_leaf( m_receiverChannel.getSender(), network::Node::Python, daemonPortNumber )
 {
     m_receiverChannel.run( m_leaf.getLeafSender() );
-    m_leaf.startup();
+    m_project = m_leaf.startup();
 }
 
 Python::~Python()
@@ -62,6 +62,11 @@ Python::~Python()
 void Python::shutdown()
 {
     // TODO ?
+}
+
+const std::optional< mega::Project >& Python::getProject() const 
+{ 
+    return m_project; 
 }
 
 network::LogicalThreadBase::Ptr Python::joinLogicalThread( const network::Message& msg )

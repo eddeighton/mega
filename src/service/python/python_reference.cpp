@@ -139,7 +139,7 @@ PyObject* PythonReference::call( PyObject* args, PyObject* kwargs )
 
             const mega::InvocationID invocationID{ { interfaceTypeID }, m_type_path, operationID };
 
-            const PythonModule::FunctionInfo& functionInfo = m_module.invoke( invocationID );
+            const PythonModule::InvocationInfo& functionInfo = m_module.invoke( invocationID );
 
             SPDLOG_TRACE( "PythonReference::call: {} {}", invocationID,
                           mega::getExplicitOperationString( functionInfo.typeInfo.operationType ) );

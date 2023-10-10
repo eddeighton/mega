@@ -55,7 +55,7 @@ public:
     Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short daemonPortNumber );
     ~Leaf();
 
-    void startup();
+    std::optional< Project > startup();
 
     // void shutdown();
     bool running() { return !m_io_context.stopped(); }

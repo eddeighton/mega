@@ -60,15 +60,15 @@ public:
     }
     void setMPO( MPO mpo ) { m_mpo = mpo; }
 
-    const std::optional< mega::Project >& getProject() const { return m_project; }
+    const std::optional< mega::Project >& getProject() const;
     void                                  setProject( const Project& project ) { m_project = project; }
 
 private:
-    boost::asio::io_context&       m_io_context;
-    network::ReceiverChannel       m_receiverChannel;
-    Leaf                           m_leaf;
-    std::optional< mega::MPO >     m_mpo;
-    std::optional< mega::Project > m_project;
+    boost::asio::io_context&               m_io_context;
+    network::ReceiverChannel               m_receiverChannel;
+    Leaf                                   m_leaf;
+    std::optional< mega::MPO >             m_mpo;
+    mutable std::optional< mega::Project > m_project;
 };
 } // namespace mega::service::python
 

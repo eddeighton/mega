@@ -31,7 +31,7 @@ namespace mega::service::python
 network::Status MPOLogicalThread::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                             boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "PythonRequestLogicalThread::GetStatus" );
+    SPDLOG_TRACE( "MPOLogicalThread::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
@@ -88,7 +88,6 @@ network::Status PythonRequestLogicalThread::GetStatus( const std::vector< networ
             }
         }
         status.setLogicalThreadID( logicalthreads );
-        status.setMPO( m_python.getMPO() );
         status.setDescription( m_python.getProcessName() );
     }
 

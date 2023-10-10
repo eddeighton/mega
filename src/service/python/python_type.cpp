@@ -133,6 +133,13 @@ Type::Type( PythonModule& module, TypeSystem& typeSystem, Type::SymbolTablePtr p
     , m_pLinkTable( pLinkTable )
     , m_concreteObjectTypes( std::move( concreteObjects ) )
 {
+    for( const auto& operationSymbol : mega::getOperationStrings() )
+    {
+        char*       pszNonConst = const_cast< char* >( operationSymbol.c_str() );
+        PyGetSetDef data = { pszNonConst, ( getter )type_get, ( setter )type_set, pszNonConst, ( void* )pszNonConst };
+        m_pythonAttributesData.push_back( data );
+    }
+
     for( const auto& [ id, _ ] : *m_pSymbolTable )
     {
         char*       pszNonConst = const_cast< char* >( id.c_str() );

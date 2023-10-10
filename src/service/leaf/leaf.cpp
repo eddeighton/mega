@@ -116,12 +116,14 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short da
     m_pSelfSender = m_receiverChannel.getSender();
 }
 
-void Leaf::startup()
+std::optional< Project > Leaf::startup()
 {
+    network::ConcurrentChannel completionChannel( m_io_context );
     std::promise< void > promise;
     std::future< void >  future = promise.get_future();
     logicalthreadInitiated( std::make_shared< LeafEnrole >( *this, promise ) );
     future.get();
+    return m_activeProject;
 }
 
 Leaf::~Leaf()

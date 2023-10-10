@@ -56,8 +56,31 @@ PYBIND11_MODULE( megastructure, pythonModule )
 {
     using namespace mega::service::python;
 
+    mega::service::python::PythonModule::Ptr pMegaModule = getModule();
+    const TypeSystem&                        typeSystem  = pMegaModule->getTypeSystem();
+
+    // add ALL object interface type IDs
+    auto pTypesModule = pythonModule.def_submodule( "Type" );
+    for( const auto& [ strName, id ] : typeSystem.getObjectTypes() )
+    {
+        pTypesModule.attr( strName.c_str() ) = id;
+    }
+
     pythonModule.doc() = "Python Module for Megastructure";
 
+    // operators
+    pythonModule.def(
+        "new", []( int interfaceTypeID ) { return getModule()->operatorNew( interfaceTypeID ); },
+        "Allocate a Megastructure Object" );
+    pythonModule.def(
+        "delete", []( mega::reference ref ) { getModule()->operatorDelete( ref ); },
+        "Disconnect a Megastructure Object" );
+    pythonModule.def(
+        "cast",
+        []( mega::reference ref, int interfaceTypeID ) { return getModule()->operatorCast( ref, interfaceTypeID ); },
+        "Attempt to case a Megastructure reference" );
+
+    // service
     pybind11::class_< PythonRoot >( pythonModule, "Root" )
         .def( "getMachines", &PythonRoot::getMachines, "Get all machines connected to the Root" );
 
@@ -86,6 +109,7 @@ PYBIND11_MODULE( megastructure, pythonModule )
         .def(
             "getThisMPO", []() { return getModule()->getMPO(); }, "Get the active MPO" );
 
+    // execution
     pythonModule.def(
         "run_one", [] { return getModule()->run_one(); }, "Run the Megastructure Message Queue for one message" );
 
@@ -93,6 +117,7 @@ PYBIND11_MODULE( megastructure, pythonModule )
         "cycle", [] { return getModule()->cycle(); },
         "Complete current cycle ( will commit all transactions to remote MPOs )" );
 
+    // maths
     using namespace boost::qvm;
     // clang-format off
 #define QVM_PYBIND11_OPERATORS( T ) \
@@ -238,6 +263,8 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
     : m_logConfig( pszConsoleLogLevel, pszFileLogLevel )
     , m_python( m_ioContext, daemonPort )
 {
+    SPDLOG_TRACE( "PythonModule::ctor" );
+
     {
         m_pExternalLogicalThread = std::make_shared< network::ExternalLogicalThread >(
             m_python, m_python.createLogicalThreadID(), m_ioContext );
@@ -248,7 +275,10 @@ PythonModule::PythonModule( short daemonPort, const char* pszConsoleLogLevel, co
         m_python.logicalthreadInitiated( m_mpoLogicalThread );
     }
 
-    SPDLOG_TRACE( "PythonModule::ctor" );
+    // initialise type system
+    const auto& project = m_python.getProject();
+    VERIFY_RTE_MSG( project.has_value(), "Could not find mega structure project" );
+    m_pTypeSystem = std::make_unique< TypeSystem >( *this, project.value() );
 }
 
 PythonModule::~PythonModule()
@@ -261,7 +291,96 @@ mega::TypeID PythonModule::getInterfaceTypeID( const mega::TypeID concreteTypeID
     return pythonRequest().PythonGetInterfaceTypeID( concreteTypeID );
 }
 
-const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID& invocationID )
+mega::reference PythonModule::operatorNew( int interfaceTypeID )
+{
+    SPDLOG_TRACE( "PythonModule::operatorNew: {}", interfaceTypeID );
+
+    auto pNewFunction = ( mega::runtime::operators::New::FunctionPtr )getOperator(
+        OperatorFunction{ mega::runtime::operators::eNew, TypeID::make_object_from_objectID( interfaceTypeID ) } );
+
+    mega::reference result;
+    invoke( [ &pNewFunction, &result ]() { result = pNewFunction(); } );
+    return result;
+}
+
+void PythonModule::operatorDelete( mega::reference ref )
+{
+    SPDLOG_TRACE( "PythonModule::operatorDelete: {}", ref );
+
+    const mega::TypeID interfaceTypeID = getInterfaceTypeID( ref.getType() );
+
+    auto pDeleteFunction = ( mega::runtime::operators::Delete::FunctionPtr )getOperator(
+        OperatorFunction{ mega::runtime::operators::eDelete, TypeID::make_object_from_objectID( interfaceTypeID ) } );
+
+    invoke( [ &pDeleteFunction, &ref ]() { pDeleteFunction( ref ); } );
+}
+
+mega::reference PythonModule::operatorCast( mega::reference ref, int interfaceTypeID )
+{
+    SPDLOG_TRACE( "PythonModule::operatorCast: {} {}", ref, interfaceTypeID );
+
+    auto pCastFunction = ( mega::runtime::operators::Cast::FunctionPtr )getOperator(
+        OperatorFunction{ mega::runtime::operators::eCast, TypeID::make_object_from_objectID( interfaceTypeID ) } );
+
+    mega::reference result;
+    invoke( [ &pCastFunction, &ref, &result ]() { result = pCastFunction( ref ); } );
+    return result;
+}
+
+void* PythonModule::getOperator( const OperatorFunction& operatorFunction )
+{
+    void** ppFunction = nullptr;
+    {
+        // attempt to acquire from cache
+        auto iFind = m_operatorTable.find( operatorFunction );
+        if( iFind != m_operatorTable.end() )
+        {
+            ppFunction = &iFind->second;
+        }
+        else
+        {
+            iFind      = m_operatorTable.insert( { operatorFunction, nullptr } ).first;
+            ppFunction = &iFind->second;
+        }
+    }
+
+    if( nullptr == *ppFunction )
+    {
+        std::optional< std::exception_ptr > exceptionPtrOpt;
+        mega::runtime::JITFunctor           functor(
+            [ &operatorFunction, &ppFunction, &exceptionPtrOpt ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
+            {
+                try
+                {
+                    jit.getOperatorFunction(
+                        pLLVMCompiler, "python", operatorFunction.second, operatorFunction.first, ppFunction );
+                }
+                catch( std::exception& )
+                {
+                    exceptionPtrOpt = std::current_exception();
+                }
+                catch( mega::runtime::JITException& )
+                {
+                    exceptionPtrOpt = std::current_exception();
+                }
+            } );
+
+        pythonRequest().PythonExecuteJIT( functor );
+        if( exceptionPtrOpt.has_value() )
+        {
+            std::ostringstream osError;
+            using ::           operator<<;
+            osError << "Exception compiling operator: " << operatorFunction.second;
+            SPDLOG_ERROR( "PythonModule::invoke rethrowing exception for invocation: {}", osError.str() );
+            std::rethrow_exception( exceptionPtrOpt.value() );
+        }
+    }
+
+    VERIFY_RTE_MSG( *ppFunction, "Failed to jit compile operator for interfaceTypeID: " << operatorFunction.second );
+    return *ppFunction;
+}
+
+const PythonModule::InvocationInfo& PythonModule::invoke( const mega::InvocationID& invocationID )
 {
     SPDLOG_TRACE( "PythonModule::invoke: {}", invocationID );
 
@@ -273,10 +392,10 @@ const PythonModule::FunctionInfo& PythonModule::invoke( const mega::InvocationID
     }
     else
     {
-        iFind = m_functionTable.insert( { invocationID, PythonModule::FunctionInfo{} } ).first;
+        iFind = m_functionTable.insert( { invocationID, PythonModule::InvocationInfo{} } ).first;
     }
 
-    PythonModule::FunctionInfo&         functionInfo = iFind->second;
+    PythonModule::InvocationInfo&       functionInfo = iFind->second;
     std::optional< std::exception_ptr > exceptionPtrOpt;
     mega::runtime::JITFunctor           functor(
         [ &invocationID, &functionInfo, &exceptionPtrOpt ]( mega::runtime::JITBase& jit, void* pLLVMCompiler )
@@ -365,17 +484,6 @@ TypeSystem& PythonModule::getTypeSystem()
 
 void PythonModule::run_one()
 {
-    if( const auto& project = m_python.getProject(); project.has_value() )
-    {
-        if( !m_pTypeSystem )
-        {
-            m_pTypeSystem = std::make_unique< TypeSystem >( *this, project.value() );
-        }
-        else
-        {
-            m_pTypeSystem->reload( project.value() );
-        }
-    }
     while( m_ioContext.poll_one() )
         ;
 }

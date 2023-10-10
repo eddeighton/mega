@@ -68,11 +68,12 @@ class PythonModule
     };
 
 public:
-    struct FunctionInfo
+    struct InvocationInfo
     {
         void*                                      pFunctionPtr = nullptr;
         mega::runtime::JITBase::InvocationTypeInfo typeInfo;
     };
+    using OperatorFunction = std::pair< mega::runtime::operators::FunctionType, mega::TypeID >;
 
     struct WrapperInfo
     {
@@ -90,9 +91,15 @@ public:
     PythonModule& operator=( const PythonModule& ) = delete;
     PythonModule& operator=( PythonModule&& )      = delete;
 
+    // operators
+    mega::reference operatorNew( int typeID );
+    void            operatorDelete( mega::reference ref );
+    mega::reference operatorCast( mega::reference ref, int typeID );
+
     // Python Dynamic Invocations
     mega::TypeID                           getInterfaceTypeID( const mega::TypeID concreteTypeID );
-    const FunctionInfo&                    invoke( const mega::InvocationID& invocationID );
+    const InvocationInfo&                  invoke( const mega::InvocationID& invocationID );
+    void*                                  getOperator( const OperatorFunction& operatorFunction );
     PythonReference::PythonWrapperFunction getPythonFunctionWrapper( TypeID interfaceTypeID );
 
     template < typename Functor >
@@ -169,7 +176,8 @@ public:
     TypeSystem&                       getTypeSystem();
 
 private:
-    using FunctionTable = std::map< mega::InvocationID, FunctionInfo >;
+    using FunctionTable = std::map< mega::InvocationID, InvocationInfo >;
+    using OperatorTable = std::map< OperatorFunction, void* >;
     using WrapperTable  = std::map< TypeID, WrapperInfo >;
 
     LogConfig                           m_logConfig;
@@ -177,6 +185,7 @@ private:
     Python                              m_python;
     network::ExternalLogicalThread::Ptr m_pExternalLogicalThread;
     network::LogicalThread::Ptr         m_mpoLogicalThread;
+    OperatorTable                       m_operatorTable;
     FunctionTable                       m_functionTable;
     WrapperTable                        m_wrapperTable;
     mega::mangle::PythonMangle          m_pythonMangle;
